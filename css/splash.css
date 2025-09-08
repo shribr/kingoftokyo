@@ -187,6 +187,37 @@
     filter: contrast(0.95) saturate(0.9) sepia(0.05);
 }
 
+/* Individual monster color backgrounds - solid colors without gradient */
+.polaroid-1 img {
+    /* Gigazaur - Forest Green */
+    background: rgba(34, 139, 34, 0.6);
+}
+
+.polaroid-2 img {
+    /* Cyber Bunny - Deep Pink */
+    background: rgba(255, 20, 147, 0.6);
+}
+
+.polaroid-3 img {
+    /* Kraken - Green */
+    background: rgba(0, 128, 0, 0.6);
+}
+
+.polaroid-4 img {
+    /* The King - Saddle Brown */
+    background: rgba(139, 69, 19, 0.6);
+}
+
+.polaroid-5 img {
+    /* Meka Dragon - Red */
+    background: rgba(255, 0, 0, 0.6);
+}
+
+.polaroid-6 img {
+    /* Alienoid - Lime Yellowish Green */
+    background: rgba(173, 255, 47, 0.6);
+}
+
 .polaroid-caption {
     position: absolute;
     bottom: 25px; /* Position in the larger bottom area */
