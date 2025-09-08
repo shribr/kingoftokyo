@@ -718,6 +718,18 @@
     z-index: 999999 !important; /* Absolute maximum z-index for content */
 }
 
+/* When decision modal is visible, force all other elements to have lower z-index */
+#decision-modal:not(.hidden) ~ * {
+    z-index: 1 !important;
+}
+
+/* Ensure active player container has very low z-index when decision modal is showing */
+#decision-modal:not(.hidden) ~ .active-player-container,
+#decision-modal:not(.hidden) ~ * .active-player-container,
+body:has(#decision-modal:not(.hidden)) .active-player-container {
+    z-index: 1 !important;
+}
+
 .decision-header {
     margin-bottom: 45px;
     border-bottom: 4px solid #000;

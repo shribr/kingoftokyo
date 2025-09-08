@@ -57,9 +57,9 @@ button {
 /* Header Notification (Non-blocking) */
 .header-notification {
     position: absolute;
-    top: 140px; /* Position below the header */
-    left: 50%;
-    transform: translateX(-50%) translateY(-10px);
+    top: 220px; /* Position under Tokyo bay tile (bay is at 70px + height) */
+    right: 750px; /* Position under Tokyo bay (bay is at right: 850px) */
+    transform: none; /* Remove centering transform */
     z-index: 1000; /* Ensure it appears above other elements */
     padding: 8px 20px;
     margin: 8px 0;
@@ -74,6 +74,8 @@ button {
     opacity: 0;
     transition: all 0.3s ease;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    min-width: 300px; /* Increased width to prevent text wrapping */
+    white-space: nowrap; /* Prevent text wrapping */
     
     /* Comic book halftone pattern */
     background-image: 
@@ -83,13 +85,13 @@ button {
 
 .header-notification.visible {
     opacity: 1;
-    transform: translateX(-50%) translateY(0);
+    transform: none; /* Remove centering transform */
 }
 
 .header-notification:hover {
     background: #ffffff; /* Keep white background on hover */
     color: #000; /* Keep plain black text on hover */
-    transform: translateX(-50%) translateY(-2px);
+    transform: translateY(-2px); /* Only move up slightly on hover */
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
 }
 

@@ -61,7 +61,7 @@
 
 /* Tokyo tiles positioning - Tokyo City prominent, Tokyo Bay in background */
 .tokyo-city {
-    left: 30%; /* Shifted left for more space */
+    left: 32%; /* Shifted left for more space */
     top: 25%;
     transform: translateX(-50%) scale(1.2) perspective(400px) rotateX(-1deg) rotateZ(1.5deg); /* Centered, larger and prominent */
     opacity: 1; /* Full opacity - prominent */
@@ -618,7 +618,7 @@
     position: fixed !important;
     top: 200px !important; /* Moved higher from 250px to avoid overlapping action menu */
     right: 500px !important; /* Moved left from 450px */
-    z-index: 10; /* Modest z-index to appear above game elements but below modals */
+    z-index: 5 !important; /* Lower z-index to ensure it never conflicts with modals */
     pointer-events: auto; /* Ensure it's clickable */
 }
 
@@ -644,7 +644,7 @@
 /* Active card hover effect is more pronounced */
 .player-dashboard.active:hover {
     transform: perspective(800px) rotateX(-2deg) rotateY(-0.5deg) rotateZ(0.25deg) translateY(-25px) scale(1.05);
-    z-index: 10 !important; /* Much lower z-index to stay well below dialogs/modals */
+    z-index: 6 !important; /* Even lower z-index to stay well below dialogs/modals */
     margin-bottom: 30px; /* Even more space for the active card when hovered */
     box-shadow: 
         8px 8px 0px #000,

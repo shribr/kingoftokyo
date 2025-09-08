@@ -1040,7 +1040,10 @@ class KingOfTokyoUI {
             const modal = document.querySelector('.power-cards-collection-modal');
             const closeBtn = modal.querySelector('.power-cards-close-btn');
             
-            closeBtn.addEventListener('click', () => this.closePowerCardsModal());
+            closeBtn.addEventListener('click', () => {
+                console.log('🔄 Power cards modal close button clicked!');
+                this.closePowerCardsModal();
+            });
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) this.closePowerCardsModal();
             });
@@ -1087,7 +1090,10 @@ class KingOfTokyoUI {
         const modal = document.getElementById('power-cards-modal');
         const closeBtn = modal.querySelector('.power-cards-close-btn');
         
-        closeBtn.addEventListener('click', () => this.closePowerCardsModal());
+        closeBtn.addEventListener('click', () => {
+            console.log('🔄 Power cards modal close button clicked! (second modal)');
+            this.closePowerCardsModal();
+        });
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 this.closePowerCardsModal();
@@ -1117,9 +1123,13 @@ class KingOfTokyoUI {
 
     // Close power cards collection modal
     closePowerCardsModal() {
+        console.log('🔄 closePowerCardsModal called!');
         const modal = document.getElementById('power-cards-modal');
         if (modal) {
+            console.log('🔄 Modal found, removing it');
             modal.remove();
+        } else {
+            console.log('🔄 Modal not found!');
         }
     }
 
@@ -2068,25 +2078,72 @@ class KingOfTokyoUI {
             this.elements.decisionOption1.onclick = null;
             this.elements.decisionOption2.onclick = null;
             
-            // Add event listeners
-            this.elements.decisionOption1.onclick = () => {
+            // Remove old event listeners if they exist
+            const oldHandlers = this.elements.decisionOption1.getAttribute('data-handlers-attached');
+            if (oldHandlers) {
+                // Clone and replace to remove all event listeners
+                const newBtn1 = this.elements.decisionOption1.cloneNode(true);
+                const newBtn2 = this.elements.decisionOption2.cloneNode(true);
+                this.elements.decisionOption1.parentNode.replaceChild(newBtn1, this.elements.decisionOption1);
+                this.elements.decisionOption2.parentNode.replaceChild(newBtn2, this.elements.decisionOption2);
+                this.elements.decisionOption1 = newBtn1;
+                this.elements.decisionOption2 = newBtn2;
+            }
+            
+            // Add event listeners with debug logging using addEventListener
+            this.elements.decisionOption1.addEventListener('click', (e) => {
+                console.log('🔄 Stay button clicked!', e);
+                e.preventDefault();
+                e.stopPropagation();
                 this.hideDecisionModal();
                 this.game.handlePlayerDecision(decision.playerId, 'stay');
-            };
+            });
             
-            this.elements.decisionOption2.onclick = () => {
+            this.elements.decisionOption2.addEventListener('click', (e) => {
+                console.log('🔄 Leave button clicked!', e);
+                e.preventDefault();
+                e.stopPropagation();
                 this.hideDecisionModal();
                 this.game.handlePlayerDecision(decision.playerId, 'leave');
-            };
+            });
+            
+            // Mark handlers as attached
+            this.elements.decisionOption1.setAttribute('data-handlers-attached', 'true');
+            this.elements.decisionOption2.setAttribute('data-handlers-attached', 'true');
             
             // Show modal
             this.elements.decisionModal.classList.remove('hidden');
+            
+            // Force active player container to have lower z-index to prevent interference
+            const activePlayerContainer = document.querySelector('.active-player-container');
+            if (activePlayerContainer) {
+                activePlayerContainer.style.zIndex = '1';
+            }
+            
+            // Force all player cards to have lower z-index
+            const allPlayerCards = document.querySelectorAll('.player-dashboard');
+            allPlayerCards.forEach(card => {
+                card.style.zIndex = '1';
+            });
         }
     }
 
     // Hide decision modal
     hideDecisionModal() {
+        console.log('🔄 hideDecisionModal called!');
         this.elements.decisionModal.classList.add('hidden');
+        
+        // Restore original z-index values
+        const activePlayerContainer = document.querySelector('.active-player-container');
+        if (activePlayerContainer) {
+            activePlayerContainer.style.zIndex = ''; // Reset to CSS default
+        }
+        
+        // Reset all player cards z-index
+        const allPlayerCards = document.querySelectorAll('.player-dashboard');
+        allPlayerCards.forEach(card => {
+            card.style.zIndex = ''; // Reset to CSS default
+        });
     }
 
     // Show game over modal

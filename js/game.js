@@ -448,8 +448,11 @@ class KingOfTokyoGame {
             }))
         });
         
-        if (totalAttack > 0) {
-            console.log(`🚨 ATTACK WARNING - ${player.monster.name} is about to attack with ${totalAttack} power`);
+        // Check if there are actual attack dice (claws/swords) rolled
+        const hasAttackDice = this.diceCollection.dice.some(die => die.face === 'attack');
+        
+        if (totalAttack > 0 && hasAttackDice) {
+            console.log(`🚨 ATTACK WARNING - ${player.monster.name} is about to attack with ${totalAttack} power from rolled attack dice`);
             if (totalAttack > 3) {
                 console.log(`🚨 SUSPICIOUS - Attack power ${totalAttack} is greater than maximum possible (3)!`);
                 console.log(`🚨 Individual dice states:`, this.diceCollection.dice.map(die => `${die.id}: ${die.face}`));
@@ -1449,6 +1452,11 @@ class KingOfTokyoGame {
         this.logDetailedAction(message);
     }
 
+    // Simple logging method (wrapper for logDetailedAction)
+    logAction(message, category = 'general', playerName = null, area = null) {
+        this.logDetailedAction(message, category, playerName, area);
+    }
+
     // Enhanced logging for detailed play log
     logDetailedAction(message, category = 'general', playerName = null, area = null) {
         const timestamp = new Date().toLocaleTimeString();
@@ -1745,7 +1753,7 @@ class KingOfTokyoGame {
     // Storage and logging methods with persistence
     
     // Log a game action with persistent storage and memory management
-    async logAction(action, category = 'game', playerId = null) {
+    async logActionWithStorage(action, category = 'game', playerId = null) {
         const timestamp = new Date().toISOString();
         const logEntry = {
             id: `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -1758,7 +1766,9 @@ class KingOfTokyoGame {
         };
 
         // Add to log tree (existing UI functionality)
-        this.gameLogTree.logAction(action, category, playerId);
+        const emoji = this.getCategoryEmoji(category);
+        const area = this.getCurrentGameArea();
+        this.gameLogTree.addAction(action, category, emoji, area);
 
         // Save to persistent storage if available
         if (this.storageManager) {
