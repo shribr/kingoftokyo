@@ -222,6 +222,17 @@
     background: none !important;
 }
 
+/* Disabled dice styling - show placeholder but hide die content */
+.die.disabled {
+    opacity: 0.3;
+    background: transparent !important;
+    border: 2px dashed #666 !important;
+    color: transparent !important;
+    cursor: default;
+    pointer-events: none;
+    box-shadow: none !important;
+}
+
 .action-button
 {
     font-size: 1.5em !important; /* Bigger font size */

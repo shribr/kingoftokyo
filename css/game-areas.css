@@ -322,28 +322,28 @@
 }
 
 .player-dashboard:not(.active):nth-child(2) {
-    margin-top: -30px; /* Increased pull-up */
-    margin-bottom: -90px; /* Even more aggressive overlap to shift stack up */
+    margin-top: -40px; /* Further increased pull-up from -30px */
+    margin-bottom: -95px; /* More aggressive overlap to shift stack up */
 }
 
 .player-dashboard:not(.active):nth-child(3) {
-    margin-top: -30px; /* Increased pull-up */
-    margin-bottom: -90px; /* Even more aggressive overlap to shift stack up */
+    margin-top: -40px; /* Further increased pull-up from -30px */
+    margin-bottom: -95px; /* More aggressive overlap to shift stack up */
 }
 
 .player-dashboard:not(.active):nth-child(4) {
-    margin-top: -35px; /* Increased pull-up */
-    margin-bottom: -90px; /* Even more aggressive overlap to shift stack up */
+    margin-top: -45px; /* Further increased pull-up from -35px */
+    margin-bottom: -95px; /* More aggressive overlap to shift stack up */
 }
 
 .player-dashboard:not(.active):nth-child(5) {
-    margin-top: -35px; /* Increased pull-up */
-    margin-bottom: -90px; /* Even more aggressive overlap to shift stack up */
+    margin-top: -45px; /* Further increased pull-up from -35px */
+    margin-bottom: -95px; /* More aggressive overlap to shift stack up */
 }
 
 .player-dashboard:not(.active):nth-child(6) {
-    margin-top: -40px; /* Increased pull-up */
-    margin-bottom: 10px; /* Bottom card needs some space */
+    margin-top: -30px; /* Reduced pull-up since we have more space now */
+    margin-bottom: 15px; /* More bottom space for visibility */
 }
 
 /* Add variation to card angles for haphazard look - balanced for 6 players - ONLY for non-active players */
@@ -390,8 +390,8 @@
 
 /* Last player dashboard - ensure visibility without content overflow */
 .player-dashboard:last-child {
-    margin-bottom: 20px !important; /* Increased bottom margin for more space */
-    margin-top: -60px !important; /* Further increased negative margin to pull last card up even higher */
+    margin-bottom: 30px !important; /* More bottom margin for better visibility */
+    margin-top: -30px !important; /* Less aggressive negative margin since cards above are more compressed */
 }
 
 /* Individual active transforms removed - active player is now positioned separately via main .active class */
@@ -448,8 +448,8 @@
 
 /* Special hover behavior for last player dashboard - works for any number of players */
 .player-dashboard:last-child:hover {
-    transform: perspective(800px) rotateX(-0.7deg) rotateY(0.6deg) rotateZ(2.3deg) translateY(-80px) scale(1.02) !important;
-    margin-bottom: 35px !important; /* Extra space when hovering the last card */
+    transform: perspective(800px) rotateX(-0.7deg) rotateY(0.6deg) rotateZ(2.3deg) translateY(-100px) scale(1.02) !important;
+    margin-bottom: 50px !important; /* Extra space when hovering the last card */
 }
 
 /* Ensure stats are visible on hover */
@@ -479,8 +479,9 @@
     box-shadow: 
         3px 3px 0px #000,
         4px 4px 12px rgba(0, 0, 0, 0.4);
-    z-index: 100; /* Ensure expansion appears above other cards */
+    z-index: 200; /* Higher z-index to ensure it appears above other cards */
     position: relative; /* Create new stacking context */
+    margin-bottom: 10px; /* Add space below when expanded */
 }
 
 /* Alternative approach: ensure health bar expansion doesn't get clipped */

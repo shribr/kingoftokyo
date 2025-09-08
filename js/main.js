@@ -146,7 +146,6 @@ class KingOfTokyoUI {
             startGameBtn: document.getElementById('start-game'),
             
             // Game elements
-            currentPlayer: document.getElementById('current-player'),
             roundCounter: document.getElementById('round-counter'),
             playersContainer: document.getElementById('players-container'),
             tokyoCitySlot: document.getElementById('tokyo-city-monster'),
@@ -157,11 +156,11 @@ class KingOfTokyoUI {
             rollDiceBtn: document.getElementById('roll-dice'),
             keepDiceBtn: document.getElementById('keep-dice'),
             endTurnBtn: document.getElementById('end-turn'),
-            buyCardsBtn: document.getElementById('buy-cards'),
+            // buyCardsBtn: document.getElementById('buy-cards'),
             rollsLeft: document.getElementById('rolls-left'),
             
             // Cards elements
-            currentEnergy: document.getElementById('current-energy'),
+            // currentEnergy: document.getElementById('current-energy'),
             availableCards: document.getElementById('available-cards'),
             
             // Game over elements
@@ -313,9 +312,9 @@ class KingOfTokyoUI {
             this.endTurn();
         });
 
-        this.elements.buyCardsBtn.addEventListener('click', () => {
-            this.showCardBuyingInterface();
-        });
+        // this.elements.buyCardsBtn.addEventListener('click', () => {
+        //     this.showCardBuyingInterface();
+        // });
 
                 // Game over modal events
         this.elements.newGameBtn.addEventListener('click', () => {
@@ -546,6 +545,11 @@ class KingOfTokyoUI {
         
         monsterOptions.forEach((option, index) => {
             console.log(`Setting up monster option ${index}:`, option.dataset.monsterId);
+            
+            // Alternate between left and right lean patterns
+            // Use modulo to cycle through all 6 rotation classes
+            const rotationClass = `rotate-${(index % 6) + 1}`;
+            option.classList.add(rotationClass);
             
             option.addEventListener('click', () => {
                 this.toggleMonsterSelection(option);
@@ -844,9 +848,6 @@ class KingOfTokyoUI {
             this.elements.roundCounter.textContent = gameState.round;
         }
         
-        // Update header
-        this.elements.currentPlayer.textContent = `${gameState.currentPlayer.monster.name}'s Turn`;
-        
         // Update players
         this.updatePlayersDisplay(gameState.players);
         
@@ -878,7 +879,7 @@ class KingOfTokyoUI {
         this.updateCardsDisplay();
         
         // Update current player energy
-        this.elements.currentEnergy.textContent = gameState.currentPlayer.energy;
+        // this.elements.currentEnergy.textContent = gameState.currentPlayer.energy;
     }
 
     // Update players display - separate active player from stack
@@ -1677,7 +1678,7 @@ class KingOfTokyoUI {
         
         this.elements.rollDiceBtn.disabled = !canRoll;
         this.elements.keepDiceBtn.disabled = !canKeep;
-        this.elements.buyCardsBtn.disabled = !canBuyCards;
+        // this.elements.buyCardsBtn.disabled = !canBuyCards;
         
         // Update End Turn button
         if (this.elements.endTurnBtn) {
@@ -2147,9 +2148,8 @@ class KingOfTokyoUI {
             clearTimeout(this.messageTimeout);
         }
         
-        // Get the current player element to show message there
-        const currentPlayerElement = this.elements.currentPlayer;
-        const originalText = currentPlayerElement.textContent;
+        // Get the header area to show message there (use round counter as reference)
+        const headerElement = this.elements.roundCounter;
         
         // Add a subtle notification to the header instead of blocking overlay
         let notification = document.getElementById('header-notification');
@@ -2158,8 +2158,8 @@ class KingOfTokyoUI {
             notification.id = 'header-notification';
             notification.className = 'header-notification';
             
-            // Insert after the current player element
-            currentPlayerElement.parentNode.insertBefore(notification, currentPlayerElement.nextSibling);
+            // Insert after the header element
+            headerElement.parentNode.insertBefore(notification, headerElement.nextSibling);
         }
         
         // Set notification content

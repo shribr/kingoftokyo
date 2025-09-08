@@ -30,7 +30,7 @@
     border-radius: 0;
     max-width: 1200px;
     width: 98%;
-    max-height: 90vh;
+    max-height: 99vh;
     overflow-y: auto;
     overflow-x: hidden;
     box-shadow: 
@@ -172,7 +172,8 @@
     position: relative;
     display: inline-block;
     width: 100%;
-    margin-bottom: 20px;
+    max-width: 900px;
+    margin: 0 auto 20px auto;
     overflow: visible; /* Ensure dropdown options can overflow */
 }
 
@@ -302,25 +303,12 @@
 .monster-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    margin: 20px 0;
-    padding: 30px;
-    background: 
-        /* Comic book panel background */
-        linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 248, 220, 0.9) 100%);
-    border-radius: 0;
-    border: 4px solid #000;
-    box-shadow: 
-        inset 4px 4px 8px rgba(0, 0, 0, 0.1),
-        6px 6px 0px #000;
+    gap: 35px;
+    margin: 0 0 10px 0;
+    padding: 20px 40px;
+    /* No background or border - invisible container for positioning only */
     transform: rotateZ(-0.5deg);
     min-height: fit-content;
-    
-    /* Comic halftone pattern */
-    background-image: 
-        radial-gradient(circle at 4px 4px, rgba(0,0,0,0.05) 1.5px, transparent 0),
-        linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 248, 220, 0.9) 100%);
-    background-size: 18px 18px, 100% 100%;
 }
 
 /* Ensure all monsters are visible on larger screens */
@@ -328,7 +316,7 @@
     .monster-grid {
         grid-template-columns: repeat(3, 1fr);
         max-width: 900px;
-        margin: 20px auto;
+        margin: 0 auto 10px auto;
     }
 }
 
@@ -336,8 +324,8 @@
 @media (max-width: 767px) {
     .monster-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-        padding: 20px;
+        gap: 25px;
+        padding: 15px 30px;
     }
 }
 
@@ -354,7 +342,7 @@
         6px 6px 0px #000,
         8px 8px 20px rgba(0, 0, 0, 0.3);
     position: relative;
-    transform: perspective(400px) rotateX(1deg) rotateZ(0.5deg);
+    transform: perspective(400px) rotateX(1deg) rotateZ(-0.5deg);
     
     /* Flexbox to center content */
     display: flex;
@@ -367,6 +355,31 @@
         radial-gradient(circle at 3px 3px, rgba(0,0,0,0.08) 1px, transparent 0),
         linear-gradient(135deg, #FFF8DC 0%, #FFE4B5 50%, #FFEFD5 100%);
     background-size: 15px 15px, 100% 100%;
+}
+
+/* Randomized orientations for monster options - alternating left/right lean */
+.monster-option.rotate-1 {
+    transform: perspective(400px) rotateX(1.5deg) rotateZ(-2.5deg); /* lean left */
+}
+
+.monster-option.rotate-2 {
+    transform: perspective(400px) rotateX(0.8deg) rotateZ(2.2deg); /* lean right */
+}
+
+.monster-option.rotate-3 {
+    transform: perspective(400px) rotateX(-0.5deg) rotateZ(-1.8deg); /* lean left */
+}
+
+.monster-option.rotate-4 {
+    transform: perspective(400px) rotateX(1.8deg) rotateZ(2.8deg); /* lean right */
+}
+
+.monster-option.rotate-5 {
+    transform: perspective(400px) rotateX(-1.2deg) rotateZ(-2.1deg); /* lean left */
+}
+
+.monster-option.rotate-6 {
+    transform: perspective(400px) rotateX(1.1deg) rotateZ(1.9deg); /* lean right */
 }
 
 .monster-image-container {
@@ -440,6 +453,7 @@
         radial-gradient(circle at 3px 3px, rgba(0,0,0,0.15) 1px, transparent 0),
         linear-gradient(135deg, #FFE4B5 0%, #FFDAB9 50%, #FFB347 100%);
     background-size: 15px 15px, 100% 100%;
+    margin: 15px; /* Add extra space around selected monsters */
 }
 
 .monster-option.taken {

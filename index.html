@@ -29,8 +29,8 @@
     <div id="game-container">
         <!-- Header -->
         <header class="game-header">
-            <span id="current-player">Player 1's Turn</span>
             <h1 data-text="KING OF TOKYO!">KING OF TOKYO!</h1>
+            <span id="rolls-left" class="rolls-indicator">Rolls left: 3</span>
             <div class="game-info">
             </div>
         </header>
@@ -65,23 +65,19 @@
                 <!-- Dice Rolling Area -->
                 <div class="dice-area">
                     <div id="dice-container" class="dice-container"></div>
-                    <span id="rolls-left" class="rolls-indicator">Rolls left: 3</span>
                 </div>
                 
                 <!-- Dice controls next to dice bar -->
                 <div class="action-menu">
                     <button id="roll-dice" class="action-button btn primary">Roll Dice</button>
                     <button id="keep-dice" class="action-button btn secondary" disabled>Keep Dice</button>
-                    <button id="buy-cards" class="action-button btn tertiary">Buy Power Cards</button>
+                    <!-- <button id="buy-cards" class="action-button btn tertiary">Buy Power Cards</button> -->
                     <button id="end-turn" class="action-button btn quaternary">End Turn</button>
                 </div>
 
                 <!-- Power Cards Area -->
                 <div class="cards-area">
                     <h3>Power Cards</h3>
-                    <div class="energy-display">
-                        <span>⚡ Energy: <span id="current-energy">0</span></span>
-                    </div>
                     <div id="available-cards" class="cards-container"></div>
                 </div>
             </div>

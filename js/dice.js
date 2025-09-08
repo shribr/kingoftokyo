@@ -12,11 +12,12 @@ const DICE_FACE_NAMES = Object.keys(DICE_FACES);
 
 // Dice class
 class Die {
-    constructor(id) {
+    constructor(id, isDisabled = false) {
         this.id = id;
         this.face = null;
         this.isSelected = false;
         this.isRolling = false;
+        this.isDisabled = isDisabled;
     }
 
     // Roll the die
@@ -76,17 +77,23 @@ class DiceCollection {
     constructor(count = 6) {
         this.dice = [];
         this.maxDice = count;
+        this.totalDice = count + 2; // Create 2 extra dice for power cards
         
-        // Create initial dice
+        // Create initial dice (6 enabled)
         for (let i = 0; i < count; i++) {
-            this.dice.push(new Die(`die-${i}`));
+            this.dice.push(new Die(`die-${i}`, false)); // enabled dice
+        }
+        
+        // Create 2 additional disabled dice for power cards
+        for (let i = count; i < this.totalDice; i++) {
+            this.dice.push(new Die(`die-${i}`, true)); // disabled dice
         }
     }
 
-    // Roll all non-selected dice
+    // Roll all non-selected and enabled dice
     rollAll() {
         this.dice.forEach(die => {
-            if (!die.isSelected) {
+            if (!die.isSelected && !die.isDisabled) {
                 die.roll();
             }
         });
@@ -208,6 +215,33 @@ class DiceCollection {
         return null;
     }
 
+    // Enable a specific extra die (for power cards)
+    enableExtraDie(dieIndex) {
+        if (dieIndex >= this.maxDice && dieIndex < this.totalDice) {
+            const die = this.dice[dieIndex];
+            if (die && die.isDisabled) {
+                die.isDisabled = false;
+                die.face = null; // Reset face when enabled
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Disable a specific extra die
+    disableExtraDie(dieIndex) {
+        if (dieIndex >= this.maxDice && dieIndex < this.totalDice) {
+            const die = this.dice[dieIndex];
+            if (die && !die.isDisabled) {
+                die.isDisabled = true;
+                die.isSelected = false; // Unselect if selected
+                die.face = null; // Reset face when disabled
+                return true;
+            }
+        }
+        return false;
+    }
+
     // Get all dice data for display
     getAllDiceData() {
         return this.dice.map(die => ({
@@ -216,6 +250,7 @@ class DiceCollection {
             symbol: die.getSymbol(),
             isSelected: die.isSelected,
             isRolling: die.isRolling,
+            isDisabled: die.isDisabled,
             faceData: die.getFaceData()
         }));
     }
@@ -330,9 +365,9 @@ if (typeof window !== 'undefined') {
 // Utility functions
 function createDiceHTML(diceData) {
     return diceData.map(die => `
-        <div class="die ${die.isSelected ? 'selected' : ''} ${die.isRolling ? 'rolling' : ''}" 
+        <div class="die ${die.isSelected ? 'selected' : ''} ${die.isRolling ? 'rolling' : ''} ${die.isDisabled ? 'disabled' : ''}" 
              data-die-id="${die.id}">
-            ${die.symbol}
+            ${die.isDisabled ? '🔒' : (die.symbol || '⚫')}
         </div>
     `).join('');
 }
@@ -346,7 +381,7 @@ function attachDiceEventListeners(diceCollection, container, updateCallback) {
     // Add single click listener
     clone.addEventListener('click', (event) => {
         const dieElement = event.target.closest('.die');
-        if (dieElement) {
+        if (dieElement && !dieElement.classList.contains('disabled')) {
             const dieId = dieElement.dataset.dieId;
             console.log('Dice clicked:', dieId);
             console.log('Dice collection before toggle:', diceCollection.getAllDiceData().map(d => ({ id: d.id, isSelected: d.isSelected })));

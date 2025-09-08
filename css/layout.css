@@ -134,7 +134,7 @@ body::before {
         2px 2px 0 #000,
         3px 3px 6px rgba(0, 0, 0, 0.6); /* Reduced shadow */
     letter-spacing: 6px;
-    transform: perspective(800px) rotateX(-3deg) rotateY(-2deg) translateX(-160px); /* More left to align with dice center */
+    transform: perspective(800px) rotateX(-3deg) rotateY(-2deg) translateX(-100px); /* Adjusted left position to 100px */
     margin: 0;
     position: relative;
     z-index: 1;
@@ -241,7 +241,7 @@ body::before {
 .cards-area {
     position: fixed !important;
     left: 15px;
-    top: 130px;
+    top: 10px;
     bottom: 45px; /* Increased bottom margin to prevent viewport overflow */
     width: 430px; /* Increased from 390px to 430px for better card display */
     z-index: 5;
