@@ -1543,7 +1543,7 @@ class KingOfTokyoGame {
             'round-start': '🆕',
             'setup': '⚙️',
             'player-count-change': '👥',
-            'monster-selection': '🎭',
+            'monster-selection': '👺',
             'monster-deselection': '❌',
             'game-start': '🎯',
             'ready-to-start': '🎲',

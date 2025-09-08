@@ -496,10 +496,10 @@ class KingOfTokyoUI {
 
     // Update monster selection grid
     updateMonsterSelection() {
-        console.log('🎭 === UPDATE MONSTER SELECTION CALLED ===');
-        console.log('🎭 Current player count:', this.currentPlayerCount);
-        console.log('🎭 MONSTERS available:', typeof MONSTERS !== 'undefined');
-        console.log('🎭 Monster grid element:', !!this.elements.monsterGrid);
+        console.log('👺 === UPDATE MONSTER SELECTION CALLED ===');
+        console.log('👺 Current player count:', this.currentPlayerCount);
+        console.log('👺 MONSTERS available:', typeof MONSTERS !== 'undefined');
+        console.log('👺 Monster grid element:', !!this.elements.monsterGrid);
         
         // Debug: Check if MONSTERS is available
         if (typeof MONSTERS === 'undefined') {
@@ -509,8 +509,8 @@ class KingOfTokyoUI {
         }
         
         const monsters = Object.values(MONSTERS);
-        console.log('🎭 Available monsters:', monsters.length, monsters);
-        console.log('🎭 Monster details:', monsters.map(m => ({ id: m.id, name: m.name, image: m.image })));
+        console.log('👺 Available monsters:', monsters.length, monsters);
+        console.log('👺 Monster details:', monsters.map(m => ({ id: m.id, name: m.name, image: m.image })));
         
         // Debug: Check if monster grid element exists
         if (!this.elements.monsterGrid) {
@@ -519,7 +519,7 @@ class KingOfTokyoUI {
             return;
         }
         
-        console.log('🎭 Monster grid element found:', this.elements.monsterGrid);
+        console.log('👺 Monster grid element found:', this.elements.monsterGrid);
         
         this.selectedMonsters = [];
 
@@ -557,11 +557,11 @@ class KingOfTokyoUI {
             option.style.visibility = 'visible';
         });
 
-        console.log('🎭 Monster options enabled, count:', monsterOptions.length);
+        console.log('👺 Monster options enabled, count:', monsterOptions.length);
 
         // Force absolute visibility with CSS override
         setTimeout(() => {
-            console.log('🎭 Applying emergency CSS visibility fixes...');
+            console.log('👺 Applying emergency CSS visibility fixes...');
             monsterOptions.forEach((option, index) => {
                 // Apply multiple visibility overrides
                 option.style.cssText = `
@@ -573,7 +573,7 @@ class KingOfTokyoUI {
                     width: auto !important;
                     height: auto !important;
                 `;
-                console.log(`🎭 Emergency CSS applied to monster ${index}:`, option.dataset.monsterId);
+                console.log(`👺 Emergency CSS applied to monster ${index}:`, option.dataset.monsterId);
             });
             
             // Also check grid visibility
@@ -582,7 +582,7 @@ class KingOfTokyoUI {
                 visibility: visible !important;
                 opacity: 1 !important;
             `;
-            console.log('🎭 Emergency CSS applied to monster grid');
+            console.log('👺 Emergency CSS applied to monster grid');
         }, 200);
 
         // Auto-select all monsters if 6 players is chosen
