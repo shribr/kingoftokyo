@@ -448,8 +448,9 @@
 
 /* Special hover behavior for last player dashboard - works for any number of players */
 .player-dashboard:last-child:hover {
-    transform: perspective(800px) rotateX(-0.7deg) rotateY(0.6deg) rotateZ(2.3deg) translateY(-100px) scale(1.02) !important;
+    transform: perspective(800px) rotateX(-0.7deg) rotateY(0.6deg) rotateZ(2.3deg) translateY(-150px) scale(1.02) !important;
     margin-bottom: 50px !important; /* Extra space when hovering the last card */
+    z-index: 100 !important; /* Ensure it overlaps the card before it */
 }
 
 /* Ensure stats are visible on hover */
