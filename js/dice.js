@@ -133,12 +133,15 @@ class DiceCollection {
         };
 
         this.dice.forEach(die => {
-            const faceData = die.getFaceData();
-            if (faceData) {
-                if (faceData.type === 'number') {
-                    results.numbers[faceData.symbol]++;
-                } else {
-                    results[faceData.type] += faceData.value;
+            // Only count enabled dice (skip disabled placeholders)
+            if (!die.isDisabled) {
+                const faceData = die.getFaceData();
+                if (faceData) {
+                    if (faceData.type === 'number') {
+                        results.numbers[faceData.symbol]++;
+                    } else {
+                        results[faceData.type] += faceData.value;
+                    }
                 }
             }
         });
@@ -184,14 +187,30 @@ class DiceCollection {
         // Reset all dice states first
         this.reset();
         
-        // Adjust dice count to base amount
-        while (this.dice.length > baseCount) {
+        // Only remove dice above the total dice count (enabled + disabled placeholders)
+        // Keep the disabled placeholders but ensure they stay disabled
+        while (this.dice.length > this.totalDice) {
             this.dice.pop();
         }
         
-        // Add dice if we have less than base count
-        while (this.dice.length < baseCount) {
-            this.dice.push(new Die(`die-${this.dice.length}`));
+        // Ensure we have the right number of enabled dice
+        for (let i = 0; i < baseCount; i++) {
+            if (i < this.dice.length) {
+                this.dice[i].isDisabled = false;
+            } else {
+                this.dice.push(new Die(`die-${i}`, false));
+            }
+        }
+        
+        // Ensure disabled dice placeholders exist and are disabled
+        for (let i = baseCount; i < this.totalDice; i++) {
+            if (i < this.dice.length) {
+                this.dice[i].isDisabled = true;
+                this.dice[i].face = null;
+                this.dice[i].isSelected = false;
+            } else {
+                this.dice.push(new Die(`die-${i}`, true));
+            }
         }
         
         this.maxDice = baseCount;

@@ -349,14 +349,16 @@ class KingOfTokyoGame {
             victoryPoints: player.victoryPoints
         });
         
-        // Debug: Log dice faces that were rolled
-        const diceStates = this.diceCollection.dice.map(die => ({
-            id: die.id,
-            face: die.face,
-            symbol: die.getSymbol(),
-            faceData: die.getFaceData()
-        }));
-        console.log('Individual dice faces:', diceStates);
+        // Debug: Log dice faces that were rolled (only enabled dice)
+        const diceStates = this.diceCollection.dice
+            .filter(die => !die.isDisabled) // Only include enabled dice
+            .map(die => ({
+                id: die.id,
+                face: die.face,
+                symbol: die.getSymbol(),
+                faceData: die.getFaceData()
+            }));
+        console.log('Individual dice faces (enabled only):', diceStates);
         
         // Create visual dice representation using HTML spans for better styling
         const createDiceBox = (face) => {
@@ -374,7 +376,7 @@ class KingOfTokyoGame {
             return `<span class="dice-box">${face}</span>`;
         };
         
-        // Create visual dice representation
+        // Create visual dice representation (only enabled dice)
         const visualDice = diceStates.map(die => createDiceBox(die.face)).join(' ');
         
         this.logDetailedAction(`Dice rolled: ${visualDice}`, 'dice-faces');
@@ -448,14 +450,14 @@ class KingOfTokyoGame {
             }))
         });
         
-        // Check if there are actual attack dice (claws/swords) rolled
-        const hasAttackDice = this.diceCollection.dice.some(die => die.face === 'attack');
+        // Check if there are actual attack dice (claws/swords) rolled (only enabled dice)
+        const hasAttackDice = this.diceCollection.dice.some(die => !die.isDisabled && die.face === 'attack');
         
         if (totalAttack > 0 && hasAttackDice) {
             console.log(`🚨 ATTACK WARNING - ${player.monster.name} is about to attack with ${totalAttack} power from rolled attack dice`);
             if (totalAttack > 3) {
                 console.log(`🚨 SUSPICIOUS - Attack power ${totalAttack} is greater than maximum possible (3)!`);
-                console.log(`🚨 Individual dice states:`, this.diceCollection.dice.map(die => `${die.id}: ${die.face}`));
+                console.log(`🚨 Individual dice states (enabled only):`, this.diceCollection.dice.filter(die => !die.isDisabled).map(die => `${die.id}: ${die.face}`));
             }
             this.resolveAttacks(player, totalAttack);
             
