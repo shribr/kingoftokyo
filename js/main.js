@@ -172,9 +172,11 @@ class KingOfTokyoUI {
             storageMgmtBtn: document.getElementById('storage-mgmt-btn'),
             saveGameToolbarBtn: document.getElementById('save-game-toolbar-btn'),
             settingsBtn: document.getElementById('settings-btn'),
+            instructionsBtn: document.getElementById('instructions-btn'),
             gameLogModal: document.getElementById('game-log-modal'),
             storageMgmtModal: document.getElementById('storage-mgmt-modal'),
             settingsModal: document.getElementById('settings-modal'),
+            instructionsModal: document.getElementById('instructions-modal'),
             gameLogContent: document.getElementById('game-log-content'),
             clearLogBtn: document.getElementById('clear-log-btn'),
             saveGameBtn: document.getElementById('save-game-btn'),
@@ -187,6 +189,7 @@ class KingOfTokyoUI {
             closeGameLogBtn: document.getElementById('close-game-log'),
             closeStorageMgmtBtn: document.getElementById('close-storage-mgmt'),
             closeSettingsBtn: document.getElementById('close-settings'),
+            closeInstructionsBtn: document.getElementById('close-instructions'),
             darkModeToggle: document.getElementById('dark-mode-toggle')
         };
         
@@ -355,6 +358,10 @@ class KingOfTokyoUI {
             this.showSettings();
         });
 
+        this.elements.instructionsBtn.addEventListener('click', () => {
+            this.showInstructions();
+        });
+
         this.elements.closeGameLogBtn.addEventListener('click', () => {
             UIUtilities.hideModal(this.elements.gameLogModal);
         });
@@ -366,6 +373,10 @@ class KingOfTokyoUI {
                 this.elements.storageAboutPanel.classList.remove('visible');
                 this.elements.storageAboutPanel.classList.add('hidden');
             }
+        });
+
+        this.elements.closeInstructionsBtn.addEventListener('click', () => {
+            UIUtilities.hideModal(this.elements.instructionsModal);
         });
 
         // Storage info button event listener using UIUtilities
@@ -417,6 +428,9 @@ class KingOfTokyoUI {
 
         UIUtilities.safeAddEventListener(this.elements.settingsModal, 'click', 
             UIUtilities.createModalClickOutsideHandler(this.elements.settingsModal));
+
+        UIUtilities.safeAddEventListener(this.elements.instructionsModal, 'click', 
+            UIUtilities.createModalClickOutsideHandler(this.elements.instructionsModal));
     }
 
     // Show setup modal
@@ -2371,6 +2385,10 @@ class KingOfTokyoUI {
 
     showSettings() {
         UIUtilities.showModal(this.elements.settingsModal);
+    }
+
+    showInstructions() {
+        UIUtilities.showModal(this.elements.instructionsModal);
     }
 
     updateGameLogDisplay() {

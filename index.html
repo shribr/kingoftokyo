@@ -4,7 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>King of Tokyo</title>
-    <!-- Google Fonts for handwritten style -->
+    <!-- Goog        <button id="game-log-btn" class="toolbar-btn" title="Game Log">
+            <span class="toolbar-icon">L</span>
+        </button>
+        <button id="storage-mgmt-btn" class="toolbar-btn" title="Storage Management">
+            <span class="toolbar-icon">S</span>
+        </button>
+        <button id="save-game-toolbar-btn" class="toolbar-btn" title="Save Game">
+            <span class="toolbar-icon">G</span>
+        </button>for handwritten style -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&display=swap" rel="stylesheet">
@@ -179,17 +187,20 @@
 
     <!-- Game Toolbar -->
     <div id="game-toolbar" class="game-toolbar">
+        <button id="instructions-btn" class="toolbar-btn" title="Instructions">
+            <span class="toolbar-icon">📖</span>
+        </button>
         <button id="settings-btn" class="toolbar-btn" title="Settings">
             <span class="toolbar-icon">⚙️</span>
         </button>
         <button id="game-log-btn" class="toolbar-btn" title="Game Log">
-            <span class="toolbar-icon">📋</span>
+            <span class="toolbar-icon">�</span>
         </button>
         <button id="storage-mgmt-btn" class="toolbar-btn" title="Storage Management">
-            <span class="toolbar-icon">🗄️</span>
+            <span class="toolbar-icon">�️</span>
         </button>
         <button id="save-game-toolbar-btn" class="toolbar-btn" title="Save Game">
-            <span class="toolbar-icon">💾</span>
+            <span class="toolbar-icon">�</span>
         </button>
         <button id="dark-mode-btn" class="toolbar-btn" title="Toggle Dark Mode">
             <span class="toolbar-icon">🌙</span>
@@ -269,6 +280,198 @@
                         <li>Memory management to prevent slowdowns</li>
                     </ul>
                     <p><strong>Note:</strong> Clearing browser data will remove saved games.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructions Modal -->
+        <!-- Instructions Modal -->
+    <div id="instructions-modal" class="modal instructions-modal hidden">
+        <div class="modal-content">
+            <button class="close-btn" id="close-instructions">×</button>
+            <div class="instructions-header">
+                <h1 class="instructions-title">KING OF TOKYO</h1>
+            </div>
+            <div class="instructions-content">
+                <!-- Backstory Section -->
+                <div class="instructions-section">
+                    <h2>🌆 THE LEGEND OF TOKYO 🌆</h2>
+                    <div class="backstory-text">
+                        In the year 2087, a series of mysterious energy rifts opened across the globe, bringing forth colossal monsters from parallel dimensions. Each creature possessed incredible powers and an insatiable hunger for energy crystals that could only be found in major metropolitan areas. Tokyo, with its massive energy grid and towering skyscrapers, became the ultimate prize.
+                    </div>
+                    <div class="backstory-text">
+                        What started as random destruction soon evolved into an epic tournament. The monsters discovered that by defeating opponents and claiming Tokyo as their territory, they could absorb the city's cosmic energy and grow even more powerful. Now, these legendary beasts battle for supremacy in the ultimate kaiju showdown!
+                    </div>
+                    
+                    <h3>🦾 Meet the Monsters 🦾</h3>
+                    <div class="monster-profiles">
+                        <div class="monster-profile">
+                            <img src="images/characters/king_of_tokyo_gigazaur.png" alt="Gigazaur" class="monster-headshot">
+                            <div class="monster-bio">
+                                <h4>Gigazaur</h4>
+                                <p>The ancient king of reptiles, awakened from a million-year slumber. This massive dinosaur combines prehistoric fury with modern rage. Known for his devastating tail swipes and earth-shaking roar that can shatter windows across three city blocks.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="monster-profile">
+                            <img src="images/characters/king_of_tokyo_cyber_bunny.png" alt="Cyber Bunny" class="monster-headshot">
+                            <div class="monster-bio">
+                                <h4>Cyber Bunny</h4>
+                                <p>A lab experiment gone adorably wrong. This cybernetically enhanced rabbit gained sentience and giant size after exposure to quantum carrots. Don't let the cute appearance fool you - those hydraulic ears can punch through concrete!</p>
+                            </div>
+                        </div>
+                        
+                        <div class="monster-profile">
+                            <img src="images/characters/king_of_tokyo_kraken.png" alt="Kraken" class="monster-headshot">
+                            <div class="monster-bio">
+                                <h4>Kraken</h4>
+                                <p>Rising from the deepest ocean trenches, this tentacled terror brings the fury of the seven seas to land. Each of his eight arms can operate independently, making him a master of multi-tasking destruction.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="monster-profile">
+                            <img src="images/characters/king_of_tokyo_the_king.png" alt="The King" class="monster-headshot">
+                            <div class="monster-bio">
+                                <h4>The King</h4>
+                                <p>The original giant ape, now with a serious attitude problem. After decades of captivity in Hollywood, he's back and ready to show these newcomers who the real king of monsters is. His building-climbing skills are unmatched.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="monster-profile">
+                            <img src="images/characters/king_of_tokyo_meka_dragon.png" alt="Meka Dragon" class="monster-headshot">
+                            <div class="monster-bio">
+                                <h4>Meka Dragon</h4>
+                                <p>A fusion of ancient magic and cutting-edge technology. This mechanical dragon was created by Tokyo's top scientists to defend the city, but its AI decided that ruling it would be more fun. Breathes both fire and laser beams.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="monster-profile">
+                            <img src="images/characters/king_of_tokyo_alienoid.png" alt="Alienoid" class="monster-headshot">
+                            <div class="monster-bio">
+                                <h4>Alienoid</h4>
+                                <p>An interdimensional visitor with unclear motives. Some say it's here to study Earth's monsters, others believe it's scouting for an invasion. Either way, its psychic powers and shape-shifting abilities make it a formidable opponent.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Game Overview -->
+                <div class="instructions-section">
+                    <h2>🎯 HOW TO DOMINATE TOKYO 🎯</h2>
+                    <div class="game-overview">
+                        <div class="game-feature">
+                            <h4>🎲 Roll for Power</h4>
+                            <div class="feature-image">🎲</div>
+                            <p>Roll six custom dice up to three times per turn. Each die face gives you different powers - attack enemies, gain energy, heal damage, or earn victory points!</p>
+                        </div>
+                        
+                        <div class="game-feature">
+                            <h4>🏙️ Control Tokyo</h4>
+                            <div class="feature-image">🏙️</div>
+                            <p>Enter Tokyo to gain victory points each turn, but beware - you can't heal while in the city, and every monster outside will be gunning for you!</p>
+                        </div>
+                        
+                        <div class="game-feature">
+                            <h4>⚡ Buy Power Cards</h4>
+                            <div class="feature-image">⚡</div>
+                            <p>Spend energy cubes to purchase powerful cards that give you permanent abilities, bonus attacks, or special powers to dominate your opponents!</p>
+                        </div>
+                        
+                        <div class="game-feature">
+                            <h4>💀 Eliminate Rivals</h4>
+                            <div class="feature-image">💀</div>
+                            <p>Reduce enemy monsters to 0 health to eliminate them from the game. Last monster standing automatically wins the ultimate prize!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dice Reference -->
+                <div class="instructions-section">
+                    <h2>🎲 DICE FACES EXPLAINED 🎲</h2>
+                    <div class="dice-grid">
+                        <div class="dice-face-info">
+                            <span class="dice-symbol">👊</span>
+                            <h5>Attack</h5>
+                            <p>Deal damage to monsters in or outside Tokyo</p>
+                        </div>
+                        <div class="dice-face-info">
+                            <span class="dice-symbol">⚡</span>
+                            <h5>Energy</h5>
+                            <p>Gain energy cubes to buy power cards</p>
+                        </div>
+                        <div class="dice-face-info">
+                            <span class="dice-symbol">❤️</span>
+                            <h5>Heart</h5>
+                            <p>Heal damage (only if outside Tokyo)</p>
+                        </div>
+                        <div class="dice-face-info">
+                            <span class="dice-symbol">1️⃣</span>
+                            <h5>Numbers</h5>
+                            <p>Collect 3+ of same number for victory points</p>
+                        </div>
+                        <div class="dice-face-info">
+                            <span class="dice-symbol">2️⃣</span>
+                            <h5>Numbers</h5>
+                            <p>3=1VP, 4=2VP, 5=3VP, 6=4VP</p>
+                        </div>
+                        <div class="dice-face-info">
+                            <span class="dice-symbol">3️⃣</span>
+                            <h5>Numbers</h5>
+                            <p>Roll more of same number for bonus points</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Victory Conditions -->
+                <div class="instructions-section">
+                    <h2>🏆 PATHS TO VICTORY 🏆</h2>
+                    <div class="victory-paths">
+                        <div class="victory-path">
+                            <h4>Victory Points</h4>
+                            <ul>
+                                <li>Reach 20 victory points first</li>
+                                <li>Gain points by controlling Tokyo</li>
+                                <li>Roll matching numbers (3+ of same)</li>
+                                <li>Buy powerful scoring cards</li>
+                                <li>Some cards give bonus points</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="victory-path">
+                            <h4>Last Monster Standing</h4>
+                            <ul>
+                                <li>Eliminate all other monsters</li>
+                                <li>Deal damage with attack dice</li>
+                                <li>Use power cards for extra damage</li>
+                                <li>Force enemies out of Tokyo</li>
+                                <li>Prevent others from healing</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Reference -->
+                <div class="instructions-section">
+                    <h2>⚡ QUICK REFERENCE ⚡</h2>
+                    <div class="quick-reference">
+                        <div class="quick-ref-item">
+                            <h5>Turn Sequence</h5>
+                            <p>1. Roll dice (up to 3 times)<br>2. Resolve dice effects<br>3. Buy power cards<br>4. End turn</p>
+                        </div>
+                        <div class="quick-ref-item">
+                            <h5>Tokyo Rules</h5>
+                            <p>Enter: +1 VP immediately<br>Stay: +2 VP each turn start<br>Can't heal while inside<br>Must leave if taking damage</p>
+                        </div>
+                        <div class="quick-ref-item">
+                            <h5>Attack Resolution</h5>
+                            <p>In Tokyo: Attack all outside<br>Outside: Attack monster in Tokyo<br>No Tokyo monster: No attacks<br>Defender chooses to stay/leave</p>
+                        </div>
+                        <div class="quick-ref-item">
+                            <h5>Power Cards</h5>
+                            <p>Cost energy cubes to buy<br>Permanent abilities<br>Some give instant effects<br>Discard when instructed</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
