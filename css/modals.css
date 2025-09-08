@@ -2031,6 +2031,17 @@
     z-index: 100;
     transform: translateX(-50%) perspective(400px) rotateX(5deg);
     min-width: 320px; /* Ensure minimum width for double size */
+    /* Hidden by default */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-50%) translateY(100%) perspective(400px) rotateX(5deg);
+    transition: all 0.3s ease;
+}
+
+.game-toolbar.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0) perspective(400px) rotateX(5deg);
 }
 
 .toolbar-btn {
