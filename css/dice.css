@@ -1,0 +1,283 @@
+/* Dice and Game Actions - Updated: Remove glow from selected dice */
+
+/* Dice Area - Wider and taller at bottom center */
+.dice-area {
+    background: #f8f9fa; /* Solid background, no gradients */
+    padding: 15px 20px;
+    border-radius: 0;
+    border: 4px solid #000;
+    box-shadow: 
+        6px 6px 0px #000,
+        8px 8px 20px rgba(0, 0, 0, 0.4);
+    transform: perspective(400px) rotateX(2deg) rotateZ(-0.5deg);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    
+    /* Comic book halftone pattern */
+    background-image: 
+        radial-gradient(circle at 3px 3px, rgba(0,0,0,0.1) 1px, transparent 0);
+    background-size: 15px 15px;
+}
+
+.dice-container {
+    background: 
+        linear-gradient(135deg, #2a2a2a 0%, #404040 50%, #2a2a2a 100%); /* Back to dark gray */
+    border: 4px solid #000;
+    border-radius: 0; /* Sharp corners for comic book style */
+    /* padding: 20px; */
+    text-align: left; /* Changed from center to left */
+    position: relative;
+    transform: perspective(600px) rotateX(-1deg) rotateZ(0.5deg);
+    box-shadow: 
+        6px 6px 0px #000,
+        10px 10px 25px rgba(0, 0, 0, 0.6);
+    /* Remove flex: 1 to allow width to fit content */
+    width: fit-content; /* Dynamic width based on dice content */
+    height: 100%; /* Use full height of dice area */
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start; /* Changed from center to flex-start for left alignment */
+    align-items: center;
+    gap: 8px; /* Use gap instead of margins on dice */
+    overflow: hidden; /* Prevent dice from overflowing */
+    padding-left: 15px; /* Add some left padding to move dice away from border */
+    padding-right: 15px; /* Add right padding for symmetry */
+}
+
+/* Rolls left indicator styled like player turn label */
+.rolls-indicator {
+    font-family: 'Bangers', cursive;
+    font-size: 1.44em; /* Increased by 20% from 1.2em */
+    color: #FFD700; /* Gold color like player turn */
+    font-weight: bold;
+    text-shadow: 
+        -2px -2px 0 #000,
+        2px -2px 0 #000,
+        -2px 2px 0 #000,
+        2px 2px 0 #000,
+        4px 4px 8px rgba(0, 0, 0, 0.8); /* Same shadow style */
+    white-space: nowrap;
+    padding: 9.6px 14.4px; /* Increased by 20% from 8px 12px */
+    background: 
+        linear-gradient(135deg, #2c1810 0%, #8b4513 50%, #ff6b00 100%); /* Same gradient as header */
+    border: 4px solid #000;
+    border-radius: 0;
+    box-shadow: 
+        4px 4px 0px #000,
+        6px 6px 20px rgba(0, 0, 0, 0.4);
+    transform: perspective(400px) rotateX(2deg) rotateZ(-1.5deg) scale(1.2); /* Added 20% scale increase */
+    
+    /* Comic book halftone pattern like header */
+    background-image: 
+        radial-gradient(circle at 3px 3px, rgba(0,0,0,0.15) 1px, transparent 0),
+        linear-gradient(135deg, #2c1810 0%, #8b4513 50%, #ff6b00 100%);
+    background-size: 12px 12px, 100% 100%;
+    
+    /* Position next to dice container */
+    margin-left: 20px; /* Increased from 10px to move it more to the right */
+    align-self: center; /* Center vertically within the dice area */
+}
+
+/* Action menu positioned next to dice bar - solid background style */
+.action-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 15px;
+    background: #3a3a3a; /* Solid dark gray background */
+    border: 4px solid #000;
+    border-radius: 0; /* Sharp corners for comic book style */
+    box-shadow: 
+        6px 6px 0px #000,
+        8px 8px 20px rgba(0, 0, 0, 0.4); /* Enhanced shadow like header */
+    transform: perspective(400px) rotateX(2deg) rotateZ(-1.5deg); /* Same tilt as header */
+}
+
+/* All action menu buttons with solid background */
+.action-menu button {
+    width: 100%; /* Full width of the larger container */
+    margin: 0;
+    font-family: 'Bangers', cursive;
+    font-size: 1.1em; /* Match monster name font size */
+    padding: 15px 16px; /* Increased padding for larger buttons */
+    color: #FFFFFF; /* White color */
+    font-weight: 900; /* Match monster name font weight */
+    text-shadow: 
+        -2px -2px 0 #000,
+        2px -2px 0 #000,
+        -2px 2px 0 #000,
+        2px 2px 0 #000,
+        4px 4px 8px rgba(0, 0, 0, 0.8); /* Black drop shadow */
+    background: #4a4a4a; /* Solid lighter gray background */
+    border: 4px solid #000;
+    border-radius: 0;
+    box-shadow: 
+        4px 4px 0px #000,
+        6px 6px 20px rgba(0, 0, 0, 0.4);
+    transform: perspective(400px) rotateX(2deg) rotateZ(-1.5deg); /* Same tilt as header */
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.action-menu button:hover:not(:disabled) {
+    transform: perspective(400px) rotateX(2deg) rotateZ(-1.5deg) translateY(-2px);
+    box-shadow: 
+        4px 6px 0px #000,
+        6px 8px 25px rgba(0, 0, 0, 0.5);
+}
+
+.action-menu button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.die {
+    width: 60px;
+    height: 60px;
+    border: 4px solid #000;
+    border-radius: 0;
+    background: 
+        linear-gradient(135deg, #ffffff 0%, #f8f8f8 50%, #eeeeee 100%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6em;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transform: perspective(400px) rotateX(5deg) rotateY(-2deg) rotateZ(0.5deg); /* Reduced transforms */
+    box-shadow: 
+        4px 4px 0px #000,
+        6px 6px 15px rgba(0, 0, 0, 0.4);
+    position: relative;
+    color: #000;
+    font-weight: 900;
+    
+    /* Comic book halftone pattern */
+    background-image: 
+        radial-gradient(circle at 2px 2px, rgba(0,0,0,0.05) 1px, transparent 0),
+        linear-gradient(135deg, #ffffff 0%, #f8f8f8 50%, #eeeeee 100%);
+    background-size: 8px 8px, 100% 100%;
+}
+
+.die::before {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    right: 3px;
+    bottom: 3px;
+    border-radius: 8px;
+    background: radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.7) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.die::after {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    border-radius: 15px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 50%, rgba(0, 0, 0, 0.1) 100%);
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.die:hover {
+    transform: perspective(300px) rotateX(15deg) rotateY(-15deg) translateY(-3px) scale(1.05);
+    box-shadow: 
+        0 12px 24px rgba(0, 0, 0, 0.4),
+        inset 0 4px 0 rgba(255, 255, 255, 0.9),
+        inset 0 -4px 0 rgba(0, 0, 0, 0.25),
+        inset 4px 0 0 rgba(255, 255, 255, 0.5),
+        inset -4px 0 0 rgba(0, 0, 0, 0.15),
+        0 0 0 1px rgba(0, 0, 0, 0.15);
+    border-color: #343a40;
+}
+
+.die:hover::after {
+    opacity: 1;
+}
+
+.die.selected {
+    border-color: #000 !important;
+    background: 
+        linear-gradient(135deg, #ffffff 0%, #f8f8f8 50%, #eeeeee 100%) !important;
+    background-image: 
+        radial-gradient(circle at 2px 2px, rgba(0,0,0,0.05) 1px, transparent 0),
+        linear-gradient(135deg, #ffffff 0%, #f8f8f8 50%, #eeeeee 100%) !important;
+    background-size: 8px 8px, 100% 100% !important;
+    color: #000 !important;
+    transform: perspective(300px) rotateX(10deg) rotateY(-20deg) translateY(-15px) scale(1.08) !important;
+    box-shadow: 4px 4px 0px #000 !important;
+}
+
+.die.selected::after {
+    display: none !important;
+    opacity: 0 !important;
+    background: none !important;
+}
+
+.action-button
+{
+    font-size: 1.5em !important; /* Bigger font size */
+    font-weight: 900 !important;
+    font-family: 'Bangers', cursive;
+    color: #ffffff; /* White font color */
+    text-shadow: 
+        -2px -2px 0 #000,
+        2px -2px 0 #000,
+        -2px 2px 0 #000,
+        2px 2px 0 #000,
+        3px 3px 6px rgba(0, 0, 0, 0.8) !important; /* Black drop shadows */
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    border: 2px solid black !important;
+}
+
+.die.rolling {
+    animation: shake3D 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    border-color: #000;
+    background: 
+        linear-gradient(135deg, #e0e0e0 0%, #f0f0f0 50%, #d0d0d0 100%);
+}
+
+@keyframes shake3D {
+    0% { 
+        transform: perspective(300px) rotateX(20deg) rotateY(-10deg) scale(1); 
+    }
+    10% { 
+        transform: perspective(300px) rotateX(30deg) rotateY(15deg) rotateZ(5deg) scale(1.05) translateX(-3px); 
+    }
+    20% { 
+        transform: perspective(300px) rotateX(10deg) rotateY(-25deg) rotateZ(-8deg) scale(1.1) translateX(3px); 
+    }
+    30% { 
+        transform: perspective(300px) rotateX(40deg) rotateY(20deg) rotateZ(12deg) scale(1.05) translateX(-2px); 
+    }
+    40% { 
+        transform: perspective(300px) rotateX(5deg) rotateY(-30deg) rotateZ(-6deg) scale(1.15) translateX(4px); 
+    }
+    50% { 
+        transform: perspective(300px) rotateX(35deg) rotateY(25deg) rotateZ(10deg) scale(1.1) translateX(-1px); 
+    }
+    60% { 
+        transform: perspective(300px) rotateX(15deg) rotateY(-20deg) rotateZ(-4deg) scale(1.08) translateX(2px); 
+    }
+    70% { 
+        transform: perspective(300px) rotateX(25deg) rotateY(10deg) rotateZ(7deg) scale(1.05) translateX(-1px); 
+    }
+    80% { 
+        transform: perspective(300px) rotateX(18deg) rotateY(-15deg) rotateZ(-3deg) scale(1.03) translateX(1px); 
+    }
+    90% { 
+        transform: perspective(300px) rotateX(22deg) rotateY(-8deg) rotateZ(2deg) scale(1.01); 
+    }
+    100% { 
+        transform: perspective(300px) rotateX(20deg) rotateY(-10deg) scale(1); 
+    }
+}

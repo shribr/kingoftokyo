@@ -1,0 +1,659 @@
+/* Monster Avatars and Player Stats */
+
+.monster-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3em;
+    border: 4px solid #000; /* Reduced border thickness */
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    transform: translate(-3px, 4px); /* Move left 3px and down 4px */
+    
+    /* Simple background without glossy effects */
+    background: #f0f0f0;
+}
+
+.monster-avatar-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 15%;
+    border-radius: 50%;
+    filter: brightness(1.2) contrast(1.05);
+}
+
+/* Individual monster color schemes - removed for better image visibility */
+
+.monster-avatar[data-monster="mekaqueen"] {
+    background: 
+        radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.8) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, rgba(0, 0, 0, 0.2) 0%, transparent 50%),
+        conic-gradient(from 0deg, #673ab7 0%, #9c27b0 25%, #673ab7 50%, #512da8 75%, #673ab7 100%);
+}
+
+/* Removed pseudo-elements for cleaner image display */
+
+.monster-avatar:hover {
+    transform: translate(-3px, 4px) translateY(-2px) scale(1.05); /* Maintain offset while adding hover effects */
+    border-width: 5px; /* Slightly thicker border on hover */
+}
+
+/* Player Stats */
+.player-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px; /* Reduced gap for compact layout */
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    opacity: 1;
+    transform: translateY(5px); /* Move down 5px */
+}
+
+/* Compact stats when not hovered */
+.player-dashboard:not(:hover) .player-stats {
+    gap: 4px;
+}
+
+.stat {
+    background: 
+        linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    padding: 8px 12px; /* Increased horizontal padding from 8px to 12px to prevent text cutoff */
+    border-radius: 0;
+    box-shadow: 
+        2px 2px 0px #000, /* Smaller shadow when collapsed */
+        3px 3px 8px rgba(0, 0, 0, 0.3);
+    border: 2px solid #000; /* Thinner border when collapsed */
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transform: perspective(300px) rotateX(2deg) rotateZ(0.5deg);
+    
+    /* Comic book halftone pattern */
+    background-image: 
+        radial-gradient(circle at 2px 2px, rgba(0,0,0,0.08) 1px, transparent 0),
+        linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    background-size: 10px 10px, 100% 100%;
+}
+
+/* Expanded stats on hover */
+.player-dashboard:hover .stat {
+    padding: 12px 15px; /* Increased horizontal padding from 10px to 15px to maintain proportion */
+    border: 3px solid #000; /* Full border when expanded */
+    box-shadow: 
+        4px 4px 0px #000,
+        6px 6px 15px rgba(0, 0, 0, 0.3);
+}
+
+.stat:hover {
+    transform: perspective(300px) rotateX(-2deg) translateY(-2px) scale(1.05);
+    box-shadow: 
+        6px 6px 0px #000,
+        8px 8px 20px rgba(0, 0, 0, 0.4);
+    z-index: 10;
+}
+
+.stat-label {
+    font-size: 0.6em; /* Smaller when collapsed */
+    display: block;
+    font-weight: 900;
+    font-family: 'Bangers', cursive;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 2px; /* Reduced margin when collapsed */
+    text-shadow: 
+        -1px -1px 0 #fff,
+        1px -1px 0 #fff,
+        -1px 1px 0 #fff,
+        1px 1px 0 #fff;
+    transition: all 0.3s ease;
+}
+
+/* Expanded label on hover */
+.player-dashboard:hover .stat-label {
+    font-size: 0.7em;
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    font-size: 1.2em; /* Smaller when collapsed */
+    font-weight: 900;
+    color: #000;
+    font-family: 'Bangers', cursive;
+    text-shadow: 
+        -1px -1px 0 #fff,
+        1px -1px 0 #fff,
+        -1px 1px 0 #fff,
+        1px 1px 0 #fff,
+        2px 2px 4px rgba(0, 0, 0, 0.6);
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+}
+
+/* Expanded value on hover */
+.player-dashboard:hover .stat-value {
+    font-size: 1.4em;
+}
+
+.health .stat-value { 
+    color: #e53935;
+    text-shadow: 
+        -1px -1px 0 #fff,
+        1px -1px 0 #fff,
+        -1px 1px 0 #fff,
+        1px 1px 0 #fff,
+        2px 2px 4px rgba(229, 57, 53, 0.4);
+}
+.player-dashboard .stat.energy .stat-value { 
+    color: #d4a500 !important;
+    text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+}
+.player-dashboard .stat.points .stat-value { 
+    color: #cc6600 !important;
+    text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+}
+
+.player-dashboard .stat.power-cards .stat-value { 
+    color: #7b1fa2 !important;
+    text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+}
+
+.tokyo-indicator {
+    margin-top: 10px;
+    background: linear-gradient(45deg, var(--monster-color, #ff6b00), var(--monster-color-light, #ff9800));
+    color: white;
+    padding: 8px 15px;
+    border-radius: 0;
+    border: 2px solid #000;
+    text-align: center;
+    font-weight: bold;
+    font-size: 0.9em;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 2px 8px var(--monster-glow-color, rgba(255, 152, 0, 0.4));
+    animation: tokyoGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes tokyoGlow {
+    from {
+        box-shadow: 0 2px 8px var(--monster-glow-color, rgba(255, 152, 0, 0.4));
+    }
+    to {
+        box-shadow: 0 2px 15px var(--monster-glow-strong, rgba(255, 152, 0, 0.7));
+    }
+}
+
+/* Power Card Tabs */
+.power-card-tabs {
+    position: absolute;
+    left: -20px; /* Stick out more */
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 3px; /* Reduced gap for compact layout */
+    z-index: 10;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    opacity: 1; /* Full opacity to make more obvious */
+}
+
+/* Enhance visibility on hover */
+.player-dashboard:hover .power-card-tabs {
+    gap: 5px;
+    opacity: 1;
+    transform: translateY(-50%) translateX(-3px); /* Stick out even more on hover */
+}
+
+.power-card-tab {
+    width: 35px; /* Wider for number + label */
+    height: 50px; /* Taller for number + label */
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 50%, #e9ecef 100%); /* White background */
+    border: 3px solid #000; /* Thicker border */
+    border-radius: 0; /* Sharp corners for comic book style */
+    border-right: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 
+        0 3px 8px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    
+    /* Comic book halftone pattern */
+    background-image: 
+        radial-gradient(circle at 2px 2px, rgba(0,0,0,0.08) 1px, transparent 0),
+        linear-gradient(135deg, #ffffff 0%, #f8f9fa 50%, #e9ecef 100%);
+    background-size: 8px 8px, 100% 100%;
+}
+
+/* Expand tabs on dashboard hover */
+.player-dashboard:hover .power-card-tab {
+    width: 40px; /* Even larger on hover */
+    height: 55px;
+    border-radius: 0; /* Sharp corners for comic book style */
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.power-card-tab:hover {
+    transform: translateX(-5px); /* More pronounced slide out */
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    background: linear-gradient(135deg, #fff8dc 0%, #ffecb3 50%, #ffe082 100%); /* Golden highlight on hover */
+    z-index: 15;
+}
+
+.tab-preview {
+    color: #000; /* Black text on white background */
+    font-weight: 900;
+    font-size: 16px; /* Larger for the number */
+    text-shadow: 
+        -1px -1px 0 #fff,
+        1px -1px 0 #fff,
+        -1px 1px 0 #fff,
+        1px 1px 0 #fff;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    font-family: 'Bangers', cursive;
+    line-height: 1;
+    margin-bottom: 2px;
+}
+
+.tab-label {
+    color: #000;
+    font-weight: 900;
+    font-size: 10px;
+    text-shadow: 
+        -1px -1px 0 #fff,
+        1px -1px 0 #fff,
+        -1px 1px 0 #fff,
+        1px 1px 0 #fff;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    font-family: 'Bangers', cursive;
+    line-height: 1;
+}
+
+/* Expand text on dashboard hover */
+.player-dashboard:hover .tab-preview {
+    font-size: 18px;
+    color: #333;
+}
+
+.player-dashboard:hover .tab-label {
+    font-size: 11px;
+    color: #333;
+}
+
+/* Power Card Modal */
+.power-card-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease;
+}
+
+/* Card Purchase Preview Modal */
+.card-purchase-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    animation: fadeIn 0.4s ease;
+}
+
+.card-purchase-modal {
+    position: relative;
+    max-width: 500px;
+    width: 90%;
+    animation: cardPopOut 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes cardPopOut {
+    0% {
+        transform: scale(0.3) rotate(-10deg);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.1) rotate(2deg);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+.purchase-card-display {
+    background: 
+        linear-gradient(135deg, #ffffff 0%, #f8f9fa 20%, #e9ecef 60%, #dee2e6 100%);
+    border: 4px solid #000;
+    border-radius: 15px;
+    padding: 30px;
+    position: relative;
+    box-shadow: 
+        0 15px 40px rgba(0, 0, 0, 0.7),
+        inset 0 2px 0 rgba(255, 255, 255, 0.9),
+        8px 8px 0px #000;
+    
+    /* Comic book halftone pattern */
+    background-image: 
+        radial-gradient(circle at 2px 2px, rgba(0,0,0,0.05) 1px, transparent 0),
+        linear-gradient(135deg, #ffffff 0%, #f8f9fa 20%, #e9ecef 60%, #dee2e6 100%);
+    background-size: 12px 12px, 100% 100%;
+    
+    transform: perspective(600px) rotateX(2deg) rotateZ(-1deg);
+}
+
+.purchase-card-display .card-cost {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: linear-gradient(135deg, #ffc107 0%, #ff8f00 100%);
+    color: #000;
+    padding: 8px 15px;
+    border-radius: 20px;
+    border: 3px solid #000;
+    font-weight: 900;
+    font-size: 18px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    font-family: 'Bangers', cursive;
+    text-shadow: 
+        -1px -1px 0 #fff,
+        1px -1px 0 #fff,
+        -1px 1px 0 #fff,
+        1px 1px 0 #fff;
+}
+
+.purchase-card-display .card-name {
+    font-size: 28px;
+    font-weight: 900;
+    color: #000;
+    margin: 50px 0 15px 0;
+    text-align: center;
+    text-shadow: 
+        -2px -2px 0 #FFD700,
+        2px -2px 0 #FFD700,
+        -2px 2px 0 #FFD700,
+        2px 2px 0 #FFD700,
+        4px 4px 8px rgba(0, 0, 0, 0.6);
+    font-family: 'Bangers', cursive;
+    letter-spacing: 2px;
+}
+
+.purchase-card-display .card-description {
+    font-size: 16px;
+    color: #333;
+    line-height: 1.6;
+    margin-bottom: 25px;
+    text-align: center;
+    padding: 0 10px;
+    font-weight: 500;
+}
+
+.purchase-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.purchase-btn, .decline-btn {
+    padding: 12px 25px;
+    border: 3px solid #000;
+    border-radius: 0;
+    font-weight: 900;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Bangers', cursive;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    box-shadow: 4px 4px 0px #000;
+}
+
+.purchase-btn {
+    background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+.purchase-btn:hover {
+    background: linear-gradient(135deg, #66bb6a 0%, #4caf50 100%);
+    transform: translateY(-2px);
+    box-shadow: 6px 6px 0px #000;
+}
+
+.purchase-btn:disabled {
+    background: linear-gradient(135deg, #999 0%, #666 100%);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.decline-btn {
+    background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+.decline-btn:hover {
+    background: linear-gradient(135deg, #ef5350 0%, #f44336 100%);
+    transform: translateY(-2px);
+    box-shadow: 6px 6px 0px #000;
+}
+
+.player-energy-display {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    border: 3px solid #000;
+    font-weight: 900;
+    font-size: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    font-family: 'Bangers', cursive;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+.power-card-modal {
+    position: relative;
+    max-width: 400px;
+    width: 90%;
+    animation: modalSlideIn 0.3s ease;
+}
+
+.power-card-display {
+    background: 
+        linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%);
+    border: 3px solid #000;
+    border-radius: 15px;
+    padding: 20px;
+    position: relative;
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.5),
+        inset 0 2px 0 rgba(255, 255, 255, 0.8);
+    
+    /* Comic book halftone pattern */
+    background-image: 
+        radial-gradient(circle at 2px 2px, rgba(0,0,0,0.05) 1px, transparent 0),
+        linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%);
+    background-size: 12px 12px, 100% 100%;
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: #dc3545;
+    color: white;
+    border: 2px solid #000;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.modal-close-btn:hover {
+    background: #c82333;
+    transform: scale(1.1);
+}
+
+.power-card-display .card-cost {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: #ffc107;
+    color: #000;
+    padding: 5px 10px;
+    border-radius: 15px;
+    border: 2px solid #000;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.power-card-display .card-name {
+    font-size: 24px;
+    font-weight: bold;
+    color: #000;
+    margin: 40px 0 10px 0;
+    text-align: center;
+    text-shadow: 
+        -1px -1px 0 #fff,
+        1px -1px 0 #fff,
+        -1px 1px 0 #fff,
+        1px 1px 0 #fff;
+}
+
+.power-card-display .card-type {
+    background: #6c757d;
+    color: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    border: 2px solid #000;
+    font-weight: bold;
+    text-align: center;
+    margin: 10px auto;
+    width: fit-content;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.power-card-display .card-description {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 15px;
+    border-radius: 10px;
+    border: 2px solid #000;
+    font-size: 16px;
+    line-height: 1.4;
+    margin: 15px 0;
+    text-align: center;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.power-card-display .card-owner {
+    text-align: center;
+    font-style: italic;
+    color: #666;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes modalSlideIn {
+    from { 
+        opacity: 0;
+        transform: scale(0.8) translateY(-20px);
+    }
+    to { 
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Power Card Modal Color Coding */
+.power-card-display[data-effect*="damage"],
+.power-card-display[data-effect*="attack"],
+.power-card-display[data-effect*="extraDamage"] {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: #000;
+}
+
+.power-card-display[data-effect*="energy"],
+.power-card-display[data-effect*="bonusEnergy"],
+.power-card-display[data-effect*="cheaperCards"] {
+    background: linear-gradient(135deg, #0d6efd, #0056d3);
+    color: #000;
+}
+
+.power-card-display[data-effect*="points"],
+.power-card-display[data-effect*="bonusPoints"],
+.power-card-display[data-effect*="attackBonus"] {
+    background: linear-gradient(135deg, #fd7e14, #e56a00);
+    color: #000;
+}
+
+.power-card-display[data-effect*="heal"],
+.power-card-display[data-effect*="health"] {
+    background: linear-gradient(135deg, #20c997, #17a085);
+    color: #000;
+}
+
+.power-card-display[data-effect*="armor"],
+.power-card-display[data-effect*="protection"],
+.power-card-display[data-effect*="camouflage"] {
+    background: linear-gradient(135deg, #6f42c1, #5a2d9c);
+    color: #fff;
+}
+
+.power-card-display[data-effect*="dice"],
+.power-card-display[data-effect*="reroll"] {
+    background: linear-gradient(135deg, #e83e8c, #c92a6b);
+    color: #fff;
+}

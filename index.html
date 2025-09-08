@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>King of To        <button id="storage-mgmt-btn" class="toolbar-btn" title="Storage Management">
+            <span class="toolbar-icon">🗄️</span>
+        </button></title>
+    <!-- Modular CSS Structure -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/splash.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/game-areas.css">
+    <link rel="stylesheet" href="css/monsters.css">
+    <link rel="stylesheet" href="css/dice.css">
+    <link rel="stylesheet" href="css/cards.css">
+    <link rel="stylesheet" href="css/modals.css">
+    <link rel="stylesheet" href="css/animations.css">
+</head>
+<body>
+    <!-- Splash Screen -->
+    <div id="splash-screen" class="splash-screen">
+        <div class="splash-content">
+            <img src="images/king-of-tokyo-logo.png" alt="King of Tokyo" class="splash-logo-image" />
+            <div id="enter-battle-btn" class="splash-subtitle clickable">Enter the battle for Tokyo!</div>
+        </div>
+    </div>
+
+    <div id="game-container">
+        <!-- Header -->
+        <header class="game-header">
+            <span id="current-player">Player 1's Turn</span>
+            <h1 data-text="KING OF TOKYO!">KING OF TOKYO!</h1>
+            <div class="game-info">
+            </div>
+        </header>
+
+        <!-- Main Game Area -->
+        <main class="game-board">
+            <!-- Tokyo Area -->
+            <div class="tokyo-area">
+                <div class="tokyo-bay">
+                    <h3>Tokyo Bay</h3>
+                    <div id="tokyo-bay-monster" class="monster-slot"></div>
+                </div>
+                <div class="tokyo-city">
+                    <h3>Tokyo City</h3>
+                    <div id="tokyo-city-monster" class="monster-slot"></div>
+                </div>
+                            <!-- Round Indicator -->
+            <div class="round-indicator-container">
+                <span class="round-label">Round</span>
+                <div id="round-indicator" class="round-indicator">
+                    <span id="round-counter">1</span>
+                </div>
+            </div>
+            </div>
+            <!-- Players Area -->
+            <div class="players-area">
+                <div id="players-container"></div>
+            </div>
+
+            <!-- Game Actions Area -->
+            <div class="game-actions">
+                <!-- Dice Rolling Area -->
+                <div class="dice-area">
+                    <div id="dice-container" class="dice-container"></div>
+                    <span id="rolls-left" class="rolls-indicator">Rolls left: 3</span>
+                </div>
+                
+                <!-- Dice controls next to dice bar -->
+                <div class="action-menu">
+                    <button id="roll-dice" class="action-button btn primary">Roll Dice</button>
+                    <button id="keep-dice" class="action-button btn secondary" disabled>Keep Dice</button>
+                    <button id="buy-cards" class="action-button btn tertiary">Buy Power Cards</button>
+                    <button id="end-turn" class="action-button btn quaternary">End Turn</button>
+                </div>
+
+                <!-- Power Cards Area -->
+                <div class="cards-area">
+                    <h3>Power Cards</h3>
+                    <div class="energy-display">
+                        <span>⚡ Energy: <span id="current-energy">0</span></span>
+                    </div>
+                    <div id="available-cards" class="cards-container"></div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Game Setup Modal -->
+        <div id="setup-modal" class="modal">
+            <div class="modal-content">
+                <h2>Monster Selection</h2>
+                <div class="setup-form">
+                    <div class="custom-dropdown" id="player-count-dropdown">
+                        <div class="dropdown-selected" id="dropdown-selected">
+                            <span class="dropdown-text">Number of Players (2-6)</span>
+                            <span class="dropdown-arrow">▼</span>
+                        </div>
+                        <div class="dropdown-options" id="dropdown-options">
+                            <div class="dropdown-option" data-value="2">2 Players</div>
+                            <div class="dropdown-option" data-value="3">3 Players</div>
+                            <div class="dropdown-option" data-value="4">4 Players</div>
+                            <div class="dropdown-option" data-value="5">5 Players</div>
+                            <div class="dropdown-option" data-value="6">6 Players</div>
+                        </div>
+                    </div>
+                    
+                    <div id="monster-selection">
+                        <h3>Choose Your Monsters</h3>
+                        <div class="monster-grid" id="monster-grid"></div>
+                    </div>
+                    
+                    <button id="start-game" class="btn primary">Start Game</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Over Modal -->
+        <div id="game-over-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2>Game Over!</h2>
+                <div id="winner-announcement"></div>
+                <button id="new-game" class="btn primary">New Game</button>
+            </div>
+        </div>
+
+        <!-- Decision Modal -->
+        <div id="decision-modal" class="modal hidden">
+            <div class="modal-content decision-modal">
+                <div class="decision-header">
+                    <h2 id="decision-title">Decision Required</h2>
+                    <div id="decision-context" class="decision-context"></div>
+                </div>
+                <div class="decision-body">
+                    <p id="decision-message">You need to make a decision!</p>
+                    <div class="decision-monster" id="decision-monster"></div>
+                </div>
+                <div class="decision-actions">
+                    <button id="decision-option-1" class="btn decision-btn primary">Option 1</button>
+                    <button id="decision-option-2" class="btn decision-btn secondary">Option 2</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Toolbar -->
+    <div id="game-toolbar" class="game-toolbar">
+        <button id="settings-btn" class="toolbar-btn" title="Settings">
+            <span class="toolbar-icon">⚙️</span>
+        </button>
+        <button id="game-log-btn" class="toolbar-btn" title="Game Log">
+            <span class="toolbar-icon">📋</span>
+        </button>
+        <button id="storage-mgmt-btn" class="toolbar-btn" title="Storage Management">
+            <span class="toolbar-icon">🗄️</span>
+        </button>
+        <button id="save-game-toolbar-btn" class="toolbar-btn" title="Save Game">
+            <span class="toolbar-icon">💾</span>
+        </button>
+        <button id="dark-mode-btn" class="toolbar-btn" title="Toggle Dark Mode">
+            <span class="toolbar-icon">🌙</span>
+        </button>
+    </div>
+
+    <!-- Game Log Modal -->
+    <div id="game-log-modal" class="modal hidden">
+        <div class="modal-content game-log-content">
+            <div class="modal-header">
+                <h2>Game Log</h2>
+                <button class="close-btn" id="close-game-log">×</button>
+            </div>
+            <div class="game-log-container">
+                <div id="game-log-content" class="game-log-entries">
+                    <!-- Log entries will be populated here -->
+                </div>
+            </div>
+            <div class="game-log-actions">
+                <button id="clear-log-btn" class="game-btn danger large">Clear Log</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Storage Management Modal -->
+    <div id="storage-mgmt-modal" class="modal hidden">
+        <div class="modal-content storage-mgmt-content">
+            <div class="modal-header">
+                <button class="info-btn" id="storage-info-btn" title="About Storage">i</button>
+                <h2>Storage Management</h2>
+                <button class="close-btn" id="close-storage-mgmt">×</button>
+            </div>
+            <div class="storage-mgmt-container">
+                <div class="storage-info-section">
+                    <h3>📊 Storage Statistics</h3>
+                    <div class="storage-stats" id="storage-stats">
+                        <!-- Storage statistics will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="storage-actions-section">
+                    <h3>🛠️ Storage Actions</h3>
+                    <div class="storage-controls">
+                        <button id="save-game-btn">
+                            <span class="btn-icon">💾</span>
+                            Save Game Now
+                        </button>
+                        <button id="export-game-btn">
+                            <span class="btn-icon">📤</span>
+                            Export Game Data
+                        </button>
+                        <button id="clear-storage-btn">
+                            <span class="btn-icon">🗑️</span>
+                            Clear All Storage
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- About Storage Side Panel -->
+        <div class="storage-about-panel hidden" id="storage-about-panel">
+            <div class="storage-about-content">
+                <div class="storage-about-header">
+                    <div class="storage-about-title">
+                        <button class="info-btn small">i</button>
+                        <h3>About Storage</h3>
+                    </div>
+                    <button class="close-btn" id="close-storage-about">×</button>
+                </div>
+                <div class="storage-help-text">
+                    <p>Your game data is automatically saved to your browser's storage. This includes:</p>
+                    <ul>
+                        <li>Complete game state (players, scores, cards, Tokyo positions)</li>
+                        <li>Full game log history with hierarchical organization</li>
+                        <li>Automatic compression to save space</li>
+                        <li>Memory management to prevent slowdowns</li>
+                    </ul>
+                    <p><strong>Note:</strong> Clearing browser data will remove saved games.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/gameStorage.js"></script>
+    <script>console.log('✅ gameStorage.js loaded, gameStorage available:', typeof gameStorage !== 'undefined');</script>
+    
+    <script src="js/monsters.js"></script>
+    <script>console.log('✅ monsters.js loaded, MONSTERS available:', typeof MONSTERS !== 'undefined');</script>
+    
+    <script src="js/cards.js"></script>
+    <script>console.log('✅ cards.js loaded, POWER_CARDS available:', typeof POWER_CARDS !== 'undefined');</script>
+    
+    <script src="js/dice.js"></script>
+    <script>console.log('✅ dice.js loaded');</script>
+    
+    <script src="js/game.js"></script>
+    <script>console.log('✅ game.js loaded, KingOfTokyoGame available:', typeof KingOfTokyoGame !== 'undefined');</script>
+    
+    <script src="js/main.js"></script>
+</body>
+</html>

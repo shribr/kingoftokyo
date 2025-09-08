@@ -1,0 +1,385 @@
+/* Layout Styles - Game Container, Header, Board */
+
+/* Remove all scrollbars from the game - exclude dropdowns */
+/* *:not(.custom-dropdown):not(.dropdown-options) {
+    overflow-x: hidden;
+} */
+
+*::-webkit-scrollbar {
+    display: none;
+}
+
+* {
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+    scrollbar-width: none;  /* Firefox */
+}
+
+/* Hide game container initially */
+.game-container {
+    display: none;
+    min-height: 100vh;
+    background: 
+        /* Comic book background with sharp geometric patterns */
+        linear-gradient(45deg, transparent 25%, rgba(255, 215, 0, 0.1) 25%, rgba(255, 215, 0, 0.1) 50%, transparent 50%, transparent 75%, rgba(255, 140, 0, 0.1) 75%),
+        linear-gradient(-45deg, transparent 25%, rgba(255, 69, 0, 0.1) 25%, rgba(255, 69, 0, 0.1) 50%, transparent 50%, transparent 75%, rgba(220, 20, 60, 0.1) 75%),
+        /* Dark base gradient */
+        linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+    background-size: 60px 60px, 80px 80px, 100% 100%;
+    padding: 20px;
+    position: relative;
+    border: 4px solid #000;
+    border-radius: 0;
+    box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.8);
+}
+
+#game-container.show {
+    display: block;
+}
+
+/* Body Background */
+body {
+    background: 
+        /* Comic book halftone pattern */
+        radial-gradient(circle at 4px 4px, rgba(255,255,255,0.05) 1px, transparent 0),
+        /* Subtle city skyline at bottom */
+        linear-gradient(to bottom, transparent 85%, #000 85.5%, #000 88%, #111 88.5%, #111 91%, #000 91.5%, #000 94%, #222 94.5%, #222 97%, #000 97.5%, #000 100%),
+        /* Black gradient background */
+        linear-gradient(135deg, #000 0%, #1a1a1a 25%, #2a2a2a 50%, #3a3a3a 75%, #4a4a4a 100%);
+    background-size: 20px 20px, 100% 100%, 100% 100%;
+    min-height: 100vh;
+    position: relative;
+}
+
+/* Add subtle background pattern */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0);
+    background-size: 20px 20px;
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* Game Container */
+#game-container {
+    max-width: 100vw;
+    height: 100vh; /* Set to full viewport height */
+    margin: 0;
+    padding: 10px 0; /* Reduced padding */
+    position: relative;
+    z-index: 1;
+    overflow: visible; /* Allow player cards to expand beyond container */
+    box-sizing: border-box;
+}
+
+/* Header */
+.game-header {
+    background: 
+        linear-gradient(135deg, #2c1810 0%, #8b4513 20%, #ff6b00 40%, #ffaa00 60%, #8b4513 80%, #2c1810 100%);
+    padding: 15px 20px;
+    border-radius: 15px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: center; /* Center the title */
+    align-items: center;
+    box-shadow: 
+        8px 8px 0px #000,
+        12px 12px 25px rgba(0, 0, 0, 0.5);
+    border: 6px solid #000;
+    position: relative;
+    overflow: hidden;
+    
+    /* Comic book halftone pattern */
+    background-image: 
+        radial-gradient(circle at 3px 3px, rgba(0,0,0,0.1) 1px, transparent 0),
+        linear-gradient(135deg, #2c1810 0%, #8b4513 20%, #ff6b00 40%, #ffaa00 60%, #8b4513 80%, #2c1810 100%);
+    background-size: 12px 12px, 100% 100%;
+}
+
+.game-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 30% 20%, rgba(255, 200, 0, 0.2) 0%, transparent 50%),
+        radial-gradient(circle at 70% 80%, rgba(255, 100, 0, 0.2) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.game-header h1 {
+    font-family: 'Bangers', cursive;
+    font-size: 5em;
+    font-weight: 900;
+    color: #FFD700;
+    text-shadow: 
+        -6px -6px 0 #000,
+        6px -6px 0 #000,
+        -6px 6px 0 #000,
+        6px 6px 0 #000,
+        -4px -4px 0 #000,
+        4px -4px 0 #000,
+        -4px 4px 0 #000,
+        4px 4px 0 #000,
+        -2px -2px 0 #000,
+        2px -2px 0 #000,
+        -2px 2px 0 #000,
+        2px 2px 0 #000,
+        3px 3px 6px rgba(0, 0, 0, 0.6); /* Reduced shadow */
+    letter-spacing: 6px;
+    transform: perspective(800px) rotateX(-3deg) rotateY(-2deg) translateX(-160px); /* More left to align with dice center */
+    margin: 0;
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(8px 8px 0px #000) drop-shadow(10px 10px 15px rgba(0, 0, 0, 0.5)); /* Reduced drop shadow */
+    display: inline-block;
+    text-transform: uppercase;
+}
+
+/* Remove any conflicting gradient effects */
+.game-header h1 {
+    background: none !important;
+    -webkit-background-clip: initial !important;
+    background-clip: initial !important;
+    -webkit-text-fill-color: #FFD700 !important;
+}
+
+.game-info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    background: 
+        linear-gradient(135deg, #2c1810 0%, #8b4513 50%, #ff6b00 100%);
+    padding: 15px 20px;
+    border: 4px solid #000;
+    border-radius: 0;
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%) perspective(400px) rotateX(2deg) rotateZ(-1.5deg);
+    z-index: 1;
+    box-shadow: 
+        6px 6px 0px #000,
+        8px 8px 20px rgba(0, 0, 0, 0.4);
+    
+    /* Comic book halftone pattern */
+    background-image: 
+        radial-gradient(circle at 3px 3px, rgba(0,0,0,0.15) 1px, transparent 0),
+        linear-gradient(135deg, #2c1810 0%, #8b4513 50%, #ff6b00 100%);
+    background-size: 12px 12px, 100% 100%;
+}
+
+#current-player {
+    font-family: 'Bangers', cursive;
+    font-size: 2.5em; /* Increased from 2em */
+    color: #FFD700;
+    text-shadow: 
+        -2px -2px 0 #000,
+        2px -2px 0 #000,
+        -2px 2px 0 #000,
+        2px 2px 0 #000,
+        4px 4px 8px rgba(0, 0, 0, 0.8);
+    letter-spacing: 1px;
+    position: absolute;
+    top: 50%;
+    left: 120px; /* Middle ground between 40px and 210px */
+    transform: translateY(-50%);
+    z-index: 2;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/* Main Game Board - Full screen layout with maximum height */
+.game-board {
+    display: block;
+    height: calc(100vh - 140px); /* Adjusted for proper fit with new padding */
+    margin-top: 5px; /* Reduced margin */
+    position: relative;
+    padding: 0;
+    overflow: visible; /* Allow player cards to expand beyond game board */
+}
+
+/* Tokyo Area - Moved further to the left */
+.tokyo-area {
+    position: absolute;
+    left: 15px; /* Keep at far left */
+    right: 450px; /* Give more space for power cards */
+    top: 10px; /* Moved up */
+    height: 80%; /* Set to 80% height */
+    max-width: none;
+    margin: 0;
+    overflow: visible; /* Ensure round indicator content isn't clipped */
+}
+
+/* Hide the game-actions container since we're positioning children individually */
+.game-actions {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Allow clicks through to positioned children */
+}
+
+.game-actions > * {
+    pointer-events: auto; /* Re-enable clicks on actual elements */
+}
+
+/* Power Cards on Left - Extra wide and taller without duplicate end-turn button */
+.cards-area {
+    position: fixed !important;
+    left: 15px;
+    top: 130px;
+    bottom: 45px; /* Increased bottom margin to prevent viewport overflow */
+    width: 430px; /* Increased from 390px to 430px for better card display */
+    z-index: 5;
+    opacity: 1; /* Ensure visibility */
+}
+
+/* Players on Right - No scrolling, auto-fit with dice controls */
+.players-area {
+    position: fixed !important;
+    right: 15px;
+    top: 20px; /* Moved much higher from 60px to 20px for 6-player support */
+    bottom: 15px; /* Increased bottom margin to prevent viewport overflow */
+    width: 420px; /* Increased from 360px to 420px for better text display and stat padding */
+    z-index: 4;
+    overflow: visible; /* Allow player cards to expand on hover */
+    opacity: 1; /* Ensure visibility */
+}
+
+/* Dice overlay - stretched to fill gap with action menu, 20% shorter height */
+.dice-area {
+    position: fixed !important;
+    bottom: 110px; /* Moved up to prevent viewport overflow */
+    left: 480px; /* Moved right from 24% to account for wider cards area */
+    right: 460px; /* Adjusted to account for wider players area */
+    height: 120px; /* Decreased by another 10px (130px->120px) */
+    z-index: 6;
+    margin: 0;
+    opacity: 1; /* Ensure visibility */
+}
+
+/* Action menu positioned away from player cards */
+.action-menu {
+    position: fixed !important;
+    bottom: 110px; /* Moved up to prevent viewport overflow */
+    right: 520px; /* Moved further left to make room for wider buttons */
+    width: 250px; /* Increased width to accommodate 120% button width */
+    z-index: 6;
+    margin: 0;
+    opacity: 1;
+}
+
+/* Round Indicator Container - positioned properly inside tokyo area */
+.round-indicator-container {
+    position: absolute;
+    top: 30px;
+    left: 480px; /* Moved right from 430px to 480px */
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 15;
+    overflow: visible; /* Ensure content isn't clipped */
+}
+
+.round-indicator-container .round-label {
+    font-family: 'Bangers', cursive;
+    font-size: 3em;
+    font-weight: bold;
+    color: #FFD700;
+    text-shadow: 
+        -4px -4px 0 #000,
+        4px -4px 0 #000,
+        -4px 4px 0 #000,
+        4px 4px 0 #000,
+        -3px -3px 0 #000,
+        3px -3px 0 #000,
+        -3px 3px 0 #000,
+        3px 3px 0 #000,
+        -2px -2px 0 #000,
+        2px -2px 0 #000,
+        -2px 2px 0 #000,
+        2px 2px 0 #000,
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000,
+        4px 4px 8px rgba(0, 0, 0, 0.8);
+    letter-spacing: 1px;
+    transform: translateZ(20px) translateX(-15px);
+}
+
+/* Round Indicator Circle - contains only the number */
+.round-indicator {
+    background: #E6C200;
+    border: 4px solid #000;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform-style: preserve-3d;
+    perspective: 1000px;
+}
+
+.round-indicator #round-counter {
+    font-family: 'Bangers', cursive;
+    font-size: 24px;
+    font-weight: bold;
+    color: #000;
+    transform: translateZ(20px);
+}
+
+@keyframes roundGlow {
+    0% {
+        box-shadow: 
+            0 0 20px rgba(255, 215, 0, 0.8),
+            inset 0 0 20px rgba(255, 255, 255, 0.3);
+    }
+    100% {
+        box-shadow: 
+            0 0 30px rgba(255, 215, 0, 1),
+            inset 0 0 30px rgba(255, 255, 255, 0.5);
+    }
+}
+
+@keyframes roundSpin {
+    0% {
+        transform: rotate(0deg) scale(1);
+        opacity: 1;
+    }
+    25% {
+        transform: rotate(180deg) scale(1.2);
+        opacity: 0.8;
+    }
+    50% {
+        transform: rotate(360deg) scale(1.4);
+        opacity: 0.3;
+    }
+    75% {
+        transform: rotate(540deg) scale(1.2);
+        opacity: 0.8;
+    }
+    100% {
+        transform: rotate(720deg) scale(1);
+        opacity: 1;
+    }
+}
+
+.round-indicator.spinning {
+    animation: roundSpin 1.5s ease-in-out;
+}

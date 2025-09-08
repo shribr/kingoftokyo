@@ -1,0 +1,225 @@
+/* Responsive Design */
+
+@media (max-width: 1200px) {
+    .game-header h1 {
+        font-size: 3.2em;
+        letter-spacing: 2px;
+        text-shadow: 
+            -2px -2px 0 #000,
+            2px -2px 0 #000,
+            -2px 2px 0 #000,
+            2px 2px 0 #000,
+            -1px -1px 0 #000,
+            1px -1px 0 #000,
+            -1px 1px 0 #000,
+            1px 1px 0 #000,
+            4px 4px 8px rgba(0, 0, 0, 0.7);
+    }
+    
+    .dice-container {
+        gap: 12px;
+    }
+    
+    .die {
+        width: 65px;
+        height: 65px;
+        font-size: 1.6em;
+    }
+}
+
+@media (max-width: 768px) {
+    #game-container {
+        padding: 15px;
+    }
+    
+    .game-header {
+        padding: 20px 15px;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .game-header h1 {
+        font-size: 2.5em;
+        letter-spacing: 2px;
+        text-align: center;
+        transform: perspective(400px) rotateX(2deg);
+        text-shadow: 
+            -1px -1px 0 #000,
+            1px -1px 0 #000,
+            -1px 1px 0 #000,
+            1px 1px 0 #000,
+            2px 2px 4px rgba(0, 0, 0, 0.7);
+    }
+    
+    .game-info {
+        flex-direction: row;
+        justify-content: center;
+    }
+    
+    .game-board {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+        gap: 15px;
+    }
+    
+    .tokyo-area {
+        padding: 20px 15px;
+    }
+    
+    .tokyo-area h2 {
+        font-size: 2.2em;
+    }
+    
+    .tokyo-bay, .tokyo-city {
+        display: block;
+        margin: 15px auto;
+        min-width: 180px;
+    }
+    
+    .monster-slot {
+        width: 140px;
+        height: 140px;
+    }
+    
+    .dice-container {
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .die {
+        width: 55px;
+        height: 55px;
+        font-size: 1.4em;
+    }
+    
+    .player-stats {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+    
+    .cards-container {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+    }
+    
+    .monster-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 15px;
+    }
+    
+    .monster-emoji {
+        font-size: 2.8em;
+    }
+    
+    .btn {
+        padding: 12px 20px;
+        font-size: 1em;
+    }
+}
+
+@media (max-width: 480px) {
+    .game-header h1 {
+        font-size: 2em;
+        letter-spacing: 1px;
+        transform: perspective(300px) rotateX(1deg);
+        text-shadow: 
+            -1px -1px 0 #000,
+            1px -1px 0 #000,
+            -1px 1px 0 #000,
+            1px 1px 0 #000,
+            2px 2px 4px rgba(0, 0, 0, 0.6);
+    }
+    
+    .tokyo-area h2 {
+        font-size: 1.8em;
+    }
+    
+    .die {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2em;
+    }
+    
+    .player-dashboard {
+        padding: 12px; /* Reduced padding for mobile */
+        min-height: 60px; /* Smaller minimum height on mobile */
+        margin-bottom: -20px; /* Tighter stacking on mobile */
+    }
+    
+    /* Adjust hover effect for mobile */
+    .player-dashboard:hover {
+        transform: perspective(600px) rotateX(-1deg) translateY(-15px) scale(1.01);
+        min-height: 120px; /* Less expansion on mobile */
+        margin-bottom: 5px;
+    }
+    
+    /* Smaller power card tabs on mobile */
+    .power-card-tabs {
+        left: -15px; /* Less stick out on mobile */
+    }
+    
+    .power-card-tab {
+        width: 25px;
+        height: 35px;
+        border: 2px solid #000; /* Thinner border on mobile */
+    }
+    
+    .player-dashboard:hover .power-card-tab {
+        width: 30px;
+        height: 40px;
+    }
+    
+    .tab-preview {
+        font-size: 12px;
+    }
+    
+    .player-dashboard:hover .tab-preview {
+        font-size: 14px;
+    }
+    
+    /* Adjust purchase modal for mobile */
+    .card-purchase-modal {
+        max-width: 95%;
+        margin: 20px;
+    }
+    
+    .purchase-card-display {
+        padding: 20px;
+    }
+    
+    .purchase-card-display .card-name {
+        font-size: 24px;
+        margin: 40px 0 10px 0;
+    }
+    
+    .purchase-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .purchase-btn, .decline-btn {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+    
+    .monster-avatar {
+        width: 60px;
+        height: 60px;
+        font-size: 1.8em;
+    }
+    
+    .cards-container {
+        grid-template-columns: 1fr;
+        max-height: 250px;
+    }
+    
+    .modal-content {
+        padding: 25px 20px;
+        width: 98%;
+    }
+    
+    .monster-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+}
