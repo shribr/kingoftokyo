@@ -169,6 +169,7 @@ class KingOfTokyoGame {
         this.lastSavedLogIndex = 0;
         
         this.endingTurn = false; // Flag to prevent double turn ending
+        this.turnEffectsApplied = new Map(); // Track which turn effects have been applied this turn
         
         // Debug: Check if classes are available
         console.log('Game.js initializing, checking class availability:');
@@ -266,6 +267,34 @@ class KingOfTokyoGame {
             gameLog: this.gameLog.slice(-10), // Last 10 actions
             winner: this.getWinner()
         };
+    }
+
+    // Turn-based effect tracking methods
+    clearTurnEffects() {
+        this.turnEffectsApplied.clear();
+    }
+
+    hasTurnEffectBeenApplied(playerId, effectType) {
+        const key = `${playerId}-${effectType}`;
+        return this.turnEffectsApplied.has(key);
+    }
+
+    markTurnEffectApplied(playerId, effectType) {
+        const key = `${playerId}-${effectType}`;
+        this.turnEffectsApplied.set(key, true);
+    }
+
+    // Debug method to test Friend of Children card
+    debugGiveFriendOfChildren() {
+        const currentPlayer = this.getCurrentPlayer();
+        const friendOfChildrenCard = POWER_CARDS.find(card => card.id === 'friend_of_children');
+        if (friendOfChildrenCard && !currentPlayer.powerCards.some(card => card.id === 'friend_of_children')) {
+            currentPlayer.powerCards.push(friendOfChildrenCard);
+            this.logAction(`DEBUG: Gave ${currentPlayer.monster.name} the Friend of Children card!`, 'debug');
+            console.log(`🐛 DEBUG: Gave ${currentPlayer.monster.name} Friend of Children card`);
+            // Trigger UI update
+            this.triggerEvent('playerUpdated', { player: currentPlayer });
+        }
     }
 
     // Setup dice roller callbacks
@@ -637,14 +666,86 @@ class KingOfTokyoGame {
             return 0;
         }
         
-        const actualDamage = player.takeDamage(damage);
+        const damageResult = player.takeDamage(damage);
+        const actualDamage = damageResult.actualDamage;
+        const eliminationInfo = damageResult.eliminationInfo;
+        
         this.logAction(`${player.monster.name} takes ${actualDamage} damage from ${attacker.monster.name}`, 'attack');
         this.logDetailedAction(`${player.monster.name} takes ${actualDamage} damage from ${attacker.monster.name} (${player.health}/${player.maxHealth} health remaining)`, 'damage-detail');
         
+        // Handle elimination
+        if (eliminationInfo) {
+            console.log(`💀 Player ${player.monster.name} has been eliminated!`);
+            
+            // Clear Tokyo state immediately if player was in Tokyo
+            if (eliminationInfo.wasInTokyo) {
+                console.log(`💀 ELIMINATION: Clearing ${player.monster.name} from Tokyo ${eliminationInfo.tokyoLocation}`);
+                console.log(`💀 ELIMINATION: Tokyo state before - City: ${this.tokyoCity}, Bay: ${this.tokyoBay}`);
+                
+                if (eliminationInfo.tokyoLocation === 'city') {
+                    this.tokyoCity = null;
+                } else if (eliminationInfo.tokyoLocation === 'bay') {
+                    this.tokyoBay = null;
+                }
+                
+                console.log(`💀 ELIMINATION: Tokyo state after clearing - City: ${this.tokyoCity}, Bay: ${this.tokyoBay}`);
+                
+                // Trigger Tokyo display update to clear the eliminated player
+                this.triggerEvent('tokyoChanged', this.getGameState());
+                
+                // Attacker takes their place immediately if not already in Tokyo and not eliminated
+                if (!attacker.isInTokyo && !attacker.isEliminated) {
+                    console.log(`💀 ELIMINATION: ${attacker.monster.name} takes ${player.monster.name}'s place in Tokyo ${eliminationInfo.tokyoLocation}`);
+                    
+                    if (eliminationInfo.tokyoLocation === 'city') {
+                        this.tokyoCity = attacker.id;
+                    } else if (eliminationInfo.tokyoLocation === 'bay') {
+                        this.tokyoBay = attacker.id;
+                    }
+                    
+                    console.log(`💀 ELIMINATION: Tokyo state after attacker entry - City: ${this.tokyoCity}, Bay: ${this.tokyoBay}`);
+                    
+                    attacker.enterTokyo(eliminationInfo.tokyoLocation);
+                    this.logAction(`${attacker.monster.name} immediately enters Tokyo ${eliminationInfo.tokyoLocation} after eliminating ${player.monster.name}! (+1 victory point)`);
+                    
+                    // Trigger events for UI updates
+                    this.triggerEvent('playerEntersTokyo', { 
+                        playerId: attacker.id, 
+                        location: eliminationInfo.tokyoLocation,
+                        reason: 'elimination',
+                        monster: attacker.monster
+                    });
+                    this.triggerEvent('tokyoChanged', this.getGameState());
+                    
+                    // Trigger victory points animation for Tokyo entry bonus
+                    this.triggerEvent('playerGainedPoints', { 
+                        playerId: attacker.id, 
+                        pointsGained: 1 
+                    });
+                } else if (attacker.isInTokyo) {
+                    console.log(`💀 ELIMINATION: ${attacker.monster.name} is already in Tokyo, not moving`);
+                } else if (attacker.isEliminated) {
+                    console.log(`💀 ELIMINATION: ${attacker.monster.name} is eliminated, cannot enter Tokyo`);
+                }
+            }
+            
+            // Show elimination dialog after Tokyo handling
+            this.triggerEvent('playerEliminated', { 
+                eliminatedPlayer: player, 
+                attacker: attacker,
+                eliminationInfo: eliminationInfo 
+            });
+        }
+        
         // Trigger attack animation if damage was dealt
         if (actualDamage > 0) {
+            console.log('🔥 Triggering playerAttacked event for:', player.monster.name, 'playerId:', player.id, 'damage:', actualDamage);
+            console.trace('🔥 Stack trace for playerAttacked event:');
             this.triggerEvent('playerAttacked', { playerId: player.id });
         }
+        
+        // Return actual damage for compatibility with existing code
+        const returnDamage = actualDamage;
         
         // If player was in Tokyo and took damage, they can choose to leave ONLY after attacker's final roll
         // NOTE: Tokyo exit decisions are now handled centrally in resolveAttacks for outside-Tokyo attackers
@@ -677,15 +778,9 @@ class KingOfTokyoGame {
             }
         }
         
-        // Check if player was eliminated
-        if (player.isEliminated) {
-            this.logAction(`${player.monster.name} is eliminated!`);
-            if (player.isInTokyo) {
-                this.removePlayerFromTokyo(player);
-            }
-        }
+        // Elimination is now handled directly in takeDamage method
         
-        return actualDamage;
+        return returnDamage;
     }
 
     // Offer player in Tokyo the choice to leave
@@ -779,9 +874,19 @@ class KingOfTokyoGame {
             victim.powerCards.forEach(card => {
                 const effect = applyCardEffect(card, victim, this);
                 if (effect.type === 'passive' && effect.effect === 'retaliation') {
-                    const counterDamage = attacker.takeDamage(1);
-                    if (counterDamage > 0) {
+                    const counterResult = attacker.takeDamage(1);
+                    if (counterResult.actualDamage > 0) {
                         this.logAction(`${victim.monster.name} retaliates, dealing 1 damage to ${attacker.monster.name}!`);
+                        
+                        // Handle elimination from retaliation
+                        if (counterResult.eliminationInfo) {
+                            console.log(`💀 ${attacker.monster.name} eliminated by retaliation!`);
+                            this.triggerEvent('playerEliminated', { 
+                                eliminatedPlayer: attacker, 
+                                attacker: victim,
+                                eliminationInfo: counterResult.eliminationInfo 
+                            });
+                        }
                     }
                 }
             });
@@ -845,6 +950,12 @@ class KingOfTokyoGame {
 
     // Check if player should enter Tokyo
     checkTokyoEntry(player) {
+        // Eliminated players cannot enter Tokyo
+        if (player.isEliminated) {
+            console.log(`💀 ${player.monster.name} is eliminated and cannot enter Tokyo`);
+            return;
+        }
+        
         // Only enter Tokyo if there are no current occupants
         if (!player.isInTokyo && this.tokyoCity === null) {
             this.enterTokyo(player);
@@ -921,36 +1032,12 @@ class KingOfTokyoGame {
                         this.triggerEvent('playerGainedPoints', { playerId: player.id, pointsGained: diceResults.heal });
                     }
                     
-                    // Apply turn-based energy bonus
-                    if (effect.effect === 'turnEnergy') {
-                        player.addEnergy(effect.value);
-                        this.logAction(`${player.monster.name} gains ${effect.value} energy from ${card.name}!`, 'power-card');
-                    }
-                    
-                    // Apply turn-based victory points
-                    if (effect.effect === 'turnPoints') {
-                        player.addVictoryPoints(effect.value);
-                        this.logAction(`${player.monster.name} gains ${effect.value} victory point(s) from ${card.name}!`, 'power-card');
-                        // Trigger victory points animation for card bonus
-                        this.triggerEvent('playerGainedPoints', { playerId: player.id, pointsGained: effect.value });
-                    }
-                    
                     // Apply attack bonus points
                     if (effect.effect === 'attackPoints' && diceResults.attack > 0) {
                         player.addVictoryPoints(effect.value);
                         this.logAction(`${player.monster.name} gains ${effect.value} extra victory point(s) from attacking!`);
                         // Trigger victory points animation for attack bonus
                         this.triggerEvent('playerGainedPoints', { playerId: player.id, pointsGained: effect.value });
-                    }
-                    
-                    // Apply turn-based healing
-                    if (effect.effect === 'turnHealing') {
-                        const healed = player.heal(effect.value);
-                        if (healed > 0) {
-                            this.logAction(`${player.monster.name} heals ${effect.value} damage from ${card.name}!`, 'power-card');
-                            // Trigger healing animation for card healing
-                            this.triggerEvent('playerHealed', { playerId: player.id, healAmount: healed });
-                        }
                     }
                     
                     // Apply even victory points bonus
@@ -1180,9 +1267,6 @@ class KingOfTokyoGame {
                 return;
             }
 
-            // Apply turn-based power card effects
-            this.applyTurnBasedEffects(currentPlayer);
-
             // Check victory conditions
             if (this.checkVictoryConditions()) {
                 return;
@@ -1285,26 +1369,47 @@ class KingOfTokyoGame {
 
     // Apply turn-based power card effects
     applyTurnBasedEffects(player) {
+        console.log(`🔍 Applying turn-based effects for ${player.monster.name}`);
         player.powerCards.forEach(card => {
             const effect = this.applyCardEffectWithAnimation(card, player, this);
             
             if (effect.effect === 'turnPoints') {
-                player.addVictoryPoints(effect.value);
-                this.logAction(`${player.monster.name} gains ${effect.value} victory point from ${card.name}!`, 'power-card');
-                // Trigger victory points animation for card bonus
-                this.triggerEvent('playerGainedPoints', { playerId: player.id, pointsGained: effect.value });
+                // Check if this effect has already been applied this turn
+                const effectKey = `${card.name}-turnPoints`;
+                console.log(`🎴 Processing card: ${card.name}, effect already applied: ${this.hasTurnEffectBeenApplied(player.id, effectKey)}`);
+                if (!this.hasTurnEffectBeenApplied(player.id, effectKey)) {
+                    player.addVictoryPoints(effect.value);
+                    this.logAction(`${player.monster.name} gains ${effect.value} victory point from ${card.name}!`, 'power-card');
+                    // Trigger victory points animation for card bonus
+                    this.triggerEvent('playerGainedPoints', { playerId: player.id, pointsGained: effect.value });
+                    // Mark this effect as applied
+                    this.markTurnEffectApplied(player.id, effectKey);
+                    console.log(`✅ Applied turn points effect for ${card.name}`);
+                } else {
+                    console.log(`⏭️ Skipped duplicate turn points effect for ${card.name}`);
+                }
             } else if (effect.effect === 'turnHealing') {
-                if (!player.isInTokyo) {
+                // Check if this effect has already been applied this turn
+                const effectKey = `${card.name}-turnHealing`;
+                if (!this.hasTurnEffectBeenApplied(player.id, effectKey) && !player.isInTokyo) {
                     const healed = player.heal(effect.value);
                     if (healed > 0) {
                         this.logAction(`${player.monster.name} heals ${effect.value} from ${card.name}!`, 'power-card');
                         // Trigger healing animation for card healing
                         this.triggerEvent('playerHealed', { playerId: player.id, healAmount: healed });
                     }
+                    // Mark this effect as applied
+                    this.markTurnEffectApplied(player.id, effectKey);
                 }
             } else if (effect.effect === 'turnEnergy') {
-                player.addEnergy(effect.value);
-                this.logAction(`${player.monster.name} gains ${effect.value} energy from ${card.name}!`, 'power-card');
+                // Check if this effect has already been applied this turn
+                const effectKey = `${card.name}-turnEnergy`;
+                if (!this.hasTurnEffectBeenApplied(player.id, effectKey)) {
+                    player.addEnergy(effect.value);
+                    this.logAction(`${player.monster.name} gains ${effect.value} energy from ${card.name}!`, 'power-card');
+                    // Mark this effect as applied
+                    this.markTurnEffectApplied(player.id, effectKey);
+                }
             }
         });
     }
@@ -1362,6 +1467,9 @@ class KingOfTokyoGame {
         
         // Reset dice effects resolved flag for the new turn
         this.diceEffectsResolved = false;
+        
+        // Clear turn-based effects tracking for the new turn
+        this.clearTurnEffects();
         
         // Trigger turn started event for UI
         this.triggerEvent('turnStarted', { currentPlayer: this.getCurrentPlayer() });

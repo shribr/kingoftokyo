@@ -896,6 +896,11 @@ class KingOfTokyoUI {
             case 'logUpdated':
                 this.updateGameLogDisplay(); // Update game log when new entries are added
                 break;
+            case 'playerEliminated':
+                this.showPlayerEliminationDialog(data.eliminatedPlayer, data.attacker);
+                // Force immediate UI update to reflect elimination and Tokyo changes
+                this.updateGameDisplay();
+                break;
         }
     }
 
@@ -1335,6 +1340,77 @@ class KingOfTokyoUI {
     // Close power card detail modal
     closePowerCardDetailModal() {
         const modal = document.getElementById('power-card-detail-modal');
+        if (modal) {
+            modal.remove();
+        }
+    }
+
+    // Show player elimination dialog
+    showPlayerEliminationDialog(eliminatedPlayer, attacker) {
+        // Close any existing elimination dialog first
+        this.closePlayerEliminationDialog();
+        
+        const modalHtml = `
+            <div class="player-elimination-modal" id="player-elimination-modal">
+                <div class="player-elimination-content">
+                    <div class="elimination-header">
+                        <h1 class="elimination-title">ELIMINATED!</h1>
+                        <button class="elimination-close-btn">&times;</button>
+                    </div>
+                    <div class="elimination-body">
+                        <div class="elimination-message">
+                            <div class="elimination-player-name">${eliminatedPlayer.monster.name}</div>
+                            has been officially eliminated from the game!
+                        </div>
+                        <div class="elimination-message">
+                            Eliminated by: <strong>${attacker ? attacker.monster.name : 'Unknown'}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        
+        const modal = document.getElementById('player-elimination-modal');
+        const closeBtn = modal.querySelector('.elimination-close-btn');
+        
+        if (closeBtn && modal) {
+            UIUtilities.safeAddEventListener(closeBtn, 'click', 
+                UIUtilities.createSafeEventHandler(() => {
+                    console.log('🔄 Elimination modal close button clicked!');
+                    this.closePlayerEliminationDialog();
+                }));
+            
+            UIUtilities.safeAddEventListener(modal, 'click', 
+                UIUtilities.createSafeEventHandler((e) => {
+                    if (e.target === modal) {
+                        this.closePlayerEliminationDialog();
+                    }
+                }));
+            
+            // Auto-close after 5 seconds
+            setTimeout(() => {
+                this.closePlayerEliminationDialog();
+            }, 5000);
+            
+            // Close on Escape key
+            const closeOnEscape = UIUtilities.createSafeEventHandler((e) => {
+                if (e.key === 'Escape') {
+                    this.closePlayerEliminationDialog();
+                    document.removeEventListener('keydown', closeOnEscape);
+                }
+            });
+            document.addEventListener('keydown', closeOnEscape);
+        }
+        
+        // Update the game display to reflect the elimination
+        this.updateGameDisplay();
+    }
+
+    // Close player elimination dialog
+    closePlayerEliminationDialog() {
+        const modal = document.getElementById('player-elimination-modal');
         if (modal) {
             modal.remove();
         }
@@ -2384,12 +2460,19 @@ class KingOfTokyoUI {
 
     // Animation helper functions
     animatePlayerAttacked(playerId) {
+        console.log('🔥 animatePlayerAttacked called for player:', playerId);
+        console.trace('🔥 Stack trace for animatePlayerAttacked:');
+        
         const playerElement = document.querySelector(`[data-player-id="${playerId}"]`);
         if (playerElement) {
+            console.log('🔥 Adding player-attacked class to element:', playerElement);
             playerElement.classList.add('player-attacked');
             setTimeout(() => {
+                console.log('🔥 Removing player-attacked class from element:', playerElement);
                 playerElement.classList.remove('player-attacked');
             }, 1000);
+        } else {
+            console.log('🔥 Player element not found for playerId:', playerId);
         }
     }
 

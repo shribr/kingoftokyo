@@ -656,12 +656,36 @@
 }
 
 .player-dashboard.eliminated {
-    opacity: 0.7;
+    opacity: 0.6;
     background: 
-        linear-gradient(135deg, #ffebee 0%, #ffcdd2 20%, #ef9a9a 60%, #e57373 100%);
-    border-color: #f44336;
-    filter: grayscale(30%) contrast(0.8);
-    transform: perspective(800px) rotateX(8deg) scale(0.95);
+        linear-gradient(135deg, #e0e0e0 0%, #bdbdbd 20%, #9e9e9e 60%, #757575 100%);
+    border-color: #616161;
+    filter: grayscale(100%) contrast(0.7) brightness(0.8);
+    transform: perspective(800px) rotateX(8deg) scale(0.90);
+    pointer-events: none; /* Disable all interactions */
+    position: relative;
+}
+
+/* Add a "ELIMINATED" overlay to the card */
+.player-dashboard.eliminated::after {
+    content: "ELIMINATED";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-15deg);
+    font-family: 'Bangers', cursive;
+    font-size: 1.2em;
+    color: #ff0000;
+    text-shadow: 
+        -2px -2px 0 #000,
+        2px -2px 0 #000,
+        -2px 2px 0 #000,
+        2px 2px 0 #000;
+    z-index: 10;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 5px 15px;
+    border: 2px solid #ff0000;
+    border-radius: 5px;
 }
 
 .player-info {

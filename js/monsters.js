@@ -80,12 +80,19 @@ class Player {
         console.log(`💀 DEBUG - Stack trace for takeDamage:`, new Error().stack);
         this.health = Math.max(0, this.health - amount);
         console.log(`💀 ${this.monster.name} health after damage: ${this.health}`);
+        
+        let eliminationInfo = null;
         if (this.health === 0) {
             console.log(`💀 ${this.monster.name} health reached 0 - eliminating player`);
             console.log(`💀 ELIMINATION STACK TRACE:`, new Error().stack);
-            this.eliminate();
+            eliminationInfo = this.eliminate();
         }
-        return this.health;
+        
+        return {
+            currentHealth: this.health,
+            actualDamage: amount,
+            eliminationInfo: eliminationInfo
+        };
     }
 
     // Heal
@@ -134,8 +141,22 @@ class Player {
     eliminate() {
         console.log(`💀 ELIMINATING PLAYER: ${this.monster.name}`);
         this.isEliminated = true;
+        
+        // Store Tokyo location before leaving for attacker replacement
+        const wasInTokyo = this.isInTokyo;
+        const tokyoLocation = this.tokyoLocation;
+        
+        // Note: Tokyo state will be cleared by the game logic, not here
+        // We just clear the player's internal state
         this.leaveTokyo();
         console.log(`💀 Player ${this.monster.name} eliminated status: ${this.isEliminated}`);
+        
+        // Return elimination info for further processing
+        return {
+            wasInTokyo,
+            tokyoLocation,
+            eliminatedPlayer: this
+        };
     }
 
     // Check if player has won

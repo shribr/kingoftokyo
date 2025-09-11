@@ -3720,3 +3720,180 @@ body.dark-mode .quick-ref-item {
     }
 }
 
+/* Player Elimination Modal */
+.player-elimination-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at center, rgba(139, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.98) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1003; /* Highest priority */
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    animation: eliminationFadeIn 0.5s ease-out;
+    padding: 40px;
+}
+
+.player-elimination-content {
+    background: 
+        /* Dark, ominous gradient for death */
+        linear-gradient(135deg, #2c1810 0%, #1a0d08 30%, #0d0603 70%, #000000 100%);
+    padding: 35px;
+    border-radius: 0; /* Sharp corners for dramatic effect */
+    max-width: 600px;
+    width: 90%;
+    max-height: 70vh;
+    overflow-y: auto;
+    box-shadow: 
+        0 0 0 3px #8b0000,
+        0 0 0 6px #000,
+        20px 20px 0px #000,
+        25px 25px 50px rgba(0, 0, 0, 0.9),
+        inset 0 0 50px rgba(139, 0, 0, 0.3);
+    border: 8px solid #8b0000;
+    position: relative;
+    color: #ff4444;
+    text-align: center;
+    
+    /* Ominous texture pattern */
+    background-image: 
+        radial-gradient(circle at 6px 6px, rgba(139, 0, 0, 0.15) 2px, transparent 0),
+        linear-gradient(135deg, #2c1810 0%, #1a0d08 30%, #0d0603 70%, #000000 100%);
+    background-size: 24px 24px, 100% 100%;
+    
+    /* Dramatic 3D perspective */
+    transform: perspective(800px) rotateX(2deg) rotateY(-1deg) rotateZ(-1deg);
+    animation: eliminationSlideIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.elimination-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 4px solid #8b0000;
+}
+
+.elimination-title {
+    font-family: 'Bangers', cursive;
+    font-size: 2.5em;
+    color: #ff4444;
+    margin: 0;
+    text-shadow: 
+        -3px -3px 0 #000,
+        3px -3px 0 #000,
+        -3px 3px 0 #000,
+        3px 3px 0 #000,
+        0 0 10px #8b0000;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    animation: eliminationTitleGlow 2s ease-in-out infinite alternate;
+}
+
+.elimination-body {
+    margin: 25px 0;
+    padding: 0 10px;
+}
+
+.elimination-message {
+    font-family: 'Comic Neue', sans-serif;
+    font-size: 1.4em;
+    color: #ffaaaa;
+    margin-bottom: 20px;
+    line-height: 1.5;
+    text-shadow: 1px 1px 2px #000;
+}
+
+.elimination-player-name {
+    font-family: 'Bangers', cursive;
+    font-size: 1.8em;
+    color: #ff6666;
+    text-shadow: 
+        -2px -2px 0 #000,
+        2px -2px 0 #000,
+        -2px 2px 0 #000,
+        2px 2px 0 #000;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.elimination-close-btn {
+    background: linear-gradient(135deg, #8b0000 0%, #4d0000 100%);
+    border: 3px solid #000;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 
+        0 4px 8px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    position: relative;
+    pointer-events: auto;
+    z-index: 1004;
+}
+
+.elimination-close-btn:hover {
+    transform: scale(1.1);
+    background: linear-gradient(135deg, #a00000 0%, #600000 100%);
+    box-shadow: 
+        0 6px 12px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+@keyframes eliminationFadeIn {
+    0% {
+        opacity: 0;
+        -webkit-backdrop-filter: blur(0px);
+        backdrop-filter: blur(0px);
+    }
+    100% {
+        opacity: 1;
+        -webkit-backdrop-filter: blur(15px);
+        backdrop-filter: blur(15px);
+    }
+}
+
+@keyframes eliminationSlideIn {
+    0% {
+        transform: perspective(800px) rotateX(2deg) rotateY(-1deg) rotateZ(-1deg) translateY(-100px) scale(0.8);
+        opacity: 0;
+    }
+    100% {
+        transform: perspective(800px) rotateX(2deg) rotateY(-1deg) rotateZ(-1deg) translateY(0px) scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes eliminationTitleGlow {
+    0% {
+        text-shadow: 
+            -3px -3px 0 #000,
+            3px -3px 0 #000,
+            -3px 3px 0 #000,
+            3px 3px 0 #000,
+            0 0 10px #8b0000;
+    }
+    100% {
+        text-shadow: 
+            -3px -3px 0 #000,
+            3px -3px 0 #000,
+            -3px 3px 0 #000,
+            3px 3px 0 #000,
+            0 0 20px #ff0000,
+            0 0 30px #8b0000;
+    }
+}
+

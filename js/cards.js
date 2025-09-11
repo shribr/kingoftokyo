@@ -221,7 +221,17 @@ const CARD_EFFECTS = {
     allDamage: (player, game) => {
         game.players.forEach(p => {
             if (p.id !== player.id && !p.isEliminated) {
-                p.takeDamage(1);
+                const damageResult = p.takeDamage(1);
+                
+                // Handle elimination from card effect
+                if (damageResult.eliminationInfo) {
+                    console.log(`💀 ${p.monster.name} eliminated by ${player.monster.name}'s power card!`);
+                    game.triggerEvent('playerEliminated', { 
+                        eliminatedPlayer: p, 
+                        attacker: player,
+                        eliminationInfo: damageResult.eliminationInfo 
+                    });
+                }
             }
         });
         return { type: 'immediate' };
@@ -245,7 +255,17 @@ const CARD_EFFECTS = {
     massiveDamage: (player, game) => {
         game.players.forEach(p => {
             if (p.id !== player.id && !p.isEliminated) {
-                p.takeDamage(2);
+                const damageResult = p.takeDamage(2);
+                
+                // Handle elimination from card effect
+                if (damageResult.eliminationInfo) {
+                    console.log(`💀 ${p.monster.name} eliminated by ${player.monster.name}'s power card!`);
+                    game.triggerEvent('playerEliminated', { 
+                        eliminatedPlayer: p, 
+                        attacker: player,
+                        eliminationInfo: damageResult.eliminationInfo 
+                    });
+                }
             }
         });
         return { type: 'immediate' };
