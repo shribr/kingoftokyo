@@ -1097,6 +1097,9 @@ class KingOfTokyoUI {
     showPlayerPowerCardsModal(playerId) {
         if (!this.game) return;
 
+        // Close any existing modal first
+        this.closePowerCardsModal();
+
         const player = this.game.players.find(p => p.id === playerId);
         if (!player) return;
 
@@ -1124,13 +1127,39 @@ class KingOfTokyoUI {
             const modal = document.querySelector('.power-cards-collection-modal');
             const closeBtn = modal.querySelector('.power-cards-close-btn');
             
-            closeBtn.addEventListener('click', () => {
-                console.log('🔄 Power cards modal close button clicked!');
-                this.closePowerCardsModal();
-            });
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) this.closePowerCardsModal();
-            });
+            if (closeBtn && modal) {
+                console.log('🔄 Setting up event listeners for empty power cards modal');
+                console.log('🔄 Close button found:', closeBtn);
+                console.log('🔄 Modal found:', modal);
+                
+                UIUtilities.safeAddEventListener(closeBtn, 'click', 
+                    UIUtilities.createSafeEventHandler(() => {
+                        console.log('🔄 Empty power cards modal close button clicked!');
+                        this.closePowerCardsModal();
+                    }));
+                
+                UIUtilities.safeAddEventListener(modal, 'click', 
+                    UIUtilities.createSafeEventHandler((e) => {
+                        if (e.target === modal) {
+                            console.log('🔄 Empty power cards modal backdrop clicked!');
+                            this.closePowerCardsModal();
+                        }
+                    }));
+                
+                // Close on Escape key
+                const closeOnEscape = UIUtilities.createSafeEventHandler((e) => {
+                    if (e.key === 'Escape') {
+                        console.log('🔄 Empty power cards modal escape key pressed!');
+                        this.closePowerCardsModal();
+                        document.removeEventListener('keydown', closeOnEscape);
+                    }
+                });
+                document.addEventListener('keydown', closeOnEscape);
+            } else {
+                console.error('🚨 Failed to find close button or modal for empty power cards!');
+                console.log('🔄 closeBtn:', closeBtn);
+                console.log('🔄 modal:', modal);
+            }
             
             return;
         }
@@ -1174,34 +1203,49 @@ class KingOfTokyoUI {
         const modal = document.getElementById('power-cards-modal');
         const closeBtn = modal.querySelector('.power-cards-close-btn');
         
-        closeBtn.addEventListener('click', () => {
-            console.log('🔄 Power cards modal close button clicked! (second modal)');
-            this.closePowerCardsModal();
-        });
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                this.closePowerCardsModal();
-            }
-        });
+        if (closeBtn && modal) {
+            console.log('🔄 Setting up event listeners for power cards modal with cards');
+            console.log('🔄 Close button found:', closeBtn);
+            console.log('🔄 Modal found:', modal);
+            
+            UIUtilities.safeAddEventListener(closeBtn, 'click', 
+                UIUtilities.createSafeEventHandler(() => {
+                    console.log('🔄 Power cards modal close button clicked! (with cards)');
+                    this.closePowerCardsModal();
+                }));
+            
+            UIUtilities.safeAddEventListener(modal, 'click', 
+                UIUtilities.createSafeEventHandler((e) => {
+                    if (e.target === modal) {
+                        console.log('🔄 Power cards modal backdrop clicked! (with cards)');
+                        this.closePowerCardsModal();
+                    }
+                }));
+        } else {
+            console.error('🚨 Failed to find close button or modal for power cards with cards!');
+            console.log('🔄 closeBtn:', closeBtn);
+            console.log('🔄 modal:', modal);
+        }
 
         // Add click listeners to individual cards for detailed view
         const cardItems = modal.querySelectorAll('.power-card-item');
         cardItems.forEach(cardItem => {
-            cardItem.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const cardId = cardItem.dataset.cardId;
-                const playerIdFromCard = cardItem.dataset.playerId;
-                this.showPowerCardDetailModal(cardId, playerIdFromCard);
-            });
+            UIUtilities.safeAddEventListener(cardItem, 'click', 
+                UIUtilities.createSafeEventHandler((e) => {
+                    e.stopPropagation();
+                    const cardId = cardItem.dataset.cardId;
+                    const playerIdFromCard = cardItem.dataset.playerId;
+                    this.showPowerCardDetailModal(cardId, playerIdFromCard);
+                }));
         });
 
         // Close on Escape key
-        const closeOnEscape = (e) => {
+        const closeOnEscape = UIUtilities.createSafeEventHandler((e) => {
             if (e.key === 'Escape') {
                 this.closePowerCardsModal();
                 document.removeEventListener('keydown', closeOnEscape);
             }
-        };
+        });
         document.addEventListener('keydown', closeOnEscape);
     }
 
@@ -1211,10 +1255,18 @@ class KingOfTokyoUI {
         const modal = document.getElementById('power-cards-modal');
         if (modal) {
             console.log('🔄 Modal found, removing it');
+            // Clean up any event listeners by removing the modal
             modal.remove();
         } else {
             console.log('🔄 Modal not found!');
         }
+        
+        // Also try to clean up any modals with the class selector in case of ID conflicts
+        const modalsByClass = document.querySelectorAll('.power-cards-collection-modal');
+        modalsByClass.forEach((modalEl, index) => {
+            console.log(`🔄 Cleaning up modal found by class selector #${index}`);
+            modalEl.remove();
+        });
     }
 
     // Show detailed power card information in a separate modal

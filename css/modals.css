@@ -1480,6 +1480,8 @@ body:has(#decision-modal:not(.hidden)) .active-player-container {
         0 3px 6px rgba(0, 0, 0, 0.3),
         inset 0 1px 0 rgba(255, 255, 255, 0.3);
     position: relative; /* Keep it in the flow of the header */
+    pointer-events: auto; /* Explicitly enable pointer events */
+    z-index: 1002; /* Ensure it's above other elements */
 }
 
 .power-cards-close-btn:hover {
