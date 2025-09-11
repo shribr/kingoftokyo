@@ -125,6 +125,10 @@ class KingOfTokyoUI {
     initializeElements() {
         console.log('initializeElements called');
         this.elements = {
+            // Screen elements
+            splashScreen: document.getElementById('splash-screen'),
+            gameContainer: document.getElementById('game-container'),
+            
             // Modals
             setupModal: document.getElementById('setup-modal'),
             gameOverModal: document.getElementById('game-over-modal'),
@@ -219,7 +223,9 @@ class KingOfTokyoUI {
         }
         
         // Setup modal events - Custom Dropdown
-        this.elements.dropdownSelected.addEventListener('click', () => {
+        this.elements.dropdownSelected.addEventListener('click', (e) => {
+            console.log('dropdownSelected clicked');
+            e.stopPropagation(); // Prevent event bubbling to modal
             this.toggleDropdown();
         });
 
@@ -431,6 +437,14 @@ class KingOfTokyoUI {
 
         UIUtilities.safeAddEventListener(this.elements.instructionsModal, 'click', 
             UIUtilities.createModalClickOutsideHandler(this.elements.instructionsModal));
+
+        // Close setup modal when clicking outside and return to splash screen
+        UIUtilities.safeAddEventListener(this.elements.setupModal, 'click', (e) => {
+            if (e.target === this.elements.setupModal) {
+                this.hideSetupModal();
+                this.showSplashScreen();
+            }
+        });
     }
 
     // Show setup modal
@@ -442,14 +456,14 @@ class KingOfTokyoUI {
         }
         
         UIUtilities.showModal(this.elements.setupModal);
-        // Set default dropdown text to 4 players AND set the internal value
-        this.currentPlayerCount = 4;
-        this.elements.dropdownSelected.querySelector('.dropdown-text').textContent = '4 Players';
+        
+        // Reset dropdown to ensure it's functional
+        this.resetDropdown();
         
         // Update monster selection
         this.updateMonsterSelection();
         
-        // Ensure monsters are visible after a short delay
+        // Ensure monsters are properly initialized after a short delay
         setTimeout(() => {
             const monsterOptions = this.elements.monsterGrid.querySelectorAll('.monster-option');
             monsterOptions.forEach(option => {
@@ -467,13 +481,69 @@ class KingOfTokyoUI {
         UIUtilities.hideModal(this.elements.setupModal);
     }
 
+    // Show splash screen
+    showSplashScreen() {
+        // Hide the game container
+        if (this.elements.gameContainer) {
+            this.elements.gameContainer.classList.remove('show');
+        }
+        
+        // Show the splash screen
+        if (this.elements.splashScreen) {
+            this.elements.splashScreen.classList.remove('fade-out');
+            this.elements.splashScreen.style.display = 'flex';
+        }
+        
+        // Hide the game toolbar during splash
+        const gameToolbar = document.getElementById('game-toolbar');
+        if (gameToolbar) {
+            gameToolbar.classList.remove('show');
+        }
+        
+        // Ensure any open dropdowns are closed
+        this.closeDropdown();
+    }
+
     // Custom dropdown methods
     toggleDropdown() {
+        console.log('toggleDropdown called, current classes:', this.elements.playerCount?.className);
         this.elements.playerCount.classList.toggle('open');
+        console.log('toggleDropdown after toggle, classes:', this.elements.playerCount?.className);
     }
 
     closeDropdown() {
         this.elements.playerCount.classList.remove('open');
+    }
+
+    // Reset dropdown to ensure it's functional
+    resetDropdown() {
+        console.log('resetDropdown called');
+        
+        // Ensure dropdown is closed
+        this.closeDropdown();
+        
+        // Reset the dropdown text to default
+        if (this.elements.dropdownSelected && this.elements.dropdownSelected.querySelector('.dropdown-text')) {
+            this.elements.dropdownSelected.querySelector('.dropdown-text').textContent = '4 Players';
+        }
+        
+        // Ensure currentPlayerCount is set
+        this.currentPlayerCount = 4;
+        
+        // Clear any inline styles that might interfere with dropdown
+        if (this.elements.dropdownOptions) {
+            this.elements.dropdownOptions.style.cssText = '';
+        }
+        if (this.elements.playerCount) {
+            this.elements.playerCount.style.cssText = '';
+        }
+        
+        // Add a small delay to ensure the modal is fully shown and ready
+        setTimeout(() => {
+            console.log('dropdown reset completed with delay');
+            console.log('playerCount classes:', this.elements.playerCount?.className);
+            console.log('dropdownOptions display style:', window.getComputedStyle(this.elements.dropdownOptions).display);
+        }, 50);
     }
 
     selectPlayerCount(value, text) {
