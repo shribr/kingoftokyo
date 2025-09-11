@@ -922,7 +922,12 @@ body:has(#decision-modal:not(.hidden)) .active-player-container {
 }
 
 /* Game Over Modal - King of Tokyo Theme */
+#game-over-modal {
+    z-index: 999999 !important; /* Highest z-index to override everything including player cards */
+}
+
 #game-over-modal .modal-content {
+    position: relative;
     background: 
         /* Comic book explosion pattern */
         radial-gradient(circle at 20% 30%, rgba(255, 215, 0, 0.2) 0%, transparent 50%),
@@ -970,6 +975,13 @@ body:has(#decision-modal:not(.hidden)) .active-player-container {
 @keyframes victoryBurst {
     0% { opacity: 0.6; }
     100% { opacity: 1; }
+}
+
+#game-over-modal .close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 1000000; /* Even higher than modal to ensure it's clickable */
 }
 
 #game-over-modal h2 {

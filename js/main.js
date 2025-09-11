@@ -194,6 +194,7 @@ class KingOfTokyoUI {
             closeStorageMgmtBtn: document.getElementById('close-storage-mgmt'),
             closeSettingsBtn: document.getElementById('close-settings'),
             closeInstructionsBtn: document.getElementById('close-instructions'),
+            closeGameOverBtn: document.getElementById('close-game-over'),
             darkModeToggle: document.getElementById('dark-mode-toggle')
         };
         
@@ -397,6 +398,11 @@ class KingOfTokyoUI {
         UIUtilities.safeAddEventListener(this.elements.closeSettingsBtn, 'click', 
             () => UIUtilities.hideModal(this.elements.settingsModal), 
             'Close settings button not found');
+
+        // Game over modal close button using UIUtilities
+        UIUtilities.safeAddEventListener(this.elements.closeGameOverBtn, 'click', 
+            () => this.closeGameOverModal(), 
+            'Close game over button not found');
 
         this.elements.clearLogBtn.addEventListener('click', () => {
             this.clearGameLog();
@@ -2398,6 +2404,14 @@ class KingOfTokyoUI {
             </div>
         `;
         this.elements.gameOverModal.classList.remove('hidden');
+    }
+
+    // Close game over modal and return to splash screen
+    closeGameOverModal() {
+        this.elements.gameOverModal.classList.add('hidden');
+        this.game = null;
+        this.selectedMonsters = [];
+        this.showSplashScreen();
     }
 
     // Reset game
