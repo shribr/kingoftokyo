@@ -72,6 +72,7 @@ class Player {
         this.powerCards = [];
         this.rollsLeft = 3;
         this.currentDice = [];
+        this.extraDiceEnabled = 0; // Track how many extra dice are enabled for this player
     }
 
     // Take damage

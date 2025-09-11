@@ -284,6 +284,25 @@ class KingOfTokyoGame {
         this.turnEffectsApplied.set(key, true);
     }
 
+    // Disable extra dice that were enabled for a specific player
+    disablePlayerExtraDice(player) {
+        if (player.extraDiceEnabled && player.extraDiceEnabled > 0) {
+            let disabledCount = 0;
+            for (let i = 0; i < player.extraDiceEnabled; i++) {
+                const dieIndex = this.diceCollection.maxDice + i;
+                if (this.diceCollection.disableExtraDie(dieIndex)) {
+                    disabledCount++;
+                }
+            }
+            player.extraDiceEnabled = 0;
+            
+            // Trigger dice update to refresh UI after disabling extra dice
+            if (disabledCount > 0) {
+                this.triggerEvent('diceUpdated', this.diceCollection.getAllDiceData());
+            }
+        }
+    }
+
     // Debug method to test Friend of Children card
     debugGiveFriendOfChildren() {
         const currentPlayer = this.getCurrentPlayer();
@@ -292,6 +311,19 @@ class KingOfTokyoGame {
             currentPlayer.powerCards.push(friendOfChildrenCard);
             this.logAction(`DEBUG: Gave ${currentPlayer.monster.name} the Friend of Children card!`, 'debug');
             console.log(`🐛 DEBUG: Gave ${currentPlayer.monster.name} Friend of Children card`);
+            // Trigger UI update
+            this.triggerEvent('playerUpdated', { player: currentPlayer });
+        }
+    }
+
+    // Debug method to test Extra Head card
+    debugGiveExtraHead() {
+        const currentPlayer = this.getCurrentPlayer();
+        const extraHeadCard = POWER_CARDS.find(card => card.id === 'extra_head');
+        if (extraHeadCard && !currentPlayer.powerCards.some(card => card.id === 'extra_head')) {
+            currentPlayer.powerCards.push(extraHeadCard);
+            this.logAction(`DEBUG: Gave ${currentPlayer.monster.name} the Extra Head card!`, 'debug');
+            console.log(`🐛 DEBUG: Gave ${currentPlayer.monster.name} Extra Head card`);
             // Trigger UI update
             this.triggerEvent('playerUpdated', { player: currentPlayer });
         }
@@ -1280,6 +1312,9 @@ class KingOfTokyoGame {
             // Trigger turn ended event before switching players
             this.triggerEvent('turnEnded', this.getGameState());
 
+            // Disable any extra dice that were enabled for the current player
+            this.disablePlayerExtraDice(currentPlayer);
+
             // Move to next player
             this.switchToNextPlayer();
             
@@ -1350,17 +1385,29 @@ class KingOfTokyoGame {
             this.logAction(`${currentPlayer.monster.name} gets ${bonusRolls} extra reroll(s) from power cards!`, 'power-card');
         }
         
-        // Add extra dice to the collection
+        // Enable extra dice for this player's turn
         if (extraDice > 0) {
+            let enabledCount = 0;
             for (let i = 0; i < extraDice; i++) {
-                const newDie = this.diceCollection.addExtraDie();
-                if (newDie) {
+                const dieIndex = this.diceCollection.maxDice + i; // Start from first disabled die
+                if (this.diceCollection.enableExtraDie(dieIndex)) {
+                    enabledCount++;
                     this.logAction(`${currentPlayer.monster.name} gets an extra die from power cards!`, 'power-card');
                 } else {
                     this.logAction(`${currentPlayer.monster.name} is already at maximum dice limit!`, 'power-card');
                     break;
                 }
             }
+            
+            // Store how many extra dice this player enabled for cleanup later
+            currentPlayer.extraDiceEnabled = enabledCount;
+            
+            // Trigger dice update to refresh UI with the extra dice
+            if (enabledCount > 0) {
+                this.triggerEvent('diceUpdated', this.diceCollection.getAllDiceData());
+            }
+        } else {
+            currentPlayer.extraDiceEnabled = 0;
         }
 
         // Apply turn-based power card effects
@@ -1369,14 +1416,12 @@ class KingOfTokyoGame {
 
     // Apply turn-based power card effects
     applyTurnBasedEffects(player) {
-        console.log(`🔍 Applying turn-based effects for ${player.monster.name}`);
         player.powerCards.forEach(card => {
             const effect = this.applyCardEffectWithAnimation(card, player, this);
             
             if (effect.effect === 'turnPoints') {
                 // Check if this effect has already been applied this turn
                 const effectKey = `${card.name}-turnPoints`;
-                console.log(`🎴 Processing card: ${card.name}, effect already applied: ${this.hasTurnEffectBeenApplied(player.id, effectKey)}`);
                 if (!this.hasTurnEffectBeenApplied(player.id, effectKey)) {
                     player.addVictoryPoints(effect.value);
                     this.logAction(`${player.monster.name} gains ${effect.value} victory point from ${card.name}!`, 'power-card');
@@ -1384,9 +1429,6 @@ class KingOfTokyoGame {
                     this.triggerEvent('playerGainedPoints', { playerId: player.id, pointsGained: effect.value });
                     // Mark this effect as applied
                     this.markTurnEffectApplied(player.id, effectKey);
-                    console.log(`✅ Applied turn points effect for ${card.name}`);
-                } else {
-                    console.log(`⏭️ Skipped duplicate turn points effect for ${card.name}`);
                 }
             } else if (effect.effect === 'turnHealing') {
                 // Check if this effect has already been applied this turn
