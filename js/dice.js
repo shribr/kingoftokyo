@@ -54,12 +54,20 @@ class Die {
     // Get display symbol
     getSymbol() {
         const faceData = this.getFaceData();
+        // If die is disabled, show lock symbol
+        if (this.isDisabled) {
+            return '🔒';
+        }
+        // If die has no face (initial state), show question mark
+        // If die has a face, show the symbol for that face
         return faceData ? faceData.symbol : '?';
     }
 
     // Reset die
     reset() {
-        console.log(`🎲 Resetting die ${this.id} (face was: ${this.face})`);
+        if (this.face !== null) {
+            console.log(`🎲 ⚠️  Resetting die ${this.id} that had face: ${this.face} (this might be unexpected during gameplay)`);
+        }
         this.face = null;
         this.isSelected = false;
         this.isRolling = false;
@@ -178,7 +186,11 @@ class DiceCollection {
 
     // Reset all dice
     reset() {
-        console.log(`🎲 Resetting all dice in collection`);
+        const hasRolledDice = this.dice.some(die => die.face !== null && !die.isDisabled);
+        if (hasRolledDice) {
+            console.warn(`🎲 ⚠️  Resetting dice collection that has rolled dice - this might be unexpected during gameplay!`);
+            console.log('🎲 Dice being reset:', this.dice.filter(d => d.face !== null).map(d => ({ id: d.id, face: d.face })));
+        }
         this.dice.forEach(die => die.reset());
     }
 
@@ -386,7 +398,7 @@ function createDiceHTML(diceData) {
     return diceData.map(die => `
         <div class="die ${die.isSelected ? 'selected' : ''} ${die.isRolling ? 'rolling' : ''} ${die.isDisabled ? 'disabled' : ''}" 
              data-die-id="${die.id}">
-            ${die.isDisabled ? '🔒' : (die.symbol || '⚫')}
+            ${die.symbol}
         </div>
     `).join('');
 }

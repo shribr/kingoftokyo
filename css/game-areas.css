@@ -622,6 +622,13 @@
     pointer-events: auto; /* Ensure it's clickable */
 }
 
+/* Hide active player when any modal is showing */
+.modal:not(.hidden) ~ .active-player-container,
+body:has(.modal:not(.hidden)) .active-player-container {
+    z-index: 1 !important; /* Much lower when modal is active */
+    opacity: 0.3; /* Make it more transparent when modal is showing */
+}
+
 /* Temporary class to lower z-index when modal is showing - no longer needed */
 /* .active-player-container.modal-behind {
     z-index: 1 !important;

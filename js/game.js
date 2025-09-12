@@ -336,6 +336,27 @@ class KingOfTokyoGame {
                 this.logAction(`${this.getCurrentPlayer().monster.name} rolls the dice... (${rollsLeft} rolls left)`);
             },
             onRollComplete: (data) => {
+                // Log the dice roll result for non-final rolls
+                if (data.rollsRemaining > 0) {
+                    // Create visual dice representation for intermediate rolls
+                    const diceStates = this.diceCollection.dice
+                        .filter(die => die.face !== null && !die.isDisabled)
+                        .map(die => die.face);
+                    
+                    const createDiceBox = (face) => {
+                        if (['1', '2', '3'].includes(face)) {
+                            return `<span class="dice-box dice-number">${face}</span>`;
+                        }
+                        if (face === 'energy') return '<span class="dice-box dice-energy">⚡</span>';
+                        if (face === 'attack') return '<span class="dice-box dice-attack">⚔️</span>';
+                        if (face === 'heal') return '<span class="dice-box dice-heal">❤️</span>';
+                        return `<span class="dice-box">${face}</span>`;
+                    };
+                    
+                    const visualDice = diceStates.map(face => createDiceBox(face)).join(' ');
+                    this.logDetailedAction(`${this.getCurrentPlayer().monster.name} rolled: ${visualDice}`, 'dice-faces');
+                }
+                
                 this.handleDiceResults(data.results, data.rollsRemaining);
             },
             onDiceUpdate: (diceData) => {
@@ -374,10 +395,6 @@ class KingOfTokyoGame {
                 rollSummary.push(`🎲${results.numbers[num]}x ${num}`);
             }
         });
-
-        if (rollSummary.length > 0) {
-            this.logAction(`Rolled: ${rollSummary.join(', ')}`, 'dice-roll');
-        }
 
         // Check if turn is complete (no rolls left or player chooses to stop)
         if (rollsLeft === 0) {
@@ -440,7 +457,7 @@ class KingOfTokyoGame {
         // Create visual dice representation (only enabled dice)
         const visualDice = diceStates.map(die => createDiceBox(die.face)).join(' ');
         
-        this.logDetailedAction(`Dice rolled: ${visualDice}`, 'dice-faces');
+        this.logDetailedAction(`${this.getCurrentPlayer().monster.name} rolled: ${visualDice}`, 'dice-faces');
         
         // Mark dice effects as resolved for this turn
         this.diceEffectsResolved = true;
@@ -598,7 +615,6 @@ class KingOfTokyoGame {
                         attackTargets.push(player.monster.name);
                     }
                 });
-                this.logAction(`${attacker.monster.name} attacks all other monsters from Tokyo City! (+1 victory point)`);
                 this.logDetailedAction(`${attacker.monster.name} attacks from Tokyo City: ${attackTargets.join(', ')} each take ${attackPower} damage`, 'attack-detail');
             } else if (attacker.tokyoLocation === 'bay') {
                 // Player in Tokyo Bay attacks only players outside Tokyo (NOT Tokyo City)
@@ -614,10 +630,8 @@ class KingOfTokyoGame {
                 // Count how many players were actually attacked
                 const targetsOutsideTokyo = this.players.filter(p => p.id !== attacker.id && !p.isEliminated && !p.isInTokyo);
                 if (targetsOutsideTokyo.length > 0) {
-                    this.logAction(`${attacker.monster.name} attacks ${targetsOutsideTokyo.length} monster(s) outside Tokyo from Tokyo Bay! (Tokyo City monster is safe) (+1 victory point)`);
                     this.logDetailedAction(`${attacker.monster.name} attacks from Tokyo Bay: ${attackTargets.join(', ')} each take ${attackPower} damage`, 'attack-detail');
                 } else {
-                    this.logAction(`${attacker.monster.name} attacks from Tokyo Bay but there are no monsters outside Tokyo to attack! (+1 victory point)`);
                     this.logDetailedAction(`${attacker.monster.name} attacks from Tokyo Bay: no valid targets outside Tokyo`, 'attack-detail');
                 }
             }
@@ -645,8 +659,12 @@ class KingOfTokyoGame {
                     }
                 });
                 
-                this.logAction(`${attacker.monster.name} attacks monsters in Tokyo!`);
-                this.logDetailedAction(`${attacker.monster.name} attacks from outside Tokyo: ${attackTargets.join(', ')} each take ${attackPower} damage`, 'attack-detail');
+                // Create appropriate attack message based on number of targets
+                if (attackTargets.length === 1) {
+                    this.logAction(`${attacker.monster.name} attacks monsters inside Tokyo: ${attackTargets[0]} takes ${attackPower} damage`);
+                } else {
+                    this.logAction(`${attacker.monster.name} attacks monsters inside Tokyo: ${attackTargets.join(', ')}, each take ${attackPower} damage`);
+                }
                 
                 // After all damage is dealt, offer Tokyo exit decisions to all players who took damage
                 // But only if the attacker has no rolls remaining (final roll)
@@ -673,7 +691,6 @@ class KingOfTokyoGame {
                 }, 100);
             } else {
                 this.logAction(`${attacker.monster.name} attacks but no one is in Tokyo!`);
-                this.logDetailedAction(`${attacker.monster.name} attacks but no valid targets in Tokyo`, 'attack-detail');
             }
         }
     }
@@ -701,9 +718,6 @@ class KingOfTokyoGame {
         const damageResult = player.takeDamage(damage);
         const actualDamage = damageResult.actualDamage;
         const eliminationInfo = damageResult.eliminationInfo;
-        
-        this.logAction(`${player.monster.name} takes ${actualDamage} damage from ${attacker.monster.name}`, 'attack');
-        this.logDetailedAction(`${player.monster.name} takes ${actualDamage} damage from ${attacker.monster.name} (${player.health}/${player.maxHealth} health remaining)`, 'damage-detail');
         
         // Handle elimination
         if (eliminationInfo) {
@@ -738,7 +752,7 @@ class KingOfTokyoGame {
                     console.log(`💀 ELIMINATION: Tokyo state after attacker entry - City: ${this.tokyoCity}, Bay: ${this.tokyoBay}`);
                     
                     attacker.enterTokyo(eliminationInfo.tokyoLocation);
-                    this.logAction(`${attacker.monster.name} immediately enters Tokyo ${eliminationInfo.tokyoLocation} after eliminating ${player.monster.name}! (+1 victory point)`);
+                    this.logAction(`${attacker.monster.name} immediately enters Tokyo ${eliminationInfo.tokyoLocation} after eliminating ${player.monster.name}! (+1 victory point)`, 'tokyo');
                     
                     // Trigger events for UI updates
                     this.triggerEvent('playerEntersTokyo', { 
@@ -803,10 +817,6 @@ class KingOfTokyoGame {
                 }
                 
                 this.offerTokyoExit(player, attacker);
-            } else if (isStandardOutsideTokyoAttack) {
-                this.logAction(`${player.monster.name} takes damage in Tokyo (exit decision will be offered after all Tokyo players are damaged)!`);
-            } else {
-                this.logAction(`${player.monster.name} takes damage in Tokyo but ${attacker.monster.name} still has rolls remaining!`);
             }
         }
         
@@ -860,7 +870,7 @@ class KingOfTokyoGame {
                     this.checkTokyoEntry(attacker);
                 }
             } else {
-                this.logAction(`${player.monster.name} stays in Tokyo!`);
+                this.logAction(`${player.monster.name} stays in Tokyo!`, 'tokyo');
             }
             
             // Trigger UI update
@@ -1003,11 +1013,11 @@ class KingOfTokyoGame {
         if (this.tokyoCity === null) {
             this.tokyoCity = player.id;
             location = 'city';
-            this.logAction(`${player.monster.name} enters Tokyo City! (+1 victory point)`);
+            this.logAction(`${player.monster.name} enters Tokyo City! (+1 victory point)`, 'tokyo');
         } else if (this.tokyoBay === null && this.gameSettings.playerCount >= 5) {
             this.tokyoBay = player.id;
             location = 'bay';
-            this.logAction(`${player.monster.name} enters Tokyo Bay! (+1 victory point)`);
+            this.logAction(`${player.monster.name} enters Tokyo Bay! (+1 victory point)`, 'tokyo');
         }
         
         if (location) {
@@ -1189,7 +1199,6 @@ class KingOfTokyoGame {
             player.powerCards.push(card);
             this.availableCards = this.availableCards.filter(c => c.id !== cardId);
             this.logAction(`${player.monster.name} buys ${card.name} for ${cost} energy!`, 'power-card');
-            this.logDetailedAction(`${player.monster.name} purchases ${card.name} for ${cost} energy (${card.cost} base cost + discounts/penalties). Energy remaining: ${player.energy}`, 'power-card-detail');
             console.log(`🛒 Card purchased successfully: ${card.name}`);
             
             // Apply immediate card effects
@@ -1352,7 +1361,6 @@ class KingOfTokyoGame {
         if (currentPlayer.isInTokyo) {
             console.log(`🎊 Awarding 2 Tokyo points to ${currentPlayer.monster.name} at start of Round ${this.round}`);
             currentPlayer.addVictoryPoints(2);
-            this.logAction(`${currentPlayer.monster.name} gains 2 victory points for starting turn in Tokyo!`);
             this.logDetailedAction(`${currentPlayer.monster.name} gains 2 victory points for starting turn in Tokyo!`, 'victory-points');
             // Trigger victory points animation for Tokyo bonus
             this.triggerEvent('playerGainedPoints', { playerId: currentPlayer.id, pointsGained: 2 });
@@ -1504,7 +1512,6 @@ class KingOfTokyoGame {
         // Only start player turn in log if gameplay has begun
         if (this.gameplayStarted) {
             this.startPlayerTurnInLog(this.getCurrentPlayer());
-            this.logAction(`${this.getCurrentPlayer().monster.name}'s turn begins!`);
         }
         
         // Reset dice effects resolved flag for the new turn
@@ -1708,6 +1715,7 @@ class KingOfTokyoGame {
             'game-start': '🎯',
             'ready-to-start': '🎲',
             'system': 'ℹ️',
+            'tokyo': '🏙️',
             'general': '📝'
         };
         return emojiMap[category] || '📝';
@@ -1879,13 +1887,11 @@ class KingOfTokyoGame {
         if (this.currentTurnPhase === 'rolling' && this.diceRoller.rollsRemaining === 3) {
             // First roll of the turn
             console.log(`🎲 ${this.getCurrentPlayer().monster.name} is making their first dice roll`);
-            this.logDetailedAction(`${this.getCurrentPlayer().monster.name} rolls the dice for the first time`, 'dice-roll');
             return await this.diceRoller.firstRoll();
         } else if (this.currentTurnPhase === 'rolling' && this.diceRoller.canRoll()) {
             // Subsequent rolls
             const rollNumber = 4 - this.diceRoller.rollsRemaining;
             console.log(`🎲 ${this.getCurrentPlayer().monster.name} is making roll #${rollNumber}`);
-            this.logDetailedAction(`${this.getCurrentPlayer().monster.name} re-rolls unselected dice (roll #${rollNumber})`, 'dice-roll');
             return await this.diceRoller.rollDice();
         }
         return false;
@@ -1894,6 +1900,15 @@ class KingOfTokyoGame {
     // Keep dice and end rolling phase
     keepDiceAndResolve() {
         if (this.currentTurnPhase === 'rolling') {
+            const rollsRemaining = this.diceRoller.rollsRemaining;
+            const playerName = this.getCurrentPlayer().monster.name;
+            
+            // Log that player is keeping dice and skipping remaining rolls
+            if (rollsRemaining > 0) {
+                const rollText = rollsRemaining === 1 ? 'roll' : 'rolls';
+                this.logAction(`${playerName} keeps the current dice and will skip their remaining ${rollsRemaining} ${rollText}`);
+            }
+            
             const results = this.diceCollection.getResults();
             this.currentTurnPhase = 'resolving';
             this.resolveDiceEffects(results);

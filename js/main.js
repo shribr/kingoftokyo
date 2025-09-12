@@ -183,6 +183,8 @@ class KingOfTokyoUI {
             instructionsModal: document.getElementById('instructions-modal'),
             gameLogContent: document.getElementById('game-log-content'),
             clearLogBtn: document.getElementById('clear-log-btn'),
+            scrollToTopBtn: document.getElementById('scroll-to-top-btn'),
+            scrollToBottomBtn: document.getElementById('scroll-to-bottom-btn'),
             saveGameBtn: document.getElementById('save-game-btn'),
             exportGameBtn: document.getElementById('export-game-btn'),
             clearStorageBtn: document.getElementById('clear-storage-btn'),
@@ -408,6 +410,15 @@ class KingOfTokyoUI {
             this.clearGameLog();
         });
 
+        // Game log scroll buttons
+        this.elements.scrollToTopBtn.addEventListener('click', () => {
+            this.scrollGameLogToTop();
+        });
+
+        this.elements.scrollToBottomBtn.addEventListener('click', () => {
+            this.scrollGameLogToBottom();
+        });
+
         // Storage management controls
         if (this.elements.saveGameBtn) {
             this.elements.saveGameBtn.addEventListener('click', async () => {
@@ -461,6 +472,12 @@ class KingOfTokyoUI {
             gameToolbar.classList.remove('show');
         }
         
+        // Clean up any existing active player container to prevent z-index conflicts
+        const existingActivePlayerContainer = document.getElementById('active-player-container');
+        if (existingActivePlayerContainer) {
+            existingActivePlayerContainer.remove();
+        }
+        
         UIUtilities.showModal(this.elements.setupModal);
         
         // Reset dropdown to ensure it's functional
@@ -492,6 +509,12 @@ class KingOfTokyoUI {
         // Hide the game container
         if (this.elements.gameContainer) {
             this.elements.gameContainer.classList.remove('show');
+        }
+        
+        // Clean up any existing active player container from previous game
+        const existingActivePlayerContainer = document.getElementById('active-player-container');
+        if (existingActivePlayerContainer) {
+            existingActivePlayerContainer.remove();
         }
         
         // Show the splash screen
@@ -952,22 +975,28 @@ class KingOfTokyoUI {
         // Update dice controls
         this.updateDiceControls();
         
-        // Only update dice display if dice are in initial state or explicitly requested
-        // Don't overwrite rolled dice with empty dice
+        // Update dice display appropriately based on game state
+        // Don't overwrite rolled dice during gameplay
         const diceData = this.game.diceCollection.getAllDiceData();
-        const allDiceEmpty = diceData.every(d => d.face === null);
+        const allDiceEmpty = diceData.every(d => d.face === null || d.isDisabled);
+        const anyDiceRolling = diceData.some(d => d.isRolling);
         const currentTurnPhase = this.game.currentTurnPhase;
+        const diceState = this.game.diceRoller.getState();
         
-        console.log(`🎲 Dice update check - Turn phase: ${currentTurnPhase}, All dice empty: ${allDiceEmpty}`);
+        console.log(`🎲 Dice update check - Turn phase: ${currentTurnPhase}, All dice empty: ${allDiceEmpty}, Any rolling: ${anyDiceRolling}, Rolls remaining: ${diceState.rollsRemaining}`);
         
-        // Only update dice display if:
-        // 1. All dice are empty (initial state), OR
-        // 2. We're in rolling phase (beginning of turn)
-        if (allDiceEmpty || currentTurnPhase === 'rolling') {
-            console.log(`🎲 Updating dice display`);
-            this.updateInitialDiceDisplay();
+        // Always update the dice display to show current state, but only use "initial" display for truly initial states
+        // Don't update during rolling animation to prevent flicker
+        if (!anyDiceRolling) {
+            if (allDiceEmpty && currentTurnPhase === 'rolling' && diceState.rollsRemaining === 3) {
+                console.log(`🎲 Showing initial empty dice - start of turn`);
+                this.updateInitialDiceDisplay();
+            } else {
+                console.log(`🎲 Showing current dice state - mid-game`);
+                this.updateDiceDisplay(diceData);
+            }
         } else {
-            console.log(`🎲 Skipping dice display update - dice have been rolled`);
+            console.log(`🎲 Skipping dice update - dice are currently rolling`);
         }
         
         // Update cards
@@ -1812,9 +1841,9 @@ class KingOfTokyoUI {
 
     // Update dice display
     updateDiceDisplay(diceData) {
-        console.log('updateDiceDisplay called with data:', diceData);
+        console.log('updateDiceDisplay called with data:', diceData.map(d => ({ id: d.id, face: d.face, symbol: d.symbol })));
         const html = createDiceHTML(diceData);
-        console.log('Generated HTML:', html);
+        console.log('Generated HTML length:', html.length);
         this.elements.diceContainer.innerHTML = html;
         
         // Attach dice event listeners and update container reference
@@ -1840,9 +1869,9 @@ class KingOfTokyoUI {
         console.log('🎲 Dice data retrieved:', diceData.map(d => ({ id: d.id, face: d.face, symbol: d.symbol })));
         
         // Check if any dice have null faces
-        const hasNullFaces = diceData.some(d => d.face === null);
+        const hasNullFaces = diceData.some(d => d.face === null && !d.isDisabled);
         if (hasNullFaces) {
-            console.warn('🎲 WARNING: Some dice have null faces, this will show question marks!');
+            console.log('🎲 INFO: Some dice have null faces (unrolled state) - showing question marks');
             console.log('🎲 Turn phase:', this.game.currentTurnPhase);
             console.log('🎲 Dice roller state:', this.game.diceRoller.getState());
         }
@@ -1939,35 +1968,6 @@ class KingOfTokyoUI {
 
     // Handle dice roll complete
     handleDiceRollComplete(data) {
-        // Log individual dice faces immediately after roll using visual dice
-        if (this.game && this.game.diceCollection) {
-            const diceStates = this.game.diceCollection.dice.map(die => ({
-                face: die.face,
-                symbol: die.getSymbol()
-            }));
-            
-            // Create visual dice representation using HTML spans for better styling
-            const createDiceBox = (face) => {
-                // For numbers, create styled box elements
-                if (['1', '2', '3'].includes(face)) {
-                    return `<span class="dice-box dice-number">${face}</span>`;
-                }
-                
-                // For special symbols, use styled spans
-                if (face === 'energy') return '<span class="dice-box dice-energy">⚡</span>';
-                if (face === 'attack') return '<span class="dice-box dice-attack">⚔️</span>';
-                if (face === 'heal') return '<span class="dice-box dice-heal">❤️</span>';
-                
-                // Fallback
-                return `<span class="dice-box">${face}</span>`;
-            };
-            
-            const visualDice = diceStates.map(die => createDiceBox(die.face)).join(' ');
-            const playerName = this.game.getCurrentPlayer() ? this.game.getCurrentPlayer().monster.name : 'Player';
-            
-            this.game.logDetailedAction(`${playerName} rolled: ${visualDice}`, 'dice-roll-result');
-        }
-        
         this.updateDiceControls();
         
         if (data.rollsLeft === 0) {
@@ -2417,8 +2417,18 @@ class KingOfTokyoUI {
     // Reset game
     resetGame() {
         this.elements.gameOverModal.classList.add('hidden');
+        
+        // Clean up any existing active player container from previous game
+        const existingActivePlayerContainer = document.getElementById('active-player-container');
+        if (existingActivePlayerContainer) {
+            existingActivePlayerContainer.remove();
+        }
+        
+        // Reset game state
         this.game = null;
         this.selectedMonsters = [];
+        
+        // Show setup modal for new game
         this.showSetupModal();
     }
 
@@ -2628,7 +2638,10 @@ class KingOfTokyoUI {
         
         // Auto-scroll to bottom to show latest content
         setTimeout(() => {
-            content.scrollTop = content.scrollHeight;
+            const gameLogContainer = document.querySelector('.game-log-container');
+            if (gameLogContainer) {
+                gameLogContainer.scrollTop = gameLogContainer.scrollHeight;
+            }
         }, 100);
     }
 
@@ -2869,6 +2882,27 @@ class KingOfTokyoUI {
                     console.error('Failed to save cleared log state:', error);
                 });
             }
+        }
+    }
+
+    // Game log scroll methods
+    scrollGameLogToTop() {
+        const gameLogContainer = document.querySelector('.game-log-container');
+        if (gameLogContainer) {
+            gameLogContainer.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+    }
+
+    scrollGameLogToBottom() {
+        const gameLogContainer = document.querySelector('.game-log-container');
+        if (gameLogContainer) {
+            gameLogContainer.scrollTo({
+                top: gameLogContainer.scrollHeight,
+                behavior: 'smooth'
+            });
         }
     }
 
