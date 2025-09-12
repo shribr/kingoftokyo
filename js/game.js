@@ -195,7 +195,7 @@ class KingOfTokyoGame {
     }
 
     // Initialize game with selected monsters
-    async initializeGame(selectedMonsters, playerCount) {
+    async initializeGame(selectedMonsters, playerCount, playerTypes = null) {
         this.gameSettings.playerCount = playerCount;
         this.players = [];
         this.currentPlayerIndex = 0;
@@ -216,7 +216,8 @@ class KingOfTokyoGame {
         // Create players
         for (let i = 0; i < playerCount; i++) {
             const monster = selectedMonsters[i];
-            const player = new Player(monster, i + 1);
+            const playerType = playerTypes ? playerTypes[i] : 'human'; // Default to human if no types provided
+            const player = new Player(monster, i + 1, playerType);
             this.players.push(player);
         }
 
@@ -2137,7 +2138,7 @@ class KingOfTokyoGame {
 
                 // Restore players
                 this.players = gameState.players.map(playerData => {
-                    const player = new Player(playerData.monster, playerData.id);
+                    const player = new Player(playerData.monster, playerData.id, playerData.playerType || 'human');
                     player.health = playerData.health;
                     player.energy = playerData.energy;
                     player.victoryPoints = playerData.victoryPoints;

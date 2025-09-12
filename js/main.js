@@ -90,6 +90,8 @@ class KingOfTokyoUI {
         this.tempSetupLog = []; // Store setup actions before game is created
         this.messageTimeout = null; // Track message timeout
         this.previousRound = 1; // Track previous round for animation
+        this.playerTiles = []; // Track player tile assignments
+        this.draggedMonster = null; // Track currently dragged monster
         
         this.initializeElements();
         this.attachEventListeners();
@@ -147,6 +149,8 @@ class KingOfTokyoUI {
             dropdownSelected: document.getElementById('dropdown-selected'),
             dropdownOptions: document.getElementById('dropdown-options'),
             monsterGrid: document.getElementById('monster-grid'),
+            playerTilesGrid: document.getElementById('player-tiles-grid'),
+            randomSelectionBtn: document.getElementById('random-selection-btn'),
             startGameBtn: document.getElementById('start-game'),
             
             // Game elements
@@ -277,6 +281,11 @@ class KingOfTokyoUI {
                     this.elements.startGameBtn.textContent = 'Start Game';
                 }
             }
+        });
+
+        // Random selection button event
+        this.elements.randomSelectionBtn.addEventListener('click', () => {
+            this.randomizeMonsterSelection();
         });
 
         // Game control events
@@ -612,6 +621,7 @@ class KingOfTokyoUI {
         console.log('👺 Current player count:', this.currentPlayerCount);
         console.log('👺 MONSTERS available:', typeof MONSTERS !== 'undefined');
         console.log('👺 Monster grid element:', !!this.elements.monsterGrid);
+        console.log('👺 Player tiles grid element:', !!this.elements.playerTilesGrid);
         
         // Debug: Check if MONSTERS is available
         if (typeof MONSTERS === 'undefined') {
@@ -622,21 +632,34 @@ class KingOfTokyoUI {
         
         const monsters = Object.values(MONSTERS);
         console.log('👺 Available monsters:', monsters.length, monsters);
-        console.log('👺 Monster details:', monsters.map(m => ({ id: m.id, name: m.name, image: m.image })));
         
-        // Debug: Check if monster grid element exists
-        if (!this.elements.monsterGrid) {
-            console.error('❌ Monster grid element is null! Check if DOM is ready.');
-            console.error('❌ Available elements:', Object.keys(this.elements));
+        // Debug: Check if elements exist
+        if (!this.elements.monsterGrid || !this.elements.playerTilesGrid) {
+            console.error('❌ Required grid elements missing!');
+            console.error('❌ Monster grid:', !!this.elements.monsterGrid);
+            console.error('❌ Player tiles grid:', !!this.elements.playerTilesGrid);
             return;
         }
         
-        console.log('👺 Monster grid element found:', this.elements.monsterGrid);
-        
+        // Reset state
         this.selectedMonsters = [];
-
+        this.playerTiles = [];
+        
+        // Initialize player tiles
+        for (let i = 0; i < this.currentPlayerCount; i++) {
+            this.playerTiles.push({
+                index: i,
+                type: i === 0 ? 'human' : 'cpu', // First tile is human, rest are CPU
+                monster: null,
+                occupied: false
+            });
+        }
+        
+        // Generate monster cards HTML
         const monstersHTML = monsters.map(monster => `
-            <div class="monster-option" data-monster-id="${monster.id}">
+            <div class="monster-option" 
+                 data-monster-id="${monster.id}" 
+                 draggable="true">
                 <div class="monster-image-container">
                     <img src="${monster.image}" alt="${monster.name}" class="monster-image" />
                 </div>
@@ -644,137 +667,366 @@ class KingOfTokyoUI {
             </div>
         `).join('');
         
-        console.log('Generated monsters HTML length:', monstersHTML.length);
-        console.log('First 300 chars of HTML:', monstersHTML.substring(0, 300));
-        
         this.elements.monsterGrid.innerHTML = monstersHTML;
-
-        console.log('Monster grid HTML set, innerHTML length:', this.elements.monsterGrid.innerHTML.length);
-        console.log('Monster grid children count:', this.elements.monsterGrid.children.length);
-
-        // ALWAYS enable monster options regardless of player count at this stage
-        const monsterOptions = this.elements.monsterGrid.querySelectorAll('.monster-option');
-        console.log('Found monster options:', monsterOptions.length);
         
-        monsterOptions.forEach((option, index) => {
-            console.log(`Setting up monster option ${index}:`, option.dataset.monsterId);
+        // Generate player tiles HTML
+        const playerTilesHTML = this.playerTiles.map((tile, index) => {
+            const isHuman = tile.type === 'human';
+            const icon = isHuman ? this.getHumanIcon() : this.getCPUIcon();
+            const label = isHuman ? 'Human Player' : 'CPU Player';
             
-            // Alternate between left and right lean patterns
-            // Use modulo to cycle through all 6 rotation classes
+            return `
+                <div class="player-tile ${tile.type}" 
+                     data-tile-index="${index}"
+                     data-player-type="${tile.type}">
+                    <div class="player-tile-icon">${icon}</div>
+                    <div class="player-tile-label">${label}</div>
+                </div>
+            `;
+        }).join('');
+        
+        this.elements.playerTilesGrid.innerHTML = playerTilesHTML;
+        
+        // Set up drag and drop event listeners
+        this.setupDragAndDrop();
+        
+        // Set up rotation classes for monster options
+        const monsterOptions = this.elements.monsterGrid.querySelectorAll('.monster-option');
+        monsterOptions.forEach((option, index) => {
             const rotationClass = `rotate-${(index % 6) + 1}`;
             option.classList.add(rotationClass);
-            
-            option.addEventListener('click', () => {
-                this.toggleMonsterSelection(option);
-            });
-            // Always make them visible
-            option.style.pointerEvents = 'auto';
-            option.style.opacity = '1';
-            option.style.display = 'flex';
-            option.style.visibility = 'visible';
         });
-
-        console.log('👺 Monster options enabled, count:', monsterOptions.length);
-
-        // Force absolute visibility with CSS override
-        setTimeout(() => {
-            console.log('👺 Applying emergency CSS visibility fixes...');
-            monsterOptions.forEach((option, index) => {
-                // Apply multiple visibility overrides
-                option.style.cssText = `
-                    display: flex !important;
-                    visibility: visible !important;
-                    opacity: 1 !important;
-                    pointer-events: auto !important;
-                    position: relative !important;
-                    width: auto !important;
-                    height: auto !important;
-                `;
-                console.log(`👺 Emergency CSS applied to monster ${index}:`, option.dataset.monsterId);
-            });
+        
+        this.updateStartButton();
+    }
+    
+    // Get CPU icon (simple SVG or Unicode character)
+    getCPUIcon() {
+        return 'CPU'; // Simple text glyph that matches the comic book theme
+    }
+    
+    // Get human icon  
+    getHumanIcon() {
+        return '?'; // Question mark in Bangers font will look comic book style
+    }
+    
+    // Setup drag and drop functionality
+    setupDragAndDrop() {
+        const monsterOptions = this.elements.monsterGrid.querySelectorAll('.monster-option');
+        const playerTiles = this.elements.playerTilesGrid.querySelectorAll('.player-tile');
+        
+        // Add drag events to monster cards
+        monsterOptions.forEach(option => {
+            option.addEventListener('dragstart', (e) => this.handleDragStart(e));
+            option.addEventListener('dragend', (e) => this.handleDragEnd(e));
+        });
+        
+        // Add drop events to player tiles
+        playerTiles.forEach(tile => {
+            tile.addEventListener('dragover', (e) => this.handleDragOver(e));
+            tile.addEventListener('dragenter', (e) => this.handleDragEnter(e));
+            tile.addEventListener('dragleave', (e) => this.handleDragLeave(e));
+            tile.addEventListener('drop', (e) => this.handleDrop(e));
             
-            // Also check grid visibility
-            this.elements.monsterGrid.style.cssText = `
-                display: grid !important;
-                visibility: visible !important;
-                opacity: 1 !important;
-            `;
-            console.log('👺 Emergency CSS applied to monster grid');
-        }, 200);
-
-        // Auto-select all monsters if 6 players is chosen
-        if (this.currentPlayerCount === 6) {
-            this.selectedMonsters = [...monsters]; // Select all monsters
-            monsterOptions.forEach(option => {
-                option.classList.add('selected');
-            });
-            console.log('Auto-selected all 6 monsters for 6-player game');
+            // Add click event to toggle player type (human/CPU) if not occupied
+            tile.addEventListener('click', (e) => this.handleTileClick(e));
+            
+            // Add double-click event to remove monster if occupied
+            tile.addEventListener('dblclick', (e) => this.handleTileDoubleClick(e));
+        });
+    }
+    
+    // Handle tile click to toggle player type
+    handleTileClick(e) {
+        const tile = e.target.closest('.player-tile');
+        if (!tile || tile.classList.contains('occupied')) {
+            return; // Don't allow changes to occupied tiles
         }
-
+        
+        const tileIndex = parseInt(tile.dataset.tileIndex);
+        const currentType = this.playerTiles[tileIndex].type;
+        
+        // Toggle between human and cpu
+        const newType = currentType === 'human' ? 'cpu' : 'human';
+        this.playerTiles[tileIndex].type = newType;
+        
+        // Update tile visual and classes
+        tile.classList.remove('human', 'cpu');
+        tile.classList.add(newType);
+        tile.dataset.playerType = newType;
+        
+        const icon = newType === 'human' ? this.getHumanIcon() : this.getCPUIcon();
+        const label = newType === 'human' ? 'Human Player' : 'CPU Player';
+        
+        tile.innerHTML = `
+            <div class="player-tile-icon">${icon}</div>
+            <div class="player-tile-label">${label}</div>
+        `;
+        
+        console.log(`Tile ${tileIndex} changed to ${newType}`);
+        
+        this.updateStartButton();
+    }
+    
+    // Handle tile double-click to remove monster
+    handleTileDoubleClick(e) {
+        const tile = e.target.closest('.player-tile');
+        if (!tile || !tile.classList.contains('occupied')) {
+            return; // Nothing to remove
+        }
+        
+        const tileIndex = parseInt(tile.dataset.tileIndex);
+        const monster = this.playerTiles[tileIndex].monster;
+        
+        if (!monster) return;
+        
+        console.log(`Removing monster ${monster.name} from tile ${tileIndex}`);
+        
+        // Reset tile state
+        this.playerTiles[tileIndex].monster = null;
+        this.playerTiles[tileIndex].occupied = false;
+        
+        // Reset tile visual and colors
+        const tileType = this.playerTiles[tileIndex].type;
+        const icon = tileType === 'human' ? this.getHumanIcon() : this.getCPUIcon();
+        const label = tileType === 'human' ? 'Human Player' : 'CPU Player';
+        
+        tile.innerHTML = `
+            <div class="player-tile-icon">${icon}</div>
+            <div class="player-tile-label">${label}</div>
+        `;
+        tile.classList.remove('occupied');
+        
+        // Reset tile colors to original theme
+        tile.style.background = '';
+        tile.style.borderColor = '';
+        tile.style.backgroundImage = '';
+        tile.style.backgroundSize = '';
+        
+        // Re-enable the monster card
+        const monsterCard = this.elements.monsterGrid.querySelector(`[data-monster-id="${monster.id}"]`);
+        if (monsterCard) {
+            monsterCard.classList.remove('disabled');
+            monsterCard.draggable = true;
+        }
+        
+        // Update selected monsters array
+        this.selectedMonsters = this.playerTiles
+            .filter(tile => tile.occupied)
+            .map(tile => tile.monster);
+        
+        this.updateStartButton();
+    }
+    
+    // Drag event handlers
+    handleDragStart(e) {
+        const monsterId = e.target.closest('.monster-option').dataset.monsterId;
+        this.draggedMonster = MONSTERS[monsterId];
+        e.target.closest('.monster-option').classList.add('dragging');
+        e.dataTransfer.setData('text/plain', monsterId);
+        console.log('Drag started for monster:', this.draggedMonster.name);
+    }
+    
+    handleDragEnd(e) {
+        e.target.closest('.monster-option').classList.remove('dragging');
+        this.draggedMonster = null;
+        
+        // Remove drop-target class from all tiles
+        this.elements.playerTilesGrid.querySelectorAll('.player-tile').forEach(tile => {
+            tile.classList.remove('drop-target');
+        });
+    }
+    
+    handleDragOver(e) {
+        e.preventDefault(); // Allow drop
+    }
+    
+    handleDragEnter(e) {
+        e.preventDefault();
+        const tile = e.target.closest('.player-tile');
+        if (tile && !tile.classList.contains('occupied')) {
+            tile.classList.add('drop-target');
+        }
+    }
+    
+    handleDragLeave(e) {
+        const tile = e.target.closest('.player-tile');
+        if (tile && !tile.contains(e.relatedTarget)) {
+            tile.classList.remove('drop-target');
+        }
+    }
+    
+    handleDrop(e) {
+        e.preventDefault();
+        const tile = e.target.closest('.player-tile');
+        const monsterId = e.dataTransfer.getData('text/plain');
+        const monster = MONSTERS[monsterId];
+        
+        if (!tile || tile.classList.contains('occupied')) {
+            console.log('Invalid drop target');
+            return;
+        }
+        
+        const tileIndex = parseInt(tile.dataset.tileIndex);
+        console.log('Dropped monster', monster.name, 'on tile', tileIndex);
+        
+        // Update tile state
+        this.playerTiles[tileIndex].monster = monster;
+        this.playerTiles[tileIndex].occupied = true;
+        
+        // Generate monster-themed colors
+        const monsterColor = monster.color;
+        const lighterColor = this.lightenColor(monsterColor, 30);
+        const evenLighterColor = this.lightenColor(monsterColor, 60);
+        
+        // Update tile visual with monster theme
+        tile.innerHTML = `
+            <img src="${monster.image}" alt="${monster.name}" class="monster-image-small" />
+            <div class="monster-name-small">${monster.name}</div>
+        `;
+        tile.classList.add('occupied');
+        tile.classList.remove('drop-target');
+        
+        // Apply monster color theme to the tile
+        tile.style.background = `linear-gradient(135deg, ${evenLighterColor} 0%, ${lighterColor} 50%, ${monsterColor} 100%)`;
+        tile.style.borderColor = monsterColor;
+        tile.style.backgroundImage = `
+            radial-gradient(circle at 3px 3px, rgba(0,0,0,0.08) 1px, transparent 0),
+            linear-gradient(135deg, ${evenLighterColor} 0%, ${lighterColor} 50%, ${monsterColor} 100%)
+        `;
+        tile.style.backgroundSize = '15px 15px, 100% 100%';
+        
+        // Disable the monster card
+        const monsterCard = this.elements.monsterGrid.querySelector(`[data-monster-id="${monsterId}"]`);
+        if (monsterCard) {
+            monsterCard.classList.add('disabled');
+            monsterCard.draggable = false;
+        }
+        
+        // Update selected monsters array
+        this.selectedMonsters = this.playerTiles
+            .filter(tile => tile.occupied)
+            .map(tile => tile.monster);
+        
         this.updateStartButton();
     }
 
-    // Toggle monster selection
-    toggleMonsterSelection(optionElement) {
-        const monsterId = optionElement.dataset.monsterId;
-        const monster = MONSTERS[monsterId];
-
-        console.log('Toggle monster selection:', monsterId, monster);
-
-        if (optionElement.classList.contains('selected')) {
-            // Deselect
-            optionElement.classList.remove('selected');
-            this.selectedMonsters = this.selectedMonsters.filter(m => m.id !== monsterId);
-            console.log('Deselected monster, now have:', this.selectedMonsters.length);
-            
-            // Log deselection if we have a game instance
-            if (this.game) {
-                this.game.logSetupAction(`❌ Deselected ${monster.name}`, 'monster-deselection', 'monster-selection');
-            }
-        } else if (this.selectedMonsters.length < this.currentPlayerCount) {
-            // Select
-            optionElement.classList.add('selected');
-            this.selectedMonsters.push(monster);
-            console.log('Selected monster, now have:', this.selectedMonsters.length);
-            
-            // Don't log individual selections here - they'll be logged during game start in proper order
-            // if (this.game) {
-            //     const playerNumber = this.selectedMonsters.length;
-            //     this.game.logSetupAction(`✅ Player ${playerNumber} selected ${monster.name}`, 'monster-selection', 'monster-selection');
-            // }
-        } else {
-            console.log('Cannot select more monsters, already at limit');
+    // Randomize monster selection
+    randomizeMonsterSelection() {
+        if (!this.currentPlayerCount || this.currentPlayerCount === 0) {
+            alert('Please select the number of players first!');
+            return;
         }
 
-        // Update other options
-        this.elements.monsterGrid.querySelectorAll('.monster-option').forEach(opt => {
-            if (this.selectedMonsters.length >= this.currentPlayerCount && !opt.classList.contains('selected')) {
-                opt.classList.add('taken');
-            } else {
-                opt.classList.remove('taken');
-            }
+        // Clear any existing selections
+        this.selectedMonsters = [];
+        this.playerTiles.forEach(tile => {
+            tile.monster = null;
+            tile.occupied = false;
         });
 
+        // Get all available monsters
+        const availableMonsters = Object.values(MONSTERS);
+        
+        // Shuffle the monsters array
+        const shuffledMonsters = [...availableMonsters].sort(() => Math.random() - 0.5);
+        
+        // Assign random monsters to each player tile
+        for (let i = 0; i < this.currentPlayerCount; i++) {
+            if (i < shuffledMonsters.length) {
+                const monster = shuffledMonsters[i];
+                this.playerTiles[i].monster = monster;
+                this.playerTiles[i].occupied = true;
+                this.selectedMonsters.push({
+                    monster: monster,
+                    playerType: this.playerTiles[i].type,
+                    tileIndex: i
+                });
+            }
+        }
+
+        // Update the visual representation
+        this.updatePlayerTileVisuals();
         this.updateStartButton();
+        
+        console.log('Random selection completed:', this.selectedMonsters);
+    }
+
+    // Update player tile visuals after assignment
+    updatePlayerTileVisuals() {
+        this.playerTiles.forEach((tile, index) => {
+            const tileElement = document.querySelector(`[data-tile-index="${index}"]`);
+            if (tileElement) {
+                if (tile.occupied && tile.monster) {
+                    tileElement.classList.add('occupied');
+                    tileElement.style.background = this.lightenColor(tile.monster.color, 30);
+                    
+                    // Update the tile content to show the monster
+                    const iconElement = tileElement.querySelector('.player-tile-icon');
+                    const labelElement = tileElement.querySelector('.player-tile-label');
+                    
+                    if (iconElement && labelElement) {
+                        iconElement.textContent = tile.monster.emoji;
+                        labelElement.textContent = tile.monster.name;
+                    }
+                } else {
+                    tileElement.classList.remove('occupied');
+                    tileElement.style.background = '';
+                    
+                    // Reset to original content
+                    const iconElement = tileElement.querySelector('.player-tile-icon');
+                    const labelElement = tileElement.querySelector('.player-tile-label');
+                    
+                    if (iconElement && labelElement) {
+                        const isHuman = tile.type === 'human';
+                        iconElement.textContent = isHuman ? this.getHumanIcon() : this.getCPUIcon();
+                        labelElement.textContent = isHuman ? 'Human Player' : 'CPU Player';
+                    }
+                }
+            }
+        });
     }
 
     // Update start button state
     updateStartButton() {
         const hasPlayerCount = this.currentPlayerCount > 0;
-        const canStart = hasPlayerCount && this.selectedMonsters.length === this.currentPlayerCount;
-        console.log('Update start button - canStart:', canStart, 'selected:', this.selectedMonsters.length, 'required:', this.currentPlayerCount);
+        const hasMonsters = this.selectedMonsters.length > 0;
+        const monstersRequired = this.currentPlayerCount;
+        const monstersSelected = this.selectedMonsters.length;
+        
+        // Check if we have at least one human and one CPU (unless only 1 player total)
+        const occupiedTiles = this.playerTiles.filter(tile => tile.occupied);
+        const humanTiles = occupiedTiles.filter(tile => tile.type === 'human');
+        const cpuTiles = occupiedTiles.filter(tile => tile.type === 'cpu');
+        
+        const hasRequiredPlayerTypes = this.currentPlayerCount === 1 || 
+                                      (humanTiles.length >= 1 && cpuTiles.length >= 1);
+        
+        const allTilesAssigned = monstersSelected === monstersRequired;
+        const canStart = hasPlayerCount && allTilesAssigned && hasRequiredPlayerTypes;
+        
+        console.log('Update start button:', {
+            hasPlayerCount,
+            monstersSelected,
+            monstersRequired,
+            allTilesAssigned,
+            hasRequiredPlayerTypes,
+            humanTiles: humanTiles.length,
+            cpuTiles: cpuTiles.length,
+            canStart
+        });
         
         this.elements.startGameBtn.disabled = !canStart;
         
         if (!hasPlayerCount) {
             this.elements.startGameBtn.textContent = 'Select Number of Players';
-            console.log('Button disabled with text: Select Number of Players');
+        } else if (!hasRequiredPlayerTypes && this.currentPlayerCount > 1) {
+            this.elements.startGameBtn.textContent = 'Need at least 1 Human and 1 CPU player';
         } else if (canStart) {
             this.elements.startGameBtn.textContent = 'Start Game';
-            console.log('Button enabled with text: Start Game');
         } else {
-            this.elements.startGameBtn.textContent = `Select ${this.currentPlayerCount - this.selectedMonsters.length} more monsters`;
-            console.log('Button disabled with text:', this.elements.startGameBtn.textContent);
+            const remaining = monstersRequired - monstersSelected;
+            this.elements.startGameBtn.textContent = `Assign ${remaining} more monster${remaining !== 1 ? 's' : ''}`;
         }
     }
 
@@ -813,10 +1065,12 @@ class KingOfTokyoUI {
             const monsterNames = this.selectedMonsters.map(monster => monster.name).join(', ');
             await this.game.logSetupActionWithStorage(`👥 ${this.currentPlayerCount} players selected`, 'setup');
             
-            // 1a. Log individual monster selections as follow-up entries
+            // 1a. Log individual monster selections as follow-up entries with player types
             for (let i = 0; i < this.selectedMonsters.length; i++) {
                 const monster = this.selectedMonsters[i];
-                await this.game.logSetupActionWithStorage(`    ├─ Player ${i + 1}: ${monster.name}`, 'monster-selection');
+                const playerTile = this.playerTiles[i];
+                const playerTypeIcon = playerTile.type === 'human' ? '👤' : '🤖';
+                await this.game.logSetupActionWithStorage(`    ├─ Player ${i + 1}: ${monster.name} (${playerTypeIcon} ${playerTile.type.toUpperCase()})`, 'monster-selection');
             }
             
             // 2. Log game start
@@ -825,9 +1079,12 @@ class KingOfTokyoUI {
             // 3. Log who goes first
             await this.game.logSetupActionWithStorage(`🎲 ${this.selectedMonsters[0].name} goes first!`, 'ready-to-start');
 
+            // Prepare player types array
+            const playerTypes = this.playerTiles.map(tile => tile.type);
+            
             // Initialize game (this will also save initial game state)
-            console.log('About to initialize game with monsters:', this.selectedMonsters);
-            const result = await this.game.initializeGame(this.selectedMonsters, this.currentPlayerCount);
+            console.log('About to initialize game with monsters and player types:', this.selectedMonsters, playerTypes);
+            const result = await this.game.initializeGame(this.selectedMonsters, this.currentPlayerCount, playerTypes);
             console.log('Game initialization result:', result);
             
             if (result.success) {
@@ -1021,7 +1278,10 @@ class KingOfTokyoUI {
                  data-player-id="${player.id}" data-monster="${player.monster.id}">
                 <div class="player-info">
                     <div class="player-name-container">
-                        <div class="player-name">${player.monster.name}</div>
+                        <div class="player-name">
+                            ${player.monster.name}
+                            ${player.playerType === 'cpu' ? '<span class="cpu-indicator">CPU</span>' : ''}
+                        </div>
                         ${player.isInTokyo ? `<div class="tokyo-indicator-inline">In Tokyo ${player.tokyoLocation === 'city' ? 'City' : 'Bay'}</div>` : ''}
                     </div>
                     <div class="monster-avatar" data-monster="${player.monster.id}">
@@ -1067,7 +1327,10 @@ class KingOfTokyoUI {
                      data-player-id="${activePlayer.id}" data-monster="${activePlayer.monster.id}">
                     <div class="player-info">
                         <div class="player-name-container">
-                            <div class="player-name">${activePlayer.monster.name}</div>
+                            <div class="player-name">
+                                ${activePlayer.monster.name}
+                                ${activePlayer.playerType === 'cpu' ? '<span class="cpu-indicator">CPU</span>' : ''}
+                            </div>
                             ${activePlayer.isInTokyo ? `<div class="tokyo-indicator-inline">In Tokyo ${activePlayer.tokyoLocation === 'city' ? 'City' : 'Bay'}</div>` : ''}
                         </div>
                         <div class="monster-avatar" data-monster="${activePlayer.monster.id}">

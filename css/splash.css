@@ -6,40 +6,18 @@
     width: 100vw;
     height: 100vh;
     background: 
-        /* Stars scattered across the sky */
-        radial-gradient(circle at 15% 20%, #FFD700 0%, #FFD700 0.5px, transparent 1px),
-        radial-gradient(circle at 25% 15%, #FFF 0%, #FFF 0.4px, transparent 1px),
-        radial-gradient(circle at 35% 25%, #FFD700 0%, #FFD700 0.3px, transparent 1px),
-        radial-gradient(circle at 45% 18%, #FFF 0%, #FFF 0.5px, transparent 1px),
-        radial-gradient(circle at 55% 22%, #FFD700 0%, #FFD700 0.4px, transparent 1px),
-        radial-gradient(circle at 65% 16%, #FFF 0%, #FFF 0.3px, transparent 1px),
-        radial-gradient(circle at 75% 25%, #FFD700 0%, #FFD700 0.5px, transparent 1px),
-        radial-gradient(circle at 85% 28%, #FFF 0%, #FFF 0.4px, transparent 1px),
-        radial-gradient(circle at 95% 18%, #FFD700 0%, #FFD700 0.3px, transparent 1px),
-        radial-gradient(circle at 10% 35%, #FFF 0%, #FFF 0.4px, transparent 1px),
-        radial-gradient(circle at 30% 32%, #FFD700 0%, #FFD700 0.3px, transparent 1px),
-        radial-gradient(circle at 50% 28%, #FFF 0%, #FFF 0.5px, transparent 1px),
-        radial-gradient(circle at 70% 35%, #FFD700 0%, #FFD700 0.4px, transparent 1px),
-        radial-gradient(circle at 90% 30%, #FFF 0%, #FFF 0.3px, transparent 1px),
-        radial-gradient(circle at 20% 40%, #FFD700 0%, #FFD700 0.3px, transparent 1px),
-        radial-gradient(circle at 40% 38%, #FFF 0%, #FFF 0.4px, transparent 1px),
-        radial-gradient(circle at 60% 42%, #FFD700 0%, #FFD700 0.5px, transparent 1px),
-        radial-gradient(circle at 80% 45%, #FFF 0%, #FFF 0.3px, transparent 1px),
-        
-        /* Large bright moon with glow */
-        radial-gradient(circle at 85% 20%, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.1) 10%, transparent 15%),
-        radial-gradient(circle at 85% 20%, #FFF 0%, #FFF 3%, transparent 4%),
-        
-        /* Beautiful dramatic night sky gradient */
+        /* Dark overlay for better text readability */
         linear-gradient(to bottom, 
-            #000814 0%, 
-            #001D3D 15%, 
-            #003566 30%, 
-            #0D1B2A 45%, 
-            #1B263B 60%, 
-            #415A77 75%, 
-            #778DA9 90%, 
-            #E0E1DD 100%);
+            rgba(0, 8, 20, 0.7) 0%, 
+            rgba(0, 29, 61, 0.6) 30%, 
+            rgba(0, 53, 102, 0.5) 60%, 
+            rgba(13, 27, 42, 0.6) 80%, 
+            rgba(0, 8, 20, 0.7) 100%),
+        /* Tokyo cityscape background image */
+        url('../images/tokyo_bg_1.jpg');
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
     display: flex;
     align-items: center;
     justify-content: center;

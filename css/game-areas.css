@@ -318,80 +318,80 @@
 
 /* Better condensed spacing for non-active players to fit 5 cards */
 .player-dashboard:not(.active):nth-child(1) {
-    margin-bottom: -90px; /* Even more aggressive overlap to shift stack up */
+    margin-bottom: -100px; /* More aggressive to pull stack up */
 }
 
 .player-dashboard:not(.active):nth-child(2) {
-    margin-top: -40px; /* Further increased pull-up from -30px */
-    margin-bottom: -95px; /* More aggressive overlap to shift stack up */
+    margin-top: -50px; /* More aggressive pull-up */
+    margin-bottom: -105px; /* More aggressive to pull stack up */
 }
 
 .player-dashboard:not(.active):nth-child(3) {
-    margin-top: -40px; /* Further increased pull-up from -30px */
-    margin-bottom: -95px; /* More aggressive overlap to shift stack up */
+    margin-top: -50px; /* More aggressive pull-up */
+    margin-bottom: -105px; /* More aggressive to pull stack up */
 }
 
 .player-dashboard:not(.active):nth-child(4) {
-    margin-top: -45px; /* Further increased pull-up from -35px */
-    margin-bottom: -95px; /* More aggressive overlap to shift stack up */
+    margin-top: -55px; /* More aggressive pull-up */
+    margin-bottom: -105px; /* More aggressive to pull stack up */
 }
 
 .player-dashboard:not(.active):nth-child(5) {
-    margin-top: -45px; /* Further increased pull-up from -35px */
-    margin-bottom: -95px; /* More aggressive overlap to shift stack up */
+    margin-top: -55px; /* More aggressive pull-up */
+    margin-bottom: -105px; /* More aggressive to pull stack up */
 }
 
 .player-dashboard:not(.active):nth-child(6) {
-    margin-top: -30px; /* Reduced pull-up since we have more space now */
-    margin-bottom: 15px; /* More bottom space for visibility */
+    margin-top: -40px; /* More aggressive pull-up */
+    margin-bottom: 5px; /* Small positive margin for last card visibility */
 }
 
 /* Add variation to card angles for haphazard look - balanced for 6 players - ONLY for non-active players */
 .player-dashboard:nth-child(1):not(.active) {
     transform: perspective(800px) rotateX(0.8deg) rotateY(-0.3deg) rotateZ(-2.2deg);
     margin-left: 6px;
-    margin-bottom: -85px; /* Maximum overlap to shift entire stack up */
+    margin-bottom: -95px; /* More aggressive to pull stack up */
 }
 
 .player-dashboard:nth-child(2):not(.active) {
     transform: perspective(800px) rotateX(1.2deg) rotateY(0.4deg) rotateZ(2.6deg);
     margin-left: -8px;
-    margin-top: -25px; /* Further increased pull-up */
-    margin-bottom: -85px; /* Maximum overlap to shift entire stack up */
+    margin-top: -35px; /* More aggressive pull-up */
+    margin-bottom: -95px; /* More aggressive to pull stack up */
 }
 
 .player-dashboard:nth-child(3):not(.active) {
     transform: perspective(800px) rotateX(0.9deg) rotateY(-0.7deg) rotateZ(-2.1deg);
     margin-left: 7px;
-    margin-top: -25px; /* Further increased pull-up */
-    margin-bottom: -85px; /* Maximum overlap to shift entire stack up */
+    margin-top: -35px; /* More aggressive pull-up */
+    margin-bottom: -95px; /* More aggressive to pull stack up */
 }
 
 .player-dashboard:nth-child(4):not(.active) {
     transform: perspective(800px) rotateX(1.1deg) rotateY(0.2deg) rotateZ(2.4deg);
     margin-left: -7px;
-    margin-top: -30px; /* Further increased pull-up */
-    margin-bottom: -85px; /* Maximum overlap to shift entire stack up */
+    margin-top: -40px; /* More aggressive pull-up */
+    margin-bottom: -95px; /* More aggressive to pull stack up */
 }
 
 .player-dashboard:nth-child(5):not(.active) {
     transform: perspective(800px) rotateX(0.7deg) rotateY(-0.4deg) rotateZ(-2.0deg);
     margin-left: 6px;
-    margin-top: -30px; /* Further increased pull-up */
-    margin-bottom: -85px; /* Maximum overlap to shift entire stack up */
+    margin-top: -40px; /* More aggressive pull-up */
+    margin-bottom: -95px; /* More aggressive to pull stack up */
 }
 
 .player-dashboard:nth-child(6):not(.active) {
     transform: perspective(800px) rotateX(1.3deg) rotateY(0.6deg) rotateZ(2.3deg);
     margin-left: -6px;
-    margin-top: -20px; /* Further reduced pull-up to move 6th card down more */
-    margin-bottom: -10px; /* Minimal overlap for last card to ensure full visibility */
+    margin-top: -30px; /* More aggressive pull-up */
+    margin-bottom: -5px; /* Small negative to keep tight but visible */
 }
 
 /* Last player dashboard - ensure visibility without content overflow */
 .player-dashboard:last-child {
-    margin-bottom: 30px !important; /* More bottom margin for better visibility */
-    margin-top: -30px !important; /* Less aggressive negative margin since cards above are more compressed */
+    margin-bottom: 50px !important; /* More bottom space to ensure visibility */
+    margin-top: -40px !important; /* More aggressive pull-up to shift entire stack */
 }
 
 /* Individual active transforms removed - active player is now positioned separately via main .active class */
@@ -740,6 +740,32 @@ body:has(.modal:not(.hidden)) .active-player-container {
 .player-dashboard:hover .player-info .player-name,
 .player-dashboard:hover .player-name-container .player-name {
     font-size: 1.7em !important; /* Increased from 1.5em to match new base size */
+}
+
+/* CPU Indicator styling */
+.cpu-indicator {
+    display: inline-block;
+    background: linear-gradient(135deg, #007acc 0%, #0099ff 50%, #33b5ff 100%);
+    color: #ffffff;
+    font-family: 'Bangers', cursive;
+    font-size: 0.6em;
+    padding: 2px 6px;
+    border-radius: 8px;
+    border: 2px solid #000;
+    margin-left: 8px;
+    text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+    box-shadow: 
+        2px 2px 0px #000,
+        3px 3px 8px rgba(0, 0, 0, 0.6);
+    transform: perspective(200px) rotateX(-2deg);
+    letter-spacing: 0.5px;
+    background-image: 
+        radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0);
+    background-size: 4px 4px;
 }
 
 /* Player Name Container for Inline Tokyo Indicator */

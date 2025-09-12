@@ -28,7 +28,7 @@
         linear-gradient(135deg, #FFFEF7 0%, #FFF8DC 30%, #F5F5DC 70%, #FFFACD 100%);
     padding: 25px;
     border-radius: 0;
-    max-width: 1200px;
+    max-width: 1400px; /* Increased width to accommodate new layout */
     width: 98%;
     max-height: 99vh;
     overflow-y: auto;
@@ -295,9 +295,244 @@
     background-size: 12px 12px, 100% 100%;
 }
 
-/* Hide the "Choose Your Monsters" label */
-#monster-selection h3 {
-    display: none;
+/* Button group styling for start game and random buttons */
+.button-group {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+
+/* New layout container */
+.selection-container {
+    display: flex;
+    gap: 50px; /* Increased from 40px to 50px for better separation */
+    align-items: flex-start;
+    justify-content: space-between;
+    min-height: 480px;
+}
+
+.monster-cards-section {
+    flex: 1;
+    max-width: 700px;
+}
+
+.player-tiles-section {
+    flex: 0 0 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.player-tiles-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: repeat(3, 1fr);
+    gap: 25px; /* Increased spacing from 15px to 25px */
+    width: 100%;
+    height: 480px;
+    padding: 15px; /* Increased padding from 10px to 15px */
+}
+
+/* Add subtle rotation variations to player tiles like monster cards */
+.player-tile:nth-child(1) {
+    transform: perspective(400px) rotateX(1.2deg) rotateZ(-1.8deg);
+}
+
+.player-tile:nth-child(2) {
+    transform: perspective(400px) rotateX(0.8deg) rotateZ(2.1deg);
+}
+
+.player-tile:nth-child(3) {
+    transform: perspective(400px) rotateX(-0.5deg) rotateZ(-1.5deg);
+}
+
+.player-tile:nth-child(4) {
+    transform: perspective(400px) rotateX(1.5deg) rotateZ(2.3deg);
+}
+
+.player-tile:nth-child(5) {
+    transform: perspective(400px) rotateX(-1.1deg) rotateZ(-2.0deg);
+}
+
+.player-tile:nth-child(6) {
+    transform: perspective(400px) rotateX(0.9deg) rotateZ(1.7deg);
+}
+
+.player-tile {
+    background: 
+        linear-gradient(135deg, #FFF8DC 0%, #FFE4B5 50%, #FFEFD5 100%);
+    border: 4px solid #000;
+    border-radius: 0; /* Sharp corners like monster cards */
+    padding: 15px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: 
+        6px 6px 0px #000,
+        8px 8px 20px rgba(0, 0, 0, 0.3);
+    position: relative;
+    min-height: 140px;
+    font-family: 'Bangers', cursive;
+    color: #000;
+    font-size: 0.9em;
+    text-align: center;
+    transform: perspective(400px) rotateX(1deg) rotateZ(-0.5deg);
+    
+    /* Flexbox to center content */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    
+    /* Comic halftone pattern like monster cards */
+    background-image: 
+        radial-gradient(circle at 3px 3px, rgba(0,0,0,0.08) 1px, transparent 0),
+        linear-gradient(135deg, #FFF8DC 0%, #FFE4B5 50%, #FFEFD5 100%);
+    background-size: 15px 15px, 100% 100%;
+}
+
+.player-tile.human {
+    background: 
+        linear-gradient(135deg, #FFE4B5 0%, #FFDAB9 50%, #FFB347 100%);
+    border-color: #FF8C00;
+    color: #000;
+    background-image: 
+        radial-gradient(circle at 3px 3px, rgba(0,0,0,0.08) 1px, transparent 0),
+        linear-gradient(135deg, #FFE4B5 0%, #FFDAB9 50%, #FFB347 100%);
+    background-size: 15px 15px, 100% 100%;
+}
+
+.player-tile.cpu {
+    background: 
+        linear-gradient(135deg, #E0F6FF 0%, #B3E5FC 50%, #81D4FA 100%);
+    border-color: #0288D1;
+    color: #000;
+    background-image: 
+        radial-gradient(circle at 3px 3px, rgba(0,0,0,0.08) 1px, transparent 0),
+        linear-gradient(135deg, #E0F6FF 0%, #B3E5FC 50%, #81D4FA 100%);
+    background-size: 15px 15px, 100% 100%;
+}
+
+.player-tile.occupied {
+    /* Background and border colors are now set dynamically based on monster */
+    color: #000;
+    /* Keep the halftone pattern - will be applied via JavaScript */
+}
+
+.player-tile:nth-child(1):hover {
+    transform: perspective(400px) rotateX(-1deg) rotateZ(-1.8deg) translateY(-4px) scale(1.05);
+}
+
+.player-tile:nth-child(2):hover {
+    transform: perspective(400px) rotateX(-1.5deg) rotateZ(2.1deg) translateY(-4px) scale(1.05);
+}
+
+.player-tile:nth-child(3):hover {
+    transform: perspective(400px) rotateX(-2.8deg) rotateZ(-1.5deg) translateY(-4px) scale(1.05);
+}
+
+.player-tile:nth-child(4):hover {
+    transform: perspective(400px) rotateX(-0.8deg) rotateZ(2.3deg) translateY(-4px) scale(1.05);
+}
+
+.player-tile:nth-child(5):hover {
+    transform: perspective(400px) rotateX(-3.4deg) rotateZ(-2.0deg) translateY(-4px) scale(1.05);
+}
+
+.player-tile:nth-child(6):hover {
+    transform: perspective(400px) rotateX(-1.4deg) rotateZ(1.7deg) translateY(-4px) scale(1.05);
+}
+
+.player-tile:hover {
+    border-color: #FF8C00;
+    box-shadow: 
+        8px 8px 0px #000,
+        12px 12px 25px rgba(255, 140, 0, 0.5);
+}
+
+.player-tile-icon {
+    font-size: 3.5em;
+    margin-bottom: 8px;
+    font-family: 'Bangers', cursive;
+    font-weight: 900;
+    text-shadow: 
+        -2px -2px 0 #FFD700,
+        2px -2px 0 #FFD700,
+        -2px 2px 0 #FFD700,
+        2px 2px 0 #FFD700,
+        3px 3px 6px rgba(0, 0, 0, 0.6);
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+    line-height: 1;
+}
+
+.player-tile-label {
+    font-size: 0.8em;
+    font-weight: 900;
+    font-family: 'Bangers', cursive;
+    text-shadow: 
+        -1px -1px 0 #FFD700,
+        1px -1px 0 #FFD700,
+        -1px 1px 0 #FFD700,
+        1px 1px 0 #FFD700,
+        2px 2px 4px rgba(0, 0, 0, 0.6);
+    letter-spacing: 1px;
+}
+
+.player-tile.drop-target:nth-child(1) {
+    transform: perspective(400px) rotateX(-2.5deg) rotateZ(-1.8deg) translateY(-8px) scale(1.1);
+}
+
+.player-tile.drop-target:nth-child(2) {
+    transform: perspective(400px) rotateX(-3deg) rotateZ(2.1deg) translateY(-8px) scale(1.1);
+}
+
+.player-tile.drop-target:nth-child(3) {
+    transform: perspective(400px) rotateX(-4.3deg) rotateZ(-1.5deg) translateY(-8px) scale(1.1);
+}
+
+.player-tile.drop-target:nth-child(4) {
+    transform: perspective(400px) rotateX(-2.3deg) rotateZ(2.3deg) translateY(-8px) scale(1.1);
+}
+
+.player-tile.drop-target:nth-child(5) {
+    transform: perspective(400px) rotateX(-4.9deg) rotateZ(-2.0deg) translateY(-8px) scale(1.1);
+}
+
+.player-tile.drop-target:nth-child(6) {
+    transform: perspective(400px) rotateX(-2.9deg) rotateZ(1.7deg) translateY(-8px) scale(1.1);
+}
+
+.player-tile.drop-target {
+    background: 
+        linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%);
+    border-color: #FF4500;
+    box-shadow: 
+        10px 10px 0px #000,
+        14px 14px 30px rgba(255, 140, 0, 0.7);
+    background-image: 
+        radial-gradient(circle at 3px 3px, rgba(0,0,0,0.15) 1px, transparent 0),
+        linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%);
+    background-size: 15px 15px, 100% 100%;
+}
+
+.player-tile .monster-image-small {
+    width: 60px;
+    height: 45px;
+    object-fit: contain;
+    border: 2px solid #000;
+    border-radius: 4px;
+    background: white;
+    margin-bottom: 5px;
+}
+
+.player-tile .monster-name-small {
+    font-size: 0.7em;
+    font-weight: bold;
+    text-align: center;
+    line-height: 1.1;
+    margin-top: 2px;
 }
 
 .monster-grid {
@@ -315,17 +550,49 @@
 @media (min-width: 768px) {
     .monster-grid {
         grid-template-columns: repeat(3, 1fr);
-        max-width: 900px;
+        max-width: 650px;
         margin: 0 auto 10px auto;
     }
 }
 
-/* For smaller screens, stack monsters */
+/* For smaller screens, stack monsters and tiles vertically */
 @media (max-width: 767px) {
+    .selection-container {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .monster-cards-section {
+        max-width: 100%;
+    }
+    
     .monster-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 25px;
         padding: 15px 30px;
+    }
+    
+    .player-tiles-section {
+        flex: none;
+        width: 100%;
+    }
+    
+    .player-tiles-grid {
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        height: auto;
+        min-height: 300px;
+        gap: 20px; /* Slightly reduced for mobile but still better than original */
+        padding: 12px;
+    }
+    
+    .player-tile {
+        min-height: 120px;
+        font-size: 0.8em;
+    }
+    
+    .player-tile-icon {
+        font-size: 2em;
     }
 }
 
@@ -336,7 +603,7 @@
     border-radius: 0;
     padding: 20px 15px;
     text-align: center;
-    cursor: pointer;
+    cursor: grab;
     transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     box-shadow: 
         6px 6px 0px #000,
@@ -354,6 +621,26 @@
     background-image: 
         radial-gradient(circle at 3px 3px, rgba(0,0,0,0.08) 1px, transparent 0),
         linear-gradient(135deg, #FFF8DC 0%, #FFE4B5 50%, #FFEFD5 100%);
+    background-size: 15px 15px, 100% 100%;
+}
+
+.monster-option.dragging {
+    cursor: grabbing;
+    opacity: 0.7;
+    transform: perspective(400px) rotateX(-2deg) translateY(-8px) scale(1.08) rotateZ(5deg);
+    z-index: 1000;
+}
+
+.monster-option.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-color: #666;
+    background: 
+        linear-gradient(135deg, #D3D3D3 0%, #C0C0C0 50%, #A9A9A9 100%);
+    filter: grayscale(100%);
+    background-image: 
+        radial-gradient(circle at 3px 3px, rgba(0,0,0,0.1) 1px, transparent 0),
+        linear-gradient(135deg, #D3D3D3 0%, #C0C0C0 50%, #A9A9A9 100%);
     background-size: 15px 15px, 100% 100%;
 }
 

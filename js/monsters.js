@@ -5,7 +5,7 @@ const MONSTERS = {
         name: 'Gigazaur',
         emoji: '🦕',
         image: 'images/characters/king_of_tokyo_gigazaur.png',
-        color: '#228B22', // Forest Green
+        color: '#1e3a1e', // Dark forest green (matches game dashboard)
         description: 'The mighty dinosaur monster',
         symbol: '🌿' // Alternative nature symbol
     },
@@ -14,7 +14,7 @@ const MONSTERS = {
         name: 'Cyber Bunny',
         emoji: '🤖',
         image: 'images/characters/king_of_tokyo_cyber_bunny.png',
-        color: '#FF1493', // Deep Pink
+        color: '#dda0dd', // Plum (matches game dashboard)
         description: 'The cybernetic rabbit',
         symbol: '⚡' // Electric symbol
     },
@@ -23,7 +23,7 @@ const MONSTERS = {
         name: 'Kraken',
         emoji: '🐙',
         image: 'images/characters/king_of_tokyo_kraken.png',
-        color: '#4169E1', // Royal Blue
+        color: '#1e3a37', // Dark greenish blue (matches game dashboard)
         description: 'The sea monster from the depths',
         symbol: '🌊' // Wave symbol
     },
@@ -32,7 +32,7 @@ const MONSTERS = {
         name: 'The King',
         emoji: '🦍',
         image: 'images/characters/king_of_tokyo_the_king.png',
-        color: '#8B4513', // Saddle Brown
+        color: '#4a3c1f', // Dark brown (matches game dashboard)
         description: 'The giant ape',
         symbol: '👑' // Crown symbol
     },
@@ -41,7 +41,7 @@ const MONSTERS = {
         name: 'Meka Dragon',
         emoji: '🐲',
         image: 'images/characters/king_of_tokyo_meka_dragon.png',
-        color: '#DC143C', // Crimson
+        color: '#cd5c5c', // Indian red (matches game dashboard)
         description: 'The mechanical dragon',
         symbol: '⚙️' // Gear symbol
     },
@@ -50,7 +50,7 @@ const MONSTERS = {
         name: 'Alienoid',
         emoji: '👽',
         image: 'images/characters/king_of_tokyo_alienoid.png',
-        color: '#9932CC', // Dark Orchid
+        color: '#8fbc8f', // Dark sea green (matches game dashboard)
         description: 'The extraterrestrial being',
         symbol: '🛸' // UFO symbol
     }
@@ -58,10 +58,11 @@ const MONSTERS = {
 
 // Player class to represent each monster/player
 class Player {
-    constructor(monster, playerNumber) {
+    constructor(monster, playerNumber, playerType = 'human') {
         this.id = `player-${playerNumber}`;
         this.playerNumber = playerNumber;
         this.monster = monster;
+        this.playerType = playerType; // 'human' or 'cpu'
         this.health = 10;
         this.maxHealth = 10;
         this.energy = 0;
@@ -180,6 +181,7 @@ class Player {
             id: this.id,
             playerNumber: this.playerNumber,
             monster: this.monster,
+            playerType: this.playerType,
             health: this.health,
             maxHealth: this.maxHealth,
             energy: this.energy,
