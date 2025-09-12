@@ -414,12 +414,18 @@ class KingOfTokyoGame {
         // Prevent multiple resolution of dice effects in the same turn
         if (this.diceEffectsResolved) {
             console.log('🐛 DEBUG - Dice effects already resolved this turn, skipping');
+            console.trace('🐛 DUPLICATE CALL - Stack trace for duplicate resolveDiceEffects call:');
             return;
         }
         
         const player = this.getCurrentPlayer();
         
-        console.log('resolveDiceEffects called with results:', results);
+        console.log('🔍 resolveDiceEffects called with results:', results);
+        console.log('🔍 Dice collection internal state at time of resolution:');
+        this.diceCollection.dice.forEach((die, index) => {
+            console.log(`🔍 Die ${index}: id=${die.id}, face=${die.face}, isDisabled=${die.isDisabled}, symbol=${die.getSymbol()}`);
+        });
+        
         console.log('Current player before effects:', {
             name: player.monster.name,
             energy: player.energy,
@@ -524,12 +530,74 @@ class KingOfTokyoGame {
             playerPowerCards: player.powerCards.map(card => card.name),
             individualDiceResults: this.diceCollection.dice.map(die => ({
                 face: die.face,
-                faceData: die.getFaceData()
+                faceData: die.getFaceData(),
+                isDisabled: die.isDisabled
             }))
         });
         
         // Check if there are actual attack dice (claws/swords) rolled (only enabled dice)
         const hasAttackDice = this.diceCollection.dice.some(die => !die.isDisabled && die.face === 'attack');
+        
+        // 🚨 DEBUG: Log potential bug when attack animation might trigger inappropriately
+        if (totalAttack > 0 && !hasAttackDice) {
+            console.error(`🚨 BUG DETECTED: totalAttack is ${totalAttack} but hasAttackDice is false!`);
+            console.error(`🚨 This should never happen - attack power without attack dice!`);
+            console.error(`🚨 Individual dice states:`, this.diceCollection.dice.map(die => ({
+                id: die.id,
+                face: die.face,
+                isDisabled: die.isDisabled,
+                faceData: die.getFaceData()
+            })));
+        }
+        
+        if (totalAttack === 0 && hasAttackDice) {
+            console.error(`🚨 WEIRD: hasAttackDice is true but totalAttack is 0!`);
+            console.error(`🚨 Individual dice states:`, this.diceCollection.dice.map(die => ({
+                id: die.id,
+                face: die.face,
+                isDisabled: die.isDisabled,
+                faceData: die.getFaceData()
+            })));
+        }
+        
+        console.log(`🎯 ATTACK DECISION: totalAttack=${totalAttack}, hasAttackDice=${hasAttackDice}`);
+        
+        // Enhanced dice state debugging with DOM verification
+        const diceStateDetails = this.diceCollection.dice.map(die => {
+            const domElement = document.querySelector(`[data-die-id="${die.id}"]`);
+            const visualText = domElement ? domElement.textContent.trim() : 'not-found';
+            const visualSymbol = die.getSymbol ? die.getSymbol() : 'no-getSymbol';
+            
+            return {
+                id: die.id,
+                face: die.face,
+                isDisabled: die.isDisabled,
+                faceData: die.getFaceData(),
+                visualSymbol: visualSymbol,
+                domText: visualText,
+                mismatch: (visualText !== visualSymbol && visualText !== 'not-found')
+            };
+        });
+        
+        console.log(`🎯 DICE STATE CHECK:`, diceStateDetails);
+        
+        // Check for visual/internal mismatches
+        const attackDice = diceStateDetails.filter(die => !die.isDisabled && die.face === 'attack');
+        if (attackDice.length > 0) {
+            console.log(`🎯 ATTACK DICE FOUND:`, attackDice);
+            attackDice.forEach(die => {
+                console.log(`🚨 Die ${die.id}: internal='${die.face}', visual='${die.domText}', expectedSymbol='${die.visualSymbol}', mismatch=${die.mismatch}`);
+                if (die.mismatch) {
+                    console.error(`🚨 CRITICAL MISMATCH: Die ${die.id} shows '${die.domText}' but internal state is '${die.face}'!`);
+                }
+            });
+        }
+        
+        // Check for any mismatches (not just attack dice)
+        const mismatches = diceStateDetails.filter(die => !die.isDisabled && die.mismatch);
+        if (mismatches.length > 0) {
+            console.error(`🚨 VISUAL/INTERNAL MISMATCHES DETECTED:`, mismatches);
+        }
         
         if (totalAttack > 0 && hasAttackDice) {
             console.log(`🚨 ATTACK WARNING - ${player.monster.name} is about to attack with ${totalAttack} power from rolled attack dice`);

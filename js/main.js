@@ -920,6 +920,7 @@ class KingOfTokyoUI {
                 this.animateVictoryPoints(data.playerId, data.pointsGained);
                 break;
             case 'turnStarted':
+                this.clearAllAttackAnimations(); // Clear any stuck attack animations
                 this.updateGameDisplay(); // Update UI to show new current player
                 break;
             case 'logUpdated':
@@ -2489,15 +2490,78 @@ class KingOfTokyoUI {
         
         const playerElement = document.querySelector(`[data-player-id="${playerId}"]`);
         if (playerElement) {
+            console.log('🔥 Found player element:', playerElement);
+            console.log('🔥 Element classes before animation:', Array.from(playerElement.classList));
+            
+            // Clear any existing attack animation first to prevent conflicts
+            playerElement.classList.remove('player-attacked');
+            
+            // Clear any existing timeout for this player
+            const timeoutKey = `attackTimeout_${playerId}`;
+            if (this[timeoutKey]) {
+                console.log('🔥 Clearing existing timeout for player:', playerId);
+                clearTimeout(this[timeoutKey]);
+                delete this[timeoutKey];
+            }
+            
+            // Force a style recalculation to ensure class removal takes effect
+            void playerElement.offsetHeight;
+            
             console.log('🔥 Adding player-attacked class to element:', playerElement);
             playerElement.classList.add('player-attacked');
-            setTimeout(() => {
-                console.log('🔥 Removing player-attacked class from element:', playerElement);
-                playerElement.classList.remove('player-attacked');
+            console.log('🔥 Element classes after adding attack class:', Array.from(playerElement.classList));
+            
+            // Store the timeout reference so we can clear it if needed
+            this[timeoutKey] = setTimeout(() => {
+                console.log('🔥 Timeout fired - attempting to remove player-attacked class from element:', playerElement);
+                console.log('🔥 Element classList before removal:', Array.from(playerElement.classList));
+                console.log('🔥 Element computed style before removal - border:', getComputedStyle(playerElement).border);
+                console.log('🔥 Element computed style before removal - box-shadow:', getComputedStyle(playerElement).boxShadow);
+                
+                if (playerElement && playerElement.classList.contains('player-attacked')) {
+                    playerElement.classList.remove('player-attacked');
+                    console.log('🔥 Successfully removed player-attacked class');
+                    
+                    // Force a style recalculation
+                    void playerElement.offsetHeight;
+                    
+                    console.log('🔥 Element classList after removal:', Array.from(playerElement.classList));
+                    console.log('🔥 Element computed style after removal - border:', getComputedStyle(playerElement).border);
+                    console.log('🔥 Element computed style after removal - box-shadow:', getComputedStyle(playerElement).boxShadow);
+                } else {
+                    console.log('🔥 Class already removed, element changed, or element no longer exists');
+                    if (playerElement) {
+                        console.log('🔥 Current classes on element:', Array.from(playerElement.classList));
+                    }
+                }
+                delete this[timeoutKey];
             }, 1000);
+            
+            console.log('🔥 Set timeout with key:', timeoutKey);
         } else {
             console.log('🔥 Player element not found for playerId:', playerId);
         }
+    }
+
+    // Force cleanup of any stuck attack animations
+    clearAllAttackAnimations() {
+        console.log('🔥 Clearing all attack animations...');
+        const allPlayerElements = document.querySelectorAll('[data-player-id]');
+        allPlayerElements.forEach(element => {
+            if (element.classList.contains('player-attacked')) {
+                console.log('🔥 Found stuck attack animation on element:', element);
+                element.classList.remove('player-attacked');
+            }
+        });
+        
+        // Clear all attack timeouts
+        Object.keys(this).forEach(key => {
+            if (key.startsWith('attackTimeout_')) {
+                console.log('🔥 Clearing timeout:', key);
+                clearTimeout(this[key]);
+                delete this[key];
+            }
+        });
     }
 
     animatePlayerHealing(playerId, healAmount) {
