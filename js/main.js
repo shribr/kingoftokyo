@@ -308,7 +308,7 @@ class KingOfTokyoUI {
                     try {
                         this.game.currentTurnPhase = 'resolving';
                         const results = this.game.diceCollection.getResults();
-                        this.game.resolveDiceEffects(results);
+                        this.game.resolveDiceEffects(results, true); // Skip dice log for forced resolution
                         this.game.triggerEvent('turnPhaseChanged', { phase: 'resolving' });
                         console.log('🐛 FORCED: Dice resolution forced, try end turn again');
                         this.updateDiceControls();
@@ -2776,7 +2776,16 @@ class KingOfTokyoUI {
 
     renderAction(action) {
         const actionTimestamp = action.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        const emoji = action.emoji || '📝';
+        
+        // Don't show emoji during setup phase
+        const isSetupPhase = action.area === 'setup' || action.category === 'setup' || 
+                           action.category === 'player-count-change' || 
+                           action.category === 'monster-selection' || 
+                           action.category === 'monster-deselection' ||
+                           action.category === 'game-start' ||
+                           action.category === 'ready-to-start';
+        
+        const emoji = isSetupPhase ? '' : (action.emoji || '📝');
         const categoryClass = `log-action-${action.category}`;
         
         // Add area information if available
@@ -2785,7 +2794,7 @@ class KingOfTokyoUI {
         
         return `
             <div class="log-action ${categoryClass}">
-                <span class="log-action-emoji">${emoji}</span>
+                ${emoji ? `<span class="log-action-emoji">${emoji}</span>` : ''}
                 <span class="log-action-message">${action.message}</span>
                 ${areaTag}
                 <span class="log-action-time">${actionTimestamp}</span>

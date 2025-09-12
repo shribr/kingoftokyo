@@ -158,6 +158,9 @@ class KingOfTokyoGame {
         this.detailedLog = []; // Detailed log with timestamps and categories (kept small)
         this.maxMemoryLogs = 50; // Reduced memory footprint
         
+        // Track total allowed rolls for current turn (base 3 + any bonus rolls)
+        this.currentTurnTotalRolls = 3;
+        
         // New hierarchical log structure
         this.gameLogTree = new GameLogTree();
         this.gameplayStarted = false; // Track if actual gameplay (dice rolling) has begun
@@ -333,11 +336,14 @@ class KingOfTokyoGame {
     setupDiceCallbacks() {
         this.diceRoller.setCallbacks({
             onRollStart: (rollsLeft) => {
-                this.logAction(`${this.getCurrentPlayer().monster.name} rolls the dice... (${rollsLeft} rolls left)`);
+                // Removed the "rolls the dice..." message
             },
             onRollComplete: (data) => {
                 // Log the dice roll result for non-final rolls
                 if (data.rollsRemaining > 0) {
+                    // Calculate current roll number
+                    const currentRoll = this.currentTurnTotalRolls - data.rollsRemaining;
+                    
                     // Create visual dice representation for intermediate rolls
                     const diceStates = this.diceCollection.dice
                         .filter(die => die.face !== null && !die.isDisabled)
@@ -354,7 +360,7 @@ class KingOfTokyoGame {
                     };
                     
                     const visualDice = diceStates.map(face => createDiceBox(face)).join(' ');
-                    this.logDetailedAction(`${this.getCurrentPlayer().monster.name} rolled: ${visualDice}`, 'dice-faces');
+                    this.logDetailedAction(`${this.getCurrentPlayer().monster.name} rolled: ${visualDice} (roll ${currentRoll}/${this.currentTurnTotalRolls})`, 'dice-faces');
                 }
                 
                 this.handleDiceResults(data.results, data.rollsRemaining);
@@ -410,7 +416,7 @@ class KingOfTokyoGame {
     }
 
     // Resolve dice effects
-    resolveDiceEffects(results) {
+    resolveDiceEffects(results, skipDiceLog = false) {
         // Prevent multiple resolution of dice effects in the same turn
         if (this.diceEffectsResolved) {
             console.log('🐛 DEBUG - Dice effects already resolved this turn, skipping');
@@ -463,7 +469,12 @@ class KingOfTokyoGame {
         // Create visual dice representation (only enabled dice)
         const visualDice = diceStates.map(die => createDiceBox(die.face)).join(' ');
         
-        this.logDetailedAction(`${this.getCurrentPlayer().monster.name} rolled: ${visualDice}`, 'dice-faces');
+        // Only log the dice roll if not skipping (to avoid duplicate logs when keeping dice)
+        if (!skipDiceLog) {
+            // Calculate current roll number (when final roll is logged, rollsRemaining = 0)
+            const rollNumber = this.currentTurnTotalRolls - this.diceRoller.rollsRemaining;
+            this.logDetailedAction(`${this.getCurrentPlayer().monster.name} rolled: ${visualDice} (roll ${rollNumber}/${this.currentTurnTotalRolls})`, 'dice-faces');
+        }
         
         // Mark dice effects as resolved for this turn
         this.diceEffectsResolved = true;
@@ -758,7 +769,7 @@ class KingOfTokyoGame {
                     this.checkTokyoEntry(attacker);
                 }, 100);
             } else {
-                this.logAction(`${attacker.monster.name} attacks but no one is in Tokyo!`);
+                this.logAction(`${attacker.monster.name} attacks but no one is in Tokyo!`, 'attack-empty');
             }
         }
     }
@@ -1443,6 +1454,9 @@ class KingOfTokyoGame {
         let bonusRolls = 0;
         let extraDice = 0;
         
+        // Reset total rolls for this turn to base amount
+        this.currentTurnTotalRolls = 3;
+        
         currentPlayer.powerCards.forEach(card => {
             const effect = applyCardEffect(card, currentPlayer, this);
             if (effect.type === 'passive') {
@@ -1458,6 +1472,7 @@ class KingOfTokyoGame {
         // Add bonus rolls to dice roller
         if (bonusRolls > 0) {
             this.diceRoller.rollsRemaining += bonusRolls;
+            this.currentTurnTotalRolls += bonusRolls;
             this.logAction(`${currentPlayer.monster.name} gets ${bonusRolls} extra reroll(s) from power cards!`, 'power-card');
         }
         
@@ -1784,7 +1799,8 @@ class KingOfTokyoGame {
             'ready-to-start': '🎲',
             'system': 'ℹ️',
             'tokyo': '🏙️',
-            'general': '📝'
+            'general': '📝',
+            'attack-empty': '🤷‍♂️'
         };
         return emojiMap[category] || '📝';
     }
@@ -1979,7 +1995,7 @@ class KingOfTokyoGame {
             
             const results = this.diceCollection.getResults();
             this.currentTurnPhase = 'resolving';
-            this.resolveDiceEffects(results);
+            this.resolveDiceEffects(results, true); // Skip dice log since we're keeping, not rolling
             return true;
         }
         return false;
