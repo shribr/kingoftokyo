@@ -198,7 +198,6 @@ class KingOfTokyoGame {
     async initializeGame(selectedMonsters, playerCount, playerTypes = null) {
         this.gameSettings.playerCount = playerCount;
         this.players = [];
-        this.currentPlayerIndex = 0;
         this.round = 1;
         this.gamePhase = 'playing';
         this.tokyoCity = null;
@@ -220,6 +219,10 @@ class KingOfTokyoGame {
             const player = new Player(monster, i + 1, playerType);
             this.players.push(player);
         }
+
+        // Randomize starting player
+        this.currentPlayerIndex = Math.floor(Math.random() * playerCount);
+        console.log(`🎲 Randomized starting player: ${this.getCurrentPlayer().monster.name} (index ${this.currentPlayerIndex})`);
 
         // Initialize card market
         this.refreshCardMarket();
@@ -389,6 +392,30 @@ class KingOfTokyoGame {
         if (!results.numbers) {
             console.error('handleDiceResults called with results missing numbers property:', results);
             return;
+        }
+        
+        // Show CPU thought bubble when analyzing dice results
+        if (player.playerType === 'cpu' && rollsLeft > 0) {
+            // Determine context based on dice results
+            let context = 'uncertain';
+            if (player.health <= 3 && results.heal > 0) {
+                context = 'needHearts';
+            } else if (player.energy <= 2 && results.energy > 0) {
+                context = 'needEnergy';
+            } else if (results.attack > 0) {
+                context = 'aggressive';
+            } else if (Object.values(results.numbers).some(count => count >= 2)) {
+                context = 'needNumbers';
+            } else if (rollsLeft === 1) {
+                context = 'confident';
+            }
+            
+            // Show thought bubble through UI
+            this.triggerEvent('showCPUThought', { 
+                player: player, 
+                context: context,
+                results: results 
+            });
         }
         
         // Log what was rolled with specific emojis
@@ -907,6 +934,28 @@ class KingOfTokyoGame {
 
     // Offer player in Tokyo the choice to leave
     offerTokyoExit(player, attacker) {
+        // Show CPU thought bubble for Tokyo decision
+        if (player.playerType === 'cpu') {
+            let context = 'uncertain';
+            if (player.health <= 3) {
+                context = 'lowHealth';
+            } else if (player.health <= 5) {
+                context = 'needHearts';
+            } else if (player.victoryPoints >= 15) {
+                context = 'closeToWinning';
+            } else if (player.monster.profile && player.monster.profile.risk >= 4) {
+                context = 'confident';
+            } else if (player.monster.profile && player.monster.profile.aggression >= 4) {
+                context = 'aggressive';
+            }
+            
+            this.triggerEvent('showCPUThought', { 
+                player: player, 
+                context: context,
+                situation: 'tokyo-decision'
+            });
+        }
+        
         const decision = {
             type: 'tokyoExit',
             playerId: player.id,

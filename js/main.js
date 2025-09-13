@@ -97,6 +97,7 @@ class KingOfTokyoUI {
         this.attachEventListeners();
         this.initializeDarkMode();
         this.initializeMonsterProfiles();
+        this.initializeSettings();
         this.showSetupModal();
         
         // End turn button functionality now handled in dice controls
@@ -208,6 +209,10 @@ class KingOfTokyoUI {
             closeGameLogBtn: document.getElementById('close-game-log'),
             closeStorageMgmtBtn: document.getElementById('close-storage-mgmt'),
             closeSettingsBtn: document.getElementById('close-settings'),
+            saveSettingsBtn: document.getElementById('save-settings'),
+            resetSettingsBtn: document.getElementById('reset-settings'),
+            cpuSpeedRadios: document.querySelectorAll('input[name="cpu-speed"]'),
+            thoughtBubblesToggle: document.getElementById('thought-bubbles-toggle'),
             closeInstructionsBtn: document.getElementById('close-instructions'),
             closeGameOverBtn: document.getElementById('close-game-over'),
             darkModeToggle: document.getElementById('dark-mode-toggle')
@@ -445,6 +450,16 @@ class KingOfTokyoUI {
         UIUtilities.safeAddEventListener(this.elements.closeSettingsBtn, 'click', 
             () => UIUtilities.hideModal(this.elements.settingsModal), 
             'Close settings button not found');
+
+        // Settings save button using UIUtilities
+        UIUtilities.safeAddEventListener(this.elements.saveSettingsBtn, 'click', 
+            () => this.saveSettings(), 
+            'Save settings button not found');
+
+        // Settings reset button using UIUtilities
+        UIUtilities.safeAddEventListener(this.elements.resetSettingsBtn, 'click', 
+            () => this.resetSettings(), 
+            'Reset settings button not found');
 
         // Game over modal close button using UIUtilities
         UIUtilities.safeAddEventListener(this.elements.closeGameOverBtn, 'click', 
@@ -1181,9 +1196,6 @@ class KingOfTokyoUI {
             // 2. Log game start
             await this.game.logSetupActionWithStorage('🎯 Starting new King of Tokyo game!', 'game-start');
             
-            // 3. Log who goes first
-            await this.game.logSetupActionWithStorage(`🎲 ${this.selectedMonsters[0].name} goes first!`, 'ready-to-start');
-
             // Prepare player types array
             const playerTypes = this.playerTiles.map(tile => tile.type);
             
@@ -1191,6 +1203,11 @@ class KingOfTokyoUI {
             console.log('About to initialize game with monsters and player types:', this.selectedMonsters, playerTypes);
             const result = await this.game.initializeGame(this.selectedMonsters, this.currentPlayerCount, playerTypes);
             console.log('Game initialization result:', result);
+            
+            // 3. Log who goes first (after game initialization so we know the randomized starting player)
+            if (result.success) {
+                await this.game.logSetupActionWithStorage(`🎲 ${result.currentPlayer.monster.name} goes first!`, 'ready-to-start');
+            }
             
             if (result.success) {
                 this.hideSetupModal();
@@ -1214,6 +1231,14 @@ class KingOfTokyoUI {
                 
                 this.updateGameDisplay();
                 this.showMessage(`Game started! ${result.currentPlayer.monster.name} goes first!`);
+                
+                // Check if the first player is CPU and auto-start their turn
+                if (result.currentPlayer.playerType === 'cpu') {
+                    console.log('First player is CPU, starting automatic turn in 2 seconds...');
+                    setTimeout(() => {
+                        this.startAutomaticCPUTurn(result.currentPlayer);
+                    }, 2000);
+                }
                 
                 // Log storage statistics
                 const stats = await this.game.getStorageStats();
@@ -1257,7 +1282,11 @@ class KingOfTokyoUI {
             case 'pendingDecision':
                 this.showDecisionModal(data);
                 break;
+            case 'showCPUThought':
+                this.showCPUThoughtBubble(data.player, data.context);
+                break;
             case 'turnEnded':
+                this.cleanupAllThoughtBubbles();
                 this.updateGameDisplay();
                 break;
             case 'gameEnded':
@@ -1284,6 +1313,15 @@ class KingOfTokyoUI {
             case 'turnStarted':
                 this.clearAllAttackAnimations(); // Clear any stuck attack animations
                 this.updateGameDisplay(); // Update UI to show new current player
+                
+                // Check if new current player is CPU and auto-start their turn
+                const currentPlayer = this.game.getCurrentPlayer();
+                if (currentPlayer && currentPlayer.playerType === 'cpu') {
+                    console.log('New current player is CPU, starting automatic turn in 2 seconds...');
+                    setTimeout(() => {
+                        this.startAutomaticCPUTurn(currentPlayer);
+                    }, 2000);
+                }
                 break;
             case 'logUpdated':
                 this.updateGameLogDisplay(); // Update game log when new entries are added
@@ -2344,6 +2382,15 @@ class KingOfTokyoUI {
                 this.showMessage('Dice effects resolved! You can buy cards or end turn.');
             }, 1500);
         }
+
+        // Continue CPU turn if current player is CPU
+        const currentPlayer = this.game.getCurrentPlayer();
+        if (currentPlayer && currentPlayer.playerType === 'cpu' && this.cpuTurnState) {
+            setTimeout(() => {
+                this.cpuTurnState.isProcessing = false;
+                this.processCPUTurn();
+            }, 1000);
+        }
     }
 
     // Update turn phase
@@ -2361,7 +2408,15 @@ class KingOfTokyoUI {
                 this.updateCardsDisplay();
                 break;
         }
-        this.updateDiceControls();
+
+        // Continue CPU turn on phase changes
+        const currentPlayer = this.game.getCurrentPlayer();
+        if (currentPlayer && currentPlayer.playerType === 'cpu' && this.cpuTurnState) {
+            setTimeout(() => {
+                this.cpuTurnState.isProcessing = false;
+                this.processCPUTurn();
+            }, 500);
+        }
     }
 
     // Update cards display
@@ -3044,6 +3099,53 @@ class KingOfTokyoUI {
 
     showSettings() {
         UIUtilities.showModal(this.elements.settingsModal);
+        this.loadSettings();
+    }
+
+    loadSettings() {
+        // Load CPU speed setting
+        const cpuSpeed = localStorage.getItem('cpuSpeed') || 'medium';
+        const speedRadio = document.querySelector(`input[name="cpu-speed"][value="${cpuSpeed}"]`);
+        if (speedRadio) {
+            speedRadio.checked = true;
+        }
+
+        // Load thought bubbles setting
+        const thoughtBubblesEnabled = localStorage.getItem('thoughtBubblesEnabled') !== 'false';
+        if (this.elements.thoughtBubblesToggle) {
+            this.elements.thoughtBubblesToggle.checked = thoughtBubblesEnabled;
+        }
+    }
+
+    saveSettings() {
+        // Save CPU speed setting
+        const selectedSpeed = document.querySelector('input[name="cpu-speed"]:checked');
+        if (selectedSpeed) {
+            localStorage.setItem('cpuSpeed', selectedSpeed.value);
+        }
+
+        // Save thought bubbles setting
+        if (this.elements.thoughtBubblesToggle) {
+            localStorage.setItem('thoughtBubblesEnabled', this.elements.thoughtBubblesToggle.checked.toString());
+        }
+
+        // Close the modal
+        UIUtilities.hideModal(this.elements.settingsModal);
+        
+        // Show confirmation
+        this.showMessage('Settings saved successfully!');
+    }
+
+    resetSettings() {
+        // Reset to default values
+        localStorage.removeItem('cpuSpeed');
+        localStorage.removeItem('thoughtBubblesEnabled');
+        
+        // Reload the settings to show defaults
+        this.loadSettings();
+        
+        // Show confirmation
+        this.showMessage('Settings reset to defaults');
     }
 
     showInstructions() {
@@ -3506,6 +3608,17 @@ class KingOfTokyoUI {
         localStorage.setItem('monsterProfiles', JSON.stringify(this.monsterProfiles));
     }
 
+    // Settings functionality
+    initializeSettings() {
+        // Set default settings if they don't exist
+        if (localStorage.getItem('cpuSpeed') === null) {
+            localStorage.setItem('cpuSpeed', 'medium');
+        }
+        if (localStorage.getItem('thoughtBubblesEnabled') === null) {
+            localStorage.setItem('thoughtBubblesEnabled', 'true');
+        }
+    }
+
     resetMonsterProfiles() {
         // Reset to default values from MONSTERS data
         Object.values(MONSTERS).forEach(monster => {
@@ -3633,6 +3746,683 @@ class KingOfTokyoUI {
     // Get monster personality for AI decision making
     getMonsterPersonality(monsterId) {
         return this.monsterProfiles[monsterId] || MONSTERS[monsterId]?.personality || { aggression: 3, strategy: 3, risk: 3 };
+    }
+
+    // CPU Thinking System
+    showCPUThoughtBubble(player, context = 'general') {
+        if (player.playerType !== 'cpu') return;
+        
+        // Check if thought bubbles are enabled
+        const thoughtBubblesEnabled = localStorage.getItem('thoughtBubblesEnabled') !== 'false';
+        if (!thoughtBubblesEnabled) return;
+        
+        // Find the player card container
+        const playerCard = document.querySelector(`[data-player-id="${player.id}"]`);
+        if (!playerCard) return;
+        
+        // Remove any existing thought bubble
+        this.hideCPUThoughtBubble(player);
+        
+        // Get context-appropriate phrase
+        const phrase = this.getCPUThoughtPhrase(player, context);
+        if (!phrase) return;
+        
+        // Create thought bubble
+        const thoughtBubble = document.createElement('div');
+        thoughtBubble.className = 'cpu-thought-bubble floating';
+        thoughtBubble.setAttribute('data-player-id', player.id);
+        
+        const bubbleContent = document.createElement('div');
+        bubbleContent.className = 'thought-bubble-content';
+        
+        // Add context-specific styling
+        if (context === 'uncertain' || context === 'confused') {
+            bubbleContent.classList.add('thought-bubble-uncertain');
+        } else if (context === 'confident' || context === 'planning') {
+            bubbleContent.classList.add('thought-bubble-confident');
+        } else if (context === 'aggressive' || context === 'attacking') {
+            bubbleContent.classList.add('thought-bubble-aggressive');
+        } else if (context === 'strategic' || context === 'analyzing') {
+            bubbleContent.classList.add('thought-bubble-strategic');
+        }
+        
+        bubbleContent.textContent = phrase;
+        thoughtBubble.appendChild(bubbleContent);
+        
+        // Position relative to player card
+        playerCard.style.position = 'relative';
+        playerCard.appendChild(thoughtBubble);
+        
+        console.log(`💭 ${player.monster.name} thinks: "${phrase}"`);
+        
+        // Auto-hide after 3-5 seconds, adjusted by CPU speed
+        const cpuSpeed = localStorage.getItem('cpuSpeed') || 'medium';
+        let speedMultiplier = 1;
+        switch (cpuSpeed) {
+            case 'fast': speedMultiplier = 0.6; break;
+            case 'medium': speedMultiplier = 1; break;
+            case 'slow': speedMultiplier = 1.5; break;
+        }
+        
+        const hideDelay = (3000 + Math.random() * 2000) * speedMultiplier;
+        setTimeout(() => this.hideCPUThoughtBubble(player), hideDelay);
+    }
+    
+    hideCPUThoughtBubble(player) {
+        const existingBubble = document.querySelector(`.cpu-thought-bubble[data-player-id="${player.id}"]`);
+        if (existingBubble) {
+            existingBubble.classList.add('disappearing');
+            setTimeout(() => {
+                if (existingBubble.parentNode) {
+                    existingBubble.parentNode.removeChild(existingBubble);
+                }
+            }, 500);
+        }
+    }
+
+    // Clean up all thought bubbles (called when turn ends)
+    cleanupAllThoughtBubbles() {
+        const allBubbles = document.querySelectorAll('.cpu-thought-bubble');
+        allBubbles.forEach(bubble => {
+            bubble.classList.add('disappearing');
+            setTimeout(() => {
+                if (bubble.parentNode) {
+                    bubble.parentNode.removeChild(bubble);
+                }
+            }, 500);
+        });
+    }
+    
+    cleanupAllThoughtBubbles() {
+        const allBubbles = document.querySelectorAll('.cpu-thought-bubble');
+        allBubbles.forEach(bubble => {
+            bubble.classList.add('disappearing');
+            setTimeout(() => {
+                if (bubble.parentNode) {
+                    bubble.parentNode.removeChild(bubble);
+                }
+            }, 500);
+        });
+        
+        if (allBubbles.length > 0) {
+            console.log(`💭 Cleaned up ${allBubbles.length} thought bubble(s) at turn end`);
+        }
+    }
+    
+    getCPUThoughtPhrase(player, context) {
+        if (!player.monster || !player.monster.profile) return null;
+        
+        const profile = player.monster.profile;
+        const gameState = this.game?.getCurrentGameState ? this.game.getCurrentGameState() : {};
+        
+        // Context-specific phrase collections
+        const phrases = {
+            general: [
+                "Let me think about this...",
+                "What's the best move here?",
+                "Hmm, interesting situation...",
+                "Time to strategize!",
+                "What would a monster do?",
+                "Let me calculate the odds..."
+            ],
+            
+            uncertain: [
+                "I'm not really sure what to do here",
+                "This is a tough decision...",
+                "Maybe I should play it safe?",
+                "What would my mother monster do?",
+                "Eenie, meenie, miney, moe...",
+                "When in doubt, ROAR!"
+            ],
+            
+            needHearts: [
+                "I really need hearts!",
+                "Health is getting low...",
+                "Time to heal up!",
+                "One heart would be nice...",
+                "My monster needs a snack!",
+                "Getting a bit worried here..."
+            ],
+            
+            needEnergy: [
+                "I could use some energy",
+                "Power cards look tempting...",
+                "More lightning please!",
+                "Energy equals opportunity!",
+                "Time to charge up!",
+                "I need to power up!"
+            ],
+            
+            needNumbers: [
+                "I could really use a 3",
+                "Come on, give me some points!",
+                "Numbers, numbers everywhere...",
+                "Victory points would be nice!",
+                "I need to score big!",
+                "Time for some counting!"
+            ],
+            
+            aggressive: [
+                "Time to SMASH!",
+                "Who needs to be punched?",
+                "RAWR! Attack mode!",
+                "Let's cause some chaos!",
+                "Violence is the answer!",
+                "Somebody's going down!"
+            ],
+            
+            strategic: [
+                "Let me analyze this carefully...",
+                "Calculating probability matrices...",
+                "The optimal path is...",
+                "According to my calculations...",
+                "Strategy over brute force!",
+                "Time for big brain moves!"
+            ],
+            
+            confident: [
+                "I've got this!",
+                "Easy choice!",
+                "This is my moment!",
+                "Watch and learn!",
+                "I know exactly what to do!",
+                "Victory is inevitable!"
+            ],
+            
+            lowHealth: [
+                "Getting a bit scary here...",
+                "Maybe I should hide?",
+                "Health is not looking good...",
+                "Time to play defensively!",
+                "Survival mode activated!",
+                "I don't feel so good..."
+            ],
+            
+            highEnergy: [
+                "So many options!",
+                "Power card shopping time!",
+                "Energy is power!",
+                "Let's spend some lightning!",
+                "Time to go crazy!",
+                "Rich monster problems!"
+            ],
+            
+            closeToWinning: [
+                "Victory is within reach!",
+                "Almost there!",
+                "Just a few more points...",
+                "I can taste victory!",
+                "Don't mess this up now!",
+                "Focus on the prize!"
+            ],
+            
+            tokyoDecision: [
+                "Should I stay or should I go?",
+                "Tokyo is dangerous but rewarding...",
+                "Risk vs. reward time!",
+                "Maybe I should play it safe?",
+                "Fortune favors the bold!",
+                "What would a true monster do?"
+            ]
+        };
+        
+        // Determine appropriate context based on game state
+        let selectedPhrases = phrases.general;
+        
+        if (context === 'tokyo-decision') {
+            selectedPhrases = phrases.tokyoDecision;
+        } else if (player.health <= 3) {
+            selectedPhrases = phrases.lowHealth;
+        } else if (player.health <= 5) {
+            selectedPhrases = phrases.needHearts;
+        } else if (player.energy >= 8) {
+            selectedPhrases = phrases.highEnergy;
+        } else if (player.energy <= 2) {
+            selectedPhrases = phrases.needEnergy;
+        } else if (player.victoryPoints >= 15) {
+            selectedPhrases = phrases.closeToWinning;
+        } else if (context === 'needNumbers') {
+            selectedPhrases = phrases.needNumbers;
+        } else if (profile.aggression >= 4) {
+            selectedPhrases = phrases.aggressive;
+        } else if (profile.strategy >= 4) {
+            selectedPhrases = phrases.strategic;
+        } else if (profile.risk >= 4) {
+            selectedPhrases = phrases.confident;
+        } else if (phrases[context]) {
+            selectedPhrases = phrases[context];
+        }
+        
+        // Add personality-based phrase modifications
+        const basePhrase = selectedPhrases[Math.floor(Math.random() * selectedPhrases.length)];
+        return this.personalizePhrase(basePhrase, profile);
+    }
+    
+    personalizePhrase(phrase, profile) {
+        // Add personality-based modifications
+        if (profile.aggression >= 4 && Math.random() < 0.3) {
+            const aggressiveModifiers = ['RAWR! ', '💪 ', 'SMASH! '];
+            phrase = aggressiveModifiers[Math.floor(Math.random() * aggressiveModifiers.length)] + phrase;
+        }
+        
+        if (profile.strategy >= 4 && Math.random() < 0.3) {
+            const strategicModifiers = ['🤔 ', '📊 ', '🧠 '];
+            phrase = strategicModifiers[Math.floor(Math.random() * strategicModifiers.length)] + phrase;
+        }
+        
+        if (profile.risk >= 4 && Math.random() < 0.3) {
+            const riskModifiers = ['🎲 ', '⚡ ', '🔥 '];
+            phrase = riskModifiers[Math.floor(Math.random() * riskModifiers.length)] + phrase;
+        }
+        
+        return phrase;
+    }
+
+    // Start automatic CPU turn
+    startAutomaticCPUTurn(player) {
+        if (player.playerType !== 'cpu') {
+            console.log('Player is not CPU, skipping automatic turn');
+            return;
+        }
+        
+        console.log(`🤖 Starting automatic turn for CPU player: ${player.monster.name}`);
+        
+        // Initialize CPU turn state
+        this.cpuTurnState = {
+            player: player,
+            phase: 'starting',
+            rollsCompleted: 0,
+            maxRolls: 3, // Default, may be modified by power cards
+            isProcessing: false
+        };
+        
+        // Start the CPU turn loop
+        this.processCPUTurn();
+    }
+
+    // Main CPU turn processing loop
+    processCPUTurn() {
+        if (!this.cpuTurnState || this.cpuTurnState.isProcessing) {
+            console.log('🤖 CPU turn processing skipped - already processing or no state');
+            return; // Prevent concurrent processing
+        }
+
+        this.cpuTurnState.isProcessing = true;
+        const player = this.cpuTurnState.player;
+        const gameState = this.game.getGameState();
+        
+        console.log(`🤖 CPU ${player.monster.name} - Phase: ${this.cpuTurnState.phase}, Game Phase: ${gameState.turnPhase}, Rolls: ${gameState.rollsRemaining}`);
+
+        // Make sure it's still this CPU's turn
+        if (gameState.currentPlayer.id !== player.id) {
+            console.log('🤖 CPU turn ended - no longer current player');
+            this.cpuTurnState = null;
+            return;
+        }
+
+        // Determine what action to take based on current game state
+        if (gameState.turnPhase === 'rolling') {
+            this.handleCPURollingPhase();
+        } else if (gameState.turnPhase === 'resolving') {
+            this.handleCPUResolvingPhase();
+        } else if (gameState.turnPhase === 'buying') {
+            this.handleCPUBuyingPhase();
+        } else {
+            // Turn is over or something unexpected happened
+            console.log('🤖 CPU turn ended - unexpected phase:', gameState.turnPhase);
+            this.cpuTurnState.isProcessing = false;
+            this.cpuTurnState = null;
+        }
+    }
+
+    // Handle the rolling phase for CPU
+    handleCPURollingPhase() {
+        const gameState = this.game.getGameState();
+        const player = this.cpuTurnState.player;
+        
+        // Show thinking bubble
+        this.showCPUThoughtBubble(player, 'analyzing');
+        
+        // Check if we can still roll
+        if (gameState.rollsRemaining > 0) {
+            // Decide whether to roll or keep current dice
+            const shouldRoll = this.shouldCPURoll(gameState, player);
+            
+            if (shouldRoll) {
+                this.executeCPURoll();
+            } else {
+                this.executeCPUKeepDice();
+            }
+        } else {
+            // No more rolls, wait for game to transition to resolving phase
+            this.waitForGamePhaseChange('resolving');
+        }
+    }
+
+    // Handle the resolving phase for CPU (dice effects are automatically applied)
+    handleCPUResolvingPhase() {
+        // The game automatically handles dice effects, just wait for buying phase
+        this.waitForGamePhaseChange('buying');
+    }
+
+    // Handle the buying phase for CPU
+    handleCPUBuyingPhase() {
+        const player = this.cpuTurnState.player;
+        const gameState = this.game.getGameState();
+        
+        // Show thinking bubble about cards
+        this.showCPUThoughtBubble(player, 'strategic');
+        
+        // Get CPU thinking time
+        const thinkingTime = this.getCPUThinkingTime(player);
+        
+        setTimeout(() => {
+            // Try to buy cards intelligently
+            const cardToBuy = this.chooseCPUCard(gameState, player);
+            
+            if (cardToBuy) {
+                this.executeCPUCardPurchase(cardToBuy);
+            } else {
+                // No good cards to buy, end turn
+                this.executeCPUEndTurn();
+            }
+        }, thinkingTime);
+    }
+
+    // Decide whether CPU should roll dice
+    shouldCPURoll(gameState, player) {
+        const dice = gameState.currentDice;
+        const rollsRemaining = gameState.rollsRemaining;
+        
+        // Always roll on first turn
+        if (rollsRemaining === 3) {
+            return true;
+        }
+        
+        // Analyze current dice to see if we should keep rolling
+        const analysis = this.analyzeDiceForCPU(dice, player);
+        
+        // Aggressive monsters are more likely to reroll
+        const aggressionBonus = player.monster.profile?.aggression || 0;
+        
+        // Strategic monsters are more careful about rerolls
+        const strategyPenalty = player.monster.profile?.strategy || 0;
+        
+        // Base chance to reroll
+        let rerollChance = 0.6;
+        
+        // Adjust based on dice value
+        if (analysis.score >= 8) {
+            rerollChance = 0.2; // Good roll, likely keep
+        } else if (analysis.score >= 5) {
+            rerollChance = 0.5; // Decent roll
+        } else {
+            rerollChance = 0.8; // Poor roll, likely reroll
+        }
+        
+        // Apply personality modifiers
+        rerollChance += (aggressionBonus * 0.1);
+        rerollChance -= (strategyPenalty * 0.05);
+        
+        // If low health, prioritize hearts
+        if (player.health <= 3) {
+            const hearts = dice.filter(die => die.face === 'heart').length;
+            if (hearts === 0) {
+                rerollChance = 0.9; // Really need hearts
+            }
+        }
+        
+        return Math.random() < rerollChance;
+    }
+
+    // Analyze dice value for CPU decision making
+    analyzeDiceForCPU(dice, player) {
+        let score = 0;
+        const faces = dice.map(die => die.face);
+        
+        // Count faces
+        const counts = {};
+        faces.forEach(face => counts[face] = (counts[face] || 0) + 1);
+        
+        // Score different outcomes
+        score += (counts.heart || 0) * 2; // Hearts are valuable
+        score += (counts.energy || 0) * 1.5; // Energy for cards
+        score += (counts.attack || 0) * 1; // Attacks
+        score += (counts['1'] || 0) * 0.5; // Numbers less valuable unless getting sets
+        score += (counts['2'] || 0) * 0.5;
+        score += (counts['3'] || 0) * 0.5;
+        
+        // Bonus for number sets
+        Object.keys(counts).forEach(face => {
+            if (['1', '2', '3'].includes(face) && counts[face] >= 3) {
+                score += counts[face] * 2; // Bonus for sets of 3+
+            }
+        });
+        
+        return { score, counts };
+    }
+
+    // Choose which dice to keep when rolling
+    chooseDiceToKeep(dice, player) {
+        const analysis = this.analyzeDiceForCPU(dice, player);
+        const toKeep = [];
+        
+        // Always keep hearts if health is low
+        if (player.health <= 4) {
+            dice.forEach((die, index) => {
+                if (die.face === 'heart') {
+                    toKeep.push(index);
+                }
+            });
+        }
+        
+        // Keep energy if we don't have much
+        if (player.energy <= 3) {
+            dice.forEach((die, index) => {
+                if (die.face === 'energy' && !toKeep.includes(index)) {
+                    toKeep.push(index);
+                }
+            });
+        }
+        
+        // Keep number sets
+        const faces = dice.map(die => die.face);
+        const counts = {};
+        faces.forEach(face => counts[face] = (counts[face] || 0) + 1);
+        
+        ['1', '2', '3'].forEach(number => {
+            if (counts[number] >= 2) {
+                dice.forEach((die, index) => {
+                    if (die.face === number && !toKeep.includes(index)) {
+                        toKeep.push(index);
+                    }
+                });
+            }
+        });
+        
+        return toKeep;
+    }
+
+    // Execute CPU dice roll
+    executeCPURoll() {
+        const thinkingTime = this.getCPUThinkingTime(this.cpuTurnState.player);
+        
+        setTimeout(() => {
+            const rollDiceBtn = document.getElementById('roll-dice');
+            if (rollDiceBtn && !rollDiceBtn.disabled) {
+                console.log('🎲 CPU automatically rolling dice...');
+                rollDiceBtn.click();
+                this.cpuTurnState.rollsCompleted++;
+                
+                // Continue processing after roll completes
+                setTimeout(() => {
+                    this.cpuTurnState.isProcessing = false;
+                    this.processCPUTurn();
+                }, 1000);
+            } else {
+                console.log('Roll dice button not available');
+                this.cpuTurnState.isProcessing = false;
+            }
+        }, thinkingTime);
+    }
+
+    // Execute CPU keep dice action
+    executeCPUKeepDice() {
+        const thinkingTime = this.getCPUThinkingTime(this.cpuTurnState.player);
+        
+        setTimeout(() => {
+            const keepDiceBtn = document.getElementById('keep-dice');
+            if (keepDiceBtn && !keepDiceBtn.disabled) {
+                console.log('🎯 CPU choosing to keep current dice...');
+                keepDiceBtn.click();
+                
+                // Continue processing after keep action
+                setTimeout(() => {
+                    this.cpuTurnState.isProcessing = false;
+                    this.processCPUTurn();
+                }, 500);
+            } else {
+                console.log('Keep dice button not available');
+                this.cpuTurnState.isProcessing = false;
+            }
+        }, thinkingTime);
+    }
+
+    // Choose a card for CPU to buy
+    chooseCPUCard(gameState, player) {
+        const availableCards = gameState.powerCards || [];
+        const playerEnergy = player.energy;
+        
+        // Filter cards CPU can afford
+        const affordableCards = availableCards.filter(card => 
+            card && card.cost <= playerEnergy
+        );
+        
+        if (affordableCards.length === 0) {
+            return null;
+        }
+        
+        // Simple AI: prefer cheaper cards for now
+        // TODO: Add more sophisticated card evaluation
+        return affordableCards.reduce((best, card) => {
+            if (!best || this.evaluateCardForCPU(card, player) > this.evaluateCardForCPU(best, player)) {
+                return card;
+            }
+            return best;
+        });
+    }
+
+    // Evaluate how good a card is for the CPU
+    evaluateCardForCPU(card, player) {
+        let value = 10 - card.cost; // Prefer cheaper cards as baseline
+        
+        // Add value based on card effects (simplified)
+        if (card.description.includes('health') || card.description.includes('heal')) {
+            value += player.health <= 5 ? 5 : 2;
+        }
+        if (card.description.includes('energy')) {
+            value += 3;
+        }
+        if (card.description.includes('attack') || card.description.includes('damage')) {
+            value += 4;
+        }
+        if (card.description.includes('victory') || card.description.includes('point')) {
+            value += 6;
+        }
+        
+        return value;
+    }
+
+    // Execute CPU card purchase
+    executeCPUCardPurchase(card) {
+        const thinkingTime = this.getCPUThinkingTime(this.cpuTurnState.player);
+        
+        setTimeout(() => {
+            // Find and click the card
+            const cardElement = document.querySelector(`[data-card-id="${card.id}"]`);
+            if (cardElement) {
+                console.log(`🛒 CPU buying card: ${card.name}`);
+                cardElement.click();
+                
+                // After purchase, decide whether to buy more or end turn
+                setTimeout(() => {
+                    this.cpuTurnState.isProcessing = false;
+                    this.processCPUTurn();
+                }, 1000);
+            } else {
+                // Card not found, end turn
+                this.executeCPUEndTurn();
+            }
+        }, thinkingTime);
+    }
+
+    // Execute CPU end turn
+    executeCPUEndTurn() {
+        const thinkingTime = this.getCPUThinkingTime(this.cpuTurnState.player) * 0.5; // Shorter for ending
+        
+        setTimeout(() => {
+            const endTurnBtn = document.getElementById('end-turn');
+            if (endTurnBtn && !endTurnBtn.disabled) {
+                console.log('✅ CPU ending turn...');
+                endTurnBtn.click();
+                
+                // Clean up CPU state
+                this.cpuTurnState = null;
+            } else {
+                console.log('End turn button not available');
+                this.cpuTurnState.isProcessing = false;
+            }
+        }, thinkingTime);
+    }
+
+    // Wait for game phase to change
+    waitForGamePhaseChange(expectedPhase) {
+        const checkPhase = () => {
+            const gameState = this.game.getGameState();
+            if (gameState.turnPhase === expectedPhase) {
+                this.cpuTurnState.isProcessing = false;
+                this.processCPUTurn();
+            } else {
+                // Check again in a short time
+                setTimeout(checkPhase, 200);
+            }
+        };
+        
+        setTimeout(checkPhase, 500); // Initial delay
+    }
+
+    // Get CPU thinking time based on settings and personality
+    getCPUThinkingTime(player) {
+        // Get CPU speed setting
+        const cpuSpeed = localStorage.getItem('cpuSpeed') || 'medium';
+        let speedMultiplier = 1;
+        
+        switch (cpuSpeed) {
+            case 'fast':
+                speedMultiplier = 0.5;
+                break;
+            case 'medium':
+                speedMultiplier = 1;
+                break;
+            case 'slow':
+                speedMultiplier = 1.8;
+                break;
+        }
+        
+        // Base thinking time
+        let baseTime = 1500 * speedMultiplier;
+        
+        // Adjust for personality
+        if (player.monster.profile) {
+            const profile = player.monster.profile;
+            if (profile.strategy >= 4) baseTime += 500 * speedMultiplier;
+            if (profile.aggression >= 4) baseTime -= 300 * speedMultiplier;
+            if (profile.risk >= 4) baseTime -= 200 * speedMultiplier;
+        }
+        
+        // Add randomness
+        const randomTime = Math.random() * 1000 * speedMultiplier;
+        return Math.max(500, baseTime + randomTime);
     }
 }
 

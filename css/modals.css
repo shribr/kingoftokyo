@@ -988,17 +988,27 @@
 }
 
 .settings-option {
-    margin-bottom: 15px;
-    padding: 10px;
+    margin-bottom: 20px;
+    padding: 15px;
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.5);
+    border: 2px solid rgba(0, 0, 0, 0.1);
 }
 
-.settings-option label {
+.settings-option > label {
     font-family: 'Bangers', cursive;
-    font-size: 1.2em;
+    font-size: 1.3em;
     color: #000;
-    cursor: pointer;
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+.settings-option p {
+    font-family: 'Bangers', cursive;
+    font-size: 1em;
+    color: #555;
+    margin: 5px 0 10px 0;
 }
 
 .settings-option input[type="checkbox"] {
@@ -1006,32 +1016,81 @@
     transform: scale(1.2);
 }
 
-.settings-button {
-    font-family: 'Bangers', cursive;
-    font-size: 1.3em;
-    padding: 12px 24px;
-    background: linear-gradient(135deg, #FFD700 0%, #FF8C00 100%);
-    border: 3px solid #000;
-    border-radius: 0;
-    color: #000;
-    cursor: pointer;
+.settings-option input[type="radio"] {
+    margin-right: 8px;
+    transform: scale(1.2);
+}
+
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.radio-option {
     display: flex;
     align-items: center;
-    justify-content: center;
+    font-family: 'Bangers', cursive;
+    font-size: 1.1em;
+    color: #000;
     cursor: pointer;
-    font-size: 1.5em;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.7);
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+    margin: 2px 0;
+}
+
+.radio-option:hover {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: #FFD700;
+    transform: translateX(3px);
+}
+
+.radio-option input[type="radio"] {
+    margin-right: 10px;
+}
+
+.radio-option:has(input[type="radio"]:checked) {
+    background: rgba(255, 215, 0, 0.4);
+    border-color: #FFD700;
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+    font-weight: bold;
+}
+
+.settings-button {
+    font-family: 'Bangers', cursive;
+    font-size: 1.2em;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #FFD700 0%, #FF8C00 100%);
+    border: 3px solid #000;
+    border-radius: 8px;
+    color: #000;
+    cursor: pointer;
     box-shadow: 3px 3px 0px #000, 5px 5px 15px rgba(0, 0, 0, 0.3);
     transition: all 0.3s ease;
-    z-index: 100;
     background-image: 
         radial-gradient(circle at 1px 1px, rgba(0,0,0,0.1) 1px, transparent 0),
         linear-gradient(135deg, #FFD700 0%, #FF8C00 100%);
     background-size: 8px 8px, 100% 100%;
+    font-weight: bold;
+    min-width: 120px;
 }
 
 .settings-button:hover {
     transform: translateY(-2px) scale(1.05);
     box-shadow: 4px 4px 0px #000, 6px 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.settings-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 2px solid rgba(0, 0, 0, 0.1);
 }
 
 /* Decision Modal Specific Styles */
@@ -4329,10 +4388,195 @@ body.dark-mode .quick-ref-item {
 
 .elimination-close-btn:hover {
     transform: scale(1.1);
-    background: linear-gradient(135deg, #a00000 0%, #600000 100%);
+}
+
+/* CPU Thought Bubble System */
+.cpu-thought-bubble {
+    position: absolute;
+    top: -80px;
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 200px;
+    max-width: 350px;
+    z-index: 9999;
+    pointer-events: none;
+    animation: thoughtBubbleAppear 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.thought-bubble-content {
+    background: 
+        /* Comic book speech bubble background */
+        linear-gradient(135deg, #FFFFFF 0%, #F8F9FA 50%, #E9ECEF 100%);
+    border: 4px solid #000;
+    border-radius: 25px;
+    padding: 15px 20px;
+    font-family: 'Bangers', cursive;
+    font-size: 1.2em;
+    color: #000;
+    text-align: center;
+    position: relative;
     box-shadow: 
-        0 6px 12px rgba(0, 0, 0, 0.6),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        6px 6px 0px #000,
+        8px 8px 20px rgba(0, 0, 0, 0.4);
+    
+    /* Comic book halftone pattern */
+    background-image: 
+        radial-gradient(circle at 3px 3px, rgba(0,0,0,0.08) 1px, transparent 0),
+        linear-gradient(135deg, #FFFFFF 0%, #F8F9FA 50%, #E9ECEF 100%);
+    background-size: 15px 15px, 100% 100%;
+    
+    /* Comic book perspective */
+    transform: perspective(400px) rotateX(-2deg) rotateY(1deg);
+    
+    /* Text styling */
+    text-shadow: 
+        -1px -1px 0 #FFF,
+        1px -1px 0 #FFF,
+        -1px 1px 0 #FFF,
+        1px 1px 0 #FFF;
+    letter-spacing: 0.5px;
+    line-height: 1.3;
+    font-weight: 900;
+}
+
+/* Comic book speech bubble tail */
+.thought-bubble-content::after {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-top: 15px solid #000;
+    z-index: -1;
+}
+
+.thought-bubble-content::before {
+    content: '';
+    position: absolute;
+    bottom: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 12px solid transparent;
+    border-right: 12px solid transparent;
+    border-top: 12px solid #FFFFFF;
+    z-index: 1;
+}
+
+/* Thought bubble variations for different contexts */
+.thought-bubble-uncertain {
+    background: 
+        linear-gradient(135deg, #FFF8DC 0%, #FFFACD 50%, #F0E68C 100%);
+    background-image: 
+        radial-gradient(circle at 3px 3px, rgba(0,0,0,0.06) 1px, transparent 0),
+        linear-gradient(135deg, #FFF8DC 0%, #FFFACD 50%, #F0E68C 100%);
+    background-size: 15px 15px, 100% 100%;
+    border-color: #B8860B;
+}
+
+.thought-bubble-uncertain::before {
+    border-top-color: #FFF8DC;
+}
+
+.thought-bubble-confident {
+    background: 
+        linear-gradient(135deg, #E6FFE6 0%, #CCFFCC 50%, #B3FFB3 100%);
+    background-image: 
+        radial-gradient(circle at 3px 3px, rgba(0,0,0,0.06) 1px, transparent 0),
+        linear-gradient(135deg, #E6FFE6 0%, #CCFFCC 50%, #B3FFB3 100%);
+    background-size: 15px 15px, 100% 100%;
+    border-color: #228B22;
+}
+
+.thought-bubble-confident::before {
+    border-top-color: #E6FFE6;
+}
+
+.thought-bubble-aggressive {
+    background: 
+        linear-gradient(135deg, #FFE4E1 0%, #FFC0CB 50%, #FFB6C1 100%);
+    background-image: 
+        radial-gradient(circle at 3px 3px, rgba(0,0,0,0.06) 1px, transparent 0),
+        linear-gradient(135deg, #FFE4E1 0%, #FFC0CB 50%, #FFB6C1 100%);
+    background-size: 15px 15px, 100% 100%;
+    border-color: #DC143C;
+}
+
+.thought-bubble-aggressive::before {
+    border-top-color: #FFE4E1;
+}
+
+.thought-bubble-strategic {
+    background: 
+        linear-gradient(135deg, #E0E6FF 0%, #C7D2FE 50%, #A5B4FC 100%);
+    background-image: 
+        radial-gradient(circle at 3px 3px, rgba(0,0,0,0.06) 1px, transparent 0),
+        linear-gradient(135deg, #E0E6FF 0%, #C7D2FE 50%, #A5B4FC 100%);
+    background-size: 15px 15px, 100% 100%;
+    border-color: #4169E1;
+}
+
+.thought-bubble-strategic::before {
+    border-top-color: #E0E6FF;
+}
+
+/* Animations */
+@keyframes thoughtBubbleAppear {
+    0% {
+        opacity: 0;
+        transform: translateX(-50%) scale(0.3) translateY(20px);
+    }
+    60% {
+        opacity: 1;
+        transform: translateX(-50%) scale(1.1) translateY(-5px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(-50%) scale(1) translateY(0);
+    }
+}
+
+@keyframes thoughtBubbleDisappear {
+    0% {
+        opacity: 1;
+        transform: translateX(-50%) scale(1) translateY(0);
+    }
+    30% {
+        opacity: 0.8;
+        transform: translateX(-50%) scale(0.95) translateY(-3px);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(-50%) scale(0.8) translateY(10px);
+    }
+}
+
+.cpu-thought-bubble.disappearing {
+    animation: thoughtBubbleDisappear 0.5s ease-in forwards;
+}
+
+/* Floating animation for active thought bubbles */
+@keyframes thoughtBubbleFloat {
+    0%, 100% {
+        transform: translateX(-50%) translateY(0px);
+    }
+    50% {
+        transform: translateX(-50%) translateY(-3px);
+    }
+}
+
+.cpu-thought-bubble.floating .thought-bubble-content {
+    animation: thoughtBubbleFloat 2s ease-in-out infinite;
+}
+
+/* Ensure thought bubbles appear above player cards */
+.player-card-container .cpu-thought-bubble {
+    z-index: 9999;
 }
 
 @keyframes eliminationFadeIn {
