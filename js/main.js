@@ -1232,13 +1232,17 @@ class KingOfTokyoUI {
                 this.updateGameDisplay();
                 this.showMessage(`Game started! ${result.currentPlayer.monster.name} goes first!`);
                 
-                // Check if the first player is CPU and auto-start their turn
-                if (result.currentPlayer.playerType === 'cpu') {
-                    console.log('First player is CPU, starting automatic turn in 2 seconds...');
-                    setTimeout(() => {
-                        this.startAutomaticCPUTurn(result.currentPlayer);
-                    }, 2000);
-                }
+                // Check if the first player is CPU and start their turn immediately
+                setTimeout(() => {
+                    const firstPlayer = this.game.getCurrentPlayer();
+                    console.log('🔄 Post-initialization check - First player:', firstPlayer);
+                    if (firstPlayer && firstPlayer.playerType === 'cpu') {
+                        console.log('🤖 First player is CPU, starting turn immediately');
+                        this.startAutomaticCPUTurn(firstPlayer);
+                    } else if (firstPlayer) {
+                        console.log('👤 First player is human:', firstPlayer.monster.name);
+                    }
+                }, 1000); // Check after 1 second to let the UI settle
                 
                 // Log storage statistics
                 const stats = await this.game.getStorageStats();
@@ -1311,16 +1315,23 @@ class KingOfTokyoUI {
                 this.animateVictoryPoints(data.playerId, data.pointsGained);
                 break;
             case 'turnStarted':
+                console.log('🎯 turnStarted event received:', data);
                 this.clearAllAttackAnimations(); // Clear any stuck attack animations
                 this.updateGameDisplay(); // Update UI to show new current player
                 
                 // Check if new current player is CPU and auto-start their turn
                 const currentPlayer = this.game.getCurrentPlayer();
+                console.log('🎯 Current player from game:', currentPlayer);
                 if (currentPlayer && currentPlayer.playerType === 'cpu') {
-                    console.log('New current player is CPU, starting automatic turn in 2 seconds...');
+                    console.log('🤖 Current player is CPU, starting automatic turn in 2 seconds...');
                     setTimeout(() => {
+                        console.log('🤖 Executing startAutomaticCPUTurn for:', currentPlayer.monster.name);
                         this.startAutomaticCPUTurn(currentPlayer);
                     }, 2000);
+                } else if (currentPlayer) {
+                    console.log('👤 Current player is human:', currentPlayer.monster.name);
+                } else {
+                    console.log('❌ No current player found');
                 }
                 break;
             case 'logUpdated':
@@ -4020,8 +4031,10 @@ class KingOfTokyoUI {
 
     // Start automatic CPU turn
     startAutomaticCPUTurn(player) {
+        console.log('🤖 startAutomaticCPUTurn called with player:', player);
+        
         if (player.playerType !== 'cpu') {
-            console.log('Player is not CPU, skipping automatic turn');
+            console.log('❌ Player is not CPU, skipping automatic turn');
             return;
         }
         
@@ -4035,6 +4048,8 @@ class KingOfTokyoUI {
             maxRolls: 3, // Default, may be modified by power cards
             isProcessing: false
         };
+        
+        console.log('🤖 CPU turn state initialized:', this.cpuTurnState);
         
         // Start the CPU turn loop
         this.processCPUTurn();
