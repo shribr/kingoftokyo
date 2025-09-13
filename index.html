@@ -134,9 +134,15 @@
             <div class="modal-content">
                 <h2>Monster Selection</h2>
                 <div class="setup-form">
-                    <div class="custom-dropdown" id="player-count-dropdown">
+                <div class="setup-header">
+                    <div class="spacer"></div>
+                    <button id="monster-profiles-btn" class="btn secondary setup-side-btn" title="View and customize monster personalities">
+                        Monster Profiles
+                    </button>
+                    
+                    <div class="player-count-dropdown" id="player-count-dropdown">
                         <div class="dropdown-selected" id="dropdown-selected">
-                            <span class="dropdown-text">Number of Players (2-6)</span>
+                            4 Players
                             <span class="dropdown-arrow">▼</span>
                         </div>
                         <div class="dropdown-options" id="dropdown-options">
@@ -148,7 +154,11 @@
                         </div>
                     </div>
                     
-                    <div id="monster-selection">
+                    <button id="random-selection-btn" class="btn secondary setup-side-btn" title="Auto-assign random monsters">
+                        Random Monster Selection
+                    </button>
+                    <div class="spacer"></div>
+                </div>                    <div id="monster-selection">
                         <div class="selection-container">
                             <div class="monster-cards-section">
                                 <div class="monster-grid" id="monster-grid"></div>
@@ -157,9 +167,6 @@
                                 <div class="player-tiles-grid" id="player-tiles-grid">
                                     <!-- Player tiles will be dynamically generated -->
                                 </div>
-                                <button id="random-selection-btn" class="btn secondary" title="Auto-assign random monsters">
-                                    Random Monster Selection
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -511,6 +518,28 @@
                             <p>Cost energy cubes to buy<br>Permanent abilities<br>Some give instant effects<br>Discard when instructed</p>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monster Profiles Modal -->
+    <div id="monster-profiles-modal" class="modal hidden">
+        <div class="modal-content monster-profiles-content">
+            <div class="modal-header">
+                <h2>👹 MONSTER PROFILES 👹</h2>
+                <button class="btn close-btn" id="close-monster-profiles">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="profiles-intro">
+                    <p>Each monster has a unique personality that affects their CPU behavior. Customize their traits below:</p>
+                </div>
+                <div class="monster-profiles-grid" id="monster-profiles-grid">
+                    <!-- Monster profiles will be dynamically generated here -->
+                </div>
+                <div class="profiles-actions">
+                    <button class="btn secondary" id="reset-profiles-btn">🔄 Reset to Defaults</button>
+                    <button class="btn primary" id="save-profiles-btn">💾 Save Changes</button>
                 </div>
             </div>
         </div>

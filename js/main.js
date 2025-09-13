@@ -96,6 +96,7 @@ class KingOfTokyoUI {
         this.initializeElements();
         this.attachEventListeners();
         this.initializeDarkMode();
+        this.initializeMonsterProfiles();
         this.showSetupModal();
         
         // End turn button functionality now handled in dice controls
@@ -151,7 +152,15 @@ class KingOfTokyoUI {
             monsterGrid: document.getElementById('monster-grid'),
             playerTilesGrid: document.getElementById('player-tiles-grid'),
             randomSelectionBtn: document.getElementById('random-selection-btn'),
+            monsterProfilesBtn: document.getElementById('monster-profiles-btn'),
             startGameBtn: document.getElementById('start-game'),
+            
+            // Monster Profiles Modal
+            monsterProfilesModal: document.getElementById('monster-profiles-modal'),
+            monsterProfilesGrid: document.getElementById('monster-profiles-grid'),
+            closeMonsterProfiles: document.getElementById('close-monster-profiles'),
+            resetProfilesBtn: document.getElementById('reset-profiles-btn'),
+            saveProfilesBtn: document.getElementById('save-profiles-btn'),
             
             // Game elements
             roundCounter: document.getElementById('round-counter'),
@@ -286,6 +295,33 @@ class KingOfTokyoUI {
         // Random selection button event
         this.elements.randomSelectionBtn.addEventListener('click', () => {
             this.randomizeMonsterSelection();
+        });
+
+        // Monster profiles button event
+        this.elements.monsterProfilesBtn.addEventListener('click', () => {
+            this.showMonsterProfilesModal();
+        });
+
+        // Monster profiles modal events
+        this.elements.closeMonsterProfiles.addEventListener('click', () => {
+            this.hideMonsterProfilesModal();
+        });
+
+        this.elements.resetProfilesBtn.addEventListener('click', () => {
+            this.resetMonsterProfiles();
+        });
+
+        this.elements.saveProfilesBtn.addEventListener('click', () => {
+            this.saveMonsterProfiles();
+            this.showMessage('Monster profiles saved!');
+            this.hideMonsterProfilesModal();
+        });
+
+        // Close modal when clicking outside
+        this.elements.monsterProfilesModal.addEventListener('click', (e) => {
+            if (e.target === this.elements.monsterProfilesModal) {
+                this.hideMonsterProfilesModal();
+            }
         });
 
         // Game control events
@@ -3425,6 +3461,164 @@ class KingOfTokyoUI {
                 this.elements.darkModeToggle.checked = true;
             }
         }
+    }
+
+    // Monster Profiles functionality
+    initializeMonsterProfiles() {
+        // Load saved profiles or use defaults
+        this.monsterProfiles = this.loadMonsterProfiles();
+        this.generateMonsterProfilesGrid();
+    }
+
+    loadMonsterProfiles() {
+        const saved = localStorage.getItem('monsterProfiles');
+        if (saved) {
+            try {
+                return JSON.parse(saved);
+            } catch (e) {
+                console.warn('Failed to parse saved monster profiles, using defaults');
+            }
+        }
+        
+        // Return default profiles from MONSTERS data
+        const profiles = {};
+        Object.values(MONSTERS).forEach(monster => {
+            profiles[monster.id] = { ...monster.personality };
+        });
+        return profiles;
+    }
+
+    saveMonsterProfiles() {
+        localStorage.setItem('monsterProfiles', JSON.stringify(this.monsterProfiles));
+    }
+
+    resetMonsterProfiles() {
+        // Reset to default values from MONSTERS data
+        Object.values(MONSTERS).forEach(monster => {
+            this.monsterProfiles[monster.id] = { ...monster.personality };
+        });
+        this.updateProfilesDisplay();
+        this.saveMonsterProfiles();
+    }
+
+    generateMonsterProfilesGrid() {
+        if (!this.elements.monsterProfilesGrid) return;
+
+        const grid = this.elements.monsterProfilesGrid;
+        grid.innerHTML = '';
+
+        Object.values(MONSTERS).forEach(monster => {
+            const profileCard = document.createElement('div');
+            profileCard.className = 'monster-profile-card';
+            profileCard.style.borderColor = monster.color;
+            
+            const profile = this.monsterProfiles[monster.id];
+            
+            profileCard.innerHTML = `
+                <div class="monster-profile-header">
+                    <div class="monster-profile-avatar">
+                        <img src="${monster.image}" alt="${monster.name}" />
+                    </div>
+                    <div class="monster-profile-info">
+                        <h3>${monster.name}</h3>
+                        <p>${monster.description}</p>
+                    </div>
+                </div>
+                <div class="personality-traits">
+                    <div class="trait-container">
+                        <div class="trait-header">
+                            <span class="trait-label">🔥 Aggression</span>
+                            <span class="trait-value" data-trait="aggression">${profile.aggression}</span>
+                        </div>
+                        <div class="trait-slider-container">
+                            <input type="range" min="1" max="5" value="${profile.aggression}" 
+                                   class="trait-slider" data-monster="${monster.id}" data-trait="aggression">
+                            <div class="trait-bar">
+                                <span>Passive</span>
+                                <span>Aggressive</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="trait-container">
+                        <div class="trait-header">
+                            <span class="trait-label">🧠 Strategy</span>
+                            <span class="trait-value" data-trait="strategy">${profile.strategy}</span>
+                        </div>
+                        <div class="trait-slider-container">
+                            <input type="range" min="1" max="5" value="${profile.strategy}" 
+                                   class="trait-slider" data-monster="${monster.id}" data-trait="strategy">
+                            <div class="trait-bar">
+                                <span>Simple</span>
+                                <span>Complex</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="trait-container">
+                        <div class="trait-header">
+                            <span class="trait-label">🎲 Risk Factor</span>
+                            <span class="trait-value" data-trait="risk">${profile.risk}</span>
+                        </div>
+                        <div class="trait-slider-container">
+                            <input type="range" min="1" max="5" value="${profile.risk}" 
+                                   class="trait-slider" data-monster="${monster.id}" data-trait="risk">
+                            <div class="trait-bar">
+                                <span>Cautious</span>
+                                <span>Reckless</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            grid.appendChild(profileCard);
+        });
+
+        // Attach slider event listeners
+        this.attachProfileSliderListeners();
+    }
+
+    attachProfileSliderListeners() {
+        const sliders = this.elements.monsterProfilesGrid.querySelectorAll('.trait-slider');
+        sliders.forEach(slider => {
+            slider.addEventListener('input', (e) => {
+                const monsterId = e.target.dataset.monster;
+                const trait = e.target.dataset.trait;
+                const value = parseInt(e.target.value);
+                
+                // Update the stored profile
+                this.monsterProfiles[monsterId][trait] = value;
+                
+                // Update the display value
+                const valueSpan = e.target.closest('.trait-container').querySelector(`[data-trait="${trait}"]`);
+                valueSpan.textContent = value;
+            });
+        });
+    }
+
+    updateProfilesDisplay() {
+        const sliders = this.elements.monsterProfilesGrid.querySelectorAll('.trait-slider');
+        sliders.forEach(slider => {
+            const monsterId = slider.dataset.monster;
+            const trait = slider.dataset.trait;
+            const value = this.monsterProfiles[monsterId][trait];
+            
+            slider.value = value;
+            const valueSpan = slider.closest('.trait-container').querySelector(`[data-trait="${trait}"]`);
+            valueSpan.textContent = value;
+        });
+    }
+
+    showMonsterProfilesModal() {
+        this.elements.monsterProfilesModal.classList.remove('hidden');
+    }
+
+    hideMonsterProfilesModal() {
+        this.elements.monsterProfilesModal.classList.add('hidden');
+    }
+
+    // Get monster personality for AI decision making
+    getMonsterPersonality(monsterId) {
+        return this.monsterProfiles[monsterId] || MONSTERS[monsterId]?.personality || { aggression: 3, strategy: 3, risk: 3 };
     }
 }
 

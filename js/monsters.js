@@ -7,7 +7,12 @@ const MONSTERS = {
         image: 'images/characters/king_of_tokyo_gigazaur.png',
         color: '#1e3a1e', // Dark forest green (matches game dashboard)
         description: 'The mighty dinosaur monster',
-        symbol: '🌿' // Alternative nature symbol
+        symbol: '🌿', // Alternative nature symbol
+        personality: {
+            aggression: 4, // High aggression - ancient predator instincts
+            strategy: 2,   // Low strategy - relies on brute force
+            risk: 3        // Medium risk - cautious but territorial
+        }
     },
     cyberbunny: {
         id: 'cyberbunny',
@@ -16,7 +21,12 @@ const MONSTERS = {
         image: 'images/characters/king_of_tokyo_cyber_bunny.png',
         color: '#dda0dd', // Plum (matches game dashboard)
         description: 'The cybernetic rabbit',
-        symbol: '⚡' // Electric symbol
+        symbol: '⚡', // Electric symbol
+        personality: {
+            aggression: 2, // Low aggression - calculated and precise
+            strategy: 5,   // High strategy - advanced AI planning
+            risk: 2        // Low risk - logical risk assessment
+        }
     },
     kraken: {
         id: 'kraken',
@@ -25,7 +35,12 @@ const MONSTERS = {
         image: 'images/characters/king_of_tokyo_kraken.png',
         color: '#1e3a37', // Dark greenish blue (matches game dashboard)
         description: 'The sea monster from the depths',
-        symbol: '🌊' // Wave symbol
+        symbol: '🌊', // Wave symbol
+        personality: {
+            aggression: 3, // Medium aggression - patient hunter
+            strategy: 4,   // High strategy - ancient wisdom
+            risk: 4        // High risk - deep sea adventurer
+        }
     },
     kinghull: {
         id: 'kinghull',
@@ -34,7 +49,12 @@ const MONSTERS = {
         image: 'images/characters/king_of_tokyo_the_king.png',
         color: '#4a3c1f', // Dark brown (matches game dashboard)
         description: 'The giant ape',
-        symbol: '👑' // Crown symbol
+        symbol: '👑', // Crown symbol
+        personality: {
+            aggression: 5, // Maximum aggression - alpha predator
+            strategy: 2,   // Low strategy - direct approach
+            risk: 3        // Medium risk - confident but not reckless
+        }
     },
     megalodon: {
         id: 'megalodon',
@@ -43,7 +63,12 @@ const MONSTERS = {
         image: 'images/characters/king_of_tokyo_meka_dragon.png',
         color: '#cd5c5c', // Indian red (matches game dashboard)
         description: 'The mechanical dragon',
-        symbol: '⚙️' // Gear symbol
+        symbol: '⚙️', // Gear symbol
+        personality: {
+            aggression: 4, // High aggression - fire-breathing destroyer
+            strategy: 3,   // Medium strategy - tactical combat
+            risk: 5        // Maximum risk - fearless mechanical beast
+        }
     },
     alienoid: {
         id: 'alienoid',
@@ -52,7 +77,12 @@ const MONSTERS = {
         image: 'images/characters/king_of_tokyo_alienoid.png',
         color: '#8fbc8f', // Dark sea green (matches game dashboard)
         description: 'The extraterrestrial being',
-        symbol: '🛸' // UFO symbol
+        symbol: '🛸', // UFO symbol
+        personality: {
+            aggression: 2, // Low aggression - prefers observation
+            strategy: 5,   // Maximum strategy - advanced alien intelligence
+            risk: 4        // High risk - explores unknown dangers
+        }
     }
 };
 
