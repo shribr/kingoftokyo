@@ -974,13 +974,21 @@ class KingOfTokyoUI {
         // Shuffle the monsters array
         const shuffledMonsters = [...availableMonsters].sort(() => Math.random() - 0.5);
         
-        // Take only the number of monsters needed for the current player count
-        const selectedMonstersForGame = shuffledMonsters.slice(0, this.currentPlayerCount);
+        // Get only CPU tiles for random assignment
+        const cpuTiles = this.playerTiles.filter(tile => tile.type === 'cpu');
         
-        // Assign random monsters to each player tile
-        selectedMonstersForGame.forEach((monster, i) => {
-            this.playerTiles[i].monster = monster;
-            this.playerTiles[i].occupied = true;
+        // Check if we have enough monsters for the CPU tiles
+        if (cpuTiles.length > shuffledMonsters.length) {
+            alert('Not enough monsters available for all CPU players!');
+            return;
+        }
+        
+        // Assign random monsters only to CPU tiles
+        cpuTiles.forEach((tile, index) => {
+            if (index < shuffledMonsters.length) {
+                tile.monster = shuffledMonsters[index];
+                tile.occupied = true;
+            }
         });
 
         // Update selected monsters array to match drag-and-drop format
@@ -1008,7 +1016,15 @@ class KingOfTokyoUI {
 
     // Gray out selected monster cards
     grayOutSelectedMonsters() {
-        const selectedMonsterIds = this.selectedMonsters.map(item => item.monster.id);
+        // Handle both formats: direct monster objects and {monster: object} wrapper format
+        const selectedMonsterIds = this.selectedMonsters.map(item => {
+            if (item && item.monster && item.monster.id) {
+                return item.monster.id; // Drag-and-drop format
+            } else if (item && item.id) {
+                return item.id; // Direct monster object format (from random selection)
+            }
+            return null;
+        }).filter(id => id !== null);
         
         selectedMonsterIds.forEach(monsterId => {
             const monsterCard = document.querySelector(`[data-monster-id="${monsterId}"]`);
@@ -1368,13 +1384,12 @@ class KingOfTokyoUI {
                 <div class="player-info">
                     <div class="player-name-container">
                         <div class="player-name">
-                            ${player.monster.name} <span class="player-subtitle">(${player.displayName || `Player ${player.playerNumber}`})</span>
+                            ${player.monster.name}${player.playerType === 'cpu' ? ' <span class="player-subtitle">(CPU)</span>' : ''}
                         </div>
                         ${player.isInTokyo ? `<div class="tokyo-indicator-inline">In Tokyo ${player.tokyoLocation === 'city' ? 'City' : 'Bay'}</div>` : ''}
                     </div>
                     <div class="monster-avatar" data-monster="${player.monster.id}">
                         <img src="${player.monster.image}" alt="${player.monster.name}" class="monster-avatar-image" />
-                        ${player.playerType === 'cpu' ? '<div class="cpu-indicator-avatar">CPU</div>' : ''}
                     </div>
                 </div>
                 <div class="player-stats">
@@ -1417,13 +1432,12 @@ class KingOfTokyoUI {
                     <div class="player-info">
                         <div class="player-name-container">
                             <div class="player-name">
-                                ${activePlayer.monster.name} <span class="player-subtitle">(${activePlayer.displayName || `Player ${activePlayer.playerNumber}`})</span>
+                                ${activePlayer.monster.name}${activePlayer.playerType === 'cpu' ? ' <span class="player-subtitle">(CPU)</span>' : ''}
                             </div>
                             ${activePlayer.isInTokyo ? `<div class="tokyo-indicator-inline">In Tokyo ${activePlayer.tokyoLocation === 'city' ? 'City' : 'Bay'}</div>` : ''}
                         </div>
                         <div class="monster-avatar" data-monster="${activePlayer.monster.id}">
                             <img src="${activePlayer.monster.image}" alt="${activePlayer.monster.name}" class="monster-avatar-image" />
-                            ${activePlayer.playerType === 'cpu' ? '<div class="cpu-indicator-avatar">CPU</div>' : ''}
                         </div>
                     </div>
                     <div class="player-stats">
