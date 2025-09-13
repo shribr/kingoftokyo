@@ -803,11 +803,13 @@ class KingOfTokyoUI {
         tile.style.backgroundImage = '';
         tile.style.backgroundSize = '';
         
-        // Re-enable the monster card
+        // Restore the monster card to normal appearance
         const monsterCard = this.elements.monsterGrid.querySelector(`[data-monster-id="${monster.id}"]`);
         if (monsterCard) {
-            monsterCard.classList.remove('disabled');
-            monsterCard.draggable = true;
+            monsterCard.classList.remove('grayed-out');
+            monsterCard.style.opacity = '';
+            monsterCard.style.filter = '';
+            monsterCard.style.pointerEvents = ''; // Re-enable dragging
         }
         
         // Update selected monsters array
@@ -888,19 +890,21 @@ class KingOfTokyoUI {
         tile.classList.remove('drop-target');
         
         // Apply monster color theme to the tile
-        tile.style.background = `linear-gradient(135deg, ${evenLighterColor} 0%, ${lighterColor} 50%, ${monsterColor} 100%)`;
+        tile.style.setProperty('background', `linear-gradient(135deg, ${evenLighterColor} 0%, ${lighterColor} 50%, ${monsterColor} 100%)`, 'important');
         tile.style.borderColor = monsterColor;
-        tile.style.backgroundImage = `
+        tile.style.setProperty('background-image', `
             radial-gradient(circle at 3px 3px, rgba(0,0,0,0.08) 1px, transparent 0),
             linear-gradient(135deg, ${evenLighterColor} 0%, ${lighterColor} 50%, ${monsterColor} 100%)
-        `;
+        `, 'important');
         tile.style.backgroundSize = '15px 15px, 100% 100%';
         
-        // Disable the monster card
+        // Gray out the selected monster card
         const monsterCard = this.elements.monsterGrid.querySelector(`[data-monster-id="${monsterId}"]`);
         if (monsterCard) {
-            monsterCard.classList.add('disabled');
-            monsterCard.draggable = false;
+            monsterCard.classList.add('grayed-out');
+            monsterCard.style.opacity = '0.4';
+            monsterCard.style.filter = 'grayscale(100%)';
+            monsterCard.style.pointerEvents = 'none'; // Disable dragging
         }
         
         // Update selected monsters array
@@ -918,38 +922,67 @@ class KingOfTokyoUI {
             return;
         }
 
-        // Clear any existing selections
+        // Clear any existing selections and reset monster cards
         this.selectedMonsters = [];
         this.playerTiles.forEach(tile => {
             tile.monster = null;
             tile.occupied = false;
         });
+        
+        // Reset all monster cards to normal appearance
+        this.resetMonsterCards();
 
-        // Get all available monsters
+        // Get all available monsters from the displayed monster cards
         const availableMonsters = Object.values(MONSTERS);
         
         // Shuffle the monsters array
         const shuffledMonsters = [...availableMonsters].sort(() => Math.random() - 0.5);
         
+        // Take only the number of monsters needed for the current player count
+        const selectedMonstersForGame = shuffledMonsters.slice(0, this.currentPlayerCount);
+        
         // Assign random monsters to each player tile
-        for (let i = 0; i < this.currentPlayerCount; i++) {
-            if (i < shuffledMonsters.length) {
-                const monster = shuffledMonsters[i];
-                this.playerTiles[i].monster = monster;
-                this.playerTiles[i].occupied = true;
-                this.selectedMonsters.push({
-                    monster: monster,
-                    playerType: this.playerTiles[i].type,
-                    tileIndex: i
-                });
-            }
-        }
+        selectedMonstersForGame.forEach((monster, i) => {
+            this.playerTiles[i].monster = monster;
+            this.playerTiles[i].occupied = true;
+        });
+
+        // Update selected monsters array to match drag-and-drop format
+        this.selectedMonsters = this.playerTiles
+            .filter(tile => tile.occupied)
+            .map(tile => tile.monster);
 
         // Update the visual representation
         this.updatePlayerTileVisuals();
+        this.grayOutSelectedMonsters();
         this.updateStartButton();
         
         console.log('Random selection completed:', this.selectedMonsters);
+    }
+
+    // Reset monster cards to normal appearance
+    resetMonsterCards() {
+        const monsterCards = document.querySelectorAll('.monster-option');
+        monsterCards.forEach(card => {
+            card.classList.remove('selected', 'grayed-out');
+            card.style.opacity = '';
+            card.style.filter = '';
+        });
+    }
+
+    // Gray out selected monster cards
+    grayOutSelectedMonsters() {
+        const selectedMonsterIds = this.selectedMonsters.map(item => item.monster.id);
+        
+        selectedMonsterIds.forEach(monsterId => {
+            const monsterCard = document.querySelector(`[data-monster-id="${monsterId}"]`);
+            if (monsterCard) {
+                monsterCard.classList.add('grayed-out');
+                monsterCard.style.opacity = '0.4';
+                monsterCard.style.filter = 'grayscale(100%)';
+                monsterCard.style.pointerEvents = 'none'; // Disable dragging
+            }
+        });
     }
 
     // Update player tile visuals after assignment
@@ -958,30 +991,46 @@ class KingOfTokyoUI {
             const tileElement = document.querySelector(`[data-tile-index="${index}"]`);
             if (tileElement) {
                 if (tile.occupied && tile.monster) {
+                    const monster = tile.monster;
+                    
+                    // Generate monster-themed colors
+                    const monsterColor = monster.color;
+                    const lighterColor = this.lightenColor(monsterColor, 30);
+                    const evenLighterColor = this.lightenColor(monsterColor, 60);
+                    
+                    // Update tile visual with monster theme (same as drag-and-drop)
+                    tileElement.innerHTML = `
+                        <img src="${monster.image}" alt="${monster.name}" class="monster-image-small" />
+                        <div class="monster-name-small">${monster.name}</div>
+                    `;
                     tileElement.classList.add('occupied');
-                    tileElement.style.background = this.lightenColor(tile.monster.color, 30);
+                    tileElement.classList.remove('drop-target');
                     
-                    // Update the tile content to show the monster
-                    const iconElement = tileElement.querySelector('.player-tile-icon');
-                    const labelElement = tileElement.querySelector('.player-tile-label');
-                    
-                    if (iconElement && labelElement) {
-                        iconElement.textContent = tile.monster.emoji;
-                        labelElement.textContent = tile.monster.name;
-                    }
+                    // Apply monster color theme to the tile
+                    tileElement.style.setProperty('background', `linear-gradient(135deg, ${evenLighterColor} 0%, ${lighterColor} 50%, ${monsterColor} 100%)`, 'important');
+                    tileElement.style.borderColor = monsterColor;
+                    tileElement.style.setProperty('background-image', `
+                        radial-gradient(circle at 3px 3px, rgba(0,0,0,0.08) 1px, transparent 0),
+                        linear-gradient(135deg, ${evenLighterColor} 0%, ${lighterColor} 50%, ${monsterColor} 100%)
+                    `, 'important');
+                    tileElement.style.backgroundSize = '15px 15px, 100% 100%';
                 } else {
                     tileElement.classList.remove('occupied');
                     tileElement.style.background = '';
+                    tileElement.style.borderColor = '';
+                    tileElement.style.backgroundImage = '';
+                    tileElement.style.backgroundSize = '';
                     
                     // Reset to original content
-                    const iconElement = tileElement.querySelector('.player-tile-icon');
-                    const labelElement = tileElement.querySelector('.player-tile-label');
+                    const isHuman = tile.type === 'human';
+                    const iconContent = isHuman ? this.getHumanIcon() : this.getCPUIcon();
+                    const labelContent = isHuman ? 'Human Player' : 'CPU Player';
                     
-                    if (iconElement && labelElement) {
-                        const isHuman = tile.type === 'human';
-                        iconElement.textContent = isHuman ? this.getHumanIcon() : this.getCPUIcon();
-                        labelElement.textContent = isHuman ? 'Human Player' : 'CPU Player';
-                    }
+                    tileElement.innerHTML = `
+                        <div class="player-tile-icon">${iconContent}</div>
+                        <div class="player-tile-label">${labelContent}</div>
+                    `;
+                    tileElement.classList.add('drop-target');
                 }
             }
         });
@@ -989,13 +1038,17 @@ class KingOfTokyoUI {
 
     // Update start button state
     updateStartButton() {
-        const hasPlayerCount = this.currentPlayerCount > 0;
-        const hasMonsters = this.selectedMonsters.length > 0;
-        const monstersRequired = this.currentPlayerCount;
-        const monstersSelected = this.selectedMonsters.length;
+        // Ensure selectedMonsters is in sync with occupied tiles
+        this.selectedMonsters = this.playerTiles
+            .filter(tile => tile.occupied)
+            .map(tile => tile.monster);
         
-        // Check if we have at least one human and one CPU (unless only 1 player total)
+        const hasPlayerCount = this.currentPlayerCount > 0;
+        const monstersRequired = this.currentPlayerCount;
+        
+        // Check occupied tiles (this is the visual truth)
         const occupiedTiles = this.playerTiles.filter(tile => tile.occupied);
+        const monstersSelected = occupiedTiles.length;
         const humanTiles = occupiedTiles.filter(tile => tile.type === 'human');
         const cpuTiles = occupiedTiles.filter(tile => tile.type === 'cpu');
         
@@ -1279,13 +1332,13 @@ class KingOfTokyoUI {
                 <div class="player-info">
                     <div class="player-name-container">
                         <div class="player-name">
-                            ${player.monster.name}
-                            ${player.playerType === 'cpu' ? '<span class="cpu-indicator">CPU</span>' : ''}
+                            ${player.monster.name} <span class="player-subtitle">(${player.displayName || `Player ${player.playerNumber}`})</span>
                         </div>
                         ${player.isInTokyo ? `<div class="tokyo-indicator-inline">In Tokyo ${player.tokyoLocation === 'city' ? 'City' : 'Bay'}</div>` : ''}
                     </div>
                     <div class="monster-avatar" data-monster="${player.monster.id}">
                         <img src="${player.monster.image}" alt="${player.monster.name}" class="monster-avatar-image" />
+                        ${player.playerType === 'cpu' ? '<div class="cpu-indicator-avatar">CPU</div>' : ''}
                     </div>
                 </div>
                 <div class="player-stats">
@@ -1328,13 +1381,13 @@ class KingOfTokyoUI {
                     <div class="player-info">
                         <div class="player-name-container">
                             <div class="player-name">
-                                ${activePlayer.monster.name}
-                                ${activePlayer.playerType === 'cpu' ? '<span class="cpu-indicator">CPU</span>' : ''}
+                                ${activePlayer.monster.name} <span class="player-subtitle">(${activePlayer.displayName || `Player ${activePlayer.playerNumber}`})</span>
                             </div>
                             ${activePlayer.isInTokyo ? `<div class="tokyo-indicator-inline">In Tokyo ${activePlayer.tokyoLocation === 'city' ? 'City' : 'Bay'}</div>` : ''}
                         </div>
                         <div class="monster-avatar" data-monster="${activePlayer.monster.id}">
                             <img src="${activePlayer.monster.image}" alt="${activePlayer.monster.name}" class="monster-avatar-image" />
+                            ${activePlayer.playerType === 'cpu' ? '<div class="cpu-indicator-avatar">CPU</div>' : ''}
                         </div>
                     </div>
                     <div class="player-stats">

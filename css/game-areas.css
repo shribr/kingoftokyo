@@ -288,10 +288,11 @@
 }
 
 .player-dashboard {
-    background: #2c2c2c; /* Darker gray background */
+    background: 
+        linear-gradient(135deg, var(--monster-color-light, #3c3c3c) 0%, var(--monster-color, #2c2c2c) 100%); /* Use monster colors if available */
     padding: 16px; /* Increased padding for better stat visibility */
     border-radius: 0; /* Sharp corners to match monster selection tiles */
-    border: 3px solid #000;
+    border: 3px solid var(--monster-color, #000); /* Use monster color for border */
     transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.2s ease-out 0.1s; /* Added delay to transform for less sensitivity */
     position: relative;
     overflow: visible; /* Allow power card tabs to show */
@@ -740,6 +741,45 @@ body:has(.modal:not(.hidden)) .active-player-container {
 .player-dashboard:hover .player-info .player-name,
 .player-dashboard:hover .player-name-container .player-name {
     font-size: 1.7em !important; /* Increased from 1.5em to match new base size */
+}
+
+/* Player subtitle (player name in parentheses) */
+.player-subtitle {
+    font-size: 0.7em; /* Smaller than monster name */
+    font-weight: 600;
+    opacity: 0.9;
+    color: #f0f0f0; /* Slightly dimmer than monster name */
+    text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000,
+        2px 2px 4px rgba(0, 0, 0, 0.7); /* Lighter shadow than monster name */
+}
+
+/* CPU indicator on monster avatar */
+.cpu-indicator-avatar {
+    position: absolute;
+    bottom: -8px;
+    right: -8px;
+    background: linear-gradient(135deg, #007acc 0%, #0099ff 50%, #33b5ff 100%);
+    color: #ffffff;
+    font-family: 'Bangers', cursive;
+    font-size: 0.6em;
+    font-weight: 700;
+    padding: 2px 4px;
+    border-radius: 8px;
+    border: 2px solid #000000;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    box-shadow: 
+        2px 2px 0px #000000,
+        3px 3px 8px rgba(0, 0, 0, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    z-index: 15;
+    min-width: 20px;
+    text-align: center;
+    line-height: 1;
 }
 
 /* CPU Indicator styling */

@@ -61,6 +61,7 @@ class Player {
     constructor(monster, playerNumber, playerType = 'human') {
         this.id = `player-${playerNumber}`;
         this.playerNumber = playerNumber;
+        this.displayName = `Player ${playerNumber}`; // Display name for UI
         this.monster = monster;
         this.playerType = playerType; // 'human' or 'cpu'
         this.health = 10;
