@@ -934,26 +934,67 @@ class KingOfTokyoGame {
 
     // Offer player in Tokyo the choice to leave
     offerTokyoExit(player, attacker) {
-        // Show CPU thought bubble for Tokyo decision
+        console.log(`🏙️ offerTokyoExit called for ${player.monster.name} (playerType: ${player.playerType})`);
+        
+        // Handle CPU players automatically without showing modal
         if (player.playerType === 'cpu') {
+            console.log(`🤖 CPU ${player.monster.name} automatically deciding Tokyo exit...`);
             let context = 'uncertain';
-            if (player.health <= 3) {
+            let stayInTokyo = false;
+            
+            // CPU decision logic based on health, points, and personality
+            if (player.health <= 2) {
+                // Very low health - usually leave unless close to winning
+                stayInTokyo = player.victoryPoints >= 18;
                 context = 'lowHealth';
-            } else if (player.health <= 5) {
+            } else if (player.health <= 4) {
+                // Low health - risky to stay
+                stayInTokyo = player.victoryPoints >= 16 || (player.monster.profile && player.monster.profile.risk >= 4);
                 context = 'needHearts';
+            } else if (player.victoryPoints >= 18) {
+                // Very close to winning - stay if reasonable health
+                stayInTokyo = true;
+                context = 'closeToWinning';
             } else if (player.victoryPoints >= 15) {
+                // Close to winning - moderate risk taking
+                stayInTokyo = player.health >= 5 || (player.monster.profile && player.monster.profile.risk >= 3);
                 context = 'closeToWinning';
             } else if (player.monster.profile && player.monster.profile.risk >= 4) {
+                // High risk tolerance
+                stayInTokyo = player.health >= 3;
                 context = 'confident';
             } else if (player.monster.profile && player.monster.profile.aggression >= 4) {
+                // Aggressive players tend to stay
+                stayInTokyo = player.health >= 4;
                 context = 'aggressive';
+            } else {
+                // Conservative default
+                stayInTokyo = player.health >= 6;
+                context = 'uncertain';
             }
             
+            // Show CPU thought bubble for Tokyo decision
             this.triggerEvent('showCPUThought', { 
                 player: player, 
                 context: context,
                 situation: 'tokyo-decision'
             });
+            
+            // Show notification about CPU decision
+            const actionText = stayInTokyo ? 'chooses to stay in Tokyo' : 'chooses to leave Tokyo';
+            this.triggerEvent('cpuNotification', {
+                message: `${player.monster.name} is attacked in Tokyo and ${actionText}`,
+                player: player,
+                attacker: attacker,
+                action: stayInTokyo ? 'stay' : 'leave'
+            });
+            
+            // Auto-execute the decision after a brief delay for readability
+            setTimeout(() => {
+                this.handleTokyoExitDecision(player.id, stayInTokyo);
+            }, 1500);
+            
+            return; // Don't create pending decision for CPU
         }
         
         const decision = {
@@ -1064,19 +1105,6 @@ class KingOfTokyoGame {
         }
 
         return Math.max(0, finalDamage);
-    }
-
-    // Offer Tokyo exit decision
-    offerTokyoExit(player, attacker) {
-        // Add to pending decisions
-        this.pendingDecisions.push({
-            type: 'tokyoExit',
-            playerId: player.id,
-            attackerId: attacker.id,
-            message: `${player.monster.name}, do you want to leave Tokyo?`
-        });
-
-        this.triggerEvent('pendingDecision', this.pendingDecisions[this.pendingDecisions.length - 1]);
     }
 
     // Handle Tokyo exit decision
@@ -1602,6 +1630,12 @@ class KingOfTokyoGame {
         let attempts = 0;
         const maxAttempts = this.players.length;
         
+        // Enhanced debugging for turn order issues
+        console.log(`🐛 TURN ORDER DEBUG: Starting switchToNextPlayer()`);
+        console.log(`🐛 Before switch - currentPlayerIndex: ${this.currentPlayerIndex}`);
+        console.log(`🐛 Before switch - current player: ${this.getCurrentPlayer().monster.name}`);
+        console.log(`🐛 Before switch - Tokyo status:`, this.players.map(p => `${p.monster.name}:${p.isInTokyo ? 'Tokyo' : 'Outside'}`));
+        
         do {
             const previousPlayerIndex = this.currentPlayerIndex;
             this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
@@ -1641,6 +1675,13 @@ class KingOfTokyoGame {
             console.log(`🐛 Is current player eliminated: ${this.getCurrentPlayer().isEliminated}`);
             console.log(`🐛 Attempts used: ${attempts}/${maxAttempts}`);
         }
+
+        // Enhanced debugging for ALL games
+        console.log(`🐛 TURN ORDER DEBUG: Final switchToNextPlayer() result`);
+        console.log(`🐛 After switch - currentPlayerIndex: ${this.currentPlayerIndex}`);
+        console.log(`🐛 After switch - current player: ${this.getCurrentPlayer().monster.name}`);
+        console.log(`🐛 After switch - Tokyo status:`, this.players.map(p => `${p.monster.name}:${p.isInTokyo ? 'Tokyo' : 'Outside'}`));
+        console.log(`🐛 After switch - is new current player in Tokyo: ${this.getCurrentPlayer().isInTokyo}`);
 
         // Only start player turn in log if gameplay has begun
         if (this.gameplayStarted) {
@@ -1797,6 +1838,24 @@ class KingOfTokyoGame {
             allLogs: this.detailedLog,
             logTree: this.gameLogTree.getTree()
         });
+        
+        // Trigger CPU action notification if this is a CPU player action
+        if (currentPlayer && currentPlayer.playerType === 'cpu' && isGameplayAction) {
+            // Only show notifications for significant actions (not setup or debug)
+            const notifiableCategories = [
+                'dice-roll', 'energy', 'healing', 'victory-points', 'attack', 'tokyo', 
+                'card-purchase', 'elimination', 'general'
+            ];
+            
+            if (notifiableCategories.includes(category)) {
+                this.triggerEvent('cpuNotification', {
+                    message: message,
+                    player: currentPlayer,
+                    category: category,
+                    action: 'game-action'
+                });
+            }
+        }
         
         // Keep only last 200 detailed entries
         if (this.detailedLog.length > 200) {
@@ -2139,6 +2198,9 @@ class KingOfTokyoGame {
     async saveGameState() {
         if (!this.storageManager) return;
 
+        console.log(`🐛 SAVE DEBUG: Saving game state with currentPlayerIndex: ${this.currentPlayerIndex}`);
+        console.log(`🐛 SAVE DEBUG: Current player: ${this.getCurrentPlayer().monster.name}`);
+
         const gameState = {
             gameId: this.gameId,
             timestamp: new Date().toISOString(),
@@ -2176,11 +2238,15 @@ class KingOfTokyoGame {
         try {
             const gameState = await this.storageManager.loadGameState(gameId);
             if (gameState) {
+                console.log(`🐛 LOAD DEBUG: Loading game state with currentPlayerIndex: ${gameState.currentPlayerIndex}`);
+                
                 // Restore game state
                 this.gameId = gameState.gameId;
                 this.round = gameState.round;
                 this.currentPlayerIndex = gameState.currentPlayerIndex;
                 this.gamePhase = gameState.gamePhase;
+                
+                console.log(`🐛 LOAD DEBUG: After loading - currentPlayerIndex set to: ${this.currentPlayerIndex}`);
                 this.tokyoCity = gameState.tokyoCity;
                 this.tokyoBay = gameState.tokyoBay;
                 this.cardMarket = gameState.cardMarket;

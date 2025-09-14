@@ -188,6 +188,7 @@ class KingOfTokyoUI {
             newGameBtn: document.getElementById('new-game'),
             
             // Toolbar elements
+            exitGameBtn: document.getElementById('exit-game-btn'),
             gameLogBtn: document.getElementById('game-log-btn'),
             storageMgmtBtn: document.getElementById('storage-mgmt-btn'),
             saveGameToolbarBtn: document.getElementById('save-game-toolbar-btn'),
@@ -197,6 +198,10 @@ class KingOfTokyoUI {
             storageMgmtModal: document.getElementById('storage-mgmt-modal'),
             settingsModal: document.getElementById('settings-modal'),
             instructionsModal: document.getElementById('instructions-modal'),
+            exitConfirmationModal: document.getElementById('exit-confirmation-modal'),
+            exitCancelBtn: document.getElementById('exit-cancel-btn'),
+            exitConfirmBtn: document.getElementById('exit-confirm-btn'),
+            closeExitConfirmation: document.getElementById('close-exit-confirmation'),
             gameLogContent: document.getElementById('game-log-content'),
             clearLogBtn: document.getElementById('clear-log-btn'),
             scrollToTopBtn: document.getElementById('scroll-to-top-btn'),
@@ -220,8 +225,14 @@ class KingOfTokyoUI {
             darkModeToggle: document.getElementById('dark-mode-toggle')
         };
         
-        // Debug: Check which elements are null
+        // Debug: Check which elements are null - categorize as critical vs optional
         const nullElements = [];
+        const criticalElements = [
+            'splashScreen', 'gameContainer', 'setupModal', 'playerCount', 
+            'dropdownSelected', 'dropdownOptions', 'startGameBtn', 'diceContainer',
+            'rollDiceBtn', 'keepDiceBtn', 'endTurnBtn', 'playersContainer'
+        ];
+        
         for (const [key, element] of Object.entries(this.elements)) {
             if (!element) {
                 nullElements.push(key);
@@ -229,7 +240,17 @@ class KingOfTokyoUI {
         }
         
         if (nullElements.length > 0) {
-            console.warn('Null elements found:', nullElements);
+            const criticalMissing = nullElements.filter(el => criticalElements.includes(el));
+            const optionalMissing = nullElements.filter(el => !criticalElements.includes(el));
+            
+            if (criticalMissing.length > 0) {
+                console.error('CRITICAL: Missing required elements:', criticalMissing);
+            }
+            if (optionalMissing.length > 0) {
+                console.warn('Optional elements not found:', optionalMissing);
+            }
+        } else {
+            console.log('✅ All DOM elements found successfully');
         }
     }
 
@@ -408,6 +429,10 @@ class KingOfTokyoUI {
         // Card purchase events (will be attached dynamically)
         
         // Toolbar events
+        this.elements.exitGameBtn.addEventListener('click', () => {
+            this.exitToSplashScreen();
+        });
+
         this.elements.gameLogBtn.addEventListener('click', async () => {
             await this.showGameLog();
         });
@@ -467,6 +492,19 @@ class KingOfTokyoUI {
         UIUtilities.safeAddEventListener(this.elements.resetSettingsBtn, 'click', 
             () => this.resetSettings(), 
             'Reset settings button not found');
+
+        // Exit confirmation modal listeners
+        UIUtilities.safeAddEventListener(this.elements.exitCancelBtn, 'click',
+            () => this.hideExitConfirmationModal(),
+            'Exit cancel button not found');
+            
+        UIUtilities.safeAddEventListener(this.elements.exitConfirmBtn, 'click',
+            () => this.confirmExitToSplashScreen(),
+            'Exit confirm button not found');
+            
+        UIUtilities.safeAddEventListener(this.elements.closeExitConfirmation, 'click',
+            () => this.hideExitConfirmationModal(),
+            'Close exit confirmation button not found');
 
         // Game over modal close button using UIUtilities
         UIUtilities.safeAddEventListener(this.elements.closeGameOverBtn, 'click', 
@@ -1321,7 +1359,7 @@ class KingOfTokyoUI {
         const cpuTiles = occupiedTiles.filter(tile => tile.type === 'cpu');
         
         const hasRequiredPlayerTypes = this.currentPlayerCount === 1 || 
-                                      (humanTiles.length >= 1 && cpuTiles.length >= 1);
+                                      humanTiles.length >= 1;
         
         const allTilesAssigned = monstersSelected === monstersRequired;
         const canStart = hasPlayerCount && allTilesAssigned && hasRequiredPlayerTypes;
@@ -1342,7 +1380,7 @@ class KingOfTokyoUI {
         if (!hasPlayerCount) {
             this.elements.startGameBtn.textContent = 'Select Number of Players';
         } else if (!hasRequiredPlayerTypes && this.currentPlayerCount > 1) {
-            this.elements.startGameBtn.textContent = 'Need at least 1 Human and 1 CPU player';
+            this.elements.startGameBtn.textContent = 'Need at least 1 Human player';
         } else if (canStart) {
             this.elements.startGameBtn.textContent = 'Start Game';
         } else {
@@ -1357,12 +1395,6 @@ class KingOfTokyoUI {
         console.log('Selected monsters count:', this.selectedMonsters.length);
         console.log('Current player count:', this.currentPlayerCount);
         
-        if (this.selectedMonsters.length !== this.currentPlayerCount) {
-            console.log('Not enough monsters selected, returning early');
-            alert(`Please select exactly ${this.currentPlayerCount} monsters to start the game. Currently selected: ${this.selectedMonsters.length}`);
-            return;
-        }
-
         console.log('Creating new game...');
         try {
             // Initialize storage system
@@ -1490,6 +1522,9 @@ class KingOfTokyoUI {
             case 'showCPUThought':
                 this.showCPUThoughtBubble(data.player, data.context);
                 break;
+            case 'cpuNotification':
+                this.showCPUActionNotification(data);
+                break;
             case 'turnEnded':
                 this.cleanupAllThoughtBubbles();
                 this.updateGameDisplay();
@@ -1523,14 +1558,43 @@ class KingOfTokyoUI {
                 // Check if new current player is CPU and auto-start their turn
                 const currentPlayer = this.game.getCurrentPlayer();
                 console.log('🎯 Current player from game:', currentPlayer);
-                if (currentPlayer && currentPlayer.playerType === 'cpu') {
+                console.log('🔍 DETAILED PLAYER DEBUG:', {
+                    playerExists: !!currentPlayer,
+                    playerType: currentPlayer?.playerType,
+                    monsterName: currentPlayer?.monster?.name,
+                    playerId: currentPlayer?.id,
+                    playerNumber: currentPlayer?.playerNumber,
+                    isEliminated: currentPlayer?.isEliminated,
+                    fullPlayerObject: currentPlayer
+                });
+                
+                // CRITICAL FIX: Only start CPU turn if player is actually CPU and not eliminated
+                if (currentPlayer && 
+                    currentPlayer.playerType === 'cpu' && 
+                    !currentPlayer.isEliminated && 
+                    !this.cpuTurnState) { // Don't start if CPU turn already in progress
+                    
                     console.log('🤖 Current player is CPU, starting automatic turn in 2 seconds...');
                     setTimeout(() => {
-                        console.log('🤖 Executing startAutomaticCPUTurn for:', currentPlayer.monster.name);
-                        this.startAutomaticCPUTurn(currentPlayer);
+                        // Double-check that it's still the same CPU player's turn
+                        const stillCurrentPlayer = this.game.getCurrentPlayer();
+                        if (stillCurrentPlayer && 
+                            stillCurrentPlayer.id === currentPlayer.id && 
+                            stillCurrentPlayer.playerType === 'cpu' &&
+                            !this.cpuTurnState) {
+                            console.log('🤖 Executing startAutomaticCPUTurn for:', currentPlayer.monster.name);
+                            this.startAutomaticCPUTurn(currentPlayer);
+                        } else {
+                            console.log('🤖 CPU turn cancelled - player changed or CPU turn already active');
+                        }
                     }, 2000);
+                } else if (currentPlayer && currentPlayer.playerType !== 'cpu') {
+                    console.log('👤 Current player is HUMAN, no automatic turn needed');
+                } else if (this.cpuTurnState) {
+                    console.log('🤖 CPU turn already in progress, not starting new one');
                 } else if (currentPlayer) {
                     console.log('👤 Current player is human:', currentPlayer.monster.name);
+                    console.log('👤 Human player should be able to take their turn now');
                 } else {
                     console.log('❌ No current player found');
                 }
@@ -1560,9 +1624,23 @@ class KingOfTokyoUI {
         }, 750); // Update number halfway through the 1.5s animation
     }
 
-    // Update complete game display
+    // Update complete game display with debouncing to prevent flickering
     updateGameDisplay() {
         console.log('updateGameDisplay called, game exists:', !!this.game);
+        
+        // Debouncing: Clear any pending update and schedule a new one
+        if (this.updateGameDisplayTimeout) {
+            clearTimeout(this.updateGameDisplayTimeout);
+        }
+        
+        this.updateGameDisplayTimeout = setTimeout(() => {
+            this._performGameDisplayUpdate();
+            this.updateGameDisplayTimeout = null;
+        }, 16); // ~60fps debouncing
+    }
+    
+    // Internal method that performs the actual update
+    _performGameDisplayUpdate() {
         if (!this.game) {
             console.log('No game instance in updateGameDisplay, returning');
             return;
@@ -1619,17 +1697,97 @@ class KingOfTokyoUI {
         // this.elements.currentEnergy.textContent = gameState.currentPlayer.energy;
     }
 
-    // Update players display - separate active player from stack
+    // Update players display - separate active player from stack with optimized updates
     updatePlayersDisplay(players) {
         const currentPlayer = this.game.getCurrentPlayer();
         
+        // Check if current player has changed to determine if we need to rebuild layout
+        const currentPlayerChanged = this.lastCurrentPlayerId !== currentPlayer.id;
+        this.lastCurrentPlayerId = currentPlayer.id;
+        
+        if (currentPlayerChanged) {
+            // Only rebuild the entire layout when the current player changes
+            this._rebuildPlayerLayout(players, currentPlayer);
+        } else {
+            // Otherwise, just update the stats of existing cards
+            this._updatePlayerStats(players);
+        }
+    }
+    
+    // Rebuild the entire player layout (called only when current player changes)
+    _rebuildPlayerLayout(players, currentPlayer) {
         // Separate active and non-active players
         const nonActivePlayers = players.filter(player => player.id !== currentPlayer.id);
         const activePlayer = players.find(player => player.id === currentPlayer.id);
         
         // Render non-active players in the regular container
-        this.elements.playersContainer.innerHTML = nonActivePlayers.map(player => `
-            <div class="player-dashboard ${player.isEliminated ? 'eliminated' : ''}" 
+        this.elements.playersContainer.innerHTML = nonActivePlayers.map(player => this._generatePlayerHTML(player, false)).join('');
+        
+        // Create or update active player container
+        let activePlayerContainer = document.getElementById('active-player-container');
+        if (!activePlayerContainer) {
+            activePlayerContainer = document.createElement('div');
+            activePlayerContainer.id = 'active-player-container';
+            activePlayerContainer.className = 'active-player-container';
+            document.body.appendChild(activePlayerContainer); // Append directly to body for proper positioning
+        }
+        
+        // Render active player in separate container
+        if (activePlayer) {
+            activePlayerContainer.innerHTML = this._generatePlayerHTML(activePlayer, true);
+        }
+        
+        // Attach event listeners
+        this.attachPowerCardTabListeners();
+    }
+    
+    // Update only the stats of existing player cards (no flickering)
+    _updatePlayerStats(players) {
+        players.forEach(player => {
+            const playerElement = document.querySelector(`[data-player-id="${player.id}"]`);
+            if (playerElement) {
+                // Update individual stat values without rebuilding the entire card
+                const energyStat = playerElement.querySelector('.stat.energy .stat-value');
+                const pointsStat = playerElement.querySelector('.stat.points .stat-value');
+                const cardsStat = playerElement.querySelector('.stat.power-cards .stat-value');
+                const healthLabel = playerElement.querySelector('.health-bar-label');
+                const healthFill = playerElement.querySelector('.health-bar-fill');
+                
+                if (energyStat) energyStat.textContent = player.energy;
+                if (pointsStat) pointsStat.textContent = player.victoryPoints;
+                if (cardsStat) cardsStat.textContent = player.powerCards.length;
+                if (healthLabel) healthLabel.textContent = `Health ${player.health}/${player.maxHealth}`;
+                if (healthFill) {
+                    healthFill.style.width = `${(player.health / player.maxHealth) * 100}%`;
+                    healthFill.className = `health-bar-fill ${this.getHealthBarClass(player.health, player.maxHealth)}`;
+                }
+                
+                // Update elimination status
+                playerElement.classList.toggle('eliminated', player.isEliminated);
+                
+                // Update Tokyo status in name container
+                const nameContainer = playerElement.querySelector('.player-name-container');
+                const existingTokyoIndicator = nameContainer.querySelector('.tokyo-indicator-inline');
+                if (player.isInTokyo) {
+                    if (!existingTokyoIndicator) {
+                        const tokyoIndicator = document.createElement('div');
+                        tokyoIndicator.className = 'tokyo-indicator-inline';
+                        tokyoIndicator.textContent = `In Tokyo ${player.tokyoLocation === 'city' ? 'City' : 'Bay'}`;
+                        nameContainer.appendChild(tokyoIndicator);
+                    } else {
+                        existingTokyoIndicator.textContent = `In Tokyo ${player.tokyoLocation === 'city' ? 'City' : 'Bay'}`;
+                    }
+                } else if (existingTokyoIndicator) {
+                    existingTokyoIndicator.remove();
+                }
+            }
+        });
+    }
+    
+    // Generate HTML for a single player card
+    _generatePlayerHTML(player, isActive) {
+        return `
+            <div class="player-dashboard ${isActive ? 'active' : ''} ${player.isEliminated ? 'eliminated' : ''}" 
                  data-player-id="${player.id}" data-monster="${player.monster.id}">
                 <div class="player-info">
                     <div class="player-name-container">
@@ -1663,78 +1821,7 @@ class KingOfTokyoUI {
                     </div>
                 </div>
             </div>
-        `).join('');
-        
-        // Create or update active player container
-        let activePlayerContainer = document.getElementById('active-player-container');
-        if (!activePlayerContainer) {
-            activePlayerContainer = document.createElement('div');
-            activePlayerContainer.id = 'active-player-container';
-            activePlayerContainer.className = 'active-player-container';
-            document.body.appendChild(activePlayerContainer); // Append directly to body for proper positioning
-        }
-        
-        // Render active player in separate container
-        if (activePlayer) {
-            activePlayerContainer.innerHTML = `
-                <div class="player-dashboard active" 
-                     data-player-id="${activePlayer.id}" data-monster="${activePlayer.monster.id}">
-                    <div class="player-info">
-                        <div class="player-name-container">
-                            <div class="player-name">
-                                ${activePlayer.monster.name}${activePlayer.playerType === 'cpu' ? ' <span class="player-subtitle">(CPU)</span>' : ''}
-                            </div>
-                            ${activePlayer.isInTokyo ? `<div class="tokyo-indicator-inline">In Tokyo ${activePlayer.tokyoLocation === 'city' ? 'City' : 'Bay'}</div>` : ''}
-                        </div>
-                        <div class="monster-avatar" data-monster="${activePlayer.monster.id}">
-                            <img src="${activePlayer.monster.image}" alt="${activePlayer.monster.name}" class="monster-avatar-image" />
-                        </div>
-                    </div>
-                    <div class="player-stats">
-                        <div class="stat power-cards" data-player-id="${activePlayer.id}">
-                            <span class="stat-label">Cards</span>
-                            <span class="stat-value">${activePlayer.powerCards.length}</span>
-                        </div>
-                        <div class="stat energy">
-                            <span class="stat-label">Energy</span>
-                            <span class="stat-value">${activePlayer.energy}</span>
-                        </div>
-                        <div class="stat points">
-                            <span class="stat-label">Points</span>
-                            <span class="stat-value">${activePlayer.victoryPoints}</span>
-                        </div>
-                    </div>
-                    <div class="health-bar-container">
-                        <div class="health-bar-label">Health ${activePlayer.health}/${activePlayer.maxHealth}</div>
-                        <div class="health-bar">
-                            <div class="health-bar-fill ${this.getHealthBarClass(activePlayer.health, activePlayer.maxHealth)}" style="width: ${(activePlayer.health / activePlayer.maxHealth) * 100}%"></div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        // Re-attach event listeners for power card stats (both regular and active player)
-        this.attachPowerCardTabListeners();
-
-        // Set CSS custom properties for monster-specific colors
-        players.forEach(player => {
-            const playerElement = document.querySelector(`[data-player-id="${player.id}"]`);
-            if (playerElement && player.monster.color) {
-                const monsterColor = player.monster.color;
-                const lighterColor = this.lightenColor(monsterColor, 20);
-                const glowColor = this.hexToRgba(monsterColor, 0.4);
-                const strongGlowColor = this.hexToRgba(monsterColor, 0.7);
-                
-                playerElement.style.setProperty('--monster-color', monsterColor);
-                playerElement.style.setProperty('--monster-color-light', lighterColor);
-                playerElement.style.setProperty('--monster-glow-color', glowColor);
-                playerElement.style.setProperty('--monster-glow-strong', strongGlowColor);
-            }
-        });
-
-        // Add click listeners for power card tabs
-        this.attachPowerCardTabListeners();
+        `;
     }
 
     // Attach click listeners to power card stat tiles
@@ -2595,12 +2682,18 @@ class KingOfTokyoUI {
             }, 1500);
         }
 
-        // Continue CPU turn if current player is CPU
+        // Continue CPU turn if current player is CPU AND we have an active CPU turn state
         const currentPlayer = this.game.getCurrentPlayer();
-        if (currentPlayer && currentPlayer.playerType === 'cpu' && this.cpuTurnState) {
+        if (currentPlayer && 
+            currentPlayer.playerType === 'cpu' && 
+            this.cpuTurnState && 
+            this.cpuTurnState.player && 
+            this.cpuTurnState.player.id === currentPlayer.id) {
             setTimeout(() => {
-                this.cpuTurnState.isProcessing = false;
-                this.processCPUTurn();
+                if (this.cpuTurnState) { // Double check state still exists
+                    this.cpuTurnState.isProcessing = false;
+                    this.processCPUTurn();
+                }
             }, 1000);
         }
     }
@@ -2621,12 +2714,18 @@ class KingOfTokyoUI {
                 break;
         }
 
-        // Continue CPU turn on phase changes
+        // Continue CPU turn on phase changes ONLY if it's actually a CPU's turn
         const currentPlayer = this.game.getCurrentPlayer();
-        if (currentPlayer && currentPlayer.playerType === 'cpu' && this.cpuTurnState) {
+        if (currentPlayer && 
+            currentPlayer.playerType === 'cpu' && 
+            this.cpuTurnState && 
+            this.cpuTurnState.player && 
+            this.cpuTurnState.player.id === currentPlayer.id) {
             setTimeout(() => {
-                this.cpuTurnState.isProcessing = false;
-                this.processCPUTurn();
+                if (this.cpuTurnState) { // Double check state still exists
+                    this.cpuTurnState.isProcessing = false;
+                    this.processCPUTurn();
+                }
             }, 500);
         }
     }
@@ -3084,6 +3183,58 @@ class KingOfTokyoUI {
         this.showSetupModal();
     }
 
+    // Exit to splash screen with confirmation
+    exitToSplashScreen() {
+        // Show the custom exit confirmation modal instead of system dialog
+        this.showExitConfirmationModal();
+    }
+
+    // Show exit confirmation modal
+    showExitConfirmationModal() {
+        UIUtilities.showModal(this.elements.exitConfirmationModal);
+    }
+
+    // Hide exit confirmation modal
+    hideExitConfirmationModal() {
+        UIUtilities.hideModal(this.elements.exitConfirmationModal);
+    }
+
+    // Confirm exit to splash screen (called when user clicks "Exit to Menu")
+    confirmExitToSplashScreen() {
+        // Hide the confirmation modal first
+        this.hideExitConfirmationModal();
+
+        // Clean up any existing active player container from current game
+        const existingActivePlayerContainer = document.getElementById('active-player-container');
+        if (existingActivePlayerContainer) {
+            existingActivePlayerContainer.remove();
+        }
+        
+        // Hide any open modals
+        const modals = [
+            this.elements.gameOverModal,
+            this.elements.decisionModal,
+            this.elements.gameLogModal,
+            this.elements.storageMgmtModal,
+            this.elements.settingsModal,
+            this.elements.instructionsModal,
+            this.elements.exitConfirmationModal
+        ];
+        
+        modals.forEach(modal => {
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        });
+        
+        // Clean up game state
+        this.game = null;
+        this.selectedMonsters = [];
+        
+        // Return to splash screen
+        this.showSplashScreen();
+    }
+
     // Show temporary message
     showMessage(message, duration = 3000) {
         console.log(`Game Message: ${message}`);
@@ -3123,6 +3274,56 @@ class KingOfTokyoUI {
             if (this.messageTimeout) {
                 clearTimeout(this.messageTimeout);
                 this.messageTimeout = null;
+            }
+        };
+    }
+
+    // Show CPU action notification (more subtle than regular messages)
+    showCPUActionNotification(data) {
+        console.log(`CPU Action: ${data.message}`);
+        
+        // Clear any existing CPU notification timeout
+        if (this.cpuNotificationTimeout) {
+            clearTimeout(this.cpuNotificationTimeout);
+        }
+        
+        // Get the dice area to show notification above it
+        const diceContainer = this.elements.diceContainer;
+        
+        // Create or update CPU notification
+        let notification = document.getElementById('cpu-action-notification');
+        if (!notification) {
+            notification = document.createElement('div');
+            notification.id = 'cpu-action-notification';
+            notification.className = 'cpu-action-notification';
+            
+            // Insert before the dice container
+            diceContainer.parentNode.insertBefore(notification, diceContainer);
+        }
+        
+        // Set notification content with monster avatar
+        const playerAvatar = data.player.monster ? 
+            `<img src="${data.player.monster.image}" alt="${data.player.monster.name}" class="notification-avatar" />` : 
+            '🤖';
+            
+        notification.innerHTML = `
+            ${playerAvatar}
+            <span class="notification-text">${data.message}</span>
+        `;
+        notification.classList.add('visible');
+        
+        // Auto-dismiss after 3 seconds
+        this.cpuNotificationTimeout = setTimeout(() => {
+            notification.classList.remove('visible');
+            this.cpuNotificationTimeout = null;
+        }, 3000);
+        
+        // Allow clicking to dismiss
+        notification.onclick = () => {
+            notification.classList.remove('visible');
+            if (this.cpuNotificationTimeout) {
+                clearTimeout(this.cpuNotificationTimeout);
+                this.cpuNotificationTimeout = null;
             }
         };
     }
@@ -4257,13 +4458,48 @@ class KingOfTokyoUI {
     // Start automatic CPU turn
     startAutomaticCPUTurn(player) {
         console.log('🤖 startAutomaticCPUTurn called with player:', player);
+        console.log('🔍 CPU TURN START DEBUG:', {
+            playerType: player?.playerType,
+            expectedType: 'cpu',
+            isCorrectType: player?.playerType === 'cpu',
+            monsterName: player?.monster?.name,
+            playerId: player?.id
+        });
         
-        if (player.playerType !== 'cpu') {
-            console.log('❌ Player is not CPU, skipping automatic turn');
+        if (!player || player.playerType !== 'cpu') {
+            console.log('❌ Player is not CPU or invalid, skipping automatic turn');
+            console.log('❌ BLOCKING INVALID CPU CALL:', {
+                playerExists: !!player,
+                playerType: player?.playerType,
+                shouldBeCpu: true
+            });
             return;
         }
         
-        console.log(`🤖 Starting automatic turn for CPU player: ${player.monster.name}`);
+        // Double-check that this is indeed a CPU player
+        const currentGamePlayer = this.game.getCurrentPlayer();
+        if (!currentGamePlayer || currentGamePlayer.id !== player.id || currentGamePlayer.playerType !== 'cpu') {
+            console.log('❌ SAFETY CHECK FAILED: Player mismatch or not CPU');
+            console.log('❌ SAFETY DEBUG:', {
+                passedPlayer: player?.monster?.name,
+                currentPlayer: currentGamePlayer?.monster?.name,
+                passedId: player?.id,
+                currentId: currentGamePlayer?.id,
+                passedType: player?.playerType,
+                currentType: currentGamePlayer?.playerType
+            });
+            return;
+        }
+        
+        // CRITICAL: Check if CPU turn is already in progress
+        if (this.cpuTurnState) {
+            console.log('⚠️ CPU turn already in progress, not starting new one');
+            console.log('⚠️ Existing CPU turn for:', this.cpuTurnState.player?.monster?.name);
+            console.log('⚠️ Requested CPU turn for:', player?.monster?.name);
+            return;
+        }
+        
+        console.log(`🤖 ✅ VERIFIED CPU TURN: Starting automatic turn for CPU player: ${player.monster.name}`);
         
         // Initialize CPU turn state
         this.cpuTurnState = {
@@ -4286,12 +4522,35 @@ class KingOfTokyoUI {
             console.log('🤖 CPU turn processing skipped - already processing or no state');
             return; // Prevent concurrent processing
         }
+        
+        // SAFETY CHECK: Ensure we're still dealing with a CPU player
+        const currentGamePlayer = this.game.getCurrentPlayer();
+        if (!currentGamePlayer || currentGamePlayer.playerType !== 'cpu') {
+            console.log('🚨 SAFETY ABORT: Current player is not CPU during processCPUTurn!');
+            console.log('🚨 SAFETY DEBUG:', {
+                hasCurrentPlayer: !!currentGamePlayer,
+                currentPlayerType: currentGamePlayer?.playerType,
+                currentPlayerName: currentGamePlayer?.monster?.name,
+                cpuStatePlayer: this.cpuTurnState?.player?.monster?.name
+            });
+            this.cpuTurnState = null; // Clear invalid state
+            return;
+        }
 
         this.cpuTurnState.isProcessing = true;
         const player = this.cpuTurnState.player;
         const gameState = this.game.getGameState();
+        const diceState = this.game.diceRoller.getState(); // Get dice state separately
         
-        console.log(`🤖 CPU ${player.monster.name} - Phase: ${this.cpuTurnState.phase}, Game Phase: ${gameState.turnPhase}, Rolls: ${gameState.rollsRemaining}`);
+        console.log(`🤖 CPU ${player.monster.name} - Phase: ${this.cpuTurnState.phase}, Game Phase: ${gameState.turnPhase}, Rolls: ${diceState.rollsRemaining}`);
+        console.log('🔍 DEBUG: Full game state for CPU turn:', {
+            currentPlayerId: gameState.currentPlayer?.id,
+            cpuPlayerId: player.id,
+            turnPhase: gameState.turnPhase,
+            rollsRemaining: diceState.rollsRemaining,
+            gamePhase: gameState.phase,
+            isPlayerTurn: gameState.currentPlayer?.id === player.id
+        });
 
         // Make sure it's still this CPU's turn
         if (gameState.currentPlayer.id !== player.id) {
@@ -4310,23 +4569,46 @@ class KingOfTokyoUI {
         } else {
             // Turn is over or something unexpected happened
             console.log('🤖 CPU turn ended - unexpected phase:', gameState.turnPhase);
-            this.cpuTurnState.isProcessing = false;
-            this.cpuTurnState = null;
+            console.log('🔧 FALLBACK: Attempting to force CPU action if stuck...');
+            
+            // Fallback: If CPU is stuck in starting phase, try to force first roll
+            if (this.cpuTurnState.phase === 'starting' && diceState.rollsRemaining > 0) {
+                console.log('🔧 FALLBACK: Forcing CPU to start rolling...');
+                this.executeCPURoll();
+            } else {
+                // Force end turn if we're in an unknown state
+                console.log('🔧 FALLBACK: Forcing CPU to end turn...');
+                this.executeCPUEndTurn();
+            }
         }
     }
 
     // Handle the rolling phase for CPU
     handleCPURollingPhase() {
+        // Safety check: ensure cpuTurnState still exists (game might have ended)
+        if (!this.cpuTurnState || !this.cpuTurnState.player) {
+            console.log('🎲 CPU rolling phase aborted - no active CPU turn state (game may have ended)');
+            return;
+        }
+        
         const gameState = this.game.getGameState();
+        const diceState = this.game.diceRoller.getState(); // Get dice state separately
         const player = this.cpuTurnState.player;
+        
+        console.log('🎲 CPU ROLLING PHASE - Entry point reached');
+        console.log('🎲 Rolling phase state:', {
+            rollsRemaining: diceState.rollsRemaining,
+            turnPhase: gameState.turnPhase,
+            currentPlayer: gameState.currentPlayer?.monster?.name
+        });
         
         // Show thinking bubble
         this.showCPUThoughtBubble(player, 'analyzing');
         
         // Check if we can still roll
-        if (gameState.rollsRemaining > 0) {
+        if (diceState.rollsRemaining > 0) {
             // Decide whether to roll or keep current dice
-            const shouldRoll = this.shouldCPURoll(gameState, player);
+            const shouldRoll = this.shouldCPURoll(diceState, player);
             
             if (shouldRoll) {
                 this.executeCPURoll();
@@ -4341,12 +4623,64 @@ class KingOfTokyoUI {
 
     // Handle the resolving phase for CPU (dice effects are automatically applied)
     handleCPUResolvingPhase() {
-        // The game automatically handles dice effects, just wait for buying phase
-        this.waitForGamePhaseChange('buying');
+        console.log('🔄 CPU RESOLVING PHASE - Entry point reached');
+        
+        // Safety check: ensure cpuTurnState still exists (game might have ended)
+        if (!this.cpuTurnState || !this.cpuTurnState.player) {
+            console.log('🔄 CPU resolving phase aborted - no active CPU turn state (game may have ended)');
+            return;
+        }
+        
+        // The game automatically handles dice effects, but may need manual transition to buying phase
+        const player = this.cpuTurnState.player;
+        const thinkingTime = this.getCPUThinkingTime(player) * 0.5;
+        
+        setTimeout(() => {
+            // Additional safety check within timeout (game might have ended during delay)
+            if (!this.cpuTurnState || !this.cpuTurnState.player) {
+                console.log('🔄 CPU resolving timeout aborted - no active CPU turn state (game may have ended)');
+                return;
+            }
+            
+            const gameState = this.game.getGameState();
+            console.log('🔄 CPU resolving phase check:', {
+                currentPhase: gameState.turnPhase,
+                diceEffectsResolved: this.game.diceEffectsResolved
+            });
+            
+            if (gameState.turnPhase === 'buying') {
+                // Phase already changed, proceed
+                this.cpuTurnState.isProcessing = false;
+                this.processCPUTurn();
+            } else if (gameState.turnPhase === 'resolving') {
+                // Check if dice effects have been resolved, if so force transition to buying
+                if (this.game.diceEffectsResolved) {
+                    console.log('🔄 CPU forcing transition to buying phase');
+                    // Force transition to buying phase
+                    this.game.currentTurnPhase = 'buying';
+                    this.game.triggerEvent('turnPhaseChanged', { phase: 'buying' });
+                    this.cpuTurnState.isProcessing = false;
+                    this.processCPUTurn();
+                } else {
+                    // Still resolving effects, wait a bit more
+                    this.waitForGamePhaseChange('buying');
+                }
+            } else {
+                // Unexpected phase, try to end turn
+                console.log('🔄 CPU resolving unexpected phase, ending turn');
+                this.executeCPUEndTurn();
+            }
+        }, thinkingTime);
     }
 
     // Handle the buying phase for CPU
     handleCPUBuyingPhase() {
+        // Safety check: ensure cpuTurnState still exists (game might have ended)
+        if (!this.cpuTurnState || !this.cpuTurnState.player) {
+            console.log('🛒 CPU buying phase aborted - no active CPU turn state (game may have ended)');
+            return;
+        }
+        
         const player = this.cpuTurnState.player;
         const gameState = this.game.getGameState();
         
@@ -4370,12 +4704,25 @@ class KingOfTokyoUI {
     }
 
     // Decide whether CPU should roll dice
-    shouldCPURoll(gameState, player) {
-        const dice = gameState.currentDice;
-        const rollsRemaining = gameState.rollsRemaining;
+    shouldCPURoll(diceState, player) {
+        const dice = diceState.dice; // Get dice from dice state
+        const rollsRemaining = diceState.rollsRemaining;
+        
+        console.log('🎲 CPU shouldRoll check:', {
+            rollsRemaining,
+            diceCount: dice ? dice.length : 'undefined',
+            diceValues: dice ? dice.map(d => d.face) : 'no dice'
+        });
         
         // Always roll on first turn
         if (rollsRemaining === 3) {
+            console.log('🎲 CPU: First roll, should roll = true');
+            return true;
+        }
+        
+        // If no dice available, can't analyze - default to roll
+        if (!dice || !Array.isArray(dice)) {
+            console.log('🎲 CPU: No dice data available, defaulting to roll');
             return true;
         }
         
@@ -4417,6 +4764,12 @@ class KingOfTokyoUI {
 
     // Analyze dice value for CPU decision making
     analyzeDiceForCPU(dice, player) {
+        // Safety check for undefined dice
+        if (!dice || !Array.isArray(dice)) {
+            console.warn('🎲 CPU analyzeDice: Invalid dice data:', dice);
+            return { score: 0, hearts: 0, energy: 0, attacks: 0, victoryPoints: 0 };
+        }
+        
         let score = 0;
         const faces = dice.map(die => die.face);
         
@@ -4444,6 +4797,12 @@ class KingOfTokyoUI {
 
     // Choose which dice to keep when rolling
     chooseDiceToKeep(dice, player) {
+        // Safety check for undefined dice
+        if (!dice || !Array.isArray(dice)) {
+            console.warn('🎲 CPU chooseDiceToKeep: Invalid dice data:', dice);
+            return [];
+        }
+        
         const analysis = this.analyzeDiceForCPU(dice, player);
         const toKeep = [];
         
@@ -4485,22 +4844,62 @@ class KingOfTokyoUI {
 
     // Execute CPU dice roll
     executeCPURoll() {
+        // Safety check: ensure cpuTurnState still exists (game might have ended)
+        if (!this.cpuTurnState || !this.cpuTurnState.player) {
+            console.log('🎲 CPU roll aborted - no active CPU turn state (game may have ended)');
+            return;
+        }
+        
         const thinkingTime = this.getCPUThinkingTime(this.cpuTurnState.player);
+        const player = this.cpuTurnState.player;
+        const diceState = this.game.diceRoller.getState();
+        
+        // Show notification about CPU action
+        const rollNumber = 4 - diceState.rollsRemaining; // Roll 1, 2, or 3
+        const actionMessage = rollNumber === 1 ? 
+            `${player.monster.name} starts rolling dice` :
+            `${player.monster.name} rerolls dice (roll ${rollNumber})`;
+            
+        this.showCPUActionNotification({
+            message: actionMessage,
+            player: player,
+            action: 'dice-roll'
+        });
         
         setTimeout(() => {
+            // Additional safety check within timeout (game might have ended during delay)
+            if (!this.cpuTurnState || !this.cpuTurnState.player) {
+                console.log('🎲 CPU roll timeout aborted - no active CPU turn state (game may have ended)');
+                return;
+            }
+            
             const rollDiceBtn = document.getElementById('roll-dice');
-            if (rollDiceBtn && !rollDiceBtn.disabled) {
+            console.log('🤖 CPU trying to roll dice - button found:', !!rollDiceBtn);
+            console.log('🤖 Button disabled state:', rollDiceBtn?.disabled);
+            console.log('🤖 Game state:', this.game?.getGameState?.()?.turnPhase);
+            console.log('🤖 Current player:', this.game?.getCurrentPlayer?.()?.monster?.name);
+            
+            if (rollDiceBtn) {
+                if (rollDiceBtn.disabled) {
+                    console.log('🤖 Button is disabled, forcing enable for CPU');
+                    rollDiceBtn.disabled = false;
+                }
+                
                 console.log('🎲 CPU automatically rolling dice...');
                 rollDiceBtn.click();
-                this.cpuTurnState.rollsCompleted++;
+                if (this.cpuTurnState) { // Safety check before incrementing
+                    this.cpuTurnState.rollsCompleted++;
+                }
                 
                 // Continue processing after roll completes
                 setTimeout(() => {
-                    this.cpuTurnState.isProcessing = false;
+                    if (this.cpuTurnState) { // Safety check before setting processing state
+                        this.cpuTurnState.isProcessing = false;
+                    }
                     this.processCPUTurn();
                 }, 1000);
             } else {
-                console.log('Roll dice button not available');
+                console.log('❌ Roll dice button not available');
                 this.cpuTurnState.isProcessing = false;
             }
         }, thinkingTime);
@@ -4508,19 +4907,75 @@ class KingOfTokyoUI {
 
     // Execute CPU keep dice action
     executeCPUKeepDice() {
+        // Safety check: ensure cpuTurnState still exists (game might have ended)
+        if (!this.cpuTurnState || !this.cpuTurnState.player) {
+            console.log('🎲 CPU keep dice aborted - no active CPU turn state (game may have ended)');
+            return;
+        }
+        
         const thinkingTime = this.getCPUThinkingTime(this.cpuTurnState.player);
         
         setTimeout(() => {
+            // Safety check again within timeout
+            if (!this.cpuTurnState || !this.cpuTurnState.player) {
+                console.log('CPU turn aborted: game ended or state invalid');
+                return;
+            }
+            
             const keepDiceBtn = document.getElementById('keep-dice');
-            if (keepDiceBtn && !keepDiceBtn.disabled) {
-                console.log('🎯 CPU choosing to keep current dice...');
-                keepDiceBtn.click();
+            console.log('🤖 CPU trying to keep dice - button found:', !!keepDiceBtn);
+            console.log('🤖 Keep button disabled state:', keepDiceBtn?.disabled);
+            
+            if (keepDiceBtn) {
+                // FIRST: Select which dice to keep based on intelligent analysis
+                const gameState = this.game.getGameState();
+                const diceData = this.game.diceCollection.getAllDiceData();
+                console.log('🎲 CPU analyzing dice for selection:', diceData.map(d => ({ id: d.id, face: d.face, selected: d.selected })));
                 
-                // Continue processing after keep action
+                // Use the chooseDiceToKeep logic to determine which dice to select
+                const dicesToKeep = this.chooseDiceToKeep(diceData, this.cpuTurnState.player);
+                console.log('🎯 CPU wants to keep dice indices:', dicesToKeep);
+                
+                // First, clear all selections
+                diceData.forEach((die, index) => {
+                    if (die.selected) {
+                        const dieElement = document.querySelector(`[data-dice-id="${die.id}"]`);
+                        if (dieElement && dieElement.classList.contains('selected')) {
+                            dieElement.click(); // Deselect
+                        }
+                    }
+                });
+                
+                // Then select the dice we want to keep
+                dicesToKeep.forEach(diceIndex => {
+                    const die = diceData[diceIndex];
+                    if (die) {
+                        const dieElement = document.querySelector(`[data-dice-id="${die.id}"]`);
+                        if (dieElement && !dieElement.classList.contains('selected')) {
+                            console.log(`🎯 CPU selecting die ${die.id} (${die.face})`);
+                            dieElement.click(); // Select this die
+                        }
+                    }
+                });
+                
+                // Small delay to let the UI update, then click keep dice
                 setTimeout(() => {
-                    this.cpuTurnState.isProcessing = false;
-                    this.processCPUTurn();
-                }, 500);
+                    if (keepDiceBtn.disabled) {
+                        console.log('🤖 Keep button is disabled, forcing enable for CPU');
+                        keepDiceBtn.disabled = false;
+                    }
+                    
+                    console.log('🎯 CPU clicking keep dice button after selections...');
+                    keepDiceBtn.click();
+                    
+                    // Continue processing after keep action
+                    setTimeout(() => {
+                        if (this.cpuTurnState) {
+                            this.cpuTurnState.isProcessing = false;
+                        }
+                        this.processCPUTurn();
+                    }, 500);
+                }, 300);
             } else {
                 console.log('Keep dice button not available');
                 this.cpuTurnState.isProcessing = false;
@@ -4575,9 +5030,29 @@ class KingOfTokyoUI {
 
     // Execute CPU card purchase
     executeCPUCardPurchase(card) {
+        // Safety check: ensure cpuTurnState still exists (game might have ended)
+        if (!this.cpuTurnState || !this.cpuTurnState.player) {
+            console.log('🛒 CPU card purchase aborted - no active CPU turn state (game may have ended)');
+            return;
+        }
+        
         const thinkingTime = this.getCPUThinkingTime(this.cpuTurnState.player);
+        const player = this.cpuTurnState.player;
+        
+        // Show notification about CPU card purchase
+        this.showCPUActionNotification({
+            message: `${player.monster.name} buys ${card.name}`,
+            player: player,
+            action: 'card-purchase'
+        });
         
         setTimeout(() => {
+            // Safety check: Game may have ended while we were waiting
+            if (!this.cpuTurnState || !this.cpuTurnState.player) {
+                console.log('CPU turn aborted: game ended or state invalid');
+                return;
+            }
+            
             // Find and click the card
             const cardElement = document.querySelector(`[data-card-id="${card.id}"]`);
             if (cardElement) {
@@ -4586,6 +5061,11 @@ class KingOfTokyoUI {
                 
                 // After purchase, decide whether to buy more or end turn
                 setTimeout(() => {
+                    // Safety check again for the nested timeout
+                    if (!this.cpuTurnState || !this.cpuTurnState.player) {
+                        console.log('CPU turn aborted: game ended or state invalid');
+                        return;
+                    }
                     this.cpuTurnState.isProcessing = false;
                     this.processCPUTurn();
                 }, 1000);
@@ -4598,30 +5078,87 @@ class KingOfTokyoUI {
 
     // Execute CPU end turn
     executeCPUEndTurn() {
-        const thinkingTime = this.getCPUThinkingTime(this.cpuTurnState.player) * 0.5; // Shorter for ending
+        // Safety check: ensure cpuTurnState still exists (game might have ended)
+        if (!this.cpuTurnState || !this.cpuTurnState.player) {
+            console.log('🏁 CPU end turn aborted - no active CPU turn state (game may have ended)');
+            return;
+        }
+        
+        const player = this.cpuTurnState.player;
+        const thinkingTime = this.getCPUThinkingTime(player) * 0.5; // Shorter for ending
+        
+        console.log(`🏁 CPU ${player.monster.name} attempting to end turn...`);
+        
+        // Show notification about CPU ending turn
+        this.showCPUActionNotification({
+            message: `${player.monster.name} ends turn`,
+            player: player,
+            action: 'end-turn'
+        });
         
         setTimeout(() => {
             const endTurnBtn = document.getElementById('end-turn');
-            if (endTurnBtn && !endTurnBtn.disabled) {
-                console.log('✅ CPU ending turn...');
-                endTurnBtn.click();
+            console.log('🏁 End turn button state:', {
+                exists: !!endTurnBtn,
+                disabled: endTurnBtn ? endTurnBtn.disabled : 'N/A',
+                visible: endTurnBtn ? endTurnBtn.style.display !== 'none' : 'N/A'
+            });
+            
+            if (endTurnBtn) {
+                if (!endTurnBtn.disabled) {
+                    console.log('✅ CPU ending turn by clicking button...');
+                    endTurnBtn.click();
+                } else {
+                    console.log('🔧 End turn button disabled, force enabling and clicking...');
+                    endTurnBtn.disabled = false;
+                    endTurnBtn.click();
+                }
                 
                 // Clean up CPU state
+                console.log('🧹 Cleaning up CPU turn state...');
                 this.cpuTurnState = null;
             } else {
-                console.log('End turn button not available');
-                this.cpuTurnState.isProcessing = false;
+                console.log('❌ End turn button not found, trying game.endTurn() directly...');
+                if (this.game && this.game.endTurn) {
+                    this.game.endTurn();
+                    this.cpuTurnState = null;
+                } else {
+                    console.log('❌ Cannot end turn, marking CPU as not processing');
+                    this.cpuTurnState.isProcessing = false;
+                }
             }
         }, thinkingTime);
     }
 
     // Wait for game phase to change
     waitForGamePhaseChange(expectedPhase) {
+        let attempts = 0;
+        const maxAttempts = 25; // 5 seconds maximum wait (25 * 200ms)
+        
         const checkPhase = () => {
+            attempts++;
             const gameState = this.game.getGameState();
+            
+            console.log(`🕐 CPU waiting for phase '${expectedPhase}', currently '${gameState.turnPhase}' (attempt ${attempts}/${maxAttempts})`);
+            
             if (gameState.turnPhase === expectedPhase) {
+                console.log(`✅ CPU phase change completed: ${expectedPhase}`);
                 this.cpuTurnState.isProcessing = false;
                 this.processCPUTurn();
+            } else if (attempts >= maxAttempts) {
+                console.log(`⏰ CPU timeout waiting for phase '${expectedPhase}', forcing action`);
+                
+                // Special handling for waiting for 'buying' phase while stuck in 'resolving'
+                if (expectedPhase === 'buying' && gameState.turnPhase === 'resolving' && this.game.diceEffectsResolved) {
+                    console.log('🔧 FORCING transition from resolving to buying phase');
+                    this.game.currentTurnPhase = 'buying';
+                    this.game.triggerEvent('turnPhaseChanged', { phase: 'buying' });
+                    this.cpuTurnState.isProcessing = false;
+                    this.processCPUTurn();
+                } else {
+                    // Otherwise, force end turn
+                    this.executeCPUEndTurn();
+                }
             } else {
                 // Check again in a short time
                 setTimeout(checkPhase, 200);

@@ -2628,6 +2628,20 @@ body:has(#decision-modal:not(.hidden)) .active-player-container {
     transform: scale(1.1);
 }
 
+/* Exit button styling - subtle red tint to indicate it's an exit */
+#exit-game-btn {
+    background: linear-gradient(135deg, #E6C2A6 0%, #D2B48C 100%);
+}
+
+#exit-game-btn:hover {
+    background: linear-gradient(135deg, #F5DEB3 0%, #F0E68C 100%);
+    border-color: #8B4513;
+}
+
+#exit-game-btn .toolbar-icon svg {
+    color: #654321;
+}
+
 /* Game Log Modal */
 .game-log-content {
     max-width: 1200px; /* Increased from 700px so event content doesn't wrap */
@@ -5105,6 +5119,108 @@ body.dark-mode .quick-ref-item {
     .setup-header {
         flex-direction: column;
         gap: 15px;
+    }
+}
+
+/* Exit Confirmation Modal */
+.exit-confirmation-content {
+    max-width: 500px;
+    width: 90%;
+}
+
+.exit-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 25px;
+    padding: 20px;
+    background: rgba(255, 193, 7, 0.1);
+    border: 2px solid #ffc107;
+    border-radius: 0;
+}
+
+.warning-icon {
+    font-size: 2em;
+    flex-shrink: 0;
+}
+
+.warning-message p {
+    margin: 0 0 10px 0;
+}
+
+.warning-message p:last-child {
+    margin-bottom: 0;
+}
+
+.exit-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.exit-button {
+    background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+    color: #000;
+    border: 3px solid #000;
+    padding: 12px 24px;
+    font-family: 'Kalam', cursive;
+    font-weight: bold;
+    font-size: 1em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 0;
+    min-width: 120px;
+}
+
+.exit-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.exit-button.exit-cancel {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+    color: white;
+}
+
+.exit-button.exit-cancel:hover {
+    background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+}
+
+.exit-button.exit-confirm {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+}
+
+.exit-button.exit-confirm:hover {
+    background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+}
+
+/* Exit confirmation modal header - override default modal-header */
+.exit-confirmation-content .modal-header h2 {
+    font-family: 'Bangers', cursive;
+    font-size: 2.2em;
+    font-weight: 900;
+    color: #ffffff; /* White text */
+    text-shadow: 
+        -2px -2px 0 #000,
+        2px -2px 0 #000,
+        -2px 2px 0 #000,
+        2px 2px 0 #000,
+        3px 3px 6px rgba(0, 0, 0, 0.8);
+    letter-spacing: 1px;
+    margin: 0;
+    filter: none; /* Remove any inherited filters */
+}
+
+@media (max-width: 768px) {
+    .exit-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .exit-button {
+        width: 100%;
+        max-width: 200px;
     }
 }
 

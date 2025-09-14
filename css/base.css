@@ -95,6 +95,65 @@ button {
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
 }
 
+/* CPU Action Notification (Above dice area) */
+.cpu-action-notification {
+    position: absolute;
+    top: -50px; /* Position above dice container */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 999;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid #333;
+    border-radius: 20px;
+    font-family: 'Bangers', cursive;
+    font-size: 16px;
+    color: #333;
+    text-align: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.4s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 400px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    
+    /* Comic book style */
+    background-image: 
+        radial-gradient(circle at 2px 2px, rgba(0,0,0,0.08) 1px, transparent 0);
+    background-size: 6px 6px;
+}
+
+.cpu-action-notification.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-5px);
+}
+
+.cpu-action-notification:hover {
+    background: rgba(255, 255, 255, 0.98);
+    transform: translateX(-50%) translateY(-8px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.cpu-action-notification .notification-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1px solid #333;
+    flex-shrink: 0;
+}
+
+.cpu-action-notification .notification-text {
+    flex: 1;
+    min-width: 0;
+}
+
 /* Dark Mode Support */
 body.dark-mode {
     background: #1a1a1a;

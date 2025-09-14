@@ -233,6 +233,13 @@
 
     <!-- Game Toolbar -->
     <div id="game-toolbar" class="game-toolbar">
+        <button id="exit-game-btn" class="toolbar-btn" title="Exit to Main Menu">
+            <span class="toolbar-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19,3H5C3.89,3 3,3.89 3,5V9H5V5H19V19H5V15H3V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M10.08,15.58L11.5,17L16.5,12L11.5,7L10.08,8.41L12.67,11H3V13H12.67L10.08,15.58Z"/>
+                </svg>
+            </span>
+        </button>
         <button id="instructions-btn" class="toolbar-btn" title="Instructions">
             <span class="toolbar-icon">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -574,6 +581,29 @@
         </div>
     </div>
 
+    <!-- Exit Confirmation Modal -->
+    <div id="exit-confirmation-modal" class="modal hidden">
+        <div class="modal-content exit-confirmation-content">
+            <div class="modal-header">
+                <h2>🚪 Exit to Splash Screen</h2>
+                <button class="close-btn" id="close-exit-confirmation">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="exit-warning">
+                    <div class="warning-icon">⚠️</div>
+                    <div class="warning-message">
+                        <p><strong>Are you sure you want to exit the current game?</strong></p>
+                        <p>Your current progress will be automatically saved, but you'll return to the main menu.</p>
+                    </div>
+                </div>
+                <div class="exit-actions">
+                    <button class="exit-button exit-cancel" id="exit-cancel-btn">Cancel</button>
+                    <button class="exit-button exit-confirm" id="exit-confirm-btn">Exit to Menu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Settings Modal -->
     <div id="settings-modal" class="settings-modal hidden">
         <div class="settings-content">
@@ -607,6 +637,13 @@
                         <label>
                             <input type="checkbox" id="thought-bubbles-toggle" checked>
                             💭 Show CPU thought bubbles
+                        </label>
+                    </div>
+                    
+                    <div class="settings-option">
+                        <label>
+                            <input type="checkbox" id="dark-mode-toggle">
+                            🌙 Dark Mode
                         </label>
                     </div>
                 </div>
