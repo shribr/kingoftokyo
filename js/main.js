@@ -635,8 +635,12 @@ class KingOfTokyoUI {
         this.closeDropdown();
         
         // Reset the dropdown text to default
-        if (this.elements.dropdownSelected && this.elements.dropdownSelected.querySelector('.dropdown-text')) {
-            this.elements.dropdownSelected.querySelector('.dropdown-text').textContent = '4 Players';
+        if (this.elements.dropdownSelected) {
+            const arrow = this.elements.dropdownSelected.querySelector('.dropdown-arrow');
+            this.elements.dropdownSelected.textContent = '4 Players';
+            if (arrow) {
+                this.elements.dropdownSelected.appendChild(arrow);
+            }
         }
         
         // Ensure currentPlayerCount is set
@@ -660,7 +664,16 @@ class KingOfTokyoUI {
 
     selectPlayerCount(value, text) {
         this.currentPlayerCount = value;
-        this.elements.dropdownSelected.querySelector('.dropdown-text').textContent = text;
+        // Update the dropdown text - the text is directly in dropdown-selected, not in a child element
+        const dropdownSelected = this.elements.dropdownSelected;
+        if (dropdownSelected) {
+            // Keep the arrow but update the text
+            const arrow = dropdownSelected.querySelector('.dropdown-arrow');
+            dropdownSelected.textContent = text;
+            if (arrow) {
+                dropdownSelected.appendChild(arrow);
+            }
+        }
         this.closeDropdown();
         
         console.log('🎯 Player count selected:', value, 'Updating monster selection...');
@@ -760,6 +773,20 @@ class KingOfTokyoUI {
         }).join('');
         
         this.elements.playerTilesGrid.innerHTML = playerTilesHTML;
+        
+        // Update layout classes based on player count
+        const playerTilesSection = this.elements.playerTilesGrid.closest('.player-tiles-section');
+        if (this.currentPlayerCount >= 5) {
+            this.elements.playerTilesGrid.classList.add('five-six-players');
+            if (playerTilesSection) {
+                playerTilesSection.classList.add('five-six-players');
+            }
+        } else {
+            this.elements.playerTilesGrid.classList.remove('five-six-players');
+            if (playerTilesSection) {
+                playerTilesSection.classList.remove('five-six-players');
+            }
+        }
         
         // Set up drag and drop event listeners
         this.setupDragAndDrop();

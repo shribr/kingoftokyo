@@ -241,7 +241,8 @@
         1px 1px 0 #FFF;
 }
 
-.custom-dropdown.open .dropdown-arrow {
+.custom-dropdown.open .dropdown-arrow,
+.player-count-dropdown.open .dropdown-arrow {
     transform: rotate(180deg);
 }
 
@@ -268,7 +269,8 @@
     background-size: 12px 12px, 100% 100%;
 }
 
-.custom-dropdown.open .dropdown-options {
+.custom-dropdown.open .dropdown-options,
+.player-count-dropdown.open .dropdown-options {
     display: block;
 }
 
@@ -356,6 +358,35 @@
     width: 100%;
     height: 400px; /* Reduced from 480px to make room for button */
     padding: 15px; /* Increased padding from 10px to 15px */
+}
+
+/* Reset text styling - simple text with emoji, no button appearance */
+.reset-text {
+    margin-top: 20px;
+    text-align: center;
+    font-family: 'Bangers', cursive;
+    font-size: 1.2em;
+    color: #666;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    letter-spacing: 1px;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.reset-text:hover {
+    color: #ff6b35;
+}
+
+/* Layout adjustments for different player counts */
+.player-tiles-grid.five-six-players {
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: repeat(2, 1fr);
+    gap: 20px 25px;
+}
+
+.player-tiles-section.five-six-players .reset-text {
+    margin-top: 25px;
 }
 
 /* Random button styling when positioned after tiles */
