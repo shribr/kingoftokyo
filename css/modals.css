@@ -5,17 +5,23 @@
     position: fixed;
     top: 0;
     left: 0;
+    right: 0;
+    bottom: 0;
     width: 100%;
     height: 100%;
     background: 
         radial-gradient(circle at center, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.9) 100%);
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    padding: 2vh;
-    z-index: 99998; /* High z-index for modal backdrop, just below decision modal content at 99999 */
+    padding: 0;
+    z-index: 99998; /* Below splash screen */
     -webkit-backdrop-filter: blur(5px);
     backdrop-filter: blur(5px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    min-width: 100vw;
+    min-height: 100vh;
 }
 
 .modal.hidden {
@@ -26,16 +32,17 @@
     background: 
         /* Comic book paper texture */
         linear-gradient(135deg, #FFFEF7 0%, #FFF8DC 30%, #F5F5DC 70%, #FFFACD 100%);
-    padding: 25px;
+    padding: clamp(15px, 4vw, 25px);
     border-radius: 0;
-    max-width: 1400px; /* Increased width to accommodate new layout */
-    width: 98%;
-    max-height: 99vh;
+    max-width: 1400px;
+    width: 95%; /* Slightly reduced to prevent horizontal scroll */
+    margin: 10px auto; /* Add margin for spacing */
+    max-height: calc(100vh - 20px); /* Account for margin */
     overflow-y: auto;
     overflow-x: hidden;
     box-shadow: 
-        12px 12px 0px #000,
-        16px 16px 40px rgba(0, 0, 0, 0.8);
+        8px 8px 0px #000,
+        12px 12px 30px rgba(0, 0, 0, 0.8);
     border: 6px solid #000;
     position: relative;
     color: #000;

@@ -60,13 +60,39 @@
     animation: splashEntrance 1.5s ease-out;
 }
 
-.splash-main-content {
-    flex: 1;
+.splash-center-content {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 500px;
+    max-width: 90%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-width: 600px;
+}
+
+.splash-logo {
+    max-width: 60%;
+    width: auto;
+    height: auto;
+    margin-bottom: 4vh;
+}
+
+.splash-subtitle {
+    font-family: 'Comic Neue', cursive;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    color: #FFE81F;
+    text-shadow: 
+        2px 2px 0 #000,
+        -2px 2px 0 #000,
+        2px -2px 0 #000,
+        -2px -2px 0 #000;
+    margin-top: 1vh;
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 1px;
 }
 
 /* Polaroid container positioning - allow full screen access */
@@ -78,6 +104,14 @@
     width: 100%;
     pointer-events: none;
     z-index: 1;
+}
+
+.polaroids-left {
+    left: 0;
+}
+
+.polaroids-right {
+    right: 0;
 }
 
 .polaroids-left {
