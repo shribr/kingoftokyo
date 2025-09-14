@@ -663,15 +663,15 @@ class KingOfTokyoUI {
                 currentX = Math.max(0, Math.min(currentX, maxX));
                 currentY = Math.max(0, Math.min(currentY, maxY));
 
-                element.style.transform = `translate(${currentX}px, ${currentY}px)`;
-                
-                // Ensure element uses absolute positioning when dragged
-                if (!element.style.position || element.style.position === 'static') {
-                    element.style.position = 'fixed';
-                }
+                // Override CSS positioning with !important
+                element.style.setProperty('position', 'fixed', 'important');
+                element.style.setProperty('left', `${currentX}px`, 'important');
+                element.style.setProperty('top', `${currentY}px`, 'important');
+                element.style.setProperty('bottom', 'auto', 'important');
+                element.style.setProperty('transform', 'none', 'important');
                 
                 // Debug logging
-                console.log(`Dragging ${element.id}: transform = "${element.style.transform}"`);
+                console.log(`Dragging ${element.id}: left=${currentX}px, top=${currentY}px`);
             }
 
             function dragEnd(e) {
@@ -699,11 +699,25 @@ class KingOfTokyoUI {
                         const position = JSON.parse(savedPosition);
                         currentX = position.x;
                         currentY = position.y;
-                        xOffset = currentX;
-                        yOffset = currentY;
-                        element.style.transform = `translate(${currentX}px, ${currentY}px)`;
-                        element.style.position = 'fixed';
-                        console.log(`Restored position for ${elementId}: ${currentX}, ${currentY}, transform = "${element.style.transform}"`);
+                        
+                        // Only apply saved position if it's valid (not at 0,0 or negative)
+                        if (currentX > 10 && currentY > 10) {
+                            xOffset = currentX;
+                            yOffset = currentY;
+                            
+                            // Override CSS positioning with !important
+                            element.style.setProperty('position', 'fixed', 'important');
+                            element.style.setProperty('left', `${currentX}px`, 'important');
+                            element.style.setProperty('top', `${currentY}px`, 'important');
+                            element.style.setProperty('bottom', 'auto', 'important');
+                            element.style.setProperty('transform', 'none', 'important');
+                            
+                            console.log(`Restored position for ${elementId}: left=${currentX}px, top=${currentY}px`);
+                        } else {
+                            // Clear invalid saved position
+                            localStorage.removeItem(`${elementId}-position`);
+                            console.log(`Cleared invalid position for ${elementId}: ${currentX}, ${currentY}`);
+                        }
                     } catch (e) {
                         console.warn('Failed to restore position for', elementId);
                     }
@@ -719,9 +733,12 @@ class KingOfTokyoUI {
         const draggableElements = document.querySelectorAll('.draggable');
         
         draggableElements.forEach(element => {
-            // Clear the transform style to return to CSS default position
-            element.style.transform = '';
-            element.style.position = '';
+            // Remove all custom positioning properties to return to CSS default
+            element.style.removeProperty('position');
+            element.style.removeProperty('left');
+            element.style.removeProperty('top');
+            element.style.removeProperty('bottom');
+            element.style.removeProperty('transform');
             
             // Remove saved position from localStorage
             const elementId = element.id;
