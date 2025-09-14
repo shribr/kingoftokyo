@@ -276,6 +276,130 @@
     background-size: 12px 12px, 100% 100%;
 }
 
+.players-area h3,
+.players-area .panel-header {
+    margin-bottom: 12px;
+    color: #FFD700;
+    font-family: 'Bangers', cursive;
+    font-weight: 900;
+    font-size: 1.54em; /* Increased by 10% from 1.4em */
+    text-align: center;
+    text-shadow: 
+        -2px -2px 0 #000,
+        2px -2px 0 #000,
+        -2px 2px 0 #000,
+        2px 2px 0 #000,
+        4px 4px 8px rgba(0, 0, 0, 0.8);
+    letter-spacing: 1px;
+    transform: perspective(300px) rotateX(-5deg);
+}
+
+/* Collapsible Panel Styles */
+.collapsible-panel {
+    transition: all 0.3s ease-in-out;
+    position: relative;
+}
+
+.panel-header {
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-user-select: none;
+    user-select: none;
+    transition: all 0.3s ease-in-out;
+}
+
+.panel-header .header-text {
+    transition: transform 0.3s ease-in-out;
+}
+
+.panel-header .toggle-arrow {
+    font-size: 1.2em;
+    font-weight: bold;
+    transition: all 0.3s ease-in-out;
+    color: #FFD700;
+    text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+    opacity: 0;
+    margin: 0 8px;
+}
+
+/* Show arrows only on hover */
+.panel-header:hover .toggle-arrow {
+    opacity: 1;
+}
+
+/* Position arrows correctly for each panel */
+.players-area .toggle-arrow {
+    margin-left: 8px;
+    margin-right: 0;
+}
+
+.cards-area .toggle-arrow {
+    margin-right: 8px;
+    margin-left: 0;
+}
+
+.panel-content {
+    transition: all 0.3s ease-in-out;
+    overflow: hidden;
+}
+
+/* Collapsed state for Monsters panel (left side) */
+.collapsible-panel.collapsed.monsters-collapsed {
+    width: 60px;
+    padding: 15px 10px;
+}
+
+.collapsible-panel.collapsed.monsters-collapsed .header-text {
+    transform: rotate(-90deg) translateX(-30px);
+    white-space: nowrap;
+    margin-top: 20px;
+}
+
+.collapsible-panel.collapsed.monsters-collapsed .toggle-arrow {
+    opacity: 1;
+    margin: 0;
+}
+
+.collapsible-panel.collapsed.monsters-collapsed .panel-content {
+    width: 0;
+    height: 0;
+    opacity: 0;
+    margin: 0;
+    padding: 0;
+}
+
+/* Collapsed state for Power Cards panel (right side) */
+.collapsible-panel.collapsed.cards-collapsed {
+    width: 60px;
+    padding: 15px 10px;
+}
+
+.collapsible-panel.collapsed.cards-collapsed .header-text {
+    transform: rotate(90deg) translateX(30px);
+    white-space: nowrap;
+    margin-top: 20px;
+}
+
+.collapsible-panel.collapsed.cards-collapsed .toggle-arrow {
+    opacity: 1;
+    margin: 0;
+}
+
+.collapsible-panel.collapsed.cards-collapsed .panel-content {
+    width: 0;
+    height: 0;
+    opacity: 0;
+    margin: 0;
+    padding: 0;
+}
+
 /* Players container with optimized spacing for 6 players - active player separate */
 #players-container {
     display: flex;

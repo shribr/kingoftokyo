@@ -98,6 +98,7 @@ class KingOfTokyoUI {
         this.initializeDarkMode();
         this.initializeMonsterProfiles();
         this.initializeSettings();
+        this.initializeResponsivePanels();
         this.showSetupModal();
         
         // End turn button functionality now handled in dice controls
@@ -528,6 +529,22 @@ class KingOfTokyoUI {
                 this.showSplashScreen();
             }
         });
+
+        // Panel toggle event listeners
+        const monstersHeader = document.getElementById('monsters-header');
+        const powerCardsHeader = document.getElementById('power-cards-header');
+
+        if (monstersHeader) {
+            monstersHeader.addEventListener('click', () => {
+                this.togglePanel('monsters');
+            });
+        }
+
+        if (powerCardsHeader) {
+            powerCardsHeader.addEventListener('click', () => {
+                this.togglePanel('power-cards');
+            });
+        }
     }
 
     // Show setup modal
@@ -4619,6 +4636,115 @@ class KingOfTokyoUI {
         // Add randomness
         const randomTime = Math.random() * 1000 * speedMultiplier;
         return Math.max(500, baseTime + randomTime);
+    }
+
+    // Initialize responsive panel behavior
+    initializeResponsivePanels() {
+        // Create toggle overlays for very narrow screens
+        this.createPanelToggleOverlays();
+        
+        // Listen for window resize to handle responsive behavior
+        window.addEventListener('resize', () => {
+            this.handleResponsivePanels();
+        });
+        
+        // Initial check
+        this.handleResponsivePanels();
+    }
+    
+    createPanelToggleOverlays() {
+        // Create left toggle overlay for monsters
+        const leftOverlay = document.createElement('div');
+        leftOverlay.className = 'panel-toggle-overlay left';
+        leftOverlay.id = 'monsters-toggle-overlay';
+        leftOverlay.textContent = 'Monsters';
+        leftOverlay.addEventListener('click', () => this.togglePanelOverlay('monsters'));
+        document.body.appendChild(leftOverlay);
+        
+        // Create right toggle overlay for power cards
+        const rightOverlay = document.createElement('div');
+        rightOverlay.className = 'panel-toggle-overlay right';
+        rightOverlay.id = 'power-cards-toggle-overlay';
+        rightOverlay.textContent = 'Cards';
+        rightOverlay.addEventListener('click', () => this.togglePanelOverlay('power-cards'));
+        document.body.appendChild(rightOverlay);
+    }
+    
+    handleResponsivePanels() {
+        const isVeryNarrow = window.innerWidth <= 480;
+        const leftOverlay = document.getElementById('monsters-toggle-overlay');
+        const rightOverlay = document.getElementById('power-cards-toggle-overlay');
+        
+        if (isVeryNarrow) {
+            // Show overlays on very narrow screens
+            if (leftOverlay) leftOverlay.style.display = 'block';
+            if (rightOverlay) rightOverlay.style.display = 'block';
+        } else {
+            // Hide overlays on wider screens
+            if (leftOverlay) leftOverlay.style.display = 'none';
+            if (rightOverlay) rightOverlay.style.display = 'none';
+            
+            // Remove force-show class if present
+            const monstersPanel = document.getElementById('monsters-panel');
+            const cardsPanel = document.getElementById('power-cards-panel');
+            if (monstersPanel) monstersPanel.classList.remove('force-show');
+            if (cardsPanel) cardsPanel.classList.remove('force-show');
+        }
+    }
+    
+    togglePanelOverlay(panelType) {
+        const panelId = panelType === 'monsters' ? 'monsters-panel' : 'power-cards-panel';
+        const panel = document.getElementById(panelId);
+        
+        if (!panel) return;
+        
+        const isForceShown = panel.classList.contains('force-show');
+        
+        if (isForceShown) {
+            // Hide the panel
+            panel.classList.remove('force-show');
+        } else {
+            // Show the panel
+            panel.classList.add('force-show');
+            
+            // Hide the other panel if it's shown
+            const otherPanelId = panelType === 'monsters' ? 'power-cards-panel' : 'monsters-panel';
+            const otherPanel = document.getElementById(otherPanelId);
+            if (otherPanel) otherPanel.classList.remove('force-show');
+        }
+    }
+
+    // Panel toggle functionality
+    togglePanel(panelType) {
+        const panelId = panelType === 'monsters' ? 'monsters-panel' : 'power-cards-panel';
+        const panel = document.getElementById(panelId);
+        
+        if (!panel) return;
+
+        const isCollapsed = panel.classList.contains('collapsed');
+        const collapsedClass = panelType === 'monsters' ? 'monsters-collapsed' : 'cards-collapsed';
+        
+        if (isCollapsed) {
+            // Expand the panel
+            panel.classList.remove('collapsed');
+            panel.classList.remove(collapsedClass);
+        } else {
+            // Collapse the panel
+            panel.classList.add('collapsed');
+            panel.classList.add(collapsedClass);
+        }
+
+        // Update arrow direction based on panel type and state
+        const arrow = panel.querySelector('.toggle-arrow');
+        if (arrow) {
+            if (panelType === 'monsters') {
+                // Right panel: > when expanded (collapse right), < when collapsed (expand left)
+                arrow.textContent = isCollapsed ? '<' : '>';
+            } else {
+                // Left panel: < when expanded (collapse left), > when collapsed (expand right)  
+                arrow.textContent = isCollapsed ? '>' : '<';
+            }
+        }
     }
 }
 

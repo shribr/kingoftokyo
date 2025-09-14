@@ -419,6 +419,47 @@ body, .btn, .card-text {
         overflow-y: auto;
     }
     
+    /* Disable all modal transforms on mobile for better usability */
+    .modal-content,
+    .modal-content::before,
+    .modal-content::after,
+    #setup-modal .modal-content,
+    #game-over-modal .modal-content,
+    #decision-modal .modal-content,
+    #game-log-modal .modal-content,
+    #storage-mgmt-modal .modal-content,
+    #settings-modal .modal-content,
+    #instructions-modal .modal-content,
+    #monster-profiles-modal .modal-content,
+    .card-purchase-modal,
+    .target-selection-modal,
+    .decision-modal,
+    .game-log-content,
+    .storage-mgmt-content,
+    .monster-profiles-content,
+    .instructions-modal .modal-content {
+        transform: none !important;
+        perspective: none !important;
+    }
+    
+    /* Disable transform-based hover effects on mobile */
+    .modal-content:hover,
+    .modal-content:hover::before,
+    .modal-content:hover::after {
+        transform: none !important;
+    }
+    
+    /* Disable button transforms inside modals on mobile */
+    .modal-content .btn,
+    .modal-content .btn:hover,
+    .modal-content .btn:active,
+    .modal-content button,
+    .modal-content button:hover,
+    .modal-content button:active {
+        transform: none !important;
+        perspective: none !important;
+    }
+    
     /* Monster Selection Dialog Responsive Styles */
     #monster-profiles-modal .modal-content {
         width: 100%;
@@ -699,5 +740,119 @@ body, .btn, .card-text {
     .die {
         min-width: 48px;
         min-height: 48px;
+    }
+}
+
+/* Collapsible Panels - Auto-collapse on smaller screens */
+@media (max-width: 1024px) {
+    /* Enable collapsible panel behavior on smaller screens */
+    .collapsible-panel {
+        max-width: 300px;
+    }
+    
+    /* Show toggle arrows on smaller screens */
+    .toggle-arrow {
+        opacity: 0.8 !important;
+    }
+    
+    .panel-header:hover .toggle-arrow {
+        opacity: 1 !important;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Auto-collapse panels on mobile */
+    .collapsible-panel {
+        width: 60px;
+        padding: 10px 5px;
+    }
+    
+    .collapsible-panel.collapsed .header-text {
+        font-size: 1.2em;
+    }
+    
+    .collapsible-panel.collapsed.monsters-collapsed .header-text {
+        transform: rotate(-90deg) translateX(-40px);
+        margin-top: 25px;
+    }
+    
+    .collapsible-panel.collapsed.cards-collapsed .header-text {
+        transform: rotate(90deg) translateX(40px);
+        margin-top: 25px;
+    }
+    
+    /* Hide content by default on mobile */
+    .panel-content {
+        width: 0;
+        height: 0;
+        opacity: 0;
+        overflow: hidden;
+    }
+    
+    /* Show content when expanded */
+    .collapsible-panel:not(.collapsed) .panel-content {
+        width: auto;
+        height: auto;
+        opacity: 1;
+        overflow: visible;
+    }
+    
+    /* Make arrows visible on mobile */
+    .toggle-arrow {
+        opacity: 1 !important;
+    }
+}
+
+/* Auto-hide panels on very narrow screens */
+@media (max-width: 480px) {
+    .collapsible-panel {
+        display: none;
+    }
+    
+    /* Show a small toggle button to bring panels back */
+    .panel-toggle-overlay {
+        position: fixed;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: #FFD700;
+        padding: 10px 5px;
+        border-radius: 5px;
+        cursor: pointer;
+        z-index: 1000;
+        font-size: 12px;
+        writing-mode: vertical-rl;
+        text-orientation: mixed;
+    }
+    
+    .panel-toggle-overlay.left {
+        left: 5px;
+    }
+    
+    .panel-toggle-overlay.right {
+        right: 5px;
+    }
+    
+    .panel-toggle-overlay.visible {
+        display: block;
+    }
+    
+    .collapsible-panel.force-show {
+        display: block !important;
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        z-index: 1001;
+        background: rgba(0, 0, 0, 0.95);
+        overflow-y: auto;
+        width: 90vw;
+    }
+    
+    .collapsible-panel.force-show.monsters-panel {
+        left: 0;
+    }
+    
+    .collapsible-panel.force-show.cards-area {
+        right: 0;
     }
 }

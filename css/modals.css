@@ -5004,6 +5004,50 @@ body.dark-mode .quick-ref-item {
     background: linear-gradient(135deg, #FF8C42 0%, #FFB347 50%, #FFE135 100%);
 }
 
+/* Responsive layout for medium screens (less than 1065px) */
+@media (max-width: 1064px) {
+    /* Stack monster cards above player tiles */
+    .selection-container {
+        flex-direction: column;
+        gap: 30px;
+        align-items: center;
+    }
+    
+    .monster-cards-section {
+        width: 100%;
+        max-width: 700px;
+    }
+    
+    .player-tiles-section {
+        width: 100%;
+        max-width: 500px;
+    }
+    
+    /* Move buttons under the dropdown */
+    .setup-header {
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
+    }
+    
+    /* Container for dropdown and buttons below it */
+    .setup-header .player-count-dropdown {
+        order: 1;
+        margin-bottom: 15px;
+    }
+    
+    /* Group the buttons together under the dropdown */
+    .setup-header .btn {
+        order: 2;
+        margin-top: 0;
+    }
+    
+    /* Hide spacers on medium screens since we're stacking */
+    .setup-header .spacer {
+        display: none;
+    }
+}
+
 /* Responsive adjustments for Monster Profiles */
 @media (max-width: 768px) {
     .monster-profiles-grid {

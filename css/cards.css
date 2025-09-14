@@ -19,7 +19,8 @@
     background-size: 15px 15px, 100% 100%;
 }
 
-.cards-area h3 {
+.cards-area h3,
+.cards-area .panel-header {
     margin-bottom: 12px;
     color: #FFD700;
     font-family: 'Bangers', cursive;
