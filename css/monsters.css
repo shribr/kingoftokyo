@@ -390,6 +390,9 @@
     font-size: 18px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     font-family: 'Bangers', cursive;
+    white-space: nowrap; /* Prevent text wrapping */
+    width: auto; /* Allow width to expand with content */
+    min-width: auto; /* Remove any min-width constraints */
     text-shadow: 
         -1px -1px 0 #fff,
         1px -1px 0 #fff,
@@ -551,6 +554,9 @@
     border: 2px solid #000;
     font-weight: bold;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    white-space: nowrap; /* Prevent text wrapping */
+    width: auto; /* Allow width to expand with content */
+    min-width: auto; /* Remove any min-width constraints */
 }
 
 .power-card-display .card-name {

@@ -1988,7 +1988,7 @@ body:has(#decision-modal:not(.hidden)) .active-player-container {
 
 .power-card-cost {
     font-family: 'Bangers', cursive;
-    font-size: 1em; /* Reduced size */
+    font-size: 1em;
     color: #ff6600;
     font-weight: bold;
     margin-bottom: 6px;
@@ -1997,6 +1997,8 @@ body:has(#decision-modal:not(.hidden)) .active-player-container {
         1px -1px 0 #fff,
         -1px 1px 0 #fff,
         1px 1px 0 #fff;
+    white-space: nowrap; /* Prevent text wrapping */
+    width: auto; /* Allow width to expand with content */
 }
 
 .power-card-effect {
@@ -2563,6 +2565,7 @@ body:has(#decision-modal:not(.hidden)) .active-player-container {
     margin: 0;
     color: #000;
     text-shadow: none !important; /* Force override the general modal-content h2 text-shadow */
+    filter: none; /* Remove the drop-shadow filter inherited from .modal-content h2 */
 }
 
 /* Monster Profiles Modal header - more specific override */
@@ -2575,6 +2578,7 @@ body:has(#decision-modal:not(.hidden)) .active-player-container {
     text-align: center;
     letter-spacing: 4px; /* Add spacing between emojis and text */
     word-spacing: 8px; /* Add extra spacing between words/emojis */
+    filter: none; /* Remove the drop-shadow filter inherited from .modal-content h2 */
 }
 
 /* Monster Profiles Modal - remove filter from h2 while keeping all other properties */
@@ -2610,14 +2614,10 @@ body:has(#decision-modal:not(.hidden)) .active-player-container {
     font-size: 3.9em; /* 3x larger (was 1.3em, now 3.9em) */
     font-weight: 900;
     font-family: 'Bangers', cursive;
-    color: #ffffff;
-    text-shadow: 
-        -2px -2px 0 #000,
-        2px -2px 0 #000,
-        -2px 2px 0 #000,
-        2px 2px 0 #000,
-        3px 3px 6px rgba(0, 0, 0, 0.8);
+    color: #000000; /* Changed from white to black */
+    text-shadow: none; /* Removed black drop shadow since text is now black */
     letter-spacing: 1px;
+    filter: none; /* Remove the drop-shadow filter inherited from .modal-content h2 */
 }
 
 /* Storage Management title - match player name style */
@@ -3357,20 +3357,25 @@ END OLD STORAGE STYLES */
 .storage-mgmt-content {
     max-width: 700px; /* Increased from 500px - wider now that About section is removed */
     width: 90%; /* Increased width */
-    max-height: 95vh; /* Taller */
-    height: 80vh; /* Reduced height since About section is removed */
+    min-height: 95vh; /* Use almost full viewport height */
+    height: auto; /* Let content determine height, but stretch to fill available space */
+    max-height: 95vh; /* Prevent overflow beyond viewport */
     background: linear-gradient(135deg, #6F4E37 0%, #8B4513 100%); /* Darker coffee color */
     border: 4px solid #000;
     border-radius: 0;
     box-shadow: 8px 8px 0px #000;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    margin: 2.5vh 0; /* Small margin top and bottom to account for max-height of 95vh */
 }
 
 .storage-mgmt-container {
     padding: 20px;
-    max-height: 70vh; /* Reduced since About section is removed */
-    height: 65vh; /* Reduced height for two sections instead of three */
+    flex: 1; /* Stretch to fill available space in the modal */
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
 }
 
 .storage-info-section,
@@ -3381,6 +3386,8 @@ END OLD STORAGE STYLES */
     border-radius: 0;
     background: linear-gradient(135deg, #5D4037 0%, #6F4E37 100%); /* Darker coffee sections */
     box-shadow: 4px 4px 0px #000;
+    flex: 1; /* Allow sections to expand and share available space */
+    min-height: 0; /* Allow sections to shrink if needed */
 }
 
 .storage-info-section h3,

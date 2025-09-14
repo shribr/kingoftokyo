@@ -128,79 +128,79 @@
                 </div>
             </div>
         </main>
+    </div>
 
-        <!-- Game Setup Modal -->
-        <div id="setup-modal" class="modal">
-            <div class="modal-content">
-                <h2>Monster Selection</h2>
-                <div class="setup-form">
-                <div class="setup-header">
-                    <div class="spacer"></div>
-                    <button id="monster-profiles-btn" class="btn secondary setup-side-btn" title="View and customize monster personalities">
-                        Monster Profiles
-                    </button>
-                    
-                    <div class="player-count-dropdown" id="player-count-dropdown">
-                        <div class="dropdown-selected" id="dropdown-selected">
-                            4 Players
-                            <span class="dropdown-arrow">▼</span>
-                        </div>
-                        <div class="dropdown-options" id="dropdown-options">
-                            <div class="dropdown-option" data-value="2">2 Players</div>
-                            <div class="dropdown-option" data-value="3">3 Players</div>
-                            <div class="dropdown-option" data-value="4">4 Players</div>
-                            <div class="dropdown-option" data-value="5">5 Players</div>
-                            <div class="dropdown-option" data-value="6">6 Players</div>
-                        </div>
-                    </div>
-                    
-                    <button id="random-selection-btn" class="btn secondary setup-side-btn" title="Auto-assign random monsters">
-                        Random Monster Selection
-                    </button>
-                    <div class="spacer"></div>
-                </div>                    <div id="monster-selection">
-                        <div class="selection-container">
-                            <div class="monster-cards-section">
-                                <div class="monster-grid" id="monster-grid"></div>
-                            </div>
-                            <div class="player-tiles-section">
-                                <div class="player-tiles-grid" id="player-tiles-grid">
-                                    <!-- Player tiles will be dynamically generated -->
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <button id="start-game" class="btn primary">Start Game</button>
-                </div>
+    <!-- Game Over Modal -->
+    <div id="game-over-modal" class="modal hidden">
+        <div class="modal-content">
+            <button class="close-btn" id="close-game-over">×</button>
+            <h2>Game Over!</h2>
+            <div id="winner-announcement"></div>
+            <button id="new-game" class="btn primary">New Game</button>
+        </div>
+    </div>
+
+    <!-- Decision Modal -->
+    <div id="decision-modal" class="modal hidden">
+        <div class="modal-content decision-modal">
+            <div class="decision-header">
+                <h2 id="decision-title">Decision Required</h2>
+                <div id="decision-context" class="decision-context"></div>
+            </div>
+            <div class="decision-body">
+                <p id="decision-message">You need to make a decision!</p>
+                <div class="decision-monster" id="decision-monster"></div>
+            </div>
+            <div class="decision-actions">
+                <button id="decision-option-1" class="btn decision-btn primary">Option 1</button>
+                <button id="decision-option-2" class="btn decision-btn secondary">Option 2</button>
             </div>
         </div>
+    </div>
 
-        <!-- Game Over Modal -->
-        <div id="game-over-modal" class="modal hidden">
-            <div class="modal-content">
-                <button class="close-btn" id="close-game-over">×</button>
-                <h2>Game Over!</h2>
-                <div id="winner-announcement"></div>
-                <button id="new-game" class="btn primary">New Game</button>
+    <!-- Game Setup Modal -->
+    <div id="setup-modal" class="modal">
+        <div class="modal-content">
+            <h2>Monster Selection</h2>
+            <div class="setup-form">
+            <div class="setup-header">
+                <div class="spacer"></div>
+                <button id="monster-profiles-btn" class="btn secondary setup-side-btn" title="View and customize monster personalities">
+                    Monster Profiles
+                </button>
+                
+                <div class="player-count-dropdown" id="player-count-dropdown">
+                    <div class="dropdown-selected" id="dropdown-selected">
+                        4 Players
+                        <span class="dropdown-arrow">▼</span>
+                    </div>
+                    <div class="dropdown-options" id="dropdown-options">
+                        <div class="dropdown-option" data-value="2">2 Players</div>
+                        <div class="dropdown-option" data-value="3">3 Players</div>
+                        <div class="dropdown-option" data-value="4">4 Players</div>
+                        <div class="dropdown-option" data-value="5">5 Players</div>
+                        <div class="dropdown-option" data-value="6">6 Players</div>
+                    </div>
+                </div>
+                
+                <button id="random-selection-btn" class="btn secondary setup-side-btn" title="Auto-assign random monsters">
+                    Random Monster Selection
+                </button>
+                <div class="spacer"></div>
+            </div>                    <div id="monster-selection">
+                <div class="selection-container">
+                    <div class="monster-cards-section">
+                        <div class="monster-grid" id="monster-grid"></div>
+                    </div>
+                    <div class="player-tiles-section">
+                        <div class="player-tiles-grid" id="player-tiles-grid">
+                            <!-- Player tiles will be dynamically generated -->
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-
-        <!-- Decision Modal -->
-        <div id="decision-modal" class="modal hidden">
-            <div class="modal-content decision-modal">
-                <div class="decision-header">
-                    <h2 id="decision-title">Decision Required</h2>
-                    <div id="decision-context" class="decision-context"></div>
-                </div>
-                <div class="decision-body">
-                    <p id="decision-message">You need to make a decision!</p>
-                    <div class="decision-monster" id="decision-monster"></div>
-                </div>
-                <div class="decision-actions">
-                    <button id="decision-option-1" class="btn decision-btn primary">Option 1</button>
-                    <button id="decision-option-2" class="btn decision-btn secondary">Option 2</button>
-                </div>
+            
+            <button id="start-game" class="btn primary">Start Game</button>
             </div>
         </div>
     </div>

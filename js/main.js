@@ -2441,10 +2441,16 @@ class KingOfTokyoUI {
             // Calculate the actual cost including discounts
             let actualCost = this.game.calculateCardCost(currentPlayer.id, card.id);
             
+            // Create cost display with styled "was" text
+            let costDisplay = `⚡${actualCost}`;
+            if (actualCost < card.cost) {
+                costDisplay += `<span class="was-price">(was ${card.cost})</span>`;
+            }
+            
             return `
                 <div class="power-card ${currentPlayer.energy >= actualCost ? 'affordable' : ''}" 
                      data-card-id="${card.id}" data-effect="${card.effect}">
-                    <div class="card-cost">⚡${actualCost}${actualCost < card.cost ? ` (was ${card.cost})` : ''}</div>
+                    <div class="card-cost">${costDisplay}</div>
                     <div class="card-name">${card.name}</div>
                     <div class="card-description">${card.description}</div>
                 </div>
@@ -2472,9 +2478,21 @@ class KingOfTokyoUI {
         
         if (!card) return;
 
+        // Calculate actual cost for available cards, use original cost for owned cards
+        let actualCost = card.cost;
+        let costDisplay = `⚡${card.cost}`;
+        
+        if (!cardsList && currentPlayer) { // Only calculate discounts for available cards
+            actualCost = this.game.calculateCardCost(currentPlayer.id, card.id);
+            costDisplay = `⚡${actualCost}`;
+            if (actualCost < card.cost) {
+                costDisplay += `<span class="was-price">(was ${card.cost})</span>`;
+            }
+        }
+
         // Check if purchase is allowed based on game state (local game)
         const diceResolved = gameState.turnPhase === 'resolving';
-        const hasEnergy = currentPlayer && currentPlayer.energy >= card.cost;
+        const hasEnergy = currentPlayer && currentPlayer.energy >= actualCost;
         const canPurchase = allowPurchase && diceResolved && hasEnergy;
         
         const showPurchaseButton = allowPurchase && !cardsList; // Only show for available cards, not player cards
@@ -2485,7 +2503,7 @@ class KingOfTokyoUI {
         modalOverlay.innerHTML = `
             <div class="card-purchase-modal">
                 <div class="purchase-card-display power-card" data-effect="${card.effect}">
-                    <div class="card-cost">⚡${card.cost}</div>
+                    <div class="card-cost">${costDisplay}</div>
                     <div class="card-name">${card.name}</div>
                     <div class="card-description">${card.description || card.effect}</div>
                 </div>
