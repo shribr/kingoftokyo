@@ -196,6 +196,7 @@
                         <div class="player-tiles-grid" id="player-tiles-grid">
                             <!-- Player tiles will be dynamically generated -->
                         </div>
+                        <button id="reset-monsters" class="btn secondary reset-btn">🔄 Reset Monsters</button>
                     </div>
                 </div>
             </div>
@@ -259,8 +260,11 @@
                 <button class="close-btn" id="close-game-log">×</button>
             </div>
             <div class="game-log-container">
-                <div id="game-log-content" class="game-log-entries">
-                    <!-- Log entries will be populated here -->
+                <div class="game-log-entries">
+                    <h3>📝 Game Events</h3>
+                    <div id="game-log-content">
+                        <!-- Log entries will be populated here -->
+                    </div>
                 </div>
             </div>
             <div class="game-log-actions">
@@ -553,31 +557,37 @@
                 <button class="close-settings" id="close-settings">×</button>
             </div>
             <div class="settings-body">
-                <div class="settings-option">
-                    <label>🤖 CPU Decision Speed</label>
-                    <p>Adjust how long CPU players take to make decisions:</p>
-                    <div class="radio-group">
-                        <label class="radio-option">
-                            <input type="radio" name="cpu-speed" value="fast" id="speed-fast">
-                            <span>⚡ Fast (1-2s)</span>
-                        </label>
-                        <label class="radio-option">
-                            <input type="radio" name="cpu-speed" value="medium" id="speed-medium" checked>
-                            <span>🧠 Medium (2-4s)</span>
-                        </label>
-                        <label class="radio-option">
-                            <input type="radio" name="cpu-speed" value="slow" id="speed-slow">
-                            <span>🐌 Slow (3-6s)</span>
+                <div class="settings-section">
+                    <h3>🤖 CPU Settings</h3>
+                    <div class="settings-option">
+                        <label>CPU Decision Speed</label>
+                        <p>Adjust how long CPU players take to make decisions:</p>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="cpu-speed" value="fast" id="speed-fast">
+                                <span>⚡ Fast (1-2s)</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="cpu-speed" value="medium" id="speed-medium" checked>
+                                <span>🧠 Medium (2-4s)</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="cpu-speed" value="slow" id="speed-slow">
+                                <span>🐌 Slow (3-6s)</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-option">
+                        <label>
+                            <input type="checkbox" id="thought-bubbles-toggle" checked>
+                            💭 Show CPU thought bubbles
                         </label>
                     </div>
                 </div>
-                
-                <div class="settings-option">
-                    <label>
-                        <input type="checkbox" id="thought-bubbles-toggle" checked>
-                        💭 Show CPU thought bubbles
-                    </label>
-                </div>
+            </div>
+        </div>
+    </div>
                 
                 <div class="settings-actions">
                     <button class="settings-button" id="save-settings">Save Settings</button>

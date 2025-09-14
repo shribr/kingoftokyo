@@ -152,6 +152,7 @@ class KingOfTokyoUI {
             dropdownOptions: document.getElementById('dropdown-options'),
             monsterGrid: document.getElementById('monster-grid'),
             playerTilesGrid: document.getElementById('player-tiles-grid'),
+            resetMonstersBtn: document.getElementById('reset-monsters'),
             randomSelectionBtn: document.getElementById('random-selection-btn'),
             monsterProfilesBtn: document.getElementById('monster-profiles-btn'),
             startGameBtn: document.getElementById('start-game'),
@@ -300,6 +301,11 @@ class KingOfTokyoUI {
         // Random selection button event
         this.elements.randomSelectionBtn.addEventListener('click', () => {
             this.randomizeMonsterSelection();
+        });
+
+        // Reset monsters button event
+        this.elements.resetMonstersBtn.addEventListener('click', () => {
+            this.resetMonsterSelection();
         });
 
         // Monster profiles button event
@@ -770,6 +776,11 @@ class KingOfTokyoUI {
         monsterOptions.forEach(option => {
             option.addEventListener('dragstart', (e) => this.handleDragStart(e));
             option.addEventListener('dragend', (e) => this.handleDragEnd(e));
+            
+            // Add touch events for mobile support
+            option.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: false });
+            option.addEventListener('touchmove', (e) => this.handleTouchMove(e), { passive: false });
+            option.addEventListener('touchend', (e) => this.handleTouchEnd(e), { passive: false });
         });
         
         // Add drop events to player tiles
@@ -883,6 +894,98 @@ class KingOfTokyoUI {
     handleDragEnd(e) {
         e.target.closest('.monster-option').classList.remove('dragging');
         this.draggedMonster = null;
+        
+        // Remove drop-target class from all tiles
+        this.elements.playerTilesGrid.querySelectorAll('.player-tile').forEach(tile => {
+            tile.classList.remove('drop-target');
+        });
+    }
+
+    // Touch event handlers for mobile drag-and-drop
+    handleTouchStart(e) {
+        e.preventDefault();
+        const monsterId = e.target.closest('.monster-option').dataset.monsterId;
+        this.draggedMonster = MONSTERS[monsterId];
+        this.touchStartElement = e.target.closest('.monster-option');
+        this.touchStartElement.classList.add('dragging');
+        
+        // Store initial touch position
+        this.touchStartX = e.touches[0].clientX;
+        this.touchStartY = e.touches[0].clientY;
+        
+        console.log('Touch drag started for monster:', this.draggedMonster.name);
+    }
+    
+    handleTouchMove(e) {
+        e.preventDefault();
+        if (!this.draggedMonster) return;
+        
+        const touch = e.touches[0];
+        const elementUnderTouch = document.elementFromPoint(touch.clientX, touch.clientY);
+        const tile = elementUnderTouch?.closest('.player-tile');
+        
+        // Remove drop-target from all tiles first
+        this.elements.playerTilesGrid.querySelectorAll('.player-tile').forEach(t => {
+            t.classList.remove('drop-target');
+        });
+        
+        // Add drop-target to valid tiles
+        if (tile && !tile.classList.contains('occupied')) {
+            tile.classList.add('drop-target');
+        }
+    }
+    
+    handleTouchEnd(e) {
+        e.preventDefault();
+        if (!this.draggedMonster) return;
+        
+        const touch = e.changedTouches[0];
+        const elementUnderTouch = document.elementFromPoint(touch.clientX, touch.clientY);
+        const tile = elementUnderTouch?.closest('.player-tile');
+        
+        if (tile && !tile.classList.contains('occupied')) {
+            // Simulate a drop event
+            const tileIndex = parseInt(tile.dataset.tileIndex);
+            console.log('Touch dropped monster', this.draggedMonster.name, 'on tile', tileIndex);
+            
+            // Update tile state
+            this.playerTiles[tileIndex].monster = this.draggedMonster;
+            this.playerTiles[tileIndex].occupied = true;
+            
+            // Generate monster-themed colors
+            const monsterColor = this.draggedMonster.color;
+            const lighterColor = this.lightenColor(monsterColor, 30);
+            const evenLighterColor = this.lightenColor(monsterColor, 60);
+            
+            // Update tile visual with monster theme
+            tile.innerHTML = `
+                <img src="${this.draggedMonster.image}" alt="${this.draggedMonster.name}" class="monster-image-small" />
+                <div class="monster-name-small">${this.draggedMonster.name}</div>
+            `;
+            tile.classList.add('occupied');
+            tile.classList.remove('drop-target');
+            
+            // Apply monster color theme to the tile
+            tile.style.setProperty('background', `linear-gradient(135deg, ${evenLighterColor} 0%, ${lighterColor} 50%, ${monsterColor} 100%)`, 'important');
+            tile.style.borderColor = monsterColor;
+            
+            // Gray out the monster from the available options instead of hiding
+            const monsterOption = this.elements.monsterGrid.querySelector(`[data-monster-id="${this.draggedMonster.id}"]`);
+            if (monsterOption) {
+                monsterOption.classList.add('grayed-out');
+            }
+            
+            // Update button state and regenerate layout
+            this.updateStartButton();
+            this.regeneratePlayerTiles();
+        }
+        
+        // Clean up
+        if (this.touchStartElement) {
+            this.touchStartElement.classList.remove('dragging');
+        }
+        this.draggedMonster = null;
+        this.touchStartElement = null;
         
         // Remove drop-target class from all tiles
         this.elements.playerTilesGrid.querySelectorAll('.player-tile').forEach(tile => {
@@ -1019,13 +1122,67 @@ class KingOfTokyoUI {
         console.log('Random selection completed:', this.selectedMonsters);
     }
 
+    // Reset monster selection - clears all selected monsters and allows user to start again
+    resetMonsterSelection() {
+        console.log('🔄 Resetting monster selection...');
+        
+        // Clear selected monsters array
+        this.selectedMonsters = [];
+        
+        // Reset all player tiles data
+        this.playerTiles.forEach((tile, index) => {
+            tile.monster = null;
+            tile.occupied = false;
+            
+            // Find the corresponding DOM element and reset it
+            const tileElement = document.querySelector(`[data-tile-index="${index}"]`);
+            if (tileElement) {
+                // Remove visual styling
+                tileElement.classList.remove('occupied');
+                tileElement.style.removeProperty('background');
+                tileElement.style.removeProperty('border-color');
+                tileElement.style.removeProperty('background-image');
+                tileElement.style.removeProperty('background-size');
+                
+                // Reset tile content to default
+                tileElement.innerHTML = `<span class="tile-label">${tile.type.toUpperCase()} ${tile.number}</span>`;
+            }
+        });
+        
+        // Reset all monster cards to normal appearance and make them visible/enabled
+        this.resetMonsterCards();
+        
+        // Show all monster cards and re-enable them (in case they were hidden during drag-and-drop)
+        const monsterCards = document.querySelectorAll('.monster-option');
+        monsterCards.forEach(card => {
+            card.style.display = '';
+            card.style.pointerEvents = ''; // Re-enable dragging
+            card.classList.remove('grayed-out', 'selected'); // Remove any disabled states
+        });
+        
+        // Update UI
+        this.updateStartButton();
+        this.regeneratePlayerTiles();
+        
+        console.log('✅ Monster selection reset completed');
+    }
+
     // Reset monster cards to normal appearance
     resetMonsterCards() {
         const monsterCards = document.querySelectorAll('.monster-option');
         monsterCards.forEach(card => {
-            card.classList.remove('selected', 'grayed-out');
+            // Remove all visual states
+            card.classList.remove('selected', 'grayed-out', 'dragging');
+            
+            // Reset all inline styles that might have been applied
             card.style.opacity = '';
             card.style.filter = '';
+            card.style.display = '';
+            card.style.pointerEvents = '';
+            
+            // Ensure the card is visible and interactive
+            card.style.visibility = '';
+            card.style.transform = '';
         });
     }
 
@@ -3213,12 +3370,12 @@ class KingOfTokyoUI {
     renderRound(round) {
         const roundTimestamp = round.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const expandedClass = round.expanded ? 'expanded' : 'collapsed';
-        const expandIcon = round.expanded ? '📖' : '📕';
+        const expandIcon = round.expanded ? '⬇️' : '➡️'; // Changed from book emojis to arrows
         
         // Handle setup round vs numbered rounds
         const isSetup = round.roundNumber === 'Setup';
         const roundTitle = isSetup ? 
-            '⚙️ Game Setup' : 
+            '⚙️ Game Setup' : // Reverted back to original 'Game Setup'
             `🆕 Round ${round.roundNumber}`;
         
         const dataAttribute = isSetup ? 'data-round-type="setup"' : '';
@@ -3300,6 +3457,12 @@ class KingOfTokyoUI {
     }
 
     getPlayerAvatarForTurn(turn) {
+        // Check if this is a system event (like "Game Setup" or "Monster Selection")
+        const systemEventNames = ['Game Setup', 'Monster Selection', 'System'];
+        if (systemEventNames.includes(turn.playerName)) {
+            return ''; // No avatar for system events
+        }
+        
         if (!turn.playerMonster || !this.game || !this.game.players) {
             return '<span class="log-player-avatar-missing">👤</span>';
         }

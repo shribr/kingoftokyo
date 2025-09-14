@@ -1864,7 +1864,8 @@ class KingOfTokyoGame {
         
         // Only log "Round begins" message if this is actually a new round
         if (isNewRound) {
-            this.logDetailedAction(`Round ${this.round} begins!`, 'round-start', 'System');
+            // Removed round begins message to reduce log clutter
+            // this.logDetailedAction(`Round ${this.round} begins!`, 'round-start', 'System');
         }
     }
 
@@ -1963,7 +1964,7 @@ class KingOfTokyoGame {
                 // Create new setup turn
                 this.gameLogTree.currentPlayerTurn = {
                     id: 'setup-turn',
-                    playerName: 'Game Setup',
+                    playerName: 'Monster Selection',
                     playerMonster: null,
                     timestamp: new Date(),
                     actions: [],
