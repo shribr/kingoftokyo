@@ -95,6 +95,7 @@ class KingOfTokyoUI {
         
         this.initializeElements();
         this.attachEventListeners();
+        this.initializeDragAndDrop();
         this.initializeDarkMode();
         this.initializeMonsterProfiles();
         this.initializeSettings();
@@ -172,7 +173,9 @@ class KingOfTokyoUI {
             tokyoBaySlot: document.getElementById('tokyo-bay-monster'),
             
             // Dice elements
+            diceArea: document.getElementById('dice-area'),
             diceContainer: document.getElementById('dice-container'),
+            actionMenu: document.getElementById('action-menu'),
             rollDiceBtn: document.getElementById('roll-dice'),
             keepDiceBtn: document.getElementById('keep-dice'),
             endTurnBtn: document.getElementById('end-turn'),
@@ -182,6 +185,7 @@ class KingOfTokyoUI {
             // Cards elements
             // currentEnergy: document.getElementById('current-energy'),
             availableCards: document.getElementById('available-cards'),
+            activePlayerArea: document.getElementById('active-player-area'),
             
             // Game over elements
             winnerAnnouncement: document.getElementById('winner-announcement'),
@@ -189,6 +193,7 @@ class KingOfTokyoUI {
             
             // Toolbar elements
             exitGameBtn: document.getElementById('exit-game-btn'),
+            resetPositionsBtn: document.getElementById('reset-positions-btn'),
             gameLogBtn: document.getElementById('game-log-btn'),
             storageMgmtBtn: document.getElementById('storage-mgmt-btn'),
             saveGameToolbarBtn: document.getElementById('save-game-toolbar-btn'),
@@ -433,6 +438,10 @@ class KingOfTokyoUI {
             this.exitToSplashScreen();
         });
 
+        this.elements.resetPositionsBtn.addEventListener('click', () => {
+            this.resetDraggablePositions();
+        });
+
         this.elements.gameLogBtn.addEventListener('click', async () => {
             await this.showGameLog();
         });
@@ -583,6 +592,146 @@ class KingOfTokyoUI {
                 this.togglePanel('power-cards');
             });
         }
+    }
+
+    // Initialize drag and drop functionality for moveable components
+    initializeDragAndDrop() {
+        const draggableElements = document.querySelectorAll('.draggable');
+        
+        draggableElements.forEach(element => {
+            let isDragging = false;
+            let currentX = 0;
+            let currentY = 0;
+            let initialX = 0;
+            let initialY = 0;
+            let xOffset = 0;
+            let yOffset = 0;
+
+            // Get drag handle or use the whole element
+            const dragHandle = element.querySelector('.drag-handle') || element;
+
+            dragHandle.addEventListener('mousedown', dragStart);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', dragEnd);
+
+            // Touch events for mobile
+            dragHandle.addEventListener('touchstart', dragStart);
+            document.addEventListener('touchmove', drag);
+            document.addEventListener('touchend', dragEnd);
+
+            function dragStart(e) {
+                // Prevent dragging when clicking on buttons
+                if (e.target.tagName === 'BUTTON') {
+                    return;
+                }
+
+                e.preventDefault();
+                element.classList.add('dragging');
+
+                if (e.type === 'touchstart') {
+                    initialX = e.touches[0].clientX - xOffset;
+                    initialY = e.touches[0].clientY - yOffset;
+                } else {
+                    initialX = e.clientX - xOffset;
+                    initialY = e.clientY - yOffset;
+                }
+
+                isDragging = true;
+            }
+
+            function drag(e) {
+                if (!isDragging) return;
+
+                e.preventDefault();
+
+                if (e.type === 'touchmove') {
+                    currentX = e.touches[0].clientX - initialX;
+                    currentY = e.touches[0].clientY - initialY;
+                } else {
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+                }
+
+                xOffset = currentX;
+                yOffset = currentY;
+
+                // Keep element within viewport bounds
+                const rect = element.getBoundingClientRect();
+                const maxX = window.innerWidth - rect.width;
+                const maxY = window.innerHeight - rect.height;
+
+                currentX = Math.max(0, Math.min(currentX, maxX));
+                currentY = Math.max(0, Math.min(currentY, maxY));
+
+                element.style.transform = `translate(${currentX}px, ${currentY}px)`;
+                
+                // Ensure element uses absolute positioning when dragged
+                if (!element.style.position || element.style.position === 'static') {
+                    element.style.position = 'fixed';
+                }
+                
+                // Debug logging
+                console.log(`Dragging ${element.id}: transform = "${element.style.transform}"`);
+            }
+
+            function dragEnd(e) {
+                if (!isDragging) return;
+
+                isDragging = false;
+                element.classList.remove('dragging');
+
+                // Save position to localStorage
+                const elementId = element.id;
+                if (elementId) {
+                    localStorage.setItem(`${elementId}-position`, JSON.stringify({
+                        x: currentX,
+                        y: currentY
+                    }));
+                }
+            }
+
+            // Restore saved position on load
+            const elementId = element.id;
+            if (elementId) {
+                const savedPosition = localStorage.getItem(`${elementId}-position`);
+                if (savedPosition) {
+                    try {
+                        const position = JSON.parse(savedPosition);
+                        currentX = position.x;
+                        currentY = position.y;
+                        xOffset = currentX;
+                        yOffset = currentY;
+                        element.style.transform = `translate(${currentX}px, ${currentY}px)`;
+                        element.style.position = 'fixed';
+                        console.log(`Restored position for ${elementId}: ${currentX}, ${currentY}, transform = "${element.style.transform}"`);
+                    } catch (e) {
+                        console.warn('Failed to restore position for', elementId);
+                    }
+                } else {
+                    console.log(`No saved position found for ${elementId}`);
+                }
+            }
+        });
+    }
+
+    // Reset all draggable elements to their default positions
+    resetDraggablePositions() {
+        const draggableElements = document.querySelectorAll('.draggable');
+        
+        draggableElements.forEach(element => {
+            // Clear the transform style to return to CSS default position
+            element.style.transform = '';
+            element.style.position = '';
+            
+            // Remove saved position from localStorage
+            const elementId = element.id;
+            if (elementId) {
+                localStorage.removeItem(`${elementId}-position`);
+            }
+        });
+        
+        // Show confirmation message
+        this.showMessage('Layout positions reset to default!', 2000);
     }
 
     // Show setup modal
@@ -1729,7 +1878,8 @@ class KingOfTokyoUI {
             activePlayerContainer = document.createElement('div');
             activePlayerContainer.id = 'active-player-container';
             activePlayerContainer.className = 'active-player-container';
-            document.body.appendChild(activePlayerContainer); // Append directly to body for proper positioning
+            // Append to the dedicated active-player-area instead of body
+            this.elements.activePlayerArea.appendChild(activePlayerContainer);
         }
         
         // Render active player in separate container

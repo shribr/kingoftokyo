@@ -10,9 +10,10 @@
         6px 6px 0px #000,
         8px 8px 20px rgba(0, 0, 0, 0.4);
     transform: perspective(400px) rotateX(2deg) rotateZ(-0.5deg);
-    display: flex;
+    display: inline-flex; /* Changed from flex to inline-flex to fit content */
     align-items: center;
     gap: 15px;
+    width: fit-content; /* Only stretch to fit content */
     
     /* Comic book halftone pattern */
     background-image: 
