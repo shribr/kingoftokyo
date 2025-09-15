@@ -493,3 +493,151 @@ body::before {
 .active-player-area .active-player-container {
     pointer-events: auto; /* Re-enable pointer events for the actual player card */
 }
+
+/* Bottom UI Table System - 3-row layout for notifications, actions, and toolbar */
+.bottom-ui-table {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end; /* Anchor to bottom */
+    z-index: 900; /* Below draggable elements but above game content */
+    pointer-events: none; /* Allow interactions to pass through to child elements */
+}
+
+.ui-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    pointer-events: none; /* Inherit parent setting */
+}
+
+/* Row 1: Notification Row */
+.notification-row {
+    min-height: 40px;
+    padding: 5px 0;
+    justify-content: flex-start; /* Align to left instead of center */
+    padding-left: 20px; /* Add some left padding for spacing */
+}
+
+.cpu-action-notification {
+    background: rgba(255, 255, 255, 0.7); /* White background with 70% opacity */
+    color: #000;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: bold;
+    text-align: center;
+    max-width: 60%; /* Reduce max width to prevent overlap */
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4); /* Enhanced drop shadow */
+    border: 2px solid #000; /* Black border */
+    font-family: 'Comic Neue', cursive;
+    pointer-events: auto; /* Enable interactions */
+}
+
+/* Row 2: Action Row - Dice area and Action menu */
+.action-row {
+    justify-content: space-between;
+    padding: 10px 20px;
+    min-height: 80px;
+}
+
+.action-row .dice-area,
+.action-row .action-menu {
+    pointer-events: auto; /* Enable interactions for game elements */
+    position: relative; /* Override any fixed positioning from draggable behavior */
+}
+
+/* Row 3: Toolbar Row - Center the toolbar */
+.toolbar-row {
+    justify-content: center;
+    padding: 10px 0 15px 0; /* Extra bottom padding for screen edge */
+    min-height: 60px;
+}
+
+.toolbar-row .game-toolbar {
+    pointer-events: auto; /* Enable toolbar interactions */
+    position: relative !important; /* Override any fixed positioning */
+    transform: none !important; /* Remove any transforms from draggable */
+    left: auto !important;
+    bottom: auto !important;
+}
+
+/* Responsive behavior - prevent overlap with side panels */
+@media (max-width: 1200px) {
+    .action-row {
+        padding: 10px 15px;
+    }
+    
+    .action-row .dice-area,
+    .action-row .action-menu {
+        max-width: 45%;
+    }
+}
+
+@media (max-width: 900px) {
+    .action-row {
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px;
+    }
+    
+    .action-row .dice-area,
+    .action-row .action-menu {
+        max-width: 100%;
+        width: 100%;
+    }
+}
+
+/* Panel collision detection - Hide side panels when insufficient space */
+@media (max-width: 768px) {
+    .cards-area.collapsible-panel,
+    .players-area.collapsible-panel {
+        transform: translateX(-100%); /* Slide out left panel */
+    }
+    
+    .players-area.collapsible-panel {
+        transform: translateX(100%); /* Slide out right panel */
+    }
+    
+    .action-row {
+        padding: 10px 5px;
+    }
+}
+
+/* Game Pause Visual Indicators */
+.game-paused {
+    filter: grayscale(0.3) brightness(0.8);
+}
+
+/* Pause indicator - only show on game container, not globally */
+.game-container.game-paused::before {
+    content: "⏸️ GAME PAUSED";
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 140, 0, 0.95);
+    color: #000;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: bold;
+    z-index: 1001; /* Just above toolbar */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    border: 2px solid #000;
+    font-family: 'Comic Neue', cursive;
+    font-size: 14px;
+    pointer-events: none; /* Don't interfere with interactions */
+}
+
+/* Pause Button States */
+#pause-game-btn.paused {
+    background-color: #4CAF50 !important;
+    border-color: #45a049 !important;
+}
+
+#pause-game-btn.paused:hover {
+    background-color: #45a049 !important;
+}

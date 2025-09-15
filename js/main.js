@@ -95,6 +95,7 @@ class KingOfTokyoUI {
         
         this.initializeElements();
         this.attachEventListeners();
+        this.initializeGamePause(); // Initialize pause system
         this.initializeDragAndDrop();
         this.initializeDarkMode();
         this.initializeMonsterProfiles();
@@ -193,6 +194,7 @@ class KingOfTokyoUI {
             
             // Toolbar elements
             exitGameBtn: document.getElementById('exit-game-btn'),
+            pauseGameBtn: document.getElementById('pause-game-btn'),
             resetPositionsBtn: document.getElementById('reset-positions-btn'),
             gameLogBtn: document.getElementById('game-log-btn'),
             storageMgmtBtn: document.getElementById('storage-mgmt-btn'),
@@ -436,6 +438,10 @@ class KingOfTokyoUI {
         // Toolbar events
         this.elements.exitGameBtn.addEventListener('click', () => {
             this.exitToSplashScreen();
+        });
+
+        this.elements.pauseGameBtn.addEventListener('click', () => {
+            this.toggleGamePause();
         });
 
         this.elements.resetPositionsBtn.addEventListener('click', () => {
@@ -3454,8 +3460,8 @@ class KingOfTokyoUI {
             clearTimeout(this.cpuNotificationTimeout);
         }
         
-        // Get the dice area to show notification above it
-        const diceContainer = this.elements.diceContainer;
+        // Get the notification row container instead of dice container
+        const notificationRow = document.querySelector('.notification-row');
         
         // Create or update CPU notification
         let notification = document.getElementById('cpu-action-notification');
@@ -3464,8 +3470,14 @@ class KingOfTokyoUI {
             notification.id = 'cpu-action-notification';
             notification.className = 'cpu-action-notification';
             
-            // Insert before the dice container
-            diceContainer.parentNode.insertBefore(notification, diceContainer);
+            // Append to the notification row instead of dice area
+            if (notificationRow) {
+                notificationRow.appendChild(notification);
+            } else {
+                // Fallback to dice container if notification row not found
+                const diceContainer = this.elements.diceContainer;
+                diceContainer.parentNode.insertBefore(notification, diceContainer);
+            }
         }
         
         // Set notification content with monster avatar
@@ -4689,6 +4701,12 @@ class KingOfTokyoUI {
             console.log('🤖 CPU turn processing skipped - already processing or no state');
             return; // Prevent concurrent processing
         }
+
+        // Check if game is paused
+        if (this.gamePaused || (this.cpuTurnState && this.cpuTurnState.isPaused)) {
+            console.log('🛑 CPU turn processing paused');
+            return;
+        }
         
         // SAFETY CHECK: Ensure we're still dealing with a CPU player
         const currentGamePlayer = this.game.getCurrentPlayer();
@@ -5337,6 +5355,11 @@ class KingOfTokyoUI {
 
     // Get CPU thinking time based on settings and personality
     getCPUThinkingTime(player) {
+        // Check if game is paused - return 0 to prevent delays
+        if (this.gamePaused || (this.cpuTurnState && this.cpuTurnState.isPaused)) {
+            return 0;
+        }
+
         // Get CPU speed setting
         const cpuSpeed = localStorage.getItem('cpuSpeed') || 'medium';
         let speedMultiplier = 1;
@@ -5475,6 +5498,131 @@ class KingOfTokyoUI {
                 // Left panel: < when expanded (collapse left), > when collapsed (expand right)  
                 arrow.textContent = isCollapsed ? '>' : '<';
             }
+        }
+    }
+
+    // Game Pause Functionality
+    initializeGamePause() {
+        this.gamePaused = false;
+        this.pausedTimeouts = new Set(); // Track active timeouts
+        this.originalSetTimeout = window.setTimeout.bind(window); // Store original setTimeout with proper binding
+        this.originalClearTimeout = window.clearTimeout.bind(window); // Store original clearTimeout with proper binding
+        
+        // Override setTimeout to track CPU timers
+        window.setTimeout = (callback, delay, ...args) => {
+            if (this.gamePaused) {
+                // If game is paused, don't start new timeouts
+                return null;
+            }
+            
+            const timeoutId = this.originalSetTimeout(() => {
+                // Remove from tracked timeouts when executed
+                this.pausedTimeouts.delete(timeoutId);
+                callback(...args);
+            }, delay);
+            
+            // Track this timeout
+            this.pausedTimeouts.add(timeoutId);
+            return timeoutId;
+        };
+        
+        // Override clearTimeout to handle tracked timeouts
+        window.clearTimeout = (timeoutId) => {
+            this.pausedTimeouts.delete(timeoutId);
+            return this.originalClearTimeout(timeoutId);
+        };
+    }
+
+    toggleGamePause() {
+        if (!this.game) {
+            console.log('No active game to pause');
+            return;
+        }
+
+        this.gamePaused = !this.gamePaused;
+        
+        if (this.gamePaused) {
+            this.pauseGame();
+        } else {
+            this.unpauseGame();
+        }
+    }
+
+    pauseGame() {
+        console.log('🛑 Game paused');
+        
+        // Clear all active CPU timeouts
+        this.pausedTimeouts.forEach(timeoutId => {
+            this.originalClearTimeout(timeoutId);
+        });
+        this.pausedTimeouts.clear();
+        
+        // Stop CPU processing
+        if (this.cpuTurnState) {
+            this.cpuTurnState.isPaused = true;
+            console.log('🛑 CPU turn paused');
+        }
+        
+        // Update button appearance
+        this.updatePauseButton(true);
+        
+        // Show pause notification
+        this.showMessage('⏸️ Game Paused', 2000);
+        
+        // Add visual indication to game container only
+        const gameContainer = document.getElementById('game-container');
+        if (gameContainer) {
+            gameContainer.classList.add('game-paused');
+        }
+    }
+
+    unpauseGame() {
+        console.log('▶️ Game unpaused');
+        
+        // Resume CPU processing if needed
+        if (this.cpuTurnState) {
+            this.cpuTurnState.isPaused = false;
+            console.log('▶️ CPU turn resumed');
+            
+            // Resume CPU turn processing after a short delay
+            this.originalSetTimeout(() => {
+                if (this.cpuTurnState && !this.cpuTurnState.isPaused) {
+                    this.cpuTurnState.isProcessing = false;
+                    this.processCPUTurn();
+                }
+            }, 500);
+        }
+        
+        // Update button appearance
+        this.updatePauseButton(false);
+        
+        // Show resume notification
+        this.showMessage('▶️ Game Resumed', 2000);
+        
+        // Remove visual indication from game container
+        const gameContainer = document.getElementById('game-container');
+        if (gameContainer) {
+            gameContainer.classList.remove('game-paused');
+        }
+    }
+
+    updatePauseButton(isPaused) {
+        const pauseBtn = this.elements.pauseGameBtn;
+        if (!pauseBtn) return;
+        
+        const icon = pauseBtn.querySelector('.toolbar-icon svg path');
+        const button = pauseBtn;
+        
+        if (isPaused) {
+            // Change to play icon
+            icon.setAttribute('d', 'M8,5.14V19.14L19,12.14L8,5.14Z');
+            button.title = 'Resume Game';
+            button.classList.add('paused');
+        } else {
+            // Change to pause icon
+            icon.setAttribute('d', 'M14,19H18V5H14M6,19H10V5H6V19Z');
+            button.title = 'Pause Game';
+            button.classList.remove('paused');
         }
     }
 }
