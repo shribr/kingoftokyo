@@ -51,6 +51,7 @@
         6px 6px 0px #000,
         8px 8px 15px rgba(0, 0, 0, 0.4);
     transform: perspective(400px) rotateX(1deg) rotateZ(-0.5deg);
+    overflow: hidden; /* Ensure children stay within container bounds */
     
     /* Comic book halftone pattern */
     background-image: 
@@ -116,7 +117,8 @@
     box-shadow: 
         inset 0 0 20px rgba(255, 255, 255, 0.1),
         4px 4px 8px rgba(0, 0, 0, 0.3);
-    transform: perspective(300px) rotateX(2deg) rotateZ(0.5deg);
+    /* Reduced transform to stay within container bounds */
+    transform: perspective(300px) rotateX(1deg) rotateZ(0.2deg);
 }
 
 .monster-slot.occupied {
@@ -416,7 +418,7 @@
         linear-gradient(135deg, var(--monster-color-light, #3c3c3c) 0%, var(--monster-color, #2c2c2c) 100%); /* Use monster colors if available */
     padding: 16px; /* Increased padding for better stat visibility */
     border-radius: 0; /* Sharp corners to match monster selection tiles */
-    border: 3px solid var(--monster-color, #000); /* Use monster color for border */
+    border: 3px solid #000 !important; /* Always black border */
     transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.2s ease-out 0.1s; /* Added delay to transform for less sensitivity */
     position: relative;
     overflow: visible; /* Allow power card tabs to show */
@@ -539,6 +541,41 @@
         8px 8px 0px #000,
         12px 12px 30px rgba(0, 0, 0, 0.8),
         inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Disable hover effects for active players - use high specificity to override all hover rules */
+.player-dashboard.no-hover:hover,
+.player-dashboard.active.no-hover:hover,
+.player-dashboard.no-hover:nth-child(1):hover,
+.player-dashboard.no-hover:nth-child(2):hover,
+.player-dashboard.no-hover:nth-child(3):hover,
+.player-dashboard.no-hover:nth-child(4):hover,
+.player-dashboard.no-hover:nth-child(5):hover,
+.player-dashboard.no-hover:nth-child(6):hover,
+.player-dashboard.no-hover:first-child:hover,
+.player-dashboard.no-hover:last-child:hover {
+    z-index: 6000 !important; /* Fixed z-index, no change on hover */
+    margin-bottom: 0 !important; /* No margin change on hover */
+    margin-top: 0 !important; /* No margin change on hover */
+    box-shadow: 4px 4px 0px #000, 6px 6px 15px rgba(0, 0, 0, 0.4), inset 0 -2px 0 rgba(0, 0, 0, 0.1) !important; /* Maintain active styling */
+    transform: perspective(800px) rotateX(-0.7deg) rotateY(0.6deg) rotateZ(2.3deg) scale(1.02) !important; /* Maintain active transform */
+    opacity: 1 !important; /* Fixed opacity, no change on hover */
+    width: 290px !important; /* Maintain width */
+    min-height: 280px !important; /* Maintain height */
+}
+
+/* Disable all child element hover effects for no-hover players */
+.player-dashboard.no-hover:hover .player-stats,
+.player-dashboard.no-hover:hover .player-info,
+.player-dashboard.no-hover:hover .player-name,
+.player-dashboard.no-hover:hover .player-info .player-name,
+.player-dashboard.no-hover:hover .player-name-container .player-name,
+.player-dashboard.no-hover:hover .tokyo-indicator-inline,
+.player-dashboard.no-hover:hover::after {
+    opacity: 1 !important; /* Fixed opacity */
+    transform: none !important; /* No transform */
+    margin-bottom: 15px !important; /* Maintain normal margin */
+    color: #ffffff !important; /* Keep white text color */
 }
 
 /* Individual hover transforms that preserve unique angles */
@@ -744,13 +781,13 @@
     position: fixed !important;
     bottom: 420px !important; /* Above the action menu (which is at bottom: 110px) */
     right: 520px !important; /* Same horizontal alignment as action menu */
-    z-index: 9999 !important; /* Much higher z-index to ensure visibility */
+    z-index: 6000 !important; /* Same level as side panels, below pause overlay */
     pointer-events: auto !important;
     
     /* Preserve original player dashboard styling - no !important to allow monster colors */
     background: 
         linear-gradient(135deg, var(--monster-color-light, #3c3c3c) 0%, var(--monster-color, #2c2c2c) 100%);
-    border: 3px solid var(--monster-color, #000) !important;
+    border: 3px solid #000 !important; /* Always black border */
     border-radius: 0 !important;
     padding: 16px !important; /* Restored padding */
     transform: perspective(800px) rotateX(-0.7deg) rotateY(0.6deg) rotateZ(2.3deg) scale(1.02) !important;
@@ -769,19 +806,7 @@
     visibility: visible !important;
 }
 
-.player-dashboard.active.draggable {
-    border: 2px solid #333;
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.1);
-    padding: 5px;
-}
-
-.player-dashboard.active.draggable {
-    border: 2px solid #333;
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.1);
-    padding: 5px;
-}
+/* Remove duplicate draggable styling that overrides monster background */
 
 /* Hide active player when any modal is showing */
 .modal:not(.hidden) ~ .player-dashboard.active,

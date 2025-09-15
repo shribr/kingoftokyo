@@ -205,6 +205,7 @@ class KingOfTokyoUI {
             storageAboutPanel: document.getElementById('storage-about-panel'),
             closeStorageAboutBtn: document.getElementById('close-storage-about'),
             closeGameLogBtn: document.getElementById('close-game-log'),
+            exportLogsBtn: document.getElementById('export-logs-btn'),
             closeStorageMgmtBtn: document.getElementById('close-storage-mgmt'),
             closeSettingsBtn: document.getElementById('close-settings'),
             saveSettingsBtn: document.getElementById('save-settings'),
@@ -388,6 +389,17 @@ class KingOfTokyoUI {
             UIUtilities.hideModal(this.elements.gameLogModal);
         });
 
+        // Check if export button exists before adding event listener
+        if (this.elements.exportLogsBtn) {
+            console.log('✅ Export logs button found, adding event listener');
+            this.elements.exportLogsBtn.addEventListener('click', () => {
+                console.log('Export logs button clicked!');
+                this.exportGameLogs();
+            });
+        } else {
+            console.error('❌ Export logs button not found!');
+        }
+
         this.elements.closeStorageMgmtBtn.addEventListener('click', () => {
             UIUtilities.hideModal(this.elements.storageMgmtModal);
             // Also hide the about panel when closing the main modal
@@ -454,6 +466,19 @@ class KingOfTokyoUI {
         this.elements.scrollToBottomBtn.addEventListener('click', () => {
             this.scrollGameLogToBottom();
         });
+
+        // Export logs button
+        if (this.elements.exportLogsBtn) {
+            console.log('✅ Export logs button found in main setup, adding event listener');
+            this.elements.exportLogsBtn.addEventListener('click', (e) => {
+                console.log('🎯 Export logs button clicked!');
+                e.preventDefault();
+                e.stopPropagation();
+                this.exportGameLogs();
+            });
+        } else {
+            console.error('❌ Export logs button not found in main setup!');
+        }
 
         // Storage management controls
         if (this.elements.saveGameBtn) {
@@ -767,23 +792,9 @@ class KingOfTokyoUI {
                     }
                 }
                 
-                // Handle automatic Tokyo entry for 5+ player games AFTER UI is initialized
-                if (this.currentPlayerCount >= 5) {
-                    console.log('🏙️ Setting up automatic Tokyo entry for 5+ player game');
-                    // First player (index 0) enters Tokyo City
-                    const firstPlayer = this.game.players[0];
-                    if (firstPlayer && this.game.tokyoCity === null) {
-                        console.log(`🏙️ ${firstPlayer.monster.name} automatically enters Tokyo City!`);
-                        this.game.enterTokyo(firstPlayer);
-                    }
-                    
-                    // Second player (index 1) enters Tokyo Bay
-                    const secondPlayer = this.game.players[1];
-                    if (secondPlayer && this.game.tokyoBay === null) {
-                        console.log(`🏖️ ${secondPlayer.monster.name} automatically enters Tokyo Bay!`);
-                        this.game.enterTokyo(secondPlayer);
-                    }
-                }
+                // REMOVED: Automatic Tokyo entry at game start
+                // Players should only enter Tokyo when they END their turn, not at game start
+                // The original automatic Tokyo entry logic has been removed to fix the turn flow
                 
                 this.updateGameDisplay();
                 UIUtilities.showMessage(`Game started! ${result.currentPlayer.monster.name} goes first!`, 3000, this.elements);
@@ -875,8 +886,24 @@ class KingOfTokyoUI {
                 this.showCPUActionNotification(data);
                 break;
             case 'turnEnded':
+                console.log('🏁 TURN ENDED EVENT - Critical debugging point!');
+                console.log('🏁 Current player before cleanup:', this.game?.getCurrentPlayer()?.monster?.name);
+                console.log('🏁 Game state before cleanup:', {
+                    phase: this.game?.gamePhase,
+                    turnPhase: this.game?.currentTurnPhase,
+                    currentPlayerIndex: this.game?.currentPlayerIndex
+                });
+                
+                // DISABLED: Handle Tokyo entry at END of turn 
+                // This logic was causing premature Tokyo entry before players finished their actions
+                // Tokyo entry is now handled properly in game.js when players explicitly end their turn
+                // this.handleEndOfTurnTokyoEntry(data);
+                
                 this.cleanupAllThoughtBubbles();
+                console.log('🏁 About to call updateGameDisplay...');
                 this.updateGameDisplay();
+                console.log('🏁 updateGameDisplay completed');
+                console.log('🏁 Current player after updateGameDisplay:', this.game?.getCurrentPlayer()?.monster?.name);
                 break;
             case 'gameEnded':
                 this.showGameOverModal(data);
@@ -901,20 +928,23 @@ class KingOfTokyoUI {
                 break;
             case 'turnStarted':
                 console.log('🎯 turnStarted event received:', data);
+                console.log('🚨 TURN DEBUG: Player should be able to take actions now!');
+                
                 this.clearAllAttackAnimations(); // Clear any stuck attack animations
                 this.updateGameDisplay(); // Update UI to show new current player
                 
                 // Check if new current player is CPU and auto-start their turn
                 const currentPlayer = this.game.getCurrentPlayer();
                 console.log('🎯 Current player from game:', currentPlayer);
-                console.log('🔍 DETAILED PLAYER DEBUG:', {
-                    playerExists: !!currentPlayer,
+                console.log('� CRITICAL TURN FLOW DEBUG:', {
+                    playerName: currentPlayer?.monster?.name,
                     playerType: currentPlayer?.playerType,
-                    monsterName: currentPlayer?.monster?.name,
-                    playerId: currentPlayer?.id,
-                    playerNumber: currentPlayer?.playerNumber,
                     isEliminated: currentPlayer?.isEliminated,
-                    fullPlayerObject: currentPlayer
+                    gamePhase: this.game?.gamePhase,
+                    turnPhase: this.game?.currentTurnPhase,
+                    canPlayerAct: !currentPlayer?.isEliminated,
+                    shouldStartCPU: currentPlayer?.playerType === 'cpu' && !currentPlayer?.isEliminated,
+                    shouldAllowHuman: currentPlayer?.playerType === 'human' && !currentPlayer?.isEliminated
                 });
                 
                 // CRITICAL FIX: Only start CPU turn if player is actually CPU and not eliminated
@@ -947,7 +977,7 @@ class KingOfTokyoUI {
                         }
                     }, 2000);
                 } else if (currentPlayer && currentPlayer.playerType !== 'cpu') {
-                    console.log('👤 Current player is HUMAN, no automatic turn needed');
+                    console.log('👤 HUMAN TURN STARTING: Player should be able to roll dice!');
                     console.log('👤 Human player details:', {
                         name: currentPlayer.monster.name,
                         id: currentPlayer.id,
@@ -1072,23 +1102,342 @@ class KingOfTokyoUI {
     updatePlayersDisplay(players) {
         const currentPlayer = this.game.getCurrentPlayer();
         
-        // Check if current player has changed to determine if we need to rebuild layout
+        console.log('👥 UPDATE PLAYERS DISPLAY called');
+        console.log('👥 Current player from game:', currentPlayer?.monster?.name, 'ID:', currentPlayer?.id);
+        console.log('👥 Last current player ID stored:', this.lastCurrentPlayerId);
+        
+        // SAFETY CHECK: Ensure current player exists
+        if (!currentPlayer) {
+            console.error('🚨 ERROR: No current player available in updatePlayersDisplay!');
+            return;
+        }
+        
+        // Check if player cards exist in the DOM - if not, we need initial creation
+        const existingPlayerCards = document.querySelectorAll('.player-dashboard');
+        console.log('👥 Existing player cards found:', existingPlayerCards.length);
+        
+        if (existingPlayerCards.length === 0) {
+            console.log('👥 No player cards exist - performing initial creation');
+            this._createInitialPlayerCards(players, currentPlayer);
+            return;
+        }
+        
+        // Check if current player has changed to determine if we need to reposition
         const currentPlayerChanged = this.lastCurrentPlayerId !== currentPlayer.id;
+        console.log('👥 Current player changed?', currentPlayerChanged, 'from', this.lastCurrentPlayerId, 'to', currentPlayer.id);
         this.lastCurrentPlayerId = currentPlayer.id;
         
         if (currentPlayerChanged) {
-            // Only rebuild the entire layout when the current player changes
-            this._rebuildPlayerLayout(players, currentPlayer);
+            console.log('👥 CALLING _repositionActivePlayer due to player change');
+            // Use DOM manipulation approach instead of rebuilding
+            this._repositionActivePlayer(players, currentPlayer);
         } else {
+            console.log('👥 CALLING _updatePlayerStats (no repositioning needed)');
             // Otherwise, just update the stats of existing cards
             this._updatePlayerStats(players);
         }
     }
     
+    // Initial creation of player cards (only called once at game start)
+    _createInitialPlayerCards(players, currentPlayer) {
+        console.log('🏗️ Creating initial player cards');
+        
+        // Use the old method for initial creation
+        this.elements.playersContainer.innerHTML = players.map(player => 
+            this._generatePlayerHTML(player, player.id === currentPlayer.id)
+        ).join('');
+        
+        console.log('📄 Generated initial HTML for players container');
+        
+        // Store the current player ID so subsequent calls use DOM manipulation
+        this.lastCurrentPlayerId = currentPlayer.id;
+        
+        // Set up initial positioning with the newly created cards
+        this._setupInitialPlayerPositioning(players, currentPlayer);
+        
+        // Make only the active player draggable
+        this._setupActivePlayerDragging(currentPlayer.id);
+        
+        // Attach event listeners
+        this.attachPowerCardTabListeners();
+    }
+    
+    // Initial positioning setup (similar to _setupPlayerPositioning but for fresh cards)
+    _setupInitialPlayerPositioning(players, currentPlayer) {
+        console.log('🎯 Setting up initial player positioning');
+        
+        players.forEach((player, index) => {
+            const dashboard = document.querySelector(`[data-player-id="${player.id}"]`);
+            if (!dashboard) return;
+            
+            // Set monster color properties for all players
+            if (player.monster.color) {
+                const monsterColor = player.monster.color;
+                const lighterColor = this._lightenColor(monsterColor, 20);
+                const glowColor = `${monsterColor}66`;
+                const strongGlowColor = `${monsterColor}aa`;
+
+                dashboard.style.setProperty('--monster-color', monsterColor);
+                dashboard.style.setProperty('--monster-color-light', lighterColor);
+                dashboard.style.setProperty('--monster-glow-color', glowColor);
+                dashboard.style.setProperty('--monster-glow-strong', strongGlowColor);
+            }
+            
+            if (player.id === currentPlayer.id) {
+                // Active player - move out of container and use fixed positioning
+                console.log('📍 Setting up initial active player:', player.id);
+                this._moveToActivePosition(dashboard, index);
+            }
+            // Non-active players stay in the container with CSS positioning
+        });
+    }
+    
+    // DOM manipulation approach - move existing cards without rebuilding
+    _repositionActivePlayer(players, currentPlayer) {
+        console.log('🎯 Repositioning active player using DOM manipulation');
+        
+        // STEP 1: First restore the previously active player (if any) to proper position
+        const previouslyActiveCard = document.querySelector('.player-dashboard.active');
+        if (previouslyActiveCard) {
+            const previousPlayerId = previouslyActiveCard.dataset.playerId;
+            console.log('↩️ Restoring previously active player first:', previousPlayerId);
+            this._restoreToCorrectPosition(previouslyActiveCard, players);
+        }
+        
+        // STEP 2: Then activate the new current player
+        const newActiveCard = document.querySelector(`[data-player-id="${currentPlayer.id}"]`);
+        if (newActiveCard) {
+            console.log('🚀 Activating new current player:', currentPlayer.monster.name);
+            const playerIndex = players.findIndex(p => p.id === currentPlayer.id);
+            this._moveToActivePosition(newActiveCard, playerIndex);
+        }
+        
+        // STEP 3: Update monster colors and stats for all players
+        players.forEach((player, index) => {
+            const dashboard = document.querySelector(`[data-player-id="${player.id}"]`);
+            if (!dashboard) return;
+            
+            // Set monster color properties for all players
+            if (player.monster.color) {
+                const monsterColor = player.monster.color;
+                const lighterColor = this._lightenColor(monsterColor, 20);
+                const glowColor = `${monsterColor}66`;
+                const strongGlowColor = `${monsterColor}aa`;
+
+                dashboard.style.setProperty('--monster-color', monsterColor);
+                dashboard.style.setProperty('--monster-color-light', lighterColor);
+                dashboard.style.setProperty('--monster-glow-color', glowColor);
+                dashboard.style.setProperty('--monster-glow-strong', strongGlowColor);
+            }
+        });
+        
+        // Make only the active player draggable
+        this._setupActivePlayerDragging(currentPlayer.id);
+        
+        // Update player stats
+        this._updatePlayerStats(players);
+        
+        // Attach event listeners (in case any were lost)
+        this.attachPowerCardTabListeners();
+    }
+    
+    // Store original position and move card to active position
+    _moveToActivePosition(dashboard, originalIndex) {
+        console.log('📍 Moving player to active position:', dashboard.dataset.playerId);
+        
+        // Remove hover events for active player
+        this._removeHoverEvents(dashboard);
+        
+        // Add active class and move to body
+        dashboard.classList.add('active');
+        
+        if (dashboard.parentNode && dashboard.parentNode.id === 'players-container') {
+            document.body.appendChild(dashboard);
+        }
+        
+        // Make draggable
+        dashboard.draggable = true;
+        dashboard.classList.add('draggable');
+        
+        console.log('✅ Player moved to active position');
+    }
+    
+    // Restore card to its correct position in the container based on player order
+    _restoreToCorrectPosition(dashboard, players) {
+        console.log('↩️ Restoring player to correct position:', dashboard.dataset.playerId);
+        
+        // Remove active classes first
+        dashboard.classList.remove('active');
+        dashboard.classList.remove('draggable');
+        dashboard.draggable = false;
+        
+        // Only restore if it's currently in body (was moved out)
+        if (dashboard.parentNode === document.body) {
+            const playersContainer = document.getElementById('players-container');
+            const playerId = dashboard.dataset.playerId;
+            
+            // Find this player's index in the players array
+            const playerIndex = players.findIndex(p => p.id === playerId);
+            
+            if (playerIndex !== -1) {
+                // Get all player cards currently in the container (sorted by their current order)
+                const cardsInContainer = Array.from(playersContainer.children);
+                
+                if (playerIndex === 0) {
+                    // Insert at the beginning
+                    playersContainer.insertBefore(dashboard, playersContainer.firstChild);
+                } else {
+                    // Find the card that should come before this one
+                    let insertAfter = null;
+                    for (let i = playerIndex - 1; i >= 0; i--) {
+                        const previousPlayerId = players[i].id;
+                        insertAfter = playersContainer.querySelector(`[data-player-id="${previousPlayerId}"]`);
+                        if (insertAfter) break;
+                    }
+                    
+                    if (insertAfter) {
+                        // Insert after the found card
+                        playersContainer.insertBefore(dashboard, insertAfter.nextSibling);
+                    } else {
+                        // Fallback: insert at beginning
+                        playersContainer.insertBefore(dashboard, playersContainer.firstChild);
+                    }
+                }
+            } else {
+                // Fallback: just append to container
+                playersContainer.appendChild(dashboard);
+            }
+        }
+        
+        // Remove ALL inline styles that were applied when becoming active
+        dashboard.style.position = '';
+        dashboard.style.top = '';
+        dashboard.style.left = '';
+        dashboard.style.right = '';
+        dashboard.style.bottom = '';
+        dashboard.style.transform = '';
+        dashboard.style.zIndex = '';
+        dashboard.style.margin = '';
+        dashboard.style.marginTop = '';
+        dashboard.style.marginLeft = '';
+        dashboard.style.marginRight = '';
+        dashboard.style.marginBottom = '';
+        dashboard.style.width = '';
+        dashboard.style.height = '';
+        dashboard.style.minHeight = '';
+        dashboard.style.padding = '';
+        dashboard.style.background = '';
+        dashboard.style.border = '';
+        dashboard.style.borderRadius = '';
+        dashboard.style.boxShadow = '';
+        dashboard.style.opacity = '';
+        dashboard.style.visibility = '';
+        dashboard.style.pointerEvents = '';
+        
+        // Restore hover events
+        this._restoreHoverEvents(dashboard);
+        
+        console.log('✅ Player restored to correct position at index', players.findIndex(p => p.id === dashboard.dataset.playerId));
+    }
+
+    // Restore card to its original position in the container (legacy method - kept for compatibility)
+    _restoreToOriginalPosition(dashboard, currentIndex) {
+        // Only restore if this card was previously active
+        if (!dashboard.classList.contains('active')) {
+            return; // Card was never active, nothing to restore
+        }
+        
+        console.log('↩️ Restoring player to original position:', dashboard.dataset.playerId);
+        
+        // Remove active classes
+        dashboard.classList.remove('active');
+        dashboard.classList.remove('draggable');
+        dashboard.draggable = false;
+        
+        // Move back to players-container if it's currently in body
+        if (dashboard.parentNode === document.body) {
+            const playersContainer = document.getElementById('players-container');
+            playersContainer.appendChild(dashboard);
+        }
+        
+        // Remove ALL inline styles that were applied when becoming active
+        dashboard.style.position = '';
+        dashboard.style.top = '';
+        dashboard.style.left = '';
+        dashboard.style.right = '';
+        dashboard.style.bottom = '';
+        dashboard.style.transform = '';
+        dashboard.style.zIndex = '';
+        dashboard.style.margin = '';
+        dashboard.style.marginTop = '';
+        dashboard.style.marginLeft = '';
+        dashboard.style.marginRight = '';
+        dashboard.style.marginBottom = '';
+        dashboard.style.width = '';
+        dashboard.style.height = '';
+        dashboard.style.minHeight = '';
+        dashboard.style.padding = '';
+        dashboard.style.background = '';
+        dashboard.style.border = '';
+        dashboard.style.borderRadius = '';
+        dashboard.style.boxShadow = '';
+        dashboard.style.opacity = '';
+        dashboard.style.visibility = '';
+        dashboard.style.pointerEvents = '';
+        
+        // Restore hover events
+        this._restoreHoverEvents(dashboard);
+        
+        console.log('✅ Player restored to original position');
+    }
+    
+    // Remove hover events from active player
+    _removeHoverEvents(dashboard) {
+        // Add CSS class to disable hover effects while keeping dragging enabled
+        dashboard.classList.add('no-hover');
+        console.log('🚫 Removed hover events for active player');
+    }
+    
+    // Restore hover events for non-active player
+    _restoreHoverEvents(dashboard) {
+        // Remove the no-hover class to re-enable hover effects
+        dashboard.classList.remove('no-hover');
+        console.log('✅ Restored hover events for player');
+    }
+    
     // Rebuild the entire player layout (called only when current player changes)
     _rebuildPlayerLayout(players, currentPlayer) {
-        console.log('🏗️ Rebuilding player layout for current player:', currentPlayer.id);
-        console.log('👥 Total players:', players.length);
+        console.log('🏗️ REBUILDING PLAYER LAYOUT - CRITICAL DEBUGGING');
+        console.log('🏗️ Current player passed in:', currentPlayer?.monster?.name, 'ID:', currentPlayer?.id);
+        console.log('🏗️ Total players:', players.length);
+        console.log('🏗️ All players:', players.map(p => `${p.monster.name} (${p.playerType})`));
+        
+        // SAFETY CHECK: Ensure current player is valid
+        if (!currentPlayer) {
+            console.error('🚨 ERROR: No current player passed to _rebuildPlayerLayout!');
+            return;
+        }
+        
+        // CRITICAL FIX: Restore any active player cards back to container before rebuilding
+        const activePlayerCards = document.querySelectorAll('.player-dashboard.active');
+        const playersContainer = document.getElementById('players-container');
+        
+        activePlayerCards.forEach(card => {
+            if (card.parentNode === document.body) {
+                console.log('🔄 RESTORING active player card back to container before rebuild:', card.dataset.playerId);
+                card.classList.remove('active');
+                // Reset inline styles
+                card.style.position = '';
+                card.style.top = '';
+                card.style.left = '';
+                card.style.right = '';
+                card.style.bottom = '';
+                card.style.transform = '';
+                card.style.zIndex = '';
+                card.style.margin = '';
+                playersContainer.appendChild(card);
+            }
+        });
         
         // Store original positioning data before any changes
         const existingCards = document.querySelectorAll('.player-dashboard');
@@ -1194,12 +1543,13 @@ class KingOfTokyoUI {
                 dashboard.dataset.originalParent = 'players-container';
                 dashboard.dataset.originalIndex = index.toString();
                 
-                // Add or update Tokyo indicator if player is in Tokyo
-                this._updateTokyoIndicator(dashboard, player);
-                
             } else {
                 // Non-active player - restore to stack position
                 console.log('📋 Restoring non-active player to stack:', player.id);
+                console.log('📋 Dashboard parent:', dashboard.parentNode);
+                console.log('📋 Dashboard originalParent:', dashboard.dataset.originalParent);
+                console.log('📋 Dashboard classes:', dashboard.classList.toString());
+                
                 dashboard.classList.remove('active');
                 
                 // If this card was previously active and moved to body, move it back to players container
@@ -1219,6 +1569,9 @@ class KingOfTokyoUI {
                     // Clean up data attributes
                     delete dashboard.dataset.originalParent;
                     delete dashboard.dataset.originalIndex;
+                    console.log('✅ Player moved back to container');
+                } else {
+                    console.log('❌ Player not moved - parent:', dashboard.parentNode, 'originalParent:', dashboard.dataset.originalParent);
                 }
                 
                 // Remove any inline styles that might override CSS positioning
@@ -1361,6 +1714,107 @@ class KingOfTokyoUI {
                 </div>
             </div>
         `;
+    }
+    
+    // Handle Tokyo entry at END of turn (proper game rules)
+    handleEndOfTurnTokyoEntry(gameState) {
+        // DISABLED: This method was duplicating and conflicting with the proper Tokyo entry logic in game.js
+        // The game.js version properly checks that dice have been resolved before allowing Tokyo entry
+        // This main.js version was causing premature Tokyo entry before players could even roll dice
+        console.log('🏰 main.js Tokyo entry handler DISABLED - proper logic is in game.js');
+        return;
+        
+        /*
+        const endingPlayer = this.game.getCurrentPlayer();
+        const endingPlayerIndex = this.game.currentPlayerIndex;
+        const roundNumber = this.game.round;
+        
+        console.log('🏰 END-OF-TURN TOKYO ENTRY CHECK:', {
+            endingPlayer: endingPlayer.monster.name,
+            endingPlayerIndex,
+            roundNumber,
+            tokyoCityOccupied: this.game.tokyoCity !== null,
+            tokyoBayOccupied: this.game.tokyoBay !== null,
+            playerCount: this.game.players.length
+        });
+        
+        // First turn (any player count): First player enters Tokyo City at end of their turn
+        if (roundNumber === 1 && endingPlayerIndex === 0 && this.game.tokyoCity === null) {
+            console.log(`🏰 FIRST TURN: ${endingPlayer.monster.name} enters Tokyo City at turn end!`);
+            this.game.enterTokyo(endingPlayer, true); // true = automatic entry, no points
+            UIUtilities.showMessage(`${endingPlayer.monster.name} enters Tokyo City!`, 3000, this.elements);
+            return;
+        }
+        
+        // Second turn (5+ players only): Second player enters Tokyo Bay at end of their turn
+        if (roundNumber === 1 && endingPlayerIndex === 1 && this.game.players.length >= 5 && this.game.tokyoBay === null && this.game.tokyoCity !== null) {
+            console.log(`🏰 SECOND TURN (5+ players): ${endingPlayer.monster.name} enters Tokyo Bay at turn end!`);
+            this.game.enterTokyo(endingPlayer, true); // true = automatic entry, no points
+            UIUtilities.showMessage(`${endingPlayer.monster.name} enters Tokyo Bay!`, 3000, this.elements);
+            return;
+        }
+        
+        console.log('🏰 No automatic Tokyo entry needed this turn');
+        */
+    }
+
+    // Handle automatic Tokyo Bay entry for 5+ player games
+    handleTokyoBayAutoEntry(gameState) {
+        // DISABLED: This method was also duplicating Tokyo entry logic and causing premature entry
+        // The proper Tokyo entry logic is handled in game.js after dice are resolved
+        console.log('🏖️ main.js Tokyo Bay auto-entry handler DISABLED - proper logic is in game.js');
+        return;
+        
+        /*
+        // Only for games with 5+ players
+        if (this.game.players.length < 5) {
+            return;
+        }
+        
+        // Only if Tokyo Bay is empty and someone is in Tokyo City
+        if (this.game.tokyoBay !== null || this.game.tokyoCity === null) {
+            return;
+        }
+        
+        // Get the player who just ended their turn
+        const endingPlayer = this.game.getCurrentPlayer();
+        const endingPlayerIndex = this.game.currentPlayerIndex;
+        
+        console.log('🏖️ TOKYO BAY AUTO-ENTRY CHECK (at turn END):', {
+            endingPlayer: endingPlayer.monster.name,
+            endingPlayerIndex,
+            isSecondPlayer: endingPlayerIndex === 1,
+            tokyoCityOccupied: this.game.tokyoCity !== null,
+            tokyoBayEmpty: this.game.tokyoBay === null,
+            currentPlayerType: endingPlayer.playerType,
+            gamePhase: this.game.gamePhase,
+            turnPhase: this.game.currentTurnPhase
+        });
+        
+        // If the second player (index 1) is ending their turn, put them in Tokyo Bay
+        if (endingPlayerIndex === 1 && this.game.tokyoBay === null) {
+            console.log(`🏖️ EXECUTING AUTO-ENTRY: ${endingPlayer.monster.name} automatically enters Tokyo Bay at turn end!`);
+            console.log('🏖️ BEFORE AUTO-ENTRY:', {
+                tokyoCity: this.game.tokyoCity,
+                tokyoBay: this.game.tokyoBay,
+                endingPlayerVP: endingPlayer.victoryPoints,
+                gamePhase: this.game.gamePhase,
+                turnPhase: this.game.currentTurnPhase
+            });
+            
+            this.game.enterTokyo(endingPlayer, true); // true = automatic entry, no points
+            
+            console.log('🏖️ AFTER AUTO-ENTRY:', {
+                tokyoCity: this.game.tokyoCity,
+                tokyoBay: this.game.tokyoBay,
+                endingPlayerVP: endingPlayer.victoryPoints,
+                gamePhase: this.game.gamePhase,
+                turnPhase: this.game.currentTurnPhase
+            });
+            
+            UIUtilities.showMessage(`${endingPlayer.monster.name} enters Tokyo Bay!`, 3000, this.elements);
+        }
+        */
     }
 
     // Attach click listeners to power card stat tiles
@@ -1746,18 +2200,35 @@ class KingOfTokyoUI {
         }
     }
 
+    // Utility function to find player element accounting for active player positioning
+    findPlayerElement(playerId) {
+        // First check in players container
+        let playerElement = document.querySelector(`#players-container [data-player-id="${playerId}"]`);
+        if (!playerElement) {
+            // If not found, check if it's moved to body (active player)
+            playerElement = document.querySelector(`body > .player-dashboard[data-player-id="${playerId}"]`);
+        }
+        return playerElement;
+    }
+
     // Animate player entering Tokyo
     animatePlayerToTokyo(data) {
         console.log('Animating player to Tokyo:', data);
         
-        // Find the player card in the player area
-        const playerCard = document.querySelector(`[data-player-id="${data.playerId}"]`);
+        // Find the player card using utility function
+        const playerCard = this.findPlayerElement(data.playerId);
         const tokyoSlot = data.location === 'city' 
             ? document.getElementById('tokyo-city-monster')
             : document.getElementById('tokyo-bay-monster');
         
         if (!playerCard || !tokyoSlot) {
-            console.error('Could not find player card or Tokyo slot for animation');
+            console.error('Could not find player card or Tokyo slot for animation', {
+                playerId: data.playerId,
+                location: data.location,
+                playerCardFound: !!playerCard,
+                tokyoSlotFound: !!tokyoSlot,
+                playerCardParent: playerCard?.parentNode?.id || playerCard?.parentNode?.tagName
+            });
             this.updateTokyoDisplay(this.game.getGameState());
             return;
         }
@@ -1807,13 +2278,19 @@ class KingOfTokyoUI {
     animatePlayerFromTokyo(data) {
         console.log('Animating player from Tokyo:', data);
         
-        // Find the Tokyo slot and player card
+        // Find the Tokyo slot and player card using utility function
         const tokyoSlot = data.location === 'city' 
             ? document.getElementById('tokyo-city-monster')
             : document.getElementById('tokyo-bay-monster');
-        const playerCard = document.querySelector(`[data-player-id="${data.playerId}"]`);
+        const playerCard = this.findPlayerElement(data.playerId);
         
         if (!tokyoSlot || !playerCard) {
+            console.error('Could not find Tokyo slot or player card for leave animation', {
+                playerId: data.playerId,
+                location: data.location,
+                tokyoSlotFound: !!tokyoSlot,
+                playerCardFound: !!playerCard
+            });
             this.updateTokyoDisplay(this.game.getGameState());
             return;
         }
@@ -2145,6 +2622,24 @@ class KingOfTokyoUI {
         const canEndTurn = (gameState.turnPhase === 'resolving' || 
                           (gameState.turnPhase === 'rolling' && diceState.rollsRemaining === 0)) && !isCurrentPlayerEliminated;
         
+        // Debug logging for 5+ player game issues
+        if (gameState.players && gameState.players.length >= 5) {
+            console.log('🎮 MULTI-PLAYER BUTTON DEBUG:', {
+                currentPlayerIndex: gameState.currentPlayerIndex,
+                currentPlayerName: gameState.currentPlayer ? gameState.currentPlayer.monster.name : 'none',
+                currentPlayerType: gameState.currentPlayer ? gameState.currentPlayer.playerType : 'none',
+                turnPhase: gameState.turnPhase,
+                rollsRemaining: diceState.rollsRemaining,
+                diceCanRoll: diceState.canRoll,
+                isEliminated: isCurrentPlayerEliminated,
+                canRoll: canRoll,
+                canKeep: canKeep,
+                canEndTurn: canEndTurn,
+                rollButtonDisabled: this.elements.rollDiceBtn.disabled,
+                aboutToSetRollButtonTo: !canRoll
+            });
+        }
+        
         // Debug logging for 6-player game issues
         if (gameState.players && gameState.players.length === 6) {
             console.log('🐛 6-PLAYER DEBUG:', {
@@ -2407,21 +2902,29 @@ class KingOfTokyoUI {
 
     // Roll dice
     async rollDice() {
-        console.log('rollDice called, game exists:', !!this.game);
+        console.log('🎲 ROLL DICE BUTTON CLICKED - rollDice called, game exists:', !!this.game);
         if (!this.game) {
-            console.log('No game instance, returning');
+            console.log('🎲 No game instance, returning');
             return;
         }
         
         // Check if current player is eliminated
         const currentPlayer = this.game.getCurrentPlayer();
+        console.log('🎲 Current player for dice roll:', {
+            name: currentPlayer?.monster?.name,
+            playerType: currentPlayer?.playerType,
+            isEliminated: currentPlayer?.isEliminated,
+            gamePhase: this.game.gamePhase,
+            turnPhase: this.game.currentTurnPhase
+        });
+        
         if (currentPlayer && currentPlayer.isEliminated) {
             console.log('⚠️ Current player is eliminated, cannot roll dice');
             UIUtilities.showMessage('Eliminated players cannot roll dice!', 3000, this.elements);
             return;
         }
         
-        console.log('Disabling roll dice button and calling game.startRoll()');
+        console.log('🎲 Disabling roll dice button and calling game.startRoll()');
         this.elements.rollDiceBtn.disabled = true;
         await this.game.startRoll();
         // Button state will be updated by event callback
@@ -2830,7 +3333,9 @@ class KingOfTokyoUI {
         console.log('🔥 animatePlayerAttacked called for player:', playerId);
         console.trace('🔥 Stack trace for animatePlayerAttacked:');
         
-        const playerElement = document.querySelector(`[data-player-id="${playerId}"]`);
+        // Find player element using utility function
+        const playerElement = this.findPlayerElement(playerId);
+        
         if (playerElement) {
             console.log('🔥 Found player element:', playerElement);
             console.log('🔥 Element classes before animation:', Array.from(playerElement.classList));
@@ -2907,7 +3412,8 @@ class KingOfTokyoUI {
     }
 
     animatePlayerHealing(playerId, healAmount) {
-        const playerElement = document.querySelector(`[data-player-id="${playerId}"]`);
+        // Find player element using utility function
+        const playerElement = this.findPlayerElement(playerId);
         if (!playerElement) return;
 
         // Create heart icon
@@ -2945,7 +3451,8 @@ class KingOfTokyoUI {
     }
 
     animateVictoryPoints(playerId, pointsGained) {
-        const playerElement = document.querySelector(`[data-player-id="${playerId}"]`);
+        // Find player element using utility function
+        const playerElement = this.findPlayerElement(playerId);
         if (!playerElement) return;
 
         // Create coin icon
@@ -2986,6 +3493,103 @@ class KingOfTokyoUI {
     async showGameLog() {
         this.updateGameLogDisplay();
         this.elements.gameLogModal.classList.remove('hidden');
+    }
+
+    exportGameLogs() {
+        console.log('🔍 exportGameLogs method called');
+        console.log('🔍 Game exists:', !!this.game);
+        console.log('🔍 Game log exists:', !!this.game?.gameLog);
+        console.log('🔍 Game log length:', this.game?.gameLog?.length);
+        
+        if (!this.game || !this.game.gameLog || this.game.gameLog.length === 0) {
+            console.log('❌ No game logs to export');
+            UIUtilities.showMessage('No game logs to export!', 3000, this.elements);
+            return;
+        }
+
+        try {
+            console.log('✅ Starting export process...');
+            // Get current date and time for filename
+            const now = new Date();
+            const timestamp = now.toISOString().replace(/[:.]/g, '-').slice(0, 19);
+            const filename = `king-of-tokyo-game-log-${timestamp}.txt`;
+
+            console.log('📁 Filename will be:', filename);
+
+            // Prepare log content with game metadata
+            let logContent = 'KING OF TOKYO - GAME LOG\n';
+            logContent += '================================\n\n';
+            logContent += `Exported: ${now.toLocaleString()}\n`;
+            
+            if (this.game.gameSettings) {
+                logContent += `Players: ${this.game.gameSettings.playerCount}\n`;
+                logContent += `Game Mode: ${this.game.gameSettings.gameMode || 'Standard'}\n`;
+            }
+            
+            if (this.game.players && this.game.players.length > 0) {
+                logContent += '\nPlayers:\n';
+                this.game.players.forEach((player, index) => {
+                    logContent += `  ${index + 1}. ${player.monster.name} (${player.playerType})\n`;
+                });
+            }
+            
+            logContent += '\n================================\n';
+            logContent += 'GAME EVENTS:\n';
+            logContent += '================================\n\n';
+
+            // Convert game log entries to text format
+            this.game.gameLog.forEach((entry, index) => {
+                const entryNumber = (index + 1).toString().padStart(3, '0');
+                logContent += `[${entryNumber}] ${entry.message}\n`;
+                
+                if (entry.timestamp) {
+                    const entryTime = new Date(entry.timestamp).toLocaleTimeString();
+                    logContent += `      Time: ${entryTime}\n`;
+                }
+                
+                if (entry.type && entry.type !== 'general') {
+                    logContent += `      Type: ${entry.type}\n`;
+                }
+                
+                logContent += '\n';
+            });
+
+            logContent += '\n================================\n';
+            logContent += 'END OF LOG\n';
+            logContent += '================================\n';
+
+            console.log('📄 Log content prepared, length:', logContent.length);
+
+            // Create and download the file
+            console.log('🔧 Creating blob...');
+            const blob = new Blob([logContent], { type: 'text/plain;charset=utf-8' });
+            console.log('🔧 Blob created, size:', blob.size);
+            
+            const url = URL.createObjectURL(blob);
+            console.log('🔧 Object URL created:', url);
+            
+            const downloadLink = document.createElement('a');
+            downloadLink.href = url;
+            downloadLink.download = filename;
+            downloadLink.style.display = 'none';
+            
+            console.log('🔧 Adding download link to document...');
+            document.body.appendChild(downloadLink);
+            console.log('🔧 Triggering download click...');
+            downloadLink.click();
+            console.log('🔧 Removing download link...');
+            document.body.removeChild(downloadLink);
+            
+            // Clean up the object URL
+            URL.revokeObjectURL(url);
+            console.log('✅ Export process completed');
+
+            UIUtilities.showMessage(`✅ Game logs exported as ${filename}`, 4000, this.elements);
+
+        } catch (error) {
+            console.error('Failed to export game logs:', error);
+            UIUtilities.showMessage('❌ Failed to export game logs. Please try again.', 4000, this.elements);
+        }
     }
 
     async showStorageManagement() {
@@ -3839,8 +4443,11 @@ class KingOfTokyoUI {
         
         console.log('🤖 CPU turn state initialized:', this.cpuTurnState);
         
-        // Start the CPU turn loop
-        this.processCPUTurn();
+        // Start the CPU turn loop with a longer delay to ensure proper game state
+        console.log('🤖 DELAYING CPU turn start to ensure game state is ready...');
+        setTimeout(() => {
+            this.processCPUTurn();
+        }, 3000); // Increased delay to 3 seconds
     }
 
     // Main CPU turn processing loop
@@ -4448,17 +5055,32 @@ class KingOfTokyoUI {
                 }
                 
                 // Clean up CPU state
-                console.log('🧹 Cleaning up CPU turn state...');
+                console.log('🧹 CLEANING UP CPU TURN STATE - CRITICAL POINT');
+                console.log('🧹 Before cleanup - CPU state exists:', !!this.cpuTurnState);
+                console.log('🧹 Before cleanup - current player:', this.game?.getCurrentPlayer()?.monster?.name);
                 this.cpuTurnState = null;
+                console.log('🧹 After cleanup - CPU state cleared');
                 
                 // Add extra logging to track turn flow
                 setTimeout(() => {
                     const nextPlayer = this.game.getCurrentPlayer();
-                    console.log('🔄 After CPU turn ended, current player is:', {
+                    console.log('🔄 AFTER CPU TURN ENDED AND CLEANUP, current player is:', {
                         name: nextPlayer?.monster?.name,
                         type: nextPlayer?.playerType,
-                        eliminated: nextPlayer?.isEliminated
+                        eliminated: nextPlayer?.isEliminated,
+                        gamePhase: this.game?.gamePhase,
+                        turnPhase: this.game?.currentTurnPhase
                     });
+                    
+                    // Check if this is where the problem starts
+                    if (nextPlayer?.playerType === 'human') {
+                        console.log('🚨 NEXT PLAYER IS HUMAN - They should be able to take actions now!');
+                        console.log('🚨 Game state check:', {
+                            rollsRemaining: this.game?.diceRoller?.getState()?.rollsRemaining,
+                            rollButtonEnabled: !document.getElementById('roll-dice')?.disabled,
+                            endButtonEnabled: !document.getElementById('end-turn')?.disabled
+                        });
+                    }
                 }, 100);
             } else {
                 console.log('❌ End turn button not found, trying game.endTurn() directly...');

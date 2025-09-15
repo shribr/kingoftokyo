@@ -718,16 +718,23 @@ class KingOfTokyoGame {
         
         if (attacker.isInTokyo) {
             if (attacker.tokyoLocation === 'city') {
-                // Player in Tokyo City attacks all other players (including Tokyo Bay)
+                // Player in Tokyo City attacks only players outside Tokyo (NOT Tokyo Bay)
                 const attackTargets = [];
                 this.players.forEach(player => {
-                    if (player.id !== attacker.id && !player.isEliminated) {
-                        console.log(`Attacking ${player.monster.name} (from Tokyo City) - target location: isInTokyo: ${player.isInTokyo}, tokyoLocation: ${player.tokyoLocation}`);
+                    if (player.id !== attacker.id && !player.isEliminated && !player.isInTokyo) {
+                        console.log(`Attacking ${player.monster.name} (from Tokyo City, targeting outside Tokyo) - target location: isInTokyo: ${player.isInTokyo}, tokyoLocation: ${player.tokyoLocation}`);
                         this.dealDamage(player, attackPower, attacker);
                         attackTargets.push(player.monster.name);
                     }
                 });
-                this.logDetailedAction(`${attacker.monster.name} attacks from Tokyo City: ${attackTargets.join(', ')} each take ${attackPower} damage`, 'attack-detail');
+                
+                // Count how many players were actually attacked
+                const targetsOutsideTokyo = this.players.filter(p => p.id !== attacker.id && !p.isEliminated && !p.isInTokyo);
+                if (targetsOutsideTokyo.length > 0) {
+                    this.logDetailedAction(`${attacker.monster.name} attacks from Tokyo City: ${attackTargets.join(', ')} each take ${attackPower} damage`, 'attack-detail');
+                } else {
+                    this.logDetailedAction(`${attacker.monster.name} attacks from Tokyo City: no valid targets outside Tokyo`, 'attack-detail');
+                }
             } else if (attacker.tokyoLocation === 'bay') {
                 // Player in Tokyo Bay attacks only players outside Tokyo (NOT Tokyo City)
                 const attackTargets = [];
@@ -1160,7 +1167,11 @@ class KingOfTokyoGame {
             return;
         }
         
-        // Only enter Tokyo if there are no current occupants
+        // Players only enter Tokyo during dice resolution if they attack and force someone out
+        // Regular Tokyo entry (when Tokyo is empty) happens at END of turn
+        console.log(`🎯 Tokyo entry during dice resolution only happens when attacking forces someone out`);
+        
+        // Only enter Tokyo if there are no current occupants AND the player attacked (forced entry)
         if (!player.isInTokyo && this.tokyoCity === null) {
             this.enterTokyo(player);
         } else if (!player.isInTokyo && this.tokyoBay === null && this.gameSettings.playerCount >= 5 && this.tokyoCity !== null) {
@@ -1169,21 +1180,29 @@ class KingOfTokyoGame {
     }
 
     // Enter Tokyo
-    enterTokyo(player) {
+    enterTokyo(player, automatic = false) {
         let location = null;
         
         if (this.tokyoCity === null) {
             this.tokyoCity = player.id;
             location = 'city';
-            this.logAction(`${player.monster.name} enters Tokyo City! (+1 victory point)`, 'tokyo');
+            if (automatic) {
+                this.logAction(`${player.monster.name} enters Tokyo City!`, 'tokyo');
+            } else {
+                this.logAction(`${player.monster.name} enters Tokyo City! (+1 victory point)`, 'tokyo');
+            }
         } else if (this.tokyoBay === null && this.gameSettings.playerCount >= 5) {
             this.tokyoBay = player.id;
             location = 'bay';
-            this.logAction(`${player.monster.name} enters Tokyo Bay! (+1 victory point)`, 'tokyo');
+            if (automatic) {
+                this.logAction(`${player.monster.name} enters Tokyo Bay!`, 'tokyo');
+            } else {
+                this.logAction(`${player.monster.name} enters Tokyo Bay! (+1 victory point)`, 'tokyo');
+            }
         }
         
         if (location) {
-            player.enterTokyo(location);
+            player.enterTokyo(location, automatic);
             
             // Trigger animation event
             this.triggerEvent('playerEntersTokyo', {
@@ -1219,6 +1238,38 @@ class KingOfTokyoGame {
         
         // Trigger general Tokyo state change
         this.triggerEvent('tokyoChanged', this.getGameState());
+    }
+
+    // Handle Tokyo entry at the end of any turn
+    handleEndOfTurnTokyoEntry(currentPlayer) {
+        // Only handle for non-eliminated players
+        if (currentPlayer.isEliminated) {
+            return;
+        }
+
+        // CRITICAL: Only handle Tokyo entry if dice have been resolved (i.e., a turn was actually completed)
+        // AND the player has explicitly ended their turn (not during dice resolution)
+        if (!this.diceEffectsResolved) {
+            console.log(`🚫 No Tokyo entry - dice effects not resolved yet (no actual turn taken)`);
+            return;
+        }
+
+        console.log(`🏯 End-of-turn Tokyo entry check for ${currentPlayer.monster.name}:`);
+        console.log(`🏯 Tokyo City occupied: ${this.tokyoCity ? 'Yes' : 'No'}`);
+        console.log(`🏯 Tokyo Bay occupied: ${this.tokyoBay ? 'Yes' : 'No'}`);
+        console.log(`🏯 Player count: ${this.gameSettings.playerCount}`);
+        console.log(`🏯 Current player in Tokyo: ${currentPlayer.isInTokyo ? 'Yes' : 'No'}`);
+
+        // RULE: If Tokyo City is empty at end of turn, current player MUST enter it
+        if (this.tokyoCity === null && !currentPlayer.isInTokyo) {
+            console.log(`🏯 ${currentPlayer.monster.name} MUST enter Tokyo City at end of turn`);
+            this.enterTokyo(currentPlayer, true); // Mark as automatic
+        } 
+        // RULE: If Tokyo Bay is empty (5+ players), current player MUST enter it
+        else if (this.tokyoBay === null && this.gameSettings.playerCount >= 5 && this.tokyoCity !== null && !currentPlayer.isInTokyo) {
+            console.log(`🏯 ${currentPlayer.monster.name} MUST enter Tokyo Bay at end of turn`);
+            this.enterTokyo(currentPlayer, true); // Mark as automatic
+        }
     }
 
     // Apply passive power card effects
@@ -1479,6 +1530,9 @@ class KingOfTokyoGame {
 
             // Log turn summary before ending
             this.logTurnSummary(currentPlayer);
+
+            // RULE: Handle mandatory Tokyo entry at end of any turn - BEFORE switching players
+            this.handleEndOfTurnTokyoEntry(currentPlayer);
 
             // Trigger turn ended event before switching players
             this.triggerEvent('turnEnded', this.getGameState());

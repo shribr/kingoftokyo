@@ -158,10 +158,12 @@ class Player {
     }
 
     // Enter Tokyo
-    enterTokyo(location = 'city') {
+    enterTokyo(location = 'city', automatic = false) {
         this.isInTokyo = true;
         this.tokyoLocation = location;
-        this.addVictoryPoints(1); // Bonus for entering Tokyo
+        if (!automatic) {
+            this.addVictoryPoints(1); // Bonus for entering Tokyo (only for voluntary entry)
+        }
     }
 
     // Leave Tokyo
