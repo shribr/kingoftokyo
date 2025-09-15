@@ -1749,25 +1749,47 @@ class KingOfTokyoUI {
                     
                     console.log('🤖 Current player is CPU, starting automatic turn in 2 seconds...');
                     setTimeout(() => {
-                        // Double-check that it's still the same CPU player's turn
+                        // Triple-check that it's still the same CPU player's turn and no other CPU turn is active
                         const stillCurrentPlayer = this.game.getCurrentPlayer();
                         if (stillCurrentPlayer && 
                             stillCurrentPlayer.id === currentPlayer.id && 
                             stillCurrentPlayer.playerType === 'cpu' &&
-                            !this.cpuTurnState) {
+                            !stillCurrentPlayer.isEliminated &&
+                            !this.cpuTurnState &&
+                            !this.game.switchingPlayers) { // Ensure no player switching in progress
                             console.log('🤖 Executing startAutomaticCPUTurn for:', currentPlayer.monster.name);
                             this.startAutomaticCPUTurn(currentPlayer);
                         } else {
-                            console.log('🤖 CPU turn cancelled - player changed or CPU turn already active');
+                            console.log('🤖 CPU turn cancelled - conditions changed:', {
+                                stillExists: !!stillCurrentPlayer,
+                                samePlayer: stillCurrentPlayer?.id === currentPlayer.id,
+                                stillCPU: stillCurrentPlayer?.playerType === 'cpu',
+                                notEliminated: !stillCurrentPlayer?.isEliminated,
+                                noCPUState: !this.cpuTurnState,
+                                notSwitching: !this.game.switchingPlayers
+                            });
                         }
                     }, 2000);
                 } else if (currentPlayer && currentPlayer.playerType !== 'cpu') {
                     console.log('👤 Current player is HUMAN, no automatic turn needed');
+                    console.log('👤 Human player details:', {
+                        name: currentPlayer.monster.name,
+                        id: currentPlayer.id,
+                        eliminated: currentPlayer.isEliminated,
+                        canPlay: !currentPlayer.isEliminated
+                    });
+                    // Ensure no CPU state interferes with human turns
+                    if (this.cpuTurnState) {
+                        console.log('🧹 Clearing stale CPU turn state for human player');
+                        this.cpuTurnState = null;
+                    }
                 } else if (this.cpuTurnState) {
                     console.log('🤖 CPU turn already in progress, not starting new one');
                 } else if (currentPlayer) {
                     console.log('👤 Current player is human:', currentPlayer.monster.name);
                     console.log('👤 Human player should be able to take their turn now');
+                    // Extra safety: clear any stale CPU state
+                    this.cpuTurnState = null;
                 } else {
                     console.log('❌ No current player found');
                 }
@@ -5303,6 +5325,16 @@ class KingOfTokyoUI {
                 // Clean up CPU state
                 console.log('🧹 Cleaning up CPU turn state...');
                 this.cpuTurnState = null;
+                
+                // Add extra logging to track turn flow
+                setTimeout(() => {
+                    const nextPlayer = this.game.getCurrentPlayer();
+                    console.log('🔄 After CPU turn ended, current player is:', {
+                        name: nextPlayer?.monster?.name,
+                        type: nextPlayer?.playerType,
+                        eliminated: nextPlayer?.isEliminated
+                    });
+                }, 100);
             } else {
                 console.log('❌ End turn button not found, trying game.endTurn() directly...');
                 if (this.game && this.game.endTurn) {

@@ -56,7 +56,7 @@
     width: 90vw;
     max-width: 1400px;
     text-align: center;
-    z-index: 2;
+    z-index: 3;
     animation: splashEntrance 1.5s ease-out;
 }
 
@@ -294,6 +294,96 @@
     overflow: hidden;
 }
 
+/* Background explosion effects that create the light reflecting off buildings */
+.city-skyline-container::before {
+    content: '';
+    position: absolute;
+    bottom: -20%;
+    left: 0;
+    width: 100%;
+    height: 80%;
+    background: 
+        radial-gradient(ellipse 200px 100px at 15% bottom, rgba(255, 100, 0, 0.4) 0%, rgba(255, 150, 0, 0.2) 50%, transparent 70%),
+        radial-gradient(ellipse 150px 80px at 35% bottom, rgba(255, 50, 0, 0.5) 0%, rgba(255, 120, 0, 0.25) 60%, transparent 80%),
+        radial-gradient(ellipse 180px 90px at 60% bottom, rgba(255, 80, 0, 0.45) 0%, rgba(255, 180, 0, 0.22) 55%, transparent 75%),
+        radial-gradient(ellipse 160px 85px at 85% bottom, rgba(255, 120, 0, 0.4) 0%, rgba(255, 200, 0, 0.18) 65%, transparent 85%);
+    z-index: -1; /* Behind the skyline */
+    animation: backgroundExplosions 8s ease-in-out infinite;
+    pointer-events: none;
+}
+
+/* Secondary layer of distant fires */
+.city-skyline-container::after {
+    content: '';
+    position: absolute;
+    bottom: -10%;
+    left: 0;
+    width: 100%;
+    height: 60%;
+    background: 
+        radial-gradient(ellipse 300px 60px at 25% bottom, rgba(255, 150, 0, 0.2) 0%, rgba(255, 200, 0, 0.1) 40%, transparent 60%),
+        radial-gradient(ellipse 250px 50px at 70% bottom, rgba(255, 100, 0, 0.25) 0%, rgba(255, 180, 0, 0.12) 45%, transparent 65%);
+    z-index: -2; /* Further behind */
+    animation: distantFires 12s ease-in-out infinite;
+    pointer-events: none;
+}
+
+/* Background explosion animation */
+@keyframes backgroundExplosions {
+    0% {
+        opacity: 0.8;
+        transform: scaleY(1) scaleX(1);
+    }
+    15% {
+        opacity: 1.2;
+        transform: scaleY(1.3) scaleX(1.1);
+    }
+    30% {
+        opacity: 0.9;
+        transform: scaleY(1.1) scaleX(1);
+    }
+    45% {
+        opacity: 1.4;
+        transform: scaleY(1.6) scaleX(1.2);
+    }
+    60% {
+        opacity: 0.7;
+        transform: scaleY(0.9) scaleX(0.95);
+    }
+    75% {
+        opacity: 1.1;
+        transform: scaleY(1.4) scaleX(1.05);
+    }
+    100% {
+        opacity: 0.8;
+        transform: scaleY(1) scaleX(1);
+    }
+}
+
+/* Distant fires animation */
+@keyframes distantFires {
+    0% {
+        opacity: 0.6;
+        transform: scaleX(1);
+    }
+    25% {
+        opacity: 0.9;
+        transform: scaleX(1.2);
+    }
+    50% {
+        opacity: 0.4;
+        transform: scaleX(0.8);
+    }
+    75% {
+        opacity: 1.0;
+        transform: scaleX(1.3);
+    }
+    100% {
+        opacity: 0.6;
+        transform: scaleX(1);
+    }
+}
+
 /* Manhattan Skyline with Ultra-Distant Effect */
 .skyline {
     position: absolute;
@@ -304,6 +394,82 @@
     opacity: 0.3; /* Much more subtle for miles-away effect */
     pointer-events: none;
     filter: blur(1px); /* More blur for atmospheric distance */
+}
+
+/* Create glowing outline effect around building perimeter */
+.skyline path {
+    /* Multiple shadows to create glow around the building edges */
+    filter: drop-shadow(0 0 3px rgba(255, 150, 0, 0.8))
+            drop-shadow(0 0 6px rgba(255, 100, 0, 0.6))
+            drop-shadow(0 0 12px rgba(255, 69, 0, 0.4))
+            drop-shadow(0 0 20px rgba(255, 200, 0, 0.3));
+    animation: buildingGlow 6s ease-in-out infinite, explosiveFlare 15s ease-in-out infinite;
+}
+
+/* Subtle pulsing glow animation along building edges */
+@keyframes buildingGlow {
+    0% {
+        filter: drop-shadow(0 0 3px rgba(255, 150, 0, 0.8))
+                drop-shadow(0 0 6px rgba(255, 100, 0, 0.6))
+                drop-shadow(0 0 12px rgba(255, 69, 0, 0.4))
+                drop-shadow(0 0 20px rgba(255, 200, 0, 0.3));
+    }
+    25% {
+        filter: drop-shadow(0 0 4px rgba(255, 140, 0, 0.9))
+                drop-shadow(0 0 8px rgba(255, 80, 0, 0.7))
+                drop-shadow(0 0 15px rgba(255, 50, 0, 0.5))
+                drop-shadow(0 0 25px rgba(255, 180, 0, 0.4));
+    }
+    50% {
+        filter: drop-shadow(0 0 5px rgba(255, 160, 0, 1.0))
+                drop-shadow(0 0 10px rgba(255, 120, 0, 0.8))
+                drop-shadow(0 0 18px rgba(255, 90, 0, 0.6))
+                drop-shadow(0 0 30px rgba(255, 220, 0, 0.5));
+    }
+    75% {
+        filter: drop-shadow(0 0 4px rgba(255, 130, 0, 0.85))
+                drop-shadow(0 0 7px rgba(255, 70, 0, 0.65))
+                drop-shadow(0 0 14px rgba(255, 40, 0, 0.45))
+                drop-shadow(0 0 22px rgba(255, 190, 0, 0.35));
+    }
+    100% {
+        filter: drop-shadow(0 0 3px rgba(255, 150, 0, 0.8))
+                drop-shadow(0 0 6px rgba(255, 100, 0, 0.6))
+                drop-shadow(0 0 12px rgba(255, 69, 0, 0.4))
+                drop-shadow(0 0 20px rgba(255, 200, 0, 0.3));
+    }
+}
+
+/* Large explosive flares that intensify the building edge glow */
+@keyframes explosiveFlare {
+    0% { }
+    10% {
+        filter: drop-shadow(0 0 8px rgba(255, 50, 0, 1.2))
+                drop-shadow(0 0 16px rgba(255, 100, 0, 1.0))
+                drop-shadow(0 0 25px rgba(255, 150, 0, 0.8))
+                drop-shadow(0 0 40px rgba(255, 200, 0, 0.6))
+                drop-shadow(0 0 60px rgba(255, 100, 0, 0.4));
+    }
+    15% { }
+    40% { }
+    43% {
+        filter: drop-shadow(0 0 10px rgba(255, 30, 0, 1.4))
+                drop-shadow(0 0 20px rgba(255, 80, 0, 1.2))
+                drop-shadow(0 0 30px rgba(255, 130, 0, 1.0))
+                drop-shadow(0 0 50px rgba(255, 180, 0, 0.8))
+                drop-shadow(0 0 80px rgba(255, 120, 0, 0.5));
+    }
+    48% { }
+    75% { }
+    78% {
+        filter: drop-shadow(0 0 6px rgba(255, 60, 0, 1.0))
+                drop-shadow(0 0 12px rgba(255, 110, 0, 0.8))
+                drop-shadow(0 0 20px rgba(255, 160, 0, 0.6))
+                drop-shadow(0 0 35px rgba(255, 210, 0, 0.5))
+                drop-shadow(0 0 55px rgba(255, 140, 0, 0.3));
+    }
+    82% { }
+    100% { }
 }
 
 /* Enhanced floating animation for polaroids */

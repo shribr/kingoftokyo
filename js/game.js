@@ -172,6 +172,7 @@ class KingOfTokyoGame {
         this.lastSavedLogIndex = 0;
         
         this.endingTurn = false; // Flag to prevent double turn ending
+        this.switchingPlayers = false; // Flag to prevent concurrent player switching
         this.turnEffectsApplied = new Map(); // Track which turn effects have been applied this turn
         
         // Debug: Check if classes are available
@@ -1635,75 +1636,88 @@ class KingOfTokyoGame {
 
     // Move to next player without applying start-of-turn effects
     switchToNextPlayer() {
-        let attempts = 0;
-        const maxAttempts = this.players.length;
+        // Prevent concurrent execution of this method
+        if (this.switchingPlayers) {
+            console.log('🚫 switchToNextPlayer() already in progress, ignoring duplicate call');
+            return;
+        }
         
-        // Enhanced debugging for turn order issues
-        console.log(`🐛 TURN ORDER DEBUG: Starting switchToNextPlayer()`);
-        console.log(`🐛 Before switch - currentPlayerIndex: ${this.currentPlayerIndex}`);
-        console.log(`🐛 Before switch - current player: ${this.getCurrentPlayer().monster.name}`);
-        console.log(`🐛 Before switch - Tokyo status:`, this.players.map(p => `${p.monster.name}:${p.isInTokyo ? 'Tokyo' : 'Outside'}`));
+        this.switchingPlayers = true;
         
-        do {
-            const previousPlayerIndex = this.currentPlayerIndex;
-            this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
-            attempts++;
+        try {
+            let attempts = 0;
+            const maxAttempts = this.players.length;
             
-            console.log(`🔄 Switching from player ${previousPlayerIndex} to ${this.currentPlayerIndex} (attempt ${attempts})`);
-            console.log(`🔄 Current player: ${this.getCurrentPlayer().monster.name}, eliminated: ${this.getCurrentPlayer().isEliminated}`);
+            // Enhanced debugging for turn order issues
+            console.log(`🐛 TURN ORDER DEBUG: Starting switchToNextPlayer()`);
+            console.log(`🐛 Before switch - currentPlayerIndex: ${this.currentPlayerIndex}`);
+            console.log(`🐛 Before switch - current player: ${this.getCurrentPlayer().monster.name}`);
+            console.log(`🐛 Before switch - Tokyo status:`, this.players.map(p => `${p.monster.name}:${p.isInTokyo ? 'Tokyo' : 'Outside'}`));
             
-            // Safety check to prevent infinite loop
-            if (attempts >= maxAttempts) {
-                console.log(`🔄 Completed full cycle, checking alive players`);
-                const alivePlayers = this.players.filter(p => !p.isEliminated);
-                if (alivePlayers.length <= 1) {
-                    console.log(`🔄 Only ${alivePlayers.length} alive players left, game should end`);
-                    // Let the game continue to trigger win condition check
-                    break;
-                }
-            }
-            
-            // If we've gone full circle, increment round
-            if (this.currentPlayerIndex === 0) {
-                const previousRound = this.round;
-                this.round++;
-                console.log(`🔄 Round transition: ${previousRound} → ${this.round} (Player index: ${previousPlayerIndex} → ${this.currentPlayerIndex})`);
+            do {
+                const previousPlayerIndex = this.currentPlayerIndex;
+                this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
+                attempts++;
                 
-                // Only start new round in log if gameplay has begun
-                if (this.gameplayStarted) {
-                    this.startNewRound();
+                console.log(`🔄 Switching from player ${previousPlayerIndex} to ${this.currentPlayerIndex} (attempt ${attempts})`);
+                console.log(`🔄 Current player: ${this.getCurrentPlayer().monster.name}, eliminated: ${this.getCurrentPlayer().isEliminated}`);
+                
+                // Safety check to prevent infinite loop
+                if (attempts >= maxAttempts) {
+                    console.log(`🔄 Completed full cycle, checking alive players`);
+                    const alivePlayers = this.players.filter(p => !p.isEliminated);
+                    if (alivePlayers.length <= 1) {
+                        console.log(`🔄 Only ${alivePlayers.length} alive players left, game should end`);
+                        // Let the game continue to trigger win condition check
+                        break;
+                    }
                 }
+                
+                // If we've gone full circle, increment round
+                if (this.currentPlayerIndex === 0) {
+                    const previousRound = this.round;
+                    this.round++;
+                    console.log(`🔄 Round transition: ${previousRound} → ${this.round} (Player index: ${previousPlayerIndex} → ${this.currentPlayerIndex})`);
+                    
+                    // Only start new round in log if gameplay has begun
+                    if (this.gameplayStarted) {
+                        this.startNewRound();
+                    }
+                }
+            } while (this.getCurrentPlayer().isEliminated && attempts < maxAttempts);
+
+            // Extra debugging for 6-player games
+            if (this.players.length === 6) {
+                console.log('🐛 6-PLAYER SWITCH DEBUG: Final result');
+                console.log(`🐛 Final current player: ${this.getCurrentPlayer().monster.name} (index ${this.currentPlayerIndex})`);
+                console.log(`🐛 Is current player eliminated: ${this.getCurrentPlayer().isEliminated}`);
+                console.log(`🐛 Attempts used: ${attempts}/${maxAttempts}`);
             }
-        } while (this.getCurrentPlayer().isEliminated && attempts < maxAttempts);
 
-        // Extra debugging for 6-player games
-        if (this.players.length === 6) {
-            console.log('🐛 6-PLAYER SWITCH DEBUG: Final result');
-            console.log(`🐛 Final current player: ${this.getCurrentPlayer().monster.name} (index ${this.currentPlayerIndex})`);
-            console.log(`🐛 Is current player eliminated: ${this.getCurrentPlayer().isEliminated}`);
-            console.log(`🐛 Attempts used: ${attempts}/${maxAttempts}`);
+            // Enhanced debugging for ALL games
+            console.log(`🐛 TURN ORDER DEBUG: Final switchToNextPlayer() result`);
+            console.log(`🐛 After switch - currentPlayerIndex: ${this.currentPlayerIndex}`);
+            console.log(`🐛 After switch - current player: ${this.getCurrentPlayer().monster.name}`);
+            console.log(`🐛 After switch - Tokyo status:`, this.players.map(p => `${p.monster.name}:${p.isInTokyo ? 'Tokyo' : 'Outside'}`));
+            console.log(`🐛 After switch - is new current player in Tokyo: ${this.getCurrentPlayer().isInTokyo}`);
+
+            // Only start player turn in log if gameplay has begun
+            if (this.gameplayStarted) {
+                this.startPlayerTurnInLog(this.getCurrentPlayer());
+            }
+            
+            // Reset dice effects resolved flag for the new turn
+            this.diceEffectsResolved = false;
+            
+            // Clear turn-based effects tracking for the new turn
+            this.clearTurnEffects();
+            
+            // Trigger turn started event for UI
+            this.triggerEvent('turnStarted', { currentPlayer: this.getCurrentPlayer() });
+        } finally {
+            // Always reset the flag, even if an error occurs
+            this.switchingPlayers = false;
         }
-
-        // Enhanced debugging for ALL games
-        console.log(`🐛 TURN ORDER DEBUG: Final switchToNextPlayer() result`);
-        console.log(`🐛 After switch - currentPlayerIndex: ${this.currentPlayerIndex}`);
-        console.log(`🐛 After switch - current player: ${this.getCurrentPlayer().monster.name}`);
-        console.log(`🐛 After switch - Tokyo status:`, this.players.map(p => `${p.monster.name}:${p.isInTokyo ? 'Tokyo' : 'Outside'}`));
-        console.log(`🐛 After switch - is new current player in Tokyo: ${this.getCurrentPlayer().isInTokyo}`);
-
-        // Only start player turn in log if gameplay has begun
-        if (this.gameplayStarted) {
-            this.startPlayerTurnInLog(this.getCurrentPlayer());
-        }
-        
-        // Reset dice effects resolved flag for the new turn
-        this.diceEffectsResolved = false;
-        
-        // Clear turn-based effects tracking for the new turn
-        this.clearTurnEffects();
-        
-        // Trigger turn started event for UI
-        this.triggerEvent('turnStarted', { currentPlayer: this.getCurrentPlayer() });
     }
 
     // Move to next player (legacy method - applies start-of-turn effects immediately)
