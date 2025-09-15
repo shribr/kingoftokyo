@@ -529,8 +529,8 @@ class KingOfTokyoUI {
             let xOffset = 0;
             let yOffset = 0;
 
-            // Get drag handle or use the whole element
-            const dragHandle = element.querySelector('.drag-handle') || element;
+            // Use the whole element as draggable (not just the drag handle)
+            const dragHandle = element;
 
             dragHandle.addEventListener('mousedown', dragStart);
             document.addEventListener('mousemove', drag);
@@ -542,13 +542,27 @@ class KingOfTokyoUI {
             document.addEventListener('touchend', dragEnd);
 
             function dragStart(e) {
-                // Prevent dragging when clicking on buttons
-                if (e.target.tagName === 'BUTTON') {
+                // Prevent dragging when clicking on interactive elements
+                if (e.target.tagName === 'BUTTON' || 
+                    e.target.tagName === 'INPUT' || 
+                    e.target.tagName === 'SELECT' ||
+                    e.target.closest('button') ||
+                    e.target.closest('input') ||
+                    e.target.closest('select')) {
                     return;
                 }
 
                 e.preventDefault();
                 element.classList.add('dragging');
+
+                // Get the element's current position to calculate proper offset
+                const rect = element.getBoundingClientRect();
+                
+                // If this is the first drag and no position has been set, use current position
+                if (xOffset === 0 && yOffset === 0) {
+                    xOffset = rect.left;
+                    yOffset = rect.top;
+                }
 
                 if (e.type === 'touchstart') {
                     initialX = e.touches[0].clientX - xOffset;
