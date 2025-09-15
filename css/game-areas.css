@@ -739,38 +739,71 @@
 }
 
 /* Active player container - positioned directly on body for proper fixed positioning */
-.active-player-container {
+/* Active player dashboard positioning */
+.player-dashboard.active {
     position: fixed !important;
-    top: 200px !important; /* Moved higher from 250px to avoid overlapping action menu */
-    right: 500px !important; /* Moved left from 450px */
-    z-index: 3000 !important; /* Active player card - in proper hierarchy */
-    pointer-events: auto; /* Ensure it's clickable */
+    bottom: 420px !important; /* Above the action menu (which is at bottom: 110px) */
+    right: 520px !important; /* Same horizontal alignment as action menu */
+    z-index: 9999 !important; /* Much higher z-index to ensure visibility */
+    pointer-events: auto !important;
+    
+    /* Preserve original player dashboard styling - no !important to allow monster colors */
+    background: 
+        linear-gradient(135deg, var(--monster-color-light, #3c3c3c) 0%, var(--monster-color, #2c2c2c) 100%);
+    border: 3px solid var(--monster-color, #000) !important;
+    border-radius: 0 !important;
+    padding: 16px !important; /* Restored padding */
+    transform: perspective(800px) rotateX(-0.7deg) rotateY(0.6deg) rotateZ(2.3deg) scale(1.02) !important;
+    width: 290px !important;
+    min-height: 280px !important;
+    margin: 0 !important;
+    
+    /* Enhanced styling for active state */
+    box-shadow: 
+        4px 4px 0px #000,
+        6px 6px 15px rgba(0, 0, 0, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.1) !important;
+    
+    /* Ensure visibility */
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.player-dashboard.active.draggable {
+    border: 2px solid #333;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.1);
+    padding: 5px;
+}
+
+.player-dashboard.active.draggable {
+    border: 2px solid #333;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.1);
+    padding: 5px;
 }
 
 /* Hide active player when any modal is showing */
-.modal:not(.hidden) ~ .active-player-container,
-body:has(.modal:not(.hidden)) .active-player-container {
+.modal:not(.hidden) ~ .player-dashboard.active,
+body:has(.modal:not(.hidden)) .player-dashboard.active {
     z-index: 100 !important; /* Much lower when modal is active */
     opacity: 0.3; /* Make it more transparent when modal is showing */
 }
 
-/* Temporary class to lower z-index when modal is showing - no longer needed */
-/* .active-player-container.modal-behind {
-    z-index: 1 !important;
-} */
-
-.active-player-container .player-dashboard.active {
-    /* Active player styling in dedicated container */
-    position: relative !important; /* Relative within the fixed container */
+/* Additional styling for active player dashboard */
+.player-dashboard.active {
+    /* Active player styling */
     width: 290px !important; /* Smaller, standard card width */
     min-height: 280px !important; /* Increased to match regular cards for health bar space */
     margin: 0 !important; /* Reset all margins */
     
     /* Clean styling without gradients */
-    border-color: #000 !important; /* Black border */
+    border-color: var(--monster-color, #000) !important; /* Use monster color for border */
     box-shadow: 
-        0 8px 20px rgba(0, 0, 0, 0.3) !important; /* Simple shadow, no gradients */
-    transform: perspective(800px) rotateX(-1deg) rotateY(0deg) rotateZ(1deg) scale(1.05) !important; /* Subtle prominent styling */
+        4px 4px 0px #000,
+        6px 6px 15px rgba(0, 0, 0, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.1) !important;
+    transform: perspective(800px) rotateX(-0.7deg) rotateY(0.6deg) rotateZ(2.3deg) scale(1.02) !important; /* Subtle prominent styling with tilt */
 }
 
 /* Active card hover effect is more pronounced */
@@ -974,16 +1007,16 @@ body:has(.modal:not(.hidden)) .active-player-container {
     background: #dda0dd; /* Pink background */
 }
 
+/* Cyber Bunny player dashboard - pink background */
+.player-dashboard[data-monster="cyberbunny"] {
+    background: #dda0dd; /* Pink background */
+}
+
 .player-dashboard[data-monster="cyberbunny"]::before {
     background: transparent;
 }
 
-.player-dashboard[data-monster="cyberbunny"].active {
-    background: #ff69b4; /* Brighter pink for active */
-    border-color: #000; /* Changed to black */
-    box-shadow: 
-        0 12px 30px rgba(233, 30, 99, 0.4);
-}
+/* Removed hardcoded active background - let CSS custom properties handle it */
 
 /* Alienoid player dashboard - yellowish green background */
 .player-dashboard[data-monster="alienoid"] {
@@ -994,12 +1027,7 @@ body:has(.modal:not(.hidden)) .active-player-container {
     background: transparent;
 }
 
-.player-dashboard[data-monster="alienoid"].active {
-    background: #9acd32; /* Brighter yellowish green for active */
-    border-color: #000; /* Changed to black */
-    box-shadow: 
-        0 12px 30px rgba(139, 195, 74, 0.4);
-}
+/* Removed hardcoded active background - let CSS custom properties handle it */
 
 /* Gigazaur player dashboard - darker forest green background */
 .player-dashboard[data-monster="gigazaur"] {
@@ -1010,12 +1038,7 @@ body:has(.modal:not(.hidden)) .active-player-container {
     background: transparent;
 }
 
-.player-dashboard[data-monster="gigazaur"].active {
-    background: #2a4b2a;
-    border-color: #000; /* Changed to black */
-    box-shadow: 
-        0 12px 30px rgba(46, 125, 50, 0.4);
-}
+/* Removed hardcoded active background - let CSS custom properties handle it */
 
 /* Kraken player dashboard - darker forest green/greenish blue background */
 .player-dashboard[data-monster="kraken"] {
@@ -1026,12 +1049,7 @@ body:has(.modal:not(.hidden)) .active-player-container {
     background: transparent;
 }
 
-.player-dashboard[data-monster="kraken"].active {
-    background: #2a4b47;
-    border-color: #000; /* Changed to black */
-    box-shadow: 
-        0 12px 30px rgba(0, 105, 92, 0.4);
-}
+/* Removed hardcoded active background - let CSS custom properties handle it */
 
 /* The King player dashboard - darker brown background */
 .player-dashboard[data-monster="kinghull"] {
@@ -1042,12 +1060,7 @@ body:has(.modal:not(.hidden)) .active-player-container {
     background: transparent;
 }
 
-.player-dashboard[data-monster="kinghull"].active {
-    background: #5c4a26;
-    border-color: #000; /* Changed to black */
-    box-shadow: 
-        0 12px 30px rgba(93, 64, 55, 0.4);
-}
+/* Removed hardcoded active background - let CSS custom properties handle it */
 
 /* Meka Dragon player dashboard - red background */
 .player-dashboard[data-monster="megalodon"] {
@@ -1058,28 +1071,7 @@ body:has(.modal:not(.hidden)) .active-player-container {
     background: transparent;
 }
 
-.player-dashboard[data-monster="megalodon"].active {
-    background: #dc143c; /* Brighter red for active */
-    border-color: #000; /* Changed to black */
-    box-shadow: 
-        0 12px 30px rgba(93, 64, 55, 0.4);
-}
-
-/* Meka Dragon player dashboard - red background */
-.player-dashboard[data-monster="megalodon"] {
-    background: #cd5c5c; /* Red background */
-}
-
-.player-dashboard[data-monster="megalodon"]::before {
-    background: transparent;
-}
-
-.player-dashboard[data-monster="megalodon"].active {
-    background: #dc143c; /* Brighter red for active */
-    border-color: #000; /* Changed to black */
-    box-shadow: 
-        0 12px 30px rgba(128, 0, 32, 0.4);
-}
+/* Removed hardcoded active background - let CSS custom properties handle it */
 
 /* Override any Tokyo-specific styling to maintain monster backgrounds */
 /* Cyber Bunny in Tokyo - maintain regular background */

@@ -1224,10 +1224,10 @@
     z-index: 1 !important;
 }
 
-/* Ensure active player container has very low z-index when decision modal is showing */
-#decision-modal:not(.hidden) ~ .active-player-container,
-#decision-modal:not(.hidden) ~ * .active-player-container,
-body:has(#decision-modal:not(.hidden)) .active-player-container {
+/* Ensure active player dashboard has very low z-index when decision modal is showing */
+#decision-modal:not(.hidden) ~ .player-dashboard.active,
+#decision-modal:not(.hidden) ~ * .player-dashboard.active,
+body:has(#decision-modal:not(.hidden)) .player-dashboard.active {
     z-index: 1 !important;
 }
 
@@ -1933,6 +1933,7 @@ body:has(#decision-modal:not(.hidden)) .active-player-container {
         16px 16px 40px rgba(0, 0, 0, 0.8);
     border: 6px solid #000;
     position: relative;
+    z-index: 5000; /* Above active player card (3000) */
     color: #000;
     
     /* Comic book halftone pattern */

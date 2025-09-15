@@ -170,7 +170,7 @@ class KingOfTokyoUI {
             // Cards elements
             // currentEnergy: document.getElementById('current-energy'),
             availableCards: document.getElementById('available-cards'),
-            activePlayerArea: document.getElementById('active-player-area'),
+            // Note: active player uses .player-dashboard.active class
             
             // Game over elements
             winnerAnnouncement: document.getElementById('winner-announcement'),
@@ -521,13 +521,19 @@ class KingOfTokyoUI {
         const draggableElements = document.querySelectorAll('.draggable');
         
         draggableElements.forEach(element => {
-            let isDragging = false;
-            let currentX = 0;
-            let currentY = 0;
-            let initialX = 0;
-            let initialY = 0;
-            let xOffset = 0;
-            let yOffset = 0;
+            this.makeDraggable(element);
+        });
+    }
+
+    // Helper method to make a single element draggable
+    makeDraggable(element) {
+        let isDragging = false;
+        let currentX = 0;
+        let currentY = 0;
+        let initialX = 0;
+        let initialY = 0;
+        let xOffset = 0;
+        let yOffset = 0;
 
             // Use the whole element as draggable (not just the drag handle)
             const dragHandle = element;
@@ -661,8 +667,7 @@ class KingOfTokyoUI {
                     console.log(`No saved position found for ${elementId}`);
                 }
             }
-        });
-    }
+        }
 
     // Reset all draggable elements to their default positions
     resetDraggablePositions() {
@@ -759,6 +764,24 @@ class KingOfTokyoUI {
                         gameBoard.classList.add('five-players');
                     } else if (this.currentPlayerCount === 6) {
                         gameBoard.classList.add('six-players');
+                    }
+                }
+                
+                // Handle automatic Tokyo entry for 5+ player games AFTER UI is initialized
+                if (this.currentPlayerCount >= 5) {
+                    console.log('🏙️ Setting up automatic Tokyo entry for 5+ player game');
+                    // First player (index 0) enters Tokyo City
+                    const firstPlayer = this.game.players[0];
+                    if (firstPlayer && this.game.tokyoCity === null) {
+                        console.log(`🏙️ ${firstPlayer.monster.name} automatically enters Tokyo City!`);
+                        this.game.enterTokyo(firstPlayer);
+                    }
+                    
+                    // Second player (index 1) enters Tokyo Bay
+                    const secondPlayer = this.game.players[1];
+                    if (secondPlayer && this.game.tokyoBay === null) {
+                        console.log(`🏖️ ${secondPlayer.monster.name} automatically enters Tokyo Bay!`);
+                        this.game.enterTokyo(secondPlayer);
                     }
                 }
                 
@@ -1064,30 +1087,195 @@ class KingOfTokyoUI {
     
     // Rebuild the entire player layout (called only when current player changes)
     _rebuildPlayerLayout(players, currentPlayer) {
-        // Separate active and non-active players
-        const nonActivePlayers = players.filter(player => player.id !== currentPlayer.id);
-        const activePlayer = players.find(player => player.id === currentPlayer.id);
+        console.log('🏗️ Rebuilding player layout for current player:', currentPlayer.id);
+        console.log('👥 Total players:', players.length);
         
-        // Render non-active players in the regular container
-        this.elements.playersContainer.innerHTML = nonActivePlayers.map(player => this._generatePlayerHTML(player, false)).join('');
+        // Store original positioning data before any changes
+        const existingCards = document.querySelectorAll('.player-dashboard');
+        const originalPositions = new Map();
         
-        // Create or update active player container
-        let activePlayerContainer = document.getElementById('active-player-container');
-        if (!activePlayerContainer) {
-            activePlayerContainer = document.createElement('div');
-            activePlayerContainer.id = 'active-player-container';
-            activePlayerContainer.className = 'active-player-container';
-            // Append to the dedicated active-player-area instead of body
-            this.elements.activePlayerArea.appendChild(activePlayerContainer);
-        }
+        existingCards.forEach(card => {
+            const playerId = card.dataset.playerId;
+            if (playerId) {
+                const styles = getComputedStyle(card);
+                originalPositions.set(playerId, {
+                    position: styles.position,
+                    top: styles.top,
+                    left: styles.left,
+                    right: styles.right,
+                    transform: styles.transform,
+                    zIndex: styles.zIndex,
+                    margin: styles.margin,
+                    background: styles.background,
+                    borderColor: styles.borderColor
+                });
+            }
+        });
         
-        // Render active player in separate container
-        if (activePlayer) {
-            activePlayerContainer.innerHTML = this._generatePlayerHTML(activePlayer, true);
-        }
+        // Render all players in the main container
+        this.elements.playersContainer.innerHTML = players.map(player => 
+            this._generatePlayerHTML(player, player.id === currentPlayer.id)
+        ).join('');
+        
+        console.log('📄 Generated HTML for players container');
+        
+        // Restore original positioning for non-active players and set up active player
+        this._setupPlayerPositioning(players, currentPlayer, originalPositions);
+        
+        // Make only the active player draggable
+        this._setupActivePlayerDragging(currentPlayer.id);
         
         // Attach event listeners
         this.attachPowerCardTabListeners();
+        
+        // Verify the active player is visible
+        setTimeout(() => {
+            const activePlayerDashboard = document.querySelector('.player-dashboard.active');
+            if (activePlayerDashboard) {
+                const rect = activePlayerDashboard.getBoundingClientRect();
+                console.log('📍 Active player position:', 
+                    `top: ${rect.top}px, left: ${rect.left}px, right: ${window.innerWidth - rect.right}px, width: ${rect.width}px, height: ${rect.height}px`);
+                
+                const styles = getComputedStyle(activePlayerDashboard);
+                console.log('🎨 Active player computed styles:', 
+                    `position: ${styles.position}, top: ${styles.top}, right: ${styles.right}, display: ${styles.display}, visibility: ${styles.visibility}, opacity: ${styles.opacity}`);
+                
+                // Check if it's visible in viewport
+                const isVisible = rect.top >= 0 && rect.left >= 0 && 
+                                 rect.bottom <= window.innerHeight && 
+                                 rect.right <= window.innerWidth;
+                console.log('👀 Is visible in viewport:', isVisible);
+                
+                if (!isVisible) {
+                    console.warn('⚠️ Active player card is outside viewport bounds!');
+                    console.log('🖥️ Viewport size:', `${window.innerWidth}x${window.innerHeight}`);
+                }
+            } else {
+                console.error('❌ No active player dashboard found after layout rebuild');
+            }
+        }, 100);
+    }
+    
+    // Setup player positioning - restore non-active players to stack, position active player
+    _setupPlayerPositioning(players, currentPlayer, originalPositions) {
+        console.log('🎯 Setting up player positioning');
+        
+        players.forEach((player, index) => {
+            const dashboard = document.querySelector(`[data-player-id="${player.id}"]`);
+            if (!dashboard) return;
+            
+            // Set monster color properties for all players
+            if (player.monster.color) {
+                const monsterColor = player.monster.color;
+                const lighterColor = this._lightenColor(monsterColor, 20);
+                const glowColor = `${monsterColor}66`; // Add alpha transparency
+                const strongGlowColor = `${monsterColor}aa`; // Stronger alpha transparency
+
+                dashboard.style.setProperty('--monster-color', monsterColor);
+                dashboard.style.setProperty('--monster-color-light', lighterColor);
+                dashboard.style.setProperty('--monster-glow-color', glowColor);
+                dashboard.style.setProperty('--monster-glow-strong', strongGlowColor);
+                
+                console.log(`🎨 Set monster colors for ${player.monster.name}: ${monsterColor} -> ${lighterColor}`);
+            }
+            
+            if (player.id === currentPlayer.id) {
+                // Active player - move out of container and use fixed positioning
+                console.log('📍 Setting up active player:', player.id);
+                dashboard.classList.add('active');
+                
+                // Move the active player card out of the players container and append to body
+                if (dashboard.parentNode && dashboard.parentNode.id === 'players-container') {
+                    console.log('🚀 Moving active player out of container to body');
+                    document.body.appendChild(dashboard);
+                }
+                
+                // Store reference to original parent for restoration later
+                dashboard.dataset.originalParent = 'players-container';
+                dashboard.dataset.originalIndex = index.toString();
+                
+                // Add or update Tokyo indicator if player is in Tokyo
+                this._updateTokyoIndicator(dashboard, player);
+                
+            } else {
+                // Non-active player - restore to stack position
+                console.log('📋 Restoring non-active player to stack:', player.id);
+                dashboard.classList.remove('active');
+                
+                // If this card was previously active and moved to body, move it back to players container
+                if (dashboard.parentNode === document.body && dashboard.dataset.originalParent === 'players-container') {
+                    console.log('↩️ Moving inactive player back to container');
+                    const playersContainer = document.getElementById('players-container');
+                    const originalIndex = parseInt(dashboard.dataset.originalIndex || '0');
+                    
+                    // Insert at the correct position based on original index
+                    const existingCards = Array.from(playersContainer.querySelectorAll('.player-dashboard'));
+                    if (originalIndex < existingCards.length) {
+                        playersContainer.insertBefore(dashboard, existingCards[originalIndex]);
+                    } else {
+                        playersContainer.appendChild(dashboard);
+                    }
+                    
+                    // Clean up data attributes
+                    delete dashboard.dataset.originalParent;
+                    delete dashboard.dataset.originalIndex;
+                }
+                
+                // Remove any inline styles that might override CSS positioning
+                dashboard.style.position = '';
+                dashboard.style.top = '';
+                dashboard.style.left = '';
+                dashboard.style.right = '';
+                dashboard.style.bottom = '';
+                dashboard.style.transform = '';
+                dashboard.style.zIndex = '';
+                dashboard.style.margin = '';
+                
+                // Let CSS handle the stack positioning based on nth-child rules
+            }
+        });
+    }
+    
+    // Helper method to lighten a hex color
+    _lightenColor(color, percent) {
+        const f = parseInt(color.slice(1), 16);
+        const t = percent < 0 ? 0 : 255;
+        const p = percent < 0 ? percent * -1 : percent;
+        const R = f >> 16;
+        const G = f >> 8 & 0x00FF;
+        const B = f & 0x0000FF;
+        return "#" + (0x1000000 + (Math.round((t - R) * p / 100) + R) * 0x10000 + 
+                      (Math.round((t - G) * p / 100) + G) * 0x100 + 
+                      (Math.round((t - B) * p / 100) + B)).toString(16).slice(1);
+    }
+
+    // Setup dragging for the active player only
+    _setupActivePlayerDragging(activePlayerId) {
+        // Remove draggable from all players first
+        const allPlayerDashboards = document.querySelectorAll('.player-dashboard');
+        allPlayerDashboards.forEach(dashboard => {
+            dashboard.classList.remove('draggable');
+            dashboard.removeAttribute('draggable');
+        });
+        
+        // Add draggable to active player
+        const activePlayerDashboard = document.querySelector(`.player-dashboard[data-player-id="${activePlayerId}"]`);
+        console.log('🎯 Setting up active player dragging for:', activePlayerId);
+        console.log('🔍 Found active player dashboard:', activePlayerDashboard);
+        
+        if (activePlayerDashboard) {
+            console.log('📋 Classes before:', activePlayerDashboard.className);
+            activePlayerDashboard.classList.add('draggable');
+            activePlayerDashboard.setAttribute('draggable', 'true');
+            console.log('📋 Classes after:', activePlayerDashboard.className);
+            
+            // Check if it has the active class
+            console.log('✅ Has active class:', activePlayerDashboard.classList.contains('active'));
+            
+            this.makeDraggable(activePlayerDashboard);
+        } else {
+            console.error('❌ Could not find active player dashboard for ID:', activePlayerId);
+        }
     }
     
     // Update only the stats of existing player cards (no flickering)
@@ -2434,10 +2622,10 @@ class KingOfTokyoUI {
             // Show modal
             this.elements.decisionModal.classList.remove('hidden');
             
-            // Force active player container to have lower z-index to prevent interference
-            const activePlayerContainer = document.querySelector('.active-player-container');
-            if (activePlayerContainer) {
-                activePlayerContainer.style.zIndex = '1';
+            // Force active player dashboard to have lower z-index to prevent interference
+            const activePlayerDashboard = document.querySelector('.player-dashboard.active');
+            if (activePlayerDashboard) {
+                activePlayerDashboard.style.zIndex = '1';
             }
             
             // Force all player cards to have lower z-index
@@ -2454,9 +2642,9 @@ class KingOfTokyoUI {
         this.elements.decisionModal.classList.add('hidden');
         
         // Restore original z-index values
-        const activePlayerContainer = document.querySelector('.active-player-container');
-        if (activePlayerContainer) {
-            activePlayerContainer.style.zIndex = ''; // Reset to CSS default
+        const activePlayerDashboard = document.querySelector('.player-dashboard.active');
+        if (activePlayerDashboard) {
+            activePlayerDashboard.style.zIndex = ''; // Reset to CSS default
         }
         
         // Reset all player cards z-index
@@ -2520,12 +2708,6 @@ class KingOfTokyoUI {
     resetGame() {
         this.elements.gameOverModal.classList.add('hidden');
         
-        // Clean up any existing active player container from previous game
-        const existingActivePlayerContainer = document.getElementById('active-player-container');
-        if (existingActivePlayerContainer) {
-            existingActivePlayerContainer.remove();
-        }
-        
         // Reset game state
         this.game = null;
         this.selectedMonsters = [];
@@ -2555,12 +2737,6 @@ class KingOfTokyoUI {
         // Hide the confirmation modal first
         this.hideExitConfirmationModal();
 
-        // Clean up any existing active player container from current game
-        const existingActivePlayerContainer = document.getElementById('active-player-container');
-        if (existingActivePlayerContainer) {
-            existingActivePlayerContainer.remove();
-        }
-        
         // Hide any open modals
         const modals = [
             this.elements.gameOverModal,

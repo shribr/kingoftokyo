@@ -456,32 +456,6 @@ body::before {
 }
 
 /* Active Player Area - positioned outside game-container but visually in same location */
-.active-player-area {
-    position: fixed;
-    z-index: 3000; /* Active player card and round-incrementor */
-    pointer-events: none; /* Allow clicks to pass through to underlying elements */
-    width: auto;
-    height: auto;
-    /* Only set initial position if no transform is applied */
-}
-
-.active-player-area:not([style*="transform"]) {
-    top: 20px; /* Adjust based on where active player currently appears */
-    right: 20px; /* Adjust based on where active player currently appears */
-}
-
-.active-player-area.draggable {
-    pointer-events: auto; /* Re-enable pointer events when draggable */
-    border: 2px solid #333;
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.1);
-    padding: 5px;
-}
-
-.active-player-area .active-player-container {
-    pointer-events: auto; /* Re-enable pointer events for the actual player card */
-}
-
 /* Bottom UI Table System - 3-row layout for notifications, actions, and toolbar */
 .bottom-ui-table {
     position: fixed;
