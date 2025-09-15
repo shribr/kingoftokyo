@@ -15,7 +15,7 @@
     align-items: flex-start;
     justify-content: center;
     padding: 0;
-    z-index: 99998; /* Below splash screen */
+    z-index: 8000; /* Modal dialogs (toolbar-launched) + Monster Selection dialog */
     -webkit-backdrop-filter: blur(5px);
     backdrop-filter: blur(5px);
     overflow-y: auto;
@@ -1423,7 +1423,7 @@ body:has(#decision-modal:not(.hidden)) .active-player-container {
 
 /* Game Over Modal - King of Tokyo Theme */
 #game-over-modal {
-    z-index: 999999 !important; /* Highest z-index to override everything including player cards */
+    z-index: 9000 !important; /* Winner/end of game modals - second highest after splash */
 }
 
 #game-over-modal .modal-content {

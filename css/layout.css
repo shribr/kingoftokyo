@@ -1,4 +1,23 @@
-/* Layout Styles - Game Container, Header, Board */
+/* === Z-INDEX HIERARCHY === */
+/* 
+ * Z-Index stack (highest to lowest):
+ * 10000+ : Splash screen (always highest)
+ * 9000-9999 : Winner/end of game modals 
+ * 8000-8999 : Modal dialogs (toolbar-launched) + Monster Selection dialog
+ * 7000-7999 : Pause overlay (covers area above toolbar)
+ * 6000-6999 : Monsters and power cards side panels  
+ * 5000-5999 : Main "King of Tokyo" header
+ * 4000-4999 : Bottom-ui "table" (cpu-notifications, action-menu, dice-area, toolbar)
+ * 3000-3999 : Active player card and round-incrementor
+ * 2000-2999 : Reserved for temporary overlays/dragging
+ * 1000-1999 : Reserved for future use
+ * 500-999   : Playing area hover effects and highlights
+ * 300-499   : Playing area base content (Tokyo areas, player cards)
+ * 100-299   : Background patterns and base elements
+ * 1-99      : Document flow and basic positioning
+ * 
+ * NOTE: Pause overlay stops above toolbar (bottom: 90px) to keep toolbar accessible
+ */
 
 /* Remove all scrollbars from the game - exclude dropdowns */
 /* *:not(.custom-dropdown):not(.dropdown-options) {
@@ -63,7 +82,7 @@ body::before {
         radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0);
     background-size: 20px 20px;
     pointer-events: none;
-    z-index: -1;
+    z-index: 100; /* Playing area background pattern */
 }
 
 /* Game Container */
@@ -73,7 +92,7 @@ body::before {
     margin: 0;
     padding: 10px 0; /* Reduced padding */
     position: relative;
-    z-index: 1;
+    z-index: 200; /* Playing area - base game content */
     overflow: visible; /* Allow player cards to expand beyond container */
     box-sizing: border-box;
 }
@@ -138,7 +157,7 @@ body::before {
     transform: perspective(800px) rotateX(-3deg) rotateY(-2deg) translateX(-100px); /* Adjusted left position to 100px */
     margin: 0;
     position: relative;
-    z-index: 1;
+    z-index: 5000; /* Main "King of Tokyo" header */
     filter: drop-shadow(8px 8px 0px #000) drop-shadow(10px 10px 15px rgba(0, 0, 0, 0.5)); /* Reduced drop shadow */
     display: inline-block;
     text-transform: uppercase;
@@ -245,7 +264,7 @@ body::before {
     top: 10px;
     bottom: 45px; /* Increased bottom margin to prevent viewport overflow */
     width: 430px; /* Increased from 390px to 430px for better card display */
-    z-index: 5;
+    z-index: 6000; /* Monsters and power cards side panels */
     opacity: 1; /* Ensure visibility */
 }
 
@@ -256,7 +275,7 @@ body::before {
     top: 20px; /* Moved much higher from 60px to 20px for 6-player support */
     bottom: 15px; /* Increased bottom margin to prevent viewport overflow */
     width: 420px; /* Increased from 360px to 420px for better text display and stat padding */
-    z-index: 4;
+    z-index: 6000; /* Monsters and power cards side panels */
     overflow: visible; /* Allow player cards to expand on hover */
     opacity: 1; /* Ensure visibility */
 }
@@ -268,7 +287,7 @@ body::before {
     left: 480px; /* Moved right from 24% to account for wider cards area */
     right: 460px; /* Adjusted to account for wider players area */
     height: 120px; /* Decreased by another 10px (130px->120px) */
-    z-index: 6;
+    z-index: 4000; /* Bottom-ui "table" components */
     margin: 0;
     opacity: 1; /* Ensure visibility */
 }
@@ -279,7 +298,7 @@ body::before {
     bottom: 110px; /* Moved up to prevent viewport overflow */
     right: 520px; /* Moved further left to make room for wider buttons */
     width: 250px; /* Increased width to accommodate 120% button width */
-    z-index: 6;
+    z-index: 4000; /* Bottom-ui "table" components */
     margin: 0;
     opacity: 1;
 }
@@ -292,7 +311,7 @@ body::before {
     display: flex;
     align-items: center;
     gap: 10px;
-    z-index: 15;
+    z-index: 3500; /* Active player card and round-incrementor */
     overflow: visible; /* Ensure content isn't clipped */
 }
 
@@ -388,7 +407,7 @@ body::before {
 /* Draggable Elements */
 .draggable {
     position: fixed;
-    z-index: 1000;
+    z-index: 2000; /* Temporary overlays for dragging */
     border: 2px solid #333;
     border-radius: 8px;
     background: rgba(0, 0, 0, 0.9);
@@ -406,7 +425,7 @@ body::before {
     opacity: 0.8;
     transform: rotate(2deg);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
-    z-index: 1001;
+    z-index: 2100; /* Higher when actively dragging */
 }
 
 .drag-handle {
@@ -470,7 +489,7 @@ body::before {
 /* Active Player Area - positioned outside game-container but visually in same location */
 .active-player-area {
     position: fixed;
-    z-index: 500; /* Below draggable elements but above game content */
+    z-index: 3000; /* Active player card and round-incrementor */
     pointer-events: none; /* Allow clicks to pass through to underlying elements */
     width: auto;
     height: auto;
@@ -503,7 +522,7 @@ body::before {
     display: flex;
     flex-direction: column;
     justify-content: flex-end; /* Anchor to bottom */
-    z-index: 900; /* Below draggable elements but above game content */
+    z-index: 4000; /* Bottom-ui "table" (cpu-notifications, action-menu, dice-area, toolbar) */
     pointer-events: none; /* Allow interactions to pass through to child elements */
 }
 
@@ -612,6 +631,43 @@ body::before {
     filter: grayscale(0.3) brightness(0.8);
 }
 
+/* Game Pause Overlay - covers area above toolbar to keep toolbar accessible */
+.game-pause-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 90px; /* Stop above the toolbar (toolbar height + padding) */
+    background-color: rgba(128, 128, 128, 0.6); /* Gray with 60% opacity */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 7000; /* Pause overlay - above content but below modals */
+    pointer-events: none; /* Don't block clicks when hidden */
+}
+
+.game-pause-overlay.hidden {
+    display: none;
+}
+
+.game-pause-overlay:not(.hidden) {
+    pointer-events: auto; /* Block clicks when visible */
+}
+
+.pause-message {
+    background-color: rgba(255, 255, 255, 0.95);
+    color: #000;
+    padding: 30px 50px;
+    border-radius: 8px;
+    font-size: 32px;
+    font-weight: bold;
+    font-family: 'Comic Neue', cursive;
+    text-align: center;
+    border: 3px solid #000;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
 /* Pause indicator - only show on game container, not globally */
 .game-container.game-paused::before {
     content: "⏸️ GAME PAUSED";
@@ -624,7 +680,7 @@ body::before {
     padding: 8px 16px;
     border-radius: 4px;
     font-weight: bold;
-    z-index: 1001; /* Just above toolbar */
+    z-index: 7100; /* Above pause overlay */
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     border: 2px solid #000;
     font-family: 'Comic Neue', cursive;

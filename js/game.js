@@ -680,6 +680,10 @@ class KingOfTokyoGame {
         // Apply power card effects
         this.applyPassiveCardEffects(player, results);
 
+        // Apply turn-based power card effects immediately after dice resolution
+        // This ensures effects like "gain 1 energy per turn" happen right after dice, not at start of next turn
+        this.applyTurnBasedEffects(player);
+
         // Check for Tokyo entry
         this.checkTokyoEntry(player);
 
@@ -1500,6 +1504,8 @@ class KingOfTokyoGame {
     }
 
     // Apply start of turn effects (including Tokyo bonuses)
+    // These are effects that happen at the very start of a turn (like Tokyo bonus points, extra dice, extra rolls)
+    // Power card effects that trigger "once per turn" are handled in applyTurnBasedEffects() after dice resolution
     applyStartOfTurnEffects() {
         const currentPlayer = this.getCurrentPlayer();
         
@@ -1579,11 +1585,13 @@ class KingOfTokyoGame {
             currentPlayer.extraDiceEnabled = 0;
         }
 
-        // Apply turn-based power card effects
-        this.applyTurnBasedEffects(currentPlayer);
+        // Note: applyTurnBasedEffects() is now called after dice resolution, 
+        // not at start of turn, to ensure immediate effect application
     }
 
     // Apply turn-based power card effects
+    // These are effects that trigger once per turn after dice resolution (like "gain 1 energy per turn")
+    // NOT effects that trigger at start of turn (those should be in applyStartOfTurnEffects)
     applyTurnBasedEffects(player) {
         player.powerCards.forEach(card => {
             const effect = this.applyCardEffectWithAnimation(card, player, this);

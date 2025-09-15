@@ -229,7 +229,8 @@ class KingOfTokyoUI {
             thoughtBubblesToggle: document.getElementById('thought-bubbles-toggle'),
             closeInstructionsBtn: document.getElementById('close-instructions'),
             closeGameOverBtn: document.getElementById('close-game-over'),
-            darkModeToggle: document.getElementById('dark-mode-toggle')
+            darkModeToggle: document.getElementById('dark-mode-toggle'),
+            gamePauseOverlay: document.getElementById('game-pause-overlay')
         };
         
         // Debug: Check which elements are null - categorize as critical vs optional
@@ -5569,6 +5570,11 @@ class KingOfTokyoUI {
         // Show pause notification
         this.showMessage('⏸️ Game Paused', 2000);
         
+        // Show the pause overlay
+        if (this.elements.gamePauseOverlay) {
+            this.elements.gamePauseOverlay.classList.remove('hidden');
+        }
+        
         // Add visual indication to game container only
         const gameContainer = document.getElementById('game-container');
         if (gameContainer) {
@@ -5598,6 +5604,11 @@ class KingOfTokyoUI {
         
         // Show resume notification
         this.showMessage('▶️ Game Resumed', 2000);
+        
+        // Hide the pause overlay
+        if (this.elements.gamePauseOverlay) {
+            this.elements.gamePauseOverlay.classList.add('hidden');
+        }
         
         // Remove visual indication from game container
         const gameContainer = document.getElementById('game-container');
