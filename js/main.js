@@ -88,44 +88,28 @@ class KingOfTokyoUI {
         this.selectedMonsters = [];
         this.currentPlayerCount = 4; // Default to 4 players
         this.tempSetupLog = []; // Store setup actions before game is created
-        this.messageTimeout = null; // Track message timeout
         this.previousRound = 1; // Track previous round for animation
         this.playerTiles = []; // Track player tile assignments
         this.draggedMonster = null; // Track currently dragged monster
+        
+        // Initialize SetupManager for handling setup screen
+        this.setupManager = new SetupManager(UIUtilities);
+        
+        // Expose this instance globally for SetupManager callbacks
+        window.kingOfTokyoUI = this;
         
         this.initializeElements();
         this.attachEventListeners();
         this.initializeGamePause(); // Initialize pause system
         this.initializeDragAndDrop();
         this.initializeDarkMode();
-        this.initializeMonsterProfiles();
+        this.setupManager.initializeMonsterProfiles();
         this.initializeSettings();
         this.initializeResponsivePanels();
-        this.showSetupModal();
+        this.setupManager.showSetupModal(); // Delegate to SetupManager
         
         // End turn button functionality now handled in dice controls
         // No need to add duplicate button
-    }
-
-    // Helper function to convert hex color to rgba
-    hexToRgba(hex, alpha = 1) {
-        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        if (result) {
-            return `rgba(${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}, ${alpha})`;
-        }
-        return `rgba(255, 152, 0, ${alpha})`; // fallback to orange
-    }
-
-    // Helper function to lighten a hex color
-    lightenColor(hex, percent = 20) {
-        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        if (result) {
-            const r = Math.min(255, parseInt(result[1], 16) + Math.round(255 * percent / 100));
-            const g = Math.min(255, parseInt(result[2], 16) + Math.round(255 * percent / 100));
-            const b = Math.min(255, parseInt(result[3], 16) + Math.round(255 * percent / 100));
-            return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-        }
-        return hex; // fallback to original color
     }
 
     // Initialize DOM element references
@@ -274,94 +258,25 @@ class KingOfTokyoUI {
             return; // Exit early if required elements are missing
         }
         
-        // Setup modal events - Custom Dropdown
-        this.elements.dropdownSelected.addEventListener('click', (e) => {
-            console.log('dropdownSelected clicked');
-            e.stopPropagation(); // Prevent event bubbling to modal
-            this.toggleDropdown();
-        });
-
-        // Handle clicking outside dropdown to close it
-        document.addEventListener('click', (e) => {
-            if (!this.elements.playerCount.contains(e.target)) {
-                this.closeDropdown();
-            }
-        });
-
-        // Handle dropdown option selection
-        this.elements.dropdownOptions.addEventListener('click', (e) => {
-            if (e.target.classList.contains('dropdown-option')) {
-                const value = parseInt(e.target.dataset.value);
-                this.selectPlayerCount(value, e.target.textContent);
-            }
-        });
-
-        this.elements.startGameBtn.addEventListener('click', async (e) => {
-            console.log('Start game button clicked');
-            console.log('Button disabled:', this.elements.startGameBtn.disabled);
-            console.log('Selected monsters:', this.selectedMonsters.length);
-            console.log('Required players:', this.currentPlayerCount);
-            
-            // Don't prevent default if button is disabled
-            if (this.elements.startGameBtn.disabled) {
-                console.log('Button is disabled, not starting game');
-                return;
-            }
-            
-            e.preventDefault();
-            
-            // Disable button during game initialization
-            this.elements.startGameBtn.disabled = true;
-            this.elements.startGameBtn.textContent = 'Starting Game...';
-            
-            try {
-                await this.startGame();
-            } catch (error) {
-                console.error('Failed to start game:', error);
-                alert('Failed to start game: ' + error.message);
-            } finally {
-                // Re-enable button if still on setup screen
-                if (this.elements.startGameBtn) {
-                    this.elements.startGameBtn.disabled = false;
-                    this.elements.startGameBtn.textContent = 'Start Game';
-                }
-            }
-        });
-
-        // Random selection button event
-        this.elements.randomSelectionBtn.addEventListener('click', () => {
-            this.randomizeMonsterSelection();
-        });
-
-        // Reset monsters button event
-        this.elements.resetMonstersBtn.addEventListener('click', () => {
-            this.resetMonsterSelection();
-        });
-
-        // Monster profiles button event
-        this.elements.monsterProfilesBtn.addEventListener('click', () => {
-            this.showMonsterProfilesModal();
-        });
-
         // Monster profiles modal events
         this.elements.closeMonsterProfiles.addEventListener('click', () => {
-            this.hideMonsterProfilesModal();
+            this.setupManager.hideMonsterProfilesModal();
         });
 
         this.elements.resetProfilesBtn.addEventListener('click', () => {
-            this.resetMonsterProfiles();
+            this.setupManager.resetMonsterProfiles();
         });
 
         this.elements.saveProfilesBtn.addEventListener('click', () => {
-            this.saveMonsterProfiles();
-            this.showMessage('Monster profiles saved!');
-            this.hideMonsterProfilesModal();
+            this.setupManager.saveMonsterProfiles();
+            UIUtilities.showMessage('Monster profiles saved!', 3000, this.elements);
+            this.setupManager.hideMonsterProfilesModal();
         });
 
         // Close modal when clicking outside
         this.elements.monsterProfilesModal.addEventListener('click', (e) => {
             if (e.target === this.elements.monsterProfilesModal) {
-                this.hideMonsterProfilesModal();
+                this.setupManager.hideMonsterProfilesModal();
             }
         });
 
@@ -417,7 +332,7 @@ class KingOfTokyoUI {
                 // Game over modal events
         this.elements.newGameBtn.addEventListener('click', () => {
             UIUtilities.hideModal(this.elements.gameOverModal);
-            this.showSetupModal();
+            this.setupManager.showSetupModal();
         });
 
         // Decision modal keyboard support
@@ -579,8 +494,8 @@ class KingOfTokyoUI {
         // Close setup modal when clicking outside and return to splash screen
         UIUtilities.safeAddEventListener(this.elements.setupModal, 'click', (e) => {
             if (e.target === this.elements.setupModal) {
-                this.hideSetupModal();
-                this.showSplashScreen();
+                this.setupManager.hideSetupModal();
+                UIUtilities.showSplashScreen(this.elements, this.setupManager);
             }
         });
 
@@ -755,814 +670,12 @@ class KingOfTokyoUI {
         });
         
         // Show confirmation message
-        this.showMessage('Layout positions reset to default!', 2000);
+        UIUtilities.showMessage('Layout positions reset to default!', 2000, this.elements);
     }
 
-    // Show setup modal
-    showSetupModal() {
-        // Hide the game toolbar during setup
-        const gameToolbar = document.getElementById('game-toolbar');
-        if (gameToolbar) {
-            gameToolbar.classList.remove('show');
-        }
-        
-        // Clean up any existing active player container to prevent z-index conflicts
-        const existingActivePlayerContainer = document.getElementById('active-player-container');
-        if (existingActivePlayerContainer) {
-            existingActivePlayerContainer.remove();
-        }
-        
-        UIUtilities.showModal(this.elements.setupModal);
-        
-        // Reset dropdown to ensure it's functional
-        this.resetDropdown();
-        
-        // Update monster selection
-        this.updateMonsterSelection();
-        
-        // Ensure monsters are properly initialized after a short delay
-        setTimeout(() => {
-            const monsterOptions = this.elements.monsterGrid.querySelectorAll('.monster-option');
-            monsterOptions.forEach(option => {
-                // Force visibility with important styles
-                option.style.setProperty('display', 'flex', 'important');
-                option.style.setProperty('visibility', 'visible', 'important');
-                option.style.setProperty('opacity', '1', 'important');
-                option.style.setProperty('pointer-events', 'auto', 'important');
-            });
-        }, 100);
-    }
+
+
     
-    // Hide setup modal
-    hideSetupModal() {
-        UIUtilities.hideModal(this.elements.setupModal);
-    }
-
-    // Show splash screen
-    showSplashScreen() {
-        // Hide the game container
-        if (this.elements.gameContainer) {
-            this.elements.gameContainer.classList.remove('show');
-        }
-        
-        // Clean up any existing active player container from previous game
-        const existingActivePlayerContainer = document.getElementById('active-player-container');
-        if (existingActivePlayerContainer) {
-            existingActivePlayerContainer.remove();
-        }
-        
-        // Show the splash screen
-        if (this.elements.splashScreen) {
-            this.elements.splashScreen.classList.remove('fade-out');
-            this.elements.splashScreen.style.display = 'flex';
-        }
-        
-        // Hide the game toolbar during splash
-        const gameToolbar = document.getElementById('game-toolbar');
-        if (gameToolbar) {
-            gameToolbar.classList.remove('show');
-        }
-        
-        // Ensure any open dropdowns are closed
-        this.closeDropdown();
-    }
-
-    // Custom dropdown methods
-    toggleDropdown() {
-        console.log('toggleDropdown called, current classes:', this.elements.playerCount?.className);
-        this.elements.playerCount.classList.toggle('open');
-        console.log('toggleDropdown after toggle, classes:', this.elements.playerCount?.className);
-    }
-
-    closeDropdown() {
-        this.elements.playerCount.classList.remove('open');
-    }
-
-    // Reset dropdown to ensure it's functional
-    resetDropdown() {
-        console.log('resetDropdown called');
-        
-        // Ensure dropdown is closed
-        this.closeDropdown();
-        
-        // Reset the dropdown text to default
-        if (this.elements.dropdownSelected) {
-            const arrow = this.elements.dropdownSelected.querySelector('.dropdown-arrow');
-            this.elements.dropdownSelected.textContent = '4 Players';
-            if (arrow) {
-                this.elements.dropdownSelected.appendChild(arrow);
-            }
-        }
-        
-        // Ensure currentPlayerCount is set
-        this.currentPlayerCount = 4;
-        
-        // Clear any inline styles that might interfere with dropdown
-        if (this.elements.dropdownOptions) {
-            this.elements.dropdownOptions.style.cssText = '';
-        }
-        if (this.elements.playerCount) {
-            this.elements.playerCount.style.cssText = '';
-        }
-        
-        // Add a small delay to ensure the modal is fully shown and ready
-        setTimeout(() => {
-            console.log('dropdown reset completed with delay');
-            console.log('playerCount classes:', this.elements.playerCount?.className);
-            console.log('dropdownOptions display style:', window.getComputedStyle(this.elements.dropdownOptions).display);
-        }, 50);
-    }
-
-    selectPlayerCount(value, text) {
-        this.currentPlayerCount = value;
-        // Update the dropdown text - the text is directly in dropdown-selected, not in a child element
-        const dropdownSelected = this.elements.dropdownSelected;
-        if (dropdownSelected) {
-            // Keep the arrow but update the text
-            const arrow = dropdownSelected.querySelector('.dropdown-arrow');
-            dropdownSelected.textContent = text;
-            if (arrow) {
-                dropdownSelected.appendChild(arrow);
-            }
-        }
-        this.closeDropdown();
-        
-        console.log('🎯 Player count selected:', value, 'Updating monster selection...');
-        
-        // Log player count selection if we have a game instance
-        if (this.game) {
-            this.game.logSetupAction(`👥 Changed to ${value} players`, 'player-count-change', 'player-selection');
-        }
-        
-        // Since UI is only initialized after MONSTERS is available, we can call directly
-        if (typeof MONSTERS === 'undefined') {
-            console.error('❌ MONSTERS object missing during player count change! This should not happen.');
-            console.error('❌ Available globals:', Object.keys(window).filter(k => k.toUpperCase() === k));
-            
-            // Fallback: Try to reinitialize from window
-            if (window.MONSTERS) {
-                console.log('🔧 Found MONSTERS on window, setting global...');
-                window.MONSTERS = window.MONSTERS;
-            }
-            
-            // Still try to update
-            setTimeout(() => this.updateMonsterSelection(), 100);
-        } else {
-            console.log('✅ MONSTERS object available, updating immediately');
-            this.updateMonsterSelection();
-        }
-    }
-
-    // Update monster selection grid
-    updateMonsterSelection() {
-        console.log('👺 === UPDATE MONSTER SELECTION CALLED ===');
-        console.log('👺 Current player count:', this.currentPlayerCount);
-        console.log('👺 MONSTERS available:', typeof MONSTERS !== 'undefined');
-        console.log('👺 Monster grid element:', !!this.elements.monsterGrid);
-        console.log('👺 Player tiles grid element:', !!this.elements.playerTilesGrid);
-        
-        // Debug: Check if MONSTERS is available
-        if (typeof MONSTERS === 'undefined') {
-            console.error('❌ MONSTERS object is not defined! Check if monsters.js is loaded.');
-            console.error('❌ Available global objects:', Object.keys(window));
-            return;
-        }
-        
-        const monsters = Object.values(MONSTERS);
-        console.log('👺 Available monsters:', monsters.length, monsters);
-        
-        // Debug: Check if elements exist
-        if (!this.elements.monsterGrid || !this.elements.playerTilesGrid) {
-            console.error('❌ Required grid elements missing!');
-            console.error('❌ Monster grid:', !!this.elements.monsterGrid);
-            console.error('❌ Player tiles grid:', !!this.elements.playerTilesGrid);
-            return;
-        }
-        
-        // Reset state
-        this.selectedMonsters = [];
-        this.playerTiles = [];
-        
-        // Initialize player tiles
-        for (let i = 0; i < this.currentPlayerCount; i++) {
-            this.playerTiles.push({
-                index: i,
-                type: i === 0 ? 'human' : 'cpu', // First tile is human, rest are CPU
-                monster: null,
-                occupied: false
-            });
-        }
-        
-        // Generate monster cards HTML
-        const monstersHTML = monsters.map(monster => `
-            <div class="monster-option" 
-                 data-monster-id="${monster.id}" 
-                 draggable="true">
-                <div class="monster-image-container">
-                    <img src="${monster.image}" alt="${monster.name}" class="monster-image" />
-                </div>
-                <div class="monster-name">${monster.name}</div>
-            </div>
-        `).join('');
-        
-        this.elements.monsterGrid.innerHTML = monstersHTML;
-        
-        // Generate player tiles HTML
-        const playerTilesHTML = this.playerTiles.map((tile, index) => {
-            const isHuman = tile.type === 'human';
-            const icon = isHuman ? this.getHumanIcon() : this.getCPUIcon();
-            const label = isHuman ? 'Human Player' : 'CPU Player';
-            
-            return `
-                <div class="player-tile ${tile.type}" 
-                     data-tile-index="${index}"
-                     data-player-type="${tile.type}">
-                    <div class="player-tile-icon">${icon}</div>
-                    <div class="player-tile-label">${label}</div>
-                </div>
-            `;
-        }).join('');
-        
-        this.elements.playerTilesGrid.innerHTML = playerTilesHTML;
-        
-        // Update layout classes based on player count
-        const playerTilesSection = this.elements.playerTilesGrid.closest('.player-tiles-section');
-        if (this.currentPlayerCount >= 5) {
-            this.elements.playerTilesGrid.classList.add('five-six-players');
-            if (playerTilesSection) {
-                playerTilesSection.classList.add('five-six-players');
-            }
-        } else {
-            this.elements.playerTilesGrid.classList.remove('five-six-players');
-            if (playerTilesSection) {
-                playerTilesSection.classList.remove('five-six-players');
-            }
-        }
-        
-        // Set up drag and drop event listeners
-        this.setupDragAndDrop();
-        
-        // Set up rotation classes for monster options
-        const monsterOptions = this.elements.monsterGrid.querySelectorAll('.monster-option');
-        monsterOptions.forEach((option, index) => {
-            const rotationClass = `rotate-${(index % 6) + 1}`;
-            option.classList.add(rotationClass);
-        });
-        
-        this.updateStartButton();
-    }
-    
-    // Get CPU icon (simple SVG or Unicode character)
-    getCPUIcon() {
-        return 'CPU'; // Simple text glyph that matches the comic book theme
-    }
-    
-    // Get human icon  
-    getHumanIcon() {
-        return '?'; // Question mark in Bangers font will look comic book style
-    }
-    
-    // Setup drag and drop functionality
-    setupDragAndDrop() {
-        const monsterOptions = this.elements.monsterGrid.querySelectorAll('.monster-option');
-        const playerTiles = this.elements.playerTilesGrid.querySelectorAll('.player-tile');
-        
-        // Add drag events to monster cards
-        monsterOptions.forEach(option => {
-            option.addEventListener('dragstart', (e) => this.handleDragStart(e));
-            option.addEventListener('dragend', (e) => this.handleDragEnd(e));
-            
-            // Add touch events for mobile support
-            option.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: false });
-            option.addEventListener('touchmove', (e) => this.handleTouchMove(e), { passive: false });
-            option.addEventListener('touchend', (e) => this.handleTouchEnd(e), { passive: false });
-        });
-        
-        // Add drop events to player tiles
-        playerTiles.forEach(tile => {
-            tile.addEventListener('dragover', (e) => this.handleDragOver(e));
-            tile.addEventListener('dragenter', (e) => this.handleDragEnter(e));
-            tile.addEventListener('dragleave', (e) => this.handleDragLeave(e));
-            tile.addEventListener('drop', (e) => this.handleDrop(e));
-            
-            // Add click event to toggle player type (human/CPU) if not occupied
-            tile.addEventListener('click', (e) => this.handleTileClick(e));
-            
-            // Add double-click event to remove monster if occupied
-            tile.addEventListener('dblclick', (e) => this.handleTileDoubleClick(e));
-        });
-    }
-    
-    // Handle tile click to toggle player type
-    handleTileClick(e) {
-        const tile = e.target.closest('.player-tile');
-        if (!tile || tile.classList.contains('occupied')) {
-            return; // Don't allow changes to occupied tiles
-        }
-        
-        const tileIndex = parseInt(tile.dataset.tileIndex);
-        const currentType = this.playerTiles[tileIndex].type;
-        
-        // Toggle between human and cpu
-        const newType = currentType === 'human' ? 'cpu' : 'human';
-        this.playerTiles[tileIndex].type = newType;
-        
-        // Update tile visual and classes
-        tile.classList.remove('human', 'cpu');
-        tile.classList.add(newType);
-        tile.dataset.playerType = newType;
-        
-        const icon = newType === 'human' ? this.getHumanIcon() : this.getCPUIcon();
-        const label = newType === 'human' ? 'Human Player' : 'CPU Player';
-        
-        tile.innerHTML = `
-            <div class="player-tile-icon">${icon}</div>
-            <div class="player-tile-label">${label}</div>
-        `;
-        
-        console.log(`Tile ${tileIndex} changed to ${newType}`);
-        
-        this.updateStartButton();
-    }
-    
-    // Handle tile double-click to remove monster
-    handleTileDoubleClick(e) {
-        const tile = e.target.closest('.player-tile');
-        if (!tile || !tile.classList.contains('occupied')) {
-            return; // Nothing to remove
-        }
-        
-        const tileIndex = parseInt(tile.dataset.tileIndex);
-        const monster = this.playerTiles[tileIndex].monster;
-        
-        if (!monster) return;
-        
-        console.log(`Removing monster ${monster.name} from tile ${tileIndex}`);
-        
-        // Reset tile state
-        this.playerTiles[tileIndex].monster = null;
-        this.playerTiles[tileIndex].occupied = false;
-        
-        // Reset tile visual and colors
-        const tileType = this.playerTiles[tileIndex].type;
-        const icon = tileType === 'human' ? this.getHumanIcon() : this.getCPUIcon();
-        const label = tileType === 'human' ? 'Human Player' : 'CPU Player';
-        
-        tile.innerHTML = `
-            <div class="player-tile-icon">${icon}</div>
-            <div class="player-tile-label">${label}</div>
-        `;
-        tile.classList.remove('occupied');
-        
-        // Reset tile colors to original theme
-        tile.style.background = '';
-        tile.style.borderColor = '';
-        tile.style.backgroundImage = '';
-        tile.style.backgroundSize = '';
-        
-        // Restore the monster card to normal appearance
-        const monsterCard = this.elements.monsterGrid.querySelector(`[data-monster-id="${monster.id}"]`);
-        if (monsterCard) {
-            monsterCard.classList.remove('grayed-out');
-            monsterCard.style.opacity = '';
-            monsterCard.style.filter = '';
-            monsterCard.style.pointerEvents = ''; // Re-enable dragging
-        }
-        
-        // Update selected monsters array
-        this.selectedMonsters = this.playerTiles
-            .filter(tile => tile.occupied)
-            .map(tile => tile.monster);
-        
-        this.updateStartButton();
-    }
-    
-    // Drag event handlers
-    handleDragStart(e) {
-        const monsterId = e.target.closest('.monster-option').dataset.monsterId;
-        this.draggedMonster = MONSTERS[monsterId];
-        e.target.closest('.monster-option').classList.add('dragging');
-        e.dataTransfer.setData('text/plain', monsterId);
-        console.log('Drag started for monster:', this.draggedMonster.name);
-    }
-    
-    handleDragEnd(e) {
-        e.target.closest('.monster-option').classList.remove('dragging');
-        this.draggedMonster = null;
-        
-        // Remove drop-target class from all tiles
-        this.elements.playerTilesGrid.querySelectorAll('.player-tile').forEach(tile => {
-            tile.classList.remove('drop-target');
-        });
-    }
-
-    // Touch event handlers for mobile drag-and-drop
-    handleTouchStart(e) {
-        e.preventDefault();
-        const monsterId = e.target.closest('.monster-option').dataset.monsterId;
-        this.draggedMonster = MONSTERS[monsterId];
-        this.touchStartElement = e.target.closest('.monster-option');
-        this.touchStartElement.classList.add('dragging');
-        
-        // Store initial touch position
-        this.touchStartX = e.touches[0].clientX;
-        this.touchStartY = e.touches[0].clientY;
-        
-        console.log('Touch drag started for monster:', this.draggedMonster.name);
-    }
-    
-    handleTouchMove(e) {
-        e.preventDefault();
-        if (!this.draggedMonster) return;
-        
-        const touch = e.touches[0];
-        const elementUnderTouch = document.elementFromPoint(touch.clientX, touch.clientY);
-        const tile = elementUnderTouch?.closest('.player-tile');
-        
-        // Remove drop-target from all tiles first
-        this.elements.playerTilesGrid.querySelectorAll('.player-tile').forEach(t => {
-            t.classList.remove('drop-target');
-        });
-        
-        // Add drop-target to valid tiles
-        if (tile && !tile.classList.contains('occupied')) {
-            tile.classList.add('drop-target');
-        }
-    }
-    
-    handleTouchEnd(e) {
-        e.preventDefault();
-        if (!this.draggedMonster) return;
-        
-        const touch = e.changedTouches[0];
-        const elementUnderTouch = document.elementFromPoint(touch.clientX, touch.clientY);
-        const tile = elementUnderTouch?.closest('.player-tile');
-        
-        if (tile && !tile.classList.contains('occupied')) {
-            // Simulate a drop event
-            const tileIndex = parseInt(tile.dataset.tileIndex);
-            console.log('Touch dropped monster', this.draggedMonster.name, 'on tile', tileIndex);
-            
-            // Update tile state
-            this.playerTiles[tileIndex].monster = this.draggedMonster;
-            this.playerTiles[tileIndex].occupied = true;
-            
-            // Generate monster-themed colors
-            const monsterColor = this.draggedMonster.color;
-            const lighterColor = this.lightenColor(monsterColor, 30);
-            const evenLighterColor = this.lightenColor(monsterColor, 60);
-            
-            // Update tile visual with monster theme
-            tile.innerHTML = `
-                <img src="${this.draggedMonster.image}" alt="${this.draggedMonster.name}" class="monster-image-small" />
-                <div class="monster-name-small">${this.draggedMonster.name}</div>
-            `;
-            tile.classList.add('occupied');
-            tile.classList.remove('drop-target');
-            
-            // Apply monster color theme to the tile
-            tile.style.setProperty('background', `linear-gradient(135deg, ${evenLighterColor} 0%, ${lighterColor} 50%, ${monsterColor} 100%)`, 'important');
-            tile.style.borderColor = monsterColor;
-            
-            // Gray out the monster from the available options instead of hiding
-            const monsterOption = this.elements.monsterGrid.querySelector(`[data-monster-id="${this.draggedMonster.id}"]`);
-            if (monsterOption) {
-                monsterOption.classList.add('grayed-out');
-            }
-            
-            // Update button state and regenerate layout
-            this.updateStartButton();
-            this.regeneratePlayerTiles();
-        }
-        
-        // Clean up
-        if (this.touchStartElement) {
-            this.touchStartElement.classList.remove('dragging');
-        }
-        this.draggedMonster = null;
-        this.touchStartElement = null;
-        
-        // Remove drop-target class from all tiles
-        this.elements.playerTilesGrid.querySelectorAll('.player-tile').forEach(tile => {
-            tile.classList.remove('drop-target');
-        });
-    }
-    
-    handleDragOver(e) {
-        e.preventDefault(); // Allow drop
-    }
-    
-    handleDragEnter(e) {
-        e.preventDefault();
-        const tile = e.target.closest('.player-tile');
-        if (tile && !tile.classList.contains('occupied')) {
-            tile.classList.add('drop-target');
-        }
-    }
-    
-    handleDragLeave(e) {
-        const tile = e.target.closest('.player-tile');
-        if (tile && !tile.contains(e.relatedTarget)) {
-            tile.classList.remove('drop-target');
-        }
-    }
-    
-    handleDrop(e) {
-        e.preventDefault();
-        const tile = e.target.closest('.player-tile');
-        const monsterId = e.dataTransfer.getData('text/plain');
-        const monster = MONSTERS[monsterId];
-        
-        if (!tile || tile.classList.contains('occupied')) {
-            console.log('Invalid drop target');
-            return;
-        }
-        
-        const tileIndex = parseInt(tile.dataset.tileIndex);
-        console.log('Dropped monster', monster.name, 'on tile', tileIndex);
-        
-        // Update tile state
-        this.playerTiles[tileIndex].monster = monster;
-        this.playerTiles[tileIndex].occupied = true;
-        
-        // Generate monster-themed colors
-        const monsterColor = monster.color;
-        const lighterColor = this.lightenColor(monsterColor, 30);
-        const evenLighterColor = this.lightenColor(monsterColor, 60);
-        
-        // Update tile visual with monster theme
-        tile.innerHTML = `
-            <img src="${monster.image}" alt="${monster.name}" class="monster-image-small" />
-            <div class="monster-name-small">${monster.name}</div>
-        `;
-        tile.classList.add('occupied');
-        tile.classList.remove('drop-target');
-        
-        // Apply monster color theme to the tile
-        tile.style.setProperty('background', `linear-gradient(135deg, ${evenLighterColor} 0%, ${lighterColor} 50%, ${monsterColor} 100%)`, 'important');
-        tile.style.borderColor = monsterColor;
-        tile.style.setProperty('background-image', `
-            radial-gradient(circle at 3px 3px, rgba(0,0,0,0.08) 1px, transparent 0),
-            linear-gradient(135deg, ${evenLighterColor} 0%, ${lighterColor} 50%, ${monsterColor} 100%)
-        `, 'important');
-        tile.style.backgroundSize = '15px 15px, 100% 100%';
-        
-        // Gray out the selected monster card
-        const monsterCard = this.elements.monsterGrid.querySelector(`[data-monster-id="${monsterId}"]`);
-        if (monsterCard) {
-            monsterCard.classList.add('grayed-out');
-            monsterCard.style.opacity = '0.4';
-            monsterCard.style.filter = 'grayscale(100%)';
-            monsterCard.style.pointerEvents = 'none'; // Disable dragging
-        }
-        
-        // Update selected monsters array
-        this.selectedMonsters = this.playerTiles
-            .filter(tile => tile.occupied)
-            .map(tile => tile.monster);
-        
-        this.updateStartButton();
-    }
-
-    // Randomize monster selection
-    randomizeMonsterSelection() {
-        if (!this.currentPlayerCount || this.currentPlayerCount === 0) {
-            alert('Please select the number of players first!');
-            return;
-        }
-
-        // Clear any existing selections and reset monster cards
-        this.selectedMonsters = [];
-        this.playerTiles.forEach(tile => {
-            tile.monster = null;
-            tile.occupied = false;
-        });
-        
-        // Reset all monster cards to normal appearance
-        this.resetMonsterCards();
-
-        // Get all available monsters from the displayed monster cards
-        const availableMonsters = Object.values(MONSTERS);
-        
-        // Shuffle the monsters array
-        const shuffledMonsters = [...availableMonsters].sort(() => Math.random() - 0.5);
-        
-        // Get only CPU tiles for random assignment
-        const cpuTiles = this.playerTiles.filter(tile => tile.type === 'cpu');
-        
-        // Check if we have enough monsters for the CPU tiles
-        if (cpuTiles.length > shuffledMonsters.length) {
-            alert('Not enough monsters available for all CPU players!');
-            return;
-        }
-        
-        // Assign random monsters only to CPU tiles
-        cpuTiles.forEach((tile, index) => {
-            if (index < shuffledMonsters.length) {
-                tile.monster = shuffledMonsters[index];
-                tile.occupied = true;
-            }
-        });
-
-        // Update selected monsters array to match drag-and-drop format
-        this.selectedMonsters = this.playerTiles
-            .filter(tile => tile.occupied)
-            .map(tile => tile.monster);
-
-        // Update the visual representation
-        this.updatePlayerTileVisuals();
-        this.grayOutSelectedMonsters();
-        this.updateStartButton();
-        
-        console.log('Random selection completed:', this.selectedMonsters);
-    }
-
-    // Reset monster selection - clears all selected monsters and allows user to start again
-    resetMonsterSelection() {
-        console.log('🔄 Resetting monster selection...');
-        
-        // Clear selected monsters array
-        this.selectedMonsters = [];
-        
-        // Reset all player tiles data
-        this.playerTiles.forEach((tile, index) => {
-            tile.monster = null;
-            tile.occupied = false;
-            
-            // Find the corresponding DOM element and reset it
-            const tileElement = document.querySelector(`[data-tile-index="${index}"]`);
-            if (tileElement) {
-                // Remove visual styling
-                tileElement.classList.remove('occupied');
-                tileElement.style.removeProperty('background');
-                tileElement.style.removeProperty('border-color');
-                tileElement.style.removeProperty('background-image');
-                tileElement.style.removeProperty('background-size');
-                
-                // Reset tile content to default
-                tileElement.innerHTML = `<span class="tile-label">${tile.type.toUpperCase()} ${tile.number}</span>`;
-            }
-        });
-        
-        // Reset all monster cards to normal appearance and make them visible/enabled
-        this.resetMonsterCards();
-        
-        // Show all monster cards and re-enable them (in case they were hidden during drag-and-drop)
-        const monsterCards = document.querySelectorAll('.monster-option');
-        monsterCards.forEach(card => {
-            card.style.display = '';
-            card.style.pointerEvents = ''; // Re-enable dragging
-            card.classList.remove('grayed-out', 'selected'); // Remove any disabled states
-        });
-        
-        // Update UI
-        this.updateStartButton();
-        this.regeneratePlayerTiles();
-        
-        console.log('✅ Monster selection reset completed');
-    }
-
-    // Reset monster cards to normal appearance
-    resetMonsterCards() {
-        const monsterCards = document.querySelectorAll('.monster-option');
-        monsterCards.forEach(card => {
-            // Remove all visual states
-            card.classList.remove('selected', 'grayed-out', 'dragging');
-            
-            // Reset all inline styles that might have been applied
-            card.style.opacity = '';
-            card.style.filter = '';
-            card.style.display = '';
-            card.style.pointerEvents = '';
-            
-            // Ensure the card is visible and interactive
-            card.style.visibility = '';
-            card.style.transform = '';
-        });
-    }
-
-    // Gray out selected monster cards
-    grayOutSelectedMonsters() {
-        // Handle both formats: direct monster objects and {monster: object} wrapper format
-        const selectedMonsterIds = this.selectedMonsters.map(item => {
-            if (item && item.monster && item.monster.id) {
-                return item.monster.id; // Drag-and-drop format
-            } else if (item && item.id) {
-                return item.id; // Direct monster object format (from random selection)
-            }
-            return null;
-        }).filter(id => id !== null);
-        
-        selectedMonsterIds.forEach(monsterId => {
-            const monsterCard = document.querySelector(`[data-monster-id="${monsterId}"]`);
-            if (monsterCard) {
-                monsterCard.classList.add('grayed-out');
-                monsterCard.style.opacity = '0.4';
-                monsterCard.style.filter = 'grayscale(100%)';
-                monsterCard.style.pointerEvents = 'none'; // Disable dragging
-            }
-        });
-    }
-
-    // Update player tile visuals after assignment
-    updatePlayerTileVisuals() {
-        this.playerTiles.forEach((tile, index) => {
-            const tileElement = document.querySelector(`[data-tile-index="${index}"]`);
-            if (tileElement) {
-                if (tile.occupied && tile.monster) {
-                    const monster = tile.monster;
-                    
-                    // Generate monster-themed colors
-                    const monsterColor = monster.color;
-                    const lighterColor = this.lightenColor(monsterColor, 30);
-                    const evenLighterColor = this.lightenColor(monsterColor, 60);
-                    
-                    // Update tile visual with monster theme (same as drag-and-drop)
-                    tileElement.innerHTML = `
-                        <img src="${monster.image}" alt="${monster.name}" class="monster-image-small" />
-                        <div class="monster-name-small">${monster.name}</div>
-                    `;
-                    tileElement.classList.add('occupied');
-                    tileElement.classList.remove('drop-target');
-                    
-                    // Apply monster color theme to the tile
-                    tileElement.style.setProperty('background', `linear-gradient(135deg, ${evenLighterColor} 0%, ${lighterColor} 50%, ${monsterColor} 100%)`, 'important');
-                    tileElement.style.borderColor = monsterColor;
-                    tileElement.style.setProperty('background-image', `
-                        radial-gradient(circle at 3px 3px, rgba(0,0,0,0.08) 1px, transparent 0),
-                        linear-gradient(135deg, ${evenLighterColor} 0%, ${lighterColor} 50%, ${monsterColor} 100%)
-                    `, 'important');
-                    tileElement.style.backgroundSize = '15px 15px, 100% 100%';
-                } else {
-                    tileElement.classList.remove('occupied');
-                    tileElement.style.background = '';
-                    tileElement.style.borderColor = '';
-                    tileElement.style.backgroundImage = '';
-                    tileElement.style.backgroundSize = '';
-                    
-                    // Reset to original content
-                    const isHuman = tile.type === 'human';
-                    const iconContent = isHuman ? this.getHumanIcon() : this.getCPUIcon();
-                    const labelContent = isHuman ? 'Human Player' : 'CPU Player';
-                    
-                    tileElement.innerHTML = `
-                        <div class="player-tile-icon">${iconContent}</div>
-                        <div class="player-tile-label">${labelContent}</div>
-                    `;
-                    tileElement.classList.add('drop-target');
-                }
-            }
-        });
-    }
-
-    // Update start button state
-    updateStartButton() {
-        // Ensure selectedMonsters is in sync with occupied tiles
-        this.selectedMonsters = this.playerTiles
-            .filter(tile => tile.occupied)
-            .map(tile => tile.monster);
-        
-        const hasPlayerCount = this.currentPlayerCount > 0;
-        const monstersRequired = this.currentPlayerCount;
-        
-        // Check occupied tiles (this is the visual truth)
-        const occupiedTiles = this.playerTiles.filter(tile => tile.occupied);
-        const monstersSelected = occupiedTiles.length;
-        const humanTiles = occupiedTiles.filter(tile => tile.type === 'human');
-        const cpuTiles = occupiedTiles.filter(tile => tile.type === 'cpu');
-        
-        const hasRequiredPlayerTypes = this.currentPlayerCount === 1 || 
-                                      humanTiles.length >= 1;
-        
-        const allTilesAssigned = monstersSelected === monstersRequired;
-        const canStart = hasPlayerCount && allTilesAssigned && hasRequiredPlayerTypes;
-        
-        console.log('Update start button:', {
-            hasPlayerCount,
-            monstersSelected,
-            monstersRequired,
-            allTilesAssigned,
-            hasRequiredPlayerTypes,
-            humanTiles: humanTiles.length,
-            cpuTiles: cpuTiles.length,
-            canStart
-        });
-        
-        this.elements.startGameBtn.disabled = !canStart;
-        
-        if (!hasPlayerCount) {
-            this.elements.startGameBtn.textContent = 'Select Number of Players';
-        } else if (!hasRequiredPlayerTypes && this.currentPlayerCount > 1) {
-            this.elements.startGameBtn.textContent = 'Need at least 1 Human player';
-        } else if (canStart) {
-            this.elements.startGameBtn.textContent = 'Start Game';
-        } else {
-            const remaining = monstersRequired - monstersSelected;
-            this.elements.startGameBtn.textContent = `Assign ${remaining} more monster${remaining !== 1 ? 's' : ''}`;
-        }
-    }
-
-    // Start the game
     async startGame() {
         console.log('startGame called');
         console.log('Selected monsters count:', this.selectedMonsters.length);
@@ -1616,7 +729,7 @@ class KingOfTokyoUI {
             }
             
             if (result.success) {
-                this.hideSetupModal();
+                this.setupManager.hideSetupModal();
                 
                 // Show the game toolbar now that the game has started
                 const gameToolbar = document.getElementById('game-toolbar');
@@ -1636,7 +749,7 @@ class KingOfTokyoUI {
                 }
                 
                 this.updateGameDisplay();
-                this.showMessage(`Game started! ${result.currentPlayer.monster.name} goes first!`);
+                UIUtilities.showMessage(`Game started! ${result.currentPlayer.monster.name} goes first!`, 3000, this.elements);
                 
                 // Check if the first player is CPU and start their turn immediately
                 setTimeout(() => {
@@ -1664,6 +777,32 @@ class KingOfTokyoUI {
         } catch (error) {
             console.error('Error starting game:', error);
             alert('Error starting game: ' + error.message);
+        }
+    }
+
+    // Method called by SetupManager to start the game
+    async startGameFromSetup(selectedMonsters, currentPlayerCount, playerTiles) {
+        console.log('startGameFromSetup called from SetupManager');
+        console.log('Selected monsters:', selectedMonsters);
+        console.log('Player count:', currentPlayerCount);
+        console.log('Player tiles:', playerTiles);
+        
+        // Store the setup data from SetupManager
+        this.selectedMonsters = selectedMonsters;
+        this.currentPlayerCount = currentPlayerCount;
+        this.playerTiles = playerTiles;
+        
+        // Call the existing startGame method
+        await this.startGame();
+    }
+
+    // Method called by SetupManager to regenerate player tiles
+    regeneratePlayerTilesFromSetup(playerCount) {
+        console.log('regeneratePlayerTilesFromSetup called from SetupManager with playerCount:', playerCount);
+        // This would regenerate player tiles based on the new player count
+        // For now, just delegate to the SetupManager's internal generation
+        if (this.setupManager && typeof this.setupManager.generatePlayerTilesInternal === 'function') {
+            this.setupManager.generatePlayerTilesInternal();
         }
     }
 
@@ -1963,18 +1102,20 @@ class KingOfTokyoUI {
                 
                 // Update Tokyo status in name container
                 const nameContainer = playerElement.querySelector('.player-name-container');
-                const existingTokyoIndicator = nameContainer.querySelector('.tokyo-indicator-inline');
-                if (player.isInTokyo) {
-                    if (!existingTokyoIndicator) {
-                        const tokyoIndicator = document.createElement('div');
-                        tokyoIndicator.className = 'tokyo-indicator-inline';
-                        tokyoIndicator.textContent = `In Tokyo ${player.tokyoLocation === 'city' ? 'City' : 'Bay'}`;
-                        nameContainer.appendChild(tokyoIndicator);
-                    } else {
-                        existingTokyoIndicator.textContent = `In Tokyo ${player.tokyoLocation === 'city' ? 'City' : 'Bay'}`;
+                if (nameContainer) {
+                    const existingTokyoIndicator = nameContainer.querySelector('.tokyo-indicator-inline');
+                    if (player.isInTokyo) {
+                        if (!existingTokyoIndicator) {
+                            const tokyoIndicator = document.createElement('div');
+                            tokyoIndicator.className = 'tokyo-indicator-inline';
+                            tokyoIndicator.textContent = `In Tokyo ${player.tokyoLocation === 'city' ? 'City' : 'Bay'}`;
+                            nameContainer.appendChild(tokyoIndicator);
+                        } else {
+                            existingTokyoIndicator.textContent = `In Tokyo ${player.tokyoLocation === 'city' ? 'City' : 'Bay'}`;
+                        }
+                    } else if (existingTokyoIndicator) {
+                        existingTokyoIndicator.remove();
                     }
-                } else if (existingTokyoIndicator) {
-                    existingTokyoIndicator.remove();
                 }
             }
         });
@@ -2456,7 +1597,7 @@ class KingOfTokyoUI {
         setTimeout(() => {
             clone.remove();
             this.updateTokyoDisplay(this.game.getGameState());
-            this.showMessage(`${data.monster.name} enters Tokyo ${data.location === 'city' ? 'City' : 'Bay'}!`);
+            UIUtilities.showMessage(`${data.monster.name} enters Tokyo ${data.location === 'city' ? 'City' : 'Bay'}!`, 3000, this.elements);
         }, 1050);
     }
 
@@ -2486,7 +1627,7 @@ class KingOfTokyoUI {
         // Clean up and update display
         setTimeout(() => {
             this.updateTokyoDisplay(this.game.getGameState());
-            this.showMessage(`${data.monster.name} leaves Tokyo ${data.location === 'city' ? 'City' : 'Bay'}!`);
+            UIUtilities.showMessage(`${data.monster.name} leaves Tokyo ${data.location === 'city' ? 'City' : 'Bay'}!`, 3000, this.elements);
         }, 800);
     }
 
@@ -2511,9 +1652,9 @@ class KingOfTokyoUI {
             // Set CSS custom properties for monster-specific colors
             if (player.monster.color) {
                 const monsterColor = player.monster.color;
-                const lighterColor = this.lightenColor(monsterColor, 20);
-                const glowColor = this.hexToRgba(monsterColor, 0.4);
-                const strongGlowColor = this.hexToRgba(monsterColor, 0.7);
+                const lighterColor = UIUtilities.lightenColor(monsterColor, 20);
+                const glowColor = UIUtilities.hexToRgba(monsterColor, 0.4);
+                const strongGlowColor = UIUtilities.hexToRgba(monsterColor, 0.7);
                 
                 const tokyoMonster = this.elements.tokyoCitySlot.querySelector('.tokyo-monster');
                 if (tokyoMonster) {
@@ -2549,9 +1690,9 @@ class KingOfTokyoUI {
                 // Set CSS custom properties for monster-specific colors
                 if (player.monster.color) {
                     const monsterColor = player.monster.color;
-                    const lighterColor = this.lightenColor(monsterColor, 20);
-                    const glowColor = this.hexToRgba(monsterColor, 0.4);
-                    const strongGlowColor = this.hexToRgba(monsterColor, 0.7);
+                    const lighterColor = UIUtilities.lightenColor(monsterColor, 20);
+                    const glowColor = UIUtilities.hexToRgba(monsterColor, 0.4);
+                    const strongGlowColor = UIUtilities.hexToRgba(monsterColor, 0.7);
                     
                     const tokyoMonster = this.elements.tokyoBaySlot.querySelector('.tokyo-monster');
                     if (tokyoMonster) {
@@ -2871,10 +2012,10 @@ class KingOfTokyoUI {
         this.updateDiceControls();
         
         if (data.rollsLeft === 0) {
-            this.showMessage('No more rolls! Resolving dice effects...', 1400);
+            UIUtilities.showMessage('No more rolls! Resolving dice effects...', 1400, this.elements);
             // Show next message after first one is almost done
             setTimeout(() => {
-                this.showMessage('Dice effects resolved! You can buy cards or end turn.');
+                UIUtilities.showMessage('Dice effects resolved! You can buy cards or end turn.', 3000, this.elements);
             }, 1500);
         }
 
@@ -2902,10 +2043,10 @@ class KingOfTokyoUI {
         
         switch (phase) {
             case 'resolving':
-                this.showMessage('Dice effects resolved! You can buy cards or end turn.');
+                UIUtilities.showMessage('Dice effects resolved! You can buy cards or end turn.', 3000, this.elements);
                 break;
             case 'buying':
-                this.showMessage('Buy power cards or end turn');
+                UIUtilities.showMessage('Buy power cards or end turn', 3000, this.elements);
                 this.updateCardsDisplay();
                 break;
         }
@@ -3074,7 +2215,7 @@ class KingOfTokyoUI {
         const currentPlayer = this.game.getCurrentPlayer();
         if (currentPlayer && currentPlayer.isEliminated) {
             console.log('⚠️ Current player is eliminated, cannot roll dice');
-            this.showMessage('Eliminated players cannot roll dice!');
+            UIUtilities.showMessage('Eliminated players cannot roll dice!', 3000, this.elements);
             return;
         }
         
@@ -3099,7 +2240,7 @@ class KingOfTokyoUI {
         const currentPlayer = this.game.getCurrentPlayer();
         if (currentPlayer && currentPlayer.isEliminated) {
             console.log('⚠️ Current player is eliminated, cannot end turn manually');
-            this.showMessage('Eliminated players cannot end turns!');
+            UIUtilities.showMessage('Eliminated players cannot end turns!', 3000, this.elements);
             return;
         }
         
@@ -3149,7 +2290,7 @@ class KingOfTokyoUI {
             this.updateGameDisplay();
         } else {
             console.log(`🛍️ Purchase failed: ${result.reason || 'Not enough energy!'}`);
-            this.showMessage(result.reason || 'Not enough energy!');
+            UIUtilities.showMessage(result.reason || 'Not enough energy!', 3000, this.elements);
         }
     }
 
@@ -3358,7 +2499,7 @@ class KingOfTokyoUI {
         this.elements.gameOverModal.classList.add('hidden');
         this.game = null;
         this.selectedMonsters = [];
-        this.showSplashScreen();
+        UIUtilities.showSplashScreen(this.elements, this.setupManager);
     }
 
     // Reset game
@@ -3376,7 +2517,7 @@ class KingOfTokyoUI {
         this.selectedMonsters = [];
         
         // Show setup modal for new game
-        this.showSetupModal();
+        this.setupManager.showSetupModal();
     }
 
     // Exit to splash screen with confirmation
@@ -3428,50 +2569,7 @@ class KingOfTokyoUI {
         this.selectedMonsters = [];
         
         // Return to splash screen
-        this.showSplashScreen();
-    }
-
-    // Show temporary message
-    showMessage(message, duration = 3000) {
-        console.log(`Game Message: ${message}`);
-        
-        // Clear any existing message timeout
-        if (this.messageTimeout) {
-            clearTimeout(this.messageTimeout);
-        }
-        
-        // Get the header area to show message there (use round counter as reference)
-        const headerElement = this.elements.roundCounter;
-        
-        // Add a subtle notification to the header instead of blocking overlay
-        let notification = document.getElementById('header-notification');
-        if (!notification) {
-            notification = document.createElement('div');
-            notification.id = 'header-notification';
-            notification.className = 'header-notification';
-            
-            // Insert after the header element
-            headerElement.parentNode.insertBefore(notification, headerElement.nextSibling);
-        }
-        
-        // Set notification content
-        notification.textContent = message;
-        notification.classList.add('visible');
-        
-        // Auto-dismiss after duration
-        this.messageTimeout = setTimeout(() => {
-            notification.classList.remove('visible');
-            this.messageTimeout = null;
-        }, duration);
-        
-        // Allow clicking to dismiss
-        notification.onclick = () => {
-            notification.classList.remove('visible');
-            if (this.messageTimeout) {
-                clearTimeout(this.messageTimeout);
-                this.messageTimeout = null;
-            }
-        };
+        UIUtilities.showSplashScreen(this.elements, this.setupManager);
     }
 
     // Show CPU action notification (more subtle than regular messages)
@@ -3730,6 +2828,12 @@ class KingOfTokyoUI {
         }, 300);
     }
 
+    // Initialize settings system
+    initializeSettings() {
+        // Load initial settings when the UI starts
+        this.loadSettings();
+    }
+
     showSettings() {
         UIUtilities.showModal(this.elements.settingsModal);
         this.loadSettings();
@@ -3766,7 +2870,7 @@ class KingOfTokyoUI {
         UIUtilities.hideModal(this.elements.settingsModal);
         
         // Show confirmation
-        this.showMessage('Settings saved successfully!');
+        UIUtilities.showMessage('Settings saved successfully!', 3000, this.elements);
     }
 
     resetSettings() {
@@ -3778,7 +2882,7 @@ class KingOfTokyoUI {
         this.loadSettings();
         
         // Show confirmation
-        this.showMessage('Settings reset to defaults');
+        UIUtilities.showMessage('Settings reset to defaults', 3000, this.elements);
     }
 
     showInstructions() {
@@ -4095,7 +3199,7 @@ class KingOfTokyoUI {
 
         try {
             await this.game.saveGameState();
-            this.showMessage('Game saved successfully!');
+            UIUtilities.showMessage('Game saved successfully!', 3000, this.elements);
             await this.updateStorageStats();
         } catch (error) {
             console.error('Failed to save game:', error);
@@ -4129,7 +3233,7 @@ class KingOfTokyoUI {
                 await storageManager.clearAllData();
             }
             
-            this.showMessage('All storage cleared successfully!');
+            UIUtilities.showMessage('All storage cleared successfully!', 3000, this.elements);
             await this.updateStorageStats();
         } catch (error) {
             console.error('Failed to clear storage:', error);
@@ -4160,7 +3264,7 @@ class KingOfTokyoUI {
                 document.body.removeChild(link);
                 URL.revokeObjectURL(url);
                 
-                this.showMessage('Game data exported successfully!');
+                UIUtilities.showMessage('Game data exported successfully!', 3000, this.elements);
             } else {
                 alert('Export functionality not available');
             }
@@ -4216,175 +3320,6 @@ class KingOfTokyoUI {
                 this.elements.darkModeToggle.checked = true;
             }
         }
-    }
-
-    // Monster Profiles functionality
-    initializeMonsterProfiles() {
-        // Load saved profiles or use defaults
-        this.monsterProfiles = this.loadMonsterProfiles();
-        this.generateMonsterProfilesGrid();
-    }
-
-    loadMonsterProfiles() {
-        const saved = localStorage.getItem('monsterProfiles');
-        if (saved) {
-            try {
-                return JSON.parse(saved);
-            } catch (e) {
-                console.warn('Failed to parse saved monster profiles, using defaults');
-            }
-        }
-        
-        // Return default profiles from MONSTERS data
-        const profiles = {};
-        Object.values(MONSTERS).forEach(monster => {
-            profiles[monster.id] = { ...monster.personality };
-        });
-        return profiles;
-    }
-
-    saveMonsterProfiles() {
-        localStorage.setItem('monsterProfiles', JSON.stringify(this.monsterProfiles));
-    }
-
-    // Settings functionality
-    initializeSettings() {
-        // Set default settings if they don't exist
-        if (localStorage.getItem('cpuSpeed') === null) {
-            localStorage.setItem('cpuSpeed', 'medium');
-        }
-        if (localStorage.getItem('thoughtBubblesEnabled') === null) {
-            localStorage.setItem('thoughtBubblesEnabled', 'true');
-        }
-    }
-
-    resetMonsterProfiles() {
-        // Reset to default values from MONSTERS data
-        Object.values(MONSTERS).forEach(monster => {
-            this.monsterProfiles[monster.id] = { ...monster.personality };
-        });
-        this.updateProfilesDisplay();
-        this.saveMonsterProfiles();
-    }
-
-    generateMonsterProfilesGrid() {
-        if (!this.elements.monsterProfilesGrid) return;
-
-        const grid = this.elements.monsterProfilesGrid;
-        grid.innerHTML = '';
-
-        Object.values(MONSTERS).forEach(monster => {
-            const profileCard = document.createElement('div');
-            profileCard.className = 'monster-profile-card';
-            profileCard.style.borderColor = monster.color;
-            
-            const profile = this.monsterProfiles[monster.id];
-            
-            profileCard.innerHTML = `
-                <div class="monster-profile-header">
-                    <div class="monster-profile-avatar">
-                        <img src="${monster.image}" alt="${monster.name}" />
-                    </div>
-                    <div class="monster-profile-info">
-                        <h3>${monster.name}</h3>
-                        <p>${monster.description}</p>
-                    </div>
-                </div>
-                <div class="personality-traits">
-                    <div class="trait-container">
-                        <div class="trait-header">
-                            <span class="trait-label">🔥 Aggression</span>
-                            <span class="trait-value" data-trait="aggression">${profile.aggression}</span>
-                        </div>
-                        <div class="trait-slider-container">
-                            <input type="range" min="1" max="5" value="${profile.aggression}" 
-                                   class="trait-slider" data-monster="${monster.id}" data-trait="aggression">
-                            <div class="trait-bar">
-                                <span>Passive</span>
-                                <span>Aggressive</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="trait-container">
-                        <div class="trait-header">
-                            <span class="trait-label">🧠 Strategy</span>
-                            <span class="trait-value" data-trait="strategy">${profile.strategy}</span>
-                        </div>
-                        <div class="trait-slider-container">
-                            <input type="range" min="1" max="5" value="${profile.strategy}" 
-                                   class="trait-slider" data-monster="${monster.id}" data-trait="strategy">
-                            <div class="trait-bar">
-                                <span>Simple</span>
-                                <span>Complex</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="trait-container">
-                        <div class="trait-header">
-                            <span class="trait-label">🎲 Risk Factor</span>
-                            <span class="trait-value" data-trait="risk">${profile.risk}</span>
-                        </div>
-                        <div class="trait-slider-container">
-                            <input type="range" min="1" max="5" value="${profile.risk}" 
-                                   class="trait-slider" data-monster="${monster.id}" data-trait="risk">
-                            <div class="trait-bar">
-                                <span>Cautious</span>
-                                <span>Reckless</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            grid.appendChild(profileCard);
-        });
-
-        // Attach slider event listeners
-        this.attachProfileSliderListeners();
-    }
-
-    attachProfileSliderListeners() {
-        const sliders = this.elements.monsterProfilesGrid.querySelectorAll('.trait-slider');
-        sliders.forEach(slider => {
-            slider.addEventListener('input', (e) => {
-                const monsterId = e.target.dataset.monster;
-                const trait = e.target.dataset.trait;
-                const value = parseInt(e.target.value);
-                
-                // Update the stored profile
-                this.monsterProfiles[monsterId][trait] = value;
-                
-                // Update the display value
-                const valueSpan = e.target.closest('.trait-container').querySelector(`[data-trait="${trait}"]`);
-                valueSpan.textContent = value;
-            });
-        });
-    }
-
-    updateProfilesDisplay() {
-        const sliders = this.elements.monsterProfilesGrid.querySelectorAll('.trait-slider');
-        sliders.forEach(slider => {
-            const monsterId = slider.dataset.monster;
-            const trait = slider.dataset.trait;
-            const value = this.monsterProfiles[monsterId][trait];
-            
-            slider.value = value;
-            const valueSpan = slider.closest('.trait-container').querySelector(`[data-trait="${trait}"]`);
-            valueSpan.textContent = value;
-        });
-    }
-
-    showMonsterProfilesModal() {
-        this.elements.monsterProfilesModal.classList.remove('hidden');
-    }
-
-    hideMonsterProfilesModal() {
-        this.elements.monsterProfilesModal.classList.add('hidden');
-    }
-
-    // Get monster personality for AI decision making
-    getMonsterPersonality(monsterId) {
-        return this.monsterProfiles[monsterId] || MONSTERS[monsterId]?.personality || { aggression: 3, strategy: 3, risk: 3 };
     }
 
     // CPU Thinking System
@@ -5600,7 +4535,7 @@ class KingOfTokyoUI {
         this.updatePauseButton(true);
         
         // Show pause notification
-        this.showMessage('⏸️ Game Paused', 2000);
+        UIUtilities.showMessage('⏸️ Game Paused', 2000, this.elements);
         
         // Show the pause overlay
         if (this.elements.gamePauseOverlay) {
@@ -5635,7 +4570,7 @@ class KingOfTokyoUI {
         this.updatePauseButton(false);
         
         // Show resume notification
-        this.showMessage('▶️ Game Resumed', 2000);
+        UIUtilities.showMessage('▶️ Game Resumed', 2000, this.elements);
         
         // Hide the pause overlay
         if (this.elements.gamePauseOverlay) {

@@ -271,7 +271,8 @@
 
 .custom-dropdown.open .dropdown-options,
 .player-count-dropdown.open .dropdown-options {
-    display: block;
+    display: block !important;
+    visibility: visible !important;
 }
 
 .dropdown-option {
