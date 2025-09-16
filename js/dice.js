@@ -15,13 +15,16 @@ class Die {
     constructor(id, isDisabled = false) {
         this.id = id;
         this.face = null;
+        this.previousFace = null; // Track previous face for display during rolling
         this.isSelected = false;
-        this.isRolling = false;
         this.isDisabled = isDisabled;
+        this.isRolling = false;
     }
 
     // Roll the die
     roll() {
+        // Store previous face before rolling
+        this.previousFace = this.face;
         this.isRolling = true;
         const randomIndex = Math.floor(Math.random() * DICE_FACE_NAMES.length);
         this.face = DICE_FACE_NAMES[randomIndex];
@@ -58,6 +61,11 @@ class Die {
         if (this.isDisabled) {
             return '🔒';
         }
+        // If die is rolling and has a previous face, show the previous face during animation
+        if (this.isRolling && this.previousFace) {
+            const previousFaceData = DICE_FACES[this.previousFace];
+            return previousFaceData ? previousFaceData.symbol : '?';
+        }
         // If die has no face (initial state), show question mark
         // If die has a face, show the symbol for that face
         return faceData ? faceData.symbol : '?';
@@ -69,6 +77,7 @@ class Die {
             console.log(`🎲 ⚠️  Resetting die ${this.id} that had face: ${this.face} (this might be unexpected during gameplay)`);
         }
         this.face = null;
+        this.previousFace = null;
         this.isSelected = false;
         this.isRolling = false;
     }
@@ -196,8 +205,20 @@ class DiceCollection {
 
     // Reset dice count to base amount (removes extra dice)
     resetToBaseDiceCount(baseCount = 6) {
-        // Reset all dice states first
-        this.reset();
+        // Don't reset all dice - just adjust the counts and states without clearing faces
+        // Only reset selections and rolling states, preserve face values
+        
+        const hasRolledDice = this.dice.some(die => die.face !== null && !die.isDisabled);
+        if (hasRolledDice) {
+            console.warn(`🎲 ⚠️  Resetting dice collection that has rolled dice - preserving face values during reset`);
+        }
+
+        // Reset only selection and rolling states, preserve faces
+        this.dice.forEach(die => {
+            die.isSelected = false;
+            die.isRolling = false;
+            // Don't reset die.face here - preserve the values
+        });
         
         // Only remove dice above the total dice count (enabled + disabled placeholders)
         // Keep the disabled placeholders but ensure they stay disabled
@@ -218,8 +239,8 @@ class DiceCollection {
         for (let i = baseCount; i < this.totalDice; i++) {
             if (i < this.dice.length) {
                 this.dice[i].isDisabled = true;
-                this.dice[i].face = null;
                 this.dice[i].isSelected = false;
+                // Don't reset face - this was causing the question mark flashing
             } else {
                 this.dice.push(new Die(`die-${i}`, true));
             }
@@ -252,7 +273,7 @@ class DiceCollection {
             const die = this.dice[dieIndex];
             if (die && die.isDisabled) {
                 die.isDisabled = false;
-                die.face = null; // Reset face when enabled
+                // Don't reset face - preserve any existing value
                 return true;
             }
         }
@@ -266,7 +287,7 @@ class DiceCollection {
             if (die && !die.isDisabled) {
                 die.isDisabled = true;
                 die.isSelected = false; // Unselect if selected
-                die.face = null; // Reset face when disabled
+                // Don't reset face - preserve any existing value
                 return true;
             }
         }
