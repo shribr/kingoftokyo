@@ -195,8 +195,221 @@ class KingOfTokyoGame {
         this.diceEffectsResolved = false; // Track if dice effects have been resolved this turn
     }
 
+    // Roll off to determine first player - each player rolls 6 dice, highest attack dice goes first
+    async rollForFirstPlayer(selectedMonsters, playerTypes = null) {
+        console.log('🎲 Starting roll-off to determine first player');
+        console.log('📊 selectedMonsters received:', selectedMonsters);
+        console.log('📊 playerTypes received:', playerTypes);
+        
+        // Create temporary players for the roll-off
+        const tempPlayers = [];
+        for (let i = 0; i < selectedMonsters.length; i++) {
+            const monster = selectedMonsters[i];
+            const playerType = playerTypes ? playerTypes[i] : 'human';
+            
+            console.log(`📊 Creating temp player ${i}:`, {
+                monster: monster,
+                playerType: playerType
+            });
+            
+            tempPlayers.push({
+                index: i,
+                monster: monster,
+                playerType: playerType,
+                playerNumber: i + 1,
+                attackDice: 0
+            });
+        }
+
+        console.log('📊 Created tempPlayers:', tempPlayers);
+        
+        let playersToRoll = [...tempPlayers];
+        let rollRound = 1;
+
+        while (playersToRoll.length > 1) {
+            console.log(`🎲 Roll-off round ${rollRound} - ${playersToRoll.length} players rolling`);
+            
+            // Trigger event to show notification
+            this.triggerEvent('rollOffRound', {
+                round: rollRound,
+                players: playersToRoll,
+                message: rollRound === 1 
+                    ? "Before we start the game, each player must roll the dice to see who gets the most attack dice. The one with the most goes first."
+                    : `Round ${rollRound}: Rolling again to break the tie!`
+            });
+
+            // Wait for UI to set up
+            await new Promise(resolve => setTimeout(resolve, 3000));
+
+            // Each player rolls 6 dice - humans roll interactively, AI rolls automatically
+            for (let player of playersToRoll) {
+                // Trigger event for player about to roll
+                this.triggerEvent('playerAboutToRoll', {
+                    player: player,
+                    isHuman: player.playerType === 'human'
+                });
+
+                let attackCount = 0;
+                let rolls = [];
+
+                if (player.playerType === 'human') {
+                    // Human player - wait for them to click roll button
+                    const rollResult = await this.waitForHumanRoll(player);
+                    rolls = rollResult.rolls;
+                    attackCount = rollResult.attackCount;
+                } else {
+                    // AI player - automatic roll with suspense
+                    await new Promise(resolve => setTimeout(resolve, 1500)); // Suspense delay
+                    
+                    for (let i = 0; i < 6; i++) {
+                        const roll = Math.floor(Math.random() * 6) + 1; // 1-6
+                        rolls.push(roll);
+                        if (roll === 1) { // Attack face is 1
+                            attackCount++;
+                        }
+                    }
+                }
+                
+                player.attackDice = attackCount;
+                player.lastRolls = rolls;
+                
+                console.log(`🎲 ${player.monster.name} rolled ${attackCount} attacks: [${rolls.join(', ')}]`);
+                
+                // Trigger event for individual player roll
+                this.triggerEvent('playerRollOff', {
+                    player: player,
+                    attackDice: attackCount,
+                    rolls: rolls
+                });
+
+                // Brief pause between players for drama
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+
+            // Find the highest attack count
+            const maxAttacks = Math.max(...playersToRoll.map(p => p.attackDice));
+            const winners = playersToRoll.filter(p => p.attackDice === maxAttacks);
+
+            console.log(`🎲 Highest attack count: ${maxAttacks}, achieved by: ${winners.map(w => w.monster.name).join(', ')}`);
+
+            if (winners.length === 1) {
+                // We have a winner!
+                const winner = winners[0];
+                console.log(`🏆 ${winner.monster.name} wins the roll-off and goes first!`);
+                
+                // Trigger event to announce winner
+                this.triggerEvent('rollOffWinner', {
+                    winner: winner,
+                    finalAttackCount: maxAttacks
+                });
+
+                // Wait a moment for the winner announcement to be seen
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                return winner;
+            } else {
+                // Tie - continue with tied players
+                playersToRoll = winners;
+                rollRound++;
+                
+                // Trigger event for tie
+                this.triggerEvent('rollOffTie', {
+                    tiedPlayers: winners,
+                    attackCount: maxAttacks,
+                    round: rollRound
+                });
+
+                // Wait a moment before next round
+                await new Promise(resolve => setTimeout(resolve, 1500));
+            }
+        }
+
+        // Fallback (should never reach here)
+        return playersToRoll[0];
+    }
+
+    // Wait for human player to roll dice in roll-off
+    async waitForHumanRoll(player) {
+        return new Promise((resolve) => {
+            // Store the resolve function for the UI to call
+            this.pendingHumanRoll = {
+                player: player,
+                resolve: resolve
+            };
+        });
+    }
+
+    // Called by UI when human player clicks roll button
+    executeHumanRoll(player) {
+        if (!this.pendingHumanRoll || this.pendingHumanRoll.player !== player) {
+            console.warn('No pending human roll for this player');
+            return;
+        }
+
+        // Roll 6 dice
+        let attackCount = 0;
+        const rolls = [];
+        for (let i = 0; i < 6; i++) {
+            const roll = Math.floor(Math.random() * 6) + 1; // 1-6
+            rolls.push(roll);
+            if (roll === 1) { // Attack face is 1
+                attackCount++;
+            }
+        }
+
+        // Resolve the promise
+        this.pendingHumanRoll.resolve({
+            rolls: rolls,
+            attackCount: attackCount
+        });
+
+        // Clear pending roll
+        this.pendingHumanRoll = null;
+    }
+
+    // Reorder players so the winner of the roll-off becomes Player 1
+    reorderPlayersForFirstPlayer(selectedMonsters, playerTypes, firstPlayerIndex) {
+        console.log(`🔄 Reordering players to make index ${firstPlayerIndex} become Player 1`);
+        
+        if (firstPlayerIndex === 0) {
+            console.log('✅ Winner is already in position 1, no reordering needed');
+            return { selectedMonsters, playerTypes };
+        }
+
+        // Create new arrays with the winner first
+        const reorderedMonsters = [...selectedMonsters];
+        const reorderedPlayerTypes = playerTypes ? [...playerTypes] : null;
+
+        // Move winner to position 0, shift others
+        const winnerMonster = reorderedMonsters[firstPlayerIndex];
+        const winnerPlayerType = reorderedPlayerTypes ? reorderedPlayerTypes[firstPlayerIndex] : null;
+
+        // Remove winner from current position
+        reorderedMonsters.splice(firstPlayerIndex, 1);
+        if (reorderedPlayerTypes) {
+            reorderedPlayerTypes.splice(firstPlayerIndex, 1);
+        }
+
+        // Insert winner at the beginning
+        reorderedMonsters.unshift(winnerMonster);
+        if (reorderedPlayerTypes) {
+            reorderedPlayerTypes.unshift(winnerPlayerType);
+        }
+
+        console.log('✅ Players reordered:');
+        reorderedMonsters.forEach((monster, i) => {
+            const type = reorderedPlayerTypes ? reorderedPlayerTypes[i] : 'human';
+            console.log(`   Player ${i + 1}: ${monster.name} (${type})`);
+        });
+
+        return { 
+            selectedMonsters: reorderedMonsters, 
+            playerTypes: reorderedPlayerTypes 
+        };
+    }
+
     // Initialize game with selected monsters
-    async initializeGame(selectedMonsters, playerCount, playerTypes = null) {
+    async initializeGame(selectedMonsters, playerCount, playerTypes = null, firstPlayerIndex = null) {
         this.gameSettings.playerCount = playerCount;
         this.players = [];
         this.round = 1;
@@ -221,9 +434,15 @@ class KingOfTokyoGame {
             this.players.push(player);
         }
 
-        // Randomize starting player
-        this.currentPlayerIndex = Math.floor(Math.random() * playerCount);
-        console.log(`🎲 Randomized starting player: ${this.getCurrentPlayer().monster.name} (index ${this.currentPlayerIndex})`);
+        // Set starting player (either from roll-off or fallback to Player 1)
+        if (firstPlayerIndex !== null) {
+            console.log(`🎲 Using roll-off winner as starting player (was index ${firstPlayerIndex}, now Player 1)`);
+            this.currentPlayerIndex = 0; // Winner is now always Player 1 due to reordering
+        } else {
+            console.log('⚠️ No roll-off performed, defaulting to Player 1');
+            this.currentPlayerIndex = 0; // Default to Player 1
+        }
+        console.log(`� Starting player: ${this.getCurrentPlayer().monster.name} (Player ${this.currentPlayerIndex + 1})`);
 
         // Initialize card market
         this.refreshCardMarket();
@@ -1896,7 +2115,8 @@ class KingOfTokyoGame {
             'monster-selection', 
             'monster-deselection', 
             'game-start', 
-            'ready-to-start'
+            'ready-to-start',
+            'roll-off'  // Add roll-off as a setup category
         ];
         const isGameplayAction = !setupCategories.includes(category);
         

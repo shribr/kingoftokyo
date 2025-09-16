@@ -92,6 +92,66 @@ class KingOfTokyoUI {
         this.playerTiles = []; // Track player tile assignments
         this.draggedMonster = null; // Track currently dragged monster
         
+        // Sportscast commentary arrays
+        this.sportscastCommentary = {
+            intro: [
+                "Ladies and gentlemen, welcome to the King of Tokyo Roll-Off!",
+                "It's time to see who will claim the first turn in this epic battle!",
+                "The monsters are ready... let's see who has the dice on their side!",
+                "Who will emerge as the first to terrorize Tokyo? Let's find out!"
+            ],
+            beforeRoll: [
+                "Here comes {name}, looking confident and ready to roll!",
+                "{name} steps up to the dice table with determination!",
+                "All eyes are on {name} as they prepare for their moment of truth!",
+                "{name} takes a deep breath... this could be the roll that matters!"
+            ],
+            humanRoll: [
+                "{name}, it's your turn! Click that roll button and show us what you've got!",
+                "The spotlight is on you, {name}! Time to roll those dice!",
+                "{name}, the crowd is waiting! Give those dice a shake!",
+                "It's all up to you now, {name}! Click to roll and claim your destiny!"
+            ],
+            aiRolling: [
+                "{name} is calculating the perfect roll...",
+                "Watch as {name} demonstrates their rolling technique!",
+                "{name} focuses their energy... here comes the roll!",
+                "The mechanical precision of {name} is about to be revealed!"
+            ],
+            results: {
+                high: [
+                    "INCREDIBLE! {name} just rolled {count} attacks! What a phenomenal performance!",
+                    "Outstanding! {name} comes out swinging with {count} attack dice!",
+                    "Magnificent! {name} shows everyone how it's done with {count} attacks!",
+                    "Spectacular! {name} dominates the roll with {count} attack dice!"
+                ],
+                medium: [
+                    "Solid performance! {name} rolls {count} attacks - a respectable showing!",
+                    "Not bad! {name} puts up {count} attacks on the board!",
+                    "Decent roll! {name} manages {count} attacks - still in the game!",
+                    "A fair effort! {name} scores {count} attacks in this round!"
+                ],
+                low: [
+                    "Oh no! {name} only managed {count} attacks - that's going to be tough to beat the competition with!",
+                    "Unlucky! {name} rolls just {count} attacks - the dice weren't kind today!",
+                    "Rough luck! {name} ends up with only {count} attacks - better luck next time!",
+                    "The dice have spoken! {name} gets {count} attacks - not quite the roll they were hoping for!"
+                ]
+            },
+            tie: [
+                "We have a TIE! This is what we live for, folks!",
+                "Incredible! A deadlock! These monsters are evenly matched!",
+                "Unbelievable! Lady Luck has given us a tie - time for a tiebreaker!",
+                "What drama! A perfect tie! Tokyo will have to wait a little longer!"
+            ],
+            winner: [
+                "AND WE HAVE A WINNER! {name} takes the crown with {count} attacks!",
+                "VICTORY! {name} emerges triumphant and will lead the charge into Tokyo!",
+                "CHAMPION! {name} has proven their worth and earned the right to go first!",
+                "PHENOMENAL! {name} rises above the competition and claims first turn!"
+            ]
+        };
+        
         // Initialize SetupManager for handling setup screen
         this.setupManager = new SetupManager(UIUtilities);
         
@@ -106,6 +166,7 @@ class KingOfTokyoUI {
         this.setupManager.initializeMonsterProfiles();
         this.initializeSettings();
         this.initializeResponsivePanels();
+        this.initializeDiceArea(); // Initialize dice area with 6 dice
         this.setupManager.showSetupModal(); // Delegate to SetupManager
         
         // End turn button functionality now handled in dice controls
@@ -178,6 +239,13 @@ class KingOfTokyoUI {
             
             // Toolbar elements
             exitGameBtn: document.getElementById('exit-game-btn'),
+            
+            // Roll-off elements
+            rolloffScoreboardContainer: document.getElementById('rolloff-scoreboard-container'),
+            rolloffTable: document.getElementById('rolloff-table'),
+            rolloffTableBody: document.getElementById('rolloff-table-body'),
+            rolloffCommentary: document.getElementById('rolloff-commentary'),
+            rolloffRollBtn: document.getElementById('rolloff-roll-btn'),
             pauseGameBtn: document.getElementById('pause-game-btn'),
             resetPositionsBtn: document.getElementById('reset-positions-btn'),
             gameLogBtn: document.getElementById('game-log-btn'),
@@ -322,9 +390,15 @@ class KingOfTokyoUI {
                 return;
             }
             
-            console.log('End turn button clicked - calling endTurn()');
             this.endTurn();
         });
+
+        // Rolloff roll button event
+        if (this.elements.rolloffRollBtn) {
+            this.elements.rolloffRollBtn.addEventListener('click', () => {
+                this.handleRolloffRoll();
+            });
+        }
 
         // this.elements.buyCardsBtn.addEventListener('click', () => {
         //     this.showCardBuyingInterface();
@@ -724,6 +798,7 @@ class KingOfTokyoUI {
         console.log('startGame called');
         console.log('Selected monsters count:', this.selectedMonsters.length);
         console.log('Current player count:', this.currentPlayerCount);
+        console.log('Selected monsters:', this.selectedMonsters);
         
         console.log('Creating new game...');
         try {
@@ -761,10 +836,26 @@ class KingOfTokyoUI {
             
             // Prepare player types array
             const playerTypes = this.playerTiles.map(tile => tile.type);
+            console.log('Player types:', playerTypes);
             
-            // Initialize game (this will also save initial game state)
-            console.log('About to initialize game with monsters and player types:', this.selectedMonsters, playerTypes);
-            const result = await this.game.initializeGame(this.selectedMonsters, this.currentPlayerCount, playerTypes);
+            // Perform roll-off to determine first player
+            console.log('🎲 Starting roll-off for first player...');
+            console.log('Passing selectedMonsters to rollForFirstPlayer:', this.selectedMonsters);
+            
+            // Hide the setup modal so users can see the roll-off scoreboard
+            this.setupManager.hideSetupModal();
+            
+            const rollOffWinner = await this.game.rollForFirstPlayer(this.selectedMonsters, playerTypes);
+            console.log(`🏆 Roll-off winner:`, rollOffWinner);
+            
+            // Reorder players so winner becomes Player 1
+            const reorderedData = this.game.reorderPlayersForFirstPlayer(this.selectedMonsters, playerTypes, rollOffWinner.index);
+            const finalMonsters = reorderedData.selectedMonsters;
+            const finalPlayerTypes = reorderedData.playerTypes;
+            
+            // Initialize game with reordered players (winner is now index 0)
+            console.log('About to initialize game with reordered monsters and player types:', finalMonsters, finalPlayerTypes);
+            const result = await this.game.initializeGame(finalMonsters, this.currentPlayerCount, finalPlayerTypes, rollOffWinner.index);
             console.log('Game initialization result:', result);
             
             // 3. Log who goes first (after game initialization so we know the randomized starting player)
@@ -773,7 +864,7 @@ class KingOfTokyoUI {
             }
             
             if (result.success) {
-                this.setupManager.hideSetupModal();
+                // Setup modal already hidden before roll-off
                 
                 // Show the game toolbar now that the game has started
                 const gameToolbar = document.getElementById('game-toolbar');
@@ -1009,6 +1100,21 @@ class KingOfTokyoUI {
                 this.showPlayerEliminationDialog(data.eliminatedPlayer, data.attacker);
                 // Force immediate UI update to reflect elimination and Tokyo changes
                 this.updateGameDisplay();
+                break;
+            case 'rollOffRound':
+                this.showRollOffNotification(data);
+                break;
+            case 'playerAboutToRoll':
+                this.showPlayerAboutToRoll(data);
+                break;
+            case 'playerRollOff':
+                this.showPlayerRollOffResult(data);
+                break;
+            case 'rollOffTie':
+                this.showRollOffTie(data);
+                break;
+            case 'rollOffWinner':
+                this.showRollOffWinner(data);
                 break;
         }
     }
@@ -3617,6 +3723,29 @@ class KingOfTokyoUI {
         }, 300);
     }
 
+    // Initialize dice area with 6 dice showing question marks
+    initializeDiceArea() {
+        const diceContainer = this.elements.diceContainer;
+        if (!diceContainer) {
+            console.warn('⚠️ Dice container not found, skipping dice initialization');
+            return;
+        }
+
+        // Clear any existing dice
+        diceContainer.innerHTML = '';
+
+        // Create 6 dice showing question marks
+        for (let i = 0; i < 6; i++) {
+            const die = document.createElement('div');
+            die.className = 'die';
+            die.textContent = '?';
+            die.setAttribute('data-value', '?');
+            diceContainer.appendChild(die);
+        }
+
+        console.log('✅ Dice area initialized with 6 dice');
+    }
+
     // Initialize settings system
     initializeSettings() {
         // Load initial settings when the UI starts
@@ -5319,6 +5448,423 @@ class KingOfTokyoUI {
                 }
             }, 2000);
         }
+    }
+
+    // Roll-off UI methods with sportscast commentary
+    showRollOffNotification(data) {
+        const message = data.message;
+        
+        // Defensive programming: check if players have monster property
+        const players = data.players.map(p => {
+            if (p && p.monster && p.monster.name) {
+                return p.monster.name;
+            } else {
+                console.warn('Player missing monster property in notification:', p);
+                return `Player ${p.playerNumber || 'Unknown'}`;
+            }
+        }).join(', ');
+        
+        console.log(`🎲 Roll-off Round ${data.round}: ${message}`);
+        console.log(`🎲 Players rolling: ${players}`);
+        
+        // Show/initialize the scoreboard
+        this.initializeRollOffScoreboard(data.players, data.round);
+        
+        // Add sportscast commentary
+        const commentary = data.round === 1 
+            ? this.getRandomComment(this.sportscastCommentary.intro)
+            : this.getRandomComment(this.sportscastCommentary.tie);
+        
+        this.updateCommentary(commentary);
+        
+        // Show notification to user
+        UIUtilities.showMessage(message, 4000, this.elements);
+        
+        // Also log in the game log if available
+        if (this.game && this.game.logAction) {
+            this.game.logAction(`🎲 Roll-off Round ${data.round}: ${players}`, 'roll-off');
+        }
+    }
+
+    // New method to handle when a player is about to roll
+    showPlayerAboutToRoll(data) {
+        const player = data.player;
+        const isHuman = data.isHuman;
+        
+        const playerName = player && player.monster && player.monster.name 
+            ? player.monster.name 
+            : `Player ${player.playerNumber || 'Unknown'}`;
+        
+        if (isHuman) {
+            // Human player - show commentary and enable roll button in action menu
+            const commentary = this.getRandomComment(this.sportscastCommentary.humanRoll)
+                .replace('{name}', playerName);
+            this.updateCommentary(commentary);
+            
+            // Show 6 dice in the dice area
+            this.showRollOffDice();
+            
+            // Enable only the roll dice button in action menu
+            this.enableRollOffActions(player);
+        } else {
+            // AI player - show rolling commentary
+            const commentary = this.getRandomComment(this.sportscastCommentary.aiRolling)
+                .replace('{name}', playerName);
+            this.updateCommentary(commentary);
+            
+            // Show 6 dice in the dice area with rolling animation
+            this.showRollOffDiceRolling();
+            
+            // Disable all action menu buttons during AI roll
+            this.disableAllActions();
+        }
+        
+        console.log(`🎯 ${playerName} is about to roll (${isHuman ? 'HUMAN' : 'AI'})`);
+    }
+
+    // Helper methods for sportscast commentary
+    getRandomComment(commentArray) {
+        return commentArray[Math.floor(Math.random() * commentArray.length)];
+    }
+
+    updateCommentary(text) {
+        const commentaryElement = this.elements.rolloffCommentary;
+        if (commentaryElement) {
+            commentaryElement.textContent = text;
+            commentaryElement.style.opacity = '0';
+            setTimeout(() => {
+                commentaryElement.style.opacity = '1';
+            }, 100);
+        }
+    }
+
+    showRollOffDice() {
+        // Show 6 dice in the main dice area
+        const diceContainer = this.elements.diceContainer;
+        if (diceContainer) {
+            diceContainer.innerHTML = '';
+            for (let i = 0; i < 6; i++) {
+                const die = document.createElement('div');
+                die.className = 'die';
+                die.id = `die-${i}`;
+                die.textContent = '?';
+                diceContainer.appendChild(die);
+            }
+        }
+    }
+
+    showRollOffDiceRolling() {
+        // Show 6 dice in the main dice area with rolling animation
+        const diceContainer = this.elements.diceContainer;
+        if (diceContainer) {
+            diceContainer.innerHTML = '';
+            for (let i = 0; i < 6; i++) {
+                const die = document.createElement('div');
+                die.className = 'die rolling';
+                die.id = `die-${i}`;
+                die.textContent = '?';
+                diceContainer.appendChild(die);
+            }
+        }
+    }
+
+    enableRollOffActions(player) {
+        if (!player) return;
+        
+        this.elements.actionMenu.classList.add('hidden-for-rolloff');
+        this.elements.rolloffRollBtn.style.display = 'block';
+        this.elements.rolloffRollBtn.disabled = false;
+        this.elements.rolloffRollBtn.textContent = '🎲 Roll Dice';
+        this.currentRolloffPlayer = player;
+    }
+
+    disableAllActions() {
+        // Disable all action buttons during AI turn or between rolls
+        const actionButtons = this.elements.actionMenu.querySelectorAll('button');
+        actionButtons.forEach(button => {
+            button.disabled = true;
+        });
+        
+        // Also disable rolloff button if it exists
+        if (this.elements.rolloffRollBtn) {
+            this.elements.rolloffRollBtn.disabled = true;
+        }
+    }
+
+    restoreNormalActionStates() {
+        // Restore normal game button states after roll-off
+        console.log('🔧 Restoring normal action button states after roll-off');
+        
+        // Show the action menu and mark game as active
+        this.elements.actionMenu.classList.remove('hidden-for-rolloff');
+        this.elements.actionMenu.classList.add('game-active');
+        
+        // Hide the rolloff button
+        this.elements.rolloffRollBtn.style.display = 'none';
+        this.elements.rolloffRollBtn.disabled = true;
+        
+        // Reset action buttons to normal game states
+        const actionButtons = this.elements.actionMenu.querySelectorAll('button');
+        actionButtons.forEach(button => {
+            button.onclick = null; // Clear roll-off specific handlers
+            
+            // Reset to normal game states
+            if (button.id === 'roll-dice') {
+                button.disabled = false; // Will be managed by normal game logic
+                button.textContent = 'Roll Dice';
+            } else if (button.id === 'keep-dice') {
+                button.disabled = true; // Normally disabled until dice are rolled
+            } else if (button.id === 'end-turn') {
+                button.disabled = false; // Usually available
+            }
+        });
+        console.log('✅ Normal action button states restored');
+    }
+
+    handleRolloffRoll() {
+        if (this.currentRolloffPlayer) {
+            this.elements.rolloffRollBtn.disabled = true;
+            this.elements.rolloffRollBtn.textContent = 'Rolling...';
+            this.handleRollOffDiceRoll(this.currentRolloffPlayer);
+        }
+    }
+
+    handleRollOffDiceRoll(player) {
+        console.log(`🎲 Human player ${player.index} clicked roll dice button`);
+        
+        // Disable the roll button
+        const rollButton = document.getElementById('roll-dice');
+        if (rollButton) {
+            rollButton.disabled = true;
+            rollButton.textContent = 'Rolling...';
+        }
+        
+        // Show rolling animation in dice area
+        this.showRollOffDiceRolling();
+        
+        // Execute the roll after a brief delay for animation
+        setTimeout(() => {
+            this.game.executeHumanRoll(player);
+        }, 1000);
+    }
+
+    initializeRollOffScoreboard(players, round) {
+        const container = document.getElementById('rolloff-scoreboard-container');
+        const tableBody = document.getElementById('rolloff-table-body');
+        const title = container.querySelector('.rolloff-title');
+        
+        // Update title for round
+        title.textContent = round === 1 ? '🎲 Roll for First Player' : `🎲 Roll-off Round ${round}`;
+        
+        // Clear existing rows
+        tableBody.innerHTML = '';
+        
+        // Add a row for each player
+        players.forEach(player => {
+            const row = document.createElement('tr');
+            row.id = `rolloff-row-${player.index}`;
+            
+            // Defensive programming: handle missing monster property
+            const monsterName = player && player.monster && player.monster.name 
+                ? player.monster.name 
+                : `Player ${player.playerNumber || player.index + 1}`;
+            
+            const monsterImage = player && player.monster && player.monster.image 
+                ? player.monster.image 
+                : 'images/characters/king_of_tokyo_the_king.png'; // fallback image
+            
+            row.innerHTML = `
+                <td>
+                    <div class="rolloff-player-info">
+                        <img src="${monsterImage}" alt="${monsterName}" class="rolloff-monster-pic">
+                        <span class="rolloff-player-name">${monsterName}</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="rolloff-dice-display" id="rolloff-dice-${player.index}">
+                        <!-- Empty until roll is complete -->
+                    </div>
+                </td>
+                <td>
+                    <div class="rolloff-attack-count" id="rolloff-attacks-${player.index}">-</div>
+                </td>
+            `;
+            
+            tableBody.appendChild(row);
+        });
+        
+        // Show the scoreboard
+        container.style.display = 'block';
+        
+        // Show the rolloff button (but keep it disabled until a human player's turn)
+        this.elements.rolloffRollBtn.style.display = 'block';
+        this.elements.rolloffRollBtn.disabled = true;
+        this.elements.rolloffRollBtn.textContent = '🎲 Roll Dice';
+    }
+
+    showPlayerRollOffResult(data) {
+        const player = data.player;
+        const attackDice = data.attackDice;
+        const rolls = data.rolls;
+        
+        // Defensive programming
+        const playerName = player && player.monster && player.monster.name 
+            ? player.monster.name 
+            : `Player ${player.playerNumber || 'Unknown'}`;
+        
+        console.log(`🎲 ${playerName} rolled ${attackDice} attacks: [${rolls.join(', ')}]`);
+        
+        // Update the scoreboard with this player's results
+        this.updateRollOffScoreboard(player, rolls, attackDice);
+        
+        // Show dice results in main dice area
+        this.showRollOffDiceResults(rolls);
+        
+        // Add sportscast commentary based on result quality
+        let commentary;
+        if (attackDice >= 4) {
+            commentary = this.getRandomComment(this.sportscastCommentary.results.high);
+        } else if (attackDice >= 2) {
+            commentary = this.getRandomComment(this.sportscastCommentary.results.medium);
+        } else {
+            commentary = this.getRandomComment(this.sportscastCommentary.results.low);
+        }
+        
+        commentary = commentary.replace('{name}', playerName).replace('{count}', attackDice);
+        this.updateCommentary(commentary);
+        
+        // Highlight the attack count briefly
+        const attackContainer = document.getElementById(`rolloff-attacks-${player.index}`);
+        if (attackContainer) {
+            attackContainer.classList.add('highlight');
+            setTimeout(() => attackContainer.classList.remove('highlight'), 2000);
+        }
+        
+        // Show individual roll result
+        const message = `${playerName} rolled ${attackDice} attack${attackDice !== 1 ? 's' : ''}`;
+        UIUtilities.showMessage(message, 2000, this.elements);
+        
+        // Log in game log
+        if (this.game && this.game.logAction) {
+            this.game.logAction(`   ${playerName}: ${attackDice} attacks [${rolls.join(', ')}]`, 'roll-off');
+        }
+    }
+
+    showRollOffDiceResults(rolls) {
+        // Show the actual roll results in the main dice area
+        const diceContainer = this.elements.diceContainer;
+        if (diceContainer) {
+            const dice = diceContainer.querySelectorAll('.die');
+            rolls.forEach((roll, index) => {
+                if (dice[index]) {
+                    dice[index].className = roll === 1 ? 'die attack' : 'die';
+                    dice[index].textContent = this.getDieFaceSymbol(roll);
+                }
+            });
+        }
+    }
+
+    updateRollOffScoreboard(player, rolls, attackCount) {
+        const diceContainer = document.getElementById(`rolloff-dice-${player.index}`);
+        const attackContainer = document.getElementById(`rolloff-attacks-${player.index}`);
+        
+        if (diceContainer && attackContainer) {
+            // Add mini dice displays like in game log
+            diceContainer.innerHTML = '';
+            
+            rolls.forEach(roll => {
+                const die = document.createElement('div');
+                die.className = roll === 1 ? 'mini-die attack' : 'mini-die';
+                die.textContent = this.getDieFaceSymbol(roll);
+                diceContainer.appendChild(die);
+            });
+            
+            // Update attack count with highlighting
+            attackContainer.textContent = attackCount;
+            attackContainer.classList.add('highlight');
+            setTimeout(() => attackContainer.classList.remove('highlight'), 2000);
+        }
+    }
+
+    // Helper method to get dice face symbols (same as used in game log)
+    getDieFaceSymbol(value) {
+        const symbols = {
+            1: '⚔️', // Attack
+            2: '💥', // Smash
+            3: '⚡', // Energy
+            4: '❤️', // Heal  
+            5: '1', // 1 point
+            6: '2'  // 2 points
+        };
+        return symbols[value] || value.toString();
+    }
+
+    showRollOffTie(data) {
+        // Defensive programming: check if players have monster property
+        const tiedPlayers = data.tiedPlayers.map(p => {
+            if (p && p.monster && p.monster.name) {
+                return p.monster.name;
+            } else {
+                console.warn('Player missing monster property:', p);
+                return `Player ${p.playerNumber || 'Unknown'}`;
+            }
+        }).join(' and ');
+        const attackCount = data.attackCount;
+        const nextRound = data.round;
+        
+        console.log(`🎲 Tie! ${tiedPlayers} both rolled ${attackCount} attacks`);
+        
+        // Add dramatic tie commentary
+        const tieCommentary = this.getRandomComment(this.sportscastCommentary.tie);
+        this.updateCommentary(tieCommentary);
+        
+        // Show tie notification
+        const message = `Tie! ${tiedPlayers} both rolled ${attackCount} attack${attackCount !== 1 ? 's' : ''}. Rolling again...`;
+        UIUtilities.showMessage(message, 3000, this.elements);
+        
+        // Log in game log
+        if (this.game && this.game.logAction) {
+            this.game.logAction(`🤝 Tie at ${attackCount} attacks! Rolling again...`, 'roll-off');
+        }
+    }
+
+    showRollOffWinner(data) {
+        const winner = data.winner;
+        const attackCount = data.finalAttackCount;
+        
+        // Defensive programming: check if winner has monster property
+        const winnerName = winner && winner.monster && winner.monster.name 
+            ? winner.monster.name 
+            : `Player ${winner.playerNumber || 'Unknown'}`;
+        
+        console.log(`🏆 ${winnerName} wins with ${attackCount} attacks and goes first!`);
+        
+        // Add victory commentary
+        const victoryCommentary = this.getRandomComment(this.sportscastCommentary.winner)
+            .replace('{name}', winnerName)
+            .replace('{count}', attackCount);
+        this.updateCommentary(victoryCommentary);
+        
+        // Show winner notification
+        const message = `🏆 ${winnerName} wins with ${attackCount} attack${attackCount !== 1 ? 's' : ''} and goes first!`;
+        UIUtilities.showMessage(message, 4000, this.elements);
+        
+        // Clear dice area
+        const diceContainer = this.elements.diceContainer;
+        if (diceContainer) {
+            diceContainer.innerHTML = '';
+        }
+        
+        // Restore normal action button states
+        this.restoreNormalActionStates();
+        
+        // Hide the scoreboard after a delay
+        setTimeout(() => {
+            const container = document.getElementById('rolloff-scoreboard-container');
+            if (container) {
+                container.style.display = 'none';
+            }
+        }, 6000);
     }
 }
 // Note: Game initialization is now handled by the splash screen
