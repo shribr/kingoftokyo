@@ -5593,8 +5593,8 @@ class KingOfTokyoUI {
                 .replace('{name}', playerName);
             this.updateCommentary(commentary);
             
-            // Show 6 dice in the dice area using the new unified system
-            this.showRollOffDiceRolling();
+            // Show 6 dice in the dice area using the unified system
+            this.showInitialEmptyDice();
             
             // Enable only the roll dice button in action menu
             this.enableRollOffActions(player);
@@ -5604,8 +5604,8 @@ class KingOfTokyoUI {
                 .replace('{name}', playerName);
             this.updateCommentary(commentary);
             
-            // Show 6 dice in the dice area with rolling animation
-            this.showRollOffDiceRolling();
+            // Show 6 dice in the dice area - AI will handle rolling
+            this.showInitialEmptyDice();
             
             // Disable all action menu buttons during AI roll
             this.disableAllActions();
@@ -5628,25 +5628,6 @@ class KingOfTokyoUI {
                 commentaryElement.style.opacity = '1';
             }, 100);
         }
-    }
-
-    showRollOffDiceRolling() {
-        // Create rolling dice data for display (6 dice only)
-        const rollingDiceData = [];
-        for (let i = 0; i < 6; i++) {
-            rollingDiceData.push({
-                id: `die-${i}`,
-                face: null,
-                symbol: '?',
-                isSelected: false,
-                isRolling: true,
-                isDisabled: false,
-                faceData: null
-            });
-        }
-        
-        // Use regular updateDiceDisplay but limit to 6 dice and mark as roll-off mode
-        this.updateDiceDisplay(rollingDiceData, 6, true);
     }
 
     enableRollOffActions(player) {
@@ -5724,13 +5705,8 @@ class KingOfTokyoUI {
             rollButton.textContent = 'Rolling...';
         }
         
-        // Show rolling animation in dice area
-        this.showRollOffDiceRolling();
-        
-        // Execute the roll after a brief delay for animation
-        setTimeout(() => {
-            this.game.executeHumanRoll(player);
-        }, 500); // Reduced delay since executeHumanRoll now handles timing
+        // Execute the roll directly - let the unified system handle animation
+        this.game.executeHumanRoll(player);
     }
 
     initializeRollOffScoreboard(players, round) {
@@ -5803,13 +5779,12 @@ class KingOfTokyoUI {
         // Update the scoreboard with this player's results
         this.updateRollOffScoreboard(player, rolls, attackDice);
         
-        // Show dice results in main dice area using regular display system
+        // Show dice results in main dice area using unified display system
         if (diceData) {
             // Use regular updateDiceDisplay but limit to 6 dice for roll-off
             this.updateDiceDisplay(diceData, 6, true);
         } else {
-            // Fallback to old method if diceData not available (for AI players)
-            this.showRollOffDiceResults(rolls);
+            console.warn('No diceData provided for roll-off results - this should not happen with unified system');
         }
         
         // Add sportscast commentary based on result quality
@@ -5839,20 +5814,6 @@ class KingOfTokyoUI {
         // Log in game log
         if (this.game && this.game.logAction) {
             this.game.logAction(`   ${playerName}: ${attackDice} attacks [${rolls.join(', ')}]`, 'roll-off');
-        }
-    }
-
-    showRollOffDiceResults(rolls) {
-        // Show the actual roll results in the main dice area
-        const diceContainer = this.elements.diceContainer;
-        if (diceContainer) {
-            const dice = diceContainer.querySelectorAll('.die');
-            rolls.forEach((roll, index) => {
-                if (dice[index]) {
-                    dice[index].className = roll === 1 ? 'die attack' : 'die';
-                    dice[index].textContent = this.getDieFaceSymbol(roll);
-                }
-            });
         }
     }
 
