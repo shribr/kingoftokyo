@@ -5318,6 +5318,40 @@ class KingOfTokyoUI {
                     }, 1500);
                 }
             }, 2000);
+        } else {
+            // Fallback - shouldn't happen but let game flow continue
+            console.log(`🤖 NEW CPU: Fallback - letting game flow continue`);
+        }
+    }
+
+    // Handle CPU behavior during buying phase
+    handleCPUBuyingPhase(player) {
+        console.log(`💰 NEW CPU: ${player.monster.name} in buying phase`);
+        this.showSimpleCPUNotification(player, `🛒 ${player.monster.name} checking cards...`);
+        
+        setTimeout(() => {
+            // Simple card evaluation - buy cheapest affordable card
+            const gameState = this.game.getGameState();
+            const availableCards = gameState.cardMarket || [];
+            const affordableCards = availableCards.filter(card => card && card.cost <= player.energy);
+            
+            if (affordableCards.length > 0) {
+                // Sort by cost (cheapest first) and take the first one
+                affordableCards.sort((a, b) => a.cost - b.cost);
+                const cardToBuy = affordableCards[0];
+                
+                console.log(`� NEW CPU: ${player.monster.name} buying ${cardToBuy.name} for ${cardToBuy.cost} energy`);
+                this.showSimpleCPUNotification(player, `💳 ${player.monster.name} buying ${cardToBuy.name}...`);
+                
+                setTimeout(() => {
+                    // Purchase the card
+                    this.buyCard(cardToBuy.id);
+                    
+                    // End turn after buying
+                    setTimeout(() => {
+                        console.log(`✅ NEW CPU: ${player.monster.name} ending turn after purchase`);
+                        this.showSimpleCPUNotification(player, `✅ ${player.monster.name} ending turn...`);
+                        
         }
     }
 }

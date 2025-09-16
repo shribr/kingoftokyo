@@ -1181,6 +1181,8 @@ class KingOfTokyoGame {
 
     // Enter Tokyo
     enterTokyo(player, automatic = false) {
+        console.log(`🏯 enterTokyo called for ${player.monster.name}, automatic=${automatic}`);
+        
         let location = null;
         
         if (this.tokyoCity === null) {
@@ -1202,7 +1204,18 @@ class KingOfTokyoGame {
         }
         
         if (location) {
+            console.log(`🏯 Player ${player.monster.name} entering Tokyo ${location}`);
             player.enterTokyo(location, automatic);
+            
+            console.log(`🏯 After enterTokyo: player.isInTokyo=${player.isInTokyo}, player.tokyoLocation=${player.tokyoLocation}`);
+            
+            // Award 1 victory point for entering Tokyo (only if not automatic entry)
+            if (!automatic) {
+                console.log(`🎊 Awarding 1 victory point to ${player.monster.name} for entering Tokyo`);
+                player.addVictoryPoints(1);
+                this.triggerEvent('playerGainedPoints', { playerId: player.id, pointsGained: 1 });
+                this.triggerEvent('statsUpdated', { player: player });
+            }
             
             // Trigger animation event
             this.triggerEvent('playerEntersTokyo', {
@@ -1213,6 +1226,10 @@ class KingOfTokyoGame {
             
             // Trigger general Tokyo state change
             this.triggerEvent('tokyoChanged', this.getGameState());
+            
+            console.log(`🏯 Tokyo events triggered for ${player.monster.name}`);
+        } else {
+            console.log(`🏯 No Tokyo location available for ${player.monster.name}`);
         }
     }
 

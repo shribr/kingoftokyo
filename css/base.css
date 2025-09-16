@@ -98,7 +98,7 @@ button {
 /* CPU Action Notification (Above dice area) */
 .cpu-action-notification {
     position: absolute;
-    top: -50px; /* Position above dice container */
+    top: -80px; /* Position higher above dice container */
     left: 50%;
     transform: translateX(-50%);
     z-index: 999;
