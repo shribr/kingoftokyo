@@ -1320,10 +1320,16 @@ class KingOfTokyoUI {
         
         // STEP 2: Then activate the new current player
         const newActiveCard = document.querySelector(`[data-player-id="${currentPlayer.id}"]`);
+        console.log('🔍 TOKYO DEBUG: Looking for player card:', currentPlayer.id, 'Player:', currentPlayer.monster.name, 'In Tokyo:', currentPlayer.isInTokyo);
+        console.log('🔍 TOKYO DEBUG: Found card:', !!newActiveCard);
+        
         if (newActiveCard) {
             console.log('🚀 Activating new current player:', currentPlayer.monster.name);
             const playerIndex = players.findIndex(p => p.id === currentPlayer.id);
             this._moveToActivePosition(newActiveCard, playerIndex);
+        } else {
+            console.error('🚨 TOKYO BUG: Could not find player card for', currentPlayer.monster.name, 'ID:', currentPlayer.id);
+            console.error('🚨 Available player cards:', Array.from(document.querySelectorAll('[data-player-id]')).map(el => el.dataset.playerId));
         }
         
         // STEP 3: Update monster colors and stats for all players
@@ -5858,13 +5864,13 @@ class KingOfTokyoUI {
         // Restore normal action button states
         this.restoreNormalActionStates();
         
-        // Hide the scoreboard after a delay
+        // Hide the scoreboard right after winner announcement
         setTimeout(() => {
             const container = document.getElementById('rolloff-scoreboard-container');
             if (container) {
                 container.style.display = 'none';
             }
-        }, 6000);
+        }, 1000); // Changed from 6000 to 1000ms for quicker hiding
     }
 }
 // Note: Game initialization is now handled by the splash screen

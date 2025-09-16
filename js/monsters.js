@@ -161,9 +161,7 @@ class Player {
     enterTokyo(location = 'city', automatic = false) {
         this.isInTokyo = true;
         this.tokyoLocation = location;
-        if (!automatic) {
-            this.addVictoryPoints(1); // Bonus for entering Tokyo (only for voluntary entry)
-        }
+        // Note: Victory points for Tokyo entry are awarded by the game engine, not here
     }
 
     // Leave Tokyo

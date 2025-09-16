@@ -1764,25 +1764,22 @@ class KingOfTokyoGame {
             // Log turn summary before ending
             this.logTurnSummary(currentPlayer);
 
-            // RULE: Handle mandatory Tokyo entry at end of any turn - BEFORE switching players
-            this.handleEndOfTurnTokyoEntry(currentPlayer);
-
-            // Trigger turn ended event before switching players
-            this.triggerEvent('turnEnded', this.getGameState());
-
             // Disable any extra dice that were enabled for the current player
             this.disablePlayerExtraDice(currentPlayer);
 
-            // Move to next player
+            // Move to next player FIRST, before any Tokyo handling
             this.switchToNextPlayer();
             
             // Clear dice results and reset dice count to base amount for next turn
             this.diceCollection.resetToBaseDiceCount(this.gameSettings.diceCount);
             this.diceRoller.startNewTurn();
             this.currentTurnPhase = 'rolling';
-            
-            // Apply start-of-turn effects for the NEW current player
-            this.applyStartOfTurnEffects();
+
+            // Trigger turn ended event to update UI with new active player
+            this.triggerEvent('turnEnded', this.getGameState());
+
+            // RULE: Handle mandatory Tokyo entry at end of any turn - AFTER new player is active
+            this.handleEndOfTurnTokyoEntry(currentPlayer);
             
             console.log('Turn ended. New current player:', this.getCurrentPlayer().monster.name, 'Index:', this.currentPlayerIndex);
         } finally {
@@ -1999,7 +1996,10 @@ class KingOfTokyoGame {
             // Clear turn-based effects tracking for the new turn
             this.clearTurnEffects();
             
-            // Trigger turn started event for UI
+            // Apply start-of-turn effects for the NEW current player BEFORE UI updates
+            this.applyStartOfTurnEffects();
+            
+            // Trigger turn started event for UI (now with all effects already applied)
             this.triggerEvent('turnStarted', { currentPlayer: this.getCurrentPlayer() });
         } finally {
             // Always reset the flag, even if an error occurs
