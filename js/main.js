@@ -2851,6 +2851,15 @@ class KingOfTokyoUI {
         // Update rolls left
         this.elements.rollsLeft.textContent = `Rolls left: ${diceState.rollsRemaining}`;
         
+        // Check if CPU is currently rolling
+        const isCPURolling = gameState.currentPlayer && 
+                           gameState.currentPlayer.playerType === 'cpu' && 
+                           gameState.turnPhase === 'rolling' && 
+                           !gameState.currentPlayer.isEliminated;
+        
+        // Update action menu state based on CPU rolling
+        this.updateActionMenuState(isCPURolling);
+        
         // Update button states
         const isCurrentPlayerEliminated = gameState.currentPlayer && gameState.currentPlayer.isEliminated;
         const canRoll = diceState.canRoll && gameState.turnPhase === 'rolling' && !isCurrentPlayerEliminated;
@@ -2937,6 +2946,25 @@ class KingOfTokyoUI {
             this.elements.rollDiceBtn.textContent = 'Roll Dice';
         } else {
             this.elements.rollDiceBtn.textContent = 'Re-roll Unselected';
+        }
+    }
+
+    // Update action menu state based on game conditions
+    updateActionMenuState(isCPURolling) {
+        if (!this.elements.actionMenu) return;
+        
+        if (isCPURolling) {
+            // Disable action menu during CPU rolling
+            this.elements.actionMenu.classList.add('cpu-rolling');
+            this.elements.actionMenu.style.pointerEvents = 'none';
+            this.elements.actionMenu.style.opacity = '0.5';
+            console.log('🎮 Action menu disabled - CPU is rolling');
+        } else {
+            // Re-enable action menu when CPU is not rolling
+            this.elements.actionMenu.classList.remove('cpu-rolling');
+            this.elements.actionMenu.style.pointerEvents = '';
+            this.elements.actionMenu.style.opacity = '';
+            console.log('🎮 Action menu enabled - CPU not rolling');
         }
     }
 
@@ -5544,6 +5572,10 @@ class KingOfTokyoUI {
         if (!player || player.playerType !== 'cpu' || player.isEliminated) return;
 
         console.log(`🤖 NEW CPU: ${player.monster.name} starting turn`);
+        
+        // Update controls immediately when CPU turn starts
+        this.updateDiceControls();
+        
         // Start with proper notification that turn begins
         this.showSimpleCPUNotification(player, `� ${player.monster.name}'s turn begins...`);
         
@@ -5580,6 +5612,8 @@ class KingOfTokyoUI {
                         this.showSimpleCPUNotification(player, `✅ ${player.monster.name} ending turn...`);
                         
                         setTimeout(() => {
+                            // Update controls before ending turn to re-enable action menu
+                            this.updateDiceControls();
                             this.endTurn();
                         }, 1500);
                     }

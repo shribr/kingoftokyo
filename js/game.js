@@ -378,21 +378,34 @@ class KingOfTokyoGame {
 
     // Wait for human player to roll dice in roll-off
     async waitForHumanRoll(player) {
+        console.log('🎲 waitForHumanRoll: Setting up promise for', player?.monster?.name);
         return new Promise((resolve) => {
             // Store the resolve function for the UI to call
             this.pendingHumanRoll = {
                 player: player,
                 resolve: resolve
             };
+            console.log('🎲 waitForHumanRoll: Promise created, pendingHumanRoll set');
         });
     }
 
     // Called by UI when human player clicks roll button
     executeHumanRoll(player) {
-        if (!this.pendingHumanRoll || this.pendingHumanRoll.player !== player) {
-            console.warn('No pending human roll for this player');
+        if (!this.pendingHumanRoll) {
+            console.warn('🎲 executeHumanRoll: No pendingHumanRoll exists');
             return;
         }
+        
+        if (this.pendingHumanRoll.player !== player) {
+            console.warn('🎲 executeHumanRoll: Player mismatch - expected:', this.pendingHumanRoll.player?.monster?.name, 'got:', player?.monster?.name);
+            return;
+        }
+
+        console.log('🎲 executeHumanRoll: Starting roll for', player?.monster?.name);
+
+        // Store a reference to the resolve function to prevent race conditions
+        const pendingResolve = this.pendingHumanRoll.resolve;
+        const pendingPlayer = this.pendingHumanRoll.player;
 
         // Use the same dice system as regular gameplay
         if (!this.rollOffDiceCollection) {
@@ -409,6 +422,7 @@ class KingOfTokyoGame {
 
         // Wait for dice animation to complete before getting results
         setTimeout(() => {
+            console.log('🎲 executeHumanRoll: Processing dice results after animation');
             // Get the dice data and convert to roll-off format
             const diceData = this.rollOffDiceCollection.getAllDiceData();
             const rolls = [];
@@ -442,15 +456,22 @@ class KingOfTokyoGame {
 
             console.log(`🎲 Roll-off using DiceCollection: [${rolls.join(', ')}], attacks: ${attackCount}`);
 
-            // Resolve the promise
-            this.pendingHumanRoll.resolve({
-                rolls: rolls,
-                attackCount: attackCount,
-                diceData: diceData // Include dice data for UI display
-            });
-
-            // Clear pending roll
-            this.pendingHumanRoll = null;
+            // Resolve the promise using stored reference to prevent race conditions
+            if (pendingResolve && typeof pendingResolve === 'function') {
+                console.log('🎲 executeHumanRoll: Resolving promise for', pendingPlayer?.monster?.name);
+                pendingResolve({
+                    rolls: rolls,
+                    attackCount: attackCount,
+                    diceData: diceData // Include dice data for UI display
+                });
+                
+                // Clear pending roll if it still exists and matches our player
+                if (this.pendingHumanRoll && this.pendingHumanRoll.player === pendingPlayer) {
+                    this.pendingHumanRoll = null;
+                }
+            } else {
+                console.warn('🎲 Roll-off: No valid resolve function available');
+            }
         }, 600); // Wait slightly longer than the die animation
     }
 

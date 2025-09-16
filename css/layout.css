@@ -511,6 +511,17 @@ body::before {
     display: block !important; /* Show when game is active */
 }
 
+/* Action menu disabled state during CPU rolling */
+.action-menu.cpu-rolling {
+    filter: grayscale(1);
+    transform: scale(0.95);
+    transition: filter 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
+}
+
+.action-menu.cpu-rolling button {
+    cursor: not-allowed !important;
+}
+
 /* Round Indicator Container - positioned properly inside tokyo area */
 .round-indicator-container {
     position: absolute;
