@@ -271,6 +271,9 @@ class KingOfTokyoGame {
                     this.rollOffDiceCollection.reset();
                     this.rollOffDiceCollection.rollAll();
 
+                    // Immediately trigger dice update to show rolling animation (like regular gameplay)
+                    this.triggerEvent('diceUpdated', this.rollOffDiceCollection.getAllDiceData());
+
                     // Wait for dice animation to complete before getting results
                     await new Promise(resolve => {
                         setTimeout(() => {
@@ -398,6 +401,9 @@ class KingOfTokyoGame {
         // Reset and roll all 6 dice using the same system
         this.rollOffDiceCollection.reset();
         this.rollOffDiceCollection.rollAll();
+
+        // Immediately trigger dice update to show rolling animation (like regular gameplay)
+        this.triggerEvent('diceUpdated', this.rollOffDiceCollection.getAllDiceData());
 
         // Wait for dice animation to complete before getting results
         setTimeout(() => {

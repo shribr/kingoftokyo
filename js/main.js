@@ -2752,8 +2752,25 @@ class KingOfTokyoUI {
             // Show the element
             dieElement.style.display = 'inline-flex'; // Use inline-flex to match CSS
             
-            // Update content
-            dieElement.textContent = dieData.symbol || '?';
+            // Update content - show previous dice values during animation
+            let displaySymbol;
+            if (dieData.isRolling) {
+                // During animation: show previous face (or ? if first roll ever)
+                if (dieData.previousFace === null || dieData.previousFace === undefined) {
+                    displaySymbol = '?'; // First roll ever - no previous face
+                } else {
+                    try {
+                        displaySymbol = this.getDieFaceSymbol(dieData.previousFace); // Show previous face during animation
+                    } catch (error) {
+                        console.warn('Error getting previous face symbol:', dieData.previousFace, error);
+                        displaySymbol = '?'; // Fallback to question mark
+                    }
+                }
+            } else {
+                // Not rolling: show current face (or ? if never rolled)
+                displaySymbol = dieData.symbol || '?';
+            }
+            dieElement.textContent = displaySymbol;
             
             // Update classes - build the class string exactly like the old createDiceHTML
             dieElement.className = `die${dieData.isSelected ? ' selected' : ''}${dieData.isRolling ? ' rolling' : ''}${dieData.isDisabled ? ' disabled' : ''}`;
@@ -5841,15 +5858,27 @@ class KingOfTokyoUI {
 
     // Helper method to get dice face symbols (same as used in game log)
     getDieFaceSymbol(value) {
+        // Handle null, undefined, or invalid values
+        if (value === null || value === undefined) {
+            return '?';
+        }
+        
         const symbols = {
             1: '⚔️', // Attack
             2: '💥', // Smash
             3: '⚡', // Energy
             4: '❤️', // Heal  
             5: '1', // 1 point
-            6: '2'  // 2 points
+            6: '2', // 2 points
+            'attack': '⚔️',
+            'smash': '💥', 
+            'energy': '⚡',
+            'heal': '❤️',
+            '1': '1',
+            '2': '2'
         };
-        return symbols[value] || value.toString();
+        
+        return symbols[value] || (value ? value.toString() : '?');
     }
 
     showRollOffTie(data) {
