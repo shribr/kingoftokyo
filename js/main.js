@@ -888,6 +888,7 @@ class KingOfTokyoUI {
                 // The original automatic Tokyo entry logic has been removed to fix the turn flow
                 
                 this.updateGameDisplay();
+                
                 UIUtilities.showMessage(`Game started! ${result.currentPlayer.monster.name} goes first!`, 3000, this.elements);
                 
                 // Check if the first player is CPU and start their turn immediately
@@ -2681,22 +2682,93 @@ class KingOfTokyoUI {
         }, 900);
     }
 
-    // Update dice display
-    updateDiceDisplay(diceData) {
-        console.log('updateDiceDisplay called with data:', diceData.map(d => ({ id: d.id, face: d.face, symbol: d.symbol })));
-        const html = createDiceHTML(diceData);
-        console.log('Generated HTML length:', html.length);
-        this.elements.diceContainer.innerHTML = html;
+    // Initialize dice container with the maximum number of dice elements
+    initializeDiceContainer(maxDice = 8) {
+        const diceContainer = this.elements.diceContainer;
+        if (!diceContainer) return;
+
+        // Clear and create dice elements once
+        diceContainer.innerHTML = '';
         
-        // Attach dice event listeners and update container reference
-        const newContainer = attachDiceEventListeners(this.game.diceCollection, this.elements.diceContainer, () => {
-            this.updateDiceControls();
-        });
-        
-        // Update our reference to the container if it was replaced
-        if (newContainer && newContainer !== this.elements.diceContainer) {
-            this.elements.diceContainer = newContainer;
+        for (let i = 0; i < maxDice; i++) {
+            const die = document.createElement('div');
+            die.className = 'die'; // Apply the proper CSS class
+            die.id = `die-${i}`;
+            die.dataset.dieId = `die-${i}`;
+            die.textContent = '?';
+            die.style.display = 'none'; // Hidden by default
+            
+            // Apply any additional styling that might be needed
+            die.setAttribute('data-value', '?');
+            
+            diceContainer.appendChild(die);
         }
+
+        // Add event listener once to the container (event delegation)
+        diceContainer.addEventListener('click', (event) => {
+            const dieElement = event.target.closest('.die');
+            if (dieElement && !dieElement.classList.contains('disabled') && !dieElement.classList.contains('roll-off-mode')) {
+                const dieId = dieElement.dataset.dieId;
+                console.log('Dice clicked:', dieId);
+                
+                if (this.game && this.game.diceCollection) {
+                    const isSelected = this.game.diceCollection.toggleDiceSelection(dieId);
+                    
+                    if (isSelected) {
+                        dieElement.classList.add('selected');
+                    } else {
+                        dieElement.classList.remove('selected');
+                    }
+                    
+                    this.updateDiceControls();
+                }
+            }
+        });
+
+        console.log(`🎲 Initialized dice container with ${maxDice} dice elements`);
+    }
+
+    // Update dice display by modifying existing elements
+    updateDiceDisplay(diceData, maxDiceToShow = null, isRollOffMode = false) {
+        console.log('updateDiceDisplay called with data:', diceData.map(d => ({ id: d.id, face: d.face, symbol: d.symbol })));
+        
+        const diceContainer = this.elements.diceContainer;
+        if (!diceContainer) return;
+
+        // Determine which dice to show
+        let dicesToDisplay = diceData;
+        if (maxDiceToShow !== null) {
+            const enabledDice = diceData.filter(die => !die.isDisabled);
+            dicesToDisplay = enabledDice.slice(0, maxDiceToShow);
+        }
+
+        // Get all dice elements
+        const diceElements = diceContainer.querySelectorAll('.die');
+        
+    // Update each dice element
+    dicesToDisplay.forEach((dieData, index) => {
+        const dieElement = diceElements[index];
+        if (dieElement) {
+            // Show the element
+            dieElement.style.display = 'inline-flex'; // Use inline-flex to match CSS
+            
+            // Update content
+            dieElement.textContent = dieData.symbol || '?';
+            
+            // Update classes - build the class string exactly like the old createDiceHTML
+            dieElement.className = `die${dieData.isSelected ? ' selected' : ''}${dieData.isRolling ? ' rolling' : ''}${dieData.isDisabled ? ' disabled' : ''}`;
+            if (isRollOffMode) dieElement.classList.add('roll-off-mode');
+            
+            // Update data attributes
+            dieElement.dataset.dieId = dieData.id;
+            dieElement.setAttribute('data-value', dieData.symbol || '?');
+        }
+    });        // Hide unused dice elements
+        for (let i = dicesToDisplay.length; i < diceElements.length; i++) {
+            diceElements[i].style.display = 'none';
+        }
+
+        console.log(`🎲 Updated ${dicesToDisplay.length} dice elements`);
     }
 
     // Update initial dice display (empty dice)
@@ -3729,7 +3801,7 @@ class KingOfTokyoUI {
         }, 300);
     }
 
-    // Initialize dice area with 6 dice showing question marks
+    // Initialize dice area with reusable dice elements
     initializeDiceArea() {
         const diceContainer = this.elements.diceContainer;
         if (!diceContainer) {
@@ -3737,19 +3809,33 @@ class KingOfTokyoUI {
             return;
         }
 
-        // Clear any existing dice
-        diceContainer.innerHTML = '';
+        // Initialize the dice container with reusable elements
+        this.initializeDiceContainer(8); // Support up to 8 dice (6 regular + 2 power card dice)
+        
+        // Immediately show 6 empty dice to prepare for the game
+        this.showInitialEmptyDice();
+        
+        console.log('🎲 Dice area initialized with reusable elements and initial display');
+    }
 
-        // Create 6 dice showing question marks
+    // Show initial empty dice (called during UI initialization)
+    showInitialEmptyDice() {
+        const initialDiceData = [];
         for (let i = 0; i < 6; i++) {
-            const die = document.createElement('div');
-            die.className = 'die';
-            die.textContent = '?';
-            die.setAttribute('data-value', '?');
-            diceContainer.appendChild(die);
+            initialDiceData.push({
+                id: `die-${i}`,
+                face: null,
+                symbol: '?',
+                isSelected: false,
+                isRolling: false,
+                isDisabled: false,
+                faceData: null
+            });
         }
-
-        console.log('✅ Dice area initialized with 6 dice');
+        
+        // Display the initial empty dice
+        this.updateDiceDisplay(initialDiceData, null, false);
+        console.log('🎲 Initial empty dice displayed');
     }
 
     // Initialize settings system
@@ -5507,8 +5593,8 @@ class KingOfTokyoUI {
                 .replace('{name}', playerName);
             this.updateCommentary(commentary);
             
-            // Show 6 dice in the dice area
-            this.showRollOffDice();
+            // Show 6 dice in the dice area using the new unified system
+            this.showRollOffDiceRolling();
             
             // Enable only the roll dice button in action menu
             this.enableRollOffActions(player);
@@ -5544,34 +5630,23 @@ class KingOfTokyoUI {
         }
     }
 
-    showRollOffDice() {
-        // Show 6 dice in the main dice area
-        const diceContainer = this.elements.diceContainer;
-        if (diceContainer) {
-            diceContainer.innerHTML = '';
-            for (let i = 0; i < 6; i++) {
-                const die = document.createElement('div');
-                die.className = 'die';
-                die.id = `die-${i}`;
-                die.textContent = '?';
-                diceContainer.appendChild(die);
-            }
-        }
-    }
-
     showRollOffDiceRolling() {
-        // Show 6 dice in the main dice area with rolling animation
-        const diceContainer = this.elements.diceContainer;
-        if (diceContainer) {
-            diceContainer.innerHTML = '';
-            for (let i = 0; i < 6; i++) {
-                const die = document.createElement('div');
-                die.className = 'die rolling';
-                die.id = `die-${i}`;
-                die.textContent = '?';
-                diceContainer.appendChild(die);
-            }
+        // Create rolling dice data for display (6 dice only)
+        const rollingDiceData = [];
+        for (let i = 0; i < 6; i++) {
+            rollingDiceData.push({
+                id: `die-${i}`,
+                face: null,
+                symbol: '?',
+                isSelected: false,
+                isRolling: true,
+                isDisabled: false,
+                faceData: null
+            });
         }
+        
+        // Use regular updateDiceDisplay but limit to 6 dice and mark as roll-off mode
+        this.updateDiceDisplay(rollingDiceData, 6, true);
     }
 
     enableRollOffActions(player) {
@@ -5624,6 +5699,10 @@ class KingOfTokyoUI {
                 button.disabled = false; // Usually available
             }
         });
+        
+        // Restore the initial dice display for regular gameplay
+        this.showInitialEmptyDice();
+        
         console.log('✅ Normal action button states restored');
     }
 
@@ -5651,7 +5730,7 @@ class KingOfTokyoUI {
         // Execute the roll after a brief delay for animation
         setTimeout(() => {
             this.game.executeHumanRoll(player);
-        }, 1000);
+        }, 500); // Reduced delay since executeHumanRoll now handles timing
     }
 
     initializeRollOffScoreboard(players, round) {
@@ -5712,6 +5791,7 @@ class KingOfTokyoUI {
         const player = data.player;
         const attackDice = data.attackDice;
         const rolls = data.rolls;
+        const diceData = data.diceData; // New unified dice data
         
         // Defensive programming
         const playerName = player && player.monster && player.monster.name 
@@ -5723,8 +5803,14 @@ class KingOfTokyoUI {
         // Update the scoreboard with this player's results
         this.updateRollOffScoreboard(player, rolls, attackDice);
         
-        // Show dice results in main dice area
-        this.showRollOffDiceResults(rolls);
+        // Show dice results in main dice area using regular display system
+        if (diceData) {
+            // Use regular updateDiceDisplay but limit to 6 dice for roll-off
+            this.updateDiceDisplay(diceData, 6, true);
+        } else {
+            // Fallback to old method if diceData not available (for AI players)
+            this.showRollOffDiceResults(rolls);
+        }
         
         // Add sportscast commentary based on result quality
         let commentary;
@@ -5855,10 +5941,10 @@ class KingOfTokyoUI {
         const message = `🏆 ${winnerName} wins with ${attackCount} attack${attackCount !== 1 ? 's' : ''} and goes first!`;
         UIUtilities.showMessage(message, 4000, this.elements);
         
-        // Clear dice area
+        // Reset dice to initial state instead of clearing
         const diceContainer = this.elements.diceContainer;
         if (diceContainer) {
-            diceContainer.innerHTML = '';
+            this.showInitialEmptyDice();
         }
         
         // Restore normal action button states

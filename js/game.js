@@ -258,16 +258,55 @@ class KingOfTokyoGame {
                     rolls = rollResult.rolls;
                     attackCount = rollResult.attackCount;
                 } else {
-                    // AI player - automatic roll with suspense
+                    // AI player - automatic roll with suspense using same dice system
                     await new Promise(resolve => setTimeout(resolve, 1500)); // Suspense delay
                     
-                    for (let i = 0; i < 6; i++) {
-                        const roll = Math.floor(Math.random() * 6) + 1; // 1-6
-                        rolls.push(roll);
-                        if (roll === 1) { // Attack face is 1
-                            attackCount++;
-                        }
+                    // Use the same dice system as human players
+                    if (!this.rollOffDiceCollection) {
+                        const DiceCollectionClass = window.DiceCollection || DiceCollection;
+                        this.rollOffDiceCollection = new DiceCollectionClass(6);
                     }
+
+                    // Reset and roll all 6 dice using the same system
+                    this.rollOffDiceCollection.reset();
+                    this.rollOffDiceCollection.rollAll();
+
+                    // Wait for dice animation to complete before getting results
+                    await new Promise(resolve => {
+                        setTimeout(() => {
+                            // Get the dice data and convert to roll-off format
+                            const diceData = this.rollOffDiceCollection.getAllDiceData();
+
+                            // Process only the first 6 dice (enabled dice)
+                            for (let i = 0; i < 6; i++) {
+                                const die = diceData[i];
+                                if (die && !die.isDisabled) {
+                                    // Convert dice face to roll-off format (1-6 for compatibility)
+                                    let rollValue;
+                                    if (die.face === 'attack') {
+                                        rollValue = 1; // Attack faces count as 1 for roll-off
+                                        attackCount++;
+                                    } else if (die.face === '1') {
+                                        rollValue = 1;
+                                    } else if (die.face === '2') {
+                                        rollValue = 2;
+                                    } else if (die.face === '3') {
+                                        rollValue = 3;
+                                    } else if (die.face === 'energy') {
+                                        rollValue = 4; // Energy represented as 4
+                                    } else if (die.face === 'heal') {
+                                        rollValue = 5; // Heal represented as 5
+                                    } else {
+                                        rollValue = 6; // Fallback
+                                    }
+                                    rolls.push(rollValue);
+                                }
+                            }
+
+                            console.log(`🎲 AI Roll-off using DiceCollection: [${rolls.join(', ')}], attacks: ${attackCount}`);
+                            resolve();
+                        }, 600); // Wait for dice animation
+                    });
                 }
                 
                 player.attackDice = attackCount;
@@ -275,11 +314,15 @@ class KingOfTokyoGame {
                 
                 console.log(`🎲 ${player.monster.name} rolled ${attackCount} attacks: [${rolls.join(', ')}]`);
                 
+                // Get dice data for event (if available)
+                const diceData = this.rollOffDiceCollection ? this.rollOffDiceCollection.getAllDiceData() : null;
+                
                 // Trigger event for individual player roll
                 this.triggerEvent('playerRollOff', {
                     player: player,
                     attackDice: attackCount,
-                    rolls: rolls
+                    rolls: rolls,
+                    diceData: diceData
                 });
 
                 // Brief pause between players for drama
@@ -346,25 +389,61 @@ class KingOfTokyoGame {
             return;
         }
 
-        // Roll 6 dice
-        let attackCount = 0;
-        const rolls = [];
-        for (let i = 0; i < 6; i++) {
-            const roll = Math.floor(Math.random() * 6) + 1; // 1-6
-            rolls.push(roll);
-            if (roll === 1) { // Attack face is 1
-                attackCount++;
-            }
+        // Use the same dice system as regular gameplay
+        if (!this.rollOffDiceCollection) {
+            const DiceCollectionClass = window.DiceCollection || DiceCollection;
+            this.rollOffDiceCollection = new DiceCollectionClass(6);
         }
 
-        // Resolve the promise
-        this.pendingHumanRoll.resolve({
-            rolls: rolls,
-            attackCount: attackCount
-        });
+        // Reset and roll all 6 dice using the same system
+        this.rollOffDiceCollection.reset();
+        this.rollOffDiceCollection.rollAll();
 
-        // Clear pending roll
-        this.pendingHumanRoll = null;
+        // Wait for dice animation to complete before getting results
+        setTimeout(() => {
+            // Get the dice data and convert to roll-off format
+            const diceData = this.rollOffDiceCollection.getAllDiceData();
+            const rolls = [];
+            let attackCount = 0;
+
+            // Process only the first 6 dice (enabled dice)
+            for (let i = 0; i < 6; i++) {
+                const die = diceData[i];
+                if (die && !die.isDisabled) {
+                    // Convert dice face to roll-off format (1-6 for compatibility)
+                    let rollValue;
+                    if (die.face === 'attack') {
+                        rollValue = 1; // Attack faces count as 1 for roll-off
+                        attackCount++;
+                    } else if (die.face === '1') {
+                        rollValue = 1;
+                    } else if (die.face === '2') {
+                        rollValue = 2;
+                    } else if (die.face === '3') {
+                        rollValue = 3;
+                    } else if (die.face === 'energy') {
+                        rollValue = 4; // Energy represented as 4
+                    } else if (die.face === 'heal') {
+                        rollValue = 5; // Heal represented as 5
+                    } else {
+                        rollValue = 6; // Fallback
+                    }
+                    rolls.push(rollValue);
+                }
+            }
+
+            console.log(`🎲 Roll-off using DiceCollection: [${rolls.join(', ')}], attacks: ${attackCount}`);
+
+            // Resolve the promise
+            this.pendingHumanRoll.resolve({
+                rolls: rolls,
+                attackCount: attackCount,
+                diceData: diceData // Include dice data for UI display
+            });
+
+            // Clear pending roll
+            this.pendingHumanRoll = null;
+        }, 600); // Wait slightly longer than the die animation
     }
 
     // Reorder players so the winner of the roll-off becomes Player 1

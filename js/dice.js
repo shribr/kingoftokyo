@@ -415,8 +415,15 @@ if (typeof window !== 'undefined') {
 }
 
 // Utility functions
-function createDiceHTML(diceData) {
-    return diceData.map(die => `
+function createDiceHTML(diceData, maxDiceToShow = null) {
+    // If maxDiceToShow is specified, only show that many enabled dice
+    let dicesToDisplay = diceData;
+    if (maxDiceToShow !== null) {
+        const enabledDice = diceData.filter(die => !die.isDisabled);
+        dicesToDisplay = enabledDice.slice(0, maxDiceToShow);
+    }
+    
+    return dicesToDisplay.map(die => `
         <div class="die ${die.isSelected ? 'selected' : ''} ${die.isRolling ? 'rolling' : ''} ${die.isDisabled ? 'disabled' : ''}" 
              data-die-id="${die.id}">
             ${die.symbol}
