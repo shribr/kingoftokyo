@@ -5894,7 +5894,9 @@ class KingOfTokyoUI {
         
         // Log in game log
         if (this.game && this.game.logAction) {
-            this.game.logAction(`   ${playerName}: ${attackDice} attacks [${rolls.join(', ')}]`, 'roll-off');
+            // Convert numeric roll values to symbols for display
+            const rollSymbols = rolls.map(roll => this.getDieFaceSymbol(roll));
+            this.game.logAction(`   ${playerName}: ${attackDice} attacks [${rollSymbols.join(', ')}]`, 'roll-off');
         }
     }
 
@@ -5908,7 +5910,7 @@ class KingOfTokyoUI {
             
             rolls.forEach(roll => {
                 const die = document.createElement('div');
-                die.className = roll === 1 ? 'mini-die attack' : 'mini-die';
+                die.className = roll === 6 ? 'mini-die attack' : 'mini-die';
                 die.textContent = this.getDieFaceSymbol(roll);
                 diceContainer.appendChild(die);
             });
@@ -5928,18 +5930,19 @@ class KingOfTokyoUI {
         }
         
         const symbols = {
-            1: '⚔️', // Attack
-            2: '💥', // Smash
-            3: '⚡', // Energy
-            4: '❤️', // Heal  
-            5: '1', // 1 point
-            6: '2', // 2 points
+            1: '1',  // 1 point
+            2: '2',  // 2 points
+            3: '3',  // 3 points
+            4: '❤️', // Heal
+            5: '⚡', // Energy
+            6: '⚔️', // Attack
             'attack': '⚔️',
             'smash': '💥', 
             'energy': '⚡',
             'heal': '❤️',
             '1': '1',
-            '2': '2'
+            '2': '2',
+            '3': '3'
         };
         
         return symbols[value] || (value ? value.toString() : '?');

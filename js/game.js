@@ -284,21 +284,21 @@ class KingOfTokyoGame {
                             for (let i = 0; i < 6; i++) {
                                 const die = diceData[i];
                                 if (die && !die.isDisabled) {
-                                    // Convert dice face to roll-off format (1-6 for compatibility)
+                                    // Convert dice face to roll-off format using logical 1-6 mapping
                                     let rollValue;
-                                    if (die.face === 'attack') {
-                                        rollValue = 1; // Attack faces count as 1 for roll-off
-                                        attackCount++;
-                                    } else if (die.face === '1') {
+                                    if (die.face === '1') {
                                         rollValue = 1;
                                     } else if (die.face === '2') {
                                         rollValue = 2;
                                     } else if (die.face === '3') {
                                         rollValue = 3;
-                                    } else if (die.face === 'energy') {
-                                        rollValue = 4; // Energy represented as 4
                                     } else if (die.face === 'heal') {
-                                        rollValue = 5; // Heal represented as 5
+                                        rollValue = 4; // Heal represented as 4
+                                    } else if (die.face === 'energy') {
+                                        rollValue = 5; // Energy represented as 5
+                                    } else if (die.face === 'attack') {
+                                        rollValue = 6; // Attack represented as 6
+                                        attackCount++;
                                     } else {
                                         rollValue = 6; // Fallback
                                     }
@@ -432,21 +432,21 @@ class KingOfTokyoGame {
             for (let i = 0; i < 6; i++) {
                 const die = diceData[i];
                 if (die && !die.isDisabled) {
-                    // Convert dice face to roll-off format (1-6 for compatibility)
+                    // Convert dice face to roll-off format using logical 1-6 mapping
                     let rollValue;
-                    if (die.face === 'attack') {
-                        rollValue = 1; // Attack faces count as 1 for roll-off
-                        attackCount++;
-                    } else if (die.face === '1') {
+                    if (die.face === '1') {
                         rollValue = 1;
                     } else if (die.face === '2') {
                         rollValue = 2;
                     } else if (die.face === '3') {
                         rollValue = 3;
-                    } else if (die.face === 'energy') {
-                        rollValue = 4; // Energy represented as 4
                     } else if (die.face === 'heal') {
-                        rollValue = 5; // Heal represented as 5
+                        rollValue = 4; // Heal represented as 4
+                    } else if (die.face === 'energy') {
+                        rollValue = 5; // Energy represented as 5
+                    } else if (die.face === 'attack') {
+                        rollValue = 6; // Attack represented as 6
+                        attackCount++;
                     } else {
                         rollValue = 6; // Fallback
                     }
