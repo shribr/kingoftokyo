@@ -2729,61 +2729,60 @@ class KingOfTokyoUI {
     }
 
     // Update dice display by modifying existing elements
-    updateDiceDisplay(diceData, maxDiceToShow = null, isRollOffMode = false) {
+    updateDiceDisplay(diceData, isRollOffMode = false) {
         console.log('updateDiceDisplay called with data:', diceData.map(d => ({ id: d.id, face: d.face, symbol: d.symbol })));
         
         const diceContainer = this.elements.diceContainer;
         if (!diceContainer) return;
 
-        // Determine which dice to show
-        let dicesToDisplay = diceData;
-        if (maxDiceToShow !== null) {
-            const enabledDice = diceData.filter(die => !die.isDisabled);
-            dicesToDisplay = enabledDice.slice(0, maxDiceToShow);
-        }
+        // The dice data passed in should already be filtered to the correct number
+        // No need to filter here - that's the responsibility of the caller
+        const dicesToDisplay = diceData;
 
         // Get all dice elements
         const diceElements = diceContainer.querySelectorAll('.die');
         
-    // Update each dice element
-    dicesToDisplay.forEach((dieData, index) => {
-        const dieElement = diceElements[index];
-        if (dieElement) {
-            // Show the element
-            dieElement.style.display = 'inline-flex'; // Use inline-flex to match CSS
-            
-            // Update content - show previous dice values during animation
-            let displaySymbol;
-            if (dieData.isRolling) {
-                // During animation: show previous face (or ? if first roll ever)
-                if (dieData.previousFace === null || dieData.previousFace === undefined) {
-                    displaySymbol = '?'; // First roll ever - no previous face
-                } else {
-                    try {
-                        displaySymbol = this.getDieFaceSymbol(dieData.previousFace); // Show previous face during animation
-                    } catch (error) {
-                        console.warn('Error getting previous face symbol:', dieData.previousFace, error);
-                        displaySymbol = '?'; // Fallback to question mark
+        // Hide all dice elements first
+        diceElements.forEach(element => {
+            element.style.display = 'none';
+        });
+        
+        // Update and show only the dice elements we need
+        dicesToDisplay.forEach((dieData, index) => {
+            const dieElement = diceElements[index];
+            if (dieElement) {
+                // Update content - show previous dice values during animation
+                let displaySymbol;
+                if (dieData.isRolling) {
+                    // During animation: show previous face (or ? if first roll ever)
+                    if (dieData.previousFace === null || dieData.previousFace === undefined) {
+                        displaySymbol = '?'; // First roll ever - no previous face
+                    } else {
+                        try {
+                            displaySymbol = this.getDieFaceSymbol(dieData.previousFace); // Show previous face during animation
+                        } catch (error) {
+                            console.warn('Error getting previous face symbol:', dieData.previousFace, error);
+                            displaySymbol = '?'; // Fallback to question mark
+                        }
                     }
+                } else {
+                    // Not rolling: show current face (or ? if never rolled)
+                    displaySymbol = dieData.symbol || '?';
                 }
-            } else {
-                // Not rolling: show current face (or ? if never rolled)
-                displaySymbol = dieData.symbol || '?';
+                dieElement.textContent = displaySymbol;
+                
+                // Update classes - build the class string exactly like the old createDiceHTML
+                dieElement.className = `die${dieData.isSelected ? ' selected' : ''}${dieData.isRolling ? ' rolling' : ''}${dieData.isDisabled ? ' disabled' : ''}`;
+                if (isRollOffMode) dieElement.classList.add('roll-off-mode');
+                
+                // Update data attributes
+                dieElement.dataset.dieId = dieData.id;
+                dieElement.setAttribute('data-value', dieData.symbol || '?');
+                
+                // Show the element AFTER updating all its properties
+                dieElement.style.display = 'inline-flex'; // Use inline-flex to match CSS
             }
-            dieElement.textContent = displaySymbol;
-            
-            // Update classes - build the class string exactly like the old createDiceHTML
-            dieElement.className = `die${dieData.isSelected ? ' selected' : ''}${dieData.isRolling ? ' rolling' : ''}${dieData.isDisabled ? ' disabled' : ''}`;
-            if (isRollOffMode) dieElement.classList.add('roll-off-mode');
-            
-            // Update data attributes
-            dieElement.dataset.dieId = dieData.id;
-            dieElement.setAttribute('data-value', dieData.symbol || '?');
-        }
-    });        // Hide unused dice elements
-        for (let i = dicesToDisplay.length; i < diceElements.length; i++) {
-            diceElements[i].style.display = 'none';
-        }
+        });
 
         console.log(`🎲 Updated ${dicesToDisplay.length} dice elements`);
     }
@@ -3851,7 +3850,7 @@ class KingOfTokyoUI {
         }
         
         // Display the initial empty dice
-        this.updateDiceDisplay(initialDiceData, null, false);
+        this.updateDiceDisplay(initialDiceData, false);
         console.log('🎲 Initial empty dice displayed');
     }
 
@@ -5539,22 +5538,26 @@ class KingOfTokyoUI {
             // Execute the roll
             this.rollDice();
             
+            // Wait for dice animation to complete (2 seconds)
             setTimeout(() => {
                 const diceState = this.game.diceRoller.getState();
                 console.log(`🎲 NEW CPU: After roll ${rollNumber}, rolls remaining: ${diceState.rollsRemaining}`);
                 
-                if (rollNumber < 3 && diceState.rollsRemaining > 0) {
-                    // Continue to next roll
-                    this.cpuRollDice(player, rollNumber + 1);
-                } else {
-                    // After 3rd roll, CPU is done - end turn
-                    console.log(`🤖 CPU: ${player.monster.name} finished rolling, ending turn`);
-                    this.showSimpleCPUNotification(player, `✅ ${player.monster.name} ending turn...`);
-                    
-                    setTimeout(() => {
-                        this.endTurn();
-                    }, 1500);
-                }
+                // Add 3-second delay AFTER showing dice outcome for human player to see results
+                setTimeout(() => {
+                    if (rollNumber < 3 && diceState.rollsRemaining > 0) {
+                        // Continue to next roll
+                        this.cpuRollDice(player, rollNumber + 1);
+                    } else {
+                        // After 3rd roll, CPU is done - end turn
+                        console.log(`🤖 CPU: ${player.monster.name} finished rolling, ending turn`);
+                        this.showSimpleCPUNotification(player, `✅ ${player.monster.name} ending turn...`);
+                        
+                        setTimeout(() => {
+                            this.endTurn();
+                        }, 1500);
+                    }
+                }, 3000); // 3-second delay for human to see dice outcome
             }, 2000);
         }
     }
@@ -5798,8 +5801,9 @@ class KingOfTokyoUI {
         
         // Show dice results in main dice area using unified display system
         if (diceData) {
-            // Use regular updateDiceDisplay but limit to 6 dice for roll-off
-            this.updateDiceDisplay(diceData, 6, true);
+            // Pre-filter dice data to only show 6 dice for roll-off (no disabled dice)
+            const rollOffDiceData = diceData.filter(die => !die.isDisabled).slice(0, 6);
+            this.updateDiceDisplay(rollOffDiceData, true);
         } else {
             console.warn('No diceData provided for roll-off results - this should not happen with unified system');
         }

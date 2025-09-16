@@ -7,6 +7,9 @@ class SetupManager {
         this.draggedElement = null;
         this.touchStartElement = null;
         
+        // Store reference to the bound click handler so we can remove it later
+        this.boundDocumentClickHandler = this.handleDocumentClick.bind(this);
+        
         // Initialize once constructed
         this.initializeElements();
         // Initialize monster profiles
@@ -67,11 +70,8 @@ class SetupManager {
         }
 
         // Handle clicking outside dropdown to close it
-        document.addEventListener('click', (e) => {
-            if (this.elements.playerCount && !this.elements.playerCount.contains(e.target)) {
-                this.closeDropdown();
-            }
-        });
+        // Note: This will be added/removed when modal is shown/hidden
+        // document.addEventListener('click', this.boundDocumentClickHandler);
 
         // Dropdown option selection
         if (this.elements.dropdownOptions) {
@@ -232,6 +232,13 @@ class SetupManager {
             this.elements.playerCount.classList.remove('open');
             this.elements.dropdownOptions.style.display = 'none';
             console.log('✅ Dropdown closed');
+        }
+    }
+
+    // Handle document click to close dropdown (bound method for easy removal)
+    handleDocumentClick(e) {
+        if (this.elements.playerCount && !this.elements.playerCount.contains(e.target)) {
+            this.closeDropdown();
         }
     }
 
@@ -473,6 +480,9 @@ class SetupManager {
             existingActivePlayerContainer.remove();
         }
         
+        // Add the document click listener for dropdown functionality
+        document.addEventListener('click', this.boundDocumentClickHandler);
+        
         this.uiUtilities.showModal(this.elements.setupModal);
         
         // Reset dropdown to ensure it's functional
@@ -497,6 +507,9 @@ class SetupManager {
     }
 
     hideSetupModal() {
+        // Remove the document click listener to prevent interference during gameplay
+        document.removeEventListener('click', this.boundDocumentClickHandler);
+        
         this.uiUtilities.hideModal(this.elements.setupModal);
     }
 

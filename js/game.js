@@ -329,7 +329,9 @@ class KingOfTokyoGame {
                 });
 
                 // Brief pause between players for drama
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                // Add extra delay for CPU players so human can see the dice outcome
+                const pauseDuration = player.playerType === 'cpu' ? 4000 : 1000; // 4 seconds for CPU (3 extra), 1 second for human
+                await new Promise(resolve => setTimeout(resolve, pauseDuration));
             }
 
             // Find the highest attack count
