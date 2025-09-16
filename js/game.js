@@ -1023,10 +1023,7 @@ class KingOfTokyoGame {
                     });
                 }
                 
-                // Check if attacker should enter Tokyo if it becomes empty (after decisions are made)
-                setTimeout(() => {
-                    this.checkTokyoEntry(attacker);
-                }, 100);
+                // NOTE: Tokyo entry is handled at end of turn via handleEndOfTurnTokyoEntry(), not during attack resolution
             } else {
                 this.logAction(`${attacker.monster.name} attacks but no one is in Tokyo!`, 'attack-empty');
             }
