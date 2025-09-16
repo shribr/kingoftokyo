@@ -83,14 +83,19 @@ class KingOfTokyoUI {
             console.warn('⚠️ KingOfTokyoGame class not available - game functionality may be limited');
         }
         
-        this.game = null;
-        this.elements = {};
-        this.selectedMonsters = [];
-        this.currentPlayerCount = 4; // Default to 4 players
-        this.tempSetupLog = []; // Store setup actions before game is created
-        this.previousRound = 1; // Track previous round for animation
-        this.playerTiles = []; // Track player tile assignments
-        this.draggedMonster = null; // Track currently dragged monster
+    this.game = null;
+    this.elements = {};
+    this.selectedMonsters = [];
+    this.currentPlayerCount = 4; // Default to 4 players
+    this.tempSetupLog = []; // Store setup actions before game is created
+    this.previousRound = 1; // Track previous round for animation
+    this.playerTiles = []; // Track player tile assignments
+    this.draggedMonster = null; // Track currently dragged monster
+
+    // Caches for dynamic DOM elements
+    this.playerDashboards = new Map(); // playerId -> dashboard element
+    this.diceElements = new Map(); // diceId -> dice element
+    this.monsterCards = new Map(); // monsterId -> monster card element
         
         // Sportscast commentary arrays
         this.sportscastCommentary = {
@@ -1261,6 +1266,8 @@ class KingOfTokyoUI {
         this.elements.playersContainer.innerHTML = players.map(player => 
             this._generatePlayerHTML(player, player.id === currentPlayer.id)
         ).join('');
+        // Update player dashboard cache
+        this._cachePlayerDashboards();
         
         console.log('📄 Generated initial HTML for players container');
         
@@ -1311,8 +1318,8 @@ class KingOfTokyoUI {
     _repositionActivePlayer(players, currentPlayer) {
         console.log('🎯 Repositioning active player using DOM manipulation');
         
-        // STEP 1: First restore the previously active player (if any) to proper position
-        const previouslyActiveCard = document.querySelector('.player-dashboard.active');
+    // STEP 1: First restore the previously active player (if any) to proper position
+    const previouslyActiveCard = this._getActivePlayerDashboard();
         if (previouslyActiveCard) {
             const previousPlayerId = previouslyActiveCard.dataset.playerId;
             console.log('↩️ Restoring previously active player first:', previousPlayerId);
@@ -1320,7 +1327,7 @@ class KingOfTokyoUI {
         }
         
         // STEP 2: Then activate the new current player
-        const newActiveCard = document.querySelector(`[data-player-id="${currentPlayer.id}"]`);
+    const newActiveCard = this.playerDashboards.get(currentPlayer.id);
         console.log('🔍 TOKYO DEBUG: Looking for player card:', currentPlayer.id, 'Player:', currentPlayer.monster.name, 'In Tokyo:', currentPlayer.isInTokyo);
         console.log('🔍 TOKYO DEBUG: Found card:', !!newActiveCard);
         
@@ -1335,7 +1342,7 @@ class KingOfTokyoUI {
         
         // STEP 3: Update monster colors and stats for all players
         players.forEach((player, index) => {
-            const dashboard = document.querySelector(`[data-player-id="${player.id}"]`);
+            const dashboard = this.playerDashboards.get(player.id);
             if (!dashboard) return;
             
             // Set monster color properties for all players
@@ -1360,6 +1367,25 @@ class KingOfTokyoUI {
         
         // Attach event listeners (in case any were lost)
         this.attachPowerCardTabListeners();
+    }
+
+    _cachePlayerDashboards() {
+        this.playerDashboards.clear();
+        const dashboards = document.querySelectorAll('.player-dashboard');
+        dashboards.forEach(dashboard => {
+            const playerId = dashboard.dataset.playerId;
+            if (playerId) {
+                this.playerDashboards.set(playerId, dashboard);
+            }
+        });
+    }
+
+    // Helper to get active player dashboard
+    _getActivePlayerDashboard() {
+        for (const dashboard of this.playerDashboards.values()) {
+            if (dashboard.classList.contains('active')) return dashboard;
+        }
+        return null;
     }
     
     // Store original position and move card to active position
