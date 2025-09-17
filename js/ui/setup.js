@@ -408,17 +408,17 @@ class SetupManager {
         // Shuffle the monsters array
         const shuffledMonsters = [...availableMonsters].sort(() => Math.random() - 0.5);
         
-        // Get only CPU tiles for random assignment
-        const cpuTiles = this.playerTiles.filter(tile => tile.type === 'cpu');
+        // Get ALL player tiles (both human and CPU) for random assignment
+        const allActiveTiles = this.playerTiles.slice(0, this.currentPlayerCount);
         
-        // Check if we have enough monsters for the CPU tiles
-        if (cpuTiles.length > shuffledMonsters.length) {
-            alert('Not enough monsters available for all CPU players!');
+        // Check if we have enough monsters for all player tiles
+        if (allActiveTiles.length > shuffledMonsters.length) {
+            alert('Not enough monsters available for all players!');
             return;
         }
         
-        // Assign random monsters only to CPU tiles
-        cpuTiles.forEach((tile, index) => {
+        // Assign random monsters to ALL player tiles (human and CPU)
+        allActiveTiles.forEach((tile, index) => {
             if (index < shuffledMonsters.length) {
                 tile.monster = shuffledMonsters[index];
                 tile.occupied = true;

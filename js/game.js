@@ -322,7 +322,7 @@ class KingOfTokyoGame {
                                 window.UI._debug(`🎲 AI Roll-off using DiceCollection: [${rolls.join(', ')}], attacks: ${attackCount}`);
                             }
                             resolve();
-                        }, 600); // Wait for dice animation
+                        }, 400); // Wait for dice animation
                     });
                 }
                 
@@ -488,7 +488,7 @@ class KingOfTokyoGame {
             } else {
                 console.warn('🎲 Roll-off: No valid resolve function available');
             }
-        }, 600); // Wait slightly longer than the die animation
+        }, 400); // Wait slightly longer than the die animation
     }
 
     // Reorder players so the winner of the roll-off becomes Player 1
@@ -1870,22 +1870,26 @@ class KingOfTokyoGame {
         console.log('Dice effects resolved:', this.diceEffectsResolved);
         console.log('Pending decisions:', this.pendingDecisions.length);
         console.log('Current player before ending turn:', currentPlayer.monster.name, 'Index:', this.currentPlayerIndex);
-        UI._debug('ENDTURN DEBUG:', {
-            players: this.players.length,
-            currentPlayerIndex: this.currentPlayerIndex,
-            currentPlayerName: currentPlayer.monster.name,
-            currentPlayerEliminated: currentPlayer.isEliminated,
-            endingTurnFlag: this.endingTurn,
-            gamePhase: this.gamePhase,
-            turnPhase: this.currentTurnPhase
-        });
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debug('ENDTURN DEBUG:', {
+                players: this.players.length,
+                currentPlayerIndex: this.currentPlayerIndex,
+                currentPlayerName: currentPlayer.monster.name,
+                currentPlayerEliminated: currentPlayer.isEliminated,
+                endingTurnFlag: this.endingTurn,
+                gamePhase: this.gamePhase,
+                turnPhase: this.currentTurnPhase
+            });
+        }
         
         // Extra debugging for 6-player games - check all player statuses
         if (this.players.length === 6) {
-            UI._debug('6-PLAYER ELIMINATION DEBUG:');
-            this.players.forEach((player, index) => {
-                UI._debug(`Player ${index}: ${player.monster.name} - Health: ${player.health}/${player.maxHealth} - Eliminated: ${player.isEliminated}`);
-            });
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debug('6-PLAYER ELIMINATION DEBUG:');
+                this.players.forEach((player, index) => {
+                    window.UI._debug(`Player ${index}: ${player.monster.name} - Health: ${player.health}/${player.maxHealth} - Eliminated: ${player.isEliminated}`);
+                });
+            }
         }
         
         try {
@@ -2108,10 +2112,12 @@ class KingOfTokyoGame {
             const maxAttempts = this.players.length;
             
             // Enhanced debugging for turn order issues
-            UI._debug(`TURN ORDER DEBUG: Starting switchToNextPlayer()`);
-            UI._debug(`Before switch - currentPlayerIndex: ${this.currentPlayerIndex}`);
-            UI._debug(`Before switch - current player: ${this.getCurrentPlayer().monster.name}`);
-            UI._debug(`Before switch - Tokyo status:`, this.players.map(p => `${p.monster.name}:${p.isInTokyo ? 'Tokyo' : 'Outside'}`));
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debug(`TURN ORDER DEBUG: Starting switchToNextPlayer()`);
+                window.UI._debug(`Before switch - currentPlayerIndex: ${this.currentPlayerIndex}`);
+                window.UI._debug(`Before switch - current player: ${this.getCurrentPlayer().monster.name}`);
+                window.UI._debug(`Before switch - Tokyo status:`, this.players.map(p => `${p.monster.name}:${p.isInTokyo ? 'Tokyo' : 'Outside'}`));
+            }
             
             do {
                 const previousPlayerIndex = this.currentPlayerIndex;
@@ -2147,18 +2153,22 @@ class KingOfTokyoGame {
 
             // Extra debugging for 6-player games
             if (this.players.length === 6) {
-                UI._debug('6-PLAYER SWITCH DEBUG: Final result');
-                UI._debug(`Final current player: ${this.getCurrentPlayer().monster.name} (index ${this.currentPlayerIndex})`);
-                UI._debug(`Is current player eliminated: ${this.getCurrentPlayer().isEliminated}`);
-                UI._debug(`Attempts used: ${attempts}/${maxAttempts}`);
+                if (window.UI && window.UI.debugMode) {
+                    window.UI._debug('6-PLAYER SWITCH DEBUG: Final result');
+                    window.UI._debug(`Final current player: ${this.getCurrentPlayer().monster.name} (index ${this.currentPlayerIndex})`);
+                    window.UI._debug(`Is current player eliminated: ${this.getCurrentPlayer().isEliminated}`);
+                    window.UI._debug(`Attempts used: ${attempts}/${maxAttempts}`);
+                }
             }
 
             // Enhanced debugging for ALL games
-            UI._debug(`TURN ORDER DEBUG: Final switchToNextPlayer() result`);
-            UI._debug(`After switch - currentPlayerIndex: ${this.currentPlayerIndex}`);
-            UI._debug(`After switch - current player: ${this.getCurrentPlayer().monster.name}`);
-            UI._debug(`After switch - Tokyo status:`, this.players.map(p => `${p.monster.name}:${p.isInTokyo ? 'Tokyo' : 'Outside'}`));
-            UI._debug(`After switch - is new current player in Tokyo: ${this.getCurrentPlayer().isInTokyo}`);
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debug(`TURN ORDER DEBUG: Final switchToNextPlayer() result`);
+                window.UI._debug(`After switch - currentPlayerIndex: ${this.currentPlayerIndex}`);
+                window.UI._debug(`After switch - current player: ${this.getCurrentPlayer().monster.name}`);
+                window.UI._debug(`After switch - Tokyo status:`, this.players.map(p => `${p.monster.name}:${p.isInTokyo ? 'Tokyo' : 'Outside'}`));
+                window.UI._debug(`After switch - is new current player in Tokyo: ${this.getCurrentPlayer().isInTokyo}`);
+            }
 
             // Only start player turn in log if gameplay has begun
             if (this.gameplayStarted) {

@@ -38,7 +38,7 @@ class Die {
         if (window.UI && window.UI.debugMode) {
             window.UI._debugVerbose(`Die ${this.id} finished rolling, final face:`, this.face);
         }
-        }, 500);
+        }, 400);
     }
 
     // Toggle selection for keeping dice
@@ -423,7 +423,7 @@ class DiceRoller {
                     diceData: this.diceCollection.getAllDiceData()
                 });
             }
-        }, 600); // Slightly longer than die roll animation
+        }, 400); // Slightly longer than die roll animation
 
         return true;
     }

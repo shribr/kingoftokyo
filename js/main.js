@@ -2778,7 +2778,9 @@ class KingOfTokyoUI {
 
     // Update dice display by modifying existing elements
     updateDiceDisplay(diceData, isRollOffMode = false) {
-        console.log('updateDiceDisplay called with data:', diceData.map(d => ({ id: d.id, face: d.face, symbol: d.symbol })));
+        if (this.debugMode) {
+            this._debug('updateDiceDisplay called with data:', diceData.map(d => ({ id: d.id, face: d.face, symbol: d.symbol })));
+        }
         
         const diceContainer = this.elements.diceContainer;
         if (!diceContainer) return;
@@ -2832,26 +2834,34 @@ class KingOfTokyoUI {
             }
         });
 
-        console.log(`🎲 Updated ${dicesToDisplay.length} dice elements`);
+        if (this.debugMode) {
+            this._debug(`🎲 Updated ${dicesToDisplay.length} dice elements`);
+        }
     }
 
     // Update initial dice display (empty dice)
     updateInitialDiceDisplay() {
         if (!this.game) {
-            console.log('No game instance for dice display');
+            if (this.debugMode) {
+                this._debug('No game instance for dice display');
+            }
             return;
         }
         
-        console.log('🎲 updateInitialDiceDisplay called');
+        if (this.debugMode) {
+            this._debug('🎲 updateInitialDiceDisplay called');
+        }
         const diceData = this.game.diceCollection.getAllDiceData();
-        console.log('🎲 Dice data retrieved:', diceData.map(d => ({ id: d.id, face: d.face, symbol: d.symbol })));
+        if (this.debugMode) {
+            this._debug('🎲 Dice data retrieved:', diceData.map(d => ({ id: d.id, face: d.face, symbol: d.symbol })));
+        }
         
         // Check if any dice have null faces
         const hasNullFaces = diceData.some(d => d.face === null && !d.isDisabled);
-        if (hasNullFaces) {
-            console.log('🎲 INFO: Some dice have null faces (unrolled state) - showing question marks');
-            console.log('🎲 Turn phase:', this.game.currentTurnPhase);
-            console.log('🎲 Dice roller state:', this.game.diceRoller.getState());
+        if (hasNullFaces && this.debugMode) {
+            this._debug('🎲 INFO: Some dice have null faces (unrolled state) - showing question marks');
+            this._debug('🎲 Turn phase:', this.game.currentTurnPhase);
+            this._debug('🎲 Dice roller state:', this.game.diceRoller.getState());
         }
         
         this.updateDiceDisplay(diceData);
@@ -2862,16 +2872,22 @@ class KingOfTokyoUI {
 
     // Update dice controls
     updateDiceControls() {
-        console.log('updateDiceControls called, game exists:', !!this.game);
+        if (this.debugMode) {
+            this._debug('updateDiceControls called, game exists:', !!this.game);
+        }
         if (!this.game) {
-            console.log('No game instance in updateDiceControls, returning');
+            if (this.debugMode) {
+                this._debug('No game instance in updateDiceControls, returning');
+            }
             return;
         }
 
         const diceState = this.game.diceRoller.getState();
         const gameState = this.game.getGameState();
         
-        console.log('updateDiceControls - rollsRemaining:', diceState.rollsRemaining);
+        if (this.debugMode) {
+            this._debug('updateDiceControls - rollsRemaining:', diceState.rollsRemaining);
+        }
         
         // Update rolls left
         this.elements.rollsLeft.textContent = `Rolls left: ${diceState.rollsRemaining}`;
