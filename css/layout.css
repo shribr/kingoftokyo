@@ -105,7 +105,7 @@ body::before {
     border-radius: 15px;
     margin-bottom: 15px;
     display: flex;
-    justify-content: center; /* Center the title */
+    justify-content: center; /* Back to center */
     align-items: center;
     box-shadow: 
         8px 8px 0px #000,
@@ -119,6 +119,26 @@ body::before {
         radial-gradient(circle at 3px 3px, rgba(0,0,0,0.1) 1px, transparent 0),
         linear-gradient(135deg, #2c1810 0%, #8b4513 20%, #ff6b00 40%, #ffaa00 60%, #8b4513 80%, #2c1810 100%);
     background-size: 12px 12px, 100% 100%;
+}
+
+/* Active Player Name in Header */
+.active-player-name {
+    font-family: 'Bangers', cursive;
+    font-size: 2em;
+    font-weight: bold;
+    color: white;
+    text-shadow: 
+        -2px -2px 0 #000,
+        2px -2px 0 #000,
+        -2px 2px 0 #000,
+        2px 2px 0 #000,
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000,
+        2px 2px 4px rgba(0, 0, 0, 0.8);
+    letter-spacing: 1px;
+    margin-right: 20px; /* Add some space before the rolls-left element */
 }
 
 .game-header::before {
@@ -154,7 +174,7 @@ body::before {
         2px 2px 0 #000,
         3px 3px 6px rgba(0, 0, 0, 0.6); /* Reduced shadow */
     letter-spacing: 6px;
-    transform: perspective(800px) rotateX(-3deg) rotateY(-2deg) translateX(-100px); /* Adjusted left position to 100px */
+    transform: perspective(800px) rotateX(-3deg) rotateY(-2deg) translateX(-100px); /* Restored original positioning */
     margin: 0;
     position: relative;
     z-index: 5000; /* Main "King of Tokyo" header */

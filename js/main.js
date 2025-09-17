@@ -234,6 +234,7 @@ class KingOfTokyoUI {
             
             // Game elements
             roundCounter: document.getElementById('round-counter'),
+            activePlayerName: document.getElementById('active-player-name'),
             playersContainer: document.getElementById('players-container'),
             tokyoCitySlot: document.getElementById('tokyo-city-monster'),
             tokyoBaySlot: document.getElementById('tokyo-bay-monster'),
@@ -1215,6 +1216,11 @@ class KingOfTokyoUI {
         } else {
             // Normal update without animation
             this.elements.roundCounter.textContent = gameState.round;
+        }
+        
+        // Update active player name
+        if (this.elements.activePlayerName && gameState.currentPlayer) {
+            this.elements.activePlayerName.textContent = gameState.currentPlayer.monster.name;
         }
         
         // Update players

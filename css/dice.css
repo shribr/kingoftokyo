@@ -76,7 +76,7 @@
     background-size: 12px 12px, 100% 100%;
     
     /* Position next to dice container */
-    margin-left: 20px; /* Increased from 10px to move it more to the right */
+    margin-left: 20px; /* Restored original margin */
     align-self: center; /* Center vertically within the dice area */
 }
 
