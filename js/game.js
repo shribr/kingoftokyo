@@ -175,6 +175,12 @@ class KingOfTokyoGame {
         this.switchingPlayers = false; // Flag to prevent concurrent player switching
         this.turnEffectsApplied = new Map(); // Track which turn effects have been applied this turn
         
+        // DEFENSIVE TURN PROTECTION - prevent turn skipping bugs
+        this.currentTurnStartTime = null; // Track when current turn started
+        this.minimumTurnDuration = 1000; // Minimum 1 second per turn
+        this.currentTurnHasRolledDice = false; // Track if current turn has rolled dice
+        this.lastEndTurnTime = 0; // Prevent rapid endTurn calls
+        
         // Debug: Check if classes are available
         if (window.UI && window.UI.debugMode) {
             window.UI._debug('Game.js initializing, checking class availability:');
@@ -580,6 +586,9 @@ class KingOfTokyoGame {
         // this.logAction(`Game started with ${playerCount} players!`);
         // this.logAction(`${this.getCurrentPlayer().monster.name} goes first!`);
 
+        // DEFENSIVE TURN PROTECTION - Initialize defenses for the first turn
+        this.initializeNewTurnDefenses();
+
         // Trigger turn started event for the first player
         this.triggerEvent('turnStarted', { currentPlayer: this.getCurrentPlayer() });
 
@@ -631,6 +640,50 @@ class KingOfTokyoGame {
     markTurnEffectApplied(playerId, effectType) {
         const key = `${playerId}-${effectType}`;
         this.turnEffectsApplied.set(key, true);
+    }
+
+    // DEFENSIVE TURN PROTECTION - Initialize safeguards for new turn
+    initializeNewTurnDefenses() {
+        this.currentTurnStartTime = Date.now();
+        this.currentTurnHasRolledDice = false;
+        console.log(`🛡️ Turn defenses initialized for ${this.getCurrentPlayer().monster.name}`);
+    }
+
+    // DEFENSIVE TURN PROTECTION - Validate if endTurn is allowed
+    validateEndTurnAllowed(callerInfo = '') {
+        const currentTime = Date.now();
+        const timeSinceLastEndTurn = currentTime - this.lastEndTurnTime;
+        const turnDuration = currentTime - (this.currentTurnStartTime || currentTime);
+        const currentPlayer = this.getCurrentPlayer();
+        
+        // Check 1: Prevent rapid endTurn calls (< 500ms apart)
+        if (timeSinceLastEndTurn < 500) {
+            console.log(`🛡️ BLOCKED: Rapid endTurn call (${timeSinceLastEndTurn}ms since last) ${callerInfo}`);
+            return false;
+        }
+        
+        // Special handling for CPU players - they can end turns faster but still need some protection
+        if (currentPlayer.playerType === 'cpu') {
+            // CPU players only need basic rapid-call protection
+            console.log(`🛡️ ALLOWED: CPU player bypassing most restrictions ${callerInfo}`);
+            return true;
+        }
+        
+        // For human players, apply full protection
+        // Check 2: Minimum turn duration (except for eliminated players)
+        if (!currentPlayer.isEliminated && turnDuration < this.minimumTurnDuration) {
+            console.log(`🛡️ BLOCKED: Turn too short (${turnDuration}ms < ${this.minimumTurnDuration}ms) ${callerInfo}`);
+            return false;
+        }
+        
+        // Check 3: Must have rolled dice at least once (except for eliminated players)
+        if (!currentPlayer.isEliminated && !this.currentTurnHasRolledDice) {
+            console.log(`🛡️ BLOCKED: No dice rolled this turn ${callerInfo}`);
+            return false;
+        }
+        
+        console.log(`🛡️ ALLOWED: endTurn validation passed for ${currentPlayer.monster.name} ${callerInfo}`);
+        return true;
     }
 
     // Disable extra dice that were enabled for a specific player
@@ -725,6 +778,9 @@ class KingOfTokyoGame {
     // Handle dice roll results
     handleDiceResults(results, rollsLeft) {
         const player = this.getCurrentPlayer();
+        
+        // DEFENSIVE TURN PROTECTION - Mark that dice have been rolled this turn
+        this.currentTurnHasRolledDice = true;
         
         window.UI && window.UI._debug && window.UI._debug('handleDiceResults called with rollsLeft:', rollsLeft);
         window.UI && window.UI._debug && window.UI._debug('Current turn phase:', this.currentTurnPhase);
@@ -1848,7 +1904,13 @@ class KingOfTokyoGame {
             return;
         }
         
+        // DEFENSIVE TURN PROTECTION - Validate endTurn is allowed
+        if (!this.validateEndTurnAllowed('from endTurn()')) {
+            return;
+        }
+        
         this.endingTurn = true;
+        this.lastEndTurnTime = Date.now();
         
         const currentPlayer = this.getCurrentPlayer();
         
@@ -2100,6 +2162,9 @@ class KingOfTokyoGame {
             if (this.gameplayStarted) {
                 this.startPlayerTurnInLog(this.getCurrentPlayer());
             }
+            
+            // DEFENSIVE TURN PROTECTION - Initialize new turn safeguards
+            this.initializeNewTurnDefenses();
             
             // Reset dice effects resolved flag for the new turn
             this.diceEffectsResolved = false;

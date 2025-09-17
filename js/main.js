@@ -410,7 +410,7 @@ class KingOfTokyoUI {
                 return;
             }
             
-            this.endTurn();
+            this.endTurnFromUI();
         });
 
         // Rolloff roll button event
@@ -3411,33 +3411,24 @@ class KingOfTokyoUI {
         this.game.keepDiceAndResolve();
     }
 
-    // End turn
-    endTurn() {
+    // End turn from UI - handles button state and calls game logic
+    endTurnFromUI() {
         if (!this.game) return;
         
-        // Prevent multiple endTurn calls by checking if one is already in progress
+        // Prevent multiple UI endTurn calls (button management only)
         if (this.endingTurnInProgress) {
             return;
         }
         
         this.endingTurnInProgress = true;
         
-        // Check if current player is eliminated
-        const currentPlayer = this.game.getCurrentPlayer();
-        
-        if (currentPlayer && currentPlayer.isEliminated) {
-            console.log('⚠️ Current player is eliminated, cannot end turn manually');
-            UIUtilities.showMessage('Eliminated players cannot end turns!', 3000, this.elements);
-            this.endingTurnInProgress = false;
-            return;
-        }
-        
-        // Prevent double execution by temporarily disabling the button
+        // Temporarily disable the button to prevent rapid clicking
         if (this.elements.endTurnBtn) {
             this.elements.endTurnBtn.disabled = true;
         }
         
         try {
+            // Call game endTurn directly - all validation happens there
             this.game.endTurn();
         } finally {
             // Re-enable button after a short delay to prevent rapid clicking
@@ -5971,7 +5962,7 @@ class KingOfTokyoUI {
                             // Update controls before ending turn to re-enable action menu
                             this.updateDiceControls();
                             
-                            this.endTurn();
+                            this.endTurnFromUI();
                         }, 1500);
                     }
                 }, 3000); // 3-second delay for human to see dice outcome
