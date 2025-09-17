@@ -734,9 +734,6 @@ class KingOfTokyoUI {
                 element.style.setProperty('top', `${currentY}px`, 'important');
                 element.style.setProperty('bottom', 'auto', 'important');
                 element.style.setProperty('transform', 'none', 'important');
-                
-                // Debug logging
-                console.log(`Dragging ${element.id}: left=${currentX}px, top=${currentY}px`);
             }
 
             function dragEnd(e) {
@@ -776,18 +773,13 @@ class KingOfTokyoUI {
                             element.style.setProperty('top', `${currentY}px`, 'important');
                             element.style.setProperty('bottom', 'auto', 'important');
                             element.style.setProperty('transform', 'none', 'important');
-                            
-                            console.log(`Restored position for ${elementId}: left=${currentX}px, top=${currentY}px`);
                         } else {
                             // Clear invalid saved position
                             localStorage.removeItem(`${elementId}-position`);
-                            console.log(`Cleared invalid position for ${elementId}: ${currentX}, ${currentY}`);
                         }
                     } catch (e) {
                         console.warn('Failed to restore position for', elementId);
                     }
-                } else {
-                    console.log(`No saved position found for ${elementId}`);
                 }
             }
         }
