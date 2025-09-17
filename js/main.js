@@ -426,6 +426,11 @@ class KingOfTokyoUI {
                 // Game over modal events
         this.elements.newGameBtn.addEventListener('click', () => {
             UIUtilities.hideModal(this.elements.gameOverModal);
+            
+            // Perform comprehensive game reset before starting new game
+            this.performFullGameReset();
+            
+            // Show setup modal for new game
             this.setupManager.showSetupModal();
         });
 
@@ -3610,18 +3615,139 @@ class KingOfTokyoUI {
     // Close game over modal and return to splash screen
     closeGameOverModal() {
         this.elements.gameOverModal.classList.add('hidden');
+        
+        // Perform comprehensive game reset
+        this.performFullGameReset();
+        
+        // Return to splash screen
+        UIUtilities.showSplashScreen(this.elements, this.setupManager);
+    }
+
+    // Perform comprehensive reset of all game state and UI
+    performFullGameReset() {
+        // Reset core game state
         this.game = null;
         this.selectedMonsters = [];
-        UIUtilities.showSplashScreen(this.elements, this.setupManager);
+        this.currentPlayerCount = 4; // Reset to default
+        this.tempSetupLog = [];
+        this.previousRound = 1;
+        this.playerTiles = [];
+        this.draggedMonster = null;
+        
+        // Clear cached DOM element maps
+        this.playerDashboards.clear();
+        this.diceElements.clear();
+        this.monsterCards.clear();
+        
+        // Reset UI elements to default state
+        this.resetUIElements();
+        
+        // Reset setup manager state
+        if (this.setupManager) {
+            this.setupManager.currentPlayerCount = 2; // Reset to setup default
+            this.setupManager.selectedMonsters = [];
+            this.setupManager.playerTiles = [];
+        }
+        
+        // Clear any active player container from previous game
+        const existingActivePlayerContainer = document.getElementById('active-player-container');
+        if (existingActivePlayerContainer) {
+            existingActivePlayerContainer.remove();
+        }
+        
+        // Reset game board classes
+        const gameBoard = document.querySelector('.game-board');
+        if (gameBoard) {
+            gameBoard.className = 'game-board'; // Reset to base class
+        }
+        
+        // Hide game toolbar
+        const gameToolbar = document.getElementById('game-toolbar');
+        if (gameToolbar) {
+            gameToolbar.classList.remove('show');
+        }
+        
+        // Clear any notification messages
+        const notification = document.getElementById('header-notification');
+        if (notification) {
+            notification.classList.remove('visible');
+            notification.textContent = '';
+        }
+    }
+
+    // Reset UI elements to their default state
+    resetUIElements() {
+        // Reset round counter
+        if (this.elements.roundCounter) {
+            this.elements.roundCounter.textContent = '1';
+        }
+        
+        // Clear dice container
+        if (this.elements.diceContainer) {
+            const diceElements = this.elements.diceContainer.querySelectorAll('.die');
+            diceElements.forEach(element => {
+                element.style.display = 'none';
+                element.className = 'die';
+                element.textContent = '?';
+            });
+        }
+        
+        // Clear player dashboards container
+        const playerDashboardsContainer = document.getElementById('player-dashboards');
+        if (playerDashboardsContainer) {
+            playerDashboardsContainer.innerHTML = '';
+        }
+        
+        // Clear power cards area
+        const powerCardsArea = document.getElementById('power-cards-area');
+        if (powerCardsArea) {
+            powerCardsArea.innerHTML = '';
+        }
+        
+        // Clear game log
+        const gameLogContent = document.getElementById('game-log-content');
+        if (gameLogContent) {
+            gameLogContent.innerHTML = '';
+        }
+        
+        // Reset Tokyo areas
+        const tokyoCityArea = document.getElementById('tokyo-city');
+        if (tokyoCityArea) {
+            tokyoCityArea.innerHTML = '<h3>Tokyo City</h3><div class="tokyo-placeholder">Empty</div>';
+        }
+        
+        const tokyoBayArea = document.getElementById('tokyo-bay');
+        if (tokyoBayArea) {
+            tokyoBayArea.innerHTML = '<h3>Tokyo Bay</h3><div class="tokyo-placeholder">Empty</div>';
+        }
+        
+        // Reset market cards
+        const marketCardsContainer = document.querySelector('.market-cards');
+        if (marketCardsContainer) {
+            marketCardsContainer.innerHTML = '';
+        }
+        
+        // Hide any modals that might be open
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            if (!modal.classList.contains('hidden')) {
+                modal.classList.add('hidden');
+            }
+        });
+        
+        // Reset any animation states
+        const animatedElements = document.querySelectorAll('.rolling, .highlight, .selected');
+        animatedElements.forEach(element => {
+            element.classList.remove('rolling', 'highlight', 'selected');
+        });
     }
 
     // Reset game
     resetGame() {
         this.elements.gameOverModal.classList.add('hidden');
         
-        // Reset game state
-        this.game = null;
-        this.selectedMonsters = [];
+        // Perform comprehensive game reset
+        this.performFullGameReset();
         
         // Show setup modal for new game
         this.setupManager.showSetupModal();
@@ -6147,6 +6273,12 @@ class KingOfTokyoUI {
         
         console.log(`🏆 ${winnerName} wins with ${attackCount} attacks and goes first!`);
         
+        // Hide the scoreboard immediately when winner is announced
+        const container = document.getElementById('rolloff-scoreboard-container');
+        if (container) {
+            container.style.display = 'none';
+        }
+        
         // Add victory commentary
         const victoryCommentary = this.getRandomComment(this.sportscastCommentary.winner)
             .replace('{name}', winnerName)
@@ -6166,13 +6298,6 @@ class KingOfTokyoUI {
         // Restore normal action button states
         this.restoreNormalActionStates();
         
-        // Hide the scoreboard right after winner announcement
-        setTimeout(() => {
-            const container = document.getElementById('rolloff-scoreboard-container');
-            if (container) {
-                container.style.display = 'none';
-            }
-        }, 1000); // Changed from 6000 to 1000ms for quicker hiding
     }
 }
 // Note: Game initialization is now handled by the splash screen

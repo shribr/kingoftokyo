@@ -28,18 +28,24 @@ class Die {
         this.isRolling = true;
         const randomIndex = Math.floor(Math.random() * DICE_FACE_NAMES.length);
         this.face = DICE_FACE_NAMES[randomIndex];
-        UI._debugVerbose(`Die ${this.id} rolled:`, this.face, 'symbol:', this.getSymbol());
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debugVerbose(`Die ${this.id} rolled:`, this.face, 'symbol:', this.getSymbol());
+        }
         
         // Simulate rolling animation delay
         setTimeout(() => {
             this.isRolling = false;
-            UI._debugVerbose(`Die ${this.id} finished rolling, final face:`, this.face);
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debugVerbose(`Die ${this.id} finished rolling, final face:`, this.face);
+        }
         }, 500);
     }
 
     // Toggle selection for keeping dice
     toggleSelection() {
-        UI._debugVerbose(`Die ${this.id} toggle called - isRolling: ${this.isRolling}, current isSelected: ${this.isSelected}`);
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debugVerbose(`Die ${this.id} toggle called - isRolling: ${this.isRolling}, current isSelected: ${this.isSelected}`);
+        }
         if (!this.isRolling) {
             this.isSelected = !this.isSelected;
             if (window.UI && window.UI.debugMode) {
@@ -285,13 +291,27 @@ class DiceCollection {
 
     // Enable a specific extra die (for power cards)
     enableExtraDie(dieIndex) {
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debug(`enableExtraDie called with index ${dieIndex}`);
+            window.UI._debug(`maxDice: ${this.maxDice}, totalDice: ${this.totalDice}, dice.length: ${this.dice.length}`);
+        }
+        
         if (dieIndex >= this.maxDice && dieIndex < this.totalDice) {
             const die = this.dice[dieIndex];
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debug(`Die at index ${dieIndex}:`, die ? { id: die.id, isDisabled: die.isDisabled } : 'not found');
+            }
             if (die && die.isDisabled) {
                 die.isDisabled = false;
                 // Don't reset face - preserve any existing value
+                if (window.UI && window.UI.debugMode) {
+                    window.UI._debug(`Successfully enabled die ${die.id} at index ${dieIndex}`);
+                }
                 return true;
             }
+        }
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debug(`Failed to enable die at index ${dieIndex}`);
         }
         return false;
     }

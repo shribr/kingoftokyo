@@ -201,9 +201,11 @@ class KingOfTokyoGame {
 
     // Roll off to determine first player - each player rolls 6 dice, highest attack dice goes first
     async rollForFirstPlayer(selectedMonsters, playerTypes = null) {
-        UI._debug('🎲 Starting roll-off to determine first player');
-        UI._debug('📊 selectedMonsters received:', selectedMonsters);
-        UI._debug('📊 playerTypes received:', playerTypes);
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debug('🎲 Starting roll-off to determine first player');
+            window.UI._debug('📊 selectedMonsters received:', selectedMonsters);
+            window.UI._debug('📊 playerTypes received:', playerTypes);
+        }
         
         // Create temporary players for the roll-off
         const tempPlayers = [];
@@ -211,10 +213,12 @@ class KingOfTokyoGame {
             const monster = selectedMonsters[i];
             const playerType = playerTypes ? playerTypes[i] : 'human';
             
-            UI._debug(`📊 Creating temp player ${i}:`, {
-                monster: monster,
-                playerType: playerType
-            });
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debug(`📊 Creating temp player ${i}:`, {
+                    monster: monster,
+                    playerType: playerType
+                });
+            }
             
             tempPlayers.push({
                 index: i,
@@ -225,13 +229,17 @@ class KingOfTokyoGame {
             });
         }
 
-        UI._debug('📊 Created tempPlayers:', tempPlayers);
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debug('📊 Created tempPlayers:', tempPlayers);
+        }
         
         let playersToRoll = [...tempPlayers];
         let rollRound = 1;
 
         while (playersToRoll.length > 1) {
-            UI._debug(`🎲 Roll-off round ${rollRound} - ${playersToRoll.length} players rolling`);
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debug(`🎲 Roll-off round ${rollRound} - ${playersToRoll.length} players rolling`);
+            }
             
             // Trigger event to show notification
             this.triggerEvent('rollOffRound', {
@@ -310,7 +318,9 @@ class KingOfTokyoGame {
                                 }
                             }
 
-                            UI._debug(`🎲 AI Roll-off using DiceCollection: [${rolls.join(', ')}], attacks: ${attackCount}`);
+                            if (window.UI && window.UI.debugMode) {
+                                window.UI._debug(`🎲 AI Roll-off using DiceCollection: [${rolls.join(', ')}], attacks: ${attackCount}`);
+                            }
                             resolve();
                         }, 600); // Wait for dice animation
                     });
@@ -319,7 +329,9 @@ class KingOfTokyoGame {
                 player.attackDice = attackCount;
                 player.lastRolls = rolls;
                 
-                UI._debug(`🎲 ${player.monster.name} rolled ${attackCount} attacks: [${rolls.join(', ')}]`);
+                if (window.UI && window.UI.debugMode) {
+                    window.UI._debug(`🎲 ${player.monster.name} rolled ${attackCount} attacks: [${rolls.join(', ')}]`);
+                }
                 
                 // Get dice data for event (if available)
                 const diceData = this.rollOffDiceCollection ? this.rollOffDiceCollection.getAllDiceData() : null;
@@ -649,7 +661,9 @@ class KingOfTokyoGame {
         if (friendOfChildrenCard && !currentPlayer.powerCards.some(card => card.id === 'friend_of_children')) {
             currentPlayer.powerCards.push(friendOfChildrenCard);
             this.logAction(`DEBUG: Gave ${currentPlayer.monster.name} the Friend of Children card!`, 'debug');
-            UI._debug(`DEBUG: Gave ${currentPlayer.monster.name} Friend of Children card`);
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debug(`DEBUG: Gave ${currentPlayer.monster.name} Friend of Children card`);
+            }
             // Trigger UI update
             this.triggerEvent('playerUpdated', { player: currentPlayer });
         }
@@ -662,7 +676,9 @@ class KingOfTokyoGame {
         if (extraHeadCard && !currentPlayer.powerCards.some(card => card.id === 'extra_head')) {
             currentPlayer.powerCards.push(extraHeadCard);
             this.logAction(`DEBUG: Gave ${currentPlayer.monster.name} the Extra Head card!`, 'debug');
-            UI._debug(`DEBUG: Gave ${currentPlayer.monster.name} Extra Head card`);
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debug(`DEBUG: Gave ${currentPlayer.monster.name} Extra Head card`);
+            }
             // Trigger UI update
             this.triggerEvent('playerUpdated', { player: currentPlayer });
         }
@@ -779,7 +795,9 @@ class KingOfTokyoGame {
     resolveDiceEffects(results, skipDiceLog = false) {
         // Prevent multiple resolution of dice effects in the same turn
         if (this.diceEffectsResolved) {
-            UI._debug('DEBUG - Dice effects already resolved this turn, skipping');
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debug('DEBUG - Dice effects already resolved this turn, skipping');
+            }
             console.trace('🐛 DUPLICATE CALL - Stack trace for duplicate resolveDiceEffects call:');
             return;
         }
@@ -894,17 +912,19 @@ class KingOfTokyoGame {
 
         // Attacks
         totalAttack = results.attack;
-        UI._debug(`DEBUG - Attack calculation:`, {
-            diceAttackValue: results.attack,
-            playerName: player.monster.name,
-            totalAttack: totalAttack,
-            playerPowerCards: player.powerCards.map(card => card.name),
-            individualDiceResults: this.diceCollection.dice.map(die => ({
-                face: die.face,
-                faceData: die.getFaceData(),
-                isDisabled: die.isDisabled
-            }))
-        });
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debug(`DEBUG - Attack calculation:`, {
+                diceAttackValue: results.attack,
+                playerName: player.monster.name,
+                totalAttack: totalAttack,
+                playerPowerCards: player.powerCards.map(card => card.name),
+                individualDiceResults: this.diceCollection.dice.map(die => ({
+                    face: die.face,
+                    faceData: die.getFaceData(),
+                    isDisabled: die.isDisabled
+                }))
+            });
+        }
         
         // Check if there are actual attack dice (claws/swords) rolled (only enabled dice)
         const hasAttackDice = this.diceCollection.dice.some(die => !die.isDisabled && die.face === 'attack');
@@ -1039,12 +1059,14 @@ class KingOfTokyoGame {
 
         // Resolve attack effects
     resolveAttacks(attacker, attackPower) {
-        UI._debug(`DEBUG - resolveAttacks called:`, {
-            attackerName: attacker.monster.name,
-            attackPower: attackPower,
-            attackerInTokyo: attacker.isInTokyo,
-            attackerTokyoLocation: attacker.tokyoLocation
-        });
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debug(`DEBUG - resolveAttacks called:`, {
+                attackerName: attacker.monster.name,
+                attackPower: attackPower,
+                attackerInTokyo: attacker.isInTokyo,
+                attackerTokyoLocation: attacker.tokyoLocation
+            });
+        }
         
         console.log(`${attacker.monster.name} attacks with power ${attackPower}`);
         console.log(`Attacker location - isInTokyo: ${attacker.isInTokyo}, tokyoLocation: ${attacker.tokyoLocation}`);
@@ -1146,12 +1168,14 @@ class KingOfTokyoGame {
 
         // Deal damage to a player
     dealDamage(player, damage, attacker) {
-        UI._debug(`DEBUG - dealDamage called:`, {
-            targetPlayer: player.monster.name,
-            attackerPlayer: attacker.monster.name,
-            damageAmount: damage,
-            targetCurrentHealth: player.health
-        });
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debug(`DEBUG - dealDamage called:`, {
+                targetPlayer: player.monster.name,
+                attackerPlayer: attacker.monster.name,
+                damageAmount: damage,
+                targetCurrentHealth: player.health
+            });
+        }
         
         // Check if target has camouflage protection
         const hasCamouflage = player.powerCards.some(card => {
@@ -1944,14 +1968,25 @@ class KingOfTokyoGame {
         // Reset total rolls for this turn to base amount
         this.currentTurnTotalRolls = 3;
         
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debug(`Applying start of turn effects for ${currentPlayer.monster.name}`);
+            window.UI._debug(`Player has ${currentPlayer.powerCards.length} power cards:`, currentPlayer.powerCards.map(c => c.name));
+        }
+        
         currentPlayer.powerCards.forEach(card => {
             const effect = applyCardEffect(card, currentPlayer, this);
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debug(`Card "${card.name}" effect:`, effect);
+            }
             if (effect.type === 'passive') {
                 if (effect.effect === 'bonusRolls') {
                     bonusRolls += effect.value;
                 }
                 if (effect.effect === 'extraDice') {
                     extraDice += effect.value;
+                    if (window.UI && window.UI.debugMode) {
+                        window.UI._debug(`Found extraDice effect from "${card.name}": +${effect.value} (total now: ${extraDice})`);
+                    }
                 }
             }
         });
@@ -1965,16 +2000,35 @@ class KingOfTokyoGame {
         
         // Enable extra dice for this player's turn
         if (extraDice > 0) {
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debug(`Attempting to enable ${extraDice} extra dice for ${currentPlayer.monster.name}`);
+                window.UI._debug(`Dice collection state before:`, this.diceCollection.dice.map(d => ({ id: d.id, isDisabled: d.isDisabled })));
+            }
+            
             let enabledCount = 0;
             for (let i = 0; i < extraDice; i++) {
                 const dieIndex = this.diceCollection.maxDice + i; // Start from first disabled die
+                if (window.UI && window.UI.debugMode) {
+                    window.UI._debug(`Trying to enable die at index ${dieIndex}`);
+                }
                 if (this.diceCollection.enableExtraDie(dieIndex)) {
                     enabledCount++;
                     this.logAction(`${currentPlayer.monster.name} gets an extra die from power cards!`, 'power-card');
+                    if (window.UI && window.UI.debugMode) {
+                        window.UI._debug(`Successfully enabled extra die at index ${dieIndex}`);
+                    }
                 } else {
                     this.logAction(`${currentPlayer.monster.name} is already at maximum dice limit!`, 'power-card');
+                    if (window.UI && window.UI.debugMode) {
+                        window.UI._debug(`Failed to enable extra die at index ${dieIndex}`);
+                    }
                     break;
                 }
+            }
+            
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debug(`Dice collection state after:`, this.diceCollection.dice.map(d => ({ id: d.id, isDisabled: d.isDisabled })));
+                window.UI._debug(`Enabled ${enabledCount} extra dice`);
             }
             
             // Store how many extra dice this player enabled for cleanup later
@@ -1982,6 +2036,9 @@ class KingOfTokyoGame {
             
             // Trigger dice update to refresh UI with the extra dice
             if (enabledCount > 0) {
+                if (window.UI && window.UI.debugMode) {
+                    window.UI._debug(`Triggering diceUpdated event with data:`, this.diceCollection.getAllDiceData());
+                }
                 this.triggerEvent('diceUpdated', this.diceCollection.getAllDiceData());
             }
         } else {
