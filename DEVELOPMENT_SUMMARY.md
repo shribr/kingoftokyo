@@ -1,6 +1,6 @@
 # King of Tokyo - Development Summary
 
-**Development Period**: Last week (September 2025)  
+**Development Period**: Last week and this week (September 8-17, 2025)  
 **Project Type**: Browser-based implementation of the King of Tokyo board game  
 **Tech Stack**: Vanilla HTML, CSS, JavaScript (ES6+)
 
