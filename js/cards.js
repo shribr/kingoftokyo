@@ -226,6 +226,7 @@ const CARD_EFFECTS = {
                 // Handle elimination from card effect
                 if (damageResult.eliminationInfo) {
                     console.log(`💀 ${p.monster.name} eliminated by ${player.monster.name}'s power card!`);
+                    game.logAction(`💀 ${p.monster.name} has been eliminated by ${player.monster.name}'s power card!`, 'elimination');
                     game.triggerEvent('playerEliminated', { 
                         eliminatedPlayer: p, 
                         attacker: player,
@@ -260,6 +261,7 @@ const CARD_EFFECTS = {
                 // Handle elimination from card effect
                 if (damageResult.eliminationInfo) {
                     console.log(`💀 ${p.monster.name} eliminated by ${player.monster.name}'s power card!`);
+                    game.logAction(`💀 ${p.monster.name} has been eliminated by ${player.monster.name}'s power card!`, 'elimination');
                     game.triggerEvent('playerEliminated', { 
                         eliminatedPlayer: p, 
                         attacker: player,

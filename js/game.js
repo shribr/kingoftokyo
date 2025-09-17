@@ -1172,6 +1172,9 @@ class KingOfTokyoGame {
         if (eliminationInfo) {
             console.log(`💀 Player ${player.monster.name} has been eliminated!`);
             
+            // Add elimination message to game log
+            this.logAction(`💀 ${player.monster.name} has been eliminated by ${attacker.monster.name}!`, 'elimination');
+            
             // Clear Tokyo state immediately if player was in Tokyo
             if (eliminationInfo.wasInTokyo) {
                 console.log(`💀 ELIMINATION: Clearing ${player.monster.name} from Tokyo ${eliminationInfo.tokyoLocation}`);
@@ -1435,6 +1438,7 @@ class KingOfTokyoGame {
                         // Handle elimination from retaliation
                         if (counterResult.eliminationInfo) {
                             console.log(`💀 ${attacker.monster.name} eliminated by retaliation!`);
+                            this.logAction(`💀 ${attacker.monster.name} has been eliminated by ${victim.monster.name}'s retaliation!`, 'elimination');
                             this.triggerEvent('playerEliminated', { 
                                 eliminatedPlayer: attacker, 
                                 attacker: victim,
@@ -2332,6 +2336,7 @@ class KingOfTokyoGame {
             'ready-to-start': '🎲',
             'system': 'ℹ️',
             'tokyo': '🏙️',
+            'elimination': '💀',
             'general': '📝',
             'attack-empty': '🤷‍♂️'
         };
