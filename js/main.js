@@ -168,6 +168,7 @@ class KingOfTokyoUI {
         this.initializeGamePause(); // Initialize pause system
         this.initializeDragAndDrop();
         this.initializeDarkMode();
+        this._initializeDOMCaches(); // Initialize DOM element caches
         this.setupManager.initializeMonsterProfiles();
         this.initializeSettings();
         this.initializeResponsivePanels();
@@ -1282,6 +1283,9 @@ class KingOfTokyoUI {
         
         // Attach event listeners
         this.attachPowerCardTabListeners();
+        
+        // Refresh player dashboard cache after rebuilding
+        this._refreshPlayerDashboardCache();
     }
     
     // Initial positioning setup (similar to _setupPlayerPositioning but for fresh cards)
@@ -1289,7 +1293,7 @@ class KingOfTokyoUI {
         console.log('🎯 Setting up initial player positioning');
         
         players.forEach((player, index) => {
-            const dashboard = document.querySelector(`[data-player-id="${player.id}"]`);
+            const dashboard = this._getCachedPlayerDashboard(player.id);
             if (!dashboard) return;
             
             // Set monster color properties for all players
@@ -1657,7 +1661,7 @@ class KingOfTokyoUI {
         console.log('🎯 Setting up player positioning');
         
         players.forEach((player, index) => {
-            const dashboard = document.querySelector(`[data-player-id="${player.id}"]`);
+            const dashboard = this._getCachedPlayerDashboard(player.id);
             if (!dashboard) return;
             
             // Set monster color properties for all players
@@ -1781,7 +1785,7 @@ class KingOfTokyoUI {
     // Update only the stats of existing player cards (no flickering)
     _updatePlayerStats(players) {
         players.forEach(player => {
-            const playerElement = document.querySelector(`[data-player-id="${player.id}"]`);
+            const playerElement = this._getCachedPlayerDashboard(player.id);
             if (playerElement) {
                 // Update individual stat values without rebuilding the entire card
                 const energyStat = playerElement.querySelector('.stat.energy .stat-value');
@@ -2351,11 +2355,19 @@ class KingOfTokyoUI {
 
     // Utility function to find player element accounting for active player positioning
     findPlayerElement(playerId) {
-        // First check in players container
-        let playerElement = document.querySelector(`#players-container [data-player-id="${playerId}"]`);
+        // Try cache first for better performance
+        let playerElement = this._getCachedPlayerDashboard(playerId);
         if (!playerElement) {
-            // If not found, check if it's moved to body (active player)
-            playerElement = document.querySelector(`body > .player-dashboard[data-player-id="${playerId}"]`);
+            // Fallback to manual queries if not in cache
+            playerElement = document.querySelector(`#players-container [data-player-id="${playerId}"]`);
+            if (!playerElement) {
+                // If not found, check if it's moved to body (active player)
+                playerElement = document.querySelector(`body > .player-dashboard[data-player-id="${playerId}"]`);
+            }
+            // Cache the found element
+            if (playerElement) {
+                this.playerDashboards.set(playerId, playerElement);
+            }
         }
         return playerElement;
     }
@@ -2833,6 +2845,9 @@ class KingOfTokyoUI {
         }
         
         this.updateDiceDisplay(diceData);
+        
+        // Refresh dice cache after display update
+        this._refreshDiceElementCache();
     }
 
     // Update dice controls
@@ -2966,6 +2981,81 @@ class KingOfTokyoUI {
             this.elements.actionMenu.style.opacity = '';
             console.log('🎮 Action menu enabled - CPU not rolling');
         }
+    }
+
+    // Initialize DOM element caches for frequently accessed elements
+    _initializeDOMCaches() {
+        // Clear existing caches
+        this.playerDashboards.clear();
+        this.diceElements.clear();
+        this.monsterCards.clear();
+        
+        // Cache initial player dashboards
+        this._refreshPlayerDashboardCache();
+        
+        // Cache dice elements
+        this._refreshDiceElementCache();
+        
+        console.log('🔧 DOM caches initialized');
+    }
+    
+    // Refresh player dashboard cache
+    _refreshPlayerDashboardCache() {
+        this.playerDashboards.clear();
+        const dashboards = document.querySelectorAll('.player-dashboard[data-player-id]');
+        dashboards.forEach(dashboard => {
+            const playerId = dashboard.dataset.playerId;
+            if (playerId) {
+                this.playerDashboards.set(playerId, dashboard);
+            }
+        });
+        console.log(`🔧 Cached ${this.playerDashboards.size} player dashboards`);
+    }
+    
+    // Refresh dice element cache
+    _refreshDiceElementCache() {
+        this.diceElements.clear();
+        const diceElements = document.querySelectorAll('.die[data-die-id]');
+        diceElements.forEach(die => {
+            const dieId = die.dataset.dieId;
+            if (dieId) {
+                this.diceElements.set(dieId, die);
+            }
+        });
+        console.log(`🔧 Cached ${this.diceElements.size} dice elements`);
+    }
+    
+    // Get cached player dashboard
+    _getCachedPlayerDashboard(playerId) {
+        let dashboard = this.playerDashboards.get(playerId);
+        if (!dashboard) {
+            // Cache miss - query and cache it
+            dashboard = document.querySelector(`[data-player-id="${playerId}"]`);
+            if (dashboard) {
+                this.playerDashboards.set(playerId, dashboard);
+                console.log(`🔧 Cache miss - cached dashboard for player ${playerId}`);
+            }
+        }
+        return dashboard;
+    }
+    
+    // Get cached dice element
+    _getCachedDiceElement(dieId) {
+        let die = this.diceElements.get(dieId);
+        if (!die) {
+            // Cache miss - query and cache it
+            die = document.querySelector(`[data-die-id="${dieId}"]`);
+            if (die) {
+                this.diceElements.set(dieId, die);
+                console.log(`🔧 Cache miss - cached dice element ${dieId}`);
+            }
+        }
+        return die;
+    }
+    
+    // Public method for game.js to access cached dice elements
+    getDiceElement(dieId) {
+        return this._getCachedDiceElement(dieId);
     }
 
     // Handle dice roll complete

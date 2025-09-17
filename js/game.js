@@ -931,7 +931,9 @@ class KingOfTokyoGame {
         
         // Enhanced dice state debugging with DOM verification
         const diceStateDetails = this.diceCollection.dice.map(die => {
-            const domElement = document.querySelector(`[data-die-id="${die.id}"]`);
+            // Use cached dice element if UI is available
+            const domElement = window.kingOfTokyoUI?.getDiceElement?.(die.id) || 
+                              document.querySelector(`[data-die-id="${die.id}"]`);
             const visualText = domElement ? domElement.textContent.trim() : 'not-found';
             const visualSymbol = die.getSymbol ? die.getSymbol() : 'no-getSymbol';
             
