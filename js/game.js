@@ -548,7 +548,6 @@ class KingOfTokyoGame {
         
         // Generate unique game ID
         this.gameId = this.storageManager ? this.storageManager.generateGameId() : `game_${Date.now()}`;
-        console.log(`🎮 Starting new game with ID: ${this.gameId}`);
 
         // Create players
         for (let i = 0; i < playerCount; i++) {
@@ -566,8 +565,7 @@ class KingOfTokyoGame {
             window.UI && window.UI._debug && window.UI._debug('⚠️ No roll-off performed, defaulting to Player 1');
             this.currentPlayerIndex = 0; // Default to Player 1
         }
-        console.log(`� Starting player: ${this.getCurrentPlayer().monster.name} (Player ${this.currentPlayerIndex + 1})`);
-
+        
         // Initialize card market
         this.refreshCardMarket();
         
@@ -798,7 +796,6 @@ class KingOfTokyoGame {
             if (window.UI && window.UI.debugMode) {
                 window.UI._debug('DEBUG - Dice effects already resolved this turn, skipping');
             }
-            console.trace('🐛 DUPLICATE CALL - Stack trace for duplicate resolveDiceEffects call:');
             return;
         }
         
@@ -808,13 +805,6 @@ class KingOfTokyoGame {
         window.UI && window.UI._debug && window.UI._debug('🔍 Dice collection internal state at time of resolution:');
         this.diceCollection.dice.forEach((die, index) => {
             window.UI && window.UI._debug && window.UI._debug(`🔍 Die ${index}: id=${die.id}, face=${die.face}, isDisabled=${die.isDisabled}, symbol=${die.getSymbol()}`);
-        });
-        
-        console.log('Current player before effects:', {
-            name: player.monster.name,
-            energy: player.energy,
-            health: player.health,
-            victoryPoints: player.victoryPoints
         });
         
         // Debug: Log dice faces that were rolled (only enabled dice)
@@ -864,9 +854,6 @@ class KingOfTokyoGame {
 
         // Calculate victory points from number sets
         const numberPoints = this.diceCollection.getVictoryPoints();
-        console.log('Victory points calculation:');
-        console.log('- Number counts:', results.numbers);
-        console.log('- Calculated victory points:', numberPoints);
         
         if (numberPoints > 0) {
             totalVictoryPoints += numberPoints;
@@ -887,7 +874,6 @@ class KingOfTokyoGame {
 
         // Energy
         totalEnergy = results.energy;
-        console.log('Energy calculation:');
         window.UI && window.UI._debug && window.UI._debug('- Energy from dice:', totalEnergy);
         
         if (totalEnergy > 0) {
@@ -1857,13 +1843,8 @@ class KingOfTokyoGame {
 
     // End current turn
     endTurn() {
-        // Add stack trace to debug what's calling endTurn
-        console.log('endTurn called!');
-        console.trace('Stack trace for endTurn call:');
-        
         // Prevent double execution
         if (this.endingTurn) {
-            console.log('endTurn already in progress, ignoring duplicate call');
             return;
         }
         
@@ -1871,36 +1852,9 @@ class KingOfTokyoGame {
         
         const currentPlayer = this.getCurrentPlayer();
         
-        console.log('endTurn called - current phase:', this.currentTurnPhase);
-        window.UI && window.UI._debug && window.UI._debug('Dice effects resolved:', this.diceEffectsResolved);
-        console.log('Pending decisions:', this.pendingDecisions.length);
-        console.log('Current player before ending turn:', currentPlayer.monster.name, 'Index:', this.currentPlayerIndex);
-        if (window.UI && window.UI.debugMode) {
-            window.UI._debug('ENDTURN DEBUG:', {
-                players: this.players.length,
-                currentPlayerIndex: this.currentPlayerIndex,
-                currentPlayerName: currentPlayer.monster.name,
-                currentPlayerEliminated: currentPlayer.isEliminated,
-                endingTurnFlag: this.endingTurn,
-                gamePhase: this.gamePhase,
-                turnPhase: this.currentTurnPhase
-            });
-        }
-        
-        // Extra debugging for 6-player games - check all player statuses
-        if (this.players.length === 6) {
-            if (window.UI && window.UI.debugMode) {
-                window.UI._debug('6-PLAYER ELIMINATION DEBUG:');
-                this.players.forEach((player, index) => {
-                    window.UI._debug(`Player ${index}: ${player.monster.name} - Health: ${player.health}/${player.maxHealth} - Eliminated: ${player.isEliminated}`);
-                });
-            }
-        }
-        
         try {
             // Check if there are pending decisions that need to be resolved first
             if (this.pendingDecisions.length > 0) {
-                console.log('Cannot end turn - there are pending decisions:', this.pendingDecisions);
                 this.showMessage('Please resolve all pending decisions before ending turn.');
                 return;
             }
@@ -1910,27 +1864,22 @@ class KingOfTokyoGame {
                 return;
             }
 
-            console.log('Ending turn for:', currentPlayer.monster.name);
-
             // Log turn summary before ending
             this.logTurnSummary(currentPlayer);
 
             // Disable any extra dice that were enabled for the current player
             this.disablePlayerExtraDice(currentPlayer);
 
-        // TURN DEBUG: Track turn ending process
-        console.log(`🔄 TURN DEBUG: endTurn() - About to switch from ${currentPlayer.monster.name} (index ${this.currentPlayerIndex})`);
-        
-        // Move to next player FIRST, before any Tokyo handling
-        this.switchToNextPlayer();
-        
-        console.log(`🔄 TURN DEBUG: endTurn() - After switchToNextPlayer, new current player is ${this.getCurrentPlayer().monster.name} (index ${this.currentPlayerIndex})`);
-        
-        // Clear dice results and reset dice count to base amount for next turn
+        // Clear dice results and reset dice count to base amount for next turn BEFORE switching players
         this.diceCollection.resetToBaseDiceCount(this.gameSettings.diceCount);
         this.diceRoller.startNewTurn();
-        this.currentTurnPhase = 'rolling';            // Trigger turn ended event to update UI with new active player
-            this.triggerEvent('turnEnded', this.getGameState());
+        this.currentTurnPhase = 'rolling';
+        
+        // Move to next player AFTER resetting turn state
+        this.switchToNextPlayer();
+        
+        // Trigger turn ended event to update UI with new active player
+        this.triggerEvent('turnEnded', this.getGameState());
 
             // RULE: Handle mandatory Tokyo entry at end of any turn - AFTER new player is active
             this.handleEndOfTurnTokyoEntry(currentPlayer);
@@ -2109,7 +2058,6 @@ class KingOfTokyoGame {
     switchToNextPlayer() {
         // Prevent concurrent execution of this method
         if (this.switchingPlayers) {
-            console.log('🚫 switchToNextPlayer() already in progress, ignoring duplicate call');
             return;
         }
         
@@ -2119,20 +2067,10 @@ class KingOfTokyoGame {
             let attempts = 0;
             const maxAttempts = this.players.length;
             
-            // Enhanced debugging for turn order issues
-            if (window.UI && window.UI.debugMode) {
-                window.UI._debug(`TURN ORDER DEBUG: Starting switchToNextPlayer()`);
-                window.UI._debug(`Before switch - currentPlayerIndex: ${this.currentPlayerIndex}`);
-                window.UI._debug(`Before switch - current player: ${this.getCurrentPlayer().monster.name}`);
-                window.UI._debug(`Before switch - Tokyo status:`, this.players.map(p => `${p.monster.name}:${p.isInTokyo ? 'Tokyo' : 'Outside'}`));
-            }
-            
             do {
                 const previousPlayerIndex = this.currentPlayerIndex;
                 this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
                 attempts++;
-                
-                console.log(`🔄 Switching from player ${previousPlayerIndex} to ${this.currentPlayerIndex} (attempt ${attempts})`);
                 console.log(`🔄 Current player: ${this.getCurrentPlayer().monster.name}, eliminated: ${this.getCurrentPlayer().isEliminated}`);
                 
                 // Safety check to prevent infinite loop
@@ -2150,7 +2088,6 @@ class KingOfTokyoGame {
                 if (this.currentPlayerIndex === 0) {
                     const previousRound = this.round;
                     this.round++;
-                    console.log(`🔄 Round transition: ${previousRound} → ${this.round} (Player index: ${previousPlayerIndex} → ${this.currentPlayerIndex})`);
                     
                     // Only start new round in log if gameplay has begun
                     if (this.gameplayStarted) {
@@ -2158,25 +2095,6 @@ class KingOfTokyoGame {
                     }
                 }
             } while (this.getCurrentPlayer().isEliminated && attempts < maxAttempts);
-
-            // Extra debugging for 6-player games
-            if (this.players.length === 6) {
-                if (window.UI && window.UI.debugMode) {
-                    window.UI._debug('6-PLAYER SWITCH DEBUG: Final result');
-                    window.UI._debug(`Final current player: ${this.getCurrentPlayer().monster.name} (index ${this.currentPlayerIndex})`);
-                    window.UI._debug(`Is current player eliminated: ${this.getCurrentPlayer().isEliminated}`);
-                    window.UI._debug(`Attempts used: ${attempts}/${maxAttempts}`);
-                }
-            }
-
-            // Enhanced debugging for ALL games
-            if (window.UI && window.UI.debugMode) {
-                window.UI._debug(`TURN ORDER DEBUG: Final switchToNextPlayer() result`);
-                window.UI._debug(`After switch - currentPlayerIndex: ${this.currentPlayerIndex}`);
-                window.UI._debug(`After switch - current player: ${this.getCurrentPlayer().monster.name}`);
-                window.UI._debug(`After switch - Tokyo status:`, this.players.map(p => `${p.monster.name}:${p.isInTokyo ? 'Tokyo' : 'Outside'}`));
-                window.UI._debug(`After switch - is new current player in Tokyo: ${this.getCurrentPlayer().isInTokyo}`);
-            }
 
             // Only start player turn in log if gameplay has begun
             if (this.gameplayStarted) {

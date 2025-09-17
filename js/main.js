@@ -88,6 +88,7 @@ class KingOfTokyoUI {
     this.selectedMonsters = [];
     this.currentPlayerCount = 4; // Default to 4 players
     this.tempSetupLog = []; // Store setup actions before game is created
+    this.endingTurnInProgress = false; // Flag to prevent multiple endTurn calls
     this.previousRound = 1; // Track previous round for animation
     this.playerTiles = []; // Track player tile assignments
     this.draggedMonster = null; // Track currently dragged monster
@@ -857,25 +858,45 @@ class KingOfTokyoUI {
             // Perform roll-off to determine first player
             window.UI && window.UI._debug && window.UI._debug('🎲 Starting roll-off for first player...');
             window.UI && window.UI._debug && window.UI._debug('Passing selectedMonsters to rollForFirstPlayer:', this.selectedMonsters);
+            console.log('🔍 Debug - selectedMonsters:', this.selectedMonsters);
+            console.log('🔍 Debug - playerTypes:', playerTypes);
+            console.log('🔍 Debug - selectedMonsters length:', this.selectedMonsters?.length);
             
             // Hide the setup modal so users can see the roll-off scoreboard
             this.setupManager.hideSetupModal();
             
             const rollOffWinner = await this.game.rollForFirstPlayer(this.selectedMonsters, playerTypes);
+            console.log('🔍 Debug - rollOffWinner returned:', rollOffWinner);
             window.UI && window.UI._debug && window.UI._debug(`🏆 Roll-off winner:`, rollOffWinner);
             
+            // Check if rollOffWinner is valid
+            if (!rollOffWinner || rollOffWinner.index === undefined) {
+                console.error('❌ Error: rollOffWinner is invalid:', rollOffWinner);
+                throw new Error('Roll-off failed to determine a winner');
+            }
+            
             // Reorder players so winner becomes Player 1
+            console.log('🔍 DEBUG: Before reordering - rollOffWinner.index:', rollOffWinner.index);
+            console.log('🔍 DEBUG: Before reordering - selectedMonsters:', this.selectedMonsters.map((m, i) => `${i}: ${m.name}`));
+            console.log('🔍 DEBUG: Before reordering - playerTypes:', playerTypes);
+            
             const reorderedData = this.game.reorderPlayersForFirstPlayer(this.selectedMonsters, playerTypes, rollOffWinner.index);
             const finalMonsters = reorderedData.selectedMonsters;
             const finalPlayerTypes = reorderedData.playerTypes;
             
+            console.log('🔍 DEBUG: After reordering - finalMonsters:', finalMonsters.map((m, i) => `${i}: ${m.name}`));
+            console.log('🔍 DEBUG: After reordering - finalPlayerTypes:', finalPlayerTypes);
+            
             // Initialize game with reordered players (winner is now index 0)
             console.log('About to initialize game with reordered monsters and player types:', finalMonsters, finalPlayerTypes);
-            const result = await this.game.initializeGame(finalMonsters, this.currentPlayerCount, finalPlayerTypes, rollOffWinner.index);
+            const result = await this.game.initializeGame(finalMonsters, this.currentPlayerCount, finalPlayerTypes, 0);
             console.log('Game initialization result:', result);
             
             // 3. Log who goes first (after game initialization so we know the randomized starting player)
             if (result.success) {
+                console.log('🔍 DEBUG: Game initialization successful');
+                console.log('🔍 DEBUG: result.currentPlayer:', result.currentPlayer.monster.name, 'ID:', result.currentPlayer.id, 'Type:', result.currentPlayer.playerType);
+                console.log('🔍 DEBUG: All players after init:', this.game.players.map(p => `${p.monster.name} (ID: ${p.id}, Type: ${p.playerType})`));
                 await this.game.logSetupActionWithStorage(`🎲 ${result.currentPlayer.monster.name} goes first!`, 'ready-to-start');
             }
             
@@ -1782,7 +1803,6 @@ class KingOfTokyoUI {
         // Add draggable to active player
         const activePlayerDashboard = document.querySelector(`.player-dashboard[data-player-id="${activePlayerId}"]`);
         console.log('🎯 Setting up active player dragging for:', activePlayerId);
-        console.log('🔍 Found active player dashboard:', activePlayerDashboard);
         
         if (activePlayerDashboard) {
             console.log('📋 Classes before:', activePlayerDashboard.className);
@@ -2910,10 +2930,13 @@ class KingOfTokyoUI {
         
         // Update button states
         const isCurrentPlayerEliminated = gameState.currentPlayer && gameState.currentPlayer.isEliminated;
-        const canRoll = diceState.canRoll && gameState.turnPhase === 'rolling' && !isCurrentPlayerEliminated;
-        const canKeep = gameState.turnPhase === 'rolling' && diceState.rollsRemaining < 3 && diceState.rollsRemaining > 0 && !isCurrentPlayerEliminated;
-        const canEndTurn = (gameState.turnPhase === 'resolving' || 
-                          (gameState.turnPhase === 'rolling' && diceState.rollsRemaining === 0)) && !isCurrentPlayerEliminated;
+        const isHumanPlayerTurn = gameState.currentPlayer && gameState.currentPlayer.playerType === 'human' && !isCurrentPlayerEliminated;
+        
+        // Only enable buttons if it's a human player's turn
+        const canRoll = isHumanPlayerTurn && diceState.canRoll && gameState.turnPhase === 'rolling';
+        const canKeep = isHumanPlayerTurn && gameState.turnPhase === 'rolling' && diceState.rollsRemaining < 3 && diceState.rollsRemaining > 0;
+        const canEndTurn = isHumanPlayerTurn && (gameState.turnPhase === 'resolving' || 
+                          (gameState.turnPhase === 'rolling' && diceState.rollsRemaining === 0));
         
         // Debug logging for 5+ player game issues
         if (gameState.players && gameState.players.length >= 5) {
@@ -2950,12 +2973,14 @@ class KingOfTokyoUI {
         // Players can buy cards when dice are resolved and they have energy (local game)
         const diceResolved = gameState.turnPhase === 'resolving';
         const hasEnergy = gameState.currentPlayer && gameState.currentPlayer.energy > 0;
-        const canBuyCards = diceResolved && hasEnergy && !isCurrentPlayerEliminated;
+        const canBuyCards = isHumanPlayerTurn && diceResolved && hasEnergy;
         
         console.log('Button states:', {
             turnPhase: gameState.turnPhase,
             rollsRemaining: diceState.rollsRemaining,
             currentPlayerEliminated: isCurrentPlayerEliminated,
+            isHumanPlayerTurn: isHumanPlayerTurn,
+            currentPlayerType: gameState.currentPlayer ? gameState.currentPlayer.playerType : 'none',
             canRoll,
             canKeep,
             canEndTurn,
@@ -2968,6 +2993,15 @@ class KingOfTokyoUI {
         this.elements.keepDiceBtn.disabled = !canKeep;
         // this.elements.buyCardsBtn.disabled = !canBuyCards;
         
+        // Extra safety: If it's not a human player's turn, force all buttons disabled
+        if (!isHumanPlayerTurn) {
+            this.elements.rollDiceBtn.disabled = true;
+            this.elements.keepDiceBtn.disabled = true;
+            if (this.elements.endTurnBtn) {
+                this.elements.endTurnBtn.disabled = true;
+            }
+        }
+        
         // Update End Turn button
         if (this.elements.endTurnBtn) {
             console.log('Setting endTurnBtn disabled to:', !canEndTurn);
@@ -2978,6 +3012,7 @@ class KingOfTokyoUI {
                     buttonDisabled: this.elements.endTurnBtn.disabled,
                     newDisabledState: !canEndTurn,
                     canEndTurnCalculation: canEndTurn,
+                    isHumanPlayerTurn: isHumanPlayerTurn,
                     turnPhaseCheck: gameState.turnPhase === 'resolving',
                     rollsCheck: gameState.turnPhase === 'rolling' && diceState.rollsRemaining === 0,
                     eliminatedCheck: !isCurrentPlayerEliminated
@@ -3002,17 +3037,15 @@ class KingOfTokyoUI {
         if (!this.elements.actionMenu) return;
         
         if (isCPURolling) {
-            // Disable action menu during CPU rolling
+            // Visual feedback during CPU rolling but keep menu draggable
             this.elements.actionMenu.classList.add('cpu-rolling');
-            this.elements.actionMenu.style.pointerEvents = 'none';
-            this.elements.actionMenu.style.opacity = '0.5';
-            window.UI && window.UI._debug && window.UI._debug('🎮 Action menu disabled - CPU is rolling');
+            this.elements.actionMenu.style.opacity = '0.6';
+            window.UI && window.UI._debug && window.UI._debug('🎮 Action menu dimmed for CPU turn - still draggable');
         } else {
             // Re-enable action menu when CPU is not rolling
             this.elements.actionMenu.classList.remove('cpu-rolling');
-            this.elements.actionMenu.style.pointerEvents = '';
             this.elements.actionMenu.style.opacity = '';
-            window.UI && window.UI._debug && window.UI._debug('🎮 Action menu enabled - CPU not rolling');
+            window.UI && window.UI._debug && window.UI._debug('🎮 Action menu restored - human turn');
         }
     }
 
@@ -3382,19 +3415,22 @@ class KingOfTokyoUI {
     endTurn() {
         if (!this.game) return;
         
-        console.log('🎯 ENDTURN DEBUG: endTurn() called in main.js');
+        // Prevent multiple endTurn calls by checking if one is already in progress
+        if (this.endingTurnInProgress) {
+            return;
+        }
+        
+        this.endingTurnInProgress = true;
         
         // Check if current player is eliminated
         const currentPlayer = this.game.getCurrentPlayer();
-        console.log('🎯 ENDTURN DEBUG: Current player:', currentPlayer?.monster?.name, 'eliminated:', currentPlayer?.isEliminated);
         
         if (currentPlayer && currentPlayer.isEliminated) {
             console.log('⚠️ Current player is eliminated, cannot end turn manually');
             UIUtilities.showMessage('Eliminated players cannot end turns!', 3000, this.elements);
+            this.endingTurnInProgress = false;
             return;
         }
-        
-        console.log('Main.endTurn() called');
         
         // Prevent double execution by temporarily disabling the button
         if (this.elements.endTurnBtn) {
@@ -3402,7 +3438,6 @@ class KingOfTokyoUI {
         }
         
         try {
-            console.log('🎯 ENDTURN DEBUG: About to call this.game.endTurn()');
             this.game.endTurn();
         } finally {
             // Re-enable button after a short delay to prevent rapid clicking
@@ -3410,6 +3445,7 @@ class KingOfTokyoUI {
                 if (this.elements.endTurnBtn) {
                     this.updateDiceControls(); // This will set the correct disabled state
                 }
+                this.endingTurnInProgress = false;
             }, 100);
         }
     }
@@ -5042,7 +5078,8 @@ class KingOfTokyoUI {
     }
 
     executeCPUEndTurn() {
-        console.log('🚨 OLD CPU: executeCPUEndTurn called - should not happen with new system');
+        // Old CPU system disabled to prevent conflicts with new system
+        return;
     }
 
     // Handle the rolling phase for CPU
@@ -5438,7 +5475,8 @@ class KingOfTokyoUI {
 
     // Execute CPU end turn
     executeCPUEndTurn() {
-        // Safety check: ensure cpuTurnState still exists (game might have ended)
+        console.log('🚨 OLD CPU: executeCPUEndTurn called - DISABLED to prevent conflicts with new CPU system');
+        return; // DISABLED - new CPU system handles this
         if (!this.cpuTurnState || !this.cpuTurnState.player) {
             console.log('🏁 CPU end turn aborted - no active CPU turn state (game may have ended)');
             return;
@@ -5885,16 +5923,10 @@ class KingOfTokyoUI {
     // Main CPU turn handler - new simple system
     handleCPUTurn(player) {
         if (!player || player.playerType !== 'cpu' || player.isEliminated) {
-            console.log('🎯 CPU TURN DEBUG: handleCPUTurn called but conditions not met:', {
-                playerExists: !!player,
-                playerType: player?.playerType,
-                isEliminated: player?.isEliminated
-            });
             return;
         }
 
         console.log(`🤖 NEW CPU: ${player.monster.name} starting turn`);
-        console.log('🎯 CPU TURN DEBUG: About to start CPU turn for:', player.monster.name);
         
         // Update controls immediately when CPU turn starts
         this.updateDiceControls();
@@ -5902,55 +5934,43 @@ class KingOfTokyoUI {
         // Start with proper notification that turn begins
         this.showSimpleCPUNotification(player, `🎲 ${player.monster.name}'s turn begins...`);
         
-        console.log('🎯 CPU TURN DEBUG: Set timeout for CPU roll in 1.5 seconds');
         setTimeout(() => {
-            console.log('🎯 CPU TURN DEBUG: Timeout executed, calling cpuRollDice');
             this.cpuRollDice(player, 1);
         }, 1500);
     }
 
     // CPU rolls dice (simple - always use all 3 rolls)
     cpuRollDice(player, rollNumber) {
-        console.log('🎯 CPU ROLL DEBUG: cpuRollDice called for:', player.monster.name, 'roll number:', rollNumber);
-        
         window.UI && window.UI._debug && window.UI._debug(`🎲 NEW CPU: Starting roll ${rollNumber}/3`);
         
         // Always roll, regardless of dice state
         if (rollNumber <= 3) {
-            console.log('🎯 CPU ROLL DEBUG: About to execute roll', rollNumber);
             window.UI && window.UI._debug && window.UI._debug(`🎲 NEW CPU: Executing roll ${rollNumber}/3`);
             this.showSimpleCPUNotification(player, `🎲 ${player.monster.name} rolling... (${rollNumber}/3)`);
             
             // Execute the roll
-            console.log('🎯 CPU ROLL DEBUG: Calling this.rollDice()');
             this.rollDice();
             
             // Wait for dice animation to complete (2 seconds)
             setTimeout(() => {
                 const diceState = this.game.diceRoller.getState();
-                console.log('🎯 CPU ROLL DEBUG: After roll, dice state:', {
-                    rollsRemaining: diceState.rollsRemaining,
-                    rollNumber: rollNumber
-                });
                 
                 window.UI && window.UI._debug && window.UI._debug(`🎲 NEW CPU: After roll ${rollNumber}, rolls remaining: ${diceState.rollsRemaining}`);
                 
                 // Add 3-second delay AFTER showing dice outcome for human player to see results
                 setTimeout(() => {
                     if (rollNumber < 3 && diceState.rollsRemaining > 0) {
-                        console.log('🎯 CPU ROLL DEBUG: Continuing to next roll');
                         // Continue to next roll
                         this.cpuRollDice(player, rollNumber + 1);
                     } else {
-                        console.log('🎯 CPU ROLL DEBUG: CPU finished rolling, ending turn');
                         // After 3rd roll, CPU is done - end turn
                         window.UI && window.UI._debug && window.UI._debug(`🤖 CPU: ${player.monster.name} finished rolling, ending turn`);
                         this.showSimpleCPUNotification(player, `✅ ${player.monster.name} ending turn...`);
                         
                         setTimeout(() => {
-                            console.log('🎯 CPU ROLL DEBUG: About to end turn');
                             // Update controls before ending turn to re-enable action menu
                             this.updateDiceControls();
+                            
                             this.endTurn();
                         }, 1500);
                     }
