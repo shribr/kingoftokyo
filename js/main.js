@@ -855,14 +855,14 @@ class KingOfTokyoUI {
             console.log('Player types:', playerTypes);
             
             // Perform roll-off to determine first player
-            console.log('🎲 Starting roll-off for first player...');
-            console.log('Passing selectedMonsters to rollForFirstPlayer:', this.selectedMonsters);
+            window.UI && window.UI._debug && window.UI._debug('🎲 Starting roll-off for first player...');
+            window.UI && window.UI._debug && window.UI._debug('Passing selectedMonsters to rollForFirstPlayer:', this.selectedMonsters);
             
             // Hide the setup modal so users can see the roll-off scoreboard
             this.setupManager.hideSetupModal();
             
             const rollOffWinner = await this.game.rollForFirstPlayer(this.selectedMonsters, playerTypes);
-            console.log(`🏆 Roll-off winner:`, rollOffWinner);
+            window.UI && window.UI._debug && window.UI._debug(`🏆 Roll-off winner:`, rollOffWinner);
             
             // Reorder players so winner becomes Player 1
             const reorderedData = this.game.reorderPlayersForFirstPlayer(this.selectedMonsters, playerTypes, rollOffWinner.index);
@@ -1036,6 +1036,13 @@ class KingOfTokyoUI {
                 break;
             case 'turnStarted':
                 console.log('🎯 turnStarted event received:', data);
+                console.log('🎯 TURN DEBUG: Turn started for player:', data.currentPlayer?.monster?.name);
+                console.log('🎯 TURN DEBUG: Player type:', data.currentPlayer?.playerType);
+                console.log('🎯 TURN DEBUG: Is eliminated:', data.currentPlayer?.isEliminated);
+                console.log('🎯 TURN DEBUG: Current game phase:', this.game?.gamePhase);
+                console.log('🎯 TURN DEBUG: Current turn phase:', this.game?.currentTurnPhase);
+                console.log('🎯 TURN DEBUG: CPU turn state exists:', !!this.cpuTurnState);
+                
                 this._debug('TURN DEBUG: Player should be able to take actions now!');
                 
                 this.clearAllAttackAnimations(); // Clear any stuck attack animations
@@ -1085,7 +1092,7 @@ class KingOfTokyoUI {
                         }
                     }, 2000);
                 } else if (currentPlayer && currentPlayer.playerType === 'human') {
-                    console.log('👤 HUMAN TURN STARTING: Player should be able to roll dice!');
+                    window.UI && window.UI._debug && window.UI._debug('👤 HUMAN TURN STARTING: Player should be able to roll dice!');
                     // Immediately enable controls for human players - no delay needed
                     this.updateDiceControls();
                     console.log('👤 Human player details:', {
@@ -1206,20 +1213,20 @@ class KingOfTokyoUI {
         const currentTurnPhase = this.game.currentTurnPhase;
         const diceState = this.game.diceRoller.getState();
         
-        console.log(`🎲 Dice update check - Turn phase: ${currentTurnPhase}, All dice empty: ${allDiceEmpty}, Any rolling: ${anyDiceRolling}, Rolls remaining: ${diceState.rollsRemaining}`);
+        window.UI && window.UI._debug && window.UI._debug(`🎲 Dice update check - Turn phase: ${currentTurnPhase}, All dice empty: ${allDiceEmpty}, Any rolling: ${anyDiceRolling}, Rolls remaining: ${diceState.rollsRemaining}`);
         
         // Always update the dice display to show current state, but only use "initial" display for truly initial states
         // Don't update during rolling animation to prevent flicker
         if (!anyDiceRolling) {
             if (allDiceEmpty && currentTurnPhase === 'rolling' && diceState.rollsRemaining === 3) {
-                console.log(`🎲 Showing initial empty dice - start of turn`);
+                window.UI && window.UI._debug && window.UI._debug(`🎲 Showing initial empty dice - start of turn`);
                 this.updateInitialDiceDisplay();
             } else {
-                console.log(`🎲 Showing current dice state - mid-game`);
+                window.UI && window.UI._debug && window.UI._debug(`🎲 Showing current dice state - mid-game`);
                 this.updateDiceDisplay(diceData);
             }
         } else {
-            console.log(`🎲 Skipping dice update - dice are currently rolling`);
+            window.UI && window.UI._debug && window.UI._debug(`🎲 Skipping dice update - dice are currently rolling`);
         }
         
         // Update cards
@@ -2757,7 +2764,7 @@ class KingOfTokyoUI {
             const dieElement = event.target.closest('.die');
             if (dieElement && !dieElement.classList.contains('disabled') && !dieElement.classList.contains('roll-off-mode')) {
                 const dieId = dieElement.dataset.dieId;
-                console.log('Dice clicked:', dieId);
+                window.UI && window.UI._debug && window.UI._debug('Dice clicked:', dieId);
                 
                 if (this.game && this.game.diceCollection) {
                     const isSelected = this.game.diceCollection.toggleDiceSelection(dieId);
@@ -2773,7 +2780,7 @@ class KingOfTokyoUI {
             }
         });
 
-        console.log(`🎲 Initialized dice container with ${maxDice} dice elements`);
+        window.UI && window.UI._debug && window.UI._debug(`🎲 Initialized dice container with ${maxDice} dice elements`);
     }
 
     // Update dice display by modifying existing elements
@@ -2999,13 +3006,13 @@ class KingOfTokyoUI {
             this.elements.actionMenu.classList.add('cpu-rolling');
             this.elements.actionMenu.style.pointerEvents = 'none';
             this.elements.actionMenu.style.opacity = '0.5';
-            console.log('🎮 Action menu disabled - CPU is rolling');
+            window.UI && window.UI._debug && window.UI._debug('🎮 Action menu disabled - CPU is rolling');
         } else {
             // Re-enable action menu when CPU is not rolling
             this.elements.actionMenu.classList.remove('cpu-rolling');
             this.elements.actionMenu.style.pointerEvents = '';
             this.elements.actionMenu.style.opacity = '';
-            console.log('🎮 Action menu enabled - CPU not rolling');
+            window.UI && window.UI._debug && window.UI._debug('🎮 Action menu enabled - CPU not rolling');
         }
     }
 
@@ -3104,7 +3111,7 @@ class KingOfTokyoUI {
                 this.diceElements.set(dieId, die);
             }
         });
-        console.log(`🔧 Cached ${this.diceElements.size} dice elements`);
+        window.UI && window.UI._debug && window.UI._debug(`🔧 Cached ${this.diceElements.size} dice elements`);
     }
     
     // Get cached player dashboard
@@ -3129,7 +3136,7 @@ class KingOfTokyoUI {
             die = document.querySelector(`[data-die-id="${dieId}"]`);
             if (die) {
                 this.diceElements.set(dieId, die);
-                console.log(`🔧 Cache miss - cached dice element ${dieId}`);
+                window.UI && window.UI._debug && window.UI._debug(`🔧 Cache miss - cached dice element ${dieId}`);
             }
         }
         return die;
@@ -3323,15 +3330,25 @@ class KingOfTokyoUI {
 
     // Roll dice
     async rollDice() {
-        console.log('🎲 ROLL DICE BUTTON CLICKED - rollDice called, game exists:', !!this.game);
+        console.log('🎯 ROLL DEBUG: rollDice() called in main.js');
+        window.UI && window.UI._debug && window.UI._debug('🎲 ROLL DICE BUTTON CLICKED - rollDice called, game exists:', !!this.game);
         if (!this.game) {
-            console.log('🎲 No game instance, returning');
+            console.log('🎯 ROLL DEBUG: No game instance, returning');
+            window.UI && window.UI._debug && window.UI._debug('🎲 No game instance, returning');
             return;
         }
         
         // Check if current player is eliminated
         const currentPlayer = this.game.getCurrentPlayer();
-        console.log('🎲 Current player for dice roll:', {
+        console.log('🎯 ROLL DEBUG: Current player for dice roll:', {
+            name: currentPlayer?.monster?.name,
+            playerType: currentPlayer?.playerType,
+            isEliminated: currentPlayer?.isEliminated,
+            gamePhase: this.game.gamePhase,
+            turnPhase: this.game.currentTurnPhase
+        });
+        
+        window.UI && window.UI._debug && window.UI._debug('🎲 Current player for dice roll:', {
             name: currentPlayer?.monster?.name,
             playerType: currentPlayer?.playerType,
             isEliminated: currentPlayer?.isEliminated,
@@ -3340,14 +3357,17 @@ class KingOfTokyoUI {
         });
         
         if (currentPlayer && currentPlayer.isEliminated) {
-            console.log('⚠️ Current player is eliminated, cannot roll dice');
+            console.log('🎯 ROLL DEBUG: Current player is eliminated, cannot roll dice');
+            window.UI && window.UI._debug && window.UI._debug('⚠️ Current player is eliminated, cannot roll dice');
             UIUtilities.showMessage('Eliminated players cannot roll dice!', 3000, this.elements);
             return;
         }
         
-        console.log('🎲 Disabling roll dice button and calling game.startRoll()');
+        console.log('🎯 ROLL DEBUG: About to disable roll button and call game.startRoll()');
+        window.UI && window.UI._debug && window.UI._debug('🎲 Disabling roll dice button and calling game.startRoll()');
         this.elements.rollDiceBtn.disabled = true;
         await this.game.startRoll();
+        console.log('🎯 ROLL DEBUG: game.startRoll() completed');
         // Button state will be updated by event callback
     }
 
@@ -3362,8 +3382,12 @@ class KingOfTokyoUI {
     endTurn() {
         if (!this.game) return;
         
+        console.log('🎯 ENDTURN DEBUG: endTurn() called in main.js');
+        
         // Check if current player is eliminated
         const currentPlayer = this.game.getCurrentPlayer();
+        console.log('🎯 ENDTURN DEBUG: Current player:', currentPlayer?.monster?.name, 'eliminated:', currentPlayer?.isEliminated);
+        
         if (currentPlayer && currentPlayer.isEliminated) {
             console.log('⚠️ Current player is eliminated, cannot end turn manually');
             UIUtilities.showMessage('Eliminated players cannot end turns!', 3000, this.elements);
@@ -3378,6 +3402,7 @@ class KingOfTokyoUI {
         }
         
         try {
+            console.log('🎯 ENDTURN DEBUG: About to call this.game.endTurn()');
             this.game.endTurn();
         } finally {
             // Re-enable button after a short delay to prevent rapid clicking
@@ -3584,11 +3609,7 @@ class KingOfTokyoUI {
         
         this.elements.winnerAnnouncement.innerHTML = `
             <div class="victory-celebration">
-                <div class="victory-crown">👑</div>
                 <div class="winner-monster-display">
-                    <div class="winner-monster" data-monster="${data.winner.monster.id}">
-                        ${data.winner.monster.emoji}
-                    </div>
                     <div class="monster-nameplate">
                         <h2>${data.winner.monster.name}</h2>
                         <div class="victory-badge">KING OF TOKYO!</div>
@@ -3615,6 +3636,7 @@ class KingOfTokyoUI {
                     </div>
                 </div>
                 <div class="victory-message">${data.message}</div>
+                <button id="new-game" class="btn primary">New Game</button>
             </div>
         `;
         this.elements.gameOverModal.classList.remove('hidden');
@@ -4178,7 +4200,7 @@ class KingOfTokyoUI {
         // Immediately show 6 empty dice to prepare for the game
         this.showInitialEmptyDice();
         
-        console.log('🎲 Dice area initialized with reusable elements and initial display');
+        window.UI && window.UI._debug && window.UI._debug('🎲 Dice area initialized with reusable elements and initial display');
     }
 
     // Show initial empty dice (called during UI initialization)
@@ -4198,7 +4220,7 @@ class KingOfTokyoUI {
         
         // Display the initial empty dice
         this.updateDiceDisplay(initialDiceData, false);
-        console.log('🎲 Initial empty dice displayed');
+        window.UI && window.UI._debug && window.UI._debug('🎲 Initial empty dice displayed');
     }
 
     // Initialize settings system
@@ -5046,7 +5068,7 @@ class KingOfTokyoUI {
         const dice = diceState.dice; // Get dice from dice state
         const rollsRemaining = diceState.rollsRemaining;
         
-        console.log('🎲 CPU shouldRoll check:', {
+        window.UI && window.UI._debug && window.UI._debug('🎲 CPU shouldRoll check:', {
             rollsRemaining,
             diceCount: dice ? dice.length : 'undefined',
             diceValues: dice ? dice.map(d => d.face) : 'no dice'
@@ -5054,13 +5076,13 @@ class KingOfTokyoUI {
         
         // Always roll on first turn
         if (rollsRemaining === 3) {
-            console.log('🎲 CPU: First roll, should roll = true');
+            window.UI && window.UI._debug && window.UI._debug('🎲 CPU: First roll, should roll = true');
             return true;
         }
         
         // If no dice available, can't analyze - default to roll
         if (!dice || !Array.isArray(dice)) {
-            console.log('🎲 CPU: No dice data available, defaulting to roll');
+            window.UI && window.UI._debug && window.UI._debug('🎲 CPU: No dice data available, defaulting to roll');
             return true;
         }
         
@@ -5184,7 +5206,7 @@ class KingOfTokyoUI {
     executeCPURoll() {
         // Safety check: ensure cpuTurnState still exists (game might have ended)
         if (!this.cpuTurnState || !this.cpuTurnState.player) {
-            console.log('🎲 CPU roll aborted - no active CPU turn state (game may have ended)');
+            window.UI && window.UI._debug && window.UI._debug('🎲 CPU roll aborted - no active CPU turn state (game may have ended)');
             return;
         }
         
@@ -5207,13 +5229,13 @@ class KingOfTokyoUI {
         setTimeout(() => {
             // Additional safety check within timeout (game might have ended during delay)
             if (!this.cpuTurnState || !this.cpuTurnState.player) {
-                console.log('🎲 CPU roll timeout aborted - no active CPU turn state (game may have ended)');
+                window.UI && window.UI._debug && window.UI._debug('🎲 CPU roll timeout aborted - no active CPU turn state (game may have ended)');
                 return;
             }
             
             const rollDiceBtn = document.getElementById('roll-dice');
-            console.log('🤖 CPU trying to roll dice - button found:', !!rollDiceBtn);
-            console.log('🤖 Button disabled state:', rollDiceBtn?.disabled);
+            window.UI && window.UI._debug && window.UI._debug('🤖 CPU trying to roll dice - button found:', !!rollDiceBtn);
+            window.UI && window.UI._debug && window.UI._debug('🤖 Button disabled state:', rollDiceBtn?.disabled);
             console.log('🤖 Game state:', this.game?.getGameState?.()?.turnPhase);
             console.log('🤖 Current player:', this.game?.getCurrentPlayer?.()?.monster?.name);
             
@@ -5223,7 +5245,7 @@ class KingOfTokyoUI {
                     rollDiceBtn.disabled = false;
                 }
                 
-                console.log('🎲 CPU automatically rolling dice...');
+                window.UI && window.UI._debug && window.UI._debug('🎲 CPU automatically rolling dice...');
                 rollDiceBtn.click();
                 if (this.cpuTurnState) { // Safety check before incrementing
                     this.cpuTurnState.rollsCompleted++;
@@ -5237,7 +5259,7 @@ class KingOfTokyoUI {
                     this.processCPUTurn();
                 }, 1000);
             } else {
-                console.log('❌ Roll dice button not available');
+                window.UI && window.UI._debug && window.UI._debug('❌ Roll dice button not available');
                 this.cpuTurnState.isProcessing = false;
             }
         }, thinkingTime);
@@ -5247,7 +5269,7 @@ class KingOfTokyoUI {
     executeCPUKeepDice() {
         // Safety check: ensure cpuTurnState still exists (game might have ended)
         if (!this.cpuTurnState || !this.cpuTurnState.player) {
-            console.log('🎲 CPU keep dice aborted - no active CPU turn state (game may have ended)');
+            window.UI && window.UI._debug && window.UI._debug('🎲 CPU keep dice aborted - no active CPU turn state (game may have ended)');
             return;
         }
         
@@ -5261,18 +5283,18 @@ class KingOfTokyoUI {
             }
             
             const keepDiceBtn = document.getElementById('keep-dice');
-            console.log('🤖 CPU trying to keep dice - button found:', !!keepDiceBtn);
-            console.log('🤖 Keep button disabled state:', keepDiceBtn?.disabled);
+            window.UI && window.UI._debug && window.UI._debug('🤖 CPU trying to keep dice - button found:', !!keepDiceBtn);
+            window.UI && window.UI._debug && window.UI._debug('🤖 Keep button disabled state:', keepDiceBtn?.disabled);
             
             if (keepDiceBtn) {
                 // FIRST: Select which dice to keep based on intelligent analysis
                 const gameState = this.game.getGameState();
                 const diceData = this.game.diceCollection.getAllDiceData();
-                console.log('🎲 CPU analyzing dice for selection:', diceData.map(d => ({ id: d.id, face: d.face, selected: d.selected })));
+                window.UI && window.UI._debug && window.UI._debug('🎲 CPU analyzing dice for selection:', diceData.map(d => ({ id: d.id, face: d.face, selected: d.selected })));
                 
                 // Use the chooseDiceToKeep logic to determine which dice to select
                 const dicesToKeep = this.chooseDiceToKeep(diceData, this.cpuTurnState.player);
-                console.log('🎯 CPU wants to keep dice indices:', dicesToKeep);
+                window.UI && window.UI._debug && window.UI._debug('🎯 CPU wants to keep dice indices:', dicesToKeep);
                 
                 // First, clear all selections
                 diceData.forEach((die, index) => {
@@ -5303,7 +5325,7 @@ class KingOfTokyoUI {
                         keepDiceBtn.disabled = false;
                     }
                     
-                    console.log('🎯 CPU clicking keep dice button after selections...');
+                    window.UI && window.UI._debug && window.UI._debug('🎯 CPU clicking keep dice button after selections...');
                     keepDiceBtn.click();
                     
                     // Continue processing after keep action
@@ -5315,7 +5337,7 @@ class KingOfTokyoUI {
                     }, 500);
                 }, 300);
             } else {
-                console.log('Keep dice button not available');
+                window.UI && window.UI._debug && window.UI._debug('Keep dice button not available');
                 this.cpuTurnState.isProcessing = false;
             }
         }, thinkingTime);
@@ -5862,49 +5884,71 @@ class KingOfTokyoUI {
 
     // Main CPU turn handler - new simple system
     handleCPUTurn(player) {
-        if (!player || player.playerType !== 'cpu' || player.isEliminated) return;
+        if (!player || player.playerType !== 'cpu' || player.isEliminated) {
+            console.log('🎯 CPU TURN DEBUG: handleCPUTurn called but conditions not met:', {
+                playerExists: !!player,
+                playerType: player?.playerType,
+                isEliminated: player?.isEliminated
+            });
+            return;
+        }
 
         console.log(`🤖 NEW CPU: ${player.monster.name} starting turn`);
+        console.log('🎯 CPU TURN DEBUG: About to start CPU turn for:', player.monster.name);
         
         // Update controls immediately when CPU turn starts
         this.updateDiceControls();
         
         // Start with proper notification that turn begins
-        this.showSimpleCPUNotification(player, `� ${player.monster.name}'s turn begins...`);
+        this.showSimpleCPUNotification(player, `🎲 ${player.monster.name}'s turn begins...`);
         
+        console.log('🎯 CPU TURN DEBUG: Set timeout for CPU roll in 1.5 seconds');
         setTimeout(() => {
+            console.log('🎯 CPU TURN DEBUG: Timeout executed, calling cpuRollDice');
             this.cpuRollDice(player, 1);
         }, 1500);
     }
 
     // CPU rolls dice (simple - always use all 3 rolls)
     cpuRollDice(player, rollNumber) {
-        console.log(`🎲 NEW CPU: Starting roll ${rollNumber}/3`);
+        console.log('🎯 CPU ROLL DEBUG: cpuRollDice called for:', player.monster.name, 'roll number:', rollNumber);
+        
+        window.UI && window.UI._debug && window.UI._debug(`🎲 NEW CPU: Starting roll ${rollNumber}/3`);
         
         // Always roll, regardless of dice state
         if (rollNumber <= 3) {
-            console.log(`🎲 NEW CPU: Executing roll ${rollNumber}/3`);
+            console.log('🎯 CPU ROLL DEBUG: About to execute roll', rollNumber);
+            window.UI && window.UI._debug && window.UI._debug(`🎲 NEW CPU: Executing roll ${rollNumber}/3`);
             this.showSimpleCPUNotification(player, `🎲 ${player.monster.name} rolling... (${rollNumber}/3)`);
             
             // Execute the roll
+            console.log('🎯 CPU ROLL DEBUG: Calling this.rollDice()');
             this.rollDice();
             
             // Wait for dice animation to complete (2 seconds)
             setTimeout(() => {
                 const diceState = this.game.diceRoller.getState();
-                console.log(`🎲 NEW CPU: After roll ${rollNumber}, rolls remaining: ${diceState.rollsRemaining}`);
+                console.log('🎯 CPU ROLL DEBUG: After roll, dice state:', {
+                    rollsRemaining: diceState.rollsRemaining,
+                    rollNumber: rollNumber
+                });
+                
+                window.UI && window.UI._debug && window.UI._debug(`🎲 NEW CPU: After roll ${rollNumber}, rolls remaining: ${diceState.rollsRemaining}`);
                 
                 // Add 3-second delay AFTER showing dice outcome for human player to see results
                 setTimeout(() => {
                     if (rollNumber < 3 && diceState.rollsRemaining > 0) {
+                        console.log('🎯 CPU ROLL DEBUG: Continuing to next roll');
                         // Continue to next roll
                         this.cpuRollDice(player, rollNumber + 1);
                     } else {
+                        console.log('🎯 CPU ROLL DEBUG: CPU finished rolling, ending turn');
                         // After 3rd roll, CPU is done - end turn
-                        console.log(`🤖 CPU: ${player.monster.name} finished rolling, ending turn`);
+                        window.UI && window.UI._debug && window.UI._debug(`🤖 CPU: ${player.monster.name} finished rolling, ending turn`);
                         this.showSimpleCPUNotification(player, `✅ ${player.monster.name} ending turn...`);
                         
                         setTimeout(() => {
+                            console.log('🎯 CPU ROLL DEBUG: About to end turn');
                             // Update controls before ending turn to re-enable action menu
                             this.updateDiceControls();
                             this.endTurn();
@@ -5929,8 +5973,8 @@ class KingOfTokyoUI {
             }
         }).join(', ');
         
-        console.log(`🎲 Roll-off Round ${data.round}: ${message}`);
-        console.log(`🎲 Players rolling: ${players}`);
+        window.UI && window.UI._debug && window.UI._debug(`🎲 Roll-off Round ${data.round}: ${message}`);
+        window.UI && window.UI._debug && window.UI._debug(`🎲 Players rolling: ${players}`);
         
         // Show/initialize the scoreboard
         this.initializeRollOffScoreboard(data.players, data.round);
@@ -5984,7 +6028,7 @@ class KingOfTokyoUI {
             this.disableAllActions();
         }
         
-        console.log(`🎯 ${playerName} is about to roll (${isHuman ? 'HUMAN' : 'AI'})`);
+        window.UI && window.UI._debug && window.UI._debug(`🎯 ${playerName} is about to roll (${isHuman ? 'HUMAN' : 'AI'})`);
     }
 
     // Helper methods for sportscast commentary
@@ -6028,7 +6072,7 @@ class KingOfTokyoUI {
 
     restoreNormalActionStates() {
         // Restore normal game button states after roll-off
-        console.log('🔧 Restoring normal action button states after roll-off');
+        window.UI && window.UI._debug && window.UI._debug('🔧 Restoring normal action button states after roll-off');
         
         // Show the action menu and mark game as active
         this.elements.actionMenu.classList.remove('hidden-for-rolloff');
@@ -6069,7 +6113,7 @@ class KingOfTokyoUI {
     }
 
     handleRollOffDiceRoll(player) {
-        console.log(`🎲 Human player ${player.index} clicked roll dice button`);
+        window.UI && window.UI._debug && window.UI._debug(`🎲 Human player ${player.index} clicked roll dice button`);
         
         // Disable the roll button
         const rollButton = document.getElementById('roll-dice');
@@ -6147,7 +6191,7 @@ class KingOfTokyoUI {
             ? player.monster.name 
             : `Player ${player.playerNumber || 'Unknown'}`;
         
-        console.log(`🎲 ${playerName} rolled ${attackDice} attacks: [${rolls.join(', ')}]`);
+        window.UI && window.UI._debug && window.UI._debug(`🎲 ${playerName} rolled ${attackDice} attacks: [${rolls.join(', ')}]`);
         
         // Update the scoreboard with this player's results
         this.updateRollOffScoreboard(player, rolls, attackDice);
@@ -6254,7 +6298,7 @@ class KingOfTokyoUI {
         const attackCount = data.attackCount;
         const nextRound = data.round;
         
-        console.log(`🎲 Tie! ${tiedPlayers} both rolled ${attackCount} attacks`);
+        window.UI && window.UI._debug && window.UI._debug(`🎲 Tie! ${tiedPlayers} both rolled ${attackCount} attacks`);
         
         // Add dramatic tie commentary
         const tieCommentary = this.getRandomComment(this.sportscastCommentary.tie);

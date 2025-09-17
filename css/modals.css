@@ -1534,7 +1534,7 @@ body:has(#decision-modal:not(.hidden)) .player-dashboard.active {
 /* Victory Celebration Styles */
 .victory-celebration {
     text-align: center;
-    padding: 30px;
+    padding: 20px 30px 80px 30px; /* Added bottom padding for New Game button space */
     position: relative;
     background: 
         /* Comic book speed lines */
@@ -1572,9 +1572,7 @@ body:has(#decision-modal:not(.hidden)) .player-dashboard.active {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 30px;
-    margin: 30px 0;
-    flex-wrap: wrap;
+    margin: 20px 0;
     position: relative;
 }
 
@@ -1604,37 +1602,45 @@ body:has(#decision-modal:not(.hidden)) .player-dashboard.active {
         linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF6B35 100%);
     border: 6px solid #000;
     border-radius: 0;
-    padding: 20px 30px;
+    padding: 30px 60px;
     position: relative;
-    transform: perspective(400px) rotateX(2deg) rotateZ(-1deg);
     box-shadow: 
         10px 10px 0px #000,
         14px 14px 30px rgba(0, 0, 0, 0.8);
     
-    /* Comic book halftone pattern */
-    background-image: 
-        radial-gradient(circle at 3px 3px, rgba(0,0,0,0.15) 1.5px, transparent 0),
-        linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF6B35 100%);
-    background-size: 15px 15px, 100% 100%;
+    /* Simplified styling - no complex animations */
+    width: 80%;
+    max-width: 500px;
+    margin: 0 auto;
+    text-align: center;
 }
 
-.monster-nameplate::before {
-    content: '';
-    position: absolute;
-    top: -3px;
-    left: -3px;
-    right: -3px;
-    bottom: -3px;
-    background: linear-gradient(45deg, #FFD700, #FFA500, #FF6B35, #FFD700);
-    z-index: -1;
-    border-radius: 0;
-    animation: nameplateShine 3s linear infinite;
+/* Game Over Modal - New Game Button Styling */
+#game-over-modal #new-game {
+    background: #ffc626;
+    color: #000 !important;
+    border: 2px solid #B8860B;
+    font-family: 'Bangers', cursive;
+    font-size: 1.5em;
+    font-weight: 900;
+    letter-spacing: 2px;
+    padding: 15px 40px;
+    text-shadow: none;
+    margin-top: 20px;
+    box-shadow: 
+        6px 6px 0px #000,
+        8px 8px 20px rgba(0, 0, 0, 0.6);
 }
 
-@keyframes nameplateShine {
-    0% { background-position: 0% 0%; }
-    100% { background-position: 200% 200%; }
+#game-over-modal #new-game:hover {
+    background: #ffe279;
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 
+        6px 8px 0px #000,
+        10px 12px 25px rgba(0, 0, 0, 0.7);
 }
+
+/* Nameplate border animation removed for simplicity */
 
 .winner-monster::before {
     content: '';
@@ -1661,7 +1667,7 @@ body:has(#decision-modal:not(.hidden)) .player-dashboard.active {
 
 .monster-nameplate h2 {
     font-family: 'Bangers', cursive;
-    font-size: 3em;
+    font-size: 4em;
     color: #000;
     margin: 0;
     text-shadow: 

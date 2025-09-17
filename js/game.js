@@ -354,12 +354,12 @@ class KingOfTokyoGame {
             const maxAttacks = Math.max(...playersToRoll.map(p => p.attackDice));
             const winners = playersToRoll.filter(p => p.attackDice === maxAttacks);
 
-            console.log(`🎲 Highest attack count: ${maxAttacks}, achieved by: ${winners.map(w => w.monster.name).join(', ')}`);
+            window.UI && window.UI._debug && window.UI._debug(`🎲 Highest attack count: ${maxAttacks}, achieved by: ${winners.map(w => w.monster.name).join(', ')}`);
 
             if (winners.length === 1) {
                 // We have a winner!
                 const winner = winners[0];
-                console.log(`🏆 ${winner.monster.name} wins the roll-off and goes first!`);
+                window.UI && window.UI._debug && window.UI._debug(`🏆 ${winner.monster.name} wins the roll-off and goes first!`);
                 
                 // Trigger event to announce winner
                 this.triggerEvent('rollOffWinner', {
@@ -394,14 +394,14 @@ class KingOfTokyoGame {
 
     // Wait for human player to roll dice in roll-off
     async waitForHumanRoll(player) {
-        console.log('🎲 waitForHumanRoll: Setting up promise for', player?.monster?.name);
+        window.UI && window.UI._debug && window.UI._debug('🎲 waitForHumanRoll: Setting up promise for', player?.monster?.name);
         return new Promise((resolve) => {
             // Store the resolve function for the UI to call
             this.pendingHumanRoll = {
                 player: player,
                 resolve: resolve
             };
-            console.log('🎲 waitForHumanRoll: Promise created, pendingHumanRoll set');
+            window.UI && window.UI._debug && window.UI._debug('🎲 waitForHumanRoll: Promise created, pendingHumanRoll set');
         });
     }
 
@@ -417,7 +417,7 @@ class KingOfTokyoGame {
             return;
         }
 
-        console.log('🎲 executeHumanRoll: Starting roll for', player?.monster?.name);
+        window.UI && window.UI._debug && window.UI._debug('🎲 executeHumanRoll: Starting roll for', player?.monster?.name);
 
         // Store a reference to the resolve function to prevent race conditions
         const pendingResolve = this.pendingHumanRoll.resolve;
@@ -438,7 +438,7 @@ class KingOfTokyoGame {
 
         // Wait for dice animation to complete before getting results
         setTimeout(() => {
-            console.log('🎲 executeHumanRoll: Processing dice results after animation');
+            window.UI && window.UI._debug && window.UI._debug('🎲 executeHumanRoll: Processing dice results after animation');
             // Get the dice data and convert to roll-off format
             const diceData = this.rollOffDiceCollection.getAllDiceData();
             const rolls = [];
@@ -470,11 +470,11 @@ class KingOfTokyoGame {
                 }
             }
 
-            console.log(`🎲 Roll-off using DiceCollection: [${rolls.join(', ')}], attacks: ${attackCount}`);
+            window.UI && window.UI._debug && window.UI._debug(`🎲 Roll-off using DiceCollection: [${rolls.join(', ')}], attacks: ${attackCount}`);
 
             // Resolve the promise using stored reference to prevent race conditions
             if (pendingResolve && typeof pendingResolve === 'function') {
-                console.log('🎲 executeHumanRoll: Resolving promise for', pendingPlayer?.monster?.name);
+                window.UI && window.UI._debug && window.UI._debug('🎲 executeHumanRoll: Resolving promise for', pendingPlayer?.monster?.name);
                 pendingResolve({
                     rolls: rolls,
                     attackCount: attackCount,
@@ -493,10 +493,10 @@ class KingOfTokyoGame {
 
     // Reorder players so the winner of the roll-off becomes Player 1
     reorderPlayersForFirstPlayer(selectedMonsters, playerTypes, firstPlayerIndex) {
-        console.log(`🔄 Reordering players to make index ${firstPlayerIndex} become Player 1`);
+        window.UI && window.UI._debug && window.UI._debug(`🔄 Reordering players to make index ${firstPlayerIndex} become Player 1`);
         
         if (firstPlayerIndex === 0) {
-            console.log('✅ Winner is already in position 1, no reordering needed');
+            window.UI && window.UI._debug && window.UI._debug('✅ Winner is already in position 1, no reordering needed');
             return { selectedMonsters, playerTypes };
         }
 
@@ -520,10 +520,10 @@ class KingOfTokyoGame {
             reorderedPlayerTypes.unshift(winnerPlayerType);
         }
 
-        console.log('✅ Players reordered:');
+        window.UI && window.UI._debug && window.UI._debug('✅ Players reordered:');
         reorderedMonsters.forEach((monster, i) => {
             const type = reorderedPlayerTypes ? reorderedPlayerTypes[i] : 'human';
-            console.log(`   Player ${i + 1}: ${monster.name} (${type})`);
+            window.UI && window.UI._debug && window.UI._debug(`   Player ${i + 1}: ${monster.name} (${type})`);
         });
 
         return { 
@@ -560,10 +560,10 @@ class KingOfTokyoGame {
 
         // Set starting player (either from roll-off or fallback to Player 1)
         if (firstPlayerIndex !== null) {
-            console.log(`🎲 Using roll-off winner as starting player (was index ${firstPlayerIndex}, now Player 1)`);
+            window.UI && window.UI._debug && window.UI._debug(`🎲 Using roll-off winner as starting player (was index ${firstPlayerIndex}, now Player 1)`);
             this.currentPlayerIndex = 0; // Winner is now always Player 1 due to reordering
         } else {
-            console.log('⚠️ No roll-off performed, defaulting to Player 1');
+            window.UI && window.UI._debug && window.UI._debug('⚠️ No roll-off performed, defaulting to Player 1');
             this.currentPlayerIndex = 0; // Default to Player 1
         }
         console.log(`� Starting player: ${this.getCurrentPlayer().monster.name} (Player ${this.currentPlayerIndex + 1})`);
@@ -728,8 +728,8 @@ class KingOfTokyoGame {
     handleDiceResults(results, rollsLeft) {
         const player = this.getCurrentPlayer();
         
-        console.log('handleDiceResults called with rollsLeft:', rollsLeft);
-        console.log('Current turn phase:', this.currentTurnPhase);
+        window.UI && window.UI._debug && window.UI._debug('handleDiceResults called with rollsLeft:', rollsLeft);
+        window.UI && window.UI._debug && window.UI._debug('Current turn phase:', this.currentTurnPhase);
         
         // Add defensive check for results structure
         if (!results) {
@@ -780,12 +780,12 @@ class KingOfTokyoGame {
 
         // Check if turn is complete (no rolls left or player chooses to stop)
         if (rollsLeft === 0) {
-            console.log('No rolls left, transitioning to resolving phase');
+            window.UI && window.UI._debug && window.UI._debug('No rolls left, transitioning to resolving phase');
             this.currentTurnPhase = 'resolving';
             this.resolveDiceEffects(results);
             this.triggerEvent('turnPhaseChanged', { phase: 'resolving' });
         } else {
-            console.log('Rolls remaining:', rollsLeft, 'staying in rolling phase');
+            window.UI && window.UI._debug && window.UI._debug('Rolls remaining:', rollsLeft, 'staying in rolling phase');
         }
 
         this.triggerEvent('diceRollComplete', { results, rollsLeft });
@@ -804,10 +804,10 @@ class KingOfTokyoGame {
         
         const player = this.getCurrentPlayer();
         
-        console.log('🔍 resolveDiceEffects called with results:', results);
-        console.log('🔍 Dice collection internal state at time of resolution:');
+        window.UI && window.UI._debug && window.UI._debug('🔍 resolveDiceEffects called with results:', results);
+        window.UI && window.UI._debug && window.UI._debug('🔍 Dice collection internal state at time of resolution:');
         this.diceCollection.dice.forEach((die, index) => {
-            console.log(`🔍 Die ${index}: id=${die.id}, face=${die.face}, isDisabled=${die.isDisabled}, symbol=${die.getSymbol()}`);
+            window.UI && window.UI._debug && window.UI._debug(`🔍 Die ${index}: id=${die.id}, face=${die.face}, isDisabled=${die.isDisabled}, symbol=${die.getSymbol()}`);
         });
         
         console.log('Current player before effects:', {
@@ -826,7 +826,7 @@ class KingOfTokyoGame {
                 symbol: die.getSymbol(),
                 faceData: die.getFaceData()
             }));
-        console.log('Individual dice faces (enabled only):', diceStates);
+        window.UI && window.UI._debug && window.UI._debug('Individual dice faces (enabled only):', diceStates);
         
         // Create visual dice representation using HTML spans for better styling
         const createDiceBox = (face) => {
@@ -888,7 +888,7 @@ class KingOfTokyoGame {
         // Energy
         totalEnergy = results.energy;
         console.log('Energy calculation:');
-        console.log('- Energy from dice:', totalEnergy);
+        window.UI && window.UI._debug && window.UI._debug('- Energy from dice:', totalEnergy);
         
         if (totalEnergy > 0) {
             player.addEnergy(totalEnergy);
@@ -951,7 +951,7 @@ class KingOfTokyoGame {
             })));
         }
         
-        console.log(`🎯 ATTACK DECISION: totalAttack=${totalAttack}, hasAttackDice=${hasAttackDice}`);
+        window.UI && window.UI._debug && window.UI._debug(`🎯 ATTACK DECISION: totalAttack=${totalAttack}, hasAttackDice=${hasAttackDice}`);
         
         // Enhanced dice state debugging with DOM verification
         const diceStateDetails = this.diceCollection.dice.map(die => {
@@ -972,12 +972,12 @@ class KingOfTokyoGame {
             };
         });
         
-        console.log(`🎯 DICE STATE CHECK:`, diceStateDetails);
+        window.UI && window.UI._debug && window.UI._debug(`🎯 DICE STATE CHECK:`, diceStateDetails);
         
         // Check for visual/internal mismatches
         const attackDice = diceStateDetails.filter(die => !die.isDisabled && die.face === 'attack');
         if (attackDice.length > 0) {
-            console.log(`🎯 ATTACK DICE FOUND:`, attackDice);
+            window.UI && window.UI._debug && window.UI._debug(`🎯 ATTACK DICE FOUND:`, attackDice);
             attackDice.forEach(die => {
                 console.log(`🚨 Die ${die.id}: internal='${die.face}', visual='${die.domText}', expectedSymbol='${die.visualSymbol}', mismatch=${die.mismatch}`);
                 if (die.mismatch) {
@@ -993,10 +993,10 @@ class KingOfTokyoGame {
         }
         
         if (totalAttack > 0 && hasAttackDice) {
-            console.log(`🚨 ATTACK WARNING - ${player.monster.name} is about to attack with ${totalAttack} power from rolled attack dice`);
+            window.UI && window.UI._debug && window.UI._debug(`🚨 ATTACK WARNING - ${player.monster.name} is about to attack with ${totalAttack} power from rolled attack dice`);
             if (totalAttack > 3) {
                 console.log(`🚨 SUSPICIOUS - Attack power ${totalAttack} is greater than maximum possible (3)!`);
-                console.log(`🚨 Individual dice states (enabled only):`, this.diceCollection.dice.filter(die => !die.isDisabled).map(die => `${die.id}: ${die.face}`));
+                window.UI && window.UI._debug && window.UI._debug(`🚨 Individual dice states (enabled only):`, this.diceCollection.dice.filter(die => !die.isDisabled).map(die => `${die.id}: ${die.face}`));
             }
             this.resolveAttacks(player, totalAttack);
             
@@ -1016,10 +1016,10 @@ class KingOfTokyoGame {
 
         // Add victory points
         if (totalVictoryPoints > 0) {
-            console.log(`🎲 Adding ${totalVictoryPoints} dice victory points to ${player.monster.name}`);
-            console.log(`⭐ Player's victory points before dice: ${player.victoryPoints}`);
+            window.UI && window.UI._debug && window.UI._debug(`🎲 Adding ${totalVictoryPoints} dice victory points to ${player.monster.name}`);
+            window.UI && window.UI._debug && window.UI._debug(`⭐ Player's victory points before dice: ${player.victoryPoints}`);
             player.addVictoryPoints(totalVictoryPoints);
-            console.log(`⭐ Player's victory points after dice: ${player.victoryPoints}`);
+            window.UI && window.UI._debug && window.UI._debug(`⭐ Player's victory points after dice: ${player.victoryPoints}`);
             // Trigger victory points animation
             this.triggerEvent('playerGainedPoints', { playerId: player.id, pointsGained: totalVictoryPoints });
         }
@@ -1047,7 +1047,7 @@ class KingOfTokyoGame {
         }
 
         // Stay in resolving phase - turn can be ended when ready
-        console.log('Dice effects resolved, ready to end turn');
+        window.UI && window.UI._debug && window.UI._debug('Dice effects resolved, ready to end turn');
         this.triggerEvent('turnPhaseChanged', { phase: 'resolving' });
         
         // Trigger UI update to reflect stat changes
@@ -1123,9 +1123,14 @@ class KingOfTokyoGame {
                 const playersWhoTookDamage = []; // Track who actually took damage for Tokyo exit decisions
                 
                 tokyoPlayers.forEach(player => {
-                    console.log(`Attacking ${player.monster.name} (in Tokyo ${player.tokyoLocation}) - attacker from outside Tokyo`);
+                    // Capture Tokyo location before dealing damage (in case player gets eliminated)
+                    const tokyoLocationBeforeDamage = player.tokyoLocation;
+                    console.log(`Attacking ${player.monster.name} (in Tokyo ${tokyoLocationBeforeDamage}) - attacker from outside Tokyo`);
+                    
                     const damageDealt = this.dealDamage(player, attackPower, attacker);
-                    attackTargets.push(`${player.monster.name} (Tokyo ${player.tokyoLocation})`);
+                    
+                    // Use the captured location for the log message
+                    attackTargets.push(`${player.monster.name} (Tokyo ${tokyoLocationBeforeDamage})`);
                     
                     // Track players who took damage and are still in Tokyo for exit decisions
                     if (damageDealt > 0 && player.isInTokyo && !player.isEliminated) {
@@ -1527,7 +1532,7 @@ class KingOfTokyoGame {
         
         // Players only enter Tokyo during dice resolution if they attack and force someone out
         // Regular Tokyo entry (when Tokyo is empty) happens at END of turn
-        console.log(`🎯 Tokyo entry during dice resolution only happens when attacking forces someone out`);
+        window.UI && window.UI._debug && window.UI._debug(`🎯 Tokyo entry during dice resolution only happens when attacking forces someone out`);
         
         // Only enter Tokyo if there are no current occupants AND the player attacked (forced entry)
         if (!player.isInTokyo && this.tokyoCity === null) {
@@ -1625,7 +1630,7 @@ class KingOfTokyoGame {
         // CRITICAL: Only handle Tokyo entry if dice have been resolved (i.e., a turn was actually completed)
         // AND the player has explicitly ended their turn (not during dice resolution)
         if (!this.diceEffectsResolved) {
-            console.log(`🚫 No Tokyo entry - dice effects not resolved yet (no actual turn taken)`);
+            window.UI && window.UI._debug && window.UI._debug(`🚫 No Tokyo entry - dice effects not resolved yet (no actual turn taken)`);
             return;
         }
 
@@ -1867,7 +1872,7 @@ class KingOfTokyoGame {
         const currentPlayer = this.getCurrentPlayer();
         
         console.log('endTurn called - current phase:', this.currentTurnPhase);
-        console.log('Dice effects resolved:', this.diceEffectsResolved);
+        window.UI && window.UI._debug && window.UI._debug('Dice effects resolved:', this.diceEffectsResolved);
         console.log('Pending decisions:', this.pendingDecisions.length);
         console.log('Current player before ending turn:', currentPlayer.monster.name, 'Index:', this.currentPlayerIndex);
         if (window.UI && window.UI.debugMode) {
@@ -1913,15 +1918,18 @@ class KingOfTokyoGame {
             // Disable any extra dice that were enabled for the current player
             this.disablePlayerExtraDice(currentPlayer);
 
-            // Move to next player FIRST, before any Tokyo handling
-            this.switchToNextPlayer();
-            
-            // Clear dice results and reset dice count to base amount for next turn
-            this.diceCollection.resetToBaseDiceCount(this.gameSettings.diceCount);
-            this.diceRoller.startNewTurn();
-            this.currentTurnPhase = 'rolling';
-
-            // Trigger turn ended event to update UI with new active player
+        // TURN DEBUG: Track turn ending process
+        console.log(`🔄 TURN DEBUG: endTurn() - About to switch from ${currentPlayer.monster.name} (index ${this.currentPlayerIndex})`);
+        
+        // Move to next player FIRST, before any Tokyo handling
+        this.switchToNextPlayer();
+        
+        console.log(`🔄 TURN DEBUG: endTurn() - After switchToNextPlayer, new current player is ${this.getCurrentPlayer().monster.name} (index ${this.currentPlayerIndex})`);
+        
+        // Clear dice results and reset dice count to base amount for next turn
+        this.diceCollection.resetToBaseDiceCount(this.gameSettings.diceCount);
+        this.diceRoller.startNewTurn();
+        this.currentTurnPhase = 'rolling';            // Trigger turn ended event to update UI with new active player
             this.triggerEvent('turnEnded', this.getGameState());
 
             // RULE: Handle mandatory Tokyo entry at end of any turn - AFTER new player is active
@@ -2576,12 +2584,12 @@ class KingOfTokyoGame {
     async startRoll() {
         if (this.currentTurnPhase === 'rolling' && this.diceRoller.rollsRemaining === 3) {
             // First roll of the turn
-            console.log(`🎲 ${this.getCurrentPlayer().monster.name} is making their first dice roll`);
+            window.UI && window.UI._debug && window.UI._debug(`🎲 ${this.getCurrentPlayer().monster.name} is making their first dice roll`);
             return await this.diceRoller.firstRoll();
         } else if (this.currentTurnPhase === 'rolling' && this.diceRoller.canRoll()) {
             // Subsequent rolls
             const rollNumber = 4 - this.diceRoller.rollsRemaining;
-            console.log(`🎲 ${this.getCurrentPlayer().monster.name} is making roll #${rollNumber}`);
+            window.UI && window.UI._debug && window.UI._debug(`🎲 ${this.getCurrentPlayer().monster.name} is making roll #${rollNumber}`);
             return await this.diceRoller.rollDice();
         }
         return false;
