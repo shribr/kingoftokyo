@@ -110,14 +110,18 @@ class Player {
     // Take damage
     takeDamage(amount) {
         console.log(`💀 ${this.monster.name} taking ${amount} damage (health before: ${this.health})`);
-        console.log(`💀 DEBUG - Stack trace for takeDamage:`, new Error().stack);
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debug(`DEBUG - Stack trace for takeDamage:`, new Error().stack);
+        }
         this.health = Math.max(0, this.health - amount);
         console.log(`💀 ${this.monster.name} health after damage: ${this.health}`);
         
         let eliminationInfo = null;
         if (this.health === 0) {
             console.log(`💀 ${this.monster.name} health reached 0 - eliminating player`);
-            console.log(`💀 ELIMINATION STACK TRACE:`, new Error().stack);
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debug(`ELIMINATION STACK TRACE:`, new Error().stack);
+            }
             eliminationInfo = this.eliminate();
         }
         

@@ -176,17 +176,21 @@ class KingOfTokyoGame {
         this.turnEffectsApplied = new Map(); // Track which turn effects have been applied this turn
         
         // Debug: Check if classes are available
-        console.log('Game.js initializing, checking class availability:');
-        console.log('typeof DiceCollection:', typeof DiceCollection);
-        console.log('typeof window.DiceCollection:', typeof window.DiceCollection);
-        console.log('typeof DiceRoller:', typeof DiceRoller);
-        console.log('typeof window.DiceRoller:', typeof window.DiceRoller);
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debug('Game.js initializing, checking class availability:');
+            window.UI._debug('typeof DiceCollection:', typeof DiceCollection);
+            window.UI._debug('typeof window.DiceCollection:', typeof window.DiceCollection);
+            window.UI._debug('typeof DiceRoller:', typeof DiceRoller);
+            window.UI._debug('typeof window.DiceRoller:', typeof window.DiceRoller);
+        }
         
         // Use window classes explicitly to ensure availability
         const DiceCollectionClass = window.DiceCollection || DiceCollection;
         const DiceRollerClass = window.DiceRoller || DiceRoller;
-        console.log('Using DiceCollectionClass:', typeof DiceCollectionClass);
-        console.log('Using DiceRollerClass:', typeof DiceRollerClass);
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debug('Using DiceCollectionClass:', typeof DiceCollectionClass);
+            window.UI._debug('Using DiceRollerClass:', typeof DiceRollerClass);
+        }
         
         this.diceCollection = new DiceCollectionClass(this.gameSettings.diceCount);
         this.diceRoller = new DiceRollerClass(this.diceCollection);
@@ -197,9 +201,9 @@ class KingOfTokyoGame {
 
     // Roll off to determine first player - each player rolls 6 dice, highest attack dice goes first
     async rollForFirstPlayer(selectedMonsters, playerTypes = null) {
-        console.log('🎲 Starting roll-off to determine first player');
-        console.log('📊 selectedMonsters received:', selectedMonsters);
-        console.log('📊 playerTypes received:', playerTypes);
+        UI._debug('🎲 Starting roll-off to determine first player');
+        UI._debug('📊 selectedMonsters received:', selectedMonsters);
+        UI._debug('📊 playerTypes received:', playerTypes);
         
         // Create temporary players for the roll-off
         const tempPlayers = [];
@@ -207,7 +211,7 @@ class KingOfTokyoGame {
             const monster = selectedMonsters[i];
             const playerType = playerTypes ? playerTypes[i] : 'human';
             
-            console.log(`📊 Creating temp player ${i}:`, {
+            UI._debug(`📊 Creating temp player ${i}:`, {
                 monster: monster,
                 playerType: playerType
             });
@@ -221,13 +225,13 @@ class KingOfTokyoGame {
             });
         }
 
-        console.log('📊 Created tempPlayers:', tempPlayers);
+        UI._debug('📊 Created tempPlayers:', tempPlayers);
         
         let playersToRoll = [...tempPlayers];
         let rollRound = 1;
 
         while (playersToRoll.length > 1) {
-            console.log(`🎲 Roll-off round ${rollRound} - ${playersToRoll.length} players rolling`);
+            UI._debug(`🎲 Roll-off round ${rollRound} - ${playersToRoll.length} players rolling`);
             
             // Trigger event to show notification
             this.triggerEvent('rollOffRound', {
@@ -306,7 +310,7 @@ class KingOfTokyoGame {
                                 }
                             }
 
-                            console.log(`🎲 AI Roll-off using DiceCollection: [${rolls.join(', ')}], attacks: ${attackCount}`);
+                            UI._debug(`🎲 AI Roll-off using DiceCollection: [${rolls.join(', ')}], attacks: ${attackCount}`);
                             resolve();
                         }, 600); // Wait for dice animation
                     });
@@ -315,7 +319,7 @@ class KingOfTokyoGame {
                 player.attackDice = attackCount;
                 player.lastRolls = rolls;
                 
-                console.log(`🎲 ${player.monster.name} rolled ${attackCount} attacks: [${rolls.join(', ')}]`);
+                UI._debug(`🎲 ${player.monster.name} rolled ${attackCount} attacks: [${rolls.join(', ')}]`);
                 
                 // Get dice data for event (if available)
                 const diceData = this.rollOffDiceCollection ? this.rollOffDiceCollection.getAllDiceData() : null;
@@ -645,7 +649,7 @@ class KingOfTokyoGame {
         if (friendOfChildrenCard && !currentPlayer.powerCards.some(card => card.id === 'friend_of_children')) {
             currentPlayer.powerCards.push(friendOfChildrenCard);
             this.logAction(`DEBUG: Gave ${currentPlayer.monster.name} the Friend of Children card!`, 'debug');
-            console.log(`🐛 DEBUG: Gave ${currentPlayer.monster.name} Friend of Children card`);
+            UI._debug(`DEBUG: Gave ${currentPlayer.monster.name} Friend of Children card`);
             // Trigger UI update
             this.triggerEvent('playerUpdated', { player: currentPlayer });
         }
@@ -658,7 +662,7 @@ class KingOfTokyoGame {
         if (extraHeadCard && !currentPlayer.powerCards.some(card => card.id === 'extra_head')) {
             currentPlayer.powerCards.push(extraHeadCard);
             this.logAction(`DEBUG: Gave ${currentPlayer.monster.name} the Extra Head card!`, 'debug');
-            console.log(`🐛 DEBUG: Gave ${currentPlayer.monster.name} Extra Head card`);
+            UI._debug(`DEBUG: Gave ${currentPlayer.monster.name} Extra Head card`);
             // Trigger UI update
             this.triggerEvent('playerUpdated', { player: currentPlayer });
         }
@@ -775,7 +779,7 @@ class KingOfTokyoGame {
     resolveDiceEffects(results, skipDiceLog = false) {
         // Prevent multiple resolution of dice effects in the same turn
         if (this.diceEffectsResolved) {
-            console.log('🐛 DEBUG - Dice effects already resolved this turn, skipping');
+            UI._debug('DEBUG - Dice effects already resolved this turn, skipping');
             console.trace('🐛 DUPLICATE CALL - Stack trace for duplicate resolveDiceEffects call:');
             return;
         }
@@ -890,7 +894,7 @@ class KingOfTokyoGame {
 
         // Attacks
         totalAttack = results.attack;
-        console.log(`🐛 DEBUG - Attack calculation:`, {
+        UI._debug(`DEBUG - Attack calculation:`, {
             diceAttackValue: results.attack,
             playerName: player.monster.name,
             totalAttack: totalAttack,
@@ -1035,7 +1039,7 @@ class KingOfTokyoGame {
 
         // Resolve attack effects
     resolveAttacks(attacker, attackPower) {
-        console.log(`🐛 DEBUG - resolveAttacks called:`, {
+        UI._debug(`DEBUG - resolveAttacks called:`, {
             attackerName: attacker.monster.name,
             attackPower: attackPower,
             attackerInTokyo: attacker.isInTokyo,
@@ -1142,7 +1146,7 @@ class KingOfTokyoGame {
 
         // Deal damage to a player
     dealDamage(player, damage, attacker) {
-        console.log(`🐛 DEBUG - dealDamage called:`, {
+        UI._debug(`DEBUG - dealDamage called:`, {
             targetPlayer: player.monster.name,
             attackerPlayer: attacker.monster.name,
             damageAmount: damage,
@@ -1838,7 +1842,7 @@ class KingOfTokyoGame {
         console.log('Dice effects resolved:', this.diceEffectsResolved);
         console.log('Pending decisions:', this.pendingDecisions.length);
         console.log('Current player before ending turn:', currentPlayer.monster.name, 'Index:', this.currentPlayerIndex);
-        console.log('🐛 ENDTURN DEBUG:', {
+        UI._debug('ENDTURN DEBUG:', {
             players: this.players.length,
             currentPlayerIndex: this.currentPlayerIndex,
             currentPlayerName: currentPlayer.monster.name,
@@ -1850,9 +1854,9 @@ class KingOfTokyoGame {
         
         // Extra debugging for 6-player games - check all player statuses
         if (this.players.length === 6) {
-            console.log('🐛 6-PLAYER ELIMINATION DEBUG:');
+            UI._debug('6-PLAYER ELIMINATION DEBUG:');
             this.players.forEach((player, index) => {
-                console.log(`🐛 Player ${index}: ${player.monster.name} - Health: ${player.health}/${player.maxHealth} - Eliminated: ${player.isEliminated}`);
+                UI._debug(`Player ${index}: ${player.monster.name} - Health: ${player.health}/${player.maxHealth} - Eliminated: ${player.isEliminated}`);
             });
         }
         
@@ -2043,10 +2047,10 @@ class KingOfTokyoGame {
             const maxAttempts = this.players.length;
             
             // Enhanced debugging for turn order issues
-            console.log(`🐛 TURN ORDER DEBUG: Starting switchToNextPlayer()`);
-            console.log(`🐛 Before switch - currentPlayerIndex: ${this.currentPlayerIndex}`);
-            console.log(`🐛 Before switch - current player: ${this.getCurrentPlayer().monster.name}`);
-            console.log(`🐛 Before switch - Tokyo status:`, this.players.map(p => `${p.monster.name}:${p.isInTokyo ? 'Tokyo' : 'Outside'}`));
+            UI._debug(`TURN ORDER DEBUG: Starting switchToNextPlayer()`);
+            UI._debug(`Before switch - currentPlayerIndex: ${this.currentPlayerIndex}`);
+            UI._debug(`Before switch - current player: ${this.getCurrentPlayer().monster.name}`);
+            UI._debug(`Before switch - Tokyo status:`, this.players.map(p => `${p.monster.name}:${p.isInTokyo ? 'Tokyo' : 'Outside'}`));
             
             do {
                 const previousPlayerIndex = this.currentPlayerIndex;
@@ -2082,18 +2086,18 @@ class KingOfTokyoGame {
 
             // Extra debugging for 6-player games
             if (this.players.length === 6) {
-                console.log('🐛 6-PLAYER SWITCH DEBUG: Final result');
-                console.log(`🐛 Final current player: ${this.getCurrentPlayer().monster.name} (index ${this.currentPlayerIndex})`);
-                console.log(`🐛 Is current player eliminated: ${this.getCurrentPlayer().isEliminated}`);
-                console.log(`🐛 Attempts used: ${attempts}/${maxAttempts}`);
+                UI._debug('6-PLAYER SWITCH DEBUG: Final result');
+                UI._debug(`Final current player: ${this.getCurrentPlayer().monster.name} (index ${this.currentPlayerIndex})`);
+                UI._debug(`Is current player eliminated: ${this.getCurrentPlayer().isEliminated}`);
+                UI._debug(`Attempts used: ${attempts}/${maxAttempts}`);
             }
 
             // Enhanced debugging for ALL games
-            console.log(`🐛 TURN ORDER DEBUG: Final switchToNextPlayer() result`);
-            console.log(`🐛 After switch - currentPlayerIndex: ${this.currentPlayerIndex}`);
-            console.log(`🐛 After switch - current player: ${this.getCurrentPlayer().monster.name}`);
-            console.log(`🐛 After switch - Tokyo status:`, this.players.map(p => `${p.monster.name}:${p.isInTokyo ? 'Tokyo' : 'Outside'}`));
-            console.log(`🐛 After switch - is new current player in Tokyo: ${this.getCurrentPlayer().isInTokyo}`);
+            UI._debug(`TURN ORDER DEBUG: Final switchToNextPlayer() result`);
+            UI._debug(`After switch - currentPlayerIndex: ${this.currentPlayerIndex}`);
+            UI._debug(`After switch - current player: ${this.getCurrentPlayer().monster.name}`);
+            UI._debug(`After switch - Tokyo status:`, this.players.map(p => `${p.monster.name}:${p.isInTokyo ? 'Tokyo' : 'Outside'}`));
+            UI._debug(`After switch - is new current player in Tokyo: ${this.getCurrentPlayer().isInTokyo}`);
 
             // Only start player turn in log if gameplay has begun
             if (this.gameplayStarted) {

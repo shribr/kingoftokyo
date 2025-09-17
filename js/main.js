@@ -96,6 +96,19 @@ class KingOfTokyoUI {
     this.playerDashboards = new Map(); // playerId -> dashboard element
     this.diceElements = new Map(); // diceId -> dice element
     this.monsterCards = new Map(); // monsterId -> monster card element
+    
+    // Debug system - can be enabled via URL param or localStorage
+    this.debugMode = this._initializeDebugMode();
+    
+    // Add keyboard shortcut for debug mode (Ctrl+Shift+D)
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+            e.preventDefault();
+            this.toggleDebugMode();
+        }
+    });
+    
+    console.log('🎮 King of Tokyo UI initialized', { debugMode: this.debugMode });
         
         // Sportscast commentary arrays
         this.sportscastCommentary = {
@@ -370,15 +383,15 @@ class KingOfTokyoUI {
             
             if (this.elements.endTurnBtn.disabled) {
                 console.log('End turn button clicked but is disabled');
-                console.log('🐛 FORCED DEBUG: Checking if we can force turn end...');
+                this._debug('FORCED DEBUG: Checking if we can force turn end...');
                 
                 // Debug check for stuck turns
                 const gameState = this.game.getGameState();
                 const diceState = this.game.diceRoller.getState();
                 
                 if (gameState.turnPhase === 'rolling' && diceState.rollsRemaining === 0) {
-                    console.log('🐛 FORCED: Turn seems stuck - dice finished but phase not changed to resolving');
-                    console.log('🐛 FORCED: Attempting to force dice resolution...');
+                    this._debug('FORCED: Turn seems stuck - dice finished but phase not changed to resolving');
+                    this._debug('FORCED: Attempting to force dice resolution...');
                     
                     // Force dice resolution if stuck
                     try {
@@ -386,7 +399,7 @@ class KingOfTokyoUI {
                         const results = this.game.diceCollection.getResults();
                         this.game.resolveDiceEffects(results, true); // Skip dice log for forced resolution
                         this.game.triggerEvent('turnPhaseChanged', { phase: 'resolving' });
-                        console.log('🐛 FORCED: Dice resolution forced, try end turn again');
+                        this._debug('FORCED: Dice resolution forced, try end turn again');
                         this.updateDiceControls();
                         return;
                     } catch (error) {
@@ -984,7 +997,7 @@ class KingOfTokyoUI {
                 this.showCPUActionNotification(data);
                 break;
             case 'turnEnded':
-                console.log('🏁 TURN ENDED EVENT - Critical debugging point!');
+                this._debug('TURN ENDED EVENT - Critical debugging point!');
                 console.log('🏁 Current player before cleanup:', this.game?.getCurrentPlayer()?.monster?.name);
                 console.log('🏁 Game state before cleanup:', {
                     phase: this.game?.gamePhase,
@@ -1026,7 +1039,7 @@ class KingOfTokyoUI {
                 break;
             case 'turnStarted':
                 console.log('🎯 turnStarted event received:', data);
-                console.log('🚨 TURN DEBUG: Player should be able to take actions now!');
+                this._debug('TURN DEBUG: Player should be able to take actions now!');
                 
                 this.clearAllAttackAnimations(); // Clear any stuck attack animations
                 this.updateGameDisplay(); // Update UI to show new current player
@@ -1034,7 +1047,7 @@ class KingOfTokyoUI {
                 // Check if new current player is CPU and auto-start their turn
                 const currentPlayer = this.game.getCurrentPlayer();
                 console.log('🎯 Current player from game:', currentPlayer);
-                console.log('� CRITICAL TURN FLOW DEBUG:', {
+                this._debug('CRITICAL TURN FLOW DEBUG:', {
                     playerName: currentPlayer?.monster?.name,
                     playerType: currentPlayer?.playerType,
                     isEliminated: currentPlayer?.isEliminated,
@@ -1332,8 +1345,8 @@ class KingOfTokyoUI {
         
         // STEP 2: Then activate the new current player
     const newActiveCard = this.playerDashboards.get(currentPlayer.id);
-        console.log('🔍 TOKYO DEBUG: Looking for player card:', currentPlayer.id, 'Player:', currentPlayer.monster.name, 'In Tokyo:', currentPlayer.isInTokyo);
-        console.log('🔍 TOKYO DEBUG: Found card:', !!newActiveCard);
+        this._debug('TOKYO DEBUG: Looking for player card:', currentPlayer.id, 'Player:', currentPlayer.monster.name, 'In Tokyo:', currentPlayer.isInTokyo);
+        this._debug('TOKYO DEBUG: Found card:', !!newActiveCard);
         
         if (newActiveCard) {
             console.log('🚀 Activating new current player:', currentPlayer.monster.name);
@@ -1558,7 +1571,7 @@ class KingOfTokyoUI {
     
     // Rebuild the entire player layout (called only when current player changes)
     _rebuildPlayerLayout(players, currentPlayer) {
-        console.log('🏗️ REBUILDING PLAYER LAYOUT - CRITICAL DEBUGGING');
+        this._debug('REBUILDING PLAYER LAYOUT - CRITICAL DEBUGGING');
         console.log('🏗️ Current player passed in:', currentPlayer?.monster?.name, 'ID:', currentPlayer?.id);
         console.log('🏗️ Total players:', players.length);
         console.log('🏗️ All players:', players.map(p => `${p.monster.name} (${p.playerType})`));
@@ -2884,7 +2897,7 @@ class KingOfTokyoUI {
         
         // Debug logging for 5+ player game issues
         if (gameState.players && gameState.players.length >= 5) {
-            console.log('🎮 MULTI-PLAYER BUTTON DEBUG:', {
+            this._debug('MULTI-PLAYER BUTTON DEBUG:', {
                 currentPlayerIndex: gameState.currentPlayerIndex,
                 currentPlayerName: gameState.currentPlayer ? gameState.currentPlayer.monster.name : 'none',
                 currentPlayerType: gameState.currentPlayer ? gameState.currentPlayer.playerType : 'none',
@@ -2902,7 +2915,7 @@ class KingOfTokyoUI {
         
         // Debug logging for 6-player game issues
         if (gameState.players && gameState.players.length === 6) {
-            console.log('🐛 6-PLAYER DEBUG:', {
+            this._debug('6-PLAYER DEBUG:', {
                 currentPlayerIndex: gameState.currentPlayerIndex,
                 currentPlayerName: gameState.currentPlayer ? gameState.currentPlayer.monster.name : 'none',
                 turnPhase: gameState.turnPhase,
@@ -2940,7 +2953,7 @@ class KingOfTokyoUI {
             console.log('Setting endTurnBtn disabled to:', !canEndTurn);
             // Extra debugging for 6-player games
             if (gameState.players && gameState.players.length === 6) {
-                console.log('🐛 END TURN BUTTON DEBUG:', {
+                this._debug('END TURN BUTTON DEBUG:', {
                     buttonExists: true,
                     buttonDisabled: this.elements.endTurnBtn.disabled,
                     newDisabledState: !canEndTurn,
@@ -2997,6 +3010,62 @@ class KingOfTokyoUI {
         this._refreshDiceElementCache();
         
         console.log('🔧 DOM caches initialized');
+    }
+    
+    // Initialize debug mode based on URL params or localStorage
+    _initializeDebugMode() {
+        // Check URL parameters first
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('debug') === 'true') {
+            localStorage.setItem('kot-debug', 'true');
+            return true;
+        }
+        if (urlParams.get('debug') === 'false') {
+            localStorage.setItem('kot-debug', 'false');
+            return false;
+        }
+        
+        // Check localStorage
+        const stored = localStorage.getItem('kot-debug');
+        if (stored !== null) {
+            return stored === 'true';
+        }
+        
+        // Default to false in production
+        return false;
+    }
+    
+    // Debug logging methods with different levels
+    _debug(message, ...args) {
+        if (this.debugMode) {
+            console.log(`🐛 ${message}`, ...args);
+        }
+    }
+    
+    _debugVerbose(message, ...args) {
+        if (this.debugMode) {
+            console.log(`🔍 ${message}`, ...args);
+        }
+    }
+    
+    _debugPerformance(message, ...args) {
+        if (this.debugMode) {
+            console.log(`⚡ ${message}`, ...args);
+        }
+    }
+    
+    _debugCache(message, ...args) {
+        if (this.debugMode) {
+            console.log(`🔧 ${message}`, ...args);
+        }
+    }
+    
+    // Public method to toggle debug mode
+    toggleDebugMode() {
+        this.debugMode = !this.debugMode;
+        localStorage.setItem('kot-debug', this.debugMode.toString());
+        console.log(`🎮 Debug mode ${this.debugMode ? 'enabled' : 'disabled'}`);
+        return this.debugMode;
     }
     
     // Refresh player dashboard cache

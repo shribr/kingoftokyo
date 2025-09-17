@@ -193,32 +193,44 @@ class SetupManager {
 
     // Custom dropdown methods
     toggleDropdown() {
-        console.log('🔄 SetupManager: toggleDropdown called');
-        console.log('🔍 playerCount element:', this.elements.playerCount);
-        console.log('🔍 dropdownOptions element:', this.elements.dropdownOptions);
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debug('SetupManager: toggleDropdown called');
+            window.UI._debug('playerCount element:', this.elements.playerCount);
+            window.UI._debug('dropdownOptions element:', this.elements.dropdownOptions);
+        }
         
         if (this.elements.playerCount && this.elements.dropdownOptions) {
             const wasOpen = this.elements.playerCount.classList.contains('open');
-            console.log('📊 Dropdown was open:', wasOpen);
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debug('Dropdown was open:', wasOpen);
+            }
             
             this.elements.playerCount.classList.toggle('open');
             const isNowOpen = this.elements.playerCount.classList.contains('open');
-            console.log('📊 Dropdown is now open:', isNowOpen);
-            console.log('📊 Current classes:', this.elements.playerCount.className);
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debug('Dropdown is now open:', isNowOpen);
+                window.UI._debug('Current classes:', this.elements.playerCount.className);
+            }
             
             // Force check the computed styles
             const dropdownOptions = this.elements.dropdownOptions;
             const computedStyle = window.getComputedStyle(dropdownOptions);
-            console.log('🎨 Computed display:', computedStyle.display);
-            console.log('🎨 Computed visibility:', computedStyle.visibility);
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debug('Computed display:', computedStyle.display);
+                window.UI._debug('Computed visibility:', computedStyle.visibility);
+            }
             
             // Force a style recalculation
             if (isNowOpen) {
                 dropdownOptions.style.display = 'block';
-                console.log('💪 Forced display to block');
+                if (window.UI && window.UI.debugMode) {
+                    window.UI._debug('Forced display to block');
+                }
             } else {
                 dropdownOptions.style.display = 'none';
-                console.log('💪 Forced display to none');
+                if (window.UI && window.UI.debugMode) {
+                    window.UI._debug('Forced display to none');
+                }
             }
         } else {
             console.error('❌ SetupManager: Missing dropdown elements');
@@ -271,16 +283,22 @@ class SetupManager {
         
         // Add a small delay to ensure the modal is fully shown and ready
         setTimeout(() => {
-            console.log('SetupManager: dropdown reset completed with delay');
-            console.log('playerCount classes:', this.elements.playerCount?.className);
-            console.log('dropdownOptions display style:', window.getComputedStyle(this.elements.dropdownOptions).display);
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debug('SetupManager: dropdown reset completed with delay');
+                window.UI._debug('playerCount classes:', this.elements.playerCount?.className);
+                window.UI._debug('dropdownOptions display style:', window.getComputedStyle(this.elements.dropdownOptions).display);
+            }
         }, 50);
     }
 
     selectPlayerCount(value, text) {
-        console.log('📝 selectPlayerCount called with:', { value, text, parsedValue: parseInt(value, 10) });
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debug('📝 selectPlayerCount called with:', { value, text, parsedValue: parseInt(value, 10) });
+        }
         this.currentPlayerCount = parseInt(value, 10);
-        console.log('📝 currentPlayerCount set to:', this.currentPlayerCount);
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debug('📝 currentPlayerCount set to:', this.currentPlayerCount);
+        }
         // Update the dropdown text - the text is directly in dropdown-selected, not in a child element
         const dropdownSelected = this.elements.dropdownSelected;
         if (dropdownSelected) {
@@ -293,7 +311,9 @@ class SetupManager {
         }
         this.closeDropdown();
         
-        console.log('🎯 SetupManager: Player count selected:', this.currentPlayerCount, 'Updating monster selection...');
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debug('🎯 SetupManager: Player count selected:', this.currentPlayerCount, 'Updating monster selection...');
+        }
         
         // Clear any previous game instance
         if (this.game) {
@@ -302,7 +322,9 @@ class SetupManager {
         
         // Check that MONSTERS is available before updating selection
         if (typeof MONSTERS === 'undefined') {
-            console.log('⚠️ MONSTERS not yet loaded, skipping monster selection update');
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debug('⚠️ MONSTERS not yet loaded, skipping monster selection update');
+            }
             return;
         }
         
@@ -310,12 +332,16 @@ class SetupManager {
         if (typeof window !== 'undefined' && window.MONSTERS) {
             this.updateMonsterSelection();
         } else {
-            console.log('⚠️ MONSTERS not available globally, skipping monster selection update');
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debug('⚠️ MONSTERS not available globally, skipping monster selection update');
+            }
         }
     }
 
     resetMonsterSelection() {
-        console.log('🔄 Resetting monster selection...');
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debug('🔄 Resetting monster selection...');
+        }
         
         // Clear selected monsters array
         this.selectedMonsters = [];
@@ -355,7 +381,9 @@ class SetupManager {
         this.updateStartButton();
         this.regeneratePlayerTiles();
         
-        console.log('✅ Monster selection reset completed');
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debug('✅ Monster selection reset completed');
+        }
     }
 
     randomizeMonsterSelection() {
@@ -407,7 +435,9 @@ class SetupManager {
         this.grayOutSelectedMonsters();
         this.updateStartButton();
         
-        console.log('Random selection completed:', this.selectedMonsters);
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debug('Random selection completed:', this.selectedMonsters);
+        }
     }
 
     showMonsterProfilesModal() {
@@ -463,7 +493,9 @@ class SetupManager {
     }
 
     showMessage(message) {
-        console.log('SetupManager: Message -', message);
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debug('SetupManager: Message -', message);
+        }
     }
 
     // Public interface methods for main.js to call
@@ -514,15 +546,19 @@ class SetupManager {
     }
 
     showMessage(message) {
-        console.log('SetupManager: Message -', message);
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debug('SetupManager: Message -', message);
+        }
     }
 
     // Update monster selection grid
     updateMonsterSelection() {
-        console.log('👺 === SetupManager: UPDATE MONSTER SELECTION CALLED ===');
-        console.log('👺 Current player count:', this.currentPlayerCount);
-        console.log('👺 MONSTERS available:', typeof MONSTERS !== 'undefined');
-        console.log('👺 Monster grid element:', !!this.elements.monsterGrid);
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debug('👺 === SetupManager: UPDATE MONSTER SELECTION CALLED ===');
+            window.UI._debug('👺 Current player count:', this.currentPlayerCount);
+            window.UI._debug('👺 MONSTERS available:', typeof MONSTERS !== 'undefined');
+            window.UI._debug('👺 Monster grid element:', !!this.elements.monsterGrid);
+        }
         console.log('👺 Player tiles grid element:', !!this.elements.playerTilesGrid);
         
         // Debug: Check if MONSTERS is available

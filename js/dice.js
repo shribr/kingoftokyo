@@ -28,23 +28,27 @@ class Die {
         this.isRolling = true;
         const randomIndex = Math.floor(Math.random() * DICE_FACE_NAMES.length);
         this.face = DICE_FACE_NAMES[randomIndex];
-        console.log(`Die ${this.id} rolled:`, this.face, 'symbol:', this.getSymbol());
+        UI._debugVerbose(`Die ${this.id} rolled:`, this.face, 'symbol:', this.getSymbol());
         
         // Simulate rolling animation delay
         setTimeout(() => {
             this.isRolling = false;
-            console.log(`Die ${this.id} finished rolling, final face:`, this.face);
+            UI._debugVerbose(`Die ${this.id} finished rolling, final face:`, this.face);
         }, 500);
     }
 
     // Toggle selection for keeping dice
     toggleSelection() {
-        console.log(`Die ${this.id} toggle called - isRolling: ${this.isRolling}, current isSelected: ${this.isSelected}`);
+        UI._debugVerbose(`Die ${this.id} toggle called - isRolling: ${this.isRolling}, current isSelected: ${this.isSelected}`);
         if (!this.isRolling) {
             this.isSelected = !this.isSelected;
-            console.log(`Die ${this.id} selection toggled to: ${this.isSelected}`);
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debug(`Die ${this.id} selection toggled to: ${this.isSelected}`);
+            }
         } else {
-            console.log(`Die ${this.id} cannot be selected - still rolling`);
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debug(`Die ${this.id} cannot be selected - still rolling`);
+            }
         }
         return this.isSelected;
     }
@@ -74,7 +78,9 @@ class Die {
     // Reset die
     reset() {
         if (this.face !== null) {
-            console.log(`🎲 ⚠️  Resetting die ${this.id} that had face: ${this.face} (this might be unexpected during gameplay)`);
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debug(`🎲 ⚠️  Resetting die ${this.id} that had face: ${this.face} (this might be unexpected during gameplay)`);
+            }
         }
         this.face = null;
         this.previousFace = null;
@@ -86,7 +92,9 @@ class Die {
 // Immediately expose Die to window for browser use
 if (typeof window !== 'undefined') {
     window.Die = Die;
-    console.log('Die immediately assigned to window:', typeof window.Die);
+if (window.UI && window.UI.debugMode) {
+    window.UI._debug('Die immediately assigned to window:', typeof window.Die);
+}
 }
 
 // Dice collection class
@@ -128,14 +136,20 @@ class DiceCollection {
 
     // Toggle dice selection by ID
     toggleDiceSelection(dieId) {
-        console.log(`DiceCollection: Looking for die with id: ${dieId}`);
-        console.log(`Available dice:`, this.dice.map(d => ({ id: d.id, isSelected: d.isSelected })));
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debugVerbose(`DiceCollection: Looking for die with id: ${dieId}`);
+            window.UI._debugVerbose(`Available dice:`, this.dice.map(d => ({ id: d.id, isSelected: d.isSelected })));
+        }
         const die = this.dice.find(d => d.id === dieId);
         if (die) {
-            console.log(`Found die ${dieId}, calling toggleSelection`);
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debugVerbose(`Found die ${dieId}, calling toggleSelection`);
+            }
             return die.toggleSelection();
         } else {
-            console.log(`Die ${dieId} not found!`);
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debugVerbose(`Die ${dieId} not found!`);
+            }
         }
         return false;
     }
@@ -198,7 +212,9 @@ class DiceCollection {
         const hasRolledDice = this.dice.some(die => die.face !== null && !die.isDisabled);
         if (hasRolledDice) {
             console.warn(`🎲 ⚠️  Resetting dice collection that has rolled dice - this might be unexpected during gameplay!`);
-            console.log('🎲 Dice being reset:', this.dice.filter(d => d.face !== null).map(d => ({ id: d.id, face: d.face })));
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debugVerbose('Dice being reset:', this.dice.filter(d => d.face !== null).map(d => ({ id: d.id, face: d.face })));
+            }
         }
         this.dice.forEach(die => die.reset());
     }
@@ -311,7 +327,9 @@ class DiceCollection {
 // Immediately expose DiceCollection to window for browser use
 if (typeof window !== 'undefined') {
     window.DiceCollection = DiceCollection;
-    console.log('DiceCollection immediately assigned to window:', typeof window.DiceCollection);
+if (window.UI && window.UI.debugMode) {
+    window.UI._debug('DiceCollection immediately assigned to window:', typeof window.DiceCollection);
+}
 }
 
 // Dice rolling logic with animation
@@ -330,7 +348,9 @@ class DiceRoller {
 
     // Start a new turn
     startNewTurn() {
-        console.log(`🎲 DiceRoller starting new turn - resetting dice`);
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debug(`🎲 DiceRoller starting new turn - resetting dice`);
+        }
         this.rollsRemaining = 3;
         this.isRolling = false;
         this.diceCollection.reset();
@@ -357,7 +377,9 @@ class DiceRoller {
         // Roll all dice
         this.diceCollection.rollAll();
         this.rollsRemaining--;
-        console.log('DiceRoller: rollsRemaining after decrement:', this.rollsRemaining);
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debug('DiceRoller: rollsRemaining after decrement:', this.rollsRemaining);
+        }
 
         // Trigger dice update immediately after rolling
         if (this.callbacks.onDiceUpdate) {
@@ -411,7 +433,9 @@ class DiceRoller {
 // Immediately expose DiceRoller to window for browser use
 if (typeof window !== 'undefined') {
     window.DiceRoller = DiceRoller;
-    console.log('DiceRoller immediately assigned to window:', typeof window.DiceRoller);
+if (window.UI && window.UI.debugMode) {
+    window.UI._debug('DiceRoller immediately assigned to window:', typeof window.DiceRoller);
+}
 }
 
 // Utility functions
@@ -442,12 +466,16 @@ function attachDiceEventListeners(diceCollection, container, updateCallback) {
         const dieElement = event.target.closest('.die');
         if (dieElement && !dieElement.classList.contains('disabled')) {
             const dieId = dieElement.dataset.dieId;
-            console.log('Dice clicked:', dieId);
-            console.log('Dice collection before toggle:', diceCollection.getAllDiceData().map(d => ({ id: d.id, isSelected: d.isSelected })));
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debugVerbose('Dice clicked:', dieId);
+                window.UI._debugVerbose('Dice collection before toggle:', diceCollection.getAllDiceData().map(d => ({ id: d.id, isSelected: d.isSelected })));
+            }
             
             const isSelected = diceCollection.toggleDiceSelection(dieId);
-            console.log('After toggle, isSelected:', isSelected);
-            console.log('Dice collection after toggle:', diceCollection.getAllDiceData().map(d => ({ id: d.id, isSelected: d.isSelected })));
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debugVerbose('After toggle, isSelected:', isSelected);
+                window.UI._debugVerbose('Dice collection after toggle:', diceCollection.getAllDiceData().map(d => ({ id: d.id, isSelected: d.isSelected })));
+            }
             
             if (isSelected) {
                 dieElement.classList.add('selected');
@@ -466,7 +494,9 @@ function attachDiceEventListeners(diceCollection, container, updateCallback) {
 }
 
 // Export for use in other files
-console.log('Dice.js loading, typeof module:', typeof module);
+if (window.UI && window.UI.debugMode) {
+    window.UI._debug('Dice.js loading, typeof module:', typeof module);
+}
 
 // Force assignment to window object in browser
 if (typeof window !== 'undefined') {
@@ -477,7 +507,9 @@ if (typeof window !== 'undefined') {
     window.DiceRoller = DiceRoller;
     window.createDiceHTML = createDiceHTML;
     window.attachDiceEventListeners = attachDiceEventListeners;
-    console.log('All dice classes assigned to window - DiceCollection:', typeof window.DiceCollection);
+if (window.UI && window.UI.debugMode) {
+    window.UI._debug('All dice classes assigned to window - DiceCollection:', typeof window.DiceCollection);
+}
 }
 
 // Also handle Node.js modules if needed
