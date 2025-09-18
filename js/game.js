@@ -2131,6 +2131,18 @@ class KingOfTokyoGame {
                         window.UI._debug(`Found extraDice effect from "${card.name}": +${effect.value} (total now: ${extraDice})`);
                     }
                 }
+                if (effect.effect === 'turnEnergy') {
+                    // Check if this effect has already been applied this turn
+                    const effectKey = `${card.name}-turnEnergy-start`;
+                    if (!this.hasTurnEffectBeenApplied(currentPlayer.id, effectKey)) {
+                        currentPlayer.addEnergy(effect.value);
+                        this.logAction(`${currentPlayer.monster.name} gains ${effect.value} energy from ${card.name} at start of turn!`, 'power-card');
+                        this.markTurnEffectApplied(currentPlayer.id, effectKey);
+                        if (window.UI && window.UI.debugMode) {
+                            window.UI._debug(`Found turnEnergy effect from "${card.name}": +${effect.value} energy at start of turn`);
+                        }
+                    }
+                }
             }
         });
         
