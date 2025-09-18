@@ -1282,9 +1282,20 @@
     font-weight: bold;
 }
 
-.monster-emoji {
+.monster-checkboxes .monster-emoji {
     margin-right: 8px;
     font-size: 1.2em;
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    border-radius: 0 !important;
+    filter: none !important;
+    outline: none !important;
+    display: inline-block !important;
+    -webkit-text-stroke: 0 !important;
+    text-decoration: none !important;
+    font-variant-emoji: text !important;
 }
 
 .settings-button {
