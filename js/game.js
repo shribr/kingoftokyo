@@ -1288,6 +1288,48 @@ class KingOfTokyoGame {
             return 0;
         }
         
+        // Check if player in Tokyo has Wings and can choose to flee instead of taking damage
+        if (player.isInTokyo) {
+            const hasWings = player.powerCards.some(card => {
+                const effect = applyCardEffect(card, player, this);
+                return effect.type === 'passive' && effect.effect === 'safeFlight';
+            });
+            
+            if (hasWings) {
+                // For CPU players, make a decision based on health/damage ratio
+                if (!player.isHuman) {
+                    const shouldFlee = (player.health <= damage) || (player.health <= 3 && damage >= 2);
+                    if (shouldFlee) {
+                        this.logAction(`${player.monster.name} uses Wings to flee Tokyo without taking damage!`);
+                        this.removePlayerFromTokyo(player);
+                        
+                        // Attacker enters Tokyo if not already there
+                        if (!attacker.isInTokyo && !attacker.isEliminated) {
+                            this.enterTokyo(attacker);
+                        }
+                        return 0; // No damage taken
+                    }
+                } else {
+                    // For human players, create a decision
+                    const decision = {
+                        type: 'wingsDecision',
+                        playerId: player.id,
+                        attackerId: attacker.id,
+                        damage: damage,
+                        message: `${player.monster.name}, you have Wings! Use them to flee Tokyo without taking ${damage} damage?`,
+                        options: [
+                            { text: 'Use Wings (Flee Tokyo)', value: 'flee' },
+                            { text: 'Stay and Take Damage', value: 'stay' }
+                        ]
+                    };
+                    
+                    this.pendingDecisions.push(decision);
+                    this.triggerEvent('showDecision', decision);
+                    return 0; // Damage will be resolved after decision
+                }
+            }
+        }
+        
         const damageResult = player.takeDamage(damage);
         const actualDamage = damageResult.actualDamage;
         const eliminationInfo = damageResult.eliminationInfo;
@@ -1515,6 +1557,31 @@ class KingOfTokyoGame {
             
             // Trigger UI update
             this.triggerEvent('tokyoChanged', this.getGameState());
+        } else if (decision.type === 'wingsDecision') {
+            const player = this.players.find(p => p.id === decision.playerId);
+            const attacker = this.players.find(p => p.id === decision.attackerId);
+            
+            if (choice === 'flee') {
+                this.logAction(`${player.monster.name} uses Wings to flee Tokyo without taking damage!`);
+                this.removePlayerFromTokyo(player);
+                
+                // Attacker enters Tokyo if they're not in Tokyo
+                if (!attacker.isInTokyo && !attacker.isEliminated) {
+                    this.enterTokyo(attacker);
+                }
+            } else {
+                // Player chooses to stay and take damage
+                this.logAction(`${player.monster.name} chooses to stay in Tokyo and take ${decision.damage} damage!`);
+                const damageResult = player.takeDamage(decision.damage);
+                
+                // If player survives, they may still choose to leave Tokyo after taking damage
+                if (!player.isEliminated && player.isInTokyo) {
+                    this.offerTokyoExitDecision(player, attacker);
+                }
+            }
+            
+            // Trigger UI update
+            this.triggerEvent('tokyoChanged', this.getGameState());
         }
         
         // After handling a decision, check if there are more pending decisions to process
@@ -1591,17 +1658,7 @@ class KingOfTokyoGame {
         if (stayInTokyo) {
             this.logAction(`${player.monster.name} chooses to stay in Tokyo!`);
         } else {
-            // Check if player has Wings (safe flight)
-            const hasSafeFlight = player.powerCards.some(card => {
-                const effect = applyCardEffect(card, player, this);
-                return effect.type === 'passive' && effect.effect === 'safeFlight';
-            });
-            
-            if (hasSafeFlight) {
-                this.logAction(`${player.monster.name} uses wings to safely flee Tokyo without taking damage!`);
-            } else {
-                this.logAction(`${player.monster.name} flees Tokyo!`);
-            }
+            this.logAction(`${player.monster.name} flees Tokyo!`);
             
             this.removePlayerFromTokyo(player);
             

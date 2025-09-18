@@ -3669,14 +3669,73 @@ class KingOfTokyoUI {
             this.elements.decisionOption1.setAttribute('data-handlers-attached', 'true');
             this.elements.decisionOption2.setAttribute('data-handlers-attached', 'true');
             
-            // Show modal
-            this.elements.decisionModal.classList.remove('hidden');
+        } else if (decision.type === 'wingsDecision') {
+            // Get the player data
+            const player = this.game.players.find(p => p.id === decision.playerId);
+            const attacker = this.game.players.find(p => p.id === decision.attackerId);
             
-            // Force active player dashboard to have lower z-index to prevent interference
-            const activePlayerDashboard = document.querySelector('.player-dashboard.active');
-            if (activePlayerDashboard) {
-                activePlayerDashboard.style.zIndex = '1';
+            // Set modal content
+            this.elements.decisionTitle.textContent = 'Wings Power Card!';
+            this.elements.decisionContext.textContent = `Being attacked by ${attacker.monster.name}`;
+            this.elements.decisionMessage.textContent = decision.message;
+            
+            // Set monster display
+            this.elements.decisionMonster.innerHTML = `
+                <div class="monster-avatar" style="background-color: ${player.monster.color}">
+                    <img src="${player.monster.image}" alt="${player.monster.name}" class="monster-avatar-image" />
+                </div>
+                <div class="monster-name">${player.monster.name}</div>
+            `;
+            
+            // Set button text for Wings decision
+            this.elements.decisionOption1.textContent = 'Use Wings (Flee Tokyo)';
+            this.elements.decisionOption2.textContent = 'Stay and Take Damage';
+            
+            // Remove any existing event listeners
+            this.elements.decisionOption1.onclick = null;
+            this.elements.decisionOption2.onclick = null;
+            
+            // Remove old event listeners if they exist
+            const oldHandlers = this.elements.decisionOption1.getAttribute('data-handlers-attached');
+            if (oldHandlers) {
+                // Clone and replace to remove all event listeners
+                const newBtn1 = this.elements.decisionOption1.cloneNode(true);
+                const newBtn2 = this.elements.decisionOption2.cloneNode(true);
+                this.elements.decisionOption1.parentNode.replaceChild(newBtn1, this.elements.decisionOption1);
+                this.elements.decisionOption2.parentNode.replaceChild(newBtn2, this.elements.decisionOption2);
+                this.elements.decisionOption1 = newBtn1;
+                this.elements.decisionOption2 = newBtn2;
             }
+            
+            // Add event listeners for Wings decision
+            this.elements.decisionOption1.addEventListener('click', (e) => {
+                console.log('🔄 Use Wings button clicked!', e);
+                e.preventDefault();
+                e.stopPropagation();
+                this.hideDecisionModal();
+                this.game.handlePlayerDecision(decision.playerId, 'flee');
+            });
+            
+            this.elements.decisionOption2.addEventListener('click', (e) => {
+                console.log('🔄 Stay and take damage button clicked!', e);
+                e.preventDefault();
+                e.stopPropagation();
+                this.hideDecisionModal();
+                this.game.handlePlayerDecision(decision.playerId, 'stay');
+            });
+            
+            // Mark handlers as attached
+            this.elements.decisionOption1.setAttribute('data-handlers-attached', 'true');
+            this.elements.decisionOption2.setAttribute('data-handlers-attached', 'true');
+        }
+        
+        // Show modal
+        this.elements.decisionModal.classList.remove('hidden');
+        
+        // Force active player dashboard to have lower z-index to prevent interference
+        const activePlayerDashboard = document.querySelector('.player-dashboard.active');
+        if (activePlayerDashboard) {
+            activePlayerDashboard.style.zIndex = '1';
             
             // Force all player cards to have lower z-index
             const allPlayerCards = document.querySelectorAll('.player-dashboard');
