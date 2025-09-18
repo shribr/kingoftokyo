@@ -1105,12 +1105,6 @@
     font-size: 18px;
     font-weight: 900;
     color: #ffffff;
-    text-shadow: 
-        -2px -2px 0 #000,
-        2px -2px 0 #000,
-        -2px 2px 0 #000,
-        2px 2px 0 #000,
-        3px 3px 6px rgba(0, 0, 0, 0.8);
     letter-spacing: 3px;
     border-bottom: 3px solid #000;
     padding-bottom: 8px;
@@ -1296,6 +1290,11 @@
     -webkit-text-stroke: 0 !important;
     text-decoration: none !important;
     font-variant-emoji: text !important;
+    -webkit-font-feature-settings: "liga" off !important;
+    font-feature-settings: "liga" off !important;
+    text-rendering: optimizeSpeed !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
 }
 
 .settings-button {

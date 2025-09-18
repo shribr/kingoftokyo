@@ -199,7 +199,13 @@ class UIUtilities {
         }
         
         // Get the header area to show message there (use round counter as reference)
-        const headerElement = elements.roundCounter;
+        const headerElement = elements?.roundCounter || document.getElementById('round-counter');
+        
+        // If no header element found, fallback to console log
+        if (!headerElement) {
+            console.log(`Game Message: ${message}`);
+            return;
+        }
         
         // Add a subtle notification to the header instead of blocking overlay
         let notification = document.getElementById('header-notification');

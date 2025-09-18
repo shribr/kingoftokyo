@@ -1461,7 +1461,7 @@ class KingOfTokyoGame {
             
             // Auto-execute the decision after a brief delay for readability
             setTimeout(() => {
-                this.handleTokyoExitDecision(player.id, stayInTokyo);
+                this.handleTokyoExitDecision(player.id, stayInTokyo, attacker.id);
             }, 1500);
             
             return; // Don't create pending decision for CPU
@@ -1579,11 +1579,14 @@ class KingOfTokyoGame {
     }
 
     // Handle Tokyo exit decision
-    handleTokyoExitDecision(playerId, stayInTokyo) {
+    handleTokyoExitDecision(playerId, stayInTokyo, attackerId = null) {
         const player = this.players.find(p => p.id === playerId);
         const decision = this.pendingDecisions.find(d => d.playerId === playerId && d.type === 'tokyoExit');
         
-        if (!player || !decision) return;
+        if (!player) return;
+
+        // For CPU players, there might not be a pending decision
+        const actualAttackerId = attackerId || (decision ? decision.attackerId : null);
 
         if (stayInTokyo) {
             this.logAction(`${player.monster.name} chooses to stay in Tokyo!`);
@@ -1603,14 +1606,18 @@ class KingOfTokyoGame {
             this.removePlayerFromTokyo(player);
             
             // Attacker may enter Tokyo
-            const attacker = this.players.find(p => p.id === decision.attackerId);
-            if (attacker && !attacker.isInTokyo) {
-                this.enterTokyo(attacker);
+            if (actualAttackerId) {
+                const attacker = this.players.find(p => p.id === actualAttackerId);
+                if (attacker && !attacker.isInTokyo) {
+                    this.enterTokyo(attacker);
+                }
             }
         }
 
-        // Remove decision from pending
-        this.pendingDecisions = this.pendingDecisions.filter(d => d !== decision);
+        // Remove decision from pending (if it exists)
+        if (decision) {
+            this.pendingDecisions = this.pendingDecisions.filter(d => d !== decision);
+        }
     }
 
     // Get players currently in Tokyo
@@ -1972,7 +1979,7 @@ class KingOfTokyoGame {
         try {
             // Check if there are pending decisions that need to be resolved first
             if (this.pendingDecisions.length > 0) {
-                this.showMessage('Please resolve all pending decisions before ending turn.');
+                UIUtilities.showMessage('Please resolve all pending decisions before ending turn.');
                 return;
             }
 
