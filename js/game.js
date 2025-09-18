@@ -2019,11 +2019,11 @@ class KingOfTokyoGame {
         currentPlayer.startOfTurnEnergy = currentPlayer.energy;
         currentPlayer.startOfTurnHealth = currentPlayer.health;
         
-        console.log(`🎯 Applying start of turn effects for ${currentPlayer.monster.name}`);
-        console.log(`🏙️ Player is in Tokyo: ${currentPlayer.isInTokyo}`);
-        console.log(`🎮 Current Round: ${this.round}`);
-        console.log(`👥 Current Player Index: ${this.currentPlayerIndex}`);
-        console.log(`⭐ Player's current victory points: ${currentPlayer.victoryPoints}`);
+        window.UI && window.UI._debug && window.UI._debug(`🎯 Applying start of turn effects for ${currentPlayer.monster.name}`);
+        window.UI && window.UI._debug && window.UI._debug(`🏙️ Player is in Tokyo: ${currentPlayer.isInTokyo}`);
+        window.UI && window.UI._debug && window.UI._debug(`🎮 Current Round: ${this.round}`);
+        window.UI && window.UI._debug && window.UI._debug(`👥 Current Player Index: ${this.currentPlayerIndex}`);
+        window.UI && window.UI._debug && window.UI._debug(`⭐ Player's current victory points: ${currentPlayer.victoryPoints}`);
         
         // Apply start-of-turn effects for Tokyo occupants
         if (currentPlayer.isInTokyo) {
@@ -2037,7 +2037,7 @@ class KingOfTokyoGame {
             this.triggerEvent('statsUpdated', { player: currentPlayer });
             console.log(`⭐ Player's victory points after Tokyo bonus: ${currentPlayer.victoryPoints}`);
         } else {
-            console.log(`❌ ${currentPlayer.monster.name} is NOT in Tokyo, no points awarded`);
+            window.UI && window.UI._debug && window.UI._debug(`❌ ${currentPlayer.monster.name} is NOT in Tokyo, no points awarded`);
         }
 
         // Apply bonus rolls from power cards at start of turn

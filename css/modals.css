@@ -983,13 +983,14 @@
     box-shadow: 8px 8px 0px #000; /* Match storage mgmt shadow */
     max-width: 700px; /* Match storage mgmt width */
     width: 90%;
-    min-height: 95vh; /* Match storage mgmt height */
+    min-height: 60vh; /* Reduce min height to allow more flexibility */
     height: auto;
-    max-height: 95vh;
+    max-height: 90vh; /* Reduce max height to ensure it fits in viewport */
     position: relative;
     display: flex;
     flex-direction: column;
-    margin: 2.5vh 0;
+    margin: 5vh 0; /* Increase margin to center better */
+    overflow: hidden; /* Prevent content from bleeding outside */
 }
 
 .settings-header {
@@ -1018,10 +1019,13 @@
 
 .settings-body {
     flex: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
+    overflow-y: auto !important;
+    overflow-x: hidden;
+    display: block; /* Change from flex to block for better scrolling */
     padding: 20px;
+    min-height: 0;
+    max-height: calc(90vh - 200px); /* Account for header, padding, and actions */
+    height: calc(90vh - 200px); /* Force a specific height to trigger scrolling */
 }
 
 .settings-section {
@@ -1031,8 +1035,9 @@
     border-radius: 0;
     background: linear-gradient(135deg, #5D4037 0%, #6F4E37 100%); /* Match storage mgmt section color */
     box-shadow: 4px 4px 0px #000;
-    flex: 1;
+    flex-shrink: 0; /* Prevent shrinking */
     min-height: 0;
+    overflow: hidden; /* Contain content within section */
 }
 
 .settings-section h3 {
@@ -1079,6 +1084,9 @@
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.9); /* More opaque for better text readability */
     border: 2px solid rgba(0, 0, 0, 0.2);
+    overflow: hidden; /* Prevent content from bleeding out */
+    word-wrap: break-word;
+    box-sizing: border-box;
 }
 
 .settings-option > label {
@@ -1100,6 +1108,25 @@
     line-height: 1.3; /* Better line height */
     letter-spacing: 1px; /* Added letter spacing */
     text-shadow: none; /* Remove text shadow on light background */
+}
+
+.settings-note {
+    font-family: 'Bangers', cursive;
+    font-size: 1em !important; /* Slightly smaller than regular p */
+    color: #555 !important; /* Lighter color for note text */
+    margin: 8px 0 0 0 !important;
+    line-height: 1.4 !important;
+    letter-spacing: 0.5px !important;
+    text-shadow: none !important;
+    font-style: italic;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+    border-left: 3px solid #FFD700;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .settings-option input[type="checkbox"] {
@@ -2945,6 +2972,10 @@ body:has(#decision-modal:not(.hidden)) .player-dashboard.active {
     text-transform: uppercase;
 }
 
+.tab-btn .tab-label {
+    margin-left: 8px;
+}
+
 .tab-btn:first-child {
     margin-right: 2px;
 }
@@ -2982,56 +3013,308 @@ body:has(#decision-modal:not(.hidden)) .player-dashboard.active {
     overflow-y: auto;
 }
 
+/* AI Sub-tabs Styling */
+.ai-sub-tabs {
+    display: flex;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #000;
+}
+
+.ai-sub-tab-btn {
+    flex: 1;
+    padding: 8px 16px;
+    font-family: 'Bangers', cursive;
+    font-size: 14px;
+    font-weight: 900;
+    color: #000;
+    background: linear-gradient(135deg, #A0522D 0%, #CD853F 100%);
+    border: 2px solid #000;
+    border-bottom: none;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+}
+
+.ai-sub-tab-btn .tab-label {
+    margin-left: 6px;
+}
+
+.ai-sub-tab-btn:first-child {
+    margin-right: 1px;
+}
+
+.ai-sub-tab-btn:hover {
+    background: linear-gradient(135deg, #CD853F 0%, #DEB887 100%);
+    transform: translateY(-1px);
+}
+
+.ai-sub-tab-btn.active {
+    background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+    color: #ffffff !important;
+    text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 0 #000;
+}
+
+.ai-tab-content {
+    display: none;
+    flex: 1;
+    min-height: 0;
+}
+
+.ai-tab-content.active {
+    display: flex;
+    flex-direction: column;
+}
+
 /* AI Logic Entry Styling */
 .ai-logic-entry {
-    margin-bottom: 15px;
-    padding: 12px;
-    background: rgba(0, 0, 0, 0.1);
-    border: 2px solid #000;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.15);
+    border: 3px solid #000;
     border-radius: 0;
-    font-family: 'Arial', sans-serif;
+    font-family: 'Comic Neue', sans-serif; /* Match Game Flow font family */
+    font-size: 1em; /* Match Game Flow font size */
+    line-height: 1.5; /* Match Game Flow line height */
+    box-shadow: 2px 2px 0 #000;
 }
 
 .ai-logic-header {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 8px;
+    align-items: flex-start;
+    margin-bottom: 12px;
     font-weight: bold;
+}
+
+.ai-header-left {
+    display: flex;
+    flex-direction: column;
+}
+
+.ai-header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
 }
 
 .ai-timestamp {
     color: #ffffff;
     font-size: 12px;
+    opacity: 0.8;
 }
 
-.ai-player-name {
+.ai-player-name-large {
     color: #FFD700;
     font-family: 'Bangers', cursive;
-    font-size: 14px;
-    letter-spacing: 1px;
+    font-size: 18px;
+    letter-spacing: 2px;
+    text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+    margin-bottom: 4px;
+}
+
+.ai-player-status-visual {
+    color: #ffffff;
+    font-size: 13px;
+    font-family: 'Arial', sans-serif;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 4px 8px;
+    border-radius: 0;
+    border: 1px solid #000;
 }
 
 .ai-decision-summary {
-    margin-bottom: 6px;
+    margin-bottom: 10px;
     color: #ffffff;
     font-weight: bold;
+    font-size: 1em; /* Match Game Flow font size */
 }
 
-.ai-reasoning {
-    margin-bottom: 6px;
-    color: #E0E0E0;
+.ai-reasoning-section {
+    margin-bottom: 10px;
 }
 
-.ai-dice-analysis {
+.ai-reasoning-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     color: #E0E0E0;
+    margin-bottom: 4px;
+}
+
+.ai-info-btn {
+    background: #6F4E37;
+    border: 2px solid #000;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    font-size: 12px;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.ai-info-btn:hover {
+    background: #8B4513;
+    transform: scale(1.1);
+}
+
+.ai-dice-analysis-section {
+    margin-bottom: 8px;
+}
+
+.ai-dice-analysis-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #E0E0E0;
+    cursor: pointer;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: 8px;
+}
+
+.ai-dice-analysis-header:hover {
+    color: #ffffff;
+}
+
+.ai-toggle-arrow {
+    color: #ffffff;
     font-size: 14px;
-    margin-bottom: 6px;
+    transition: transform 0.2s ease;
 }
 
-.ai-player-status {
-    color: #B8E6B8;
-    font-size: 13px;
-    font-weight: normal;
+.ai-dice-analysis-content {
+    display: none;
+    color: #E0E0E0;
+    font-size: 1em; /* Match Game Flow font size */
+    line-height: 1.5; /* Match Game Flow line height */
+    background: rgba(0, 0, 0, 0.2);
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 8px;
+}
+
+/* Enhanced Dice Analysis Styling */
+.dice-images-section {
+    margin-bottom: 15px;
+}
+
+.dice-images-section h4 {
+    color: #FFD700;
+    font-family: 'Bangers', cursive;
+    font-size: 14px;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+}
+
+.dice-face-display {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    margin: 2px;
+    border: 2px solid #000;
+    background: #ffffff;
+    color: #000;
+    font-weight: bold;
+    font-size: 16px;
+    text-align: center;
+    line-height: 28px;
+    border-radius: 4px;
+    box-shadow: 1px 1px 0 #000;
+}
+
+.dice-face-display.face-one { background: #FFE4B5; }
+.dice-face-display.face-two { background: #FFE4B5; }
+.dice-face-display.face-three { background: #FFE4B5; }
+.dice-face-display.face-attack { background: #FF6B6B; color: #fff; }
+.dice-face-display.face-energy { background: #4ECDC4; color: #fff; }
+.dice-face-display.face-heal { background: #FF69B4; color: #fff; }
+
+.dice-explanation-section {
+    margin-bottom: 15px;
+    font-size: 1em; /* Match Game Flow font size */
+    line-height: 1.5; /* Match Game Flow line height */
+}
+
+.dice-explanation-section h4 {
+    color: #FFD700;
+    font-family: 'Bangers', cursive;
+    font-size: 16px; /* Increased from 14px */
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+}
+
+/* AI Logic Flow specific dice styling */
+.die.ai-logic-die {
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 14px !important;
+    margin: 0 4px 4px 0 !important;
+    display: inline-block !important;
+    border: 2px solid #000 !important;
+    box-shadow: 2px 2px 0px #000 !important;
+}
+
+.probability-section {
+    margin-bottom: 10px;
+}
+
+.probability-section h4 {
+    color: #FFD700;
+    font-family: 'Bangers', cursive;
+    font-size: 14px;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+}
+
+.probability-chart {
+    margin-bottom: 8px;
+}
+
+.prob-label {
+    color: #ffffff;
+    font-size: 12px;
+    margin-bottom: 4px;
+}
+
+.prob-bar-container {
+    position: relative;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid #000;
+    height: 16px;
+    width: 100%;
+}
+
+.prob-bar {
+    background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%);
+    height: 100%;
+    transition: width 0.3s ease;
+    border-right: 1px solid #000;
+}
+
+.prob-text {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #000;
+    font-size: 11px;
+    font-weight: bold;
+    text-shadow: 1px 1px 0 #fff;
 }
 
 .game-log-empty {
@@ -5334,5 +5617,387 @@ body.dark-mode .quick-ref-item {
         width: 100%;
         max-width: 200px;
     }
+}
+
+/* AI Reasoning Info Modal */
+.ai-reasoning-info-content {
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    background: linear-gradient(135deg, #D2B48C 0%, #F5DEB3 100%); /* Light tan color like existing buttons */
+    border: 4px solid #000;
+    border-radius: 0;
+    box-shadow: 8px 8px 0px #000;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.ai-reasoning-info-content .modal-header {
+    background: rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    border-bottom: 3px solid #000;
+    margin-bottom: 0;
+}
+
+.ai-reasoning-info-content .modal-header h3 {
+    font-family: 'Bangers', cursive;
+    font-size: 1.4em;
+    margin: 0;
+    color: #000;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.ai-reasoning-info-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    color: #000;
+    font-family: 'Arial', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.detailed-reasoning-content {
+    color: #000;
+}
+
+.detailed-reasoning-content h4 {
+    font-family: 'Bangers', cursive;
+    font-size: 16px;
+    color: #654321;
+    margin: 15px 0 8px 0;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-bottom: 2px solid #654321;
+    padding-bottom: 4px;
+}
+
+.reasoning-header h4:first-child {
+    margin-top: 0;
+}
+
+.detailed-reasoning-content p {
+    margin: 8px 0;
+    color: #000;
+}
+
+.detailed-reasoning-content strong {
+    color: #654321;
+    font-weight: bold;
+}
+
+.reasoning-situation,
+.reasoning-logic,
+.reasoning-summary {
+    margin-bottom: 20px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.05);
+    border: 2px solid #654321;
+    border-radius: 0;
+}
+
+/* AI Logic Entry Styling - Updated for simplified structure */
+.ai-logic-entry {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.15);
+    border: 3px solid #000;
+    border-radius: 0;
+    font-family: 'Arial', sans-serif;
+    box-shadow: 2px 2px 0 #000;
+}
+
+.ai-logic-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.2);
+}
+
+.ai-timestamp {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 12px;
+}
+
+.ai-player-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.ai-player-name-large {
+    color: #FFD700;
+    font-family: 'Bangers', cursive;
+    font-size: 20px;
+    letter-spacing: 2px;
+    text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+}
+
+.ai-player-status-visual {
+    color: #ffffff;
+    font-size: 15px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 6px 10px;
+    border: 1px solid #000;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.ai-rolls-container {
+    padding: 0;
+}
+
+.ai-roll-entry {
+    padding: 15px;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.2);
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.ai-roll-entry:last-child {
+    border-bottom: none;
+}
+
+.ai-roll-header {
+    font-weight: bold;
+    color: #FFD700;
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-family: 'Bangers', cursive;
+    letter-spacing: 1px;
+    text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+}
+
+.ai-decision-section,
+.ai-reasoning-section {
+    margin-bottom: 12px;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #ffffff;
+}
+
+.ai-decision-section strong,
+.ai-reasoning-section strong {
+    color: #ffffff;
+    margin-right: 5px;
+}
+
+.ai-info-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: white;
+    color: black;
+    text-align: center;
+    line-height: 16px;
+    font-size: 11px;
+    font-weight: bold;
+    border: 2px solid #000;
+    cursor: pointer;
+    margin-left: 5px;
+    font-family: Arial, sans-serif;
+    box-shadow: 1px 1px 0 #000;
+}
+
+.ai-info-icon:hover {
+    background: #f0f0f0;
+    transform: scale(1.1);
+}
+
+.ai-dice-analysis-section {
+    margin-top: 15px;
+}
+
+.ai-dice-analysis-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    padding: 8px 0;
+    font-size: 14px;
+    font-weight: bold;
+    color: #ffffff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: 10px;
+}
+
+.ai-dice-analysis-header:hover {
+    color: #FFD700;
+}
+
+.ai-toggle-arrow {
+    color: #FFD700;
+    font-size: 12px;
+    transition: transform 0.2s ease;
+}
+
+.ai-dice-analysis-content {
+    display: none;
+    padding: 15px;
+    color: #E0E0E0;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 8px;
+}
+
+/* Simplified dice display styling */
+.dice-images-section {
+    margin-bottom: 15px;
+    padding: 0;
+}
+
+.dice-images-section h4,
+.dice-explanation-section h4,
+.probability-section h4 {
+    color: #FFD700;
+    font-size: 12px;
+    margin: 0 0 8px 0;
+    font-weight: bold;
+    font-family: 'Bangers', cursive;
+    letter-spacing: 1px;
+}
+
+.dice-explanation-section,
+.probability-section {
+    margin-top: 15px;
+    font-size: 13px;
+    line-height: 1.4;
+    padding: 0;
+}
+
+.dice-face-display {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    margin: 3px;
+    text-align: center;
+    line-height: 32px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    border: 2px solid #000;
+    box-shadow: 2px 2px 0 #000;
+    background: #f5f5f5;
+    color: #333;
+}
+
+.dice-face-display.face-1 {
+    background: linear-gradient(135deg, #4CAF50, #66BB6A);
+    color: white;
+    border-color: #2E7D32;
+}
+
+.dice-face-display.face-2 {
+    background: linear-gradient(135deg, #2196F3, #42A5F5);
+    color: white;
+    border-color: #1565C0;
+}
+
+.dice-face-display.face-3 {
+    background: linear-gradient(135deg, #FF9800, #FFA726);
+    color: white;
+    border-color: #E65100;
+}
+
+.dice-face-display.face-attack {
+    background: linear-gradient(135deg, #f44336, #EF5350);
+    color: white;
+    border-color: #C62828;
+    font-size: 16px;
+}
+
+.dice-face-display.face-energy {
+    background: linear-gradient(135deg, #FFD700, #FFEB3B);
+    color: #333;
+    border-color: #F57F17;
+    font-size: 16px;
+}
+
+.dice-face-display.face-heal {
+    background: linear-gradient(135deg, #E91E63, #EC407A);
+    color: white;
+    border-color: #AD1457;
+    font-size: 16px;
+}
+
+/* Legacy classes for backwards compatibility */
+.dice-face-display.face-one {
+    background: linear-gradient(135deg, #4CAF50, #66BB6A);
+    color: white;
+    border-color: #2E7D32;
+}
+
+.dice-face-display.face-two {
+    background: linear-gradient(135deg, #2196F3, #42A5F5);
+    color: white;
+    border-color: #1565C0;
+}
+
+.dice-face-display.face-three {
+    background: linear-gradient(135deg, #FF9800, #FFA726);
+    color: white;
+    border-color: #E65100;
+}
+
+.dice-explanation-section,
+.probability-section {
+    margin-top: 10px;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+/* Simplified probability charts */
+.probability-chart {
+    margin: 8px 0;
+    font-size: 12px;
+}
+
+.prob-label {
+    color: #E0E0E0;
+    margin-bottom: 3px;
+    font-size: 11px;
+}
+
+.prob-bar-container {
+    position: relative;
+    background: rgba(0, 0, 0, 0.3);
+    height: 16px;
+    border-radius: 0;
+    overflow: hidden;
+    border: 1px solid #000;
+    width: 60%;
+    max-width: 300px;
+}
+
+.prob-bar {
+    height: 100%;
+    background: linear-gradient(to right, #4CAF50, #8BC34A);
+    transition: width 0.3s ease;
+    max-width: 100%;
+}
+
+.prob-text {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
 }
 

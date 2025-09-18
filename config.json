@@ -15,6 +15,10 @@
       "tokyoEntryBonus": 1,
       "specialActionBonus": 2,
       "description": "Point awards for various actions"
+    },
+    "ai": {
+      "enableAIMode": false,
+      "description": "Enable advanced AI decision-making for CPU players (false = simple mode, always 3 rolls)"
     }
   },
   "diceSystem": {

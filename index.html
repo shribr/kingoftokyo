@@ -345,8 +345,8 @@
             
             <!-- Tab Navigation -->
             <div class="log-tabs">
-                <button class="tab-btn active" data-tab="game-flow">📝 Game Flow</button>
-                <button class="tab-btn" data-tab="ai-logic">🧠 AI Logic Flow</button>
+                <button class="tab-btn active" data-tab="game-flow">📝 <span class="tab-label"></span>Game Flow</span></button>
+                <button class="tab-btn" data-tab="ai-logic">🧠 <span class="tab-label">AI Logic Flow</span></button>
             </div>
             
             <div class="game-log-container">
@@ -715,6 +715,14 @@
                     
                     <div class="settings-option">
                         <label>
+                            <input type="checkbox" id="ai-mode-toggle">
+                            🤖 Enable AI Mode
+                        </label>
+                        <p class="settings-note">Temporarily override config.json setting. Default AI mode is controlled by config.json (currently: simple mode). When enabled, CPU uses advanced AI; when disabled, CPU always rolls 3 times.</p>
+                    </div>
+                    
+                    <div class="settings-option">
+                        <label>
                             <input type="checkbox" id="dark-mode-toggle">
                             🌙 Dark Mode
                         </label>
@@ -752,6 +760,19 @@
     
     <script src="js/game.js"></script>
     <script>console.log('✅ game.js loaded, KingOfTokyoGame available:', typeof KingOfTokyoGame !== 'undefined');</script>
+    
+    <!-- AI Reasoning Info Modal -->
+    <div id="ai-reasoning-info-modal" class="modal hidden">
+        <div class="modal-content ai-reasoning-info-content">
+            <div class="modal-header">
+                <h3>AI Reasoning Details</h3>
+                <button class="close-btn" id="close-ai-reasoning-info">×</button>
+            </div>
+            <div class="ai-reasoning-info-body" id="ai-reasoning-info-body">
+                <!-- Detailed reasoning content will be populated here -->
+            </div>
+        </div>
+    </div>
     
     <script src="js/main.js"></script>
 </body>

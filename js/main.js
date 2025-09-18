@@ -339,6 +339,7 @@ class KingOfTokyoUI {
             resetSettingsBtn: document.getElementById('reset-settings'),
             cpuSpeedRadios: document.querySelectorAll('input[name="cpu-speed"]'),
             thoughtBubblesToggle: document.getElementById('thought-bubbles-toggle'),
+            aiModeToggle: document.getElementById('ai-mode-toggle'),
             closeInstructionsBtn: document.getElementById('close-instructions'),
             closeGameOverBtn: document.getElementById('close-game-over'),
             darkModeToggle: document.getElementById('dark-mode-toggle'),
@@ -526,6 +527,24 @@ class KingOfTokyoUI {
         this.elements.closeGameLogBtn.addEventListener('click', () => {
             UIUtilities.hideModal(this.elements.gameLogModal);
         });
+
+        // AI Reasoning Info Modal close button
+        const closeAIReasoningInfoBtn = document.getElementById('close-ai-reasoning-info');
+        if (closeAIReasoningInfoBtn) {
+            closeAIReasoningInfoBtn.addEventListener('click', () => {
+                const modal = document.getElementById('ai-reasoning-info-modal');
+                if (modal) {
+                    modal.classList.add('hidden');
+                }
+            });
+        }
+
+        // Close AI reasoning modal when clicking outside
+        const aiReasoningModal = document.getElementById('ai-reasoning-info-modal');
+        if (aiReasoningModal) {
+            UIUtilities.safeAddEventListener(aiReasoningModal, 'click', 
+                UIUtilities.createModalClickOutsideHandler(aiReasoningModal));
+        }
 
         // Check if export button exists before adding event listener
         if (this.elements.exportLogsBtn) {
@@ -1058,7 +1077,7 @@ class KingOfTokyoUI {
                 break;
             case 'turnEnded':
                 this._debug('TURN ENDED EVENT - Critical debugging point!');
-                console.log('🏁 Current player before cleanup:', this.game?.getCurrentPlayer()?.monster?.name);
+                window.UI && window.UI._debug && window.UI._debug('🏁 Current player before cleanup:', this.game?.getCurrentPlayer()?.monster?.name);
                 console.log('🏁 Game state before cleanup:', {
                     phase: this.game?.gamePhase,
                     turnPhase: this.game?.currentTurnPhase,
@@ -1131,7 +1150,7 @@ class KingOfTokyoUI {
                     !currentPlayer.isEliminated && 
                     !this.cpuTurnState) { // Don't start if CPU turn already in progress
                     
-                    console.log('🤖 Current player is CPU, starting automatic turn in 2 seconds...');
+                    window.UI && window.UI._debug && window.UI._debug('🤖 Current player is CPU, starting automatic turn in 2 seconds...');
                     setTimeout(() => {
                         // Triple-check that it's still the same CPU player's turn and no other CPU turn is active
                         const stillCurrentPlayer = this.game.getCurrentPlayer();
@@ -1141,7 +1160,7 @@ class KingOfTokyoUI {
                             !stillCurrentPlayer.isEliminated &&
                             !this.cpuTurnState &&
                             !this.game.switchingPlayers) { // Ensure no player switching in progress
-                            console.log('🤖 Executing startAutomaticCPUTurn for:', currentPlayer.monster.name);
+                            window.UI && window.UI._debug && window.UI._debug('🤖 Executing startAutomaticCPUTurn for:', currentPlayer.monster.name);
                             this.startAutomaticCPUTurn(currentPlayer);
                         } else {
                             console.log('🤖 CPU turn cancelled - conditions changed:', {
@@ -1421,7 +1440,7 @@ class KingOfTokyoUI {
         this._debug('TOKYO DEBUG: Found card:', !!newActiveCard);
         
         if (newActiveCard) {
-            console.log('🚀 Activating new current player:', currentPlayer.monster.name);
+            window.UI && window.UI._debug && window.UI._debug('🚀 Activating new current player:', currentPlayer.monster.name);
             const playerIndex = players.findIndex(p => p.id === currentPlayer.id);
             this._moveToActivePosition(newActiveCard, playerIndex);
         } else {
@@ -1479,7 +1498,7 @@ class KingOfTokyoUI {
     
     // Store original position and move card to active position
     _moveToActivePosition(dashboard, originalIndex) {
-        console.log('📍 Moving player to active position:', dashboard.dataset.playerId);
+        window.UI && window.UI._debug && window.UI._debug('📍 Moving player to active position:', dashboard.dataset.playerId);
         
         // Remove hover events for active player
         this._removeHoverEvents(dashboard);
@@ -1849,7 +1868,7 @@ class KingOfTokyoUI {
         
         // Add draggable to active player
         const activePlayerDashboard = document.querySelector(`.player-dashboard[data-player-id="${activePlayerId}"]`);
-        console.log('🎯 Setting up active player dragging for:', activePlayerId);
+        window.UI && window.UI._debug && window.UI._debug('🎯 Setting up active player dragging for:', activePlayerId);
         
         if (activePlayerDashboard) {
             window.UI && window.UI._debug && window.UI._debug('📋 Classes before:', activePlayerDashboard.className);
@@ -3258,7 +3277,7 @@ class KingOfTokyoUI {
 
     // Update turn phase
     updateTurnPhase(data) {
-        console.log('updateTurnPhase called with data:', data);
+        window.UI && window.UI._debug && window.UI._debug('updateTurnPhase called with data:', data);
         const phase = data.phase || data; // Handle both object and string formats
         console.log('Updating to phase:', phase);
         
@@ -3969,14 +3988,14 @@ class KingOfTokyoUI {
 
     // Animation helper functions
     animatePlayerAttacked(playerId) {
-        console.log('🔥 animatePlayerAttacked called for player:', playerId);
-        console.trace('🔥 Stack trace for animatePlayerAttacked:');
+        window.UI && window.UI._debug && window.UI._debug('🔥 animatePlayerAttacked called for player:', playerId);
+        window.UI && window.UI._debugVerbose && console.trace('🔥 Stack trace for animatePlayerAttacked:');
         
         // Find player element using utility function
         const playerElement = this.findPlayerElement(playerId);
         
         if (playerElement) {
-            console.log('🔥 Found player element:', playerElement);
+            window.UI && window.UI._debug && window.UI._debug('🔥 Found player element:', playerElement);
             window.UI && window.UI._debug && window.UI._debug('🔥 Element classes before animation:', Array.from(playerElement.classList));
             
             // Clear any existing attack animation first to prevent conflicts
@@ -4031,7 +4050,7 @@ class KingOfTokyoUI {
 
     // Force cleanup of any stuck attack animations
     clearAllAttackAnimations() {
-        console.log('🔥 Clearing all attack animations...');
+        window.UI && window.UI._debug && window.UI._debug('🔥 Clearing all attack animations...');
         const allPlayerElements = document.querySelectorAll('[data-player-id]');
         allPlayerElements.forEach(element => {
             if (element.classList.contains('player-attacked')) {
@@ -4144,6 +4163,31 @@ class KingOfTokyoUI {
                 this.switchLogTab(targetTab);
             });
         });
+
+        // Initialize AI sub-tabs
+        const aiSubTabButtons = document.querySelectorAll('.ai-sub-tab-btn');
+        
+        aiSubTabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetTab = button.getAttribute('data-ai-tab');
+                this.switchAISubTab(targetTab);
+            });
+        });
+    }
+
+    // Switch between AI Decision and Reasoning sub-tabs
+    switchAISubTab(targetTab) {
+        // Update AI sub-tab buttons
+        document.querySelectorAll('.ai-sub-tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.querySelector(`[data-ai-tab="${targetTab}"]`).classList.add('active');
+
+        // Update AI sub-tab content
+        document.querySelectorAll('.ai-tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        document.getElementById(`ai-${targetTab}-tab`).classList.add('active');
     }
 
     // Switch between Game Flow and AI Logic tabs
@@ -4166,32 +4210,62 @@ class KingOfTokyoUI {
         if (!this.elements.aiLogContent) return;
 
         const timestamp = new Date().toLocaleTimeString();
-        const logEntry = document.createElement('div');
-        logEntry.className = 'ai-logic-entry';
         
         // Parse the analysis to extract detailed information
         const analysisData = this.parseAIAnalysis(analysis);
         
-        logEntry.innerHTML = `
+        // Create unique IDs for this entry
+        const entryId = `ai-entry-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const diceAnalysisId = `dice-analysis-${entryId}`;
+        
+        // Get rolls remaining for the header
+        const rollsRemaining = this.getRollsRemaining(analysisData.playerStatus);
+        const rollText = rollsRemaining > 0 ? ` (${rollsRemaining} rolls left)` : '';
+        
+        // Each AI logic call represents a single decision/roll, so create individual entries
+        const aiEntry = document.createElement('div');
+        aiEntry.className = 'ai-logic-entry';
+        
+        aiEntry.innerHTML = `
             <div class="ai-logic-header">
-                <span class="ai-timestamp">${timestamp}</span>
-                <span class="ai-player-name">${playerName}</span>
+                <div class="ai-timestamp">${timestamp}</div>
+                <div class="ai-player-info">
+                    <div class="ai-player-name-large">${playerName}${rollText}</div>
+                    <div class="ai-player-status-visual">${this.formatPlayerStatusWithEmojis(analysisData.playerStatus)}</div>
+                </div>
             </div>
-            <div class="ai-decision-summary">
-                <strong>Decision:</strong> ${decision.action === 'reroll' ? 'Continue Rolling' : 'Stop and Keep Dice'}
+            
+            <div class="ai-decision-section">
+                <strong>⚖️ Decision:</strong> ${decision.action === 'reroll' ? 'Continue Rolling' : 'Stop and Keep Dice'}
             </div>
-            <div class="ai-reasoning">
-                <strong>Reasoning:</strong> ${decision.reason}
+            
+            <div class="ai-reasoning-section">
+                <strong>🤔 Reasoning:</strong> ${decision.reason} <span class="ai-info-icon" data-reasoning-id="${entryId}">i</span>
             </div>
-            <div class="ai-dice-analysis">
-                <strong>Dice Analysis:</strong> ${analysisData.diceBreakdown}
-            </div>
-            <div class="ai-player-status">
-                <strong>Player Status:</strong> ${analysisData.playerStatus}
+            
+            <div class="ai-dice-analysis-section">
+                <div class="ai-dice-analysis-header" data-toggle="${diceAnalysisId}">
+                    <strong>Dice Analysis</strong>
+                    <span class="ai-toggle-arrow">▲</span>
+                </div>
+                <div class="ai-dice-analysis-content" id="${diceAnalysisId}">
+                    ${this.generateEnhancedDiceAnalysis(analysisData, decision)}
+                </div>
             </div>
         `;
 
-        this.elements.aiLogContent.appendChild(logEntry);
+        // Store detailed reasoning data for the info modal
+        aiEntry.setAttribute('data-detailed-reasoning', JSON.stringify({
+            playerName,
+            decision,
+            analysisData,
+            timestamp
+        }));
+
+        this.elements.aiLogContent.appendChild(aiEntry);
+        
+        // Add event listeners for the new functionality
+        this.setupAILogicEntryEvents(aiEntry);
         
         // Auto-scroll to bottom if tab is active
         if (document.getElementById('ai-logic-tab').classList.contains('active')) {
@@ -4209,6 +4283,461 @@ class KingOfTokyoUI {
             diceBreakdown: diceResults || 'No significant dice combinations',
             playerStatus: playerStatus || 'Status unknown'
         };
+    }
+
+    // Format player status with emojis for visual display
+    formatPlayerStatusWithEmojis(statusText) {
+        if (!statusText) return 'Status Unknown';
+        
+        // Get max health from config, fallback to 10
+        const maxHealth = this.gameConfig?.gameRules?.player?.startingHealth || 10;
+        
+        // Extract health, energy, VP from status text (exclude rolls)
+        const healthMatch = statusText.match(/Health:\s*(\d+)\/(\d+)/);
+        const energyMatch = statusText.match(/Energy:\s*(\d+)/);
+        const vpMatch = statusText.match(/VP:\s*(\d+)/);
+        
+        const health = healthMatch ? parseInt(healthMatch[1]) : 0;
+        const energy = energyMatch ? parseInt(energyMatch[1]) : 0;
+        const vp = vpMatch ? parseInt(vpMatch[1]) : 0;
+        
+        // Use consistent game icons with better spacing - no VP text since star represents it
+        const statusParts = [
+            `❤️ ${health}/${maxHealth}`,
+            `⚡ ${energy}`,
+            `⭐ ${vp}`
+        ];
+        
+        return statusParts.join(' • ');
+    }
+
+    // Get rolls remaining from status text
+    getRollsRemaining(statusText) {
+        const rollsMatch = statusText.match(/Rolls Left:\s*(\d+)/);
+        return rollsMatch ? parseInt(rollsMatch[1]) : 0;
+    }
+
+    // Generate enhanced dice analysis with images and probability charts
+    generateEnhancedDiceAnalysis(analysisData, decision) {
+        // Extract dice information from the analysis
+        const diceMatch = analysisData.diceBreakdown.match(/Rolled:\s*\[([^\]]+)\]/);
+        if (!diceMatch) {
+            return '<p>No dice data available for analysis.</p>';
+        }
+        
+        const diceArray = diceMatch[1].split(',').map(d => d.trim());
+        
+        // Generate dice images HTML with standard styling
+        const diceImagesHtml = this.generateDiceImagesHtml(diceArray);
+        
+        // Generate conversational analysis
+        const conversationalAnalysis = this.generateConversationalDiceAnalysis(diceArray, decision);
+        
+        // Generate probability charts for numbers
+        const probabilityCharts = this.generateProbabilityCharts(diceArray, decision);
+        
+        return `
+            <div class="dice-images-section">
+                <h4>Current Roll:</h4>
+                ${diceImagesHtml}
+            </div>
+            <div class="dice-explanation-section">
+                <h4>Analysis:</h4>
+                ${conversationalAnalysis}
+            </div>
+            <div class="probability-section">
+                <h4>Reroll Probability:</h4>
+                ${probabilityCharts}
+            </div>
+        `;
+    }
+
+    // Generate dice images HTML using the standard createDiceHTML function
+    generateDiceImagesHtml(diceArray) {
+        // Filter out empty/unused dice (empty strings or undefined values)
+        const activeDice = diceArray.filter(face => face && face.trim() !== '');
+        
+        // Convert to dice data format expected by createDiceHTML
+        const diceData = activeDice.map((face, index) => ({
+            id: `ai-dice-${index}`,
+            symbol: this.getDiceFaceDisplay(face),
+            face: face,
+            isSelected: false,
+            isRolling: false,
+            isDisabled: false,
+            className: 'ai-logic-die' // Add specific class for AI logic dice
+        }));
+        
+        // Use the existing createDiceHTML function if available
+        if (window.createDiceHTML) {
+            return window.createDiceHTML(diceData);
+        }
+        
+        // Fallback to simple generation with AI-specific class if createDiceHTML not available
+        return diceData.map(die => 
+            `<div class="die ai-logic-die">${die.symbol}</div>`
+        ).join('');
+    }
+
+    // Get CSS class for dice face
+    getDiceFaceClass(face) {
+        // Use config if available, otherwise fallback to hardcoded
+        if (this.gameConfig && this.gameConfig.diceSystem && this.gameConfig.diceSystem.faces) {
+            const faces = this.gameConfig.diceSystem.faces;
+            
+            // Check each face type in config
+            for (const [faceKey, faceConfig] of Object.entries(faces)) {
+                if (face === faceKey || face === faceConfig.symbol) {
+                    return `face-${faceKey}`;
+                }
+            }
+        }
+        
+        // Fallback for backwards compatibility
+        const faceMap = {
+            '1': 'face-1',
+            '2': 'face-2',
+            '3': 'face-3',
+            '⚔️': 'face-attack',
+            'attack': 'face-attack',
+            '⚡': 'face-energy',
+            'energy': 'face-energy',
+            '❤️': 'face-heal',
+            'heal': 'face-heal'
+        };
+        return faceMap[face] || 'face-unknown';
+    }
+
+    // Get display value for dice face (use symbols for special faces)
+    getDiceFaceDisplay(face) {
+        // Use config if available
+        if (this.gameConfig && this.gameConfig.diceSystem && this.gameConfig.diceSystem.faces) {
+            const faces = this.gameConfig.diceSystem.faces;
+            
+            // Check each face type in config
+            for (const [faceKey, faceConfig] of Object.entries(faces)) {
+                if (face === faceKey || face === faceConfig.symbol) {
+                    return faceConfig.symbol;
+                }
+            }
+        }
+        
+        // Fallback for backwards compatibility
+        const displayMap = {
+            '1': '1',
+            '2': '2',
+            '3': '3',
+            '⚔️': '⚔️',
+            'attack': '⚔️',
+            '⚡': '⚡',
+            'energy': '⚡',
+            '❤️': '❤️',
+            'heal': '❤️'
+        };
+        return displayMap[face] || face;
+    }
+
+    // Generate conversational dice analysis
+    generateConversationalDiceAnalysis(diceArray, decision) {
+        const counts = {};
+        diceArray.forEach(face => {
+            counts[face] = (counts[face] || 0) + 1;
+        });
+
+        const analysis = [];
+        
+        // Get dice faces from config
+        const faces = this.gameConfig?.diceSystem?.faces || {};
+        
+        // Analyze numbers for victory points (1, 2, 3)
+        Object.entries(faces).forEach(([faceKey, faceConfig]) => {
+            if (faceConfig.type === 'number') {
+                const symbol = faceConfig.symbol;
+                const value = faceConfig.value;
+                const count = counts[symbol] || counts[faceKey] || 0;
+                
+                if (count >= 3) {
+                    const extraPoints = (count - 3) * 1;
+                    const totalPoints = value + extraPoints;
+                    analysis.push(`Looking good! ${count} ${symbol}s give you ${totalPoints} victory points.`);
+                } else if (count === 2) {
+                    analysis.push(`You're close with ${count} ${symbol}s - just need one more for victory points.`);
+                } else if (count === 1) {
+                    analysis.push(`Single ${symbol} - might be worth keeping if you need ${symbol}s for points.`);
+                }
+            }
+        });
+
+        // Analyze special dice (attack, energy, heal)
+        Object.entries(faces).forEach(([faceKey, faceConfig]) => {
+            if (faceConfig.type !== 'number') {
+                const symbol = faceConfig.symbol;
+                const count = counts[symbol] || counts[faceKey] || 0;
+                
+                if (count > 0) {
+                    let description = faceConfig.description || '';
+                    analysis.push(`${count} ${symbol} dice - ${description}`);
+                }
+            }
+        });
+
+        return analysis.length > 0 ? analysis.join(' ') : 'This roll doesn\'t show any strong patterns - might want to reroll for better combinations.';
+    }
+
+    // Generate probability charts for getting specific numbers in future rolls
+    generateProbabilityCharts(diceArray, decision) {
+        const counts = {};
+        diceArray.forEach(face => {
+            counts[face] = (counts[face] || 0) + 1;
+        });
+
+        const totalDice = diceArray.length;
+        const remainingRolls = decision.rollsRemaining || 2;
+        
+        let charts = '';
+        
+        // Get number faces from config
+        const faces = this.gameConfig?.diceSystem?.faces || {};
+        const numberFaces = Object.entries(faces).filter(([_, config]) => config.type === 'number');
+        
+        // Generate charts for number faces
+        numberFaces.forEach(([faceKey, faceConfig]) => {
+            const symbol = faceConfig.symbol;
+            const value = faceConfig.value;
+            const currentCount = counts[symbol] || counts[faceKey] || 0;
+            const neededForPoints = Math.max(0, 3 - currentCount);
+            
+            if (currentCount > 0 || neededForPoints <= 3) {
+                // Calculate probability for next roll(s)
+                const diceToReroll = totalDice - currentCount; // Assuming player keeps their current numbers
+                const probabilityPerRoll = 1/6; // Each die has 1/6 chance of rolling the target number
+                
+                // Simplified probability calculation for getting at least the needed dice
+                let probability = 0;
+                if (neededForPoints === 0) {
+                    probability = 100; // Already have enough
+                } else if (neededForPoints <= diceToReroll && remainingRolls > 0) {
+                    // Approximate probability (simplified calculation)
+                    probability = Math.min(95, (1 - Math.pow(5/6, diceToReroll * remainingRolls)) * 100);
+                }
+                
+                charts += this.generateSingleProbabilityChart(symbol, currentCount, neededForPoints, probability, value);
+            }
+        });
+        
+        return charts || '<p>No significant number patterns to analyze for probability.</p>';
+    }
+
+    // Generate a single probability chart bar
+    generateSingleProbabilityChart(symbol, current, needed, probability, points = null) {
+        // Use points from parameter if provided, otherwise derive from symbol
+        const victoryPoints = points !== null ? points : (symbol === '1' ? 1 : parseInt(symbol));
+        const status = needed === 0 ? 'Complete!' : `Need ${needed} more`;
+        
+        return `
+            <div class="probability-chart">
+                <div class="prob-label">${symbol}s (${victoryPoints}VP): ${current} rolled, ${status}</div>
+                <div class="prob-bar-container">
+                    <div class="prob-bar" style="width: ${probability}%"></div>
+                    <span class="prob-text">${Math.round(probability)}%</span>
+                </div>
+            </div>
+        `;
+    }
+
+    // Setup event listeners for AI logic entry interactions
+    setupAILogicEntryEvents(logEntry) {
+        // Dice analysis toggle
+        const toggleHeader = logEntry.querySelector('.ai-dice-analysis-header');
+        const toggleContent = logEntry.querySelector('.ai-dice-analysis-content');
+        const toggleArrow = logEntry.querySelector('.ai-toggle-arrow');
+        
+        if (toggleHeader && toggleContent && toggleArrow) {
+            toggleHeader.addEventListener('click', () => {
+                const isVisible = toggleContent.style.display === 'block';
+                toggleContent.style.display = isVisible ? 'none' : 'block';
+                // Fixed: ▲ means collapsed (up arrow), ▼ means expanded (down arrow)
+                toggleArrow.textContent = isVisible ? '▲' : '▼';
+            });
+            
+            // Start with dice analysis collapsed
+            toggleContent.style.display = 'none';
+            toggleArrow.textContent = '▲';
+        }
+        
+        // Info icon for reasoning details
+        const infoIcon = logEntry.querySelector('.ai-info-icon');
+        if (infoIcon) {
+            infoIcon.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.showReasoningInfoModal(logEntry);
+            });
+        }
+
+        // Legacy support for old info button
+        const infoBtn = logEntry.querySelector('.ai-info-btn');
+        if (infoBtn) {
+            infoBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.showReasoningInfoModal(logEntry);
+            });
+        }
+    }
+
+    // Show detailed reasoning info modal
+    showReasoningInfoModal(logEntry) {
+        const detailedData = JSON.parse(logEntry.getAttribute('data-detailed-reasoning'));
+        const modal = document.getElementById('ai-reasoning-info-modal');
+        const modalBody = document.getElementById('ai-reasoning-info-body');
+        
+        if (!modal || !modalBody || !detailedData) return;
+        
+        // Generate detailed reasoning content
+        const content = this.generateDetailedReasoning(detailedData);
+        modalBody.innerHTML = content;
+        
+        // Show modal
+        modal.classList.remove('hidden');
+    }
+
+    // Generate detailed reasoning content with personality analysis
+    generateDetailedReasoning(data) {
+        const { playerName, decision, analysisData, timestamp } = data;
+        
+        // Extract dice information
+        const diceMatch = analysisData.diceBreakdown.match(/Rolled:\s*\[([^\]]+)\]/);
+        const diceArray = diceMatch ? diceMatch[1].split(',').map(d => d.trim()) : [];
+        
+        // Extract player status
+        const statusText = analysisData.playerStatus;
+        const maxHealth = this.gameConfig?.gameRules?.player?.startingHealth || 10;
+        const healthMatch = statusText.match(/Health:\s*(\d+)\/(\d+)/);
+        const energyMatch = statusText.match(/Energy:\s*(\d+)/);
+        const vpMatch = statusText.match(/VP:\s*(\d+)/);
+        
+        const health = healthMatch ? parseInt(healthMatch[1]) : 0;
+        const energy = energyMatch ? parseInt(energyMatch[1]) : 0;
+        const vp = vpMatch ? parseInt(vpMatch[1]) : 0;
+        
+        // Use config to get proper dice symbols
+        const diceSymbols = diceArray.map(face => this.getDiceFaceDisplay(face));
+
+        // Get icons from config for status display
+        const healthIcon = '❤️';
+        const energyIcon = this.gameConfig?.diceSystem?.faces?.energy?.symbol || '⚡';
+        const vpIcon = '⭐';
+
+        // Determine personality type based on decision pattern (simplified analysis)
+        let personality = 'balanced';
+        if (health <= 2 && decision.action === 'reroll') {
+            personality = 'risk-taking';
+        } else if (health <= 5 && decision.action === 'keep') {
+            personality = 'low-risk';
+        } else if (vp >= 15) {
+            personality = 'aggressive';
+        }
+        
+        return `
+            <div class="detailed-reasoning-content">
+                <div class="reasoning-header">
+                    <h4>${playerName} - ${timestamp}</h4>
+                    <p><strong>Decision:</strong> ${decision.action === 'reroll' ? 'Continue Rolling' : 'Stop and Keep Dice'}</p>
+                    <p><strong>Personality Type:</strong> ${personality.charAt(0).toUpperCase() + personality.slice(1)}</p>
+                </div>
+                
+                <div class="reasoning-situation">
+                    <h4>Situation Analysis:</h4>
+                    <p><strong>Current Roll:</strong> ${diceSymbols.join(' ')}</p>
+                    <p><strong>Health:</strong> ${healthIcon} ${health}/${maxHealth} ${health <= 2 ? '(Critical!)' : health <= 5 ? '(Low)' : '(Good)'}</p>
+                    <p><strong>Victory Points:</strong> ${vpIcon} ${vp} ${vp >= 15 ? '(Close to winning!)' : vp >= 10 ? '(Good progress)' : '(Early game)'}</p>
+                    <p><strong>Energy:</strong> ${energyIcon} ${energy} ${energy >= 10 ? '(Rich!)' : energy >= 5 ? '(Decent)' : '(Poor)'}</p>
+                </div>
+                
+                <div class="reasoning-logic">
+                    <h4>Decision Logic:</h4>
+                    ${this.generatePersonalityBasedReasoning(personality, health, vp, energy, diceArray, decision)}
+                </div>
+                
+                <div class="reasoning-summary">
+                    <h4>Summary:</h4>
+                    <p>${decision.reason}</p>
+                </div>
+            </div>
+        `;
+    }
+
+    // Generate personality-based reasoning explanation
+    generatePersonalityBasedReasoning(personality, health, vp, energy, diceArray, decision) {
+        const counts = {};
+        diceArray.forEach(face => {
+            counts[face] = (counts[face] || 0) + 1;
+        });
+
+        // Get icons from config with fallbacks
+        const healIcon = this.gameConfig?.diceSystem?.faces?.heal?.symbol || '❤️';
+        const attackIcon = this.gameConfig?.diceSystem?.faces?.attack?.symbol || '⚔️';
+        const oneIcon = this.gameConfig?.diceSystem?.faces?.[1]?.symbol || '1️⃣';
+        const twoIcon = this.gameConfig?.diceSystem?.faces?.[2]?.symbol || '2️⃣';
+        const threeIcon = this.gameConfig?.diceSystem?.faces?.[3]?.symbol || '3️⃣';
+
+        let reasoning = '';
+        
+        if (personality === 'low-risk') {
+            reasoning = `<p>This AI follows a <strong>low-risk strategy</strong>, prioritizing survival and steady progress over aggressive plays.</p>`;
+            
+            if (health <= 5) {
+                reasoning += `<p>With only ${health} health remaining, the AI is being extra cautious. `;
+                if (counts['heal']) {
+                    reasoning += `It values the ${counts['heal']} ${healIcon} heart dice highly for healing.`;
+                } else {
+                    reasoning += `It's looking for ${healIcon} heart dice to heal up before taking more risks.`;
+                }
+                reasoning += `</p>`;
+            }
+            
+            if (counts['attack'] && decision.action === 'reroll') {
+                reasoning += `<p>Even with ${counts['attack']} ${attackIcon} attack dice, the AI chose to reroll because it doesn't want to risk entering Tokyo with low health.</p>`;
+            }
+            
+        } else if (personality === 'aggressive') {
+            reasoning = `<p>This AI uses an <strong>aggressive strategy</strong>, focusing on quick victories and high-risk, high-reward plays.</p>`;
+            
+            if (vp >= 15) {
+                reasoning += `<p>With ${vp} victory points, the AI is pushing hard for a quick win. Every point counts now!</p>`;
+            }
+            
+            if (counts['attack']) {
+                reasoning += `<p>The ${counts['attack']} ${attackIcon} attack dice are valuable for forcing other players out of Tokyo and potentially dealing massive damage.</p>`;
+            }
+            
+        } else if (personality === 'risk-taking') {
+            reasoning = `<p>This AI has a <strong>risk-taking personality</strong>, willing to gamble for better outcomes even in dangerous situations.</p>`;
+            
+            if (health <= 2) {
+                reasoning += `<p>Despite having only ${health} health (critical danger!), the AI is still willing to reroll for potentially better combinations. This is a high-risk gamble.</p>`;
+            }
+            
+        } else {
+            reasoning = `<p>This AI follows a <strong>balanced strategy</strong>, weighing risks and rewards carefully.</p>`;
+        }
+
+        // Add dice-specific reasoning
+        const numberCounts = ['1', '2', '3'].map(num => ({ num, count: counts[num] || 0 }));
+        const bestNumbers = numberCounts.filter(n => n.count >= 2).sort((a, b) => b.count - a.count);
+        
+        if (bestNumbers.length > 0) {
+            const best = bestNumbers[0];
+            const diceIcon = best.num === '1' ? oneIcon : best.num === '2' ? twoIcon : threeIcon;
+            reasoning += `<p>The AI has ${best.count} ${diceIcon} dice. `;
+            if (best.count >= 3) {
+                const points = best.num === '1' ? 1 : parseInt(best.num);
+                reasoning += `This is already worth ${points} victory points, making it a solid foundation to build on.</p>`;
+            } else {
+                reasoning += `Just one more ${diceIcon} would secure victory points.</p>`;
+            }
+        }
+
+        return reasoning;
     }
 
     // Create dice analysis summary for AI logic logging
@@ -4496,6 +5025,14 @@ class KingOfTokyoUI {
         if (this.elements.thoughtBubblesToggle) {
             this.elements.thoughtBubblesToggle.checked = thoughtBubblesEnabled;
         }
+
+        // Load AI mode setting from config.json
+        const configAIMode = this.gameConfig && this.gameConfig.gameRules && this.gameConfig.gameRules.ai 
+            ? this.gameConfig.gameRules.ai.enableAIMode 
+            : false; // Default to simple mode
+        if (this.elements.aiModeToggle) {
+            this.elements.aiModeToggle.checked = configAIMode;
+        }
     }
 
     saveSettings() {
@@ -4510,6 +5047,9 @@ class KingOfTokyoUI {
             localStorage.setItem('thoughtBubblesEnabled', this.elements.thoughtBubblesToggle.checked.toString());
         }
 
+        // Note: AI mode setting is controlled by config.json, not localStorage
+        // The toggle in UI allows temporary override during gameplay
+
         // Close the modal
         UIUtilities.hideModal(this.elements.settingsModal);
         
@@ -4517,10 +5057,27 @@ class KingOfTokyoUI {
         UIUtilities.showMessage('Settings saved successfully!', 3000, this.elements);
     }
 
+    // Check if AI mode is enabled
+    isAIModeEnabled() {
+        // Check UI toggle first (if available), then fallback to config.json setting
+        const uiToggle = this.elements.aiModeToggle && this.elements.aiModeToggle.checked;
+        const configSetting = this.gameConfig && this.gameConfig.gameRules && this.gameConfig.gameRules.ai 
+            ? this.gameConfig.gameRules.ai.enableAIMode 
+            : false; // Default to simple mode
+        
+        // UI toggle overrides config file if both are available
+        if (this.elements.aiModeToggle) {
+            return uiToggle;
+        } else {
+            return configSetting;
+        }
+    }
+
     resetSettings() {
         // Reset to default values
         localStorage.removeItem('cpuSpeed');
         localStorage.removeItem('thoughtBubblesEnabled');
+        localStorage.removeItem('aiModeEnabled'); // Clean up old AI mode setting
         
         // Reload the settings to show defaults
         this.loadSettings();
@@ -5609,6 +6166,57 @@ class KingOfTokyoUI {
 
     // CPU rolls dice with AI decision making
     cpuRollDice(player, rollNumber) {
+        // Check if AI mode is enabled
+        if (this.isAIModeEnabled()) {
+            this.cpuRollDiceAI(player, rollNumber);
+        } else {
+            this.cpuRollDiceSimple(player, rollNumber);
+        }
+    }
+
+    // Simple CPU rolling (original logic - always 3 rolls)
+    cpuRollDiceSimple(player, rollNumber) {
+        window.UI && window.UI._debug && window.UI._debug(`🎲 SIMPLE CPU: Starting roll ${rollNumber}/3`);
+        
+        // Always roll, regardless of dice state
+        if (rollNumber <= 3) {
+            window.UI && window.UI._debug && window.UI._debug(`🎲 SIMPLE CPU: Executing roll ${rollNumber}/3`);
+            this.showSimpleCPUNotification(player, `🎲 ${player.monster.name} rolling... (${rollNumber}/3)`);
+            
+            // Execute the roll
+            this.rollDice();
+            
+            // Wait for dice animation to complete (400ms + buffer)
+            setTimeout(() => {
+                const diceState = this.game.diceRoller.getState();
+                
+                window.UI && window.UI._debug && window.UI._debug(`🎲 SIMPLE CPU: After roll ${rollNumber}, rolls remaining: ${diceState.rollsRemaining}`);
+                
+                // Add delay for human to see dice outcome
+                setTimeout(() => {
+                    if (rollNumber < 3 && diceState.rollsRemaining > 0) {
+                        // Continue to next roll
+                        this.cpuRollDiceSimple(player, rollNumber + 1);
+                    } else {
+                        // After 3rd roll, CPU is done - resolve dice and end turn
+                        window.UI && window.UI._debug && window.UI._debug(`🤖 SIMPLE CPU: ${player.monster.name} finished rolling, ending turn`);
+                        this.showSimpleCPUNotification(player, `✅ ${player.monster.name} ending turn...`);
+                        
+                        setTimeout(() => {
+                            // Update controls before ending turn to re-enable action menu
+                            this.updateDiceControls();
+                            
+                            // CPU players call game.endTurn() directly, not through UI layer
+                            this.game.endTurn();
+                        }, 1500);
+                    }
+                }, 3000); // 3-second delay for human to see dice outcome
+            }, 600); // Match closer to actual dice animation time (400ms + buffer)
+        }
+    }
+
+    // AI-powered CPU rolling (new logic with decision making)
+    cpuRollDiceAI(player, rollNumber) {
         window.UI && window.UI._debug && window.UI._debug(`🎲 AI CPU: Starting roll ${rollNumber}/3`);
         
         // Always roll, regardless of dice state
@@ -5628,7 +6236,7 @@ class KingOfTokyoUI {
             // Execute the roll
             this.rollDice();
             
-            // Wait for dice animation to complete (configurable timing)
+            // Wait for dice animation to complete (400ms + buffer)
             setTimeout(() => {
                 const diceState = this.game.diceRoller.getState();
                 
@@ -5648,15 +6256,16 @@ class KingOfTokyoUI {
                             // Update controls before ending turn to re-enable action menu
                             this.updateDiceControls();
                             
-                            this.endTurnFromUI();
+                            // CPU players call game.endTurn() directly, not through UI layer
+                            this.game.endTurn();
                         }, this.getCPUThinkingTime('endTurn'));
                     }
                 }, this.getCPUThinkingTime('decisionThinking')); // Configurable delay for human to see dice outcome
-            }, this.getCPUThinkingTime('diceAnimation'));
+            }, 600); // Fixed: Match actual dice animation time (400ms + 200ms buffer)
         }
     }
 
-    // NEW: AI decision logic for CPU dice rolling
+    // AI decision logic for CPU dice rolling
     makeAIRollDecision(player, rollNumber, diceState) {
         try {
             // Show thinking bubble during decision making
@@ -5717,7 +6326,8 @@ class KingOfTokyoUI {
                     
                     setTimeout(() => {
                         this.updateDiceControls();
-                        this.endTurnFromUI();
+                        // CPU players call game.endTurn() directly, not through UI layer
+                        this.game.endTurn();
                     }, this.getCPUThinkingTime('endTurn'));
                 }
             } else {

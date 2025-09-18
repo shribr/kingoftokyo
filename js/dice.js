@@ -490,7 +490,7 @@ if (window.UI && window.UI.debugMode) {
 }
 
 // Utility functions
-function createDiceHTML(diceData, maxDiceToShow = null) {
+function createDiceHTML(diceData, maxDiceToShow = null, customStyles = null) {
     // If maxDiceToShow is specified, only show that many enabled dice
     let dicesToDisplay = diceData;
     if (maxDiceToShow !== null) {
@@ -498,12 +498,31 @@ function createDiceHTML(diceData, maxDiceToShow = null) {
         dicesToDisplay = enabledDice.slice(0, maxDiceToShow);
     }
     
-    return dicesToDisplay.map(die => `
-        <div class="die ${die.isSelected ? 'selected' : ''} ${die.isRolling ? 'rolling' : ''} ${die.isDisabled ? 'disabled' : ''}" 
-             data-die-id="${die.id}">
+    // Build custom style string if provided (deprecated - use className instead)
+    let styleString = '';
+    if (customStyles) {
+        const styleArray = [];
+        Object.entries(customStyles).forEach(([property, value]) => {
+            // Add !important to ensure styles take precedence
+            styleArray.push(`${property}: ${value} !important`);
+        });
+        if (styleArray.length > 0) {
+            styleString = ` style="${styleArray.join('; ')}"`;
+        }
+    }
+    
+    return dicesToDisplay.map(die => {
+        // Build class string
+        const classes = ['die'];
+        if (die.isSelected) classes.push('selected');
+        if (die.isRolling) classes.push('rolling');
+        if (die.isDisabled) classes.push('disabled');
+        if (die.className) classes.push(die.className);
+        
+        return `<div class="${classes.join(' ')}" data-die-id="${die.id}"${styleString}>
             ${die.symbol}
-        </div>
-    `).join('');
+        </div>`;
+    }).join('');
 }
 
 function attachDiceEventListeners(diceCollection, container, updateCallback) {
