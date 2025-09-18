@@ -1,5 +1,5 @@
 // Dice system for King of Tokyo
-const DICE_FACES = {
+let DICE_FACES = {
     '1': { symbol: '1', value: 1, type: 'number' },
     '2': { symbol: '2', value: 2, type: 'number' },
     '3': { symbol: '3', value: 3, type: 'number' },
@@ -8,7 +8,38 @@ const DICE_FACES = {
     'heal': { symbol: '❤️', value: 1, type: 'heal' }
 };
 
-const DICE_FACE_NAMES = Object.keys(DICE_FACES);
+let DICE_FACE_NAMES = Object.keys(DICE_FACES);
+
+// Load dice configuration from config.json
+async function loadDiceConfiguration() {
+    try {
+        const response = await fetch('config.json');
+        if (response.ok) {
+            const config = await response.json();
+            if (config.diceSystem && config.diceSystem.faces) {
+                // Map config faces to our format
+                const configFaces = {};
+                Object.entries(config.diceSystem.faces).forEach(([key, face]) => {
+                    configFaces[key] = {
+                        symbol: face.symbol,
+                        value: face.value,
+                        type: face.type
+                    };
+                });
+                DICE_FACES = configFaces;
+                DICE_FACE_NAMES = Object.keys(DICE_FACES);
+                window.UI && window.UI._debug && window.UI._debug('✅ Dice configuration loaded from config.json');
+            }
+        }
+    } catch (error) {
+        console.warn('⚠️ Failed to load dice configuration, using defaults:', error);
+    }
+}
+
+// Initialize dice configuration on load
+if (typeof window !== 'undefined') {
+    loadDiceConfiguration();
+}
 
 // Dice class
 class Die {
@@ -214,10 +245,10 @@ class DiceCollection {
     }
 
     // Reset all dice
-    reset() {
+    reset(isExpected = false) {
         const hasRolledDice = this.dice.some(die => die.face !== null && !die.isDisabled);
-        if (hasRolledDice) {
-            console.warn(`🎲 ⚠️  Resetting dice collection that has rolled dice - this might be unexpected during gameplay!`);
+        if (hasRolledDice && !isExpected) {
+            window.UI && window.UI._debug && window.UI._debug(`🎲 ⚠️  Resetting dice collection that has rolled dice - this might be unexpected during gameplay!`);
             if (window.UI && window.UI.debugMode) {
                 window.UI._debugVerbose('Dice being reset:', this.dice.filter(d => d.face !== null).map(d => ({ id: d.id, face: d.face })));
             }
@@ -373,7 +404,7 @@ class DiceRoller {
         }
         this.rollsRemaining = 3;
         this.isRolling = false;
-        this.diceCollection.reset();
+        this.diceCollection.reset(true); // Expected reset at start of new turn
         
         if (this.callbacks.onTurnStart) {
             this.callbacks.onTurnStart();

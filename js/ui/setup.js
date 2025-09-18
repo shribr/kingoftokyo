@@ -136,11 +136,11 @@ class SetupManager {
         if (this.elements.startGameBtn) {
             this.elements.startGameBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
-                console.log('Button disabled:', this.elements.startGameBtn.disabled);
+                window.UI && window.UI._debug && window.UI._debug('Button disabled:', this.elements.startGameBtn.disabled);
                 
                 // Double-check disabled state
                 if (this.elements.startGameBtn.disabled) {
-                    console.log('Button is disabled, ignoring click');
+                    window.UI && window.UI._debug && window.UI._debug('Button is disabled, ignoring click');
                     return;
                 }
                 
@@ -243,7 +243,7 @@ class SetupManager {
         if (this.elements.playerCount && this.elements.dropdownOptions) {
             this.elements.playerCount.classList.remove('open');
             this.elements.dropdownOptions.style.display = 'none';
-            console.log('✅ Dropdown closed');
+            window.UI && window.UI._debug && window.UI._debug('✅ Dropdown closed');
         }
     }
 
@@ -256,7 +256,7 @@ class SetupManager {
 
     // Reset dropdown to ensure it's functional
     resetDropdown() {
-        console.log('SetupManager: resetDropdown called');
+        window.UI && window.UI._debug && window.UI._debug('SetupManager: resetDropdown called');
         
         // Ensure dropdown is closed
         this.closeDropdown();
@@ -545,12 +545,6 @@ class SetupManager {
         this.uiUtilities.hideModal(this.elements.setupModal);
     }
 
-    showMessage(message) {
-        if (window.UI && window.UI.debugMode) {
-            window.UI._debug('SetupManager: Message -', message);
-        }
-    }
-
     // Update monster selection grid
     updateMonsterSelection() {
         if (window.UI && window.UI.debugMode) {
@@ -837,8 +831,8 @@ class SetupManager {
     // Start game method that calls back to main.js
     async onStartGame() {
         console.log('SetupManager: onStartGame called');
-        console.log('Selected monsters count:', this.selectedMonsters.length);
-        console.log('Current player count:', this.currentPlayerCount);
+        window.UI && window.UI._debug && window.UI._debug('Selected monsters count:', this.selectedMonsters.length);
+        window.UI && window.UI._debug && window.UI._debug('Current player count:', this.currentPlayerCount);
         
         // Delegate to main.js instance - we need access to the main KingOfTokyoUI instance
         if (window.kingOfTokyoUI && typeof window.kingOfTokyoUI.startGameFromSetup === 'function') {
@@ -871,7 +865,7 @@ class SetupManager {
         const allTilesAssigned = monstersSelected === monstersRequired;
         const canStart = hasPlayerCount && allTilesAssigned && hasRequiredPlayerTypes;
         
-        console.log('Update start button:', {
+        window.UI && window.UI._debug && window.UI._debug('Update start button:', {
             hasPlayerCount,
             currentPlayerCount: this.currentPlayerCount,
             monstersSelected,

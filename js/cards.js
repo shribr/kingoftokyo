@@ -1,5 +1,5 @@
 // Power cards for King of Tokyo
-const POWER_CARDS = [
+let POWER_CARDS = [
     {
         id: 'acid_attack',
         name: 'Acid Attack',
@@ -193,6 +193,35 @@ const POWER_CARDS = [
         effect: 'flyAway'
     }
 ];
+
+// Load power card configuration from config.json
+async function loadPowerCardConfiguration() {
+    try {
+        const response = await fetch('config.json');
+        if (response.ok) {
+            const config = await response.json();
+            if (config.powerCards && Array.isArray(config.powerCards)) {
+                // Map config cards to our format
+                POWER_CARDS = config.powerCards.map(card => ({
+                    id: card.id,
+                    name: card.name,
+                    cost: card.cost,
+                    type: card.type,
+                    description: card.description,
+                    effect: card.effect
+                }));
+                window.UI && window.UI._debug && window.UI._debug('✅ Power card configuration loaded from config.json');
+            }
+        }
+    } catch (error) {
+        console.warn('⚠️ Failed to load power card configuration, using defaults:', error);
+    }
+}
+
+// Initialize power card configuration on load
+if (typeof window !== 'undefined') {
+    loadPowerCardConfiguration();
+}
 
 // Get a random selection of cards for the market
 function getRandomCards(count = 3) {

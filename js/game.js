@@ -146,6 +146,7 @@ class KingOfTokyoGame {
         this.tokyoCity = null; // Player ID in Tokyo City
         this.tokyoBay = null;  // Player ID in Tokyo Bay (for 5-6 players)
         this.availableCards = [];
+        this.gameConfig = null; // Will be loaded from config.json
         this.gameSettings = {
             playerCount: 4,
             maxVictoryPoints: 20,
@@ -257,7 +258,7 @@ class KingOfTokyoGame {
             });
 
             // Wait for UI to set up
-            await new Promise(resolve => setTimeout(resolve, 3000));
+            await new Promise(resolve => setTimeout(resolve, 1500)); // Reduced from 3000ms to 1500ms
 
             // Each player rolls 6 dice - humans roll interactively, AI rolls automatically
             for (let player of playersToRoll) {
@@ -277,7 +278,7 @@ class KingOfTokyoGame {
                     attackCount = rollResult.attackCount;
                 } else {
                     // AI player - automatic roll with suspense using same dice system
-                    await new Promise(resolve => setTimeout(resolve, 1500)); // Suspense delay
+                    await new Promise(resolve => setTimeout(resolve, 800)); // Reduced from 1500ms to 800ms - Suspense delay
                     
                     // Use the same dice system as human players
                     if (!this.rollOffDiceCollection) {
@@ -285,8 +286,8 @@ class KingOfTokyoGame {
                         this.rollOffDiceCollection = new DiceCollectionClass(6);
                     }
 
-                    // Reset and roll all 6 dice using the same system
-                    this.rollOffDiceCollection.reset();
+                    // Reset and roll all 6 dice using the same system (reset is expected during roll-offs)
+                    this.rollOffDiceCollection.reset(true);
                     this.rollOffDiceCollection.rollAll();
 
                     // Immediately trigger dice update to show rolling animation (like regular gameplay)
@@ -328,7 +329,7 @@ class KingOfTokyoGame {
                                 window.UI._debug(`🎲 AI Roll-off using DiceCollection: [${rolls.join(', ')}], attacks: ${attackCount}`);
                             }
                             resolve();
-                        }, 400); // Wait for dice animation
+                        }, 400); // Wait for dice animation to complete
                     });
                 }
                 
@@ -352,7 +353,7 @@ class KingOfTokyoGame {
 
                 // Brief pause between players for drama
                 // Add extra delay for CPU players so human can see the dice outcome
-                const pauseDuration = player.playerType === 'cpu' ? 4000 : 1000; // 4 seconds for CPU (3 extra), 1 second for human
+                const pauseDuration = player.playerType === 'cpu' ? 2500 : 800; // 2.5 seconds for CPU, 0.8 second for human - balanced timing
                 await new Promise(resolve => setTimeout(resolve, pauseDuration));
             }
 
@@ -374,7 +375,7 @@ class KingOfTokyoGame {
                 });
 
                 // Wait a moment for the winner announcement to be seen
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Reduced from 2000ms to 1000ms
 
                 return winner;
             } else {
@@ -435,8 +436,8 @@ class KingOfTokyoGame {
             this.rollOffDiceCollection = new DiceCollectionClass(6);
         }
 
-        // Reset and roll all 6 dice using the same system
-        this.rollOffDiceCollection.reset();
+        // Reset and roll all 6 dice using the same system (reset is expected during roll-offs)
+        this.rollOffDiceCollection.reset(true);
         this.rollOffDiceCollection.rollAll();
 
         // Immediately trigger dice update to show rolling animation (like regular gameplay)
@@ -538,8 +539,59 @@ class KingOfTokyoGame {
         };
     }
 
+    // Load game configuration from config.json
+    async loadConfiguration() {
+        try {
+            const response = await fetch('config.json');
+            if (!response.ok) {
+                throw new Error(`Failed to load config: ${response.status}`);
+            }
+            this.gameConfig = await response.json();
+            
+            // Update game settings with config values
+            if (this.gameConfig.gameRules) {
+                this.gameSettings.maxVictoryPoints = this.gameConfig.gameRules.victory.maxVictoryPoints;
+                this.gameSettings.startingHealth = this.gameConfig.gameRules.player.startingHealth;
+                this.gameSettings.startingEnergy = this.gameConfig.gameRules.player.startingEnergy;
+                this.gameSettings.playerCount = this.gameConfig.gameRules.player.defaultPlayerCount;
+            }
+            if (this.gameConfig.diceSystem && this.gameConfig.diceSystem.rules) {
+                this.gameSettings.diceCount = this.gameConfig.diceSystem.rules.diceCount;
+                this.gameSettings.maxRolls = this.gameConfig.diceSystem.rules.maxRolls;
+            }
+            
+            window.UI && window.UI._debug && window.UI._debug('✅ Game configuration loaded successfully');
+            return true;
+        } catch (error) {
+            console.warn('⚠️ Failed to load game configuration, using defaults:', error);
+            return false;
+        }
+    }
+
+    // Get point values from configuration
+    getPointValue(type) {
+        if (this.gameConfig && this.gameConfig.gameRules && this.gameConfig.gameRules.points) {
+            switch (type) {
+                case 'attack': return this.gameConfig.gameRules.points.standardAttackBonus;
+                case 'tokyoEntry': return this.gameConfig.gameRules.points.tokyoEntryBonus;
+                case 'special': return this.gameConfig.gameRules.points.specialActionBonus;
+                default: return 1; // fallback
+            }
+        }
+        // Fallback to hardcoded values
+        switch (type) {
+            case 'attack': return 1;
+            case 'tokyoEntry': return 1;
+            case 'special': return 2;
+            default: return 1;
+        }
+    }
+
     // Initialize game with selected monsters
     async initializeGame(selectedMonsters, playerCount, playerTypes = null, firstPlayerIndex = null) {
+        // Load configuration first
+        await this.loadConfiguration();
+        
         this.gameSettings.playerCount = playerCount;
         this.players = [];
         this.round = 1;
@@ -646,7 +698,7 @@ class KingOfTokyoGame {
     initializeNewTurnDefenses() {
         this.currentTurnStartTime = Date.now();
         this.currentTurnHasRolledDice = false;
-        console.log(`🛡️ Turn defenses initialized for ${this.getCurrentPlayer().monster.name}`);
+        window.UI && window.UI._debug && window.UI._debug(`🛡️ Turn defenses initialized for ${this.getCurrentPlayer().monster.name}`);
     }
 
     // DEFENSIVE TURN PROTECTION - Validate if endTurn is allowed
@@ -658,31 +710,31 @@ class KingOfTokyoGame {
         
         // Check 1: Prevent rapid endTurn calls (< 500ms apart)
         if (timeSinceLastEndTurn < 500) {
-            console.log(`🛡️ BLOCKED: Rapid endTurn call (${timeSinceLastEndTurn}ms since last) ${callerInfo}`);
+            window.UI && window.UI._debug && window.UI._debug(`🛡️ BLOCKED: Rapid endTurn call (${timeSinceLastEndTurn}ms since last) ${callerInfo}`);
             return false;
         }
         
         // Special handling for CPU players - they can end turns faster but still need some protection
         if (currentPlayer.playerType === 'cpu') {
             // CPU players only need basic rapid-call protection
-            console.log(`🛡️ ALLOWED: CPU player bypassing most restrictions ${callerInfo}`);
+            window.UI && window.UI._debug && window.UI._debug(`🛡️ ALLOWED: CPU player bypassing most restrictions ${callerInfo}`);
             return true;
         }
         
         // For human players, apply full protection
         // Check 2: Minimum turn duration (except for eliminated players)
         if (!currentPlayer.isEliminated && turnDuration < this.minimumTurnDuration) {
-            console.log(`🛡️ BLOCKED: Turn too short (${turnDuration}ms < ${this.minimumTurnDuration}ms) ${callerInfo}`);
+            window.UI && window.UI._debug && window.UI._debug(`🛡️ BLOCKED: Turn too short (${turnDuration}ms < ${this.minimumTurnDuration}ms) ${callerInfo}`);
             return false;
         }
         
         // Check 3: Must have rolled dice at least once (except for eliminated players)
         if (!currentPlayer.isEliminated && !this.currentTurnHasRolledDice) {
-            console.log(`🛡️ BLOCKED: No dice rolled this turn ${callerInfo}`);
+            window.UI && window.UI._debug && window.UI._debug(`🛡️ BLOCKED: No dice rolled this turn ${callerInfo}`);
             return false;
         }
         
-        console.log(`🛡️ ALLOWED: endTurn validation passed for ${currentPlayer.monster.name} ${callerInfo}`);
+        window.UI && window.UI._debug && window.UI._debug(`🛡️ ALLOWED: endTurn validation passed for ${currentPlayer.monster.name} ${callerInfo}`);
         return true;
     }
 
@@ -1021,7 +1073,7 @@ class KingOfTokyoGame {
         if (attackDice.length > 0) {
             window.UI && window.UI._debug && window.UI._debug(`🎯 ATTACK DICE FOUND:`, attackDice);
             attackDice.forEach(die => {
-                console.log(`🚨 Die ${die.id}: internal='${die.face}', visual='${die.domText}', expectedSymbol='${die.visualSymbol}', mismatch=${die.mismatch}`);
+                window.UI && window.UI._debug && window.UI._debug(`🚨 Die ${die.id}: internal='${die.face}', visual='${die.domText}', expectedSymbol='${die.visualSymbol}', mismatch=${die.mismatch}`);
                 if (die.mismatch) {
                     console.error(`🚨 CRITICAL MISMATCH: Die ${die.id} shows '${die.domText}' but internal state is '${die.face}'!`);
                 }
@@ -1037,7 +1089,7 @@ class KingOfTokyoGame {
         if (totalAttack > 0 && hasAttackDice) {
             window.UI && window.UI._debug && window.UI._debug(`🚨 ATTACK WARNING - ${player.monster.name} is about to attack with ${totalAttack} power from rolled attack dice`);
             if (totalAttack > 3) {
-                console.log(`🚨 SUSPICIOUS - Attack power ${totalAttack} is greater than maximum possible (3)!`);
+                window.UI && window.UI._debug && window.UI._debug(`🚨 SUSPICIOUS - Attack power ${totalAttack} is greater than maximum possible (3)!`);
                 window.UI && window.UI._debug && window.UI._debug(`🚨 Individual dice states (enabled only):`, this.diceCollection.dice.filter(die => !die.isDisabled).map(die => `${die.id}: ${die.face}`));
             }
             this.resolveAttacks(player, totalAttack);
@@ -1066,7 +1118,7 @@ class KingOfTokyoGame {
             this.triggerEvent('playerGainedPoints', { playerId: player.id, pointsGained: totalVictoryPoints });
         }
 
-        console.log('Current player after effects:', {
+        window.UI && window.UI._debug && window.UI._debug('Current player after effects:', {
             name: player.monster.name,
             energy: player.energy,
             health: player.health,
@@ -1153,9 +1205,10 @@ class KingOfTokyoGame {
             }
             
             // Gain extra victory points for being in Tokyo and attacking
-            attacker.addVictoryPoints(1);
+            const attackPoints = this.getPointValue('attack');
+            attacker.addVictoryPoints(attackPoints);
             // Trigger victory points animation for Tokyo bonus
-            this.triggerEvent('playerGainedPoints', { playerId: attacker.id, pointsGained: 1 });
+            this.triggerEvent('playerGainedPoints', { playerId: attacker.id, pointsGained: attackPoints });
         } else {
             // Player outside Tokyo attacks players in Tokyo
             const tokyoPlayers = this.players.filter(p => p.isInTokyo && !p.isEliminated);
@@ -1287,9 +1340,10 @@ class KingOfTokyoGame {
                     this.triggerEvent('tokyoChanged', this.getGameState());
                     
                     // Trigger victory points animation for Tokyo entry bonus
+                    const tokyoEntryPoints = this.getPointValue('tokyoEntry');
                     this.triggerEvent('playerGainedPoints', { 
                         playerId: attacker.id, 
-                        pointsGained: 1 
+                        pointsGained: tokyoEntryPoints 
                     });
                 } else if (attacker.isInTokyo) {
                     console.log(`💀 ELIMINATION: ${attacker.monster.name} is already in Tokyo, not moving`);
@@ -1350,11 +1404,11 @@ class KingOfTokyoGame {
 
     // Offer player in Tokyo the choice to leave
     offerTokyoExit(player, attacker) {
-        console.log(`🏙️ offerTokyoExit called for ${player.monster.name} (playerType: ${player.playerType})`);
+        window.UI && window.UI._debug && window.UI._debug(`🏙️ offerTokyoExit called for ${player.monster.name} (playerType: ${player.playerType})`);
         
         // Handle CPU players automatically without showing modal
         if (player.playerType === 'cpu') {
-            console.log(`🤖 CPU ${player.monster.name} automatically deciding Tokyo exit...`);
+            window.UI && window.UI._debug && window.UI._debug(`🤖 CPU ${player.monster.name} automatically deciding Tokyo exit...`);
             let context = 'uncertain';
             let stayInTokyo = false;
             
@@ -1431,7 +1485,7 @@ class KingOfTokyoGame {
         if (this.pendingDecisions.length === 1) {
             this.triggerEvent('pendingDecision', decision);
         } else {
-            console.log(`🔄 Added Tokyo exit decision for ${player.monster.name} to queue (position ${this.pendingDecisions.length})`);
+            window.UI && window.UI._debug && window.UI._debug(`🔄 Added Tokyo exit decision for ${player.monster.name} to queue (position ${this.pendingDecisions.length})`);
         }
     }
 
@@ -1465,7 +1519,7 @@ class KingOfTokyoGame {
         
         // After handling a decision, check if there are more pending decisions to process
         if (this.pendingDecisions.length > 0) {
-            console.log(`🔄 Processing next pending decision (${this.pendingDecisions.length} remaining)`);
+            window.UI && window.UI._debug && window.UI._debug(`🔄 Processing next pending decision (${this.pendingDecisions.length} remaining)`);
             const nextDecision = this.pendingDecisions[0];
             this.triggerEvent('pendingDecision', nextDecision);
         }
@@ -1614,11 +1668,12 @@ class KingOfTokyoGame {
             
             console.log(`🏯 After enterTokyo: player.isInTokyo=${player.isInTokyo}, player.tokyoLocation=${player.tokyoLocation}`);
             
-            // Award 1 victory point for entering Tokyo (only if not automatic entry)
+            // Award victory points for entering Tokyo (only if not automatic entry)
             if (!automatic) {
-                console.log(`🎊 Awarding 1 victory point to ${player.monster.name} for entering Tokyo`);
-                player.addVictoryPoints(1);
-                this.triggerEvent('playerGainedPoints', { playerId: player.id, pointsGained: 1 });
+                const tokyoEntryPoints = this.getPointValue('tokyoEntry');
+                console.log(`🎊 Awarding ${tokyoEntryPoints} victory point(s) to ${player.monster.name} for entering Tokyo`);
+                player.addVictoryPoints(tokyoEntryPoints);
+                this.triggerEvent('playerGainedPoints', { playerId: player.id, pointsGained: tokyoEntryPoints });
                 this.triggerEvent('statsUpdated', { player: player });
             }
             
@@ -1676,20 +1731,20 @@ class KingOfTokyoGame {
             return;
         }
 
-        console.log(`🏯 End-of-turn Tokyo entry check for ${currentPlayer.monster.name}:`);
-        console.log(`🏯 Tokyo City occupied: ${this.tokyoCity ? 'Yes' : 'No'}`);
-        console.log(`🏯 Tokyo Bay occupied: ${this.tokyoBay ? 'Yes' : 'No'}`);
-        console.log(`🏯 Player count: ${this.gameSettings.playerCount}`);
-        console.log(`🏯 Current player in Tokyo: ${currentPlayer.isInTokyo ? 'Yes' : 'No'}`);
+        window.UI && window.UI._debug && window.UI._debug(`🏯 End-of-turn Tokyo entry check for ${currentPlayer.monster.name}:`);
+        window.UI && window.UI._debug && window.UI._debug(`🏯 Tokyo City occupied: ${this.tokyoCity ? 'Yes' : 'No'}`);
+        window.UI && window.UI._debug && window.UI._debug(`🏯 Tokyo Bay occupied: ${this.tokyoBay ? 'Yes' : 'No'}`);
+        window.UI && window.UI._debug && window.UI._debug(`🏯 Player count: ${this.gameSettings.playerCount}`);
+        window.UI && window.UI._debug && window.UI._debug(`🏯 Current player in Tokyo: ${currentPlayer.isInTokyo ? 'Yes' : 'No'}`);
 
         // RULE: If Tokyo City is empty at end of turn, current player MUST enter it
         if (this.tokyoCity === null && !currentPlayer.isInTokyo) {
-            console.log(`🏯 ${currentPlayer.monster.name} MUST enter Tokyo City at end of turn`);
+            window.UI && window.UI._debug && window.UI._debug(`🏯 ${currentPlayer.monster.name} MUST enter Tokyo City at end of turn`);
             this.enterTokyo(currentPlayer, true); // Mark as automatic
         } 
         // RULE: If Tokyo Bay is empty (5+ players), current player MUST enter it
         else if (this.tokyoBay === null && this.gameSettings.playerCount >= 5 && this.tokyoCity !== null && !currentPlayer.isInTokyo) {
-            console.log(`🏯 ${currentPlayer.monster.name} MUST enter Tokyo Bay at end of turn`);
+            window.UI && window.UI._debug && window.UI._debug(`🏯 ${currentPlayer.monster.name} MUST enter Tokyo Bay at end of turn`);
             this.enterTokyo(currentPlayer, true); // Mark as automatic
         }
     }
@@ -1946,7 +2001,7 @@ class KingOfTokyoGame {
             // RULE: Handle mandatory Tokyo entry at end of any turn - AFTER new player is active
             this.handleEndOfTurnTokyoEntry(currentPlayer);
             
-            console.log('Turn ended. New current player:', this.getCurrentPlayer().monster.name, 'Index:', this.currentPlayerIndex);
+            window.UI && window.UI._debug && window.UI._debug('Turn ended. New current player:', this.getCurrentPlayer().monster.name, 'Index:', this.currentPlayerIndex);
         } finally {
             // Always reset the flag
             this.endingTurn = false;
@@ -1972,11 +2027,12 @@ class KingOfTokyoGame {
         
         // Apply start-of-turn effects for Tokyo occupants
         if (currentPlayer.isInTokyo) {
-            console.log(`🎊 Awarding 2 Tokyo points to ${currentPlayer.monster.name} at start of Round ${this.round}`);
-            currentPlayer.addVictoryPoints(2);
-            this.logDetailedAction(`${currentPlayer.monster.name} gains 2 victory points for starting turn in Tokyo!`, 'victory-points');
+            const tokyoSpecialPoints = this.getPointValue('special');
+            console.log(`🎊 Awarding ${tokyoSpecialPoints} Tokyo points to ${currentPlayer.monster.name} at start of Round ${this.round}`);
+            currentPlayer.addVictoryPoints(tokyoSpecialPoints);
+            this.logDetailedAction(`${currentPlayer.monster.name} gains ${tokyoSpecialPoints} victory points for starting turn in Tokyo!`, 'victory-points');
             // Trigger victory points animation for Tokyo bonus
-            this.triggerEvent('playerGainedPoints', { playerId: currentPlayer.id, pointsGained: 2 });
+            this.triggerEvent('playerGainedPoints', { playerId: currentPlayer.id, pointsGained: tokyoSpecialPoints });
             // Trigger UI update to show new victory points immediately
             this.triggerEvent('statsUpdated', { player: currentPlayer });
             console.log(`⭐ Player's victory points after Tokyo bonus: ${currentPlayer.victoryPoints}`);
@@ -2295,7 +2351,7 @@ class KingOfTokyoGame {
         
         if (isGameplayAction && !this.gameplayStarted) {
             this.gameplayStarted = true;
-            console.log(`🎯 Starting gameplay logging triggered by action: "${message}" (category: ${category})`);
+            window.UI && window.UI._debug && window.UI._debug(`🎯 Starting gameplay logging triggered by action: "${message}" (category: ${category})`);
             this.startNewRound(); // Start Round 1
             this.startPlayerTurnInLog(this.getCurrentPlayer()); // Start current player's turn
         }

@@ -19,7 +19,7 @@ class GameStorageManager {
         try {
             // Try to initialize IndexedDB
             await this.initIndexedDB();
-            console.log('✅ IndexedDB initialized successfully');
+            window.UI && window.UI._debug && window.UI._debug('✅ IndexedDB initialized successfully');
             this.initialized = true;
             return true;
         } catch (error) {
@@ -157,7 +157,7 @@ class GameStorageManager {
             // Clean up old sessions
             await this.cleanupOldSessions();
             
-            console.log(`💾 Game session saved: ${sessionData.id}`);
+            window.UI && window.UI._debug && window.UI._debug(`💾 Game session saved: ${sessionData.id}`);
             return sessionData.id;
         } catch (error) {
             console.error('Failed to save game session:', error);
@@ -196,7 +196,7 @@ class GameStorageManager {
                 }
             }
 
-            console.log(`📝 Log chunk saved: ${chunkData.id} (${chunkData.size} bytes)`);
+            window.UI && window.UI._debug && window.UI._debug(`📝 Log chunk saved: ${chunkData.id} (${chunkData.size} bytes)`);
             return chunkData.id;
         } catch (error) {
             console.error('Failed to save log chunk:', error);
@@ -297,7 +297,7 @@ class GameStorageManager {
                         // Also delete associated log chunks
                         await this.deleteLogChunks(session.id);
                     }
-                    console.log(`🧹 Cleaned up ${sessionsToDelete.length} old game sessions`);
+                    window.UI && window.UI._debug && window.UI._debug(`🧹 Cleaned up ${sessionsToDelete.length} old game sessions`);
                 }
             }
         } catch (error) {

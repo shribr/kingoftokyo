@@ -2922,6 +2922,118 @@ body:has(#decision-modal:not(.hidden)) .player-dashboard.active {
     }
 }
 
+/* Game Log Tabs */
+.log-tabs {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 3px solid #000;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 12px 20px;
+    font-family: 'Bangers', cursive;
+    font-size: 16px;
+    font-weight: 900;
+    color: #000;
+    background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+    border: 3px solid #000;
+    border-bottom: none;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+}
+
+.tab-btn:first-child {
+    margin-right: 2px;
+}
+
+.tab-btn:hover {
+    background: linear-gradient(135deg, #A0522D 0%, #CD853F 100%);
+    transform: translateY(-2px);
+}
+
+.tab-btn.active {
+    background: linear-gradient(135deg, #6F4E37 0%, #8B4513 100%);
+    color: #ffffff;
+    text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+    transform: translateY(-3px);
+    box-shadow: 0 3px 0 #000;
+}
+
+.tab-content {
+    display: none;
+    flex: 1;
+    min-height: 0;
+}
+
+.tab-content.active {
+    display: flex;
+    flex-direction: column;
+}
+
+#ai-log-content {
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* AI Logic Entry Styling */
+.ai-logic-entry {
+    margin-bottom: 15px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.1);
+    border: 2px solid #000;
+    border-radius: 0;
+    font-family: 'Arial', sans-serif;
+}
+
+.ai-logic-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+.ai-timestamp {
+    color: #ffffff;
+    font-size: 12px;
+}
+
+.ai-player-name {
+    color: #FFD700;
+    font-family: 'Bangers', cursive;
+    font-size: 14px;
+    letter-spacing: 1px;
+}
+
+.ai-decision-summary {
+    margin-bottom: 6px;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+.ai-reasoning {
+    margin-bottom: 6px;
+    color: #E0E0E0;
+}
+
+.ai-dice-analysis {
+    color: #E0E0E0;
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+
+.ai-player-status {
+    color: #B8E6B8;
+    font-size: 13px;
+    font-weight: normal;
+}
+
 .game-log-empty {
     text-align: center;
     padding: 20px;

@@ -191,7 +191,7 @@ class UIUtilities {
      * Message Display Utilities
      */
     static showMessage(message, duration = 3000, elements) {
-        console.log(`Game Message: ${message}`);
+        window.UI && window.UI._debug && window.UI._debug(`Game Message: ${message}`);
         
         // Clear any existing message timeout
         if (UIUtilities.messageTimeout) {

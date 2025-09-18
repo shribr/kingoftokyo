@@ -1,0 +1,224 @@
+{
+  "timing": {
+    "speeds": {
+      "fast": {
+        "turnStart": 800,
+        "diceAnimation": 1500,
+        "decisionThinking": 1500,
+        "endTurn": 800,
+        "nextRoll": 600,
+        "thoughtBubbleMultiplier": 0.6,
+        "description": "Fast CPU - quick decisions and actions"
+      },
+      "medium": {
+        "turnStart": 1500,
+        "diceAnimation": 2000,
+        "decisionThinking": 3000,
+        "endTurn": 1500,
+        "nextRoll": 1000,
+        "thoughtBubbleMultiplier": 1.0,
+        "description": "Medium CPU - balanced timing for readability"
+      },
+      "slow": {
+        "turnStart": 2500,
+        "diceAnimation": 3000,
+        "decisionThinking": 4500,
+        "endTurn": 2500,
+        "nextRoll": 1800,
+        "thoughtBubbleMultiplier": 1.5,
+        "description": "Slow CPU - deliberate timing for strategy observation"
+      }
+    }
+  },
+  "diceEvaluation": {
+    "attack": {
+      "baseValue": 3,
+      "situationalMultiplier": 2.0,
+      "description": "Attack dice - damage other players"
+    },
+    "energy": {
+      "baseValue": 2,
+      "situationalMultiplier": 1.5,
+      "description": "Energy dice - buy power cards"
+    },
+    "heal": {
+      "baseValue": 2,
+      "situationalMultiplier": 3.0,
+      "description": "Heal dice - restore health (not in Tokyo)"
+    },
+    "victoryPoints": {
+      "baseValue": 4,
+      "situationalMultiplier": 1.2,
+      "description": "Victory point dice (1,2,3) - win condition"
+    }
+  },
+  "personalities": {
+    "aggression": {
+      "1": {
+        "attackBonus": -2,
+        "healPenalty": 0,
+        "vpBonus": 1,
+        "description": "Pacifist - avoids conflict, focuses on victory points"
+      },
+      "2": {
+        "attackBonus": -1,
+        "healPenalty": 0,
+        "vpBonus": 0,
+        "description": "Defensive - prefers safety over aggression"
+      },
+      "3": {
+        "attackBonus": 0,
+        "healPenalty": 0,
+        "vpBonus": 0,
+        "description": "Balanced - neutral aggression"
+      },
+      "4": {
+        "attackBonus": 1,
+        "healPenalty": -1,
+        "vpBonus": -1,
+        "description": "Aggressive - likes to attack, less focused on healing"
+      },
+      "5": {
+        "attackBonus": 2,
+        "healPenalty": -2,
+        "vpBonus": -2,
+        "description": "Berserker - maximum aggression, minimal self-preservation"
+      }
+    },
+    "strategy": {
+      "1": {
+        "planningDepth": 1,
+        "threatAwareness": 0.2,
+        "description": "Impulsive - makes decisions based on immediate situation"
+      },
+      "2": {
+        "planningDepth": 1,
+        "threatAwareness": 0.4,
+        "description": "Short-sighted - limited forward planning"
+      },
+      "3": {
+        "planningDepth": 2,
+        "threatAwareness": 0.6,
+        "description": "Tactical - moderate planning and awareness"
+      },
+      "4": {
+        "planningDepth": 2,
+        "threatAwareness": 0.8,
+        "description": "Strategic - good at reading the game state"
+      },
+      "5": {
+        "planningDepth": 3,
+        "threatAwareness": 1.0,
+        "description": "Mastermind - excellent long-term planning and threat assessment"
+      }
+    },
+    "risk": {
+      "1": {
+        "rerollThreshold": 0.8,
+        "keepSafeResults": true,
+        "description": "Ultra-conservative - keeps any decent results"
+      },
+      "2": {
+        "rerollThreshold": 0.7,
+        "keepSafeResults": true,
+        "description": "Conservative - prefers safety over optimal results"
+      },
+      "3": {
+        "rerollThreshold": 0.6,
+        "keepSafeResults": false,
+        "description": "Moderate - balanced risk-taking"
+      },
+      "4": {
+        "rerollThreshold": 0.4,
+        "keepSafeResults": false,
+        "description": "Bold - willing to gamble for better outcomes"
+      },
+      "5": {
+        "rerollThreshold": 0.2,
+        "keepSafeResults": false,
+        "description": "Reckless - maximum risk-taking, goes for broke"
+      }
+    }
+  },
+  "threats": {
+    "victoryPointThreat": 15,
+    "healthThreat": 3,
+    "energyThreat": 8,
+    "tokyoThreat": true,
+    "description": "Thresholds for identifying threatening players"
+  },
+  "gamePhases": {
+    "earlygame": {
+      "vpThreshold": 0,
+      "focusPriority": ["energy", "heal", "victoryPoints", "attack"],
+      "description": "Early game - focus on building up"
+    },
+    "midgame": {
+      "vpThreshold": 10,
+      "focusPriority": ["victoryPoints", "attack", "energy", "heal"],
+      "description": "Mid game - balance offense and victory points"
+    },
+    "endgame": {
+      "vpThreshold": 15,
+      "focusPriority": ["attack", "victoryPoints", "energy", "heal"],
+      "description": "End game - aggressive play to prevent others from winning"
+    }
+  },
+  "monsterSpecificAdjustments": {
+    "gigazaur": {
+      "personality": { "aggression": 4, "strategy": 2, "risk": 3 },
+      "specialRules": {
+        "description": "Ancient predator - tends to be territorial and aggressive but not overly strategic"
+      }
+    },
+    "cyberbunny": {
+      "personality": { "aggression": 2, "strategy": 5, "risk": 2 },
+      "specialRules": {
+        "description": "Advanced AI - excellent strategic planning and logical decision-making"
+      }
+    },
+    "kraken": {
+      "personality": { "aggression": 3, "strategy": 4, "risk": 4 },
+      "specialRules": {
+        "description": "Patient hunter - good strategy with willingness to take calculated risks"
+      }
+    },
+    "kinghull": {
+      "personality": { "aggression": 5, "strategy": 2, "risk": 3 },
+      "specialRules": {
+        "description": "Alpha predator - maximum aggression with direct approach"
+      }
+    },
+    "megalodon": {
+      "personality": { "aggression": 4, "strategy": 3, "risk": 5 },
+      "specialRules": {
+        "description": "Mechanical dragon - fearless and willing to take maximum risks"
+      }
+    },
+    "alienoid": {
+      "personality": { "aggression": 2, "strategy": 5, "risk": 4 },
+      "specialRules": {
+        "description": "Alien intelligence - prefers observation and strategic analysis over direct conflict"
+      }
+    }
+  },
+  "difficultyLevels": {
+    "easy": {
+      "decisionAccuracy": 0.6,
+      "mistakeProbability": 0.3,
+      "description": "AI makes some suboptimal decisions"
+    },
+    "medium": {
+      "decisionAccuracy": 0.8,
+      "mistakeProbability": 0.15,
+      "description": "AI makes mostly good decisions with occasional mistakes"
+    },
+    "hard": {
+      "decisionAccuracy": 0.95,
+      "mistakeProbability": 0.05,
+      "description": "AI makes near-optimal decisions consistently"
+    }
+  },
+  "version": "1.0.0",
+  "description": "AI Decision Engine Configuration for King of Tokyo CPU players"
+}

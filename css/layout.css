@@ -313,9 +313,9 @@ body::before {
     border-radius: 15px;
     padding: 35px;
     box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
-    max-width: 1200px;
+    max-width: 1400px; /* Increased from 1200px */
     width: auto;
-    min-width: 800px;
+    min-width: 1000px; /* Increased from 800px */
 }
 
 .rolloff-title {
@@ -338,6 +338,9 @@ body::before {
     background: rgba(255, 215, 0, 0.1);
     border-radius: 8px;
     border: 1px solid rgba(255, 215, 0, 0.3);
+    white-space: nowrap; /* Prevent text wrapping */
+    overflow: hidden; /* Hide overflow if text is still too long */
+    text-overflow: ellipsis; /* Add ellipsis if text overflows */
 }
 
 #rolloff-table {

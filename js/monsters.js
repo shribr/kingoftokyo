@@ -1,5 +1,5 @@
 // Monster definitions for King of Tokyo
-const MONSTERS = {
+let MONSTERS = {
     gigazaur: {
         id: 'gigazaur',
         name: 'Gigazaur',
@@ -86,6 +86,35 @@ const MONSTERS = {
     }
 };
 
+// Load monster configuration from config.json
+async function loadMonsterConfiguration() {
+    try {
+        const response = await fetch('config.json');
+        if (response.ok) {
+            const config = await response.json();
+            if (config.monsters) {
+                // Replace MONSTERS with config data
+                MONSTERS = config.monsters;
+                window.UI && window.UI._debug && window.UI._debug('✅ Monster configuration loaded from config.json');
+                
+                // Trigger event for UI to reload monsters if already initialized
+                if (typeof window !== 'undefined' && window.kingOfTokyoUI) {
+                    window.dispatchEvent(new CustomEvent('monstersConfigLoaded'));
+                    window.UI && window.UI._debug && window.UI._debug('🎭 Monster configuration loaded! Available monsters:', Object.keys(MONSTERS));
+                    window.UI && window.UI._debug && window.UI._debug('🎭 Total monster count:', Object.keys(MONSTERS).length);
+                }
+            }
+        }
+    } catch (error) {
+        console.warn('⚠️ Failed to load monster configuration, using defaults:', error);
+    }
+}
+
+// Initialize monster configuration on load
+if (typeof window !== 'undefined') {
+    loadMonsterConfiguration();
+}
+
 // Player class to represent each monster/player
 class Player {
     constructor(monster, playerNumber, playerType = 'human') {
@@ -109,16 +138,16 @@ class Player {
 
     // Take damage
     takeDamage(amount) {
-        console.log(`💀 ${this.monster.name} taking ${amount} damage (health before: ${this.health})`);
+        window.UI && window.UI._debug && window.UI._debug(`💀 ${this.monster.name} taking ${amount} damage (health before: ${this.health})`);
         if (window.UI && window.UI.debugMode) {
             window.UI._debug(`DEBUG - Stack trace for takeDamage:`, new Error().stack);
         }
         this.health = Math.max(0, this.health - amount);
-        console.log(`💀 ${this.monster.name} health after damage: ${this.health}`);
+        window.UI && window.UI._debug && window.UI._debug(`💀 ${this.monster.name} health after damage: ${this.health}`);
         
         let eliminationInfo = null;
         if (this.health === 0) {
-            console.log(`💀 ${this.monster.name} health reached 0 - eliminating player`);
+            window.UI && window.UI._debug && window.UI._debug(`💀 ${this.monster.name} health reached 0 - eliminating player`);
             if (window.UI && window.UI.debugMode) {
                 window.UI._debug(`ELIMINATION STACK TRACE:`, new Error().stack);
             }
@@ -176,7 +205,7 @@ class Player {
 
     // Eliminate player
     eliminate() {
-        console.log(`💀 ELIMINATING PLAYER: ${this.monster.name}`);
+        window.UI && window.UI._debug && window.UI._debug(`💀 ELIMINATING PLAYER: ${this.monster.name}`);
         this.isEliminated = true;
         
         // Store Tokyo location before leaving for attacker replacement
@@ -186,7 +215,7 @@ class Player {
         // Note: Tokyo state will be cleared by the game logic, not here
         // We just clear the player's internal state
         this.leaveTokyo();
-        console.log(`💀 Player ${this.monster.name} eliminated status: ${this.isEliminated}`);
+        window.UI && window.UI._debug && window.UI._debug(`💀 Player ${this.monster.name} eliminated status: ${this.isEliminated}`);
         
         // Return elimination info for further processing
         return {

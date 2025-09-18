@@ -342,14 +342,35 @@
                 <h2>Game Log</h2>
                 <button class="close-btn" id="close-game-log">×</button>
             </div>
+            
+            <!-- Tab Navigation -->
+            <div class="log-tabs">
+                <button class="tab-btn active" data-tab="game-flow">📝 Game Flow</button>
+                <button class="tab-btn" data-tab="ai-logic">🧠 AI Logic Flow</button>
+            </div>
+            
             <div class="game-log-container">
-                <div class="game-log-entries">
-                    <h3>📝 Game Events</h3>
-                    <div id="game-log-content">
-                        <!-- Log entries will be populated here -->
+                <!-- Game Flow Tab -->
+                <div id="game-flow-tab" class="tab-content active">
+                    <div class="game-log-entries">
+                        <h3>📝 Game Events</h3>
+                        <div id="game-log-content">
+                            <!-- Log entries will be populated here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- AI Logic Flow Tab -->
+                <div id="ai-logic-tab" class="tab-content">
+                    <div class="game-log-entries">
+                        <h3>🧠 AI Decision Logic</h3>
+                        <div id="ai-log-content">
+                            <!-- AI decision logs will be populated here -->
+                        </div>
                     </div>
                 </div>
             </div>
+            
             <div class="game-log-actions">
                 <button id="scroll-to-top-btn" class="game-btn secondary large">↑ Top</button>
                 <button id="export-logs-btn" class="game-btn secondary large">📄 Export Logs</button>
@@ -722,6 +743,9 @@
     
     <script src="js/ui-utilities.js"></script>
     <script>console.log('✅ ui-utilities.js loaded, UIUtilities available:', typeof UIUtilities !== 'undefined');</script>
+    
+    <script src="js/ai-decisions.js"></script>
+    <script>console.log('✅ ai-decisions.js loaded, AIDecisionEngine available:', typeof AIDecisionEngine !== 'undefined');</script>
     
     <script src="js/ui/setup.js"></script>
     <script>console.log('✅ setup.js loaded, SetupManager available:', typeof SetupManager !== 'undefined');</script>
