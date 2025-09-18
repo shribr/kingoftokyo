@@ -88,7 +88,7 @@ class AIDecisionEngine {
             return { action: 'reroll', keepDice: [], reason: 'Config not loaded' };
         }
 
-        window.UI && window.UI._debug && window.UI._debug(`🧠 AI Decision for ${player.monster.name}:`, {
+        console.log(`🧠 AI Decision for ${player.monster.name}:`, {
             dice: currentDice,
             rollsLeft: rollsRemaining,
             personality: player.monster.personality
@@ -96,15 +96,15 @@ class AIDecisionEngine {
 
         // Analyze current situation
         const situation = this.analyzeSituation(player, gameState);
-        window.UI && window.UI._debug && window.UI._debug(`🧠 Situation analysis:`, situation);
+        console.log(`🧠 Situation analysis:`, situation);
 
         // Evaluate dice strategies
         const diceEvaluations = this.evaluateDice(currentDice, player, situation);
-        window.UI && window.UI._debug && window.UI._debug(`🧠 Dice evaluations:`, diceEvaluations);
+        console.log(`🧠 Dice evaluations:`, diceEvaluations);
 
         // Make final decision
         const decision = this.makeKeepDecision(diceEvaluations, rollsRemaining, player, situation);
-        window.UI && window.UI._debug && window.UI._debug(`🧠 Final decision:`, decision);
+        console.log(`🧠 Final decision:`, decision);
 
         return decision;
     }
@@ -219,12 +219,21 @@ class AIDecisionEngine {
      * Evaluate the value of each die result
      */
     evaluateDice(dice, player, situation) {
+        // First, count occurrences of each dice face for combination analysis
+        const faceCounts = {};
+        dice.forEach(face => {
+            faceCounts[face] = (faceCounts[face] || 0) + 1;
+        });
+
         return dice.map((dieValue, index) => {
             const baseValue = this.getDiceBaseValue(dieValue);
             const situationalValue = this.getDiceSituationalValue(dieValue, player, situation);
             const personalityValue = this.getDicePersonalityValue(dieValue, player.monster.personality);
             
-            const totalValue = baseValue + situationalValue + personalityValue;
+            // NEW: Add combination bonus for numbers
+            const combinationValue = this.getDiceCombinationValue(dieValue, faceCounts);
+            
+            const totalValue = baseValue + situationalValue + personalityValue + combinationValue;
             
             return {
                 index,
@@ -232,10 +241,51 @@ class AIDecisionEngine {
                 baseValue,
                 situationalValue,
                 personalityValue,
+                combinationValue,
                 totalValue,
                 shouldKeep: totalValue > this.getKeepThreshold(player, situation)
             };
         });
+    }
+
+    /**
+     * Calculate bonus value for dice combinations (especially numbers for VP)
+     */
+    getDiceCombinationValue(dieValue, faceCounts) {
+        if (['1', '2', '3'].includes(dieValue)) {
+            const count = faceCounts[dieValue];
+            
+            // VP scoring: 3 same = number value, each extra = +1 VP
+            if (count >= 3) {
+                // This die is part of a VP-scoring combination!
+                const vpValue = parseInt(dieValue) + Math.max(0, count - 3);
+                return vpValue * 3; // Weight VP combinations heavily
+            } else if (count === 2) {
+                // Two of a kind - valuable because we're close to VP
+                return 2;
+            } else {
+                // Single die - minimal value unless we can build to 3
+                return 0;
+            }
+        }
+        
+        // For non-numbers, check if multiples add value
+        if (dieValue === 'attack') {
+            const count = faceCounts['attack'];
+            return count >= 2 ? count * 0.5 : 0; // Multiple attacks are valuable
+        }
+        
+        if (dieValue === 'energy') {
+            const count = faceCounts['energy'];
+            return count >= 2 ? count * 0.3 : 0; // Multiple energy is nice
+        }
+        
+        if (dieValue === 'heal') {
+            const count = faceCounts['heal'];
+            return count >= 2 ? count * 0.4 : 0; // Multiple heals can be useful
+        }
+        
+        return 0;
     }
 
     /**

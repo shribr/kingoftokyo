@@ -4273,70 +4273,174 @@ class KingOfTokyoUI {
 
     // Add AI logic entry to the AI Logic Flow tab
     addAILogicEntry(playerName, decision, analysis) {
-        if (!this.elements.aiLogContent) return;
+        console.log('🔍 DEBUG: addAILogicEntry called with:', {
+            playerName: playerName,
+            decision: decision,
+            analysis: analysis,
+            hasAiLogContent: !!this.elements.aiLogContent
+        });
+        
+        if (!this.elements.aiLogContent) {
+            console.error('🔍 DEBUG: No aiLogContent element found!');
+            return;
+        }
 
-        const timestamp = new Date().toLocaleTimeString();
+        // TEMPORARY: Add simple logging to test if the element works at all
+        const testElement = document.createElement('div');
+        testElement.style.background = '#333';
+        testElement.style.color = '#fff';
+        testElement.style.padding = '10px';
+        testElement.style.margin = '5px';
+        testElement.style.border = '1px solid #555';
+        testElement.innerHTML = `<strong>TEST:</strong> ${playerName} - ${decision.action} - ${decision.reason}`;
+        this.elements.aiLogContent.appendChild(testElement);
         
-        // Parse the analysis to extract detailed information
-        const analysisData = this.parseAIAnalysis(analysis);
+        console.log('🔍 DEBUG: Added test element to aiLogContent');
         
-        // Create unique IDs for this entry
-        const entryId = `ai-entry-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        const diceAnalysisId = `dice-analysis-${entryId}`;
-        
-        // Get rolls remaining for the header
-        const rollsRemaining = this.getRollsRemaining(analysisData.playerStatus);
-        const rollText = rollsRemaining > 0 ? ` (${rollsRemaining} rolls left)` : '';
-        
-        // Each AI logic call represents a single decision/roll, so create individual entries
-        const aiEntry = document.createElement('div');
-        aiEntry.className = 'ai-logic-entry';
-        
-        aiEntry.innerHTML = `
-            <div class="ai-logic-header">
-                <div class="ai-timestamp">${timestamp}</div>
-                <div class="ai-player-info">
-                    <div class="ai-player-name-large">${playerName}${rollText}</div>
-                    <div class="ai-player-status-visual">${this.formatPlayerStatusWithEmojis(analysisData.playerStatus)}</div>
-                </div>
-            </div>
+        // Try the complex logic
+        try {
+            const timestamp = new Date().toLocaleTimeString();
+            const gameState = this.game.getGameState();
+            const currentPlayer = this.game.getCurrentPlayer();
             
-            <div class="ai-decision-section">
-                <strong>⚖️ Decision:</strong> ${decision.action === 'reroll' ? 'Continue Rolling' : 'Stop and Keep Dice'}
-            </div>
+            // Parse the analysis to extract detailed information
+            const analysisData = this.parseAIAnalysis(analysis);
             
-            <div class="ai-reasoning-section">
-                <strong>🤔 Reasoning:</strong> ${decision.reason} <span class="ai-info-icon" data-reasoning-id="${entryId}">i</span>
-            </div>
+            // Get or create turn container for this player's current turn
+            const turnId = `turn-${gameState.currentRound}-${currentPlayer.id}`;
+            let turnContainer = document.getElementById(turnId);
             
-            <div class="ai-dice-analysis-section">
-                <div class="ai-dice-analysis-header" data-toggle="${diceAnalysisId}">
-                    <strong>Dice Analysis</strong>
-                    <span class="ai-toggle-arrow">▲</span>
-                </div>
-                <div class="ai-dice-analysis-content" id="${diceAnalysisId}">
-                    ${this.generateEnhancedDiceAnalysis(analysisData, decision)}
-                </div>
-            </div>
-        `;
-
-        // Store detailed reasoning data for the info modal
-        aiEntry.setAttribute('data-detailed-reasoning', JSON.stringify({
-            playerName,
-            decision,
-            analysisData,
-            timestamp
-        }));
-
-        this.elements.aiLogContent.appendChild(aiEntry);
-        
-        // Add event listeners for the new functionality
-        this.setupAILogicEntryEvents(aiEntry);
+            console.log('🔍 DEBUG: Looking for turn container:', turnId, 'found:', !!turnContainer);
+            
+            if (!turnContainer) {
+                turnContainer = this.createTurnContainer(playerName, gameState, currentPlayer, turnId);
+                this.elements.aiLogContent.appendChild(turnContainer);
+                console.log('🔍 DEBUG: Created new turn container');
+            }
+            
+            // Add this roll as a child entry to the turn container
+            const rollNumber = this.getRollNumberFromContainer(turnContainer) + 1;
+            const rollEntry = this.createRollEntry(decision, analysisData, rollNumber, timestamp);
+            
+            const rollsContainer = turnContainer.querySelector('.ai-turn-rolls');
+            rollsContainer.appendChild(rollEntry);
+            
+            console.log('🔍 DEBUG: Added roll entry', rollNumber, 'to turn container');
+            
+            // Update turn stats
+            this.updateTurnStats(turnContainer, decision, analysisData);
+        } catch (error) {
+            console.error('🔍 DEBUG: Error in complex AI logging:', error);
+        }
         
         // Auto-scroll to bottom if tab is active
         if (document.getElementById('ai-logic-tab').classList.contains('active')) {
             this.elements.aiLogContent.scrollTop = this.elements.aiLogContent.scrollHeight;
         }
+    }
+
+    createTurnContainer(playerName, gameState, currentPlayer, turnId) {
+        const turnContainer = document.createElement('div');
+        turnContainer.className = 'ai-turn-container';
+        turnContainer.id = turnId;
+        
+        // Get player personality from AI config
+        const playerPersonality = this.getPlayerPersonality(currentPlayer);
+        
+        turnContainer.innerHTML = `
+            <div class="ai-turn-header">
+                <div class="ai-turn-title">
+                    <h3>Round ${gameState.currentRound} - ${playerName}'s Turn</h3>
+                    <div class="ai-turn-personality">
+                        ${this.formatPersonalityDisplay(playerPersonality)}
+                    </div>
+                </div>
+                <div class="ai-turn-player-info">
+                    <div class="ai-player-stats">
+                        ${this.formatPlayerStatusWithEmojis(this.extractPlayerStatus(currentPlayer))}
+                    </div>
+                    <div class="ai-turn-position">
+                        ${currentPlayer.isInTokyo ? '🏙️ In Tokyo' : '🏠 Outside Tokyo'}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="ai-turn-summary">
+                <div class="ai-turn-stats">
+                    <span class="stat-item">Rolls: <span class="roll-count">0</span></span>
+                    <span class="stat-item">Decision: <span class="final-decision">In Progress...</span></span>
+                    <span class="stat-item">Confidence: <span class="avg-confidence">--</span></span>
+                </div>
+            </div>
+            
+            <div class="ai-turn-rolls">
+                <!-- Roll entries will be added here -->
+            </div>
+        `;
+        
+        return turnContainer;
+    }
+
+    createRollEntry(decision, analysisData, rollNumber, timestamp) {
+        const entryId = `roll-entry-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const rollEntry = document.createElement('div');
+        rollEntry.className = 'ai-roll-entry';
+        
+        // Extract dice from analysis
+        const diceArray = this.extractDiceFromAnalysis(analysisData);
+        
+        rollEntry.innerHTML = `
+            <div class="ai-roll-header">
+                <div class="ai-roll-title">
+                    <span class="roll-number">Roll ${rollNumber}</span>
+                    <span class="roll-timestamp">${timestamp}</span>
+                </div>
+                <div class="ai-roll-action">
+                    <span class="decision-badge ${decision.action}">
+                        ${this.formatDecisionAction(decision.action)}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="ai-roll-dice">
+                <div class="dice-outcome">
+                    <strong>Dice Result:</strong>
+                    ${this.generateDiceImagesHtml(diceArray)}
+                </div>
+                ${decision.keepDice && decision.keepDice.length > 0 ? `
+                    <div class="dice-kept">
+                        <strong>Keeping:</strong> ${this.formatKeptDice(decision.keepDice, diceArray)}
+                    </div>
+                ` : ''}
+            </div>
+            
+            <div class="ai-roll-analysis">
+                <div class="ai-reasoning">
+                    <strong>🤔 AI Reasoning:</strong>
+                    <p>${decision.reason}</p>
+                </div>
+                
+                <div class="ai-probability-analysis">
+                    <strong>📊 Probability Analysis:</strong>
+                    ${this.generateProbabilityAnalysis(diceArray, decision)}
+                </div>
+                
+                <div class="ai-strategic-analysis">
+                    <strong>🎯 Strategic Assessment:</strong>
+                    ${this.generateStrategicAnalysis(diceArray, decision, analysisData)}
+                </div>
+                
+                <div class="ai-confidence-meter">
+                    <strong>Confidence:</strong>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" style="width: ${(decision.confidence * 100)}%"></div>
+                    </div>
+                    <span class="confidence-text">${Math.round(decision.confidence * 100)}%</span>
+                </div>
+            </div>
+        `;
+        
+        return rollEntry;
     }
 
     parseAIAnalysis(analysis) {
@@ -4349,6 +4453,238 @@ class KingOfTokyoUI {
             diceBreakdown: diceResults || 'No significant dice combinations',
             playerStatus: playerStatus || 'Status unknown'
         };
+    }
+
+    getPlayerPersonality(currentPlayer) {
+        if (!this.aiConfig || !this.aiConfig.personalities) return null;
+        
+        // Get personality from AI config based on player type or monster name
+        const personalityKey = currentPlayer.monster?.name?.toLowerCase() || 'default';
+        return this.aiConfig.personalities[personalityKey] || this.aiConfig.personalities.default;
+    }
+
+    formatPersonalityDisplay(personality) {
+        if (!personality) return '<span class="personality-unknown">Unknown Personality</span>';
+        
+        return `
+            <div class="personality-traits">
+                <span class="personality-name">${personality.name || 'Unknown'}</span>
+                <div class="personality-stats">
+                    <span class="trait-item">🎯 Aggression: ${Math.round((personality.aggression || 0.5) * 100)}%</span>
+                    <span class="trait-item">🛡️ Caution: ${Math.round((personality.caution || 0.5) * 100)}%</span>
+                    <span class="trait-item">🎲 Risk: ${Math.round((personality.riskTaking || 0.5) * 100)}%</span>
+                </div>
+            </div>
+        `;
+    }
+
+    extractPlayerStatus(currentPlayer) {
+        return `Health: ${currentPlayer.health}/${currentPlayer.maxHealth} | Energy: ${currentPlayer.energy} | VP: ${currentPlayer.points}`;
+    }
+
+    getRollNumberFromContainer(turnContainer) {
+        const rollEntries = turnContainer.querySelectorAll('.ai-roll-entry');
+        return rollEntries.length;
+    }
+
+    extractDiceFromAnalysis(analysisData) {
+        const diceMatch = analysisData.diceBreakdown.match(/Rolled:\s*\[([^\]]+)\]/);
+        if (!diceMatch) return [];
+        
+        return diceMatch[1].split(',').map(d => d.trim()).filter(d => d && d !== '');
+    }
+
+    formatDecisionAction(action) {
+        switch(action) {
+            case 'reroll': return '🔄 Continue Rolling';
+            case 'keep': return '✅ Keep Dice';
+            case 'endRoll': return '🛑 End Turn';
+            default: return '❓ Unknown';
+        }
+    }
+
+    formatKeptDice(keepDice, diceArray) {
+        if (!keepDice || keepDice.length === 0) return 'None';
+        
+        return keepDice.map(index => {
+            const diceValue = diceArray[index] || '?';
+            const symbol = this.getDiceFaceDisplay(diceValue);
+            return `<span class="kept-die">${symbol}</span>`;
+        }).join(' ');
+    }
+
+    generateProbabilityAnalysis(diceArray, decision) {
+        if (!diceArray || diceArray.length === 0) {
+            return '<p>No dice data available for probability analysis.</p>';
+        }
+        
+        // Count current dice faces
+        const faceCounts = {};
+        diceArray.forEach(face => {
+            faceCounts[face] = (faceCounts[face] || 0) + 1;
+        });
+        
+        // Calculate probability for potential improvements
+        const improvements = this.calculateImprovementProbabilities(faceCounts, decision);
+        
+        return `
+            <div class="probability-breakdown">
+                <div class="current-value">
+                    <strong>Current Value:</strong> ${this.calculateCurrentScore(faceCounts)}
+                </div>
+                <div class="improvement-chances">
+                    ${improvements.map(imp => `
+                        <div class="improvement-item">
+                            <span class="improvement-type">${imp.type}:</span>
+                            <span class="improvement-probability">${imp.probability}%</span>
+                            <div class="probability-bar">
+                                <div class="probability-fill" style="width: ${imp.probability}%"></div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    generateStrategicAnalysis(diceArray, decision, analysisData) {
+        const strategic = [];
+        
+        // Analyze current situation
+        const faceCounts = {};
+        diceArray.forEach(face => {
+            faceCounts[face] = (faceCounts[face] || 0) + 1;
+        });
+        
+        // Check for strong combinations
+        if (faceCounts['energy'] >= 2) {
+            strategic.push('💰 Strong energy income potential');
+        }
+        if (faceCounts['attack'] >= 2) {
+            strategic.push('⚔️ High attack potential');
+        }
+        if (faceCounts['1'] >= 2 || faceCounts['2'] >= 2 || faceCounts['3'] >= 2) {
+            strategic.push('⭐ Victory point combination building');
+        }
+        if (faceCounts['heal']) {
+            strategic.push('❤️ Healing available');
+        }
+        
+        // Add risk assessment
+        if (decision.confidence > 0.8) {
+            strategic.push('🎯 High confidence decision');
+        } else if (decision.confidence < 0.4) {
+            strategic.push('🤔 Uncertain situation, gambling');
+        }
+        
+        // Add position-based advice
+        if (analysisData.playerStatus.includes('Tokyo')) {
+            strategic.push('🏙️ Tokyo position influences risk assessment');
+        }
+        
+        return strategic.length > 0 ? `
+            <ul class="strategic-points">
+                ${strategic.map(point => `<li>${point}</li>`).join('')}
+            </ul>
+        ` : '<p>No significant strategic factors identified.</p>';
+    }
+
+    calculateCurrentScore(faceCounts) {
+        let score = 0;
+        let description = [];
+        
+        // Energy
+        if (faceCounts['energy']) {
+            score += faceCounts['energy'];
+            description.push(`${faceCounts['energy']} Energy`);
+        }
+        
+        // Attacks
+        if (faceCounts['attack']) {
+            score += faceCounts['attack'] * 2; // Weight attacks higher
+            description.push(`${faceCounts['attack']} Attacks`);
+        }
+        
+        // Victory points
+        ['1', '2', '3'].forEach(num => {
+            if (faceCounts[num] >= 3) {
+                const vp = parseInt(num) + (faceCounts[num] - 3);
+                score += vp * 3; // Weight VP very high
+                description.push(`${vp} VP from ${num}s`);
+            }
+        });
+        
+        // Healing
+        if (faceCounts['heal']) {
+            score += faceCounts['heal'];
+            description.push(`${faceCounts['heal']} Heal`);
+        }
+        
+        return description.length > 0 ? description.join(', ') : 'No significant value';
+    }
+
+    calculateImprovementProbabilities(faceCounts, decision) {
+        const improvements = [];
+        
+        // Calculate probability of getting needed faces on reroll
+        const diceToReroll = 6 - (decision.keepDice ? decision.keepDice.length : 0);
+        if (diceToReroll === 0) return improvements;
+        
+        // Probability of getting at least one energy (if needed)
+        if (!faceCounts['energy'] || faceCounts['energy'] < 2) {
+            const energyProb = Math.round((1 - Math.pow(5/6, diceToReroll)) * 100);
+            improvements.push({ type: 'Getting Energy', probability: energyProb });
+        }
+        
+        // Probability of getting attacks
+        if (!faceCounts['attack'] || faceCounts['attack'] < 2) {
+            const attackProb = Math.round((1 - Math.pow(5/6, diceToReroll)) * 100);
+            improvements.push({ type: 'Getting Attacks', probability: attackProb });
+        }
+        
+        // Probability of completing number sets for VP
+        ['1', '2', '3'].forEach(num => {
+            const current = faceCounts[num] || 0;
+            if (current >= 1 && current < 3) {
+                const needed = 3 - current;
+                const setProb = Math.round((1 - Math.pow(5/6, Math.min(diceToReroll, needed))) * 100);
+                improvements.push({ type: `Completing ${num}s for VP`, probability: setProb });
+            }
+        });
+        
+        return improvements.slice(0, 3); // Limit to top 3 most relevant
+    }
+
+    updateTurnStats(turnContainer, decision, analysisData) {
+        const rollCountElement = turnContainer.querySelector('.roll-count');
+        const finalDecisionElement = turnContainer.querySelector('.final-decision');
+        const avgConfidenceElement = turnContainer.querySelector('.avg-confidence');
+        
+        // Update roll count
+        const currentCount = parseInt(rollCountElement.textContent) + 1;
+        rollCountElement.textContent = currentCount;
+        
+        // Update final decision if turn is ending
+        if (decision.action === 'keep' || decision.action === 'endRoll') {
+            finalDecisionElement.textContent = 'Turn Complete';
+            finalDecisionElement.className = 'final-decision complete';
+        } else {
+            finalDecisionElement.textContent = 'Rolling...';
+            finalDecisionElement.className = 'final-decision rolling';
+        }
+        
+        // Calculate and update average confidence
+        const rollEntries = turnContainer.querySelectorAll('.ai-roll-entry');
+        let totalConfidence = 0;
+        rollEntries.forEach(entry => {
+            const confidenceText = entry.querySelector('.confidence-text')?.textContent;
+            if (confidenceText) {
+                totalConfidence += parseInt(confidenceText.replace('%', ''));
+            }
+        });
+        
+        const avgConfidence = Math.round(totalConfidence / rollEntries.length);
+        avgConfidenceElement.textContent = `${avgConfidence}%`;
     }
 
     // Format player status with emojis for visual display
@@ -4859,7 +5195,10 @@ class KingOfTokyoUI {
 
     // Programmatically select dice for CPU (same as human click)
     cpuSelectDice(diceIndices) {
+        console.log('🔍 DEBUG: cpuSelectDice called with indices:', diceIndices);
+        
         if (!this.game || !this.game.diceCollection || !Array.isArray(diceIndices)) {
+            console.log('🔍 DEBUG: cpuSelectDice early return - missing game/diceCollection or invalid indices');
             return;
         }
 
@@ -4870,23 +5209,32 @@ class KingOfTokyoUI {
         document.querySelectorAll('.die').forEach(dieElement => {
             dieElement.classList.remove('selected');
         });
+        
+        console.log('🔍 DEBUG: Cleared existing selections');
 
         // Select the dice the AI wants to keep
         diceIndices.forEach(index => {
             const dieId = `die-${index}`;
+            console.log('🔍 DEBUG: Trying to select die with ID:', dieId);
             
             // Use the same logic as the human click handler
             if (this.game.diceCollection) {
                 const isSelected = this.game.diceCollection.toggleDiceSelection(dieId);
+                console.log('🔍 DEBUG: toggleDiceSelection result:', isSelected);
                 
-                // Update visual state
-                const dieElement = document.querySelector(`[data-die-id="${dieId}"]`);
-                if (dieElement && isSelected) {
+                // Also manually add visual selection class
+                const dieElement = document.getElementById(dieId);
+                if (dieElement) {
                     dieElement.classList.add('selected');
+                    console.log('🔍 DEBUG: Added selected class to element:', dieId);
+                } else {
+                    console.log('🔍 DEBUG: Die element not found:', dieId);
                 }
             }
         });
-
+        
+        console.log('🔍 DEBUG: cpuSelectDice completed');
+        
         // Update dice controls to reflect the selection
         this.updateDiceControls();
     }
@@ -5064,12 +5412,30 @@ class KingOfTokyoUI {
     // Initialize AI decision engine
     initializeAI() {
         console.log('🤖 Initializing AI Decision Engine...');
+        console.log('🤖 AIDecisionEngine available:', typeof AIDecisionEngine !== 'undefined');
+        
         if (typeof AIDecisionEngine !== 'undefined') {
             this.aiEngine = new AIDecisionEngine();
             console.log('✅ AI Decision Engine initialized successfully');
+            
+            // Store AI config reference for UI components
+            this.aiConfig = this.aiEngine.config;
+            
+            // Test if config loads properly
+            setTimeout(() => {
+                console.log('🤖 AI Config loaded:', !!this.aiEngine.config);
+                if (this.aiEngine.config) {
+                    console.log('🤖 AI Config sample:', {
+                        hasPersonalities: !!this.aiEngine.config.personalities,
+                        hasTiming: !!this.aiEngine.config.timing,
+                        version: this.aiEngine.config.version
+                    });
+                }
+            }, 1000);
         } else {
             console.warn('⚠️ AIDecisionEngine not available - CPU will use fallback logic');
             this.aiEngine = null;
+            this.aiConfig = null;
         }
     }
 
@@ -5673,22 +6039,40 @@ class KingOfTokyoUI {
 
     // CPU Thinking System
     showCPUThoughtBubble(player, context = 'general') {
-        if (player.playerType !== 'cpu') return;
+        console.log('🔍 DEBUG: showCPUThoughtBubble called:', player.monster.name, context);
+        
+        if (player.playerType !== 'cpu') {
+            console.log('🔍 DEBUG: Player is not CPU type:', player.playerType);
+            return;
+        }
         
         // Check if thought bubbles are enabled
         const thoughtBubblesEnabled = localStorage.getItem('thoughtBubblesEnabled') !== 'false';
-        if (!thoughtBubblesEnabled) return;
+        if (!thoughtBubblesEnabled) {
+            console.log('🔍 DEBUG: Thought bubbles disabled in localStorage');
+            return;
+        }
         
         // Find the player card container
         const playerCard = document.querySelector(`[data-player-id="${player.id}"]`);
-        if (!playerCard) return;
+        if (!playerCard) {
+            console.log('🔍 DEBUG: Player card not found for ID:', player.id);
+            return;
+        }
+        
+        console.log('🔍 DEBUG: Found player card, creating thought bubble...');
         
         // Remove any existing thought bubble
         this.hideCPUThoughtBubble(player);
         
         // Get context-appropriate phrase
         const phrase = this.getCPUThoughtPhrase(player, context);
-        if (!phrase) return;
+        if (!phrase) {
+            console.log('🔍 DEBUG: No phrase found for context:', context);
+            return;
+        }
+        
+        console.log('🔍 DEBUG: Using phrase:', phrase);
         
         // Create thought bubble
         const thoughtBubble = document.createElement('div');
@@ -6364,10 +6748,12 @@ class KingOfTokyoUI {
 
     // AI-powered CPU rolling (new logic with decision making)
     cpuRollDiceAI(player, rollNumber) {
+        console.log('🔍 DEBUG: cpuRollDiceAI called with rollNumber:', rollNumber);
         window.UI && window.UI._debug && window.UI._debug(`🎲 AI CPU: Starting roll ${rollNumber}/3`);
         
         // Always roll, regardless of dice state
         if (rollNumber <= 3) {
+            console.log('🔍 DEBUG: rollNumber <= 3, proceeding with roll');
             window.UI && window.UI._debug && window.UI._debug(`🎲 AI CPU: Executing roll ${rollNumber}/3`);
             this.showSimpleCPUNotification(player, `🎲 ${player.monster.name} rolling... (${rollNumber}/3)`);
             
@@ -6391,11 +6777,21 @@ class KingOfTokyoUI {
                 
                 // Add 3-second delay AFTER showing dice outcome for human player to see results
                 setTimeout(() => {
+                    console.log('🔍 DEBUG: Roll decision logic:', {
+                        rollNumber: rollNumber,
+                        rollsRemaining: diceState.rollsRemaining,
+                        condition1: rollNumber < 3,
+                        condition2: diceState.rollsRemaining > 0,
+                        shouldContinue: rollNumber < 3 && diceState.rollsRemaining > 0
+                    });
+                    
                     // NEW AI LOGIC: Use AI decision engine to decide whether to keep rolling
                     if (rollNumber < 3 && diceState.rollsRemaining > 0) {
+                        console.log('🔍 DEBUG: Making AI roll decision for roll', rollNumber);
                         this.makeAIRollDecision(player, rollNumber, diceState);
                     } else {
                         // After 3rd roll, CPU is done - resolve dice and end turn
+                        console.log('🔍 DEBUG: Ending turn - rollNumber:', rollNumber, 'rollsRemaining:', diceState.rollsRemaining);
                         window.UI && window.UI._debug && window.UI._debug(`🤖 AI CPU: ${player.monster.name} finished rolling, resolving dice and ending turn`);
                         this.showSimpleCPUNotification(player, `✅ ${player.monster.name} ending turn...`);
                         
@@ -6409,6 +6805,14 @@ class KingOfTokyoUI {
                     }
                 }, this.getCPUThinkingTime('decisionThinking')); // Configurable delay for human to see dice outcome
             }, 600); // Fixed: Match actual dice animation time (400ms + 200ms buffer)
+        } else {
+            // If somehow rollNumber > 3, force end turn
+            console.log('🔍 DEBUG: rollNumber > 3, force ending turn. rollNumber:', rollNumber);
+            this.showSimpleCPUNotification(player, `✅ ${player.monster.name} ending turn...`);
+            setTimeout(() => {
+                this.updateDiceControls();
+                this.game.endTurn();
+            }, this.getCPUThinkingTime('endTurn'));
         }
     }
 
@@ -6431,12 +6835,20 @@ class KingOfTokyoUI {
             
             // Use AI decision engine if available
             if (this.aiEngine) {
+                console.log('🔍 DEBUG: Calling AI decision with:', {
+                    diceResults: diceResults.map(d => d.face),
+                    rollsRemaining: rollsRemaining,
+                    rollNumber: rollNumber
+                });
+                
                 const decision = this.aiEngine.makeRollDecision(
                     diceResults.map(d => d.face), // Just the face values
                     rollsRemaining,
                     player,
                     gameState
                 );
+                
+                console.log('🔍 DEBUG: AI decision received:', decision);
                 
                 console.log(`🧠 AI decision:`, decision);
                 this.showSimpleCPUNotification(player, `🧠 ${player.monster.name} ${decision.reason}`);
@@ -6451,12 +6863,22 @@ class KingOfTokyoUI {
                 }
                 
                 // Log to AI Logic Flow tab
+                console.log('🔍 DEBUG: diceResults from getAllDiceData():', diceResults);
                 const diceAnalysis = this.createDiceAnalysis(diceResults, player, gameState);
+                console.log('🔍 DEBUG: createDiceAnalysis returned:', diceAnalysis);
+                console.log('🔍 DEBUG: About to call addAILogicEntry with:', {
+                    playerName: player.monster.name,
+                    decision: decision,
+                    diceAnalysis: diceAnalysis
+                });
                 this.addAILogicEntry(player.monster.name, decision, diceAnalysis);
                 
                 // Visually select the dice the CPU wants to keep
                 if (decision.keepDice && decision.keepDice.length > 0) {
+                    console.log('🔍 DEBUG: CPU wants to keep dice:', decision.keepDice);
                     this.cpuSelectDice(decision.keepDice);
+                } else {
+                    console.log('🔍 DEBUG: CPU not keeping any dice');
                 }
                 
                 if (decision.action === 'reroll') {
@@ -6466,7 +6888,7 @@ class KingOfTokyoUI {
                     setTimeout(() => {
                         this.cpuRollDice(player, rollNumber + 1);
                     }, this.getCPUThinkingTime('nextRoll'));
-                } else {
+                } else if (decision.action === 'keep' || decision.action === 'endRoll') {
                     // AI decided to stop rolling - resolve dice and end turn
                     window.UI && window.UI._debug && window.UI._debug(`🤖 AI CPU: ${player.monster.name} stopping at roll ${rollNumber}, resolving dice and ending turn`);
                     this.showSimpleCPUNotification(player, `✅ ${player.monster.name} ending turn...`);
@@ -6474,6 +6896,15 @@ class KingOfTokyoUI {
                     setTimeout(() => {
                         this.updateDiceControls();
                         // CPU players call game.endTurn() directly, not through UI layer
+                        this.game.endTurn();
+                    }, this.getCPUThinkingTime('endTurn'));
+                } else {
+                    // Unknown action, fallback to ending turn
+                    console.warn(`🤖 Unknown AI action: ${decision.action}, ending turn`);
+                    this.showSimpleCPUNotification(player, `✅ ${player.monster.name} ending turn...`);
+                    
+                    setTimeout(() => {
+                        this.updateDiceControls();
                         this.game.endTurn();
                     }, this.getCPUThinkingTime('endTurn'));
                 }
