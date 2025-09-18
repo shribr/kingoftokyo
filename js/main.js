@@ -178,6 +178,12 @@ class KingOfTokyoUI {
         // Expose this instance globally for SetupManager callbacks
         window.kingOfTokyoUI = this;
         
+        // Expose showSettings globally for setup manager
+        window.showSettingsModal = () => this.showSettings();
+        
+        // Expose setupManager globally for cross-component communication
+        window.setupManager = this.setupManager;
+        
         this.initializeElements();
         this.attachEventListeners();
         this.initializeGamePause(); // Initialize pause system
@@ -340,6 +346,7 @@ class KingOfTokyoUI {
             cpuSpeedRadios: document.querySelectorAll('input[name="cpu-speed"]'),
             thoughtBubblesToggle: document.getElementById('thought-bubbles-toggle'),
             aiModeToggle: document.getElementById('ai-mode-toggle'),
+            monsterCheckboxes: document.getElementById('monster-checkboxes'),
             closeInstructionsBtn: document.getElementById('close-instructions'),
             closeGameOverBtn: document.getElementById('close-game-over'),
             darkModeToggle: document.getElementById('dark-mode-toggle'),
@@ -5033,6 +5040,9 @@ class KingOfTokyoUI {
         if (this.elements.aiModeToggle) {
             this.elements.aiModeToggle.checked = configAIMode;
         }
+
+        // Initialize and load monster configuration
+        this.initializeMonsterCheckboxes();
     }
 
     saveSettings() {
@@ -5050,11 +5060,90 @@ class KingOfTokyoUI {
         // Note: AI mode setting is controlled by config.json, not localStorage
         // The toggle in UI allows temporary override during gameplay
 
+        // Save monster active states
+        this.saveMonsterConfiguration();
+
         // Close the modal
         UIUtilities.hideModal(this.elements.settingsModal);
         
         // Show confirmation
         UIUtilities.showMessage('Settings saved successfully!', 3000, this.elements);
+    }
+
+    initializeMonsterCheckboxes() {
+        if (!this.elements.monsterCheckboxes || typeof MONSTERS === 'undefined') {
+            return;
+        }
+
+        // Clear existing checkboxes
+        this.elements.monsterCheckboxes.innerHTML = '';
+
+        // Get saved monster states or use config defaults
+        const savedMonsterStates = this.getMonsterActiveStates();
+
+        // Create checkbox for each monster
+        Object.values(MONSTERS).forEach(monster => {
+            const isActive = savedMonsterStates.hasOwnProperty(monster.id) 
+                ? savedMonsterStates[monster.id] 
+                : (monster.active !== false); // Default to true unless explicitly false
+
+            const checkboxItem = document.createElement('div');
+            checkboxItem.className = 'monster-checkbox-item';
+            if (isActive) {
+                checkboxItem.classList.add('checked');
+            }
+
+            checkboxItem.innerHTML = `
+                <input type="checkbox" id="monster-${monster.id}" ${isActive ? 'checked' : ''}>
+                <span class="monster-emoji">${monster.emoji}</span>
+                <span>${monster.name}</span>
+            `;
+
+            // Add change event listener
+            const checkbox = checkboxItem.querySelector('input');
+            checkbox.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    checkboxItem.classList.add('checked');
+                } else {
+                    checkboxItem.classList.remove('checked');
+                }
+            });
+
+            this.elements.monsterCheckboxes.appendChild(checkboxItem);
+        });
+    }
+
+    getMonsterActiveStates() {
+        const saved = localStorage.getItem('monsterActiveStates');
+        return saved ? JSON.parse(saved) : {};
+    }
+
+    saveMonsterConfiguration() {
+        if (!this.elements.monsterCheckboxes) {
+            return;
+        }
+
+        const monsterStates = {};
+        const checkboxes = this.elements.monsterCheckboxes.querySelectorAll('input[type="checkbox"]');
+        
+        checkboxes.forEach(checkbox => {
+            const monsterId = checkbox.id.replace('monster-', '');
+            monsterStates[monsterId] = checkbox.checked;
+        });
+
+        localStorage.setItem('monsterActiveStates', JSON.stringify(monsterStates));
+        
+        // Update MONSTERS object with new active states
+        Object.keys(monsterStates).forEach(monsterId => {
+            if (MONSTERS[monsterId]) {
+                MONSTERS[monsterId].active = monsterStates[monsterId];
+            }
+        });
+
+        // Trigger monster list refresh if setup manager exists
+        if (window.setupManager && window.setupManager.updateMonsterSelection) {
+            window.setupManager.updateMonsterSelection();
+        }
     }
 
     // Check if AI mode is enabled
@@ -5564,9 +5653,8 @@ class KingOfTokyoUI {
         bubbleContent.textContent = phrase;
         thoughtBubble.appendChild(bubbleContent);
         
-        // Position relative to player card
-        playerCard.style.position = 'relative';
-        playerCard.appendChild(thoughtBubble);
+        // Position relative to screen center instead of player card to avoid stacking context issues
+        document.body.appendChild(thoughtBubble);
         
         window.UI && window.UI._debug && window.UI._debug(`💭 ${player.monster.name} thinks: "${phrase}"`);
         

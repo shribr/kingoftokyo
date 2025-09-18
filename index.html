@@ -290,7 +290,10 @@
     <!-- Game Setup Modal -->
     <div id="setup-modal" class="modal">
         <div class="modal-content">
-            <h2>Monster Selection</h2>
+            <div class="modal-header-with-settings">
+                <h2>Monster Selection</h2>
+                <div id="setup-settings-icon" class="settings-gear-icon" title="Open Settings">⚙️</div>
+            </div>
             <div class="setup-form">
             <div class="setup-header">
                 <div class="spacer"></div>
@@ -726,6 +729,17 @@
                             <input type="checkbox" id="dark-mode-toggle">
                             🌙 Dark Mode
                         </label>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>👹 Monster Configuration</h3>
+                    <div class="settings-option">
+                        <label>Select Active Monsters</label>
+                        <p>Choose which monsters appear in Monster Selection:</p>
+                        <div class="monster-checkboxes" id="monster-checkboxes">
+                            <!-- Monster checkboxes will be dynamically generated here -->
+                        </div>
                     </div>
                 </div>
                 

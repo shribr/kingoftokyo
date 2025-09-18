@@ -97,6 +97,22 @@ async function loadMonsterConfiguration() {
                 MONSTERS = config.monsters;
                 window.UI && window.UI._debug && window.UI._debug('✅ Monster configuration loaded from config.json');
                 
+                // Apply any saved monster active states from localStorage
+                const savedStates = localStorage.getItem('monsterActiveStates');
+                if (savedStates) {
+                    try {
+                        const monsterStates = JSON.parse(savedStates);
+                        Object.keys(monsterStates).forEach(monsterId => {
+                            if (MONSTERS[monsterId]) {
+                                MONSTERS[monsterId].active = monsterStates[monsterId];
+                            }
+                        });
+                        window.UI && window.UI._debug && window.UI._debug('✅ Applied saved monster active states from localStorage');
+                    } catch (error) {
+                        console.warn('⚠️ Failed to parse saved monster states:', error);
+                    }
+                }
+                
                 // Trigger event for UI to reload monsters if already initialized
                 if (typeof window !== 'undefined' && window.kingOfTokyoUI) {
                     window.dispatchEvent(new CustomEvent('monstersConfigLoaded'));

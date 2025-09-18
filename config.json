@@ -373,6 +373,7 @@
       "color": "#1e3a1e",
       "description": "The mighty dinosaur monster",
       "symbol": "🌿",
+      "active": true,
       "personality": {
         "aggression": 4,
         "strategy": 2,
@@ -388,6 +389,7 @@
       "color": "#dda0dd",
       "description": "The cybernetic rabbit",
       "symbol": "⚡",
+      "active": true,
       "personality": {
         "aggression": 2,
         "strategy": 5,
@@ -403,6 +405,7 @@
       "color": "#1e3a37",
       "description": "The sea monster from the depths",
       "symbol": "🌊",
+      "active": true,
       "personality": {
         "aggression": 3,
         "strategy": 4,
@@ -418,6 +421,7 @@
       "color": "#4a3c1f",
       "description": "The giant ape",
       "symbol": "👑",
+      "active": true,
       "personality": {
         "aggression": 5,
         "strategy": 2,
@@ -433,6 +437,7 @@
       "color": "#cd5c5c",
       "description": "The mechanical dragon",
       "symbol": "⚙️",
+      "active": true,
       "personality": {
         "aggression": 4,
         "strategy": 3,
@@ -448,6 +453,7 @@
       "color": "#8fbc8f", 
       "description": "The extraterrestrial being",
       "symbol": "🛸",
+      "active": true,
       "personality": {
         "aggression": 2,
         "strategy": 5,
@@ -463,6 +469,7 @@
       "color": "#2c1810",
       "description": "The stealthy night hunter",
       "symbol": "🌙",
+      "active": false,
       "personality": {
         "aggression": 3,
         "strategy": 4,
@@ -478,6 +485,7 @@
       "color": "#4169e1",
       "description": "The sky sovereign with lightning powers",
       "symbol": "⚡",
+      "active": false,
       "personality": {
         "aggression": 4,
         "strategy": 3,

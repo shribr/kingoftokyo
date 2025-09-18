@@ -96,6 +96,43 @@
     filter: drop-shadow(8px 8px 0px #000);
 }
 
+/* Modal header with settings icon */
+.modal-header-with-settings {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.modal-header-with-settings h2 {
+    margin: 0;
+    flex: 1;
+}
+
+.settings-gear-icon {
+    font-size: 1.5em;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    background: transparent;
+    border: none;
+    transition: all 0.3s ease;
+    -webkit-user-select: none;
+    user-select: none;
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 10;
+}
+
+.settings-gear-icon:hover {
+    background: rgba(255, 215, 0, 0.2);
+    border: 2px solid rgba(255, 215, 0, 0.5);
+    transform: rotate(90deg) scale(1.1);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+}
+
 .setup-form {
     display: flex;
     flex-direction: column;
@@ -340,7 +377,29 @@
 
 .monster-cards-section {
     flex: 1;
-    max-width: 700px;
+    max-width: 900px; /* Increased from 700px to prevent horizontal cutoff */
+    max-height: 550px; /* Increased from 450px to show second row better */
+    overflow-y: auto;
+    padding-right: 10px; /* Space for scrollbar */
+}
+
+/* Custom scrollbar styling for monster selection */
+.monster-cards-section::-webkit-scrollbar {
+    width: 8px;
+}
+
+.monster-cards-section::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+}
+
+.monster-cards-section::-webkit-scrollbar-thumb {
+    background: rgba(255, 165, 0, 0.7);
+    border-radius: 4px;
+}
+
+.monster-cards-section::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 165, 0, 0.9);
 }
 
 .player-tiles-section {
@@ -650,7 +709,7 @@
 @media (min-width: 768px) {
     .monster-grid {
         grid-template-columns: repeat(3, 1fr);
-        max-width: 650px;
+        max-width: 800px; /* Increased from 650px to match expanded viewport */
         margin: 0 auto 10px auto;
     }
 }
@@ -970,7 +1029,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: 9000; /* Higher than monster selection dialog (8000) */
     -webkit-backdrop-filter: blur(5px);
     backdrop-filter: blur(5px);
 }
@@ -1179,6 +1238,53 @@
     border-color: #FFD700;
     box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
     font-weight: bold;
+}
+
+/* Monster checkboxes styling */
+.monster-checkboxes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.monster-checkbox-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.8);
+    border: 2px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Bangers', cursive;
+    font-size: 1.1em;
+    letter-spacing: 1px;
+    color: black;
+}
+
+.monster-checkbox-item:hover {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: #FFD700;
+    transform: translateX(2px);
+}
+
+.monster-checkbox-item input[type="checkbox"] {
+    margin-right: 10px;
+    transform: scale(1.2);
+}
+
+.monster-checkbox-item.checked {
+    background: rgba(255, 215, 0, 0.6);
+    border-color: #FFD700;
+    font-weight: bold;
+}
+
+.monster-emoji {
+    margin-right: 8px;
+    font-size: 1.2em;
 }
 
 .settings-button {
@@ -4958,13 +5064,13 @@ body.dark-mode .quick-ref-item {
 
 /* CPU Thought Bubble System */
 .cpu-thought-bubble {
-    position: absolute;
-    top: -80px;
-    left: 50%;
-    transform: translateX(-50%);
+    position: fixed !important; /* Changed to fixed positioning to avoid stacking context issues */
+    top: 30% !important; /* Position in the center area of the screen */
+    left: 50% !important;
+    transform: translateX(-50%) !important;
     min-width: 200px;
     max-width: 350px;
-    z-index: 9999;
+    z-index: 15000 !important; /* Much higher than action-menu (4000) and dice-area (4000) */
     pointer-events: none;
     animation: thoughtBubbleAppear 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }

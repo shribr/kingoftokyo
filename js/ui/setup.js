@@ -38,6 +38,7 @@ class SetupManager {
             resetMonstersBtn: document.getElementById('reset-monsters'),
             randomSelectionBtn: document.getElementById('random-selection-btn'),
             monsterProfilesBtn: document.getElementById('monster-profiles-btn'),
+            setupSettingsBtn: document.getElementById('setup-settings-icon'),
             startGameBtn: document.getElementById('start-game'),
             
             // Monster Profiles Modal
@@ -102,6 +103,12 @@ class SetupManager {
             });
         }
 
+        if (this.elements.setupSettingsBtn) {
+            this.elements.setupSettingsBtn.addEventListener('click', () => {
+                this.openSettingsFromSetup();
+            });
+        }
+
         // Monster profiles modal
         if (this.elements.closeMonsterProfiles) {
             this.elements.closeMonsterProfiles.addEventListener('click', () => {
@@ -136,6 +143,13 @@ class SetupManager {
         if (this.elements.startGameBtn) {
             this.elements.startGameBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
+                
+                // Hide settings modal if it's open
+                const settingsModal = document.getElementById('settings-modal');
+                if (settingsModal && !settingsModal.classList.contains('hidden')) {
+                    settingsModal.classList.add('hidden');
+                }
+                
                 window.UI && window.UI._debug && window.UI._debug('Button disabled:', this.elements.startGameBtn.disabled);
                 
                 // Double-check disabled state
@@ -403,7 +417,7 @@ class SetupManager {
         this.resetMonsterCards();
 
         // Get all available monsters from the displayed monster cards
-        const availableMonsters = Object.values(MONSTERS);
+        const availableMonsters = Object.values(MONSTERS).filter(monster => monster.active !== false);
         
         // Shuffle the monsters array
         const shuffledMonsters = [...availableMonsters].sort(() => Math.random() - 0.5);
@@ -446,6 +460,19 @@ class SetupManager {
 
     hideMonsterProfilesModal() {
         this.elements.monsterProfilesModal.classList.add('hidden');
+    }
+
+    openSettingsFromSetup() {
+        // Open the settings modal (assumes main.js has this functionality)
+        if (window.showSettingsModal) {
+            window.showSettingsModal();
+        } else {
+            // Fallback - find and click the settings button
+            const settingsBtn = document.getElementById('settings-btn');
+            if (settingsBtn) {
+                settingsBtn.click();
+            }
+        }
     }
 
     resetMonsterProfiles() {
@@ -562,7 +589,7 @@ class SetupManager {
             return;
         }
         
-        const monsters = Object.values(MONSTERS);
+        const monsters = Object.values(MONSTERS).filter(monster => monster.active !== false);
         console.log('👺 Available monsters:', monsters.length, monsters);
         
         // Debug: Check if elements exist
