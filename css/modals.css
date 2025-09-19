@@ -5869,6 +5869,106 @@ body.dark-mode .quick-ref-item {
     align-items: center;
 }
 
+/* Bouncer font class for AI Logic Flow */
+.bouncer-font {
+    font-family: 'Bangers', cursive !important;
+    color: #000 !important;
+}
+
+/* AI Logic Flow Container Styles */
+.ai-turn-container {
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.95);
+}
+
+.ai-turn-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #ddd;
+}
+
+.ai-turn-title {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.ai-turn-title h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #000;
+}
+
+.ai-turn-monster-name {
+    font-size: 16px;
+    color: #000;
+    margin-top: 5px;
+    text-align: right;
+    align-self: flex-end;
+}
+
+.ai-turn-player-info {
+    text-align: right;
+}
+
+.ai-player-stats {
+    margin-bottom: 8px;
+}
+
+.ai-turn-position {
+    margin-top: 8px;
+    padding-top: 8px;
+}
+
+/* AI Roll Entry Styles */
+.ai-section-title {
+    font-weight: bold;
+    margin-right: 8px;
+}
+
+.ai-reasoning {
+    margin-bottom: 10px;
+}
+
+.ai-reasoning-text {
+    display: inline;
+}
+
+.ai-confidence-meter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ai-metric-value {
+    font-weight: bold;
+    min-width: 40px;
+}
+
+.confidence-bar {
+    flex: 1;
+    height: 12px;
+    background: #ddd;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.confidence-fill {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.3s ease;
+}
+
+.confidence-low { background: #ff4444; }
+.confidence-medium { background: #ffaa00; }
+.confidence-high { background: #44ff44; }
+
 .ai-rolls-container {
     padding: 0;
 }
@@ -5884,17 +5984,28 @@ body.dark-mode .quick-ref-item {
 }
 
 .ai-roll-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     font-weight: bold;
-    color: #FFD700;
+    color: #000;
     margin-bottom: 10px;
     font-size: 14px;
-    font-family: 'Bangers', cursive;
-    letter-spacing: 1px;
-    text-shadow: 
-        -1px -1px 0 #000,
-        1px -1px 0 #000,
-        -1px 1px 0 #000,
-        1px 1px 0 #000;
+}
+
+.ai-roll-title {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.roll-number, .roll-timestamp {
+    color: #000;
+}
+
+.roll-timestamp {
+    font-size: 12px;
+    opacity: 0.8;
 }
 
 .ai-decision-section,
@@ -6116,4 +6227,95 @@ body.dark-mode .quick-ref-item {
     font-weight: bold;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
 }
+
+/* Roll-off Modal Styles */
+.roll-off-content {
+    background: rgba(0, 0, 0, 0.95);
+    border: 3px solid #FFD700;
+    border-radius: 15px;
+    padding: 35px;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+    max-width: 1400px;
+    width: auto;
+    min-width: 1000px;
+    color: #FFF;
+}
+
+.roll-off-content .modal-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.roll-off-content .rolloff-title {
+    color: #FFD700;
+    font-size: 36px;
+    font-weight: bold;
+    margin: 0;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.roll-off-body {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+
+
+.rolloff-scoreboard {
+    width: 100%;
+}
+
+.rolloff-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.rolloff-table th {
+    background: rgba(255, 215, 0, 0.2);
+    color: #FFD700;
+    padding: 16px 12px;
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.rolloff-table .player-column {
+    width: 35%;
+    text-align: left;
+}
+
+.rolloff-table .dice-column {
+    width: 50%;
+}
+
+.rolloff-table .attacks-column {
+    width: 15%;
+}
+
+.rolloff-table td {
+    padding: 20px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+    font-size: 18px;
+}
+
+
+
+.rolloff-dice-display {
+    margin: 0 auto;
+}
+
+
+
+.rolloff-actions {
+    text-align: center;
+    margin-top: 25px;
+}
+
+
+
+
 

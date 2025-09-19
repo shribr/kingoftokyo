@@ -137,30 +137,9 @@
             <div id="cpu-action-notification" class="cpu-action-notification"></div>
         </div>
         
-        <!-- Roll-off Scoreboard (hidden by default) -->
-        <div id="rolloff-scoreboard-container" class="rolloff-scoreboard-container" style="display: none;">
-            <div class="rolloff-title">🎲 Roll for First Player</div>
-            <div id="rolloff-commentary" class="rolloff-commentary">Let's see who will take the first turn...</div>
-            <table id="rolloff-table">
-                <thead>
-                    <tr>
-                        <th style="text-align: left; width: 35%;">Player</th>
-                        <th style="width: 50%;">Roll Results</th>
-                        <th style="width: 15%;">Attacks</th>
-                    </tr>
-                </thead>
-                <tbody id="rolloff-table-body">
-                    <!-- Rows will be populated dynamically -->
-                </tbody>
-            </table>
-            <button id="rolloff-roll-btn" class="rolloff-roll-button" style="display: none;" onclick="window.kingOfTokyoUI?.handleRolloffRoll()">
-                🎲 Roll Dice
-            </button>
-        </div>
-        
         <!-- Row 2: Dice Area (left) and Action Menu (right) -->
         <div class="ui-row action-row">
-            <div class="dice-area draggable" draggable="true" id="dice-area">
+            <div class="dice-area draggable hidden-until-game-start" draggable="true" id="dice-area">
                 <div id="dice-container" class="dice-container"></div>
             </div>
             
@@ -784,6 +763,39 @@
             </div>
             <div class="ai-reasoning-info-body" id="ai-reasoning-info-body">
                 <!-- Detailed reasoning content will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Roll-off Modal -->
+    <div id="roll-off-modal" class="modal hidden">
+        <div class="modal-content roll-off-content">
+            <div class="modal-header">
+                <h2 class="rolloff-title">🎲 Roll for First Player</h2>
+            </div>
+            <div class="roll-off-body">
+                <div id="rolloff-commentary" class="rolloff-commentary">
+                    Let's see who will take the first turn...
+                </div>
+                <div class="rolloff-scoreboard">
+                    <table id="rolloff-table" class="rolloff-table">
+                        <thead>
+                            <tr>
+                                <th class="player-column">Player</th>
+                                <th class="dice-column">Roll Results</th>
+                                <th class="attacks-column">Attacks</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rolloff-table-body">
+                            <!-- Rows will be populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="rolloff-actions">
+                    <button id="rolloff-roll-btn" class="btn primary rolloff-roll-button" style="display: none;" onclick="window.kingOfTokyoUI?.handleRolloffRoll()">
+                        🎲 Roll Dice
+                    </button>
+                </div>
             </div>
         </div>
     </div>

@@ -302,7 +302,8 @@ class KingOfTokyoUI {
             exitGameBtn: document.getElementById('exit-game-btn'),
             
             // Roll-off elements
-            rolloffScoreboardContainer: document.getElementById('rolloff-scoreboard-container'),
+            rollOffModal: document.getElementById('roll-off-modal'),
+            rolloffScoreboardContainer: document.getElementById('roll-off-modal'), // For backward compatibility
             rolloffTable: document.getElementById('rolloff-table'),
             rolloffTableBody: document.getElementById('rolloff-table-body'),
             rolloffCommentary: document.getElementById('rolloff-commentary'),
@@ -353,6 +354,15 @@ class KingOfTokyoUI {
             gamePauseOverlay: document.getElementById('game-pause-overlay')
         };
         
+        // Specific debug for AI Log Content
+        console.log('🔍 DEBUG: aiLogContent element check:', {
+            element: this.elements.aiLogContent,
+            exists: !!this.elements.aiLogContent,
+            id: this.elements.aiLogContent?.id,
+            tagName: this.elements.aiLogContent?.tagName
+        });
+        
+        // Manual test to see if we can find it via querySelector
         // Debug: Check which elements are null - categorize as critical vs optional
         const nullElements = [];
         const criticalElements = [
@@ -669,6 +679,10 @@ class KingOfTokyoUI {
         // Dark mode toggle using UIUtilities
         UIUtilities.safeAddEventListener(this.elements.darkModeToggle, 'change', 
             () => this.toggleDarkMode(), 'Dark mode toggle not found');
+
+        // AI mode toggle using UIUtilities
+        UIUtilities.safeAddEventListener(this.elements.aiModeToggle, 'change', 
+            () => this.toggleAIMode(), 'AI mode toggle not found');
 
         // Close modals when clicking outside using UIUtilities
         UIUtilities.safeAddEventListener(this.elements.gameLogModal, 'click', 
@@ -4273,7 +4287,8 @@ class KingOfTokyoUI {
 
     // Add AI logic entry to the AI Logic Flow tab
     addAILogicEntry(playerName, decision, analysis) {
-        console.log('🔍 DEBUG: addAILogicEntry called with:', {
+        console.log('� AI LOGIC ENTRY CALLED!!!'); // Very obvious debug
+        console.log('�🔍 DEBUG: addAILogicEntry called with:', {
             playerName: playerName,
             decision: decision,
             analysis: analysis,
@@ -4281,23 +4296,10 @@ class KingOfTokyoUI {
         });
         
         if (!this.elements.aiLogContent) {
-            console.error('🔍 DEBUG: No aiLogContent element found!');
+            console.error('No aiLogContent element found for AI logging');
             return;
         }
 
-        // TEMPORARY: Add simple logging to test if the element works at all
-        const testElement = document.createElement('div');
-        testElement.style.background = '#333';
-        testElement.style.color = '#fff';
-        testElement.style.padding = '10px';
-        testElement.style.margin = '5px';
-        testElement.style.border = '1px solid #555';
-        testElement.innerHTML = `<strong>TEST:</strong> ${playerName} - ${decision.action} - ${decision.reason}`;
-        this.elements.aiLogContent.appendChild(testElement);
-        
-        console.log('🔍 DEBUG: Added test element to aiLogContent');
-        
-        // Try the complex logic
         try {
             const timestamp = new Date().toLocaleTimeString();
             const gameState = this.game.getGameState();
@@ -4307,15 +4309,12 @@ class KingOfTokyoUI {
             const analysisData = this.parseAIAnalysis(analysis);
             
             // Get or create turn container for this player's current turn
-            const turnId = `turn-${gameState.currentRound}-${currentPlayer.id}`;
+            const turnId = `turn-${gameState.round}-${currentPlayer.id}`;
             let turnContainer = document.getElementById(turnId);
-            
-            console.log('🔍 DEBUG: Looking for turn container:', turnId, 'found:', !!turnContainer);
             
             if (!turnContainer) {
                 turnContainer = this.createTurnContainer(playerName, gameState, currentPlayer, turnId);
                 this.elements.aiLogContent.appendChild(turnContainer);
-                console.log('🔍 DEBUG: Created new turn container');
             }
             
             // Add this roll as a child entry to the turn container
@@ -4324,13 +4323,11 @@ class KingOfTokyoUI {
             
             const rollsContainer = turnContainer.querySelector('.ai-turn-rolls');
             rollsContainer.appendChild(rollEntry);
-            
-            console.log('🔍 DEBUG: Added roll entry', rollNumber, 'to turn container');
-            
+
             // Update turn stats
             this.updateTurnStats(turnContainer, decision, analysisData);
         } catch (error) {
-            console.error('🔍 DEBUG: Error in complex AI logging:', error);
+            console.error('Error in AI Logic Flow logging:', error);
         }
         
         // Auto-scroll to bottom if tab is active
@@ -4350,10 +4347,8 @@ class KingOfTokyoUI {
         turnContainer.innerHTML = `
             <div class="ai-turn-header">
                 <div class="ai-turn-title">
-                    <h3>Round ${gameState.currentRound} - ${playerName}'s Turn</h3>
-                    <div class="ai-turn-personality">
-                        ${this.formatPersonalityDisplay(playerPersonality)}
-                    </div>
+                    <h3 class="bouncer-font">Round ${gameState.round}</h3>
+                    <div class="ai-turn-monster-name bouncer-font">${playerName}</div>
                 </div>
                 <div class="ai-turn-player-info">
                     <div class="ai-player-stats">
@@ -4362,14 +4357,6 @@ class KingOfTokyoUI {
                     <div class="ai-turn-position">
                         ${currentPlayer.isInTokyo ? '🏙️ In Tokyo' : '🏠 Outside Tokyo'}
                     </div>
-                </div>
-            </div>
-            
-            <div class="ai-turn-summary">
-                <div class="ai-turn-stats">
-                    <span class="stat-item">Rolls: <span class="roll-count">0</span></span>
-                    <span class="stat-item">Decision: <span class="final-decision">In Progress...</span></span>
-                    <span class="stat-item">Confidence: <span class="avg-confidence">--</span></span>
                 </div>
             </div>
             
@@ -4389,58 +4376,112 @@ class KingOfTokyoUI {
         // Extract dice from analysis
         const diceArray = this.extractDiceFromAnalysis(analysisData);
         
-        rollEntry.innerHTML = `
-            <div class="ai-roll-header">
-                <div class="ai-roll-title">
-                    <span class="roll-number">Roll ${rollNumber}</span>
-                    <span class="roll-timestamp">${timestamp}</span>
-                </div>
-                <div class="ai-roll-action">
-                    <span class="decision-badge ${decision.action}">
-                        ${this.formatDecisionAction(decision.action)}
-                    </span>
-                </div>
-            </div>
-            
-            <div class="ai-roll-dice">
-                <div class="dice-outcome">
-                    <strong>Dice Result:</strong>
-                    ${this.generateDiceImagesHtml(diceArray)}
-                </div>
-                ${decision.keepDice && decision.keepDice.length > 0 ? `
-                    <div class="dice-kept">
-                        <strong>Keeping:</strong> ${this.formatKeptDice(decision.keepDice, diceArray)}
+        // Check if this is the first roll
+        if (rollNumber === 1) {
+            rollEntry.innerHTML = `
+                <div class="ai-roll-header">
+                    <div class="ai-roll-title bouncer-font">
+                        Initial Dice Results
                     </div>
-                ` : ''}
-            </div>
+                </div>
+                
+                <div class="ai-roll-dice" id="ai-dice-${Date.now()}">
+                </div>
+            `;
             
-            <div class="ai-roll-analysis">
-                <div class="ai-reasoning">
-                    <strong>🤔 AI Reasoning:</strong>
-                    <p>${decision.reason}</p>
-                </div>
-                
-                <div class="ai-probability-analysis">
-                    <strong>📊 Probability Analysis:</strong>
-                    ${this.generateProbabilityAnalysis(diceArray, decision)}
-                </div>
-                
-                <div class="ai-strategic-analysis">
-                    <strong>🎯 Strategic Assessment:</strong>
-                    ${this.generateStrategicAnalysis(diceArray, decision, analysisData)}
-                </div>
-                
-                <div class="ai-confidence-meter">
-                    <strong>Confidence:</strong>
-                    <div class="confidence-bar">
-                        <div class="confidence-fill" style="width: ${(decision.confidence * 100)}%"></div>
+            // Add dice to the container after setting innerHTML
+            const diceContainer = rollEntry.querySelector('.ai-roll-dice');
+            if (diceContainer) {
+                this.createMiniDice(diceArray, diceContainer);
+            }
+        } else {
+            rollEntry.innerHTML = `
+                <div class="ai-roll-header">
+                    <div class="ai-roll-title">
+                        <span class="roll-number bouncer-font">Roll ${rollNumber}</span>
+                        <span class="roll-timestamp bouncer-font">${timestamp}</span>
                     </div>
-                    <span class="confidence-text">${Math.round(decision.confidence * 100)}%</span>
+                    <div class="ai-roll-action">
+                        <span class="decision-badge ${decision.action}">
+                            ${this.formatDecisionAction(decision.action)}
+                        </span>
+                    </div>
                 </div>
-            </div>
-        `;
+                
+                <div class="ai-roll-dice">
+                    <div class="dice-outcome">
+                        <strong class="bouncer-font">Dice Results:</strong>
+                        <div class="dice-outcome-container"></div>
+                    </div>
+                    ${decision.keepDice && decision.keepDice.length > 0 ? `
+                        <div class="dice-kept">
+                            <strong class="bouncer-font">Keeping:</strong> 
+                            <div class="dice-kept-container"></div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            // Add dice to containers after setting innerHTML
+            const diceOutcomeContainer = rollEntry.querySelector('.dice-outcome-container');
+            if (diceOutcomeContainer) {
+                this.createMiniDice(diceArray, diceOutcomeContainer);
+            }
+            
+            if (decision.keepDice && decision.keepDice.length > 0) {
+                const diceKeptContainer = rollEntry.querySelector('.dice-kept-container');
+                if (diceKeptContainer) {
+                    this.createMiniDice(this.filterKeptDice(diceArray, decision.keepDice), diceKeptContainer);
+                }
+            }
+            
+            rollEntry.innerHTML += `
+                
+                <div class="ai-roll-analysis">
+                    <div class="ai-reasoning">
+                        <span class="ai-section-title bouncer-font">AI Reasoning: </span>
+                        <span class="ai-reasoning-text">${decision.reason}</span>
+                    </div>
+                    
+                    <div class="ai-probability-analysis">
+                        <span class="ai-section-title bouncer-font">Probability Analysis:</span>
+                        ${this.generateProbabilityAnalysis(diceArray, decision)}
+                    </div>
+                    
+                    <div class="ai-strategic-analysis">
+                        <span class="ai-section-title bouncer-font">Strategic Assessment:</span>
+                        ${this.generateStrategicAnalysis(diceArray, decision, analysisData)}
+                    </div>
+                    
+                    <div class="ai-confidence-meter">
+                        <span class="ai-section-title bouncer-font">Confidence: </span>
+                        <span class="ai-metric-value">${Math.round((decision.confidence || 0) * 100)}%</span>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill confidence-${this.getConfidenceLevel(decision.confidence || 0)}" style="width: ${Math.round((decision.confidence || 0) * 100)}%"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
         
         return rollEntry;
+    }
+
+    getProbabilityLevel(percentage) {
+        if (percentage < 30) return 'low';
+        if (percentage < 70) return 'medium';
+        return 'high';
+    }
+
+    getConfidenceLevel(confidence) {
+        // Handle NaN, undefined, or null values
+        if (confidence == null || isNaN(confidence)) {
+            return 'low';
+        }
+        
+        if (confidence < 0.4) return 'low';
+        if (confidence < 0.7) return 'medium';
+        return 'high';
     }
 
     parseAIAnalysis(analysis) {
@@ -4456,11 +4497,61 @@ class KingOfTokyoUI {
     }
 
     getPlayerPersonality(currentPlayer) {
-        if (!this.aiConfig || !this.aiConfig.personalities) return null;
+        if (!this.aiConfig) return null;
         
-        // Get personality from AI config based on player type or monster name
-        const personalityKey = currentPlayer.monster?.name?.toLowerCase() || 'default';
-        return this.aiConfig.personalities[personalityKey] || this.aiConfig.personalities.default;
+        // Get personality from monsterSpecificAdjustments based on monster name
+        const monsterName = currentPlayer.monster?.name?.toLowerCase();
+        
+        if (monsterName && this.aiConfig.monsterSpecificAdjustments && this.aiConfig.monsterSpecificAdjustments[monsterName]) {
+            const monsterData = this.aiConfig.monsterSpecificAdjustments[monsterName];
+            const personalityLevels = monsterData.personality;
+            
+            if (personalityLevels) {
+                // Convert aggression/strategy/risk levels to descriptive personality
+                const aggression = personalityLevels.aggression || 3;
+                const strategy = personalityLevels.strategy || 3;
+                const risk = personalityLevels.risk || 3;
+                
+                // Create descriptive name based on levels
+                const aggressionName = this.getAggressionName(aggression);
+                const strategyName = this.getStrategyName(strategy);
+                const riskName = this.getRiskName(risk);
+                
+                return {
+                    name: `${aggressionName} ${strategyName}`,
+                    aggression: aggression / 5.0,
+                    caution: (6 - risk) / 5.0,
+                    riskTaking: risk / 5.0,
+                    strategy: strategy / 5.0,
+                    description: monsterData.specialRules?.description || 'Mysterious kaiju with unknown motivations'
+                };
+            }
+        }
+        
+        // Default personality for unknown monsters
+        return {
+            name: 'Balanced Fighter',
+            aggression: 0.6,
+            caution: 0.5,
+            riskTaking: 0.5,
+            strategy: 0.5,
+            description: 'Standard kaiju with balanced approach to combat'
+        };
+    }
+
+    getAggressionName(level) {
+        const names = ['Pacifist', 'Defensive', 'Balanced', 'Aggressive', 'Berserker'];
+        return names[level - 1] || 'Balanced';
+    }
+
+    getStrategyName(level) {
+        const names = ['Impulsive', 'Short-sighted', 'Tactical', 'Strategic', 'Mastermind'];
+        return names[level - 1] || 'Tactical';
+    }
+
+    getRiskName(level) {
+        const names = ['Ultra-conservative', 'Conservative', 'Moderate', 'Bold', 'Reckless'];
+        return names[level - 1] || 'Moderate';
     }
 
     formatPersonalityDisplay(personality) {
@@ -4496,7 +4587,7 @@ class KingOfTokyoUI {
 
     formatDecisionAction(action) {
         switch(action) {
-            case 'reroll': return '🔄 Continue Rolling';
+            case 'reroll': return 'Continue Rolling';
             case 'keep': return '✅ Keep Dice';
             case 'endRoll': return '🛑 End Turn';
             default: return '❓ Unknown';
@@ -4511,6 +4602,12 @@ class KingOfTokyoUI {
             const symbol = this.getDiceFaceDisplay(diceValue);
             return `<span class="kept-die">${symbol}</span>`;
         }).join(' ');
+    }
+
+    filterKeptDice(diceArray, keepDiceIndices) {
+        if (!keepDiceIndices || keepDiceIndices.length === 0) return [];
+        
+        return keepDiceIndices.map(index => diceArray[index]).filter(die => die !== undefined);
     }
 
     generateProbabilityAnalysis(diceArray, decision) {
@@ -4530,15 +4627,15 @@ class KingOfTokyoUI {
         return `
             <div class="probability-breakdown">
                 <div class="current-value">
-                    <strong>Current Value:</strong> ${this.calculateCurrentScore(faceCounts)}
+                    <span class="ai-section-title">Current Value:</span> <span class="ai-metric-value">${this.calculateCurrentScore(faceCounts)}</span>
                 </div>
                 <div class="improvement-chances">
                     ${improvements.map(imp => `
                         <div class="improvement-item">
-                            <span class="improvement-type">${imp.type}:</span>
-                            <span class="improvement-probability">${imp.probability}%</span>
+                            <span class="improvement-type ai-text-secondary">${imp.type}:</span>
+                            <span class="improvement-probability ai-metric-value">${imp.probability}%</span>
                             <div class="probability-bar">
-                                <div class="probability-fill" style="width: ${imp.probability}%"></div>
+                                <div class="probability-fill probability-${this.getProbabilityLevel(imp.probability)}" style="width: ${imp.probability}%"></div>
                             </div>
                         </div>
                     `).join('')}
@@ -4610,14 +4707,14 @@ class KingOfTokyoUI {
             if (faceCounts[num] >= 3) {
                 const vp = parseInt(num) + (faceCounts[num] - 3);
                 score += vp * 3; // Weight VP very high
-                description.push(`${vp} VP from ${num}s`);
+                description.push(`${vp} ⭐ from ${num}s`);
             }
         });
         
         // Healing
         if (faceCounts['heal']) {
             score += faceCounts['heal'];
-            description.push(`${faceCounts['heal']} Heal`);
+            description.push(`${faceCounts['heal']} ❤️`);
         }
         
         return description.length > 0 ? description.join(', ') : 'No significant value';
@@ -4666,7 +4763,7 @@ class KingOfTokyoUI {
         
         // Update final decision if turn is ending
         if (decision.action === 'keep' || decision.action === 'endRoll') {
-            finalDecisionElement.textContent = 'Turn Complete';
+            finalDecisionElement.textContent = 'Keep Dice';
             finalDecisionElement.className = 'final-decision complete';
         } else {
             finalDecisionElement.textContent = 'Rolling...';
@@ -4759,26 +4856,30 @@ class KingOfTokyoUI {
         // Filter out empty/unused dice (empty strings or undefined values)
         const activeDice = diceArray.filter(face => face && face.trim() !== '');
         
-        // Convert to dice data format expected by createDiceHTML
-        const diceData = activeDice.map((face, index) => ({
-            id: `ai-dice-${index}`,
-            symbol: this.getDiceFaceDisplay(face),
-            face: face,
-            isSelected: false,
-            isRolling: false,
-            isDisabled: false,
-            className: 'ai-logic-die' // Add specific class for AI logic dice
-        }));
+        // Create a temporary container to use with our generic createMiniDice function
+        const tempContainer = document.createElement('div');
         
-        // Use the existing createDiceHTML function if available
-        if (window.createDiceHTML) {
-            return window.createDiceHTML(diceData);
-        }
+        // Convert faces to the numerical format expected by createMiniDice
+        const rollValues = activeDice.map(face => {
+            // Convert symbolic faces to numerical values
+            if (face === 'attack' || face === '⚔️') return 6;
+            if (face === 'energy' || face === '⚡') return 5;
+            if (face === 'heal' || face === '❤️') return 4;
+            // For numbered faces, try to parse as number, otherwise default
+            const num = parseInt(face);
+            return !isNaN(num) && num >= 1 && num <= 3 ? num : 1;
+        });
         
-        // Fallback to simple generation with AI-specific class if createDiceHTML not available
-        return diceData.map(die => 
-            `<div class="die ai-logic-die">${die.symbol}</div>`
-        ).join('');
+        // Use our generic createMiniDice function
+        this.createMiniDice(rollValues, tempContainer);
+        
+        // Add AI-specific class to each die for styling
+        const diceElements = tempContainer.querySelectorAll('.mini-die');
+        diceElements.forEach(die => {
+            die.classList.add('ai-logic-die');
+        });
+        
+        return tempContainer.innerHTML;
     }
 
     // Get CSS class for dice face
@@ -5462,8 +5563,19 @@ class KingOfTokyoUI {
         const configAIMode = this.gameConfig && this.gameConfig.gameRules && this.gameConfig.gameRules.ai 
             ? this.gameConfig.gameRules.ai.enableAIMode 
             : false; // Default to simple mode
+        
+        // Clean up any old localStorage AI mode settings that might interfere
+        localStorage.removeItem('aiModeEnabled');
+        localStorage.removeItem('ai-mode');
+        localStorage.removeItem('aiMode');
+        
         if (this.elements.aiModeToggle) {
             this.elements.aiModeToggle.checked = configAIMode;
+            
+            // Also set it again after a short delay to ensure it sticks
+            setTimeout(() => {
+                this.elements.aiModeToggle.checked = configAIMode;
+            }, 100);
         }
 
         // Initialize and load monster configuration
@@ -5578,6 +5690,14 @@ class KingOfTokyoUI {
         const configSetting = this.gameConfig && this.gameConfig.gameRules && this.gameConfig.gameRules.ai 
             ? this.gameConfig.gameRules.ai.enableAIMode 
             : false; // Default to simple mode
+        
+        // Debug logging
+        console.log('🤖 isAIModeEnabled() check:', {
+            uiToggleExists: !!this.elements.aiModeToggle,
+            uiToggleChecked: uiToggle,
+            configSetting: configSetting,
+            finalResult: this.elements.aiModeToggle ? uiToggle : configSetting
+        });
         
         // UI toggle overrides config file if both are available
         if (this.elements.aiModeToggle) {
@@ -6024,6 +6144,23 @@ class KingOfTokyoUI {
         // Save preference to localStorage
         const isDarkMode = document.body.classList.contains('dark-mode');
         localStorage.setItem('darkMode', isDarkMode);
+    }
+
+    toggleAIMode() {
+        console.log('🤖 AI Mode toggled! Current state:', this.elements.aiModeToggle.checked);
+        
+        // The checkbox state change is already handled by the browser
+        // We just need to update any dependent systems
+        
+        // Show a confirmation message
+        const message = this.elements.aiModeToggle.checked 
+            ? 'AI Mode enabled - CPU players will use advanced decision making'
+            : 'AI Mode disabled - CPU players will use simple logic';
+        
+        UIUtilities.showMessage(message, 3000, this.elements);
+        
+        // Log current AI mode state for debugging
+        console.log('🤖 isAIModeEnabled():', this.isAIModeEnabled());
     }
 
     // Initialize dark mode from saved preference
@@ -6862,16 +6999,18 @@ class KingOfTokyoUI {
                     this.showCPUThoughtBubble(player, 'uncertain');
                 }
                 
-                // Log to AI Logic Flow tab
-                console.log('🔍 DEBUG: diceResults from getAllDiceData():', diceResults);
-                const diceAnalysis = this.createDiceAnalysis(diceResults, player, gameState);
-                console.log('🔍 DEBUG: createDiceAnalysis returned:', diceAnalysis);
-                console.log('🔍 DEBUG: About to call addAILogicEntry with:', {
-                    playerName: player.monster.name,
-                    decision: decision,
-                    diceAnalysis: diceAnalysis
-                });
-                this.addAILogicEntry(player.monster.name, decision, diceAnalysis);
+                // Log to AI Logic Flow tab (only for CPU players)
+                if (player.isHuman === false) {
+                    console.log('🔍 DEBUG: diceResults from getAllDiceData():', diceResults);
+                    const diceAnalysis = this.createDiceAnalysis(diceResults, player, gameState);
+                    console.log('🔍 DEBUG: createDiceAnalysis returned:', diceAnalysis);
+                    console.log('🔍 DEBUG: About to call addAILogicEntry with:', {
+                        playerName: player.monster.name,
+                        decision: decision,
+                        diceAnalysis: diceAnalysis
+                    });
+                    this.addAILogicEntry(player.monster.name, decision, diceAnalysis);
+                }
                 
                 // Visually select the dice the CPU wants to keep
                 if (decision.keepDice && decision.keepDice.length > 0) {
@@ -7097,9 +7236,9 @@ class KingOfTokyoUI {
     }
 
     initializeRollOffScoreboard(players, round) {
-        const container = document.getElementById('rolloff-scoreboard-container');
+        const modal = this.elements.rollOffModal;
         const tableBody = document.getElementById('rolloff-table-body');
-        const title = container.querySelector('.rolloff-title');
+        const title = modal.querySelector('.rolloff-title');
         
         // Update title for round
         title.textContent = round === 1 ? '🎲 Roll for First Player' : `🎲 Roll-off Round ${round}`;
@@ -7141,8 +7280,8 @@ class KingOfTokyoUI {
             tableBody.appendChild(row);
         });
         
-        // Show the scoreboard
-        container.style.display = 'block';
+        // Show the modal
+        modal.classList.remove('hidden');
         
         // Show the rolloff button (but keep it disabled until a human player's turn)
         this.elements.rolloffRollBtn.style.display = 'block';
@@ -7166,6 +7305,14 @@ class KingOfTokyoUI {
         // Update the scoreboard with this player's results
         this.updateRollOffScoreboard(player, rolls, attackDice);
         
+        // Update attack count with highlighting
+        const attackContainer = document.getElementById(`rolloff-attacks-${player.index}`);
+        if (attackContainer) {
+            attackContainer.textContent = attackDice;
+            attackContainer.classList.add('highlight');
+            setTimeout(() => attackContainer.classList.remove('highlight'), 2000);
+        }
+        
         // Show dice results in main dice area using unified display system
         if (diceData) {
             // Pre-filter dice data to only show 6 dice for roll-off (no disabled dice)
@@ -7188,13 +7335,6 @@ class KingOfTokyoUI {
         commentary = commentary.replace('{name}', playerName).replace('{count}', attackDice);
         this.updateCommentary(commentary);
         
-        // Highlight the attack count briefly
-        const attackContainer = document.getElementById(`rolloff-attacks-${player.index}`);
-        if (attackContainer) {
-            attackContainer.classList.add('highlight');
-            setTimeout(() => attackContainer.classList.remove('highlight'), 1500); // Balanced timing
-        }
-        
         // Show individual roll result
         const message = `${playerName} rolled ${attackDice} attack${attackDice !== 1 ? 's' : ''}`;
         UIUtilities.showMessage(message, 1500, this.elements); // Balanced timing - long enough to read
@@ -7207,25 +7347,34 @@ class KingOfTokyoUI {
         }
     }
 
+    // Generic function to create mini dice displays in any container
+    createMiniDice(rolls, diceContainer, animationClass = null) {
+        if (!diceContainer) {
+            console.warn('createMiniDice: No dice container provided');
+            return;
+        }
+        
+        // Clear existing content
+        diceContainer.innerHTML = '';
+        
+        // Create mini dice displays like in game log
+        rolls.forEach(roll => {
+            const die = document.createElement('div');
+            die.className = roll === 6 ? 'mini-die attack' : 'mini-die';
+            if (animationClass) {
+                die.classList.add(animationClass);
+            }
+            die.textContent = this.getDieFaceSymbol(roll);
+            diceContainer.appendChild(die);
+        });
+    }
+
     updateRollOffScoreboard(player, rolls, attackCount) {
         const diceContainer = document.getElementById(`rolloff-dice-${player.index}`);
-        const attackContainer = document.getElementById(`rolloff-attacks-${player.index}`);
         
-        if (diceContainer && attackContainer) {
-            // Add mini dice displays like in game log
-            diceContainer.innerHTML = '';
-            
-            rolls.forEach(roll => {
-                const die = document.createElement('div');
-                die.className = roll === 6 ? 'mini-die attack' : 'mini-die';
-                die.textContent = this.getDieFaceSymbol(roll);
-                diceContainer.appendChild(die);
-            });
-            
-            // Update attack count with highlighting
-            attackContainer.textContent = attackCount;
-            attackContainer.classList.add('highlight');
-            setTimeout(() => attackContainer.classList.remove('highlight'), 2000);
+        if (diceContainer) {
+            // Use the generic mini dice function with rolling animation
+            this.createMiniDice(rolls, diceContainer, 'rolling');
         }
     }
 
@@ -7295,10 +7444,16 @@ class KingOfTokyoUI {
         
         console.log(`🏆 ${winnerName} wins with ${attackCount} attacks and goes first!`);
         
-        // Hide the scoreboard immediately when winner is announced
-        const container = document.getElementById('rolloff-scoreboard-container');
-        if (container) {
-            container.style.display = 'none';
+        // Hide the modal immediately when winner is announced
+        const modal = this.elements.rollOffModal;
+        if (modal) {
+            modal.classList.add('hidden');
+            
+            // Show the dice area now that the game is starting
+            const diceArea = this.elements.diceArea;
+            if (diceArea && diceArea.classList.contains('hidden-until-game-start')) {
+                diceArea.classList.remove('hidden-until-game-start');
+            }
         }
         
         // Add victory commentary
@@ -7307,9 +7462,9 @@ class KingOfTokyoUI {
             .replace('{count}', attackCount);
         this.updateCommentary(victoryCommentary);
         
-        // Show winner notification
-        const message = `🏆 ${winnerName} wins with ${attackCount} attack${attackCount !== 1 ? 's' : ''} and goes first!`;
-        UIUtilities.showMessage(message, 4000, this.elements);
+        // Show subtle center notification about who goes first
+        const message = `${winnerName} goes first!`;
+        UIUtilities.showCenterNotification(message, 2500);
         
         // Reset dice to initial state instead of clearing
         const diceContainer = this.elements.diceContainer;

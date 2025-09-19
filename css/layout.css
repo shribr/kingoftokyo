@@ -31,7 +31,6 @@
 * {
     -ms-overflow-style: none;  /* Internet Explorer 10+ */
     scrollbar-width: none;  /* Firefox */
-    -ms-overflow-style: none;  /* Internet Explorer 10+ */
 }
 
 /* Hide game container initially */
@@ -425,6 +424,10 @@ body::before {
     box-shadow: 0 0 8px rgba(255, 68, 68, 0.6);
 }
 
+.mini-die.rolling {
+    animation: shake3D 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
 .rolloff-attack-count {
     color: #FFD700;
     font-size: 24px;
@@ -516,6 +519,10 @@ body::before {
     z-index: 4000; /* Bottom-ui "table" components */
     margin: 0;
     opacity: 1; /* Ensure visibility */
+}
+
+.dice-area.hidden-until-game-start {
+    display: none !important;
 }
 
 /* Action menu positioned away from player cards */
@@ -886,35 +893,40 @@ body::before {
 /* === AI LOGIC FLOW REDESIGN === */
 
 /* Turn Container Styles */
+/* ===== AI LOGIC FLOW - COMPLETE REDESIGN ===== */
 .ai-turn-container {
-    background: linear-gradient(135deg, #2a2a2a, #1e1e1e);
-    border: 2px solid #444;
+    background: #f5f5f5;
+    border: 3px solid #444;
     border-radius: 12px;
     margin: 15px 0;
     padding: 0;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     overflow: hidden;
+    font-size: 16px;
+    color: #333;
+    font-family: Calibri, Arial, sans-serif;
 }
 
 .ai-turn-header {
-    background: linear-gradient(90deg, #3a3a3a, #2d2d2d);
+    background: #fff;
     padding: 15px 20px;
-    border-bottom: 2px solid #555;
+    border-bottom: 3px solid #444;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 .ai-turn-title h3 {
-    color: #fff;
+    color: #333;
     margin: 0 0 8px 0;
-    font-size: 18px;
+    font-size: 22px;
     font-weight: bold;
+    font-family: Calibri, Arial, sans-serif;
 }
 
 .ai-turn-personality {
-    font-size: 12px;
-    color: #bbb;
+    font-size: 16px;
+    color: #666;
 }
 
 .personality-traits {
@@ -924,7 +936,7 @@ body::before {
 }
 
 .personality-name {
-    color: #ffd700;
+    color: #333;
     font-weight: bold;
 }
 
@@ -934,29 +946,30 @@ body::before {
 }
 
 .trait-item {
-    font-size: 11px;
-    color: #ccc;
+    font-size: 14px;
+    color: #333;
 }
 
 .ai-turn-player-info {
     text-align: right;
-    color: #fff;
+    color: #333;
 }
 
 .ai-player-stats {
-    font-size: 14px;
+    font-size: 16px;
     margin-bottom: 4px;
 }
 
 .ai-turn-position {
-    font-size: 12px;
-    color: #ffd700;
+    font-size: 16px;
+    color: #333;
 }
 
 .ai-turn-summary {
-    background: rgba(0, 0, 0, 0.2);
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
     padding: 10px 20px;
-    border-bottom: 1px solid #444;
+    border-bottom: 1px solid #ddd;
 }
 
 .ai-turn-stats {
@@ -966,14 +979,14 @@ body::before {
 }
 
 .stat-item {
-    color: #ccc;
-    font-size: 12px;
+    color: #333;
+    font-size: 16px;
 }
 
 .stat-item .roll-count,
 .stat-item .final-decision,
 .stat-item .avg-confidence {
-    color: #fff;
+    color: #333;
     font-weight: bold;
     margin-left: 4px;
 }
@@ -990,10 +1003,10 @@ body::before {
     padding: 0;
 }
 
-/* Roll Entry Styles */
+/* Roll Entry Styles - Clean Light Design */
 .ai-roll-entry {
-    background: #1a1a1a;
-    border-bottom: 1px solid #333;
+    background: #fff;
+    border-bottom: 2px solid #ddd;
     padding: 15px 20px;
 }
 
@@ -1015,27 +1028,87 @@ body::before {
 }
 
 .roll-number {
-    color: #ffd700;
+    color: #333;
     font-weight: bold;
-    font-size: 14px;
+    font-size: 18px;
 }
 
 .roll-timestamp {
-    color: #888;
-    font-size: 11px;
+    color: #666;
+    font-size: 14px;
 }
 
 .decision-badge {
-    padding: 4px 12px;
+    padding: 6px 14px;
     border-radius: 20px;
-    font-size: 11px;
+    font-size: 14px;
     font-weight: bold;
     text-transform: uppercase;
+    border: 2px solid;
 }
 
 .decision-badge.reroll {
-    background: #ff9800;
-    color: #000;
+    background: #fff3e0;
+    color: #ff9800;
+    border-color: #ff9800;
+}
+
+.decision-badge.endroll {
+    background: #e8f5e8;
+    color: #4CAF50;
+    border-color: #4CAF50;
+}
+
+/* AI Logic Flow Dice - Match Roll Off Scoreboard Style */
+.ai-logic-die {
+    width: 35px;
+    height: 35px;
+    border: 2px solid #333;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: bold;
+    background: #f0f0f0;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    color: #333;
+    margin: 2px;
+    vertical-align: middle;
+}
+
+.ai-logic-die.attack {
+    border-color: #FF4444;
+    background: #FF6666;
+    color: white;
+    box-shadow: 0 0 8px rgba(255, 68, 68, 0.6);
+}
+
+.ai-logic-die.energy {
+    border-color: #B8860B;
+    background: #DAA520;
+    color: #333;
+    box-shadow: 0 0 8px rgba(184, 134, 11, 0.6);
+}
+
+.ai-logic-die.heal {
+    border-color: #4CAF50;
+    background: #81C784;
+    color: white;
+    box-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
+}
+
+.ai-logic-die.vp {
+    border-color: #9C27B0;
+    background: #BA68C8;
+    color: white;
+    box-shadow: 0 0 8px rgba(156, 39, 176, 0.6);
+}
+
+.ai-logic-die.selected {
+    border-color: #2196F3;
+    background: #64B5F6;
+    box-shadow: 0 0 10px rgba(33, 150, 243, 0.8);
 }
 
 .decision-badge.keep,
@@ -1054,13 +1127,13 @@ body::before {
 
 .dice-outcome strong,
 .dice-kept strong {
-    color: #ffd700;
-    font-size: 12px;
+    color: #333;
+    font-size: 16px;
 }
 
 .dice-kept {
-    font-size: 12px;
-    color: #ccc;
+    font-size: 16px;
+    color: #333;
 }
 
 .kept-die {
@@ -1068,6 +1141,7 @@ body::before {
     margin-right: 4px;
     color: #4CAF50;
     font-weight: bold;
+    font-size: 16px;
 }
 
 .ai-roll-analysis {
@@ -1079,26 +1153,30 @@ body::before {
 }
 
 .ai-reasoning strong {
-    color: #ffd700;
-    font-size: 12px;
+    color: #333;
+    font-size: 16px;
 }
 
 .ai-reasoning p {
-    color: #ccc;
+    color: #333;
     margin: 4px 0;
-    font-size: 12px;
+    font-size: 15px;
     line-height: 1.4;
 }
 
 .ai-probability-analysis,
 .ai-strategic-analysis {
+    background: #fff;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    padding: 12px;
     margin: 15px 0;
 }
 
 .ai-probability-analysis strong,
 .ai-strategic-analysis strong {
-    color: #ffd700;
-    font-size: 12px;
+    color: #333;
+    font-size: 16px;
 }
 
 .probability-breakdown {
@@ -1106,8 +1184,8 @@ body::before {
 }
 
 .current-value {
-    color: #ccc;
-    font-size: 11px;
+    color: #333;
+    font-size: 15px;
     margin-bottom: 8px;
 }
 
@@ -1121,24 +1199,31 @@ body::before {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 11px;
+    font-size: 15px;
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 6px 8px;
 }
 
 .improvement-type {
-    color: #ccc;
+    color: #333;
     min-width: 120px;
+    font-size: 15px;
 }
 
 .improvement-probability {
-    color: #fff;
+    color: #333;
     font-weight: bold;
     min-width: 35px;
+    font-size: 15px;
 }
 
 .probability-bar {
     flex: 1;
-    height: 8px;
-    background: #333;
+    height: 14px;
+    background: #e0e0e0;
+    border: 2px solid #ccc;
     border-radius: 4px;
     overflow: hidden;
     max-width: 100px;
@@ -1146,8 +1231,20 @@ body::before {
 
 .probability-fill {
     height: 100%;
-    background: linear-gradient(90deg, #ff4444, #ffaa00, #44ff44);
     transition: width 0.3s ease;
+}
+
+/* Probability level classes */
+.probability-low {
+    background: #f44336 !important;
+}
+
+.probability-medium {
+    background: #ff9800 !important;
+}
+
+.probability-high {
+    background: #4CAF50 !important;
 }
 
 .strategic-points {
@@ -1157,10 +1254,13 @@ body::before {
 }
 
 .strategic-points li {
-    color: #ccc;
-    font-size: 11px;
+    color: #333;
+    font-size: 15px;
     margin: 4px 0;
-    padding-left: 0;
+    padding: 6px 8px;
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
     line-height: 1.3;
 }
 
@@ -1169,18 +1269,23 @@ body::before {
     display: flex;
     align-items: center;
     gap: 12px;
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 8px;
 }
 
 .ai-confidence-meter strong {
-    color: #ffd700;
-    font-size: 12px;
+    color: #333;
+    font-size: 16px;
     min-width: 80px;
 }
 
 .confidence-bar {
     flex: 1;
-    height: 12px;
-    background: #333;
+    height: 14px;
+    background: #e0e0e0;
+    border: 2px solid #ccc;
     border-radius: 6px;
     overflow: hidden;
     max-width: 150px;
@@ -1188,22 +1293,76 @@ body::before {
 
 .confidence-fill {
     height: 100%;
-    background: linear-gradient(90deg, #ff4444, #ffaa00, #44ff44);
     transition: width 0.3s ease;
 }
 
+/* Confidence level classes */
+.confidence-low {
+    background: #f44336 !important;
+}
+
+.confidence-medium {
+    background: #ff9800 !important;
+}
+
+.confidence-high {
+    background: #4CAF50 !important;
+}
+
 .confidence-text {
-    color: #fff;
+    color: #333;
     font-weight: bold;
-    font-size: 11px;
+    font-size: 15px;
     min-width: 35px;
 }
 
-/* AI Logic Dice Specific Styles */
-.ai-logic-die {
-    display: inline-block;
-    margin: 2px;
-    vertical-align: middle;
+/* AI Logic Flow - Force larger fonts to override any conflicting styles */
+#ai-log-content * {
+    font-size: inherit !important;
+    font-family: Calibri, Arial, sans-serif !important;
+}
+
+#ai-log-content {
+    font-size: 16px !important;
+    line-height: 1.4 !important;
+    font-family: Calibri, Arial, sans-serif !important;
+}
+
+/* AI Logic Flow utility classes for cleaner HTML generation */
+.ai-section-title {
+    color: #333 !important;
+    font-size: 16px !important;
+    font-weight: bold !important;
+    margin: 8px 0 !important;
+}
+
+.ai-text-primary {
+    color: #333 !important;
+    font-size: 15px !important;
+}
+
+.ai-text-secondary {
+    color: #666 !important;
+    font-size: 15px !important;
+}
+
+.ai-text-accent {
+    color: #333 !important;
+    font-size: 15px !important;
+    font-weight: bold !important;
+}
+
+.ai-reasoning-text {
+    color: #333 !important;
+    font-size: 15px !important;
+    line-height: 1.4 !important;
+    margin: 4px 0 !important;
+}
+
+.ai-metric-value {
+    color: #333 !important;
+    font-weight: bold !important;
+    font-size: 15px !important;
 }
 
 /* Responsive adjustments for AI Logic Flow */
@@ -1236,4 +1395,31 @@ body::before {
     .ai-confidence-meter {
         flex-wrap: wrap;
     }
+}
+
+/* Center notification styles */
+.center-notification {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10000;
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    padding: 20px 30px;
+    border-radius: 8px;
+    border: 2px solid #333;
+    font-size: 18px;
+    font-weight: normal;
+    text-align: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    max-width: 80%;
+    word-wrap: break-word;
+}
+
+.center-notification.visible {
+    opacity: 1;
+    visibility: visible;
 }

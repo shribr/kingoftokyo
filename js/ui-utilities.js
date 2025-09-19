@@ -270,6 +270,51 @@ class UIUtilities {
     }
 
     /**
+     * Center notification for important messages (like roll-off winner)
+     */
+    static showCenterNotification(message, duration = 3000) {
+        // Create or get existing center notification element
+        let notification = document.getElementById('center-notification');
+        
+        if (!notification) {
+            notification = document.createElement('div');
+            notification.id = 'center-notification';
+            notification.className = 'center-notification';
+            notification.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(0, 0, 0, 0.9);
+                color: #FFD700;
+                padding: 20px 40px;
+                border-radius: 12px;
+                border: 2px solid #FFD700;
+                font-size: 24px;
+                font-weight: bold;
+                text-align: center;
+                z-index: 2000;
+                opacity: 0;
+                transition: opacity 0.3s ease-in-out;
+                pointer-events: none;
+                font-family: 'Bangers', cursive;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+                box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+            `;
+            document.body.appendChild(notification);
+        }
+        
+        // Set message and show
+        notification.textContent = message;
+        notification.style.opacity = '1';
+        
+        // Auto-hide after duration
+        setTimeout(() => {
+            notification.style.opacity = '0';
+        }, duration);
+    }
+
+    /**
      * Icon Utilities
      */
     // Get CPU icon (simple SVG or Unicode character)
