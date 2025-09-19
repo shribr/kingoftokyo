@@ -1835,6 +1835,8 @@ class AIDecisionEngine {
         const diceToKeep = [];
         const personality = player.monster.personality;
         
+        console.log('🎲 DEBUG: Evaluating dice:', currentDice, 'Current state:', probabilities.currentState);
+        
         currentDice.forEach((face, index) => {
             let keepProbability = this.getDiceKeepProbability(face, situation, personality);
             
@@ -1843,6 +1845,8 @@ class AIDecisionEngine {
             
             // Enhanced decision logic based on current state
             const shouldKeep = this.shouldKeepDiceEnhanced(face, keepProbability, probabilities.currentState);
+            
+            console.log(`🎲 DEBUG: Dice ${index} (${face}) - keepProb: ${keepProbability.toFixed(2)}, shouldKeep: ${shouldKeep}`);
             
             if (shouldKeep) {
                 diceToKeep.push({ 
@@ -1854,6 +1858,7 @@ class AIDecisionEngine {
             }
         });
         
+        console.log('🎲 DEBUG: Final dice to keep:', diceToKeep.map(d => `${d.index}:${d.face}`));
         return diceToKeep;
     }
 
@@ -1872,13 +1877,19 @@ class AIDecisionEngine {
                 value = situation.player.isInTokyo ? 20 : 15;
                 break;
             case 'one':
-                value = probabilities.currentState.ones >= 2 ? 35 : 5;
+                // Only valuable if we have multiples or very close to completing a set
+                value = probabilities.currentState.ones >= 2 ? 35 : 
+                       (probabilities.currentState.ones === 1 ? 5 : 2);
                 break;
             case 'two':
-                value = probabilities.currentState.twos >= 2 ? 40 : 10;
+                // Only valuable if we have multiples or very close to completing a set
+                value = probabilities.currentState.twos >= 2 ? 40 : 
+                       (probabilities.currentState.twos === 1 ? 8 : 3);
                 break;
             case 'three':
-                value = probabilities.currentState.threes >= 2 ? 45 : 15;
+                // Only valuable if we have multiples or very close to completing a set
+                value = probabilities.currentState.threes >= 2 ? 45 : 
+                       (probabilities.currentState.threes === 1 ? 12 : 5);
                 break;
         }
         
@@ -1975,19 +1986,32 @@ class AIDecisionEngine {
     }
 
     shouldKeepDiceEnhanced(face, keepProbability, currentState) {
-        // Always keep if probability is very high
+        // Special logic for number combinations - only keep if we already have multiples
+        if (face === 'one' && currentState.ones >= 2) return true;
+        if (face === 'two' && currentState.twos >= 2) return true;
+        if (face === 'three' && currentState.threes >= 2) return true;
+        
+        // Don't keep single number dice regardless of probability
+        if ((face === 'one' || face === 'two' || face === 'three') && 
+            ((face === 'one' && currentState.ones < 2) ||
+             (face === 'two' && currentState.twos < 2) ||
+             (face === 'three' && currentState.threes < 2))) {
+            return false;
+        }
+        
+        // Always keep if probability is very high (for non-single number dice)
         if (keepProbability >= 0.8) return true;
         
         // Don't keep if probability is very low
         if (keepProbability <= 0.2) return false;
         
-        // Special logic for number combinations
-        if (face === 'one' && currentState.ones >= 2) return true;
-        if (face === 'two' && currentState.twos >= 2) return true;
-        if (face === 'three' && currentState.threes >= 2) return true;
+        // For non-number dice (attack, heart, energy), use standard threshold
+        if (face === 'attack' || face === 'heart' || face === 'energy') {
+            return keepProbability >= 0.5;
+        }
         
-        // Standard threshold
-        return keepProbability >= 0.5;
+        // Standard threshold for everything else
+        return keepProbability >= 0.6; // Slightly higher threshold for better decisions
     }
 
     makeKeepDecisionEnhanced(diceEvaluations, rollsRemaining, player, situation, probabilities) {

@@ -353,7 +353,7 @@ class KingOfTokyoUI {
             cpuSpeedRadios: document.querySelectorAll('input[name="cpu-speed"]'),
             thoughtBubblesToggle: document.getElementById('thought-bubbles-toggle'),
             aiModeToggle: document.getElementById('ai-mode-toggle'),
-            aiModeBtn: document.getElementById('ai-mode-toggle'),
+            aiModeBtn: document.getElementById('ai-mode-btn'),
             monsterCheckboxes: document.getElementById('monster-checkboxes'),
             closeInstructionsBtn: document.getElementById('close-instructions'),
             closeGameOverBtn: document.getElementById('close-game-over'),
