@@ -191,7 +191,6 @@ class KingOfTokyoUI {
         this.initializeDarkMode();
         this._initializeDOMCaches(); // Initialize DOM element caches
         this.setupManager.initializeMonsterProfiles();
-        this.initializeSettings();
         this.initializeResponsivePanels();
         this.initializeDiceArea(); // Initialize dice area with 6 dice
         this.initializeAI(); // Initialize AI decision engine
@@ -200,8 +199,10 @@ class KingOfTokyoUI {
         // End turn button functionality now handled in dice controls
         // No need to add duplicate button
         
-        // Load configuration on initialization
-        this.loadConfiguration();
+        // Load configuration first, then initialize settings
+        this.loadConfiguration().then(() => {
+            this.initializeSettings(); // Initialize settings after config is loaded
+        });
         
         // Listen for monster configuration updates
         window.addEventListener('monstersConfigLoaded', () => {
@@ -227,6 +228,11 @@ class KingOfTokyoUI {
                 }
                 
                 window.UI && window.UI._debug && window.UI._debug('✅ UI configuration loaded successfully');
+                
+                // Reload settings now that config is available
+                if (this.loadSettings) {
+                    this.loadSettings();
+                }
             }
         } catch (error) {
             console.warn('⚠️ Failed to load UI configuration, using defaults:', error);
@@ -347,6 +353,7 @@ class KingOfTokyoUI {
             cpuSpeedRadios: document.querySelectorAll('input[name="cpu-speed"]'),
             thoughtBubblesToggle: document.getElementById('thought-bubbles-toggle'),
             aiModeToggle: document.getElementById('ai-mode-toggle'),
+            aiModeBtn: document.getElementById('ai-mode-toggle'),
             monsterCheckboxes: document.getElementById('monster-checkboxes'),
             closeInstructionsBtn: document.getElementById('close-instructions'),
             closeGameOverBtn: document.getElementById('close-game-over'),
@@ -679,6 +686,10 @@ class KingOfTokyoUI {
         // Dark mode toggle using UIUtilities
         UIUtilities.safeAddEventListener(this.elements.darkModeToggle, 'change', 
             () => this.toggleDarkMode(), 'Dark mode toggle not found');
+
+        // AI mode toggle button using UIUtilities
+        UIUtilities.safeAddEventListener(this.elements.aiModeBtn, 'click', 
+            () => this.toggleAIModeButton(), 'AI mode button not found');
 
         // AI mode toggle using UIUtilities
         UIUtilities.safeAddEventListener(this.elements.aiModeToggle, 'change', 
@@ -1342,6 +1353,12 @@ class KingOfTokyoUI {
         
         // Update current player energy
         // this.elements.currentEnergy.textContent = gameState.currentPlayer.energy;
+    }
+
+    // Update display for a single player (calls updatePlayersDisplay with all players)
+    updatePlayerDisplay(player) {
+        // Update the display for all players to keep everything in sync
+        this.updatePlayersDisplay(this.game.players);
     }
 
     // Update players display - separate active player from stack with optimized updates
@@ -3206,6 +3223,80 @@ class KingOfTokyoUI {
         localStorage.setItem('kot-debug', this.debugMode.toString());
         window.UI && window.UI._debug && window.UI._debug(`🎮 Debug mode ${this.debugMode ? 'enabled' : 'disabled'}`);
         return this.debugMode;
+    }
+    
+    // Test function for ailment token system
+    testAilmentTokens() {
+        if (!this.game || !this.game.players) {
+            console.warn('⚠️ Game not initialized - cannot test ailment tokens');
+            return;
+        }
+        
+        console.log('🧪 Testing ailment token system...');
+        
+        // Get first two players for testing
+        const player1 = this.game.players[0];
+        const player2 = this.game.players[1];
+        
+        if (!player1 || !player2) {
+            console.warn('⚠️ Need at least 2 players for ailment testing');
+            return;
+        }
+        
+        // Test Shrink Ray effect
+        console.log(`🔬 Applying Shrink Ray to ${player1.monster.name}...`);
+        if (!player1.ailmentTokens) player1.ailmentTokens = {};
+        player1.ailmentTokens.shrink = (player1.ailmentTokens.shrink || 0) + 1;
+        player1.maxHealth = Math.max(1, player1.maxHealth - 2);
+        if (player1.health > player1.maxHealth) {
+            player1.health = player1.maxHealth;
+        }
+        
+        // Test Poison Spit effect
+        console.log(`🔬 Applying Poison Spit to ${player2.monster.name}...`);
+        if (!player2.ailmentTokens) player2.ailmentTokens = {};
+        player2.ailmentTokens.poison = (player2.ailmentTokens.poison || 0) + 1;
+        
+        // Update visual bookmarks
+        this.updateAilmentBookmarks(player1);
+        this.updateAilmentBookmarks(player2);
+        
+        // Show evil animations
+        this.showEvilAnimation(player1.id, 'shrink');
+        setTimeout(() => {
+            this.showEvilAnimation(player2.id, 'poison');
+        }, 1000);
+        
+        // Update player dashboards to reflect changes
+        this.updatePlayerDisplay(player1);
+        this.updatePlayerDisplay(player2);
+        
+        console.log('🧪 Ailment token test complete!');
+        console.log(`Player states:`, {
+            [player1.monster.name]: {
+                health: player1.health,
+                maxHealth: player1.maxHealth,
+                ailmentTokens: player1.ailmentTokens
+            },
+            [player2.monster.name]: {
+                health: player2.health,
+                maxHealth: player2.maxHealth,
+                ailmentTokens: player2.ailmentTokens,
+                effectiveDiceCount: player2.getEffectiveDiceCount ? player2.getEffectiveDiceCount() : 'N/A'
+            }
+        });
+        
+        // Test healing after 3 seconds
+        setTimeout(() => {
+            console.log('🔬 Testing healing recovery...');
+            player1.heal(1); // This should clear shrink tokens
+            player2.heal(1); // This should clear poison tokens
+            this.updateAilmentBookmarks(player1);
+            this.updateAilmentBookmarks(player2);
+            this.updatePlayerDisplay(player1);
+            this.updatePlayerDisplay(player2);
+            console.log('🧪 Healing test complete!');
+        }, 3000);
     }
     
     // Refresh player dashboard cache
@@ -5591,23 +5682,50 @@ class KingOfTokyoUI {
             this.elements.thoughtBubblesToggle.checked = thoughtBubblesEnabled;
         }
 
-        // Load AI mode setting from config.json
+        // Load AI mode setting with priority: localStorage > config.json
+        const savedAIMode = localStorage.getItem('aiModeEnabled');
         const configAIMode = this.gameConfig && this.gameConfig.gameRules && this.gameConfig.gameRules.ai 
             ? this.gameConfig.gameRules.ai.enableAIMode 
             : false; // Default to simple mode
         
-        // Clean up any old localStorage AI mode settings that might interfere
-        localStorage.removeItem('aiModeEnabled');
+        const finalAIMode = savedAIMode !== null ? savedAIMode === 'true' : configAIMode;
+        
+        console.log('🤖 Loading AI settings:', {
+            gameConfigExists: !!this.gameConfig,
+            aiConfigExists: !!(this.gameConfig && this.gameConfig.gameRules && this.gameConfig.gameRules.ai),
+            configAIMode: configAIMode,
+            savedAIMode: savedAIMode,
+            finalAIMode: finalAIMode,
+            toggleExists: !!this.elements.aiModeToggle,
+            buttonExists: !!this.elements.aiModeBtn
+        });
+        
+        // Clean up any old localStorage AI mode settings that might interfere (but keep aiModeEnabled)
         localStorage.removeItem('ai-mode');
         localStorage.removeItem('aiMode');
         
+        // Set checkbox state
         if (this.elements.aiModeToggle) {
-            this.elements.aiModeToggle.checked = configAIMode;
+            this.elements.aiModeToggle.checked = finalAIMode;
+            console.log('🤖 Set AI toggle to:', finalAIMode);
             
             // Also set it again after a short delay to ensure it sticks
             setTimeout(() => {
-                this.elements.aiModeToggle.checked = configAIMode;
+                this.elements.aiModeToggle.checked = finalAIMode;
+                console.log('🤖 Confirmed AI toggle set to:', finalAIMode, 'actual value:', this.elements.aiModeToggle.checked);
             }, 100);
+        }
+
+        // Initialize AI mode button state to match final setting
+        if (this.elements.aiModeBtn) {
+            if (finalAIMode) {
+                this.elements.aiModeBtn.classList.add('active');
+                this.elements.aiModeBtn.title = 'AI Enhanced Mode: ON - Click to disable';
+            } else {
+                this.elements.aiModeBtn.classList.remove('active');
+                this.elements.aiModeBtn.title = 'AI Enhanced Mode: OFF - Click to enable';
+            }
+            console.log('🤖 Set AI button active state to:', finalAIMode);
         }
 
         // Initialize and load monster configuration
@@ -5717,23 +5835,36 @@ class KingOfTokyoUI {
 
     // Check if AI mode is enabled
     isAIModeEnabled() {
-        // Check UI toggle first (if available), then fallback to config.json setting
+        // Check localStorage first (user preference)
+        const savedState = localStorage.getItem('aiModeEnabled');
+        if (savedState !== null) {
+            return savedState === 'true';
+        }
+        
+        // Check UI elements second (if available)
         const uiToggle = this.elements.aiModeToggle && this.elements.aiModeToggle.checked;
+        const buttonActive = this.elements.aiModeBtn && this.elements.aiModeBtn.classList.contains('active');
+        
+        // Fallback to config.json setting
         const configSetting = this.gameConfig && this.gameConfig.gameRules && this.gameConfig.gameRules.ai 
             ? this.gameConfig.gameRules.ai.enableAIMode 
             : false; // Default to simple mode
         
         // Debug logging
         console.log('🤖 isAIModeEnabled() check:', {
+            savedState: savedState,
             uiToggleExists: !!this.elements.aiModeToggle,
             uiToggleChecked: uiToggle,
-            configSetting: configSetting,
-            finalResult: this.elements.aiModeToggle ? uiToggle : configSetting
+            buttonExists: !!this.elements.aiModeBtn,
+            buttonActive: buttonActive,
+            configSetting: configSetting
         });
         
-        // UI toggle overrides config file if both are available
+        // Priority: localStorage > UI toggle > button state > config file
         if (this.elements.aiModeToggle) {
             return uiToggle;
+        } else if (this.elements.aiModeBtn) {
+            return buttonActive;
         } else {
             return configSetting;
         }
@@ -6181,8 +6312,19 @@ class KingOfTokyoUI {
     toggleAIMode() {
         console.log('🤖 AI Mode toggled! Current state:', this.elements.aiModeToggle.checked);
         
-        // The checkbox state change is already handled by the browser
-        // We just need to update any dependent systems
+        // Save the state to localStorage
+        localStorage.setItem('aiModeEnabled', this.elements.aiModeToggle.checked.toString());
+        
+        // Update button state to match checkbox
+        if (this.elements.aiModeBtn) {
+            if (this.elements.aiModeToggle.checked) {
+                this.elements.aiModeBtn.classList.add('active');
+                this.elements.aiModeBtn.title = 'AI Enhanced Mode: ON - Click to disable';
+            } else {
+                this.elements.aiModeBtn.classList.remove('active');
+                this.elements.aiModeBtn.title = 'AI Enhanced Mode: OFF - Click to enable';
+            }
+        }
         
         // Show a confirmation message
         const message = this.elements.aiModeToggle.checked 
@@ -6193,6 +6335,42 @@ class KingOfTokyoUI {
         
         // Log current AI mode state for debugging
         console.log('🤖 isAIModeEnabled():', this.isAIModeEnabled());
+    }
+
+    toggleAIModeButton() {
+        console.log('🤖 AI Mode button clicked!');
+        
+        // Toggle the AI mode state
+        const currentState = this.isAIModeEnabled();
+        const newState = !currentState;
+        
+        // Update the checkbox if it exists (for settings modal)
+        if (this.elements.aiModeToggle) {
+            this.elements.aiModeToggle.checked = newState;
+        }
+        
+        // Update button visual state
+        if (this.elements.aiModeBtn) {
+            if (newState) {
+                this.elements.aiModeBtn.classList.add('active');
+                this.elements.aiModeBtn.title = 'AI Enhanced Mode: ON - Click to disable';
+            } else {
+                this.elements.aiModeBtn.classList.remove('active');
+                this.elements.aiModeBtn.title = 'AI Enhanced Mode: OFF - Click to enable';
+            }
+        }
+        
+        // Save the state to localStorage to persist across sessions
+        localStorage.setItem('aiModeEnabled', newState.toString());
+        
+        // Show confirmation message
+        const message = newState 
+            ? '✨ AI Enhanced Mode enabled - CPU players will use advanced decision making'
+            : 'AI Enhanced Mode disabled - CPU players will use simple logic';
+        
+        UIUtilities.showMessage(message, 3000, this.elements);
+        
+        console.log('🤖 AI Mode state changed to:', newState);
     }
 
     // Initialize dark mode from saved preference
@@ -7224,52 +7402,59 @@ class KingOfTokyoUI {
             return;
         }
         
-        const purchaseDecisions = [];
-        let remainingEnergy = player.energy;
+        // Use new portfolio optimization system
+        const portfolioOptimization = this.aiEngine.optimizePowerCardPortfolio(availableCards, player);
         
-        // Evaluate each available card for both personal value and defensive value
-        for (const card of availableCards) {
-            if (card.cost > remainingEnergy) continue;
-            
-            // Get personal evaluation for this card
-            const personalEval = this.aiEngine.evaluateCardForPlayer(card, player);
-            
-            // Get defensive evaluation (should we buy it to deny others?)
-            const defensiveEval = this.aiEngine.evaluateDefensiveCardPurchase(card, player, availableCards);
-            
-            const shouldBuyPersonal = personalEval.value >= 50;
-            const shouldBuyDefensive = defensiveEval.shouldBuyDefensively;
-            
-            if (shouldBuyPersonal || shouldBuyDefensive) {
-                const priority = shouldBuyPersonal ? personalEval.value : defensiveEval.defensiveValue;
-                const reason = shouldBuyPersonal ? personalEval.reason : defensiveEval.denialReason;
-                const type = shouldBuyPersonal ? 'personal' : 'defensive';
-                
-                purchaseDecisions.push({
-                    card,
-                    priority,
-                    reason,
-                    type,
-                    cost: card.cost
-                });
-            }
-        }
-        
-        // Sort by priority (highest first)
-        purchaseDecisions.sort((a, b) => b.priority - a.priority);
-        
-        console.log(`🛍️ ${player.monster.name} found ${purchaseDecisions.length} cards worth buying:`, 
-                   purchaseDecisions.map(d => `${d.card.name} (${d.type}, priority: ${d.priority})`));
-        
-        if (purchaseDecisions.length === 0) {
-            console.log(`🛍️ ${player.monster.name} decided not to buy any cards`);
+        if (portfolioOptimization.cards.length === 0) {
+            console.log(`🛍️ ${player.monster.name} decided not to buy any cards (no profitable combinations)`);
             this.showSimpleCPUNotification(player, `🛍️ ${player.monster.name} chooses not to buy cards`);
             setTimeout(() => this.endCPUTurn(player), this.getCPUThinkingTime('cardDecision'));
             return;
         }
         
-        // Execute purchases in priority order
-        this.executeCPUPowerCardPurchases(player, purchaseDecisions, 0);
+        // Also check for defensive purchasing opportunities
+        const defensivePurchases = [];
+        let remainingEnergy = player.energy;
+        
+        // After optimal portfolio, check if remaining energy can be used defensively
+        const portfolioCost = portfolioOptimization.totalCost;
+        const leftoverEnergy = remainingEnergy - portfolioCost;
+        
+        if (leftoverEnergy > 0) {
+            const remainingCards = availableCards.filter(card => 
+                !portfolioOptimization.cards.includes(card) && card.cost <= leftoverEnergy
+            );
+            
+            for (const card of remainingCards) {
+                const defensiveEval = this.aiEngine.evaluateDefensiveCardPurchase(card, player, availableCards);
+                if (defensiveEval.shouldBuyDefensively) {
+                    defensivePurchases.push({
+                        card,
+                        priority: defensiveEval.defensiveValue,
+                        reason: defensiveEval.denialReason,
+                        type: 'defensive',
+                        cost: card.cost
+                    });
+                }
+            }
+        }
+        
+        // Combine portfolio purchases with defensive purchases
+        const portfolioPurchases = portfolioOptimization.cards.map(card => ({
+            card,
+            priority: 100, // Portfolio purchases get highest priority
+            reason: `Part of ${portfolioOptimization.strategy} strategy (efficiency: ${portfolioOptimization.efficiency.toFixed(1)})`,
+            type: 'portfolio',
+            cost: card.cost
+        }));
+        
+        const allPurchases = [...portfolioPurchases, ...defensivePurchases.slice(0, 1)]; // Max 1 defensive purchase
+        
+        console.log(`🛍️ ${player.monster.name} planned purchases:`, 
+                   allPurchases.map(p => `${p.card.name} (${p.type})`));
+        
+        // Execute purchases in order
+        this.executeCPUPowerCardPurchases(player, allPurchases, 0);
     }
 
     // Execute CPU power card purchases one by one
@@ -7326,6 +7511,115 @@ class KingOfTokyoUI {
         setTimeout(() => {
             this.game.endTurn();
         }, this.getCPUThinkingTime('endTurn'));
+    }
+
+    // ===== AILMENT TOKEN SYSTEM =====
+    
+    // Update ailment bookmarks for a player
+    updateAilmentBookmarks(player) {
+        const playerCard = document.querySelector(`[data-player-id="${player.id}"]`);
+        if (!playerCard) return;
+
+        // Remove existing bookmarks
+        const existingBookmarks = playerCard.querySelector('.ailment-bookmarks');
+        if (existingBookmarks) {
+            existingBookmarks.remove();
+        }
+
+        // Check if player has any ailment tokens
+        if (!player.hasAilmentTokens()) {
+            return;
+        }
+
+        // Create bookmarks container
+        const bookmarksContainer = document.createElement('div');
+        bookmarksContainer.className = 'ailment-bookmarks';
+
+        // Add shrink ray bookmark
+        if (player.ailmentTokens.shrink > 0) {
+            const shrinkBookmark = this.createAilmentBookmark(
+                'shrink',
+                player.ailmentTokens.shrink,
+                `Shrink Ray: -${player.ailmentTokens.shrink * 2} max health until healed`
+            );
+            bookmarksContainer.appendChild(shrinkBookmark);
+        }
+
+        // Add poison spit bookmark
+        if (player.ailmentTokens.poison > 0) {
+            const poisonBookmark = this.createAilmentBookmark(
+                'poison',
+                player.ailmentTokens.poison,
+                `Poison Spit: -${player.ailmentTokens.poison} dice until healed`
+            );
+            bookmarksContainer.appendChild(poisonBookmark);
+        }
+
+        // Add bookmarks to player card
+        playerCard.appendChild(bookmarksContainer);
+    }
+
+    // Create individual ailment bookmark
+    createAilmentBookmark(type, count, tooltipText) {
+        const bookmark = document.createElement('div');
+        bookmark.className = `ailment-bookmark ${type}`;
+        bookmark.textContent = count;
+
+        // Create tooltip
+        const tooltip = document.createElement('div');
+        tooltip.className = 'ailment-tooltip';
+        tooltip.textContent = tooltipText;
+        bookmark.appendChild(tooltip);
+
+        return bookmark;
+    }
+
+    // Show evil animation when ailment is applied
+    showEvilAnimation(targetPlayer, ailmentType) {
+        const playerCard = document.querySelector(`[data-player-id="${targetPlayer.id}"]`);
+        if (!playerCard) return;
+
+        // Create evil overlay
+        const evilOverlay = document.createElement('div');
+        evilOverlay.className = 'evil-animation-overlay';
+        playerCard.appendChild(evilOverlay);
+
+        // Show notification
+        this.showSimpleCPUNotification(
+            targetPlayer, 
+            `💀 ${targetPlayer.monster.name} is affected by ${ailmentType}!`
+        );
+
+        // Remove overlay after animation
+        setTimeout(() => {
+            if (evilOverlay.parentNode) {
+                evilOverlay.parentNode.removeChild(evilOverlay);
+            }
+        }, 1500);
+
+        // Update bookmarks after a brief delay
+        setTimeout(() => {
+            this.updateAilmentBookmarks(targetPlayer);
+            // Add "new" class to the latest bookmark for animation
+            const latestBookmark = playerCard.querySelector('.ailment-bookmarks .ailment-bookmark:last-child');
+            if (latestBookmark) {
+                latestBookmark.classList.add('new');
+                setTimeout(() => {
+                    latestBookmark.classList.remove('new');
+                }, 600);
+            }
+        }, 300);
+    }
+
+    // Update all player ailment displays
+    updateAllAilmentBookmarks() {
+        if (this.game && this.game.players) {
+            Object.values(this.game.players).forEach(player => {
+                if (!player.isEliminated) {
+                    this.updateAilmentBookmarks(player);
+                }
+            });
+        }
     }
 
     // Roll-off UI methods with sportscast commentary

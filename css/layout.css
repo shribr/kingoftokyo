@@ -467,39 +467,7 @@ body::before {
     box-shadow: none;
 }
 
-.rolloff-roll-button {
-    background: linear-gradient(45deg, #FFD700, #FFA500);
-    border: none;
-    color: #000;
-    padding: 18px 36px;
-    border-radius: 12px;
-    font-size: 24px;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
-    transition: all 0.3s ease;
-    margin: 25px auto 0 auto;
-    display: block;
-    min-width: 200px;
-    position: relative;
-    z-index: 9999;
-    pointer-events: auto;
-}
-
-.rolloff-roll-button:hover {
-    background: linear-gradient(45deg, #FFA500, #FFD700);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
-}
-
-.rolloff-roll-button:disabled {
-    background: #666;
-    color: #999;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
-
+/* Action menu hidden during rolloff */
 .action-menu.hidden-for-rolloff {
     display: none !important;
 }

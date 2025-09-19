@@ -150,6 +150,7 @@ class Player {
         this.rollsLeft = 3;
         this.currentDice = [];
         this.extraDiceEnabled = 0; // Track how many extra dice are enabled for this player
+        this.ailmentTokens = {}; // Track shrink ray, poison spit, etc.
     }
 
     // Take damage
@@ -181,6 +182,19 @@ class Player {
     heal(amount) {
         if (!this.isInTokyo) {
             this.health = Math.min(this.maxHealth, this.health + amount);
+            
+            // Clear ailment tokens when healing
+            if (amount > 0 && this.ailmentTokens) {
+                if (this.ailmentTokens.shrink > 0) {
+                    // Restore max health lost from shrink rays
+                    this.maxHealth += this.ailmentTokens.shrink * 2;
+                    delete this.ailmentTokens.shrink;
+                }
+                if (this.ailmentTokens.poison > 0) {
+                    // Clear poison tokens that reduce dice count
+                    delete this.ailmentTokens.poison;
+                }
+            }
         }
         return this.health;
     }
@@ -270,8 +284,23 @@ class Player {
             tokyoLocation: this.tokyoLocation,
             isEliminated: this.isEliminated,
             powerCards: this.powerCards,
+            ailmentTokens: this.ailmentTokens || {},
             hasWon: this.hasWon()
         };
+    }
+
+    // Get effective dice count (considering poison tokens)
+    getEffectiveDiceCount(baseDiceCount = 6) {
+        const poisonTokens = this.ailmentTokens?.poison || 0;
+        return Math.max(1, baseDiceCount + this.extraDiceEnabled - poisonTokens);
+    }
+
+    // Check if player has ailment tokens
+    hasAilmentTokens() {
+        return this.ailmentTokens && (
+            (this.ailmentTokens.shrink || 0) > 0 || 
+            (this.ailmentTokens.poison || 0) > 0
+        );
     }
 }
 

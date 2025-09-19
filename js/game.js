@@ -660,6 +660,11 @@ class KingOfTokyoGame {
         return this.players[this.currentPlayerIndex];
     }
 
+    // Get available power cards for purchase
+    getAvailablePowerCards() {
+        return this.availableCards || [];
+    }
+
     // Get current game state
     getGameState() {
         return {
@@ -740,19 +745,38 @@ class KingOfTokyoGame {
 
     // Disable extra dice that were enabled for a specific player
     disablePlayerExtraDice(player) {
-        if (player.extraDiceEnabled && player.extraDiceEnabled > 0) {
-            let disabledCount = 0;
-            for (let i = 0; i < player.extraDiceEnabled; i++) {
-                const dieIndex = this.diceCollection.maxDice + i;
-                if (this.diceCollection.disableExtraDie(dieIndex)) {
-                    disabledCount++;
+        if (player.extraDiceEnabled !== 0) {
+            if (player.extraDiceEnabled > 0) {
+                // Disable extra dice that were enabled
+                let disabledCount = 0;
+                for (let i = 0; i < player.extraDiceEnabled; i++) {
+                    const dieIndex = this.diceCollection.maxDice + i;
+                    if (this.diceCollection.disableExtraDie(dieIndex)) {
+                        disabledCount++;
+                    }
                 }
-            }
-            player.extraDiceEnabled = 0;
-            
-            // Trigger dice update to refresh UI after disabling extra dice
-            if (disabledCount > 0) {
-                this.triggerEvent('diceUpdated', this.diceCollection.getAllDiceData());
+                player.extraDiceEnabled = 0;
+                
+                // Trigger dice update to refresh UI after disabling extra dice
+                if (disabledCount > 0) {
+                    this.triggerEvent('diceUpdated', this.diceCollection.getAllDiceData());
+                }
+            } else if (player.extraDiceEnabled < 0) {
+                // Re-enable dice that were disabled by poison
+                const dicesToRestore = Math.abs(player.extraDiceEnabled);
+                let restoredCount = 0;
+                for (let i = 0; i < dicesToRestore; i++) {
+                    const dieIndex = this.diceCollection.maxDice - dicesToRestore + i;
+                    if (this.diceCollection.enableExtraDie(dieIndex)) {
+                        restoredCount++;
+                    }
+                }
+                player.extraDiceEnabled = 0;
+                
+                // Trigger dice update to refresh UI after restoring dice
+                if (restoredCount > 0) {
+                    this.triggerEvent('diceUpdated', this.diceCollection.getAllDiceData());
+                }
             }
         }
     }
@@ -1453,36 +1477,58 @@ class KingOfTokyoGame {
             window.UI && window.UI._debug && window.UI._debug(`🤖 CPU ${player.monster.name} automatically deciding Tokyo exit...`);
             let context = 'uncertain';
             let stayInTokyo = false;
+            let reasoning = '';
             
-            // CPU decision logic based on health, points, and personality
-            if (player.health <= 2) {
-                // Very low health - usually leave unless close to winning
-                stayInTokyo = player.victoryPoints >= 18;
-                context = 'lowHealth';
-            } else if (player.health <= 4) {
-                // Low health - risky to stay
-                stayInTokyo = player.victoryPoints >= 16 || (player.monster.profile && player.monster.profile.risk >= 4);
-                context = 'needHearts';
-            } else if (player.victoryPoints >= 18) {
-                // Very close to winning - stay if reasonable health
-                stayInTokyo = true;
-                context = 'closeToWinning';
-            } else if (player.victoryPoints >= 15) {
-                // Close to winning - moderate risk taking
-                stayInTokyo = player.health >= 5 || (player.monster.profile && player.monster.profile.risk >= 3);
-                context = 'closeToWinning';
-            } else if (player.monster.profile && player.monster.profile.risk >= 4) {
-                // High risk tolerance
-                stayInTokyo = player.health >= 3;
-                context = 'confident';
-            } else if (player.monster.profile && player.monster.profile.aggression >= 4) {
-                // Aggressive players tend to stay
-                stayInTokyo = player.health >= 4;
-                context = 'aggressive';
+            // Use AI engine for sophisticated Tokyo exit strategy if available
+            if (this.aiEngine) {
+                const opponents = Object.values(this.players).filter(p => p.id !== player.id);
+                const exitStrategy = this.aiEngine.evaluateTokyoExitStrategy(player, opponents, this.getGameState());
+                
+                if (exitStrategy.strategy === 'manipulation') {
+                    // Strategic manipulation exit
+                    stayInTokyo = false;
+                    context = 'strategic';
+                    reasoning = exitStrategy.reasoning;
+                    
+                    // Log the sophisticated strategy
+                    this.logAction(`${player.monster.name} ${exitStrategy.reasoning}`);
+                } else {
+                    // Standard decision based on exit evaluation
+                    stayInTokyo = !exitStrategy.shouldExit;
+                    context = exitStrategy.strategy === 'survival' ? 'uncertain' : 'confident';
+                    reasoning = exitStrategy.reasoning;
+                }
             } else {
-                // Conservative default
-                stayInTokyo = player.health >= 6;
-                context = 'uncertain';
+                // Fallback to original CPU decision logic if AI engine not available
+                if (player.health <= 2) {
+                    // Very low health - usually leave unless close to winning
+                    stayInTokyo = player.victoryPoints >= 18;
+                    context = 'lowHealth';
+                } else if (player.health <= 4) {
+                    // Low health - risky to stay
+                    stayInTokyo = player.victoryPoints >= 16 || (player.monster.profile && player.monster.profile.risk >= 4);
+                    context = 'needHearts';
+                } else if (player.victoryPoints >= 18) {
+                    // Very close to winning - stay if reasonable health
+                    stayInTokyo = true;
+                    context = 'closeToWinning';
+                } else if (player.victoryPoints >= 15) {
+                    // Close to winning - moderate risk taking
+                    stayInTokyo = player.health >= 5 || (player.monster.profile && player.monster.profile.risk >= 3);
+                    context = 'closeToWinning';
+                } else if (player.monster.profile && player.monster.profile.risk >= 4) {
+                    // High risk tolerance
+                    stayInTokyo = player.health >= 3;
+                    context = 'confident';
+                } else if (player.monster.profile && player.monster.profile.aggression >= 4) {
+                    // Aggressive players tend to stay
+                    stayInTokyo = player.health >= 4;
+                    context = 'aggressive';
+                } else {
+                    // Conservative default
+                    stayInTokyo = player.health >= 6;
+                    context = 'uncertain';
+                }
             }
             
             // Show CPU thought bubble for Tokyo decision
@@ -1492,10 +1538,12 @@ class KingOfTokyoGame {
                 situation: 'tokyo-decision'
             });
             
-            // Show notification about CPU decision
+            // Show notification about CPU decision with reasoning
             const actionText = stayInTokyo ? 'chooses to stay in Tokyo' : 'chooses to leave Tokyo';
+            const fullMessage = `${player.monster.name} is attacked in Tokyo and ${actionText}${reasoning ? ` (${reasoning})` : ''}`;
+            
             this.triggerEvent('cpuNotification', {
-                message: `${player.monster.name} is attacked in Tokyo and ${actionText}`,
+                message: fullMessage,
                 player: player,
                 attacker: attacker,
                 action: stayInTokyo ? 'stay' : 'leave'
@@ -2153,15 +2201,28 @@ class KingOfTokyoGame {
             this.logAction(`${currentPlayer.monster.name} gets ${bonusRolls} extra reroll(s) from power cards!`, 'power-card');
         }
         
-        // Enable extra dice for this player's turn
-        if (extraDice > 0) {
+        // Enable extra dice for this player's turn, but account for poison tokens
+        let effectiveDiceChange = extraDice;
+        
+        // Check for poison tokens that reduce dice count
+        if (currentPlayer.ailmentTokens && currentPlayer.ailmentTokens.poison > 0) {
+            const poisonReduction = currentPlayer.ailmentTokens.poison;
+            effectiveDiceChange -= poisonReduction;
+            this.logAction(`${currentPlayer.monster.name} loses ${poisonReduction} dice from Poison Spit!`, 'ailment');
+            
             if (window.UI && window.UI.debugMode) {
-                window.UI._debug(`Attempting to enable ${extraDice} extra dice for ${currentPlayer.monster.name}`);
+                window.UI._debug(`Poison tokens reduce dice by ${poisonReduction}. Net change: ${effectiveDiceChange}`);
+            }
+        }
+        
+        if (effectiveDiceChange > 0) {
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debug(`Attempting to enable ${effectiveDiceChange} extra dice for ${currentPlayer.monster.name}`);
                 window.UI._debug(`Dice collection state before:`, this.diceCollection.dice.map(d => ({ id: d.id, isDisabled: d.isDisabled })));
             }
             
             let enabledCount = 0;
-            for (let i = 0; i < extraDice; i++) {
+            for (let i = 0; i < effectiveDiceChange; i++) {
                 const dieIndex = this.diceCollection.maxDice + i; // Start from first disabled die
                 if (window.UI && window.UI.debugMode) {
                     window.UI._debug(`Trying to enable die at index ${dieIndex}`);
@@ -2196,7 +2257,39 @@ class KingOfTokyoGame {
                 }
                 this.triggerEvent('diceUpdated', this.diceCollection.getAllDiceData());
             }
+        } else if (effectiveDiceChange < 0) {
+            // Poison tokens reduce dice below base amount
+            const diceToDisable = Math.abs(effectiveDiceChange);
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debug(`Attempting to disable ${diceToDisable} dice for ${currentPlayer.monster.name} due to poison`);
+            }
+            
+            let disabledCount = 0;
+            for (let i = 0; i < diceToDisable; i++) {
+                const dieIndex = this.diceCollection.maxDice - 1 - i; // Start from last enabled die
+                if (dieIndex >= 1) { // Never disable the last die (minimum 1 die)
+                    if (this.diceCollection.disableExtraDie && this.diceCollection.disableExtraDie(dieIndex)) {
+                        disabledCount++;
+                        if (window.UI && window.UI.debugMode) {
+                            window.UI._debug(`Successfully disabled die at index ${dieIndex}`);
+                        }
+                    }
+                }
+            }
+            
+            // Track the effective reduction in dice count (negative value)
+            currentPlayer.extraDiceEnabled = -disabledCount;
+            
+            // Trigger dice update to refresh UI with reduced dice
+            if (disabledCount > 0) {
+                this.triggerEvent('diceUpdated', this.diceCollection.getAllDiceData());
+            }
+            
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debug(`Final: ${disabledCount} dice disabled for ${currentPlayer.monster.name}`);
+            }
         } else {
+            // No change in dice count
             currentPlayer.extraDiceEnabled = 0;
         }
 

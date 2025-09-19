@@ -41,7 +41,64 @@ const AI_CONSTANTS = {
             'Fire Breathing': { denyIf: 'multipleThreats', priority: 'high' },
             'It Has a Child': { denyIf: 'opponentCanStayOutOfTokyo', priority: 'medium' },
             'Nuclear Power Plant': { denyIf: 'opponentHasHighEnergy', priority: 'high' },
-            'Complete Destruction': { denyIf: 'aggressiveOpponentExists', priority: 'medium' }
+            'Complete Destruction': { denyIf: 'aggressiveOpponentExists', priority: 'medium' },
+            'Shrink Ray': { denyIf: 'targetIsVulnerableToAilments', priority: 'high' },
+            'Poison Spit': { denyIf: 'targetDependsOnDice', priority: 'high' }
+        }
+    },
+    
+    POWER_CARD_ECONOMICS: {
+        // Power card cost efficiency thresholds
+        costEfficiencyThresholds: {
+            excellent: 15, // Value per energy point
+            good: 10,
+            fair: 7,
+            poor: 5
+        },
+        
+        // Special effects that change dice probabilities
+        diceModifiers: {
+            'Extra Head': { extraDice: 1, rollProbabilityBonus: 0.15 },
+            'Giant Brain': { extraDice: 0, rollProbabilityBonus: 0.10 },
+            'Shrink Ray': { opponentDebuff: true, rollProbabilityBonus: 0.05 }
+        },
+        
+        // Reroll and manipulation cards
+        manipulationCards: {
+            'Complete Destruction': { 
+                effect: 'rerollOwnDice', 
+                value: 'situational',
+                probabilityImpact: 0.25
+            },
+            'Freeze Ray': { 
+                effect: 'rerollOpponentDice', 
+                value: 'disruptive',
+                probabilityImpact: 0.15
+            },
+            'Psychic Probe': { 
+                effect: 'forceKeepDice', 
+                value: 'manipulative',
+                probabilityImpact: 0.20
+            }
+        },
+        
+        // Portfolio strategies - multiple cheaper vs single expensive
+        portfolioStrategies: {
+            breadth: { // Multiple cheap cards for flexibility
+                maxSingleCardCost: 4,
+                minCardCount: 2,
+                synergyBonus: 1.3
+            },
+            depth: { // Single expensive card for power
+                minSingleCardCost: 6,
+                maxCardCount: 1,
+                powerBonus: 1.5
+            },
+            balanced: { // Mix of costs
+                targetCostRange: [3, 5],
+                idealCardCount: 2,
+                versatilityBonus: 1.2
+            }
         }
     }
 };
@@ -151,13 +208,17 @@ class AIDecisionEngine {
             personality: player.monster.personality
         });
 
-        // Analyze current situation
+        // Enhanced probability calculations with extra dice consideration
+        const probabilities = this.calculateDiceProbabilities(player, currentDice, rollsRemaining);
+        console.log('🎲 Enhanced probability analysis:', probabilities);
+
+        // Analyze current situation with enhanced context
         const situation = this.analyzeSituation(player, gameState);
         console.log(`🧠 Situation analysis:`, situation);
 
-        // Evaluate dice strategies
-        const diceEvaluations = this.evaluateDice(currentDice, player, situation);
-        console.log(`🧠 Dice evaluations:`, diceEvaluations);
+        // Evaluate dice strategies with enhanced probability data
+        const diceEvaluations = this.evaluateDiceEnhanced(currentDice, player, situation, probabilities);
+        console.log(`🧠 Enhanced dice evaluations:`, diceEvaluations);
 
         // 🧠 MULTI-PLAYER STRATEGIC THINKING: Generate complex thought process
         if (situation.multiPlayerScenarios && situation.multiPlayerScenarios.thoughtProcess.length > 0) {
@@ -167,9 +228,9 @@ class AIDecisionEngine {
             }
         }
 
-        // Make final decision
-        const decision = this.makeKeepDecision(diceEvaluations, rollsRemaining, player, situation);
-        console.log(`🧠 Final decision:`, decision);
+        // Make final decision with enhanced risk assessment
+        const decision = this.makeKeepDecisionEnhanced(diceEvaluations, rollsRemaining, player, situation, probabilities);
+        console.log(`🧠 Enhanced final decision:`, decision);
 
         return decision;
     }
@@ -1095,6 +1156,13 @@ class AIDecisionEngine {
             reason = `${player.monster} is in Tokyo and this card boosts attacks`;
         }
 
+        // Ailment token strategy evaluation
+        const ailmentValue = this.evaluateAilmentTokenStrategy(card, player);
+        if (ailmentValue.value > 0) {
+            value += ailmentValue.value;
+            reason = ailmentValue.reason;
+        }
+
         // Players with specific synergies
         const synergyValue = this.calculateSynergyValueForPlayer(card, player);
         if (synergyValue > 0) {
@@ -1103,6 +1171,123 @@ class AIDecisionEngine {
         }
 
         return { value, reason };
+    }
+
+    // Evaluate the strategic value of ailment token cards
+    evaluateAilmentTokenStrategy(card, player) {
+        const game = this.game;
+        
+        // Check if this is an ailment token card
+        if (card.name === 'Shrink Ray' || card.name === 'Poison Spit') {
+            let value = 0;
+            let reason = '';
+            
+            // Find the most threatening opponent
+            const opponents = game.players.filter(p => p !== player && !p.isEliminated);
+            const threateningOpponent = this.findMostThreateningOpponent(opponents, player);
+            
+            if (threateningOpponent) {
+                if (card.name === 'Shrink Ray') {
+                    // Shrink Ray is valuable against high-health opponents or those about to win
+                    if (threateningOpponent.health >= 8) {
+                        value += 45;
+                        reason = `${threateningOpponent.monster.name} has high health (${threateningOpponent.health}) - Shrink Ray reduces survivability`;
+                    } else if (threateningOpponent.victoryPoints >= 15) {
+                        value += 60;
+                        reason = `${threateningOpponent.monster.name} is close to victory - Shrink Ray disrupts their endgame`;
+                    } else if (threateningOpponent.inTokyo) {
+                        value += 35;
+                        reason = `${threateningOpponent.monster.name} in Tokyo - Shrink Ray forces earlier exit`;
+                    }
+                } else if (card.name === 'Poison Spit') {
+                    // Poison Spit is valuable against dice-dependent strategies
+                    if (this.playerDependsOnDice(threateningOpponent)) {
+                        value += 50;
+                        reason = `${threateningOpponent.monster.name} relies on dice rolls - Poison Spit cripples their strategy`;
+                    } else if (threateningOpponent.inTokyo) {
+                        value += 40;
+                        reason = `${threateningOpponent.monster.name} in Tokyo - Poison Spit reduces attack potential`;
+                    } else if (threateningOpponent.victoryPoints >= 12) {
+                        value += 30;
+                        reason = `${threateningOpponent.monster.name} gaining momentum - Poison Spit slows progress`;
+                    }
+                }
+                
+                // Bonus value if opponent has no easy way to heal ailments
+                if (!this.opponentCanEasilyHeal(threateningOpponent)) {
+                    value += 15;
+                    reason += ' (no easy healing available)';
+                }
+            }
+            
+            return { value, reason };
+        }
+        
+        return { value: 0, reason: '' };
+    }
+
+    // Find the most threatening opponent for ailment targeting
+    findMostThreateningOpponent(opponents, player) {
+        if (opponents.length === 0) return null;
+        
+        // Score opponents by threat level
+        let mostThreatening = null;
+        let highestThreat = 0;
+        
+        opponents.forEach(opponent => {
+            let threatScore = 0;
+            
+            // Victory point threat
+            if (opponent.victoryPoints >= 15) threatScore += 100;
+            else if (opponent.victoryPoints >= 12) threatScore += 60;
+            else if (opponent.victoryPoints >= 8) threatScore += 30;
+            
+            // Tokyo control threat
+            if (opponent.inTokyo) threatScore += 40;
+            
+            // Energy/power card threat
+            if (opponent.energy >= 8) threatScore += 25;
+            if (opponent.powerCards.length >= 3) threatScore += 20;
+            
+            // Health advantage threat
+            if (opponent.health >= 8) threatScore += 15;
+            
+            if (threatScore > highestThreat) {
+                highestThreat = threatScore;
+                mostThreatening = opponent;
+            }
+        });
+        
+        return mostThreatening;
+    }
+
+    // Check if a player depends heavily on dice rolls
+    playerDependsOnDice(player) {
+        // Players in Tokyo depend on dice for attacks
+        if (player.inTokyo) return true;
+        
+        // Players with dice-enhancing cards depend on dice
+        const diceCards = ['Extra Head', 'Giant Brain', 'Opportunist'];
+        const hasDiceCards = player.powerCards.some(card => diceCards.includes(card.name));
+        if (hasDiceCards) return true;
+        
+        // Players with low energy depend on dice for energy generation
+        if (player.energy <= 3) return true;
+        
+        return false;
+    }
+
+    // Check if opponent can easily heal ailment tokens
+    opponentCanEasilyHeal(opponent) {
+        // Check for healing cards
+        const healingCards = ['Regeneration', 'Healing Ray', 'Dedicated News Team'];
+        const hasHealingCards = opponent.powerCards.some(card => healingCards.includes(card.name));
+        if (hasHealingCards) return true;
+        
+        // Check if they're outside Tokyo (can heal with hearts)
+        if (!opponent.inTokyo && opponent.energy >= 2) return true;
+        
+        return false;
     }
 
     isCardCriticalForPlayer(card, player) {
@@ -1125,9 +1310,30 @@ class AIDecisionEngine {
                 return !player.inTokyo && player.health > 6;
             case 'opponentHasHighEnergy':
                 return player.energy >= 6;
+            case 'targetIsVulnerableToAilments':
+                return this.isPlayerVulnerableToAilments(player);
+            case 'targetDependsOnDice':
+                return this.playerDependsOnDice(player);
             default:
                 return false;
         }
+    }
+
+    // Check if a player is vulnerable to ailment tokens
+    isPlayerVulnerableToAilments(player) {
+        // Players with high health are vulnerable to Shrink Ray
+        if (player.health >= 8) return true;
+        
+        // Players close to victory are vulnerable to any disruption
+        if (player.victoryPoints >= 15) return true;
+        
+        // Players in Tokyo are vulnerable to health reduction
+        if (player.inTokyo) return true;
+        
+        // Players with no healing ability are vulnerable
+        if (!this.opponentCanEasilyHeal(player)) return true;
+        
+        return false;
     }
 
     calculateDenialBenefit(card, player) {
@@ -1232,6 +1438,1028 @@ class AIDecisionEngine {
             value: cardAnalysis.value,
             reason: cardAnalysis.reason
         };
+    }
+
+    // ===== POWER CARD PORTFOLIO OPTIMIZATION =====
+    optimizePowerCardPortfolio(availableCards, player) {
+        const energy = player.energy;
+        const personalityProfile = player.monster.personality;
+        
+        // Generate possible purchase combinations
+        const purchaseCombinations = this.generatePurchaseCombinations(availableCards, energy);
+        
+        // Evaluate each combination
+        const evaluatedCombinations = purchaseCombinations.map(combo => {
+            return {
+                cards: combo,
+                totalCost: combo.reduce((sum, card) => sum + card.cost, 0),
+                totalValue: this.evaluateCardCombination(combo, player),
+                strategy: this.determinePortfolioStrategy(combo),
+                efficiency: this.calculateCostEfficiency(combo, player)
+            };
+        });
+
+        // Sort by total value adjusted for personality and efficiency
+        evaluatedCombinations.sort((a, b) => {
+            const aScore = this.calculatePortfolioScore(a, personalityProfile);
+            const bScore = this.calculatePortfolioScore(b, personalityProfile);
+            return bScore - aScore;
+        });
+
+        return evaluatedCombinations[0] || { cards: [], totalValue: 0, strategy: 'none' };
+    }
+
+    generatePurchaseCombinations(availableCards, maxEnergy) {
+        const combinations = [];
+        const affordableCards = availableCards.filter(card => card.cost <= maxEnergy);
+        
+        // Single card combinations
+        affordableCards.forEach(card => {
+            combinations.push([card]);
+        });
+        
+        // Two card combinations
+        for (let i = 0; i < affordableCards.length; i++) {
+            for (let j = i + 1; j < affordableCards.length; j++) {
+                const combo = [affordableCards[i], affordableCards[j]];
+                const totalCost = combo.reduce((sum, card) => sum + card.cost, 0);
+                if (totalCost <= maxEnergy) {
+                    combinations.push(combo);
+                }
+            }
+        }
+        
+        // Three card combinations (for high energy scenarios)
+        if (maxEnergy >= 8) {
+            for (let i = 0; i < affordableCards.length; i++) {
+                for (let j = i + 1; j < affordableCards.length; j++) {
+                    for (let k = j + 1; k < affordableCards.length; k++) {
+                        const combo = [affordableCards[i], affordableCards[j], affordableCards[k]];
+                        const totalCost = combo.reduce((sum, card) => sum + card.cost, 0);
+                        if (totalCost <= maxEnergy) {
+                            combinations.push(combo);
+                        }
+                    }
+                }
+            }
+        }
+        
+        return combinations;
+    }
+
+    evaluateCardCombination(cardCombo, player) {
+        let totalValue = 0;
+        let synergyBonus = 0;
+        
+        // Base value of individual cards
+        cardCombo.forEach(card => {
+            const cardEval = this.evaluateCardForPlayer(card, player);
+            totalValue += cardEval.value;
+        });
+        
+        // Calculate synergy bonuses
+        synergyBonus = this.calculateCombinationSynergy(cardCombo, player);
+        
+        // Apply dice probability modifications
+        const diceBonus = this.calculateDiceProbabilityBonus(cardCombo, player);
+        
+        return totalValue + synergyBonus + diceBonus;
+    }
+
+    calculateCombinationSynergy(cardCombo, player) {
+        let synergyValue = 0;
+        const cardNames = cardCombo.map(c => c.name);
+        const existingCards = player.powerCards.map(c => c.name);
+        const allCards = [...cardNames, ...existingCards];
+        
+        // Energy engine synergies
+        const energyCards = allCards.filter(name => 
+            AI_CONSTANTS.POWER_CARD_TIMING.synergies.energyEngine.includes(name)
+        );
+        if (energyCards.length >= 2) {
+            synergyValue += (energyCards.length - 1) * 25;
+        }
+        
+        // Attack combo synergies
+        const attackCards = allCards.filter(name => 
+            AI_CONSTANTS.POWER_CARD_TIMING.synergies.attackCombo.includes(name)
+        );
+        if (attackCards.length >= 2) {
+            synergyValue += (attackCards.length - 1) * 20;
+        }
+        
+        // Victory rush synergies
+        const victoryCards = allCards.filter(name => 
+            AI_CONSTANTS.POWER_CARD_TIMING.synergies.victoryRush.includes(name)
+        );
+        if (victoryCards.length >= 2) {
+            synergyValue += (victoryCards.length - 1) * 30;
+        }
+        
+        return synergyValue;
+    }
+
+    calculateDiceProbabilityBonus(cardCombo, player) {
+        let probabilityBonus = 0;
+        let extraDice = 0;
+        
+        cardCombo.forEach(card => {
+            const diceModifier = AI_CONSTANTS.POWER_CARD_ECONOMICS.diceModifiers[card.name];
+            if (diceModifier) {
+                extraDice += diceModifier.extraDice || 0;
+                probabilityBonus += (diceModifier.rollProbabilityBonus || 0) * 100;
+            }
+        });
+        
+        // Extra dice are extremely valuable - each die increases success probability significantly
+        if (extraDice > 0) {
+            probabilityBonus += extraDice * 50; // Each extra die is worth ~50 value points
+        }
+        
+        return probabilityBonus;
+    }
+
+    determinePortfolioStrategy(cardCombo) {
+        if (cardCombo.length === 0) return 'none';
+        if (cardCombo.length === 1) {
+            return cardCombo[0].cost >= 6 ? 'depth' : 'single';
+        }
+        
+        const avgCost = cardCombo.reduce((sum, card) => sum + card.cost, 0) / cardCombo.length;
+        if (avgCost <= 3) return 'breadth';
+        if (avgCost >= 5) return 'depth';
+        return 'balanced';
+    }
+
+    calculateCostEfficiency(cardCombo, player) {
+        if (cardCombo.length === 0) return 0;
+        
+        const totalCost = cardCombo.reduce((sum, card) => sum + card.cost, 0);
+        const totalValue = this.evaluateCardCombination(cardCombo, player);
+        
+        return totalValue / totalCost;
+    }
+
+    calculatePortfolioScore(portfolioEvaluation, personalityProfile) {
+        let score = portfolioEvaluation.totalValue;
+        
+        // Apply personality-based strategy preferences
+        const strategy = portfolioEvaluation.strategy;
+        
+        if (personalityProfile.aggression >= 4) {
+            // Aggressive players prefer depth (powerful single cards)
+            if (strategy === 'depth') score *= 1.3;
+            if (strategy === 'breadth') score *= 0.8;
+        }
+        
+        if (personalityProfile.strategy >= 4) {
+            // Strategic players prefer balanced portfolios
+            if (strategy === 'balanced') score *= 1.4;
+            if (strategy === 'breadth') score *= 1.2;
+        }
+        
+        if (personalityProfile.risk >= 4) {
+            // Risk-takers prefer expensive, high-impact cards
+            if (strategy === 'depth') score *= 1.2;
+        } else {
+            // Risk-averse prefer multiple cheaper cards for safety
+            if (strategy === 'breadth') score *= 1.3;
+        }
+        
+        // Efficiency bonus
+        score *= (1 + portfolioEvaluation.efficiency * 0.1);
+        
+        return score;
+    }
+
+    // ===== ENHANCED DICE PROBABILITY CALCULATIONS =====
+    calculateDiceProbabilities(player, diceResults, rollsRemaining) {
+        const baseDiceCount = 6;
+        const extraDice = this.getPlayerExtraDice(player);
+        const totalDice = baseDiceCount + extraDice;
+        
+        const currentResults = this.analyzeDiceResults(diceResults);
+        const probabilities = {
+            baseChances: this.getBaseProbabilities(totalDice),
+            extraDiceBonus: extraDice * 0.15, // Each extra die adds ~15% success rate
+            currentState: currentResults,
+            projectedOutcomes: this.projectRemainingRolls(currentResults, rollsRemaining, totalDice)
+        };
+        
+        return probabilities;
+    }
+
+    getPlayerExtraDice(player) {
+        let extraDice = 0;
+        
+        // Check power cards that grant extra dice
+        if (player.powerCards) {
+            player.powerCards.forEach(card => {
+                const diceModifier = AI_CONSTANTS.POWER_CARD_ECONOMICS.diceModifiers[card.name];
+                if (diceModifier && diceModifier.extraDice) {
+                    extraDice += diceModifier.extraDice;
+                }
+            });
+        }
+        
+        return extraDice;
+    }
+
+    // Calculate base probability distributions for dice outcomes
+    getBaseProbabilities(totalDice) {
+        // Base probability of each face on a standard die (1/6)
+        const singleDieProbability = 1/6;
+        
+        // Calculate probabilities for getting specific results with multiple dice
+        const probabilities = {
+            // Probability of getting at least one of each face type
+            hearts: 1 - Math.pow(5/6, totalDice),
+            energy: 1 - Math.pow(5/6, totalDice),
+            attack: 1 - Math.pow(5/6, totalDice),
+            ones: 1 - Math.pow(5/6, totalDice),
+            twos: 1 - Math.pow(5/6, totalDice),
+            threes: 1 - Math.pow(5/6, totalDice),
+            
+            // Expected number of each face type
+            expectedHearts: totalDice * singleDieProbability,
+            expectedEnergy: totalDice * singleDieProbability,
+            expectedAttack: totalDice * singleDieProbability,
+            expectedOnes: totalDice * singleDieProbability,
+            expectedTwos: totalDice * singleDieProbability,
+            expectedThrees: totalDice * singleDieProbability,
+            
+            // Probability of getting scoring combinations
+            tripleOnes: this.calculateTripleProbability(totalDice),
+            tripleTwos: this.calculateTripleProbability(totalDice),
+            tripleThrees: this.calculateTripleProbability(totalDice),
+            
+            // Total dice being rolled
+            totalDice: totalDice
+        };
+        
+        return probabilities;
+    }
+
+    // Calculate probability of getting at least 3 of the same number
+    calculateTripleProbability(totalDice) {
+        if (totalDice < 3) return 0;
+        
+        // Using binomial probability: P(X >= 3) where X ~ Binomial(n, 1/6)
+        // This is an approximation - exact calculation would be more complex
+        const singleFaceProbability = 1/6;
+        let probability = 0;
+        
+        // Sum probabilities for exactly 3, 4, 5, 6 dice showing the same face
+        for (let k = 3; k <= totalDice; k++) {
+            const binomialCoeff = this.binomialCoefficient(totalDice, k);
+            const prob = binomialCoeff * 
+                        Math.pow(singleFaceProbability, k) * 
+                        Math.pow(1 - singleFaceProbability, totalDice - k);
+            probability += prob;
+        }
+        
+        return probability;
+    }
+
+    // Calculate binomial coefficient (n choose k)
+    binomialCoefficient(n, k) {
+        if (k > n) return 0;
+        if (k === 0 || k === n) return 1;
+        
+        let result = 1;
+        for (let i = 1; i <= k; i++) {
+            result = result * (n - i + 1) / i;
+        }
+        return result;
+    }
+
+    analyzeDiceResults(diceResults) {
+        const analysis = {
+            hearts: 0,
+            energy: 0,
+            attacks: 0,
+            ones: 0,
+            twos: 0,
+            threes: 0,
+            total: diceResults.length
+        };
+        
+        diceResults.forEach(face => {
+            switch (face) {
+                case 'heart': analysis.hearts++; break;
+                case 'energy': analysis.energy++; break;
+                case 'attack': analysis.attacks++; break;
+                case 'one': analysis.ones++; break;
+                case 'two': analysis.twos++; break;
+                case 'three': analysis.threes++; break;
+            }
+        });
+        
+        // Calculate victory points from numbers
+        analysis.victoryPoints = this.calculateVictoryPointsFromNumbers(analysis);
+        
+        return analysis;
+    }
+
+    calculateVictoryPointsFromNumbers(analysis) {
+        let vp = 0;
+        
+        // 3 of a kind bonuses
+        if (analysis.ones >= 3) vp += 1 + (analysis.ones - 3);
+        if (analysis.twos >= 3) vp += 2 + (analysis.twos - 3);
+        if (analysis.threes >= 3) vp += 3 + (analysis.threes - 3);
+        
+        return vp;
+    }
+
+    projectRemainingRolls(currentResults, rollsRemaining, totalDice) {
+        if (rollsRemaining <= 0) return currentResults;
+        
+        const projections = {
+            expectedHearts: currentResults.hearts + (rollsRemaining * totalDice * (1/6)),
+            expectedEnergy: currentResults.energy + (rollsRemaining * totalDice * (1/6)),
+            expectedAttacks: currentResults.attacks + (rollsRemaining * totalDice * (1/6)),
+            expectedVP: this.projectVictoryPoints(currentResults, rollsRemaining, totalDice),
+            riskAssessment: this.calculateRollRisk(currentResults, rollsRemaining)
+        };
+        
+        return projections;
+    }
+
+    projectVictoryPoints(currentResults, rollsRemaining, totalDice) {
+        // Complex VP projection considering number combinations
+        let expectedVP = currentResults.victoryPoints;
+        
+        // Probability of completing sets with remaining rolls
+        const remainingDice = rollsRemaining * totalDice;
+        const numberProbability = 1/6;
+        
+        // Estimate additional VPs from completing number sets
+        if (currentResults.ones === 2) {
+            expectedVP += numberProbability * remainingDice * 1; // Chance to complete ones
+        }
+        if (currentResults.twos === 2) {
+            expectedVP += numberProbability * remainingDice * 2; // Chance to complete twos
+        }
+        if (currentResults.threes === 2) {
+            expectedVP += numberProbability * remainingDice * 3; // Chance to complete threes
+        }
+        
+        return expectedVP;
+    }
+
+    calculateRollRisk(currentResults, rollsRemaining) {
+        // Risk assessment for continuing to roll vs keeping current results
+        let risk = 'low';
+        
+        const hasGoodResults = currentResults.hearts >= 2 || 
+                              currentResults.energy >= 2 || 
+                              currentResults.victoryPoints >= 2;
+        
+        const hasExcellentResults = currentResults.hearts >= 3 || 
+                                   currentResults.victoryPoints >= 4;
+        
+        if (hasExcellentResults) {
+            risk = rollsRemaining >= 2 ? 'medium' : 'low';
+        } else if (hasGoodResults) {
+            risk = rollsRemaining >= 2 ? 'high' : 'medium';
+        } else {
+            risk = 'low'; // Nothing to lose
+        }
+        
+        return risk;
+    }
+
+    // Enhanced dice evaluation with probability calculations
+    evaluateDiceEnhanced(currentDice, player, situation, probabilities) {
+        const diceToKeep = [];
+        const personality = player.monster.personality;
+        
+        currentDice.forEach((face, index) => {
+            let keepProbability = this.getDiceKeepProbability(face, situation, personality);
+            
+            // Apply extra dice bonus to keep probability
+            keepProbability *= (1 + probabilities.extraDiceBonus);
+            
+            // Enhanced decision logic based on current state
+            const shouldKeep = this.shouldKeepDiceEnhanced(face, keepProbability, probabilities.currentState);
+            
+            if (shouldKeep) {
+                diceToKeep.push({ 
+                    face, 
+                    index, 
+                    probability: keepProbability,
+                    strategicValue: this.calculateDiceStrategicValue(face, situation, probabilities)
+                });
+            }
+        });
+        
+        return diceToKeep;
+    }
+
+    calculateDiceStrategicValue(face, situation, probabilities) {
+        let value = 0;
+        
+        // Base strategic value
+        switch (face) {
+            case 'heart':
+                value = situation.player.health <= 5 ? 30 : 10;
+                break;
+            case 'energy':
+                value = situation.player.energy <= 3 ? 25 : 15;
+                break;
+            case 'attack':
+                value = situation.player.isInTokyo ? 20 : 15;
+                break;
+            case 'one':
+                value = probabilities.currentState.ones >= 2 ? 35 : 5;
+                break;
+            case 'two':
+                value = probabilities.currentState.twos >= 2 ? 40 : 10;
+                break;
+            case 'three':
+                value = probabilities.currentState.threes >= 2 ? 45 : 15;
+                break;
+        }
+        
+        return value;
+    }
+
+    // Calculate the probability of keeping a specific dice face
+    getDiceKeepProbability(face, situation, personality) {
+        let baseProbability = 0.5; // Default 50% chance to keep
+        
+        // Base probabilities for each face type
+        switch(face) {
+            case 'attack':
+                baseProbability = 0.6;
+                // Higher probability if there are threats
+                if (situation.threats && situation.threats.threats.length > 0) {
+                    baseProbability = 0.8;
+                }
+                // Lower for defensive personalities unless critical threat
+                if (personality === 'defensive' && !(situation.threats && situation.threats.hasCriticalThreat)) {
+                    baseProbability *= 0.7;
+                }
+                break;
+                
+            case 'energy':
+                baseProbability = 0.7; // Energy is generally valuable
+                // Higher for economic personalities
+                if (personality === 'economic') {
+                    baseProbability = 0.85;
+                }
+                break;
+                
+            case 'heal':
+                baseProbability = 0.4; // Lower base value
+                // Much higher if injured
+                if (situation.player && situation.player.health < situation.player.maxHealth) {
+                    const healthRatio = situation.player.health / situation.player.maxHealth;
+                    baseProbability = Math.min(0.9, 0.3 + (1 - healthRatio) * 0.6);
+                }
+                // Higher for defensive personalities
+                if (personality === 'defensive') {
+                    baseProbability *= 1.2;
+                }
+                break;
+                
+            case '1':
+            case 'one':
+                baseProbability = 0.5;
+                // Higher probability if already have some 1s for combinations
+                if (situation.currentDice) {
+                    const oneCount = situation.currentDice.filter(d => d === '1' || d === 'one').length;
+                    if (oneCount >= 2) baseProbability = 0.9; // Keep for triple
+                    else if (oneCount === 1) baseProbability = 0.6; // Keep for potential pair
+                }
+                break;
+                
+            case '2':
+            case 'two':
+                baseProbability = 0.6;
+                if (situation.currentDice) {
+                    const twoCount = situation.currentDice.filter(d => d === '2' || d === 'two').length;
+                    if (twoCount >= 2) baseProbability = 0.9;
+                    else if (twoCount === 1) baseProbability = 0.7;
+                }
+                break;
+                
+            case '3':
+            case 'three':
+                baseProbability = 0.7;
+                if (situation.currentDice) {
+                    const threeCount = situation.currentDice.filter(d => d === '3' || d === 'three').length;
+                    if (threeCount >= 2) baseProbability = 0.9;
+                    else if (threeCount === 1) baseProbability = 0.8;
+                }
+                break;
+                
+            default:
+                baseProbability = 0.5;
+        }
+        
+        // Personality adjustments
+        if (personality === 'aggressive') {
+            if (face === 'attack') baseProbability *= 1.3;
+            if (face === 'heal') baseProbability *= 0.8;
+        } else if (personality === 'defensive') {
+            if (face === 'heal') baseProbability *= 1.2;
+            if (face === 'attack') baseProbability *= 0.9;
+        } else if (personality === 'economic') {
+            if (face === 'energy') baseProbability *= 1.2;
+        }
+        
+        // Ensure probability stays within bounds
+        return Math.max(0.1, Math.min(0.95, baseProbability));
+    }
+
+    shouldKeepDiceEnhanced(face, keepProbability, currentState) {
+        // Always keep if probability is very high
+        if (keepProbability >= 0.8) return true;
+        
+        // Don't keep if probability is very low
+        if (keepProbability <= 0.2) return false;
+        
+        // Special logic for number combinations
+        if (face === 'one' && currentState.ones >= 2) return true;
+        if (face === 'two' && currentState.twos >= 2) return true;
+        if (face === 'three' && currentState.threes >= 2) return true;
+        
+        // Standard threshold
+        return keepProbability >= 0.5;
+    }
+
+    makeKeepDecisionEnhanced(diceEvaluations, rollsRemaining, player, situation, probabilities) {
+        const risk = this.assessPersonalityRisk(player.monster.personality, situation);
+        const projectedOutcome = probabilities.projectedOutcomes;
+        
+        console.log('🔍 DEBUG: Enhanced decision - diceToKeep count:', diceEvaluations.length, 'risk level:', risk);
+        
+        if (diceEvaluations.length === 0) {
+            return {
+                action: 'reroll',
+                keepDice: [],
+                reason: 'No dice worth keeping - rerolling all (enhanced)',
+                confidence: 0.9
+            };
+        }
+        
+        // Calculate total strategic value
+        const totalValue = diceEvaluations.reduce((sum, dice) => sum + dice.strategicValue, 0);
+        const currentValue = probabilities.currentState.victoryPoints + probabilities.currentState.hearts + probabilities.currentState.energy;
+        
+        // Enhanced stopping conditions
+        if (totalValue >= 80 || currentValue >= 6) {
+            return {
+                action: 'stop',
+                keepDice: diceEvaluations.map(d => d.index),
+                reason: `High strategic value achieved (total: ${totalValue}, current: ${currentValue})`,
+                confidence: 0.85
+            };
+        }
+        
+        // Risk-adjusted continuation logic
+        let continueThreshold = risk >= 4 ? 1 : (risk <= 2 ? 3 : 2);
+        continueThreshold -= Math.floor(probabilities.extraDiceBonus * 10);
+        
+        if (diceEvaluations.length < continueThreshold && rollsRemaining > 0) {
+            return {
+                action: 'reroll',
+                keepDice: diceEvaluations.map(d => d.index),
+                reason: `Continue with ${diceEvaluations.length} dice (enhanced threshold: ${continueThreshold})`,
+                confidence: 0.7
+            };
+        }
+        
+        return {
+            action: 'stop',
+            keepDice: diceEvaluations.map(d => d.index),
+            reason: `Stopping with sufficient dice (enhanced risk: ${risk})`,
+            confidence: 0.6
+        };
+    }
+
+    assessPersonalityRisk(personality, situation) {
+        if (!personality || !situation) {
+            return 3; // Default moderate risk
+        }
+
+        let riskLevel = personality.risk || 3; // Base risk from personality
+        
+        // Adjust based on situation
+        if (situation.threats && situation.threats.length > 0) {
+            // More cautious when threats are present
+            riskLevel = Math.max(1, riskLevel - 1);
+        }
+        
+        if (situation.opportunities && situation.opportunities.length > 0) {
+            // More willing to take risks for opportunities
+            riskLevel = Math.min(5, riskLevel + 1);
+        }
+        
+        // Game phase considerations
+        if (situation.gamePhase === 'late') {
+            // More aggressive in late game
+            riskLevel = Math.min(5, riskLevel + 1);
+        } else if (situation.gamePhase === 'early') {
+            // More conservative early game
+            riskLevel = Math.max(1, riskLevel - 1);
+        }
+        
+        return Math.max(1, Math.min(5, riskLevel));
+    }
+
+    // ===== DICE MANIPULATION CARD ANALYSIS =====
+    evaluateDiceManipulationCards(player, opponents, gameState) {
+        const manipulationCards = [];
+        
+        // Check if player has manipulation cards
+        if (player.powerCards) {
+            player.powerCards.forEach(card => {
+                const manipulationEffect = AI_CONSTANTS.POWER_CARD_ECONOMICS.manipulationCards[card.name];
+                if (manipulationEffect) {
+                    const evaluation = this.evaluateManipulationCardUsage(card, manipulationEffect, player, opponents, gameState);
+                    if (evaluation.shouldUse) {
+                        manipulationCards.push(evaluation);
+                    }
+                }
+            });
+        }
+        
+        return manipulationCards;
+    }
+
+    evaluateManipulationCardUsage(card, effect, player, opponents, gameState) {
+        let value = 0;
+        let shouldUse = false;
+        let target = null;
+        let reasoning = '';
+        
+        switch (effect.effect) {
+            case 'rerollOwnDice':
+                const rerollValue = this.evaluateOwnDiceReroll(player, gameState);
+                value = rerollValue.value;
+                shouldUse = rerollValue.shouldUse;
+                reasoning = rerollValue.reasoning;
+                break;
+                
+            case 'rerollOpponentDice':
+                const opponentReroll = this.evaluateOpponentDiceReroll(opponents, gameState);
+                value = opponentReroll.value;
+                shouldUse = opponentReroll.shouldUse;
+                target = opponentReroll.target;
+                reasoning = opponentReroll.reasoning;
+                break;
+                
+            case 'forceKeepDice':
+                const forceKeep = this.evaluateForceKeepDice(opponents, gameState);
+                value = forceKeep.value;
+                shouldUse = forceKeep.shouldUse;
+                target = forceKeep.target;
+                reasoning = forceKeep.reasoning;
+                break;
+        }
+        
+        return {
+            card,
+            effect,
+            value,
+            shouldUse,
+            target,
+            reasoning,
+            probabilityImpact: effect.probabilityImpact
+        };
+    }
+
+    evaluateOwnDiceReroll(player, gameState) {
+        // Analyze if rerolling own dice would be beneficial
+        const currentDice = gameState.diceResults || [];
+        const analysis = this.analyzeDiceResults(currentDice);
+        
+        let value = 0;
+        let shouldUse = false;
+        let reasoning = '';
+        
+        // Bad results warrant a reroll
+        if (analysis.total > 0 && analysis.hearts + analysis.energy + analysis.victoryPoints <= 1) {
+            value = 60;
+            shouldUse = true;
+            reasoning = 'Poor dice results warrant reroll for better outcome';
+        }
+        
+        // Dangerous situation with bad rolls
+        if (player.health <= 3 && analysis.hearts === 0) {
+            value = 80;
+            shouldUse = true;
+            reasoning = 'Critical health situation requires heart reroll';
+        }
+        
+        // Near victory but need specific results
+        if (player.victoryPoints >= 15 && analysis.victoryPoints <= 1) {
+            value = 70;
+            shouldUse = true;
+            reasoning = 'Near victory - reroll for winning VP combination';
+        }
+        
+        return { value, shouldUse, reasoning };
+    }
+
+    evaluateOpponentDiceReroll(opponents, gameState) {
+        let bestTarget = null;
+        let maxValue = 0;
+        let reasoning = '';
+        
+        opponents.forEach(opponent => {
+            if (opponent.eliminated) return;
+            
+            let value = 0;
+            let targetReason = '';
+            
+            // High value targets for disruption
+            if (opponent.victoryPoints >= 15) {
+                value += 50;
+                targetReason = 'Disrupting near-victory opponent';
+            }
+            
+            if (opponent.isInTokyo && opponent.health <= 5) {
+                value += 40;
+                targetReason = 'Disrupting vulnerable Tokyo occupant';
+            }
+            
+            // Check if opponent has good results to disrupt
+            const opponentDice = this.getOpponentDiceResults(opponent, gameState);
+            if (opponentDice && this.hasGoodDiceResults(opponentDice)) {
+                value += 60;
+                targetReason += ' with excellent dice results';
+            }
+            
+            if (value > maxValue) {
+                maxValue = value;
+                bestTarget = opponent;
+                reasoning = targetReason;
+            }
+        });
+        
+        return {
+            value: maxValue,
+            shouldUse: maxValue >= 50,
+            target: bestTarget,
+            reasoning: reasoning
+        };
+    }
+
+    evaluateForceKeepDice(opponents, gameState) {
+        // Similar to reroll but for forcing opponents to keep bad dice
+        let bestTarget = null;
+        let maxValue = 0;
+        let reasoning = '';
+        
+        opponents.forEach(opponent => {
+            if (opponent.eliminated) return;
+            
+            const opponentDice = this.getOpponentDiceResults(opponent, gameState);
+            if (!opponentDice) return;
+            
+            // Force keep if opponent has mostly bad results
+            if (this.hasBadDiceResults(opponentDice)) {
+                let value = 40;
+                
+                if (opponent.victoryPoints >= 15) {
+                    value += 40; // Extra value for stopping near-victory players
+                }
+                
+                if (value > maxValue) {
+                    maxValue = value;
+                    bestTarget = opponent;
+                    reasoning = 'Forcing opponent to keep poor dice results';
+                }
+            }
+        });
+        
+        return {
+            value: maxValue,
+            shouldUse: maxValue >= 40,
+            target: bestTarget,
+            reasoning: reasoning
+        };
+    }
+
+    getOpponentDiceResults(opponent, gameState) {
+        // This would need to be implemented based on how opponent dice data is stored
+        // For now, return null - this would be connected to actual game state
+        return null;
+    }
+
+    hasGoodDiceResults(diceResults) {
+        const analysis = this.analyzeDiceResults(diceResults);
+        return analysis.hearts >= 2 || analysis.energy >= 2 || analysis.victoryPoints >= 3;
+    }
+
+    hasBadDiceResults(diceResults) {
+        const analysis = this.analyzeDiceResults(diceResults);
+        return analysis.hearts + analysis.energy + analysis.victoryPoints <= 1;
+    }
+
+    // ===== TOKYO EXIT MANIPULATION STRATEGY =====
+    evaluateTokyoExitStrategy(player, opponents, gameState) {
+        if (!player.isInTokyo) {
+            return { shouldExit: false, reasoning: 'Not in Tokyo' };
+        }
+        
+        const strategy = this.analyzeTokyoSituation(player, opponents, gameState);
+        return strategy;
+    }
+
+    analyzeTokyoSituation(player, opponents, gameState) {
+        const personality = player.monster.personality;
+        const vulnerableOpponents = this.identifyVulnerableOpponents(opponents);
+        const threats = this.assessTokyoThreats(opponents, player);
+        
+        // Standard exit conditions
+        if (player.health <= 3) {
+            return {
+                shouldExit: true,
+                reasoning: 'Critical health - standard exit',
+                strategy: 'survival',
+                target: null
+            };
+        }
+        
+        // Strategic manipulation opportunities
+        const manipulationOpportunity = this.identifyManipulationOpportunity(
+            player, vulnerableOpponents, threats, personality
+        );
+        
+        if (manipulationOpportunity.shouldExecute) {
+            return manipulationOpportunity;
+        }
+        
+        // Default stay decision
+        return {
+            shouldExit: false,
+            reasoning: 'Favorable position in Tokyo',
+            strategy: 'hold',
+            target: null
+        };
+    }
+
+    identifyVulnerableOpponents(opponents) {
+        return opponents.filter(opponent => {
+            if (opponent.eliminated) return false;
+            
+            // Low health opponents
+            if (opponent.health <= 4) return true;
+            
+            // High VP opponents that others might target
+            if (opponent.victoryPoints >= 15) return true;
+            
+            // Players with aggressive tendencies who might be targeted
+            if (opponent.monster.personality.aggression >= 4 && opponent.health <= 6) return true;
+            
+            return false;
+        });
+    }
+
+    assessTokyoThreats(opponents, player) {
+        const threats = [];
+        
+        opponents.forEach(opponent => {
+            if (opponent.eliminated) return;
+            
+            let threatLevel = 0;
+            
+            // High attack probability
+            if (opponent.monster.personality.aggression >= 4) {
+                threatLevel += 30;
+            }
+            
+            // Power cards that enhance attacks
+            if (opponent.powerCards) {
+                const attackCards = opponent.powerCards.filter(card => 
+                    this.isAttackCard(card)
+                );
+                threatLevel += attackCards.length * 20;
+            }
+            
+            // Energy for power card purchases
+            if (opponent.energy >= 6) {
+                threatLevel += 25;
+            }
+            
+            threats.push({
+                player: opponent,
+                threatLevel,
+                canForcedIntoTokyo: opponent.health <= 5
+            });
+        });
+        
+        return threats.sort((a, b) => b.threatLevel - a.threatLevel);
+    }
+
+    identifyManipulationOpportunity(player, vulnerableOpponents, threats, personality) {
+        // Only certain personality types would execute sacrificial strategies
+        const strategicPersonality = personality.strategy >= 4;
+        const manipulativePersonality = personality.aggression >= 3 && personality.strategy >= 3;
+        
+        if (!strategicPersonality && !manipulativePersonality) {
+            return { shouldExecute: false };
+        }
+        
+        // Look for vulnerable opponents who could be forced into Tokyo
+        for (const vulnerable of vulnerableOpponents) {
+            // Check if there's a likely attacker who would target the vulnerable player
+            const likelyAttacker = this.findLikelyAttacker(threats, vulnerable, player);
+            
+            if (likelyAttacker && this.wouldAttackVulnerableInTokyo(likelyAttacker, vulnerable)) {
+                // Check if sacrificial exit is worth it
+                const manipulationValue = this.calculateManipulationValue(vulnerable, likelyAttacker, player);
+                
+                if (manipulationValue >= 60) {
+                    return {
+                        shouldExecute: true,
+                        shouldExit: true,
+                        reasoning: `Strategic exit to force ${vulnerable.monster.name} into Tokyo for ${likelyAttacker.monster.name} to eliminate`,
+                        strategy: 'manipulation',
+                        target: vulnerable,
+                        attacker: likelyAttacker,
+                        manipulationValue: manipulationValue
+                    };
+                }
+            }
+        }
+        
+        return { shouldExecute: false };
+    }
+
+    findLikelyAttacker(threats, vulnerableTarget, currentTokyoPlayer) {
+        // Find threat that would likely attack if vulnerable player enters Tokyo
+        return threats.find(threat => {
+            const attacker = threat.player;
+            
+            // Won't attack themselves
+            if (attacker.id === vulnerableTarget.id) return false;
+            
+            // High aggression players likely to attack
+            if (attacker.monster.personality.aggression >= 4) return true;
+            
+            // Players close to victory might risk an attack
+            if (attacker.victoryPoints >= 12 && vulnerableTarget.health <= 3) return true;
+            
+            // Players with attack power cards
+            if (this.hasAttackCards(attacker)) return true;
+            
+            return false;
+        })?.player;
+    }
+
+    wouldAttackVulnerableInTokyo(attacker, vulnerableTarget) {
+        // Would the attacker likely attack the vulnerable target if they were in Tokyo?
+        
+        // High aggression always attacks
+        if (attacker.monster.personality.aggression >= 4) return true;
+        
+        // Strategic players attack if elimination is likely
+        if (attacker.monster.personality.strategy >= 3 && vulnerableTarget.health <= 3) return true;
+        
+        // Risk-takers attack weakened targets
+        if (attacker.monster.personality.risk >= 4 && vulnerableTarget.health <= 4) return true;
+        
+        return false;
+    }
+
+    calculateManipulationValue(vulnerableTarget, attacker, currentPlayer) {
+        let value = 0;
+        
+        // Value based on eliminating a threat
+        if (vulnerableTarget.victoryPoints >= 15) {
+            value += 80; // Eliminating near-victory player is highly valuable
+        } else if (vulnerableTarget.victoryPoints >= 10) {
+            value += 40;
+        }
+        
+        // Value based on current position sacrifice
+        const healthCost = Math.max(0, 6 - currentPlayer.health) * 5; // Cost of being vulnerable
+        const tokyoBonusCost = 20; // Cost of losing Tokyo bonuses
+        
+        value -= (healthCost + tokyoBonusCost);
+        
+        // Personality modifiers
+        if (currentPlayer.monster.personality.strategy >= 4) {
+            value += 20; // Strategic players value manipulation more
+        }
+        
+        if (currentPlayer.monster.personality.risk >= 4) {
+            value += 15; // Risk-takers willing to sacrifice for opportunity
+        }
+        
+        return value;
+    }
+
+    hasAttackCards(player) {
+        if (!player.powerCards) return false;
+        
+        return player.powerCards.some(card => this.isAttackCard(card));
     }
 }
 

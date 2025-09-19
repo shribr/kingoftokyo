@@ -177,6 +177,14 @@ let POWER_CARDS = [
         effect: 'shrink'
     },
     {
+        id: 'poison_spit',
+        name: 'Poison Spit',
+        cost: 3,
+        type: 'discard',
+        description: 'Give target monster -1 die until they heal',
+        effect: 'poison'
+    },
+    {
         id: 'spiked_tail',
         name: 'Spiked Tail',
         cost: 3,
@@ -307,6 +315,19 @@ const CARD_EFFECTS = {
         if (target) {
             target.maxHealth -= 2;
             target.health = Math.min(target.health, target.maxHealth);
+            // Add shrink token
+            if (!target.ailmentTokens) target.ailmentTokens = {};
+            target.ailmentTokens.shrink = (target.ailmentTokens.shrink || 0) + 1;
+        }
+        return { type: 'immediate' };
+    },
+    
+    poison: (player, game, targetId) => {
+        const target = game.players.find(p => p.id === targetId);
+        if (target) {
+            // Add poison token (reduces dice count)
+            if (!target.ailmentTokens) target.ailmentTokens = {};
+            target.ailmentTokens.poison = (target.ailmentTokens.poison || 0) + 1;
         }
         return { type: 'immediate' };
     },
