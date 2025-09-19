@@ -50,6 +50,165 @@
       "baseValue": 4,
       "situationalMultiplier": 1.2,
       "description": "Victory point dice (1,2,3) - win condition"
+    },
+    "setCollection": {
+      "priorities": {
+        "threeOfAKind": {
+          "1": { "points": 1, "baseValue": 15, "description": "Three 1s = 1 VP" },
+          "2": { "points": 2, "baseValue": 18, "description": "Three 2s = 2 VP" },
+          "3": { "points": 3, "baseValue": 22, "description": "Three 3s = 3 VP" }
+        },
+        "pairValue": {
+          "1": { "potentialPoints": 1, "keepValue": 8, "description": "Pair of 1s - potential for 1 VP" },
+          "2": { "potentialPoints": 2, "keepValue": 12, "description": "Pair of 2s - potential for 2 VP" },
+          "3": { "potentialPoints": 3, "keepValue": 16, "description": "Pair of 3s - potential for 3 VP" }
+        },
+        "singleValue": {
+          "description": "Single numbers have minimal value unless going for set",
+          "1": { "baseValue": 1 },
+          "2": { "baseValue": 1 },
+          "3": { "baseValue": 1 }
+        }
+      },
+      "contextualLogic": {
+        "nearWin": {
+          "description": "When close to winning (15+ VP), prioritize sets that can secure victory",
+          "vpThreshold": 15,
+          "behavior": {
+            "prioritizeCompletingSets": true,
+            "riskTolerance": "personality-dependent",
+            "fallbackToSafety": "if health critical"
+          }
+        },
+        "criticalHealth": {
+          "description": "When health is critically low, balance risk vs safety",
+          "healthThreshold": 3,
+          "behavior": {
+            "lowRisk": "prioritize hearts over risky VP attempts",
+            "mediumRisk": "attempt VP on first roll, pivot to hearts if unsuccessful",
+            "highRisk": "commit to VP attempt regardless of health"
+          }
+        },
+        "progressiveRisk": {
+          "description": "Risk assessment changes based on roll number",
+          "firstRoll": {
+            "riskTolerance": "high",
+            "description": "More willing to gamble on first roll"
+          },
+          "secondRoll": {
+            "riskTolerance": "medium", 
+            "description": "Moderate risk - evaluate partial progress"
+          },
+          "thirdRoll": {
+            "riskTolerance": "low",
+            "description": "Conservative - take what you can get"
+          }
+        }
+      }
+    },
+    "scenarioEvaluation": {
+      "twoHeartsLeft18VP": {
+        "description": "Classic scenario: low health, near win, has pair of 2s",
+        "conditions": {
+          "health": "<=3",
+          "victoryPoints": ">=15",
+          "hasPair": "any number"
+        },
+        "strategies": {
+          "conservative": {
+            "firstRoll": "attempt completion of set",
+            "secondRoll": "pivot to hearts if set not completed",
+            "thirdRoll": "take hearts for safety"
+          },
+          "moderate": {
+            "firstRoll": "attempt completion of set",
+            "secondRoll": "continue set attempt if close, otherwise hearts",
+            "thirdRoll": "evaluate best available option"
+          },
+          "aggressive": {
+            "firstRoll": "attempt completion of set",
+            "secondRoll": "continue set attempt",
+            "thirdRoll": "commit to set completion regardless"
+          }
+        }
+      },
+      "earlyGameBuilding": {
+        "description": "Early game focus on building resources",
+        "conditions": {
+          "victoryPoints": "<=8",
+          "gamePhase": "early"
+        },
+        "priorities": ["energy", "heal", "sets", "attack"]
+      },
+      "endGameRush": {
+        "description": "End game aggressive push",
+        "conditions": {
+          "anyPlayerNearWin": true,
+          "victoryPoints": ">=12"
+        },
+        "priorities": ["victoryPoints", "attack", "energy", "heal"]
+      }
+    }
+  },
+  "advancedPersonaLogic": {
+    "overrideScenarios": {
+      "timidForcedAttack": {
+        "description": "Timid monsters must attack when enemy threatens to win",
+        "conditions": {
+          "personalityAggression": "<=2",
+          "enemyVictoryPoints": ">=18",
+          "canPreventWin": true
+        },
+        "behavior": {
+          "overridePersonality": true,
+          "forcedAction": "attack",
+          "reasoning": "Survival trumps natural timidity - must prevent enemy victory"
+        }
+      },
+      "strategicPowerCardRoute": {
+        "description": "Strategic monsters prefer power card combinations for victory",
+        "conditions": {
+          "personalityStrategy": ">=4",
+          "hasComplementaryCards": true,
+          "energy": ">=6"
+        },
+        "behavior": {
+          "prioritizeEnergy": true,
+          "planCardCombinations": true,
+          "reasoning": "Building synergistic card engine for victory"
+        }
+      },
+      "desperateWinAttempt": {
+        "description": "When behind and time running out, take big risks",
+        "conditions": {
+          "victoryPointsDeficit": ">=8",
+          "leadingPlayerVP": ">=16"
+        },
+        "behavior": {
+          "maxRisk": true,
+          "ignoreHealth": true,
+          "reasoning": "Desperate times require desperate measures"
+        }
+      }
+    },
+    "threatAssessment": {
+      "criticalThreats": {
+        "immediateWinThreat": {
+          "vpThreshold": 18,
+          "priority": "CRITICAL",
+          "response": "Must attack or prevent victory this turn"
+        },
+        "tokyoWinThreat": {
+          "inTokyoWithHighVP": 16,
+          "priority": "HIGH", 
+          "response": "Force them out of Tokyo or eliminate"
+        },
+        "powerCardThreat": {
+          "energyHoarder": 12,
+          "priority": "MEDIUM",
+          "response": "Disrupt energy accumulation if possible"
+        }
+      }
     }
   },
   "personalities": {
@@ -139,13 +298,6 @@
         "description": "Reckless - maximum risk-taking, goes for broke"
       }
     }
-  },
-  "threats": {
-    "victoryPointThreat": 15,
-    "healthThreat": 3,
-    "energyThreat": 8,
-    "tokyoThreat": true,
-    "description": "Thresholds for identifying threatening players"
   },
   "gamePhases": {
     "earlygame": {

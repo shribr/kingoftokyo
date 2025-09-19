@@ -5,10 +5,48 @@
  * It uses monster personality traits and game state analysis to make strategic decisions.
  */
 
+// Game mechanics constants - all thresholds and rules in one place
+const AI_CONSTANTS = {
+    DICE_VALUES: {
+        attack: { baseValue: 3, situationalMultiplier: 2.0 },
+        heal: { baseValue: 2, situationalMultiplier: 1.5 },
+        energy: { baseValue: 1, situationalMultiplier: 1.2 },
+        victoryPoints: { baseValue: 4, situationalMultiplier: 1.2 }
+    },
+    
+    THREAT_DETECTION: {
+        criticalVP: 18,        // Immediate win threat - triggers personality override
+        highVP: 15,           // High VP threat
+        tokyoVP: 16,          // Dangerous VP while in Tokyo
+        highEnergy: 8,        // Energy threat (can buy cards)
+        lowHealth: 3          // Elimination opportunity
+    },
+    
+    POWER_CARD_TIMING: {
+        preRoll: ['Energize', 'Heal', 'Extra Head'],
+        postRoll: ['It Has a Child', 'Complete Destruction'],
+        synergies: {
+            energyEngine: ['Energize', 'Nuclear Power Plant', 'Dedicated News Team'],
+            attackCombo: ['Acid Attack', 'Fire Breathing', 'Giant Brain'],
+            victoryRush: ['Friend of Children', 'Evacuation Orders', 'Opportunist']
+        }
+    }
+};
+
 class AIDecisionEngine {
     constructor() {
         this.config = null;
         this.loadConfiguration();
+    }
+
+    /**
+     * Add entry to AI Logic Flow for debugging and transparency
+     */
+    addAILogicEntry(player, message, priority = 'normal') {
+        // Check if addAILogicEntry function exists in main.js
+        if (typeof addAILogicEntry === 'function') {
+            addAILogicEntry(player, message, priority);
+        }
     }
 
     /**
@@ -18,10 +56,16 @@ class AIDecisionEngine {
         try {
             const response = await fetch('ai-config.json');
             this.config = await response.json();
-            window.UI && window.UI._debug && window.UI._debug('🤖 AI Configuration loaded:', this.config);
         } catch (error) {
-            console.warn('🤖 Could not load AI config, using defaults:', error);
-            this.config = this.getDefaultConfig();
+            console.warn('Could not load AI configuration, using defaults:', error);
+            // Use minimal config with just personality defaults
+            this.config = {
+                personalities: {
+                    aggression: {
+                        3: { attackBonus: 0, healPenalty: 0, vpBonus: 0 }
+                    }
+                }
+            };
         }
     }
 
@@ -110,11 +154,12 @@ class AIDecisionEngine {
     }
 
     /**
-     * Analyze the current game situation
+     * Analyze the current game situation including power card strategies
      */
     analyzeSituation(player, gameState) {
         const threats = this.identifyThreats(player, gameState);
         const opportunities = this.identifyOpportunities(player, gameState);
+        const powerCardStrategy = this.evaluatePowerCardStrategy(player, gameState);
         
         return {
             player: {
@@ -126,36 +171,53 @@ class AIDecisionEngine {
             },
             threats,
             opportunities,
+            powerCardStrategy,
             gamePhase: this.determineGamePhase(gameState)
         };
     }
 
     /**
-     * Identify threats from other players
+     * Identify threats from other players with advanced persona override logic
      */
     identifyThreats(currentPlayer, gameState) {
         const threats = [];
+        let criticalThreatDetected = false;
         
         gameState.players.forEach(player => {
             if (player.id === currentPlayer.id || player.isEliminated) return;
             
             let threatLevel = 0;
             let reasons = [];
+            let isCritical = false;
 
-            // Victory point threat
-            if (player.victoryPoints >= this.config.threats.victoryPointThreat) {
+            // CRITICAL THREAT: 18+ VP (immediate win threat)
+            if (player.victoryPoints >= AI_CONSTANTS.THREAT_DETECTION.criticalVP) {
+                threatLevel += 5;
+                isCritical = true;
+                criticalThreatDetected = true;
+                reasons.push(`🚨 CRITICAL: ${player.victoryPoints} VP (can win next turn!)`);
+            }
+            // High VP threat
+            else if (player.victoryPoints >= AI_CONSTANTS.THREAT_DETECTION.highVP) {
                 threatLevel += 3;
                 reasons.push(`${player.victoryPoints} VP (close to winning)`);
             }
 
+            // CRITICAL: Player in Tokyo with 16+ VP (could win by staying)
+            if (player.isInTokyo && player.victoryPoints >= AI_CONSTANTS.THREAT_DETECTION.tokyoVP) {
+                threatLevel += 4;
+                isCritical = true;
+                criticalThreatDetected = true;
+                reasons.push(`🚨 TOKYO THREAT: ${player.victoryPoints} VP in Tokyo`);
+            }
             // Tokyo threat (they're scoring points)
-            if (player.isInTokyo) {
+            else if (player.isInTokyo) {
                 threatLevel += 2;
                 reasons.push('controlling Tokyo');
             }
 
             // High energy threat (can buy powerful cards)
-            if (player.energy >= this.config.threats.energyThreat) {
+            if (player.energy >= AI_CONSTANTS.THREAT_DETECTION.highEnergy) {
                 threatLevel += 1;
                 reasons.push(`${player.energy} energy`);
             }
@@ -164,12 +226,110 @@ class AIDecisionEngine {
                 threats.push({
                     player,
                     level: threatLevel,
-                    reasons: reasons.join(', ')
+                    reasons: reasons.join(', '),
+                    isCritical,
+                    requiresPersonalityOverride: isCritical && currentPlayer.monster.personality.aggression <= 2
                 });
             }
         });
 
-        return threats.sort((a, b) => b.level - a.level);
+        // Add critical threat context to analysis
+        const analysis = {
+            threats: threats.sort((a, b) => b.level - a.level),
+            hasCriticalThreat: criticalThreatDetected,
+            personalityOverrideRequired: threats.some(t => t.requiresPersonalityOverride)
+        };
+
+        return analysis;
+    }
+
+    /**
+     * Evaluate power card interactions and timing for strategic decisions
+     */
+    evaluatePowerCardStrategy(player, gameState) {
+        if (!player.powerCards || player.powerCards.length === 0) {
+            return { hasStrategy: false, recommendations: [] };
+        }
+
+        const strategy = {
+            hasStrategy: false,
+            preRollActions: [],
+            postRollFocus: [],
+            energyPriority: 0,
+            recommendations: []
+        };
+
+        // Check for pre-roll cards that should influence dice decisions
+        const preRollCards = player.powerCards.filter(card => 
+            AI_CONSTANTS.POWER_CARD_TIMING.preRoll.includes(card.name)
+        );
+
+        if (preRollCards.length > 0) {
+            strategy.preRollActions = preRollCards.map(card => ({
+                card: card.name,
+                effect: this.getPowerCardEffect(card.name),
+                timing: 'beforeRoll'
+            }));
+        }
+
+        // Check for synergistic combinations
+        const ownedCardNames = player.powerCards.map(c => c.name);
+        
+        // Energy engine detection
+        const energyCards = ownedCardNames.filter(name => 
+            AI_CONSTANTS.POWER_CARD_TIMING.synergies.energyEngine.includes(name)
+        );
+        if (energyCards.length >= 2) {
+            strategy.hasStrategy = true;
+            strategy.energyPriority = 3;
+            strategy.recommendations.push('Energy engine detected - prioritize energy dice');
+            this.addAILogicEntry(player, `🔋 Energy Engine: ${energyCards.join(', ')}`, 'high');
+        }
+
+        // Attack combo detection
+        const attackCards = ownedCardNames.filter(name => 
+            AI_CONSTANTS.POWER_CARD_TIMING.synergies.attackCombo.includes(name)
+        );
+        if (attackCards.length >= 2) {
+            strategy.hasStrategy = true;
+            strategy.recommendations.push('Attack combo detected - prioritize attack dice');
+            this.addAILogicEntry(player, `⚔️ Attack Combo: ${attackCards.join(', ')}`, 'high');
+        }
+
+        // Victory rush detection
+        const victoryCards = ownedCardNames.filter(name => 
+            AI_CONSTANTS.POWER_CARD_TIMING.synergies.victoryRush.includes(name)
+        );
+        if (victoryCards.length >= 2) {
+            strategy.hasStrategy = true;
+            strategy.recommendations.push('Victory rush detected - prioritize victory points');
+            this.addAILogicEntry(player, `🏆 Victory Rush: ${victoryCards.join(', ')}`, 'high');
+        }
+
+        return strategy;
+    }
+
+    /**
+     * Get power card effect description for strategy planning
+     */
+    getPowerCardEffect(cardName) {
+        const effects = {
+            'Energize': 'Gain energy at start of turn',
+            'Heal': 'Gain health at start of turn', 
+            'Extra Head': 'Roll extra die',
+            'It Has a Child': 'Gain VP when not attacking',
+            'Complete Destruction': 'Extra damage potential',
+            'Nuclear Power Plant': 'Energy from other players\' energy',
+            'Dedicated News Team': 'Energy from victory points',
+            'Acid Attack': 'Extra attack damage',
+            'Fire Breathing': 'Attack all players',
+            'Giant Brain': 'Extra energy and attack',
+            'Friend of Children': 'VP from staying out of Tokyo',
+            'Evacuation Orders': 'VP from others entering Tokyo',
+            'Opportunist': 'VP from others\' misfortune'
+        };
+        
+        return effects[cardName] || 'Unknown effect';
     }
 
     /**
@@ -189,8 +349,9 @@ class AIDecisionEngine {
         }
 
         // Attack opportunity (if other players are low health)
+        // Elimination opportunity (if any player can be eliminated with attack)
         const vulnerablePlayers = gameState.players.filter(p => 
-            p.id !== player.id && !p.isEliminated && p.health <= this.config.threats.healthThreat
+            p.id !== player.id && !p.isEliminated && p.health <= AI_CONSTANTS.THREAT_DETECTION.lowHealth
         );
         if (vulnerablePlayers.length > 0) {
             opportunities.push({
@@ -228,7 +389,7 @@ class AIDecisionEngine {
         return dice.map((dieValue, index) => {
             const baseValue = this.getDiceBaseValue(dieValue);
             const situationalValue = this.getDiceSituationalValue(dieValue, player, situation);
-            const personalityValue = this.getDicePersonalityValue(dieValue, player.monster.personality);
+            const personalityValue = this.getDicePersonalityValue(dieValue, player.monster.personality, situation);
             
             // NEW: Add combination bonus for numbers
             const combinationValue = this.getDiceCombinationValue(dieValue, faceCounts);
@@ -289,30 +450,44 @@ class AIDecisionEngine {
     }
 
     /**
-     * Get base value for a dice face
+     * Get base value for a dice face using constants
      */
     getDiceBaseValue(dieValue) {
-        const config = this.config.diceEvaluation;
         switch(dieValue) {
-            case 'attack': return config.attack.baseValue;
-            case 'energy': return config.energy.baseValue;
-            case 'heal': return config.heal.baseValue;
+            case 'attack': return AI_CONSTANTS.DICE_VALUES.attack.baseValue;
+            case 'energy': return AI_CONSTANTS.DICE_VALUES.energy.baseValue;
+            case 'heal': return AI_CONSTANTS.DICE_VALUES.heal.baseValue;
             case '1': case '2': case '3': 
-                return config.victoryPoints.baseValue; // Numbers are victory points
+                return AI_CONSTANTS.DICE_VALUES.victoryPoints.baseValue; // Numbers are victory points
             default: return 1;
         }
     }
 
     /**
-     * Calculate situational bonuses for dice
+     * Calculate situational bonuses for dice with advanced personality override logic
      */
     getDiceSituationalValue(dieValue, player, situation) {
         let bonus = 0;
 
         switch(dieValue) {
             case 'attack':
-                // Bonus for attacks when there are threats or opportunities to eliminate
-                if (situation.threats.length > 0) bonus += 2;
+                // 🚨 PERSONALITY OVERRIDE: Critical threats force attack regardless of personality
+                if (situation.threats.hasCriticalThreat && situation.threats.personalityOverrideRequired) {
+                    bonus += 8; // Massive bonus forces attack even for timid monsters
+                    // Add extra context to AI Logic Flow
+                    this.addAILogicEntry(player, `⚠️ PERSONALITY OVERRIDE: Timid monster MUST attack 18+ VP threat`, 'high');
+                }
+                // Normal threat response
+                else if (situation.threats.threats.length > 0) {
+                    bonus += 2;
+                }
+                
+                // ⚔️ POWER CARD STRATEGY: Attack combo bonus
+                if (situation.powerCardStrategy && situation.powerCardStrategy.recommendations.some(r => r.includes('attack combo'))) {
+                    bonus += 2;
+                    this.addAILogicEntry(player, `⚔️ Attack Combo Strategy: +2 bonus`, 'normal');
+                }
+                
                 if (situation.opportunities.some(o => o.type === 'eliminate')) bonus += 2;
                 // Penalty if player is in Tokyo (will hurt themselves)
                 if (player.isInTokyo) bonus -= 3;
@@ -330,12 +505,24 @@ class AIDecisionEngine {
                 // Bonus for energy in mid/endgame
                 if (situation.gamePhase === 'midgame') bonus += 1;
                 if (situation.gamePhase === 'endgame') bonus += 2;
+                
+                // 🔋 POWER CARD STRATEGY: Energy engine bonus
+                if (situation.powerCardStrategy && situation.powerCardStrategy.energyPriority > 0) {
+                    bonus += situation.powerCardStrategy.energyPriority;
+                    this.addAILogicEntry(player, `🔋 Energy Strategy: +${situation.powerCardStrategy.energyPriority} bonus`, 'normal');
+                }
                 break;
                 
             case '1': case '2': case '3':
                 // Victory points are more valuable in endgame
                 if (situation.gamePhase === 'endgame') bonus += 2;
                 if (player.victoryPoints >= 15) bonus += 3; // Close to winning
+                
+                // 🏆 POWER CARD STRATEGY: Victory rush bonus
+                if (situation.powerCardStrategy && situation.powerCardStrategy.recommendations.some(r => r.includes('victory rush'))) {
+                    bonus += 2;
+                    this.addAILogicEntry(player, `🏆 Victory Rush Strategy: +2 bonus`, 'normal');
+                }
                 break;
         }
 
@@ -343,15 +530,20 @@ class AIDecisionEngine {
     }
 
     /**
-     * Apply personality modifiers to dice values
+     * Apply personality modifiers to dice values with critical override support
      */
-    getDicePersonalityValue(dieValue, personality) {
+    getDicePersonalityValue(dieValue, personality, situation = null) {
         const { aggression, strategy, risk } = personality;
         let bonus = 0;
 
         // Aggression affects attack and heal preferences
         if (dieValue === 'attack') {
-            bonus += (aggression - 3) * 0.5; // -1 to +1 based on aggression
+            // 🚨 PERSONALITY OVERRIDE: Critical threats bypass personality
+            if (situation && situation.threats && situation.threats.hasCriticalThreat) {
+                bonus += 2; // Force attack regardless of low aggression
+            } else {
+                bonus += (aggression - 3) * 0.5; // -1 to +1 based on aggression
+            }
         }
         if (dieValue === 'heal') {
             bonus -= (aggression - 3) * 0.3; // Aggressive monsters heal less
@@ -397,37 +589,64 @@ class AIDecisionEngine {
         const diceToKeep = diceEvaluations.filter(d => d.shouldKeep);
         const { risk } = player.monster.personality;
         
-        // High-risk personalities might reroll even good dice for better results
-        if (risk >= 4 && rollsRemaining > 1 && diceToKeep.length < 4) {
+        // CRITICAL: Ensure CPU always rerolls unless it's the final roll or has amazing results
+        
+        // On final roll (rollsRemaining === 1), must end
+        if (rollsRemaining === 1) {
             return {
-                action: 'reroll',
+                action: 'endRoll',
                 keepDice: diceToKeep.map(d => d.index),
-                reason: `High-risk personality, keeping ${diceToKeep.length} dice`
+                reason: 'Final roll - must end turn',
+                confidence: 0.9
             };
         }
         
-        // Conservative personalities keep dice more readily
-        if (risk <= 2 && diceToKeep.length >= 2) {
+        // Exceptional results - only stop early if we have 4+ great dice
+        if (diceToKeep.length >= 4 && risk <= 2) {
             return {
                 action: 'keep',
                 keepDice: diceToKeep.map(d => d.index),
-                reason: `Conservative personality, keeping ${diceToKeep.length} good dice`
+                reason: `Exceptional results (${diceToKeep.length} dice) - conservative stop`,
+                confidence: 0.8
             };
         }
         
-        // Default logic: keep if we have enough good dice or are on last roll
-        if (diceToKeep.length >= 3 || rollsRemaining === 1) {
+        // High-risk personalities almost always continue unless final roll
+        if (risk >= 4) {
             return {
-                action: rollsRemaining === 1 ? 'endRoll' : 'keep',
+                action: 'reroll',
                 keepDice: diceToKeep.map(d => d.index),
-                reason: rollsRemaining === 1 ? 'Last roll' : `Keeping ${diceToKeep.length} valuable dice`
+                reason: `High-risk personality - continuing for better results (${diceToKeep.length} kept)`,
+                confidence: 0.7
             };
         }
         
+        // Medium risk - continue unless we have very good results
+        if (risk === 3 && diceToKeep.length < 3) {
+            return {
+                action: 'reroll',
+                keepDice: diceToKeep.map(d => d.index),
+                reason: `Moderate risk - need more good dice (${diceToKeep.length} kept)`,
+                confidence: 0.6
+            };
+        }
+        
+        // Conservative - but still continue on first roll unless truly exceptional
+        if (rollsRemaining >= 2) {
+            return {
+                action: 'reroll',
+                keepDice: diceToKeep.map(d => d.index),
+                reason: `${rollsRemaining} rolls left - continuing (${diceToKeep.length} dice kept)`,
+                confidence: 0.5
+            };
+        }
+        
+        // Default: continue rolling (should rarely hit this case)
         return {
             action: 'reroll',
             keepDice: diceToKeep.map(d => d.index),
-            reason: `Only ${diceToKeep.length} good dice, rerolling for better results`
+            reason: `Default continue - ${diceToKeep.length} dice kept`,
+            confidence: 0.4
         };
     }
 }

@@ -5256,40 +5256,72 @@ class KingOfTokyoUI {
         // Show the actual dice rolled
         diceAnalysis.push(`Rolled: [${diceFaces.join(', ')}]`);
         
-        // Victory points analysis with more detail
+        // Smart victory points analysis - understand sets vs individual dice
         const numberCounts = Object.entries(counts).filter(([face]) => 
             ['1', '2', '3'].includes(face));
+        
+        let hasCompletedSets = false;
+        let hasPairs = false;
+        let bestSetStrategy = null;
+        
         numberCounts.forEach(([number, count]) => {
             if (count >= 3) {
+                hasCompletedSets = true;
                 const points = number === '1' ? 1 : parseInt(number);
                 const extraPoints = (count - 3) * 1;
                 const totalPoints = points + extraPoints;
-                diceAnalysis.push(`${count}x ${number}s → ${totalPoints} Victory Points`);
-            } else if (count > 0) {
-                diceAnalysis.push(`${count}x ${number}s (need ${3-count} more for VP)`);
+                diceAnalysis.push(`🎯 ${count}x ${number}s → ${totalPoints} VP (COMPLETED SET)`);
+            } else if (count === 2) {
+                hasPairs = true;
+                const potentialPoints = number === '1' ? 1 : parseInt(number);
+                diceAnalysis.push(`🎲 Pair of ${number}s (need 1 more for ${potentialPoints} VP)`);
+                if (!bestSetStrategy || potentialPoints > bestSetStrategy.points) {
+                    bestSetStrategy = { number, count, points: potentialPoints };
+                }
+            } else if (count === 1) {
+                diceAnalysis.push(`${number} (single - low priority unless building set)`);
             }
         });
 
-        // Resource analysis with more context
-        if (counts['⚡']) {
-            diceAnalysis.push(`${counts['⚡']}x Energy (can buy cards)`);
-        }
-        if (counts['♥']) {
-            const healthNeeded = Math.max(0, 10 - player.health);
-            diceAnalysis.push(`${counts['♥']}x Hearts (health: ${player.health}/10, need: ${healthNeeded})`);
-        }
-        if (counts['👊']) {
-            const inTokyo = gameState && gameState.tokyoCity === player.index;
-            diceAnalysis.push(`${counts['👊']}x Claws ${inTokyo ? '(attacking all players)' : '(attacking Tokyo)'}`);
+        // Strategic recommendations based on game state
+        const health = player.health;
+        const vp = player.victoryPoints;
+        const rollsLeft = gameState && gameState.diceState ? gameState.diceState.rollsRemaining : 0;
+        
+        // Context-aware strategic analysis
+        if (vp >= 15 && health <= 3 && hasPairs) {
+            diceAnalysis.push(`⚠️ CRITICAL DECISION: Near win (${vp} VP) but low health (${health}). Pair strategy vs safety!`);
+            if (rollsLeft >= 2) {
+                diceAnalysis.push(`📈 RECOMMEND: Try for set completion (${rollsLeft} rolls left)`);
+            } else {
+                diceAnalysis.push(`🛡️ RECOMMEND: Consider hearts for safety (${rollsLeft} roll left)`);
+            }
+        } else if (hasPairs && !hasCompletedSets) {
+            diceAnalysis.push(`🎯 STRATEGY: Keep pair of ${bestSetStrategy?.number}s, reroll others for set completion`);
+        } else if (vp >= 15) {
+            diceAnalysis.push(`🏆 NEAR WIN: Priority on VP completion or attack prevention`);
+        } else if (health <= 3) {
+            diceAnalysis.push(`💔 LOW HEALTH: Hearts critical for survival`);
         }
 
-        // Player status context
-        const health = player.health;
-        const energy = player.energy;
-        const vp = player.victoryPoints;
-        const rollsLeft = gameState && gameState.diceState ? gameState.diceState.rollsRemaining : 'unknown';
-        
-        const statusInfo = `Health: ${health}/10, Energy: ${energy}, VP: ${vp}, Rolls Left: ${rollsLeft}`;
+        // Resource analysis with strategic context
+        if (counts['⚡']) {
+            const energyValue = counts['⚡'];
+            diceAnalysis.push(`⚡ ${energyValue} Energy (can buy power cards)`);
+        }
+        if (counts['❤️']) {
+            const healValue = counts['❤️'];
+            const maxHealing = Math.min(healValue, 10 - health);
+            diceAnalysis.push(`❤️ ${healValue} Hearts (would heal ${maxHealing} → ${health + maxHealing}/10)`);
+        }
+        if (counts['⚔️']) {
+            const attackValue = counts['⚔️'];
+            const inTokyo = gameState && gameState.tokyoCity === player.index;
+            diceAnalysis.push(`⚔️ ${attackValue} Attacks ${inTokyo ? '(hit ALL players!)' : '(hit Tokyo player)'}`);
+        }
+
+        // Game state summary
+        const statusInfo = `Status: ${health}♥ ${player.energy}⚡ ${vp}🏆 | ${rollsLeft} rolls left`;
 
         return `${diceAnalysis.join(' • ')} | ${statusInfo}`;
     }
@@ -6236,6 +6268,9 @@ class KingOfTokyoUI {
         // Position relative to screen center instead of player card to avoid stacking context issues
         document.body.appendChild(thoughtBubble);
         
+        // Ensure the thought bubble is properly positioned as a modal
+        this.ensureThoughtBubbleModal(thoughtBubble);
+        
         window.UI && window.UI._debug && window.UI._debug(`💭 ${player.monster.name} thinks: "${phrase}"`);
         
         // Auto-hide after configurable time based on AI config
@@ -6264,9 +6299,63 @@ class KingOfTokyoUI {
         setTimeout(() => this.hideCPUThoughtBubble(player), configuredDelay);
     }
     
+    /**
+     * Ensure thought bubble is properly positioned as a modal
+     */
+    ensureThoughtBubbleModal(thoughtBubble) {
+        // Force modal positioning
+        thoughtBubble.style.position = 'fixed';
+        thoughtBubble.style.top = '30%';
+        thoughtBubble.style.left = '50%';
+        thoughtBubble.style.transform = 'translateX(-50%)';
+        thoughtBubble.style.zIndex = '3999'; // Just below action-menu (4000)
+        thoughtBubble.style.pointerEvents = 'none';
+        
+        // Ensure it's above other content by temporarily hiding elements that might interfere
+        const gameBoard = document.querySelector('.game-board');
+        const monstersPanel = document.querySelector('#monsters-panel');
+        const powerCardsPanel = document.querySelector('#power-cards-panel');
+        
+        // Add a modal overlay effect
+        const thoughtOverlay = document.createElement('div');
+        thoughtOverlay.className = 'thought-bubble-overlay';
+        thoughtOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.1);
+            z-index: 3998;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        `;
+        
+        document.body.appendChild(thoughtOverlay);
+        
+        // Fade in the overlay
+        setTimeout(() => {
+            thoughtOverlay.style.opacity = '1';
+        }, 50);
+        
+        // Store reference to overlay for cleanup
+        thoughtBubble.thoughtOverlay = thoughtOverlay;
+    }
+    
     hideCPUThoughtBubble(player) {
         const existingBubble = document.querySelector(`.cpu-thought-bubble[data-player-id="${player.id}"]`);
         if (existingBubble) {
+            // Clean up overlay if it exists
+            if (existingBubble.thoughtOverlay) {
+                existingBubble.thoughtOverlay.style.opacity = '0';
+                setTimeout(() => {
+                    if (existingBubble.thoughtOverlay.parentNode) {
+                        existingBubble.thoughtOverlay.parentNode.removeChild(existingBubble.thoughtOverlay);
+                    }
+                }, 300);
+            }
+            
             existingBubble.classList.add('disappearing');
             setTimeout(() => {
                 if (existingBubble.parentNode) {
@@ -6280,6 +6369,16 @@ class KingOfTokyoUI {
     cleanupAllThoughtBubbles() {
         const allBubbles = document.querySelectorAll('.cpu-thought-bubble');
         allBubbles.forEach(bubble => {
+            // Clean up overlay if it exists
+            if (bubble.thoughtOverlay) {
+                bubble.thoughtOverlay.style.opacity = '0';
+                setTimeout(() => {
+                    if (bubble.thoughtOverlay.parentNode) {
+                        bubble.thoughtOverlay.parentNode.removeChild(bubble.thoughtOverlay);
+                    }
+                }, 300);
+            }
+            
             bubble.classList.add('disappearing');
             setTimeout(() => {
                 if (bubble.parentNode) {
@@ -6862,11 +6961,20 @@ class KingOfTokyoUI {
                 
                 // Add delay for human to see dice outcome
                 setTimeout(() => {
+                    console.log('🔍 DEBUG: Simple CPU decision point:', {
+                        rollNumber: rollNumber,
+                        maxRolls: 3,
+                        rollsRemaining: diceState.rollsRemaining,
+                        shouldContinue: rollNumber < 3 && diceState.rollsRemaining > 0
+                    });
+                    
                     if (rollNumber < 3 && diceState.rollsRemaining > 0) {
                         // Continue to next roll
+                        console.log('🔍 DEBUG: Simple CPU continuing to next roll:', rollNumber + 1);
                         this.cpuRollDiceSimple(player, rollNumber + 1);
                     } else {
                         // After 3rd roll, CPU is done - resolve dice and end turn
+                        console.log('🔍 DEBUG: Simple CPU ending turn - rollNumber:', rollNumber, 'rollsRemaining:', diceState.rollsRemaining);
                         window.UI && window.UI._debug && window.UI._debug(`🤖 SIMPLE CPU: ${player.monster.name} finished rolling, ending turn`);
                         this.showSimpleCPUNotification(player, `✅ ${player.monster.name} ending turn...`);
                         
@@ -7000,7 +7108,7 @@ class KingOfTokyoUI {
                 }
                 
                 // Log to AI Logic Flow tab (only for CPU players)
-                if (player.isHuman === false) {
+                if (player.playerType === 'cpu') {
                     console.log('🔍 DEBUG: diceResults from getAllDiceData():', diceResults);
                     const diceAnalysis = this.createDiceAnalysis(diceResults, player, gameState);
                     console.log('🔍 DEBUG: createDiceAnalysis returned:', diceAnalysis);

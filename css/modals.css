@@ -5080,7 +5080,7 @@ body.dark-mode .quick-ref-item {
     transform: translateX(-50%) !important;
     min-width: 200px;
     max-width: 350px;
-    z-index: 15000 !important; /* Much higher than action-menu (4000) and dice-area (4000) */
+    z-index: 3999 !important; /* Just below action-menu (4000) but above game content */
     pointer-events: none;
     animation: thoughtBubbleAppear 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
