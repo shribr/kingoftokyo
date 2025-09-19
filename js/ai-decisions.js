@@ -30,6 +30,19 @@ const AI_CONSTANTS = {
             attackCombo: ['Acid Attack', 'Fire Breathing', 'Giant Brain'],
             victoryRush: ['Friend of Children', 'Evacuation Orders', 'Opportunist']
         }
+    },
+    
+    DEFENSIVE_CARD_PRIORITIES: {
+        // Cards that are critical to deny based on opponent status
+        highValueTargets: {
+            'Extra Head': { denyIf: 'anyOpponentNeedsVP', priority: 'high' },
+            'Energize': { denyIf: 'opponentHasEnergyEngine', priority: 'high' },
+            'Acid Attack': { denyIf: 'aggressiveOpponentExists', priority: 'medium' },
+            'Fire Breathing': { denyIf: 'multipleThreats', priority: 'high' },
+            'It Has a Child': { denyIf: 'opponentCanStayOutOfTokyo', priority: 'medium' },
+            'Nuclear Power Plant': { denyIf: 'opponentHasHighEnergy', priority: 'high' },
+            'Complete Destruction': { denyIf: 'aggressiveOpponentExists', priority: 'medium' }
+        }
     }
 };
 
@@ -146,6 +159,14 @@ class AIDecisionEngine {
         const diceEvaluations = this.evaluateDice(currentDice, player, situation);
         console.log(`🧠 Dice evaluations:`, diceEvaluations);
 
+        // 🧠 MULTI-PLAYER STRATEGIC THINKING: Generate complex thought process
+        if (situation.multiPlayerScenarios && situation.multiPlayerScenarios.thoughtProcess.length > 0) {
+            const strategicThought = this.selectStrategicThought(situation.multiPlayerScenarios, player);
+            if (strategicThought) {
+                this.addAILogicEntry(player, `🧠 Strategic Analysis: ${strategicThought}`, 'high');
+            }
+        }
+
         // Make final decision
         const decision = this.makeKeepDecision(diceEvaluations, rollsRemaining, player, situation);
         console.log(`🧠 Final decision:`, decision);
@@ -154,12 +175,13 @@ class AIDecisionEngine {
     }
 
     /**
-     * Analyze the current game situation including power card strategies
+     * Analyze the current game situation including power card strategies and multi-player scenarios
      */
     analyzeSituation(player, gameState) {
         const threats = this.identifyThreats(player, gameState);
         const opportunities = this.identifyOpportunities(player, gameState);
         const powerCardStrategy = this.evaluatePowerCardStrategy(player, gameState);
+        const multiPlayerScenarios = this.analyzeMultiPlayerScenarios(player, gameState);
         
         return {
             player: {
@@ -172,6 +194,7 @@ class AIDecisionEngine {
             threats,
             opportunities,
             powerCardStrategy,
+            multiPlayerScenarios,
             gamePhase: this.determineGamePhase(gameState)
         };
     }
@@ -333,6 +356,328 @@ class AIDecisionEngine {
     }
 
     /**
+     * Advanced multi-player strategic analysis - predicts what other players might do
+     */
+    analyzeMultiPlayerScenarios(currentPlayer, gameState) {
+        const turnOrder = this.calculateTurnOrder(currentPlayer, gameState);
+        const scenarios = {
+            turnOrder,
+            predictions: [],
+            strategicInsights: [],
+            cooperativeOpportunities: [],
+            competitiveThreats: [],
+            thoughtProcess: []
+        };
+
+        // Analyze each upcoming player's likely actions
+        turnOrder.forEach((player, index) => {
+            if (player.id === currentPlayer.id) return;
+            
+            const prediction = this.predictPlayerAction(player, gameState, currentPlayer);
+            scenarios.predictions.push(prediction);
+            
+            // Generate strategic insights based on predictions
+            const insights = this.generateStrategicInsights(prediction, currentPlayer, gameState, index);
+            scenarios.strategicInsights.push(...insights);
+        });
+
+        // Analyze cooperative vs competitive scenarios
+        scenarios.cooperativeOpportunities = this.findCooperativeOpportunities(currentPlayer, gameState, scenarios.predictions);
+        scenarios.competitiveThreats = this.findCompetitiveThreats(currentPlayer, gameState, scenarios.predictions);
+        
+        // Generate thought process narrative for thought bubbles
+        scenarios.thoughtProcess = this.generateThoughtProcess(currentPlayer, scenarios);
+
+        return scenarios;
+    }
+
+    /**
+     * Calculate turn order from current player
+     */
+    calculateTurnOrder(currentPlayer, gameState) {
+        const activePlayers = gameState.players.filter(p => !p.isEliminated);
+        const currentIndex = activePlayers.findIndex(p => p.id === currentPlayer.id);
+        
+        // Return players in order after current player
+        const turnOrder = [];
+        for (let i = 1; i < activePlayers.length; i++) {
+            const nextIndex = (currentIndex + i) % activePlayers.length;
+            turnOrder.push(activePlayers[nextIndex]);
+        }
+        
+        return turnOrder;
+    }
+
+    /**
+     * Predict what a specific player is likely to do on their turn
+     */
+    predictPlayerAction(player, gameState, currentPlayer) {
+        const personality = player.monster.personality;
+        const threats = this.identifyThreats(player, gameState);
+        
+        const prediction = {
+            player,
+            personality,
+            likelyActions: [],
+            probability: 0,
+            reasoning: [],
+            willAttackTokyo: false,
+            willBuyCards: false,
+            willGoForVP: false,
+            riskAssessment: 'low'
+        };
+
+        // Analyze based on personality and game state
+        
+        // 1. Health status analysis
+        if (player.health <= 5) {
+            prediction.likelyActions.push({
+                action: 'prioritize_heal',
+                probability: 0.8 + (personality.aggression <= 2 ? 0.15 : -0.1),
+                reasoning: `${player.monster.name} has low health (${player.health})`
+            });
+        }
+
+        // 2. Victory point analysis
+        if (player.victoryPoints >= 15) {
+            prediction.likelyActions.push({
+                action: 'go_for_victory',
+                probability: 0.9,
+                reasoning: `${player.monster.name} is close to winning with ${player.victoryPoints} VP`
+            });
+            prediction.willGoForVP = true;
+        }
+
+        // 3. Tokyo attack analysis
+        const playerInTokyo = gameState.players.find(p => p.isInTokyo && !p.isEliminated);
+        if (playerInTokyo && playerInTokyo.id !== player.id) {
+            let attackProbability = 0.3; // Base probability
+            
+            // Personality modifiers
+            attackProbability += (personality.aggression - 3) * 0.15;
+            attackProbability += (personality.risk - 3) * 0.1;
+            
+            // Threat level modifiers
+            if (playerInTokyo.victoryPoints >= 18) {
+                attackProbability += 0.5; // Critical threat
+            } else if (playerInTokyo.victoryPoints >= 15) {
+                attackProbability += 0.3; // High threat
+            }
+            
+            // Health consideration
+            if (player.health <= 3) {
+                attackProbability -= 0.4; // Less likely to attack when vulnerable
+            }
+            
+            prediction.willAttackTokyo = attackProbability > 0.5;
+            prediction.likelyActions.push({
+                action: 'attack_tokyo',
+                probability: Math.max(0, Math.min(1, attackProbability)),
+                reasoning: `Tokyo has ${playerInTokyo.monster.name} with ${playerInTokyo.victoryPoints} VP`
+            });
+        }
+
+        // 4. Power card purchasing analysis
+        if (player.energy >= 8) {
+            let buyProbability = 0.6;
+            buyProbability += (personality.strategy - 3) * 0.15;
+            
+            prediction.willBuyCards = buyProbability > 0.5;
+            prediction.likelyActions.push({
+                action: 'buy_power_cards',
+                probability: buyProbability,
+                reasoning: `${player.monster.name} has ${player.energy} energy`
+            });
+        }
+
+        // Calculate overall prediction confidence
+        prediction.probability = prediction.likelyActions.reduce((sum, action) => sum + action.probability, 0) / prediction.likelyActions.length || 0;
+        
+        return prediction;
+    }
+
+    /**
+     * Generate strategic insights based on player predictions
+     */
+    generateStrategicInsights(prediction, currentPlayer, gameState, turnPosition) {
+        const insights = [];
+        const playerInTokyo = gameState.players.find(p => p.isInTokyo && !p.isEliminated);
+        
+        // Tokyo attack scenarios
+        if (playerInTokyo && prediction.willAttackTokyo) {
+            insights.push({
+                type: 'cooperative_opportunity',
+                description: `${prediction.player.monster.name} will likely attack Tokyo - I could focus on VP/energy instead`,
+                strategic_value: 'high',
+                confidence: prediction.likelyActions.find(a => a.action === 'attack_tokyo')?.probability || 0
+            });
+        } else if (playerInTokyo && !prediction.willAttackTokyo && turnPosition === 0) {
+            insights.push({
+                type: 'burden_responsibility',
+                description: `${prediction.player.monster.name} probably won't attack Tokyo - I might need to do it myself`,
+                strategic_value: 'medium',
+                confidence: 1 - (prediction.likelyActions.find(a => a.action === 'attack_tokyo')?.probability || 0.5)
+            });
+        }
+
+        // Victory point competition
+        if (prediction.willGoForVP && currentPlayer.victoryPoints >= 12) {
+            insights.push({
+                type: 'competitive_threat',
+                description: `${prediction.player.monster.name} is racing for victory - need to be aggressive`,
+                strategic_value: 'critical',
+                confidence: 0.9
+            });
+        }
+
+        // Energy competition for power cards
+        if (prediction.willBuyCards && currentPlayer.energy >= 6) {
+            insights.push({
+                type: 'resource_competition',
+                description: `${prediction.player.monster.name} will buy cards - should I secure energy or buy first?`,
+                strategic_value: 'medium',
+                confidence: prediction.likelyActions.find(a => a.action === 'buy_power_cards')?.probability || 0
+            });
+        }
+
+        return insights;
+    }
+
+    /**
+     * Find cooperative opportunities where other players might help
+     */
+    findCooperativeOpportunities(currentPlayer, gameState, predictions) {
+        const opportunities = [];
+        const playerInTokyo = gameState.players.find(p => p.isInTokyo && !p.isEliminated);
+        
+        if (playerInTokyo && playerInTokyo.victoryPoints >= 16) {
+            const attackers = predictions.filter(p => p.willAttackTokyo);
+            
+            if (attackers.length > 0) {
+                opportunities.push({
+                    type: 'tokyo_liberation',
+                    description: `${attackers.map(a => a.player.monster.name).join(' and ')} likely to attack Tokyo`,
+                    benefit: 'Can focus on VP/energy instead of attacking',
+                    confidence: attackers.reduce((sum, a) => sum + a.probability, 0) / attackers.length
+                });
+            }
+        }
+
+        return opportunities;
+    }
+
+    /**
+     * Find competitive threats from other players' likely actions
+     */
+    findCompetitiveThreats(currentPlayer, gameState, predictions) {
+        const threats = [];
+        
+        // Victory point racing threats
+        const vpRacers = predictions.filter(p => p.willGoForVP);
+        vpRacers.forEach(racer => {
+            threats.push({
+                type: 'victory_race',
+                player: racer.player.monster.name,
+                description: `${racer.player.monster.name} racing for victory with ${racer.player.victoryPoints} VP`,
+                urgency: racer.player.victoryPoints >= 18 ? 'critical' : 'high',
+                confidence: racer.probability
+            });
+        });
+
+        // Power card competition
+        const cardBuyers = predictions.filter(p => p.willBuyCards);
+        if (cardBuyers.length > 0 && currentPlayer.energy >= 6) {
+            threats.push({
+                type: 'resource_competition',
+                description: 'Multiple players competing for power cards',
+                urgency: 'medium',
+                confidence: 0.7
+            });
+        }
+
+        return threats;
+    }
+
+    /**
+     * Generate narrative thought process for thought bubbles
+     */
+    generateThoughtProcess(currentPlayer, scenarios) {
+        const thoughts = [];
+        const playerInTokyo = scenarios.turnOrder.find(p => p.isInTokyo);
+        
+        // Tokyo scenario analysis
+        if (playerInTokyo && playerInTokyo.victoryPoints >= 16) {
+            const attackers = scenarios.predictions.filter(p => p.willAttackTokyo);
+            
+            if (attackers.length > 0) {
+                thoughts.push(`Hmm... ${attackers[0].player.monster.name} will probably attack Tokyo. I could focus on points instead of wasting dice on attacks.`);
+            } else {
+                thoughts.push(`Nobody else looks likely to attack Tokyo... I might have to 'take one for the team' and deal with ${playerInTokyo.monster.name} myself.`);
+            }
+        }
+
+        // Competitive analysis
+        const vpThreats = scenarios.competitiveThreats.filter(t => t.type === 'victory_race');
+        if (vpThreats.length > 0) {
+            const threat = vpThreats[0];
+            thoughts.push(`${threat.player} is close to winning... I need to be more aggressive and can't afford to play it safe.`);
+        }
+
+        // Cooperative opportunities
+        if (scenarios.cooperativeOpportunities.length > 0) {
+            const opp = scenarios.cooperativeOpportunities[0];
+            thoughts.push(`Good! ${opp.description.split(' likely')[0]} will handle Tokyo. I can focus on my own strategy.`);
+        }
+
+        // Resource competition
+        const energyCompetition = scenarios.competitiveThreats.find(t => t.type === 'resource_competition');
+        if (energyCompetition && currentPlayer.energy >= 8) {
+            thoughts.push(`Multiple players are eyeing power cards... should I buy now or risk losing good cards to other players?`);
+        }
+
+        // Default strategic thoughts
+        if (thoughts.length === 0) {
+            thoughts.push(`Let me think about what the other players might do... ${scenarios.turnOrder[0]?.monster.name} goes next.`);
+        }
+
+        return thoughts;
+    }
+
+    /**
+     * Select most relevant strategic thought for current situation
+     */
+    selectStrategicThought(multiPlayerScenarios, currentPlayer) {
+        const { thoughtProcess, cooperativeOpportunities, competitiveThreats } = multiPlayerScenarios;
+        
+        // Prioritize thoughts based on urgency and relevance
+        
+        // Critical competitive threats get priority
+        const criticalThreats = competitiveThreats.filter(t => t.urgency === 'critical');
+        if (criticalThreats.length > 0) {
+            return thoughtProcess.find(t => t.includes('close to winning')) || 
+                   `${criticalThreats[0].player} is about to win! I need to be much more aggressive.`;
+        }
+        
+        // Cooperative opportunities 
+        const tokyoCooperation = cooperativeOpportunities.find(o => o.type === 'tokyo_liberation');
+        if (tokyoCooperation && tokyoCooperation.confidence > 0.6) {
+            return thoughtProcess.find(t => t.includes('probably attack Tokyo')) ||
+                   `Great! Someone else will deal with Tokyo, so I can focus on my own strategy.`;
+        }
+        
+        // Resource competition
+        const resourceComp = competitiveThreats.find(t => t.type === 'resource_competition');
+        if (resourceComp && currentPlayer.energy >= 8) {
+            return thoughtProcess.find(t => t.includes('power cards')) ||
+                   `Multiple players are eyeing the same power cards... timing is critical.`;
+        }
+        
+        // Default strategic analysis
+        return thoughtProcess.length > 0 ? thoughtProcess[0] : 
+               `Let me think about what the other players are likely to do...`;
+    }
+
+    /**
      * Identify opportunities for the current player
      */
     identifyOpportunities(player, gameState) {
@@ -488,6 +833,21 @@ class AIDecisionEngine {
                     this.addAILogicEntry(player, `⚔️ Attack Combo Strategy: +2 bonus`, 'normal');
                 }
                 
+                // 🎯 MULTI-PLAYER STRATEGY: Tokyo attack coordination
+                if (situation.multiPlayerScenarios) {
+                    const cooperativeOpp = situation.multiPlayerScenarios.cooperativeOpportunities.find(o => o.type === 'tokyo_liberation');
+                    if (cooperativeOpp && cooperativeOpp.confidence > 0.6) {
+                        bonus -= 2; // Others will attack, I can focus elsewhere
+                        this.addAILogicEntry(player, `🤝 Cooperative: Others will attack Tokyo - reducing attack priority`, 'high');
+                    }
+                    
+                    const competitiveThreats = situation.multiPlayerScenarios.competitiveThreats.filter(t => t.urgency === 'critical');
+                    if (competitiveThreats.length > 0) {
+                        bonus += 3; // Critical situation requires aggression
+                        this.addAILogicEntry(player, `⚡ Critical Competition: Must be aggressive vs ${competitiveThreats[0].player}`, 'high');
+                    }
+                }
+                
                 if (situation.opportunities.some(o => o.type === 'eliminate')) bonus += 2;
                 // Penalty if player is in Tokyo (will hurt themselves)
                 if (player.isInTokyo) bonus -= 3;
@@ -511,6 +871,15 @@ class AIDecisionEngine {
                     bonus += situation.powerCardStrategy.energyPriority;
                     this.addAILogicEntry(player, `🔋 Energy Strategy: +${situation.powerCardStrategy.energyPriority} bonus`, 'normal');
                 }
+                
+                // 💰 MULTI-PLAYER STRATEGY: Resource competition
+                if (situation.multiPlayerScenarios) {
+                    const resourceCompetition = situation.multiPlayerScenarios.competitiveThreats.find(t => t.type === 'resource_competition');
+                    if (resourceCompetition && player.energy >= 6) {
+                        bonus += 2; // Need to secure energy before others
+                        this.addAILogicEntry(player, `💰 Competition: Others want power cards too - prioritizing energy`, 'normal');
+                    }
+                }
                 break;
                 
             case '1': case '2': case '3':
@@ -522,6 +891,15 @@ class AIDecisionEngine {
                 if (situation.powerCardStrategy && situation.powerCardStrategy.recommendations.some(r => r.includes('victory rush'))) {
                     bonus += 2;
                     this.addAILogicEntry(player, `🏆 Victory Rush Strategy: +2 bonus`, 'normal');
+                }
+                
+                // 🏁 MULTI-PLAYER STRATEGY: Victory point racing
+                if (situation.multiPlayerScenarios) {
+                    const vpRacers = situation.multiPlayerScenarios.competitiveThreats.filter(t => t.type === 'victory_race');
+                    if (vpRacers.length > 0 && player.victoryPoints >= 12) {
+                        bonus += 3; // Racing situation - VP critical
+                        this.addAILogicEntry(player, `🏁 Victory Race: Competing with ${vpRacers[0].player} - VP critical!`, 'high');
+                    }
                 }
                 break;
         }
@@ -647,6 +1025,212 @@ class AIDecisionEngine {
             keepDice: diceToKeep.map(d => d.index),
             reason: `Default continue - ${diceToKeep.length} dice kept`,
             confidence: 0.4
+        };
+    }
+
+    // ===== DEFENSIVE POWER CARD ANALYSIS =====
+    evaluateDefensiveCardPurchase(card, player, availableCards) {
+        const cardValue = this.getCardValueForOpponents(card, player);
+        const denialBenefit = this.calculateDenialBenefit(card, player);
+        const purchaseCost = this.getDefensivePurchaseCost(card, player);
+        
+        return {
+            shouldBuyDefensively: cardValue.criticalForOpponent && denialBenefit > purchaseCost,
+            defensiveValue: cardValue.totalValue,
+            denialReason: cardValue.reason,
+            cost: purchaseCost
+        };
+    }
+
+    getCardValueForOpponents(card, player) {
+        let maxValue = 0;
+        let criticalForOpponent = false;
+        let mostThreateningPlayer = null;
+        let reason = '';
+
+        // Check each opponent to see how valuable this card would be for them
+        for (const opponent of Object.values(game.players)) {
+            if (opponent.id === player.id || opponent.eliminated) continue;
+
+            const opponentValue = this.calculateCardValueForPlayer(card, opponent);
+            if (opponentValue.value > maxValue) {
+                maxValue = opponentValue.value;
+                mostThreateningPlayer = opponent;
+                reason = opponentValue.reason;
+            }
+
+            // Check if this card would be critical for this opponent
+            if (this.isCardCriticalForPlayer(card, opponent)) {
+                criticalForOpponent = true;
+            }
+        }
+
+        return {
+            totalValue: maxValue,
+            criticalForOpponent,
+            mostThreateningPlayer,
+            reason
+        };
+    }
+
+    calculateCardValueForPlayer(card, player) {
+        let value = 0;
+        let reason = '';
+
+        // High VP players need victory cards
+        if (player.victoryPoints >= 15 && this.isVictoryAcceleratorCard(card)) {
+            value += 80;
+            reason = `${player.monster} is close to victory and this card accelerates VP gain`;
+        }
+
+        // Energy engine builders need energy cards
+        if (this.playerHasEnergyEngine(player) && this.isEnergyCard(card)) {
+            value += 60;
+            reason = `${player.monster} has an energy engine and this enhances it`;
+        }
+
+        // Aggressive players in Tokyo need attack cards
+        if (player.inTokyo && this.isAttackCard(card)) {
+            value += 50;
+            reason = `${player.monster} is in Tokyo and this card boosts attacks`;
+        }
+
+        // Players with specific synergies
+        const synergyValue = this.calculateSynergyValueForPlayer(card, player);
+        if (synergyValue > 0) {
+            value += synergyValue;
+            reason = `This card synergizes with ${player.monster}'s current strategy`;
+        }
+
+        return { value, reason };
+    }
+
+    isCardCriticalForPlayer(card, player) {
+        const defensivePriorities = AI_CONSTANTS.DEFENSIVE_CARD_PRIORITIES.highValueTargets;
+        
+        if (!defensivePriorities[card.name]) return false;
+
+        const condition = defensivePriorities[card.name].denyIf;
+        
+        switch (condition) {
+            case 'anyOpponentNeedsVP':
+                return player.victoryPoints >= 15;
+            case 'opponentHasEnergyEngine':
+                return this.playerHasEnergyEngine(player);
+            case 'aggressiveOpponentExists':
+                return this.isPlayerAggressive(player);
+            case 'multipleThreats':
+                return player.victoryPoints >= 12 && (player.inTokyo || this.playerHasEnergyEngine(player));
+            case 'opponentCanStayOutOfTokyo':
+                return !player.inTokyo && player.health > 6;
+            case 'opponentHasHighEnergy':
+                return player.energy >= 6;
+            default:
+                return false;
+        }
+    }
+
+    calculateDenialBenefit(card, player) {
+        // How much strategic advantage do we gain by denying this card?
+        const defensivePriorities = AI_CONSTANTS.DEFENSIVE_CARD_PRIORITIES.highValueTargets;
+        const cardPriority = defensivePriorities[card.name];
+        
+        if (!cardPriority) return 0;
+
+        let baseBenefit = 0;
+        switch (cardPriority.priority) {
+            case 'high': baseBenefit = 60; break;
+            case 'medium': baseBenefit = 40; break;
+            case 'low': baseBenefit = 20; break;
+        }
+
+        // Multiply by how close opponents are to victory
+        const threatMultiplier = this.calculateThreatMultiplier();
+        return baseBenefit * threatMultiplier;
+    }
+
+    calculateThreatMultiplier() {
+        let maxThreat = 1;
+        
+        for (const opponent of Object.values(game.players)) {
+            if (opponent.eliminated) continue;
+            
+            if (opponent.victoryPoints >= 18) maxThreat = Math.max(maxThreat, 2.5);
+            else if (opponent.victoryPoints >= 15) maxThreat = Math.max(maxThreat, 2.0);
+            else if (opponent.victoryPoints >= 12) maxThreat = Math.max(maxThreat, 1.5);
+        }
+        
+        return maxThreat;
+    }
+
+    getDefensivePurchaseCost(card, player) {
+        // What's the opportunity cost of buying this card defensively?
+        let cost = card.cost;
+        
+        // If we don't really want this card for ourselves, increase the cost
+        const personalValue = this.evaluateCardForPlayer(card, player).value;
+        if (personalValue < 30) {
+            cost += 20; // Penalty for buying cards we don't need
+        }
+        
+        // If our energy is limited, increase the cost
+        if (player.energy < 8) {
+            cost += 10;
+        }
+        
+        return cost;
+    }
+
+    // Helper methods for card classification
+    isVictoryAcceleratorCard(card) {
+        const victoryCards = ['Extra Head', 'Friend of Children', 'Opportunist', 'Evacuation Orders'];
+        return victoryCards.includes(card.name);
+    }
+
+    isEnergyCard(card) {
+        const energyCards = ['Energize', 'Nuclear Power Plant', 'Dedicated News Team', 'Solar Powered'];
+        return energyCards.includes(card.name);
+    }
+
+    isAttackCard(card) {
+        const attackCards = ['Acid Attack', 'Fire Breathing', 'Giant Brain', 'Complete Destruction'];
+        return attackCards.includes(card.name);
+    }
+
+    playerHasEnergyEngine(player) {
+        const energyCards = player.powerCards.filter(card => this.isEnergyCard(card));
+        return energyCards.length >= 2 || player.energy >= 8;
+    }
+
+    isPlayerAggressive(player) {
+        const attackCards = player.powerCards.filter(card => this.isAttackCard(card));
+        return attackCards.length >= 1 || (player.inTokyo && player.health >= 6);
+    }
+
+    calculateSynergyValueForPlayer(card, player) {
+        let synergyValue = 0;
+        
+        // Check for specific card synergies in player's current cards
+        const playerCardNames = player.powerCards.map(c => c.name);
+        const synergies = AI_CONSTANTS.POWER_CARD_TIMING.synergies;
+        
+        for (const [synergyType, cards] of Object.entries(synergies)) {
+            if (cards.includes(card.name)) {
+                const existingSynergies = cards.filter(c => playerCardNames.includes(c));
+                synergyValue += existingSynergies.length * 15;
+            }
+        }
+        
+        return synergyValue;
+    }
+
+    // Evaluate a card's value for a specific player (used by both personal and defensive analysis)
+    evaluateCardForPlayer(card, player) {
+        const cardAnalysis = this.calculateCardValueForPlayer(card, player);
+        
+        return {
+            value: cardAnalysis.value,
+            reason: cardAnalysis.reason
         };
     }
 }

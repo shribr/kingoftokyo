@@ -5207,6 +5207,20 @@ body.dark-mode .quick-ref-item {
     border-top-color: #E0E6FF;
 }
 
+.thought-bubble-defensive {
+    background: 
+        linear-gradient(135deg, #FFF8DC 0%, #F0E68C 50%, #DAA520 100%);
+    background-image: 
+        radial-gradient(circle at 3px 3px, rgba(0,0,0,0.06) 1px, transparent 0),
+        linear-gradient(135deg, #FFF8DC 0%, #F0E68C 50%, #DAA520 100%);
+    background-size: 15px 15px, 100% 100%;
+    border-color: #B8860B;
+}
+
+.thought-bubble-defensive::before {
+    border-top-color: #FFF8DC;
+}
+
 /* Animations */
 @keyframes thoughtBubbleAppear {
     0% {

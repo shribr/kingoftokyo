@@ -6260,6 +6260,8 @@ class KingOfTokyoUI {
             bubbleContent.classList.add('thought-bubble-aggressive');
         } else if (context === 'strategic' || context === 'analyzing') {
             bubbleContent.classList.add('thought-bubble-strategic');
+        } else if (context === 'defensive') {
+            bubbleContent.classList.add('thought-bubble-defensive');
         }
         
         bubbleContent.textContent = phrase;
@@ -6506,6 +6508,15 @@ class KingOfTokyoUI {
                 "Maybe I should play it safe?",
                 "Fortune favors the bold!",
                 "What would a true monster do?"
+            ],
+            
+            defensive: [
+                "I should block their strategy...",
+                "They can't have that card!",
+                "Denial is the best defense!",
+                "Time to cut off their supply!",
+                "Prevention is better than cure!",
+                "I'll take this away from them!"
             ]
         };
         
@@ -6575,6 +6586,10 @@ class KingOfTokyoUI {
                     case 'decisionThinking': return speedConfig.decisionThinking || 3000;
                     case 'endTurn': return speedConfig.endTurn || 1500;
                     case 'nextRoll': return speedConfig.nextRoll || 1000;
+                    case 'powerCardThinking': return speedConfig.powerCardThinking || 2000;
+                    case 'cardDecision': return speedConfig.cardDecision || 1500;
+                    case 'purchaseDecision': return speedConfig.purchaseDecision || 2000;
+                    case 'purchaseDelay': return speedConfig.purchaseDelay || 1000;
                     case 'general':
                     default: return speedConfig.decisionThinking || 3000;
                 }
@@ -6589,6 +6604,10 @@ class KingOfTokyoUI {
             case 'decisionThinking': baseTime = 3000; break;
             case 'endTurn': baseTime = 1500; break;
             case 'nextRoll': baseTime = 1000; break;
+            case 'powerCardThinking': baseTime = 2000; break;
+            case 'cardDecision': baseTime = 1500; break;
+            case 'purchaseDecision': baseTime = 2000; break;
+            case 'purchaseDelay': baseTime = 1000; break;
             case 'general':
             default: baseTime = 3000; break;
         }
@@ -6973,17 +6992,17 @@ class KingOfTokyoUI {
                         console.log('🔍 DEBUG: Simple CPU continuing to next roll:', rollNumber + 1);
                         this.cpuRollDiceSimple(player, rollNumber + 1);
                     } else {
-                        // After 3rd roll, CPU is done - resolve dice and end turn
+                        // After 3rd roll, CPU is done - resolve dice and consider power cards before ending turn
                         console.log('🔍 DEBUG: Simple CPU ending turn - rollNumber:', rollNumber, 'rollsRemaining:', diceState.rollsRemaining);
-                        window.UI && window.UI._debug && window.UI._debug(`🤖 SIMPLE CPU: ${player.monster.name} finished rolling, ending turn`);
-                        this.showSimpleCPUNotification(player, `✅ ${player.monster.name} ending turn...`);
+                        window.UI && window.UI._debug && window.UI._debug(`🤖 SIMPLE CPU: ${player.monster.name} finished rolling, considering power cards`);
+                        this.showSimpleCPUNotification(player, `✅ ${player.monster.name} considering power cards...`);
                         
                         setTimeout(() => {
                             // Update controls before ending turn to re-enable action menu
                             this.updateDiceControls();
                             
-                            // CPU players call game.endTurn() directly, not through UI layer
-                            this.game.endTurn();
+                            // Consider power card purchases before ending turn
+                            this.handleCPUPowerCardPhase(player);
                         }, 1500);
                     }
                 }, 3000); // 3-second delay for human to see dice outcome
@@ -7035,17 +7054,17 @@ class KingOfTokyoUI {
                         console.log('🔍 DEBUG: Making AI roll decision for roll', rollNumber);
                         this.makeAIRollDecision(player, rollNumber, diceState);
                     } else {
-                        // After 3rd roll, CPU is done - resolve dice and end turn
+                        // After 3rd roll, CPU is done - resolve dice and consider power cards before ending turn
                         console.log('🔍 DEBUG: Ending turn - rollNumber:', rollNumber, 'rollsRemaining:', diceState.rollsRemaining);
-                        window.UI && window.UI._debug && window.UI._debug(`🤖 AI CPU: ${player.monster.name} finished rolling, resolving dice and ending turn`);
-                        this.showSimpleCPUNotification(player, `✅ ${player.monster.name} ending turn...`);
+                        window.UI && window.UI._debug && window.UI._debug(`🤖 AI CPU: ${player.monster.name} finished rolling, considering power cards and ending turn`);
+                        this.showSimpleCPUNotification(player, `✅ ${player.monster.name} considering power cards...`);
                         
                         setTimeout(() => {
                             // Update controls before ending turn to re-enable action menu
                             this.updateDiceControls();
                             
-                            // CPU players call game.endTurn() directly, not through UI layer
-                            this.game.endTurn();
+                            // Consider power card purchases before ending turn
+                            this.handleCPUPowerCardPhase(player);
                         }, this.getCPUThinkingTime('endTurn'));
                     }
                 }, this.getCPUThinkingTime('decisionThinking')); // Configurable delay for human to see dice outcome
@@ -7053,10 +7072,10 @@ class KingOfTokyoUI {
         } else {
             // If somehow rollNumber > 3, force end turn
             console.log('🔍 DEBUG: rollNumber > 3, force ending turn. rollNumber:', rollNumber);
-            this.showSimpleCPUNotification(player, `✅ ${player.monster.name} ending turn...`);
+            this.showSimpleCPUNotification(player, `✅ ${player.monster.name} considering power cards...`);
             setTimeout(() => {
                 this.updateDiceControls();
-                this.game.endTurn();
+                this.handleCPUPowerCardPhase(player);
             }, this.getCPUThinkingTime('endTurn'));
         }
     }
@@ -7142,8 +7161,8 @@ class KingOfTokyoUI {
                     
                     setTimeout(() => {
                         this.updateDiceControls();
-                        // CPU players call game.endTurn() directly, not through UI layer
-                        this.game.endTurn();
+                        // CPU players call handleCPUPowerCardPhase() then game.endTurn()
+                        this.handleCPUPowerCardPhase(player);
                     }, this.getCPUThinkingTime('endTurn'));
                 } else {
                     // Unknown action, fallback to ending turn
@@ -7152,7 +7171,7 @@ class KingOfTokyoUI {
                     
                     setTimeout(() => {
                         this.updateDiceControls();
-                        this.game.endTurn();
+                        this.handleCPUPowerCardPhase(player);
                     }, this.getCPUThinkingTime('endTurn'));
                 }
             } else {
@@ -7167,6 +7186,146 @@ class KingOfTokyoUI {
             this.showCPUThoughtBubble(player, 'confused');
             this.cpuRollDice(player, rollNumber + 1);
         }
+    }
+
+    // Handle CPU power card purchasing phase with defensive strategies
+    handleCPUPowerCardPhase(player) {
+        console.log(`🛍️ CPU ${player.monster.name} considering power card purchases`);
+        
+        // Get available power cards and player's current energy
+        const availableCards = this.game.getAvailablePowerCards();
+        const playerEnergy = player.energy;
+        
+        if (!availableCards || availableCards.length === 0) {
+            console.log(`🛍️ No power cards available for ${player.monster.name}`);
+            this.endCPUTurn(player);
+            return;
+        }
+        
+        if (playerEnergy <= 0) {
+            console.log(`🛍️ ${player.monster.name} has no energy to buy cards`);
+            this.endCPUTurn(player);
+            return;
+        }
+        
+        this.showCPUThoughtBubble(player, 'strategic');
+        this.showSimpleCPUNotification(player, `🛍️ ${player.monster.name} evaluating power cards...`);
+        
+        setTimeout(() => {
+            this.makeCPUPowerCardDecisions(player, availableCards);
+        }, this.getCPUThinkingTime('powerCardThinking'));
+    }
+
+    // Make CPU power card purchasing decisions using defensive analysis
+    makeCPUPowerCardDecisions(player, availableCards) {
+        if (!this.aiEngine) {
+            console.log(`🛍️ No AI engine available for ${player.monster.name}, ending turn`);
+            this.endCPUTurn(player);
+            return;
+        }
+        
+        const purchaseDecisions = [];
+        let remainingEnergy = player.energy;
+        
+        // Evaluate each available card for both personal value and defensive value
+        for (const card of availableCards) {
+            if (card.cost > remainingEnergy) continue;
+            
+            // Get personal evaluation for this card
+            const personalEval = this.aiEngine.evaluateCardForPlayer(card, player);
+            
+            // Get defensive evaluation (should we buy it to deny others?)
+            const defensiveEval = this.aiEngine.evaluateDefensiveCardPurchase(card, player, availableCards);
+            
+            const shouldBuyPersonal = personalEval.value >= 50;
+            const shouldBuyDefensive = defensiveEval.shouldBuyDefensively;
+            
+            if (shouldBuyPersonal || shouldBuyDefensive) {
+                const priority = shouldBuyPersonal ? personalEval.value : defensiveEval.defensiveValue;
+                const reason = shouldBuyPersonal ? personalEval.reason : defensiveEval.denialReason;
+                const type = shouldBuyPersonal ? 'personal' : 'defensive';
+                
+                purchaseDecisions.push({
+                    card,
+                    priority,
+                    reason,
+                    type,
+                    cost: card.cost
+                });
+            }
+        }
+        
+        // Sort by priority (highest first)
+        purchaseDecisions.sort((a, b) => b.priority - a.priority);
+        
+        console.log(`🛍️ ${player.monster.name} found ${purchaseDecisions.length} cards worth buying:`, 
+                   purchaseDecisions.map(d => `${d.card.name} (${d.type}, priority: ${d.priority})`));
+        
+        if (purchaseDecisions.length === 0) {
+            console.log(`🛍️ ${player.monster.name} decided not to buy any cards`);
+            this.showSimpleCPUNotification(player, `🛍️ ${player.monster.name} chooses not to buy cards`);
+            setTimeout(() => this.endCPUTurn(player), this.getCPUThinkingTime('cardDecision'));
+            return;
+        }
+        
+        // Execute purchases in priority order
+        this.executeCPUPowerCardPurchases(player, purchaseDecisions, 0);
+    }
+
+    // Execute CPU power card purchases one by one
+    executeCPUPowerCardPurchases(player, purchaseDecisions, currentIndex) {
+        if (currentIndex >= purchaseDecisions.length) {
+            console.log(`🛍️ ${player.monster.name} finished all power card purchases`);
+            this.endCPUTurn(player);
+            return;
+        }
+        
+        const decision = purchaseDecisions[currentIndex];
+        const card = decision.card;
+        
+        // Check if player still has enough energy
+        if (player.energy < card.cost) {
+            console.log(`🛍️ ${player.monster.name} no longer has enough energy for ${card.name} (need ${card.cost}, have ${player.energy})`);
+            this.endCPUTurn(player);
+            return;
+        }
+        
+        // Show strategic thought about this purchase
+        const thoughtType = decision.type === 'defensive' ? 'defensive' : 'strategic';
+        this.showCPUThoughtBubble(player, thoughtType, decision.reason);
+        
+        console.log(`🛍️ ${player.monster.name} buying ${card.name} for ${decision.type} reasons: ${decision.reason}`);
+        this.showSimpleCPUNotification(player, `🛍️ ${player.monster.name} buying ${card.name} (${decision.type})`);
+        
+        setTimeout(() => {
+            // Execute the purchase
+            const result = this.game.buyCard(player.id, card.id);
+            
+            if (result.success) {
+                console.log(`✅ ${player.monster.name} successfully bought ${card.name}`);
+                // Update UI to reflect the purchase
+                this.updateCardsDisplay();
+                this.updatePlayerDisplay(player);
+                
+                // Wait a moment then continue to next purchase
+                setTimeout(() => {
+                    this.executeCPUPowerCardPurchases(player, purchaseDecisions, currentIndex + 1);
+                }, this.getCPUThinkingTime('purchaseDelay'));
+            } else {
+                console.log(`❌ ${player.monster.name} failed to buy ${card.name}: ${result.error}`);
+                this.endCPUTurn(player);
+            }
+        }, this.getCPUThinkingTime('purchaseDecision'));
+    }
+
+    // End CPU turn after power card phase
+    endCPUTurn(player) {
+        console.log(`🔄 ${player.monster.name} ending turn after power card phase`);
+        this.showSimpleCPUNotification(player, `✅ ${player.monster.name} ending turn...`);
+        
+        setTimeout(() => {
+            this.game.endTurn();
+        }, this.getCPUThinkingTime('endTurn'));
     }
 
     // Roll-off UI methods with sportscast commentary
