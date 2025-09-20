@@ -703,7 +703,8 @@ class KingOfTokyoUI {
                     const playerDashboard = e.target.closest('.player-dashboard');
                     if (playerDashboard) {
                         const playerId = playerDashboard.dataset.playerId;
-                        const player = this.game.getPlayerById(playerId);
+                        // Find player by ID in the players array
+                        const player = this.game.players.find(p => p.id === playerId);
                         if (player) {
                             this.openMonsterProfileModal(player);
                         }
@@ -948,18 +949,18 @@ class KingOfTokyoUI {
             // Log setup actions in proper sequence using storage-enabled logging
             // 1. Log player selection with monster details as a main entry
             const monsterNames = this.selectedMonsters.map(monster => monster.name).join(', ');
-            await this.game.logSetupActionWithStorage(`👥 ${this.currentPlayerCount} players selected`, 'setup');
+            await this.game.logSetupAction(`👥 ${this.currentPlayerCount} players selected`, 'setup');
             
             // 1a. Log individual monster selections as follow-up entries with player types
             for (let i = 0; i < this.selectedMonsters.length; i++) {
                 const monster = this.selectedMonsters[i];
                 const playerTile = this.playerTiles[i];
                 const playerTypeIcon = playerTile.type === 'human' ? '👤' : '🤖';
-                await this.game.logSetupActionWithStorage(`    ├─ Player ${i + 1}: ${monster.name} (${playerTypeIcon} ${playerTile.type.toUpperCase()})`, 'monster-selection');
+                await this.game.logSetupAction(`    ├─ Player ${i + 1}: ${monster.name} (${playerTypeIcon} ${playerTile.type.toUpperCase()})`, 'monster-selection');
             }
             
             // 2. Log game start
-            await this.game.logSetupActionWithStorage('🎯 Starting new King of Tokyo game!', 'game-start');
+            await this.game.logSetupAction('🎯 Starting new King of Tokyo game!', 'game-start');
             
             // Prepare player types array
             const playerTypes = this.playerTiles.map(tile => tile.type);
@@ -7846,7 +7847,7 @@ class KingOfTokyoUI {
             return;
         }
         
-        // Extract monsters and player types from DOM
+        // Extract monsters and player types from DOM and original data
         const selectedMonsters = [];
         const playerTypes = [];
         
@@ -7868,8 +7869,8 @@ class KingOfTokyoUI {
             
             selectedMonsters.push(monster);
             
-            // Get player type (defaulting to human if not available)
-            const playerType = (this.playerTypes && this.playerTypes[index]) || 'human';
+            // Get player type from playerTiles (same as normal rolloff flow)
+            const playerType = (this.playerTiles && this.playerTiles[index] && this.playerTiles[index].type) || 'human';
             playerTypes.push(playerType);
         });
         
@@ -7908,7 +7909,8 @@ class KingOfTokyoUI {
         const reorderedData = this.game.reorderPlayersForFirstPlayer(this.selectedMonsters, this.playerTypes, rollOffWinner.index);
         
         // Initialize the game with the reordered data
-        const result = this.game.initializeGame(reorderedData.monsters, reorderedData.playerTypes);
+        const playerCount = reorderedData.selectedMonsters.length;
+        const result = await this.game.initializeGame(reorderedData.selectedMonsters, playerCount, reorderedData.playerTypes, 0);
         
         if (result.success) {
             // Show the game toolbar now that the game has started
@@ -7929,18 +7931,21 @@ class KingOfTokyoUI {
             }
             
             // Update the UI
-            this.updateGameUI(result.gameState);
             this.updateDiceControls();
             this.updateGameDisplay();
+            
+            // Show the dice area and restore action menu now that the game is starting
+            const diceArea = this.elements.diceArea;
+            if (diceArea && diceArea.classList.contains('hidden-until-game-start')) {
+                diceArea.classList.remove('hidden-until-game-start');
+            }
+            
+            // Restore action menu from rolloff state
+            this.restoreNormalActionStates();
             
             // Log who goes first (after game initialization so we know the starting player)
             const currentPlayer = this.game.getCurrentPlayer();
             if (currentPlayer) {
-                const logMessage = rollOffWinner.isSkipped 
-                    ? `🎲 Player order randomly assigned! ${currentPlayer.monster.name} goes first.`
-                    : `🎲 Roll-off complete! ${currentPlayer.monster.name} goes first with ${rollOffWinner.attacks} attacks.`;
-                this.logGameEvent('game', logMessage);
-                
                 UIUtilities.showMessage(rollOffWinner.isSkipped 
                     ? `Random order! ${currentPlayer.monster.name} goes first!` 
                     : `${currentPlayer.monster.name} goes first!`, 3000, this.elements);
@@ -8215,41 +8220,101 @@ class KingOfTokyoUI {
 
     // Open monster profile modal for a specific player
     openMonsterProfileModal(player) {
-        console.log('🐾 Opening monster profile modal for:', player.monster.name);
+        console.log('🐾 Opening individual monster profile modal for:', player.monster.name);
         
-        // Update the modal title to show it's for a specific player
-        const modalHeader = this.elements.monsterProfilesModal.querySelector('.modal-header h2');
-        if (modalHeader) {
-            modalHeader.textContent = `👹 ${player.monster.name} Profile`;
-        }
+        // Create a unique modal for this specific monster by cloning the template
+        const individualModal = this.createIndividualMonsterProfileModal(player);
         
-        // Update the profiles grid to show only this player's monster
-        const profilesGrid = this.elements.monsterProfilesModal.querySelector('#monster-profiles-grid');
-        if (profilesGrid) {
-            // Use similar structure to the setupManager's generateMonsterProfilesGrid
-            const monster = player.monster;
-            const currentProfile = this.setupManager.monsterProfiles[monster.id] || monster.personality;
-            
-            profilesGrid.innerHTML = this.generateSingleMonsterProfileCard(monster, currentProfile);
-            
-            // Add event listeners for this specific profile
-            this.setupProfileSliders(monster.id, currentProfile, player);
-        }
-        
-        // Update the intro text
-        const profilesIntro = this.elements.monsterProfilesModal.querySelector('.profiles-intro p');
-        if (profilesIntro) {
-            profilesIntro.textContent = `Customize ${player.monster.name}'s personality traits. Changes take effect immediately.`;
-        }
-        
-        // Hide the reset and save buttons since this is for live editing
-        const resetBtn = this.elements.monsterProfilesModal.querySelector('#reset-profiles-btn');
-        const saveBtn = this.elements.monsterProfilesModal.querySelector('#save-profiles-btn');
-        if (resetBtn) resetBtn.style.display = 'none';
-        if (saveBtn) saveBtn.style.display = 'none';
+        // Append to body (as a proper modal)
+        document.body.appendChild(individualModal);
         
         // Show the modal
-        this.elements.monsterProfilesModal.classList.remove('hidden');
+        individualModal.classList.remove('hidden');
+        
+        // Set up event listeners for this modal
+        this.setupIndividualModalEventListeners(individualModal, player);
+    }
+    
+    // Create an individual monster profile modal by cloning the template
+    createIndividualMonsterProfileModal(player) {
+        const template = document.getElementById('individual-monster-profile-template');
+        const modal = template.cloneNode(true);
+        
+        // Give it a unique ID
+        modal.id = `monster-profile-${player.monster.id}-${Date.now()}`;
+        modal.classList.add('individual-monster-modal');
+        
+        // Update the modal title
+        const title = modal.querySelector('.monster-profile-title');
+        if (title) {
+            title.textContent = `👹 ${player.monster.name} Profile`;
+        }
+        
+        // Generate the profile card content using existing logic
+        const container = modal.querySelector('.individual-monster-profile-container');
+        if (container) {
+            const currentProfile = this.setupManager.monsterProfiles[player.monster.id] || player.monster.personality;
+            
+            // Use the existing profile card generation logic
+            container.innerHTML = this.generateSingleMonsterProfileCard(player.monster, currentProfile);
+            
+            // Set up sliders for this specific profile
+            this.setupProfileSliders(player.monster.id, currentProfile, player, modal);
+        }
+        
+        return modal;
+    }
+    
+    // Set up event listeners for an individual monster profile modal
+    setupIndividualModalEventListeners(modal, player) {
+        // Close button
+        const closeBtn = modal.querySelector('.monster-profile-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                this.closeIndividualMonsterProfileModal(modal);
+            });
+        }
+        
+        // Save button (for live editing)
+        const saveBtn = modal.querySelector('.monster-profile-save');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => {
+                console.log(`💾 Saving profile changes for ${player.monster.name}`);
+                // Profile changes are already applied via slider events
+                this.closeIndividualMonsterProfileModal(modal);
+            });
+        }
+        
+        // Click outside to close
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.closeIndividualMonsterProfileModal(modal);
+            }
+        });
+        
+        // ESC key to close
+        const escHandler = (e) => {
+            if (e.key === 'Escape') {
+                this.closeIndividualMonsterProfileModal(modal);
+                document.removeEventListener('keydown', escHandler);
+            }
+        };
+        document.addEventListener('keydown', escHandler);
+    }
+    
+    // Close and clean up an individual monster profile modal
+    closeIndividualMonsterProfileModal(modal) {
+        console.log('🐾 Closing individual monster profile modal');
+        
+        // Hide with animation
+        modal.classList.add('hidden');
+        
+        // Remove from DOM after animation
+        setTimeout(() => {
+            if (modal.parentNode) {
+                modal.parentNode.removeChild(modal);
+            }
+        }, 300); // Match modal transition duration
     }
     
     // Generate a single monster profile card
@@ -8328,8 +8393,10 @@ class KingOfTokyoUI {
     }
     
     // Setup sliders for a specific monster profile with live updates
-    setupProfileSliders(monsterId, currentProfile, player) {
-        const profileCard = this.elements.monsterProfilesModal.querySelector(`[data-monster-id="${monsterId}"]`);
+    setupProfileSliders(monsterId, currentProfile, player, modalContainer = null) {
+        // Use provided modal container or fallback to the main modal
+        const container = modalContainer || this.elements.monsterProfilesModal;
+        const profileCard = container.querySelector(`[data-monster-id="${monsterId}"]`);
         if (!profileCard) return;
         
         const sliders = profileCard.querySelectorAll('.trait-slider');

@@ -1095,73 +1095,108 @@ class SetupManager {
         grid.innerHTML = '';
 
         Object.values(MONSTERS).forEach(monster => {
-            const profileCard = document.createElement('div');
-            profileCard.className = 'monster-profile-card';
-            profileCard.style.borderColor = monster.color;
-            
             const profile = this.monsterProfiles[monster.id];
             
-            profileCard.innerHTML = `
-                <div class="monster-profile-header">
-                    <div class="monster-profile-avatar">
-                        <img src="${monster.image}" alt="${monster.name}" />
-                    </div>
-                    <div class="monster-profile-info">
-                        <h3>${monster.name}</h3>
-                        <p>${monster.description}</p>
-                    </div>
-                </div>
-                <div class="personality-traits">
-                    <div class="trait-container">
-                        <div class="trait-header">
-                            <span class="trait-label">🔥 Aggression</span>
-                            <span class="trait-value" data-trait="aggression">${profile.aggression}</span>
-                        </div>
-                        <div class="trait-slider-container">
-                            <input type="range" min="1" max="5" value="${profile.aggression}" 
-                                   class="trait-slider" data-monster="${monster.id}" data-trait="aggression">
-                            <div class="trait-bar">
-                                <span>Passive</span>
-                                <span>Aggressive</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="trait-container">
-                        <div class="trait-header">
-                            <span class="trait-label">🧠 Strategy</span>
-                            <span class="trait-value" data-trait="strategy">${profile.strategy}</span>
-                        </div>
-                        <div class="trait-slider-container">
-                            <input type="range" min="1" max="5" value="${profile.strategy}" 
-                                   class="trait-slider" data-monster="${monster.id}" data-trait="strategy">
-                            <div class="trait-bar">
-                                <span>Simple</span>
-                                <span>Strategic</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="trait-container">
-                        <div class="trait-header">
-                            <span class="trait-label">🎲 Risk Taking</span>
-                            <span class="trait-value" data-trait="risk">${profile.risk}</span>
-                        </div>
-                        <div class="trait-slider-container">
-                            <input type="range" min="1" max="5" value="${profile.risk}" 
-                                   class="trait-slider" data-monster="${monster.id}" data-trait="risk">
-                            <div class="trait-bar">
-                                <span>Cautious</span>
-                                <span>Reckless</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            grid.appendChild(profileCard);
+            // Use the shared profile card generation from GameUI
+            if (window.gameUI && window.gameUI.generateSingleMonsterProfileCard) {
+                const profileCardHTML = window.gameUI.generateSingleMonsterProfileCard(monster, profile);
+                
+                // Create a container div and set the HTML
+                const profileCardContainer = document.createElement('div');
+                profileCardContainer.innerHTML = profileCardHTML;
+                
+                // Extract the actual card element and append it
+                const profileCard = profileCardContainer.firstElementChild;
+                grid.appendChild(profileCard);
+            } else {
+                // Fallback to original implementation if GameUI is not available
+                console.warn('GameUI not available, using fallback profile card generation');
+                this.generateFallbackProfileCard(monster, profile, grid);
+            }
         });
 
         // Attach slider event listeners
         this.attachProfileSliderListeners();
+    }
+
+    // Fallback method for profile card generation if GameUI is not available
+    generateFallbackProfileCard(monster, profile, grid) {
+        const profileCard = document.createElement('div');
+        profileCard.className = 'monster-profile-card';
+        profileCard.style.borderColor = monster.color;
+        profileCard.setAttribute('data-monster-id', monster.id);
+        
+        profileCard.innerHTML = `
+            <div class="monster-profile-header">
+                <div class="monster-profile-avatar">
+                    <img src="${monster.image}" alt="${monster.name}" />
+                </div>
+                <div class="monster-profile-info">
+                    <h3>${monster.name}</h3>
+                    <p>${monster.description}</p>
+                </div>
+            </div>
+            <div class="personality-traits">
+                <div class="trait-container">
+                    <div class="trait-header">
+                        <span class="trait-label">🔥 Aggression</span>
+                        <span class="trait-value" data-trait-value="aggression">${profile.aggression}</span>
+                    </div>
+                    <div class="trait-slider-container">
+                        <input type="range" min="1" max="5" value="${profile.aggression}" step="0.1"
+                               class="trait-slider" data-monster="${monster.id}" data-trait="aggression">
+                        <div class="trait-bar">
+                            <span>Passive</span>
+                            <span>Aggressive</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="trait-container">
+                    <div class="trait-header">
+                        <span class="trait-label">🧠 Strategy</span>
+                        <span class="trait-value" data-trait-value="strategy">${profile.strategy}</span>
+                    </div>
+                    <div class="trait-slider-container">
+                        <input type="range" min="1" max="5" value="${profile.strategy}" step="0.1"
+                               class="trait-slider" data-monster="${monster.id}" data-trait="strategy">
+                        <div class="trait-bar">
+                            <span>Simple</span>
+                            <span>Strategic</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="trait-container">
+                    <div class="trait-header">
+                        <span class="trait-label">🎲 Risk Taking</span>
+                        <span class="trait-value" data-trait-value="risk">${profile.risk}</span>
+                    </div>
+                    <div class="trait-slider-container">
+                        <input type="range" min="1" max="5" value="${profile.risk}" step="0.1"
+                               class="trait-slider" data-monster="${monster.id}" data-trait="risk">
+                        <div class="trait-bar">
+                            <span>Cautious</span>
+                            <span>Risky</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="trait-container">
+                    <div class="trait-header">
+                        <span class="trait-label">💰 Economic Focus</span>
+                        <span class="trait-value" data-trait-value="economic">${profile.economic}</span>
+                    </div>
+                    <div class="trait-slider-container">
+                        <input type="range" min="1" max="5" value="${profile.economic}" step="0.1"
+                               class="trait-slider" data-monster="${monster.id}" data-trait="economic">
+                        <div class="trait-bar">
+                            <span>Ignores</span>
+                            <span>Focused</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        grid.appendChild(profileCard);
     }
 
     attachProfileSliderListeners() {
@@ -1170,14 +1205,18 @@ class SetupManager {
             slider.addEventListener('input', (e) => {
                 const monsterId = e.target.dataset.monster;
                 const trait = e.target.dataset.trait;
-                const value = parseInt(e.target.value);
+                const value = parseFloat(e.target.value);
                 
                 // Update the stored profile
                 this.monsterProfiles[monsterId][trait] = value;
                 
-                // Update the display value
-                const valueSpan = e.target.closest('.trait-container').querySelector(`[data-trait="${trait}"]`);
-                valueSpan.textContent = value;
+                // Update the display value - use data-trait-value attribute to match GameUI structure
+                const valueSpan = e.target.closest('.trait-container').querySelector(`[data-trait-value="${trait}"]`);
+                if (valueSpan) {
+                    valueSpan.textContent = value.toFixed(1);
+                }
+                
+                console.log(`🔧 Updated ${MONSTERS[monsterId].name}'s ${trait} to ${value}`);
             });
         });
     }
@@ -1190,8 +1229,11 @@ class SetupManager {
             const value = this.monsterProfiles[monsterId][trait];
             
             slider.value = value;
-            const valueSpan = slider.closest('.trait-container').querySelector(`[data-trait="${trait}"]`);
-            valueSpan.textContent = value;
+            // Use data-trait-value attribute to match GameUI structure
+            const valueSpan = slider.closest('.trait-container').querySelector(`[data-trait-value="${trait}"]`);
+            if (valueSpan) {
+                valueSpan.textContent = value.toFixed ? value.toFixed(1) : value;
+            }
         });
     }
 

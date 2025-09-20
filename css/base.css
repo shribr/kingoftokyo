@@ -32,6 +32,48 @@ button {
     outline: none;
 }
 
+/* Tokyo Base Button Class - Core styling for all Tokyo-themed buttons */
+.btn-tokyo-base {
+    font-family: 'Bangers', cursive;
+    font-size: 1.44em;
+    color: #fff; /* Default white text */
+    font-weight: bold;
+    letter-spacing: 2px;
+    text-shadow: 
+        -2px -2px 0 #000,
+        2px -2px 0 #000,
+        -2px 2px 0 #000,
+        2px 2px 0 #000,
+        4px 4px 8px rgba(0, 0, 0, 0.8);
+    white-space: nowrap;
+    padding: 9.6px 14.4px;
+    background: #666; /* Default gray background */
+    border: 4px solid #000;
+    border-radius: 0;
+    box-shadow: 
+        4px 4px 0px #000,
+        6px 6px 20px rgba(0, 0, 0, 0.4);
+    transform: perspective(400px) rotateX(2deg) rotateZ(-1.5deg) scale(1.0);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* Default hover effect */
+.btn-tokyo-base:hover {
+    transform: perspective(400px) rotateX(2deg) rotateZ(-1.5deg) scale(1.05);
+    box-shadow: 
+        6px 6px 0px #000,
+        8px 8px 25px rgba(0, 0, 0, 0.5);
+}
+
+/* Active/pressed effect */
+.btn-tokyo-base:active {
+    transform: perspective(400px) rotateX(2deg) rotateZ(-1.5deg) scale(0.98);
+    box-shadow: 
+        2px 2px 0px #000,
+        3px 3px 15px rgba(0, 0, 0, 0.3);
+}
+
 /* Utility Classes */
 .hidden {
     display: none !important;

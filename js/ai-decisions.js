@@ -1138,6 +1138,13 @@ class AIDecisionEngine {
         let value = 0;
         let reason = '';
 
+        // Tokyo Strategy Enhancement: Priority for protection cards
+        const tokyoProtectionValue = this.evaluateTokyoProtectionValue(card, player);
+        if (tokyoProtectionValue.value > 0) {
+            value += tokyoProtectionValue.value;
+            reason = tokyoProtectionValue.reason;
+        }
+
         // High VP players need victory cards
         if (player.victoryPoints >= 15 && this.isVictoryAcceleratorCard(card)) {
             value += 80;
@@ -1956,14 +1963,29 @@ class AIDecisionEngine {
         // Base probabilities for each face type
         switch(face) {
             case 'attack':
+                // Base attack probability
                 baseProbability = 0.6;
-                // Higher probability if there are threats
-                if (situation.threats && situation.threats.threats.length > 0) {
-                    baseProbability = 0.8;
-                }
-                // Lower for defensive personalities unless critical threat
-                if (personality === 'defensive' && !(situation.threats && situation.threats.hasCriticalThreat)) {
-                    baseProbability *= 0.7;
+                
+                // Complex Tokyo strategy evaluation
+                const tokyoStrategy = this.evaluateTokyoStrategy(situation.player, situation.opponents || [], personality);
+                
+                if (tokyoStrategy.avoidTokyo) {
+                    // Actively avoid attacking if strategy says to avoid Tokyo
+                    baseProbability = 0.2;
+                    console.log(`🏛️ TOKYO AVOIDANCE: Reducing attack probability to ${baseProbability} - ${tokyoStrategy.reason}`);
+                } else if (tokyoStrategy.targetTokyo) {
+                    // Actively seek to attack Tokyo player
+                    baseProbability = 0.9;
+                    console.log(`🏛️ TOKYO TARGETING: Increasing attack probability to ${baseProbability} - ${tokyoStrategy.reason}`);
+                } else {
+                    // Standard threat-based evaluation
+                    if (situation.threats && situation.threats.threats.length > 0) {
+                        baseProbability = 0.8;
+                    }
+                    // Lower for defensive personalities unless critical threat
+                    if (personality === 'defensive' && !(situation.threats && situation.threats.hasCriticalThreat)) {
+                        baseProbability *= 0.7;
+                    }
                 }
                 break;
                 
@@ -2044,11 +2066,35 @@ class AIDecisionEngine {
         if (face === 'two' && currentState.twos >= 2) return true;
         if (face === 'three' && currentState.threes >= 2) return true;
         
-        // For single number dice, use a lower threshold but don't completely reject
+        // For single number dice, apply much stricter logic
         if (face === 'one' || face === 'two' || face === 'three') {
-            // Consider keeping single numbers if we have good value elsewhere or high probability
-            const singleNumberThreshold = 0.3; // Lower threshold for number dice
-            return keepProbability >= singleNumberThreshold;
+            // Don't keep single number dice if we have pairs/triples of other numbers
+            const hasBetterCombination = (currentState.ones >= 2 && face !== 'one') ||
+                                       (currentState.twos >= 2 && face !== 'two') ||
+                                       (currentState.threes >= 2 && face !== 'three');
+            
+            if (hasBetterCombination) {
+                console.log(`❌ Not keeping single ${face} because we have better combinations:`, {
+                    ones: currentState.ones,
+                    twos: currentState.twos, 
+                    threes: currentState.threes,
+                    currentFace: face
+                });
+                return false;
+            }
+            
+            // Don't keep single number dice if we have multiple good non-number dice
+            const goodNonNumberDice = (currentState.attacks || 0) + (currentState.energy || 0) + (currentState.heal || 0);
+            if (goodNonNumberDice >= 2) {
+                console.log(`❌ Not keeping single ${face} because we have ${goodNonNumberDice} good non-number dice (attack/energy/heal)`);
+                return false;
+            }
+            
+            // For single number dice, require a much higher threshold unless it's desperate
+            const singleNumberThreshold = goodNonNumberDice >= 1 ? 0.85 : 0.7; // Even higher if we have any good dice
+            const shouldKeep = keepProbability >= singleNumberThreshold;
+            console.log(`🎲 Single ${face} decision: probability=${keepProbability.toFixed(2)}, threshold=${singleNumberThreshold}, goodNonNumber=${goodNonNumberDice}, keeping=${shouldKeep}`);
+            return shouldKeep;
         }
         
         // Always keep if probability is very high (for non-single number dice)
@@ -2085,8 +2131,22 @@ class AIDecisionEngine {
         const totalValue = diceEvaluations.reduce((sum, dice) => sum + dice.strategicValue, 0);
         const currentValue = probabilities.currentState.victoryPoints + probabilities.currentState.hearts + probabilities.currentState.energy + probabilities.currentState.attacks;
         
-        // Enhanced stopping conditions
-        if (totalValue >= 80 || currentValue >= 6) {
+        console.log('🔍 DEBUG: Strategic values - total:', totalValue, 'current:', currentValue, 'dice count:', diceEvaluations.length);
+        
+        // CRITICAL: Check if we have incomplete number combinations that need the third dice
+        const incompleteCombos = this.checkIncompleteNumberCombinations(probabilities.currentState, rollsRemaining);
+        if (incompleteCombos.shouldContinue && rollsRemaining > 0) {
+            console.log('🎯 INCOMPLETE COMBO: Must continue rolling -', incompleteCombos.reason);
+            return {
+                action: 'reroll',
+                keepDice: diceEvaluations.map(d => d.index),
+                reason: incompleteCombos.reason,
+                confidence: 0.9
+            };
+        }
+        
+        // Enhanced stopping conditions - increased thresholds to account for enhanced values
+        if (totalValue >= 150 || currentValue >= 8) {
             return {
                 action: 'stop',
                 keepDice: diceEvaluations.map(d => d.index),
@@ -2144,6 +2204,245 @@ class AIDecisionEngine {
         }
         
         return Math.max(1, Math.min(5, riskLevel));
+    }
+
+    // Check for incomplete number combinations that require the third dice
+    checkIncompleteNumberCombinations(currentState, rollsRemaining) {
+        // Only check if we have rolls remaining
+        if (rollsRemaining <= 0) {
+            return { shouldContinue: false, reason: 'No rolls remaining' };
+        }
+
+        // Check each number type for incomplete combinations
+        const incompleteCombos = [];
+        
+        if (currentState.ones === 2) {
+            incompleteCombos.push({
+                type: 'ones',
+                count: 2,
+                vpValue: 1,
+                reason: 'Need third 1 for VP (pair of 1s is worthless without the third)'
+            });
+        }
+        
+        if (currentState.twos === 2) {
+            incompleteCombos.push({
+                type: 'twos', 
+                count: 2,
+                vpValue: 2,
+                reason: 'Need third 2 for VP (pair of 2s is worthless without the third)'
+            });
+        }
+        
+        if (currentState.threes === 2) {
+            incompleteCombos.push({
+                type: 'threes',
+                count: 2, 
+                vpValue: 3,
+                reason: 'Need third 3 for VP (pair of 3s is worthless without the third)'
+            });
+        }
+
+        // If we have any incomplete combos, we should continue rolling
+        if (incompleteCombos.length > 0) {
+            // Prioritize the highest value incomplete combo
+            const bestCombo = incompleteCombos.reduce((best, current) => 
+                current.vpValue > best.vpValue ? current : best
+            );
+            
+            return {
+                shouldContinue: true,
+                reason: `${bestCombo.reason} - potential ${bestCombo.vpValue} VP`,
+                combo: bestCombo
+            };
+        }
+
+        return { shouldContinue: false, reason: 'No incomplete number combinations' };
+    }
+
+    // Evaluate complex Tokyo entry/attack strategy based on health and personality
+    evaluateTokyoStrategy(player, opponents, personality) {
+        // Find who's in Tokyo currently
+        const tokyoPlayer = opponents.find(opp => opp.isInTokyo);
+        const myHealth = player.health || 10;
+        const maxHealth = player.maxHealth || 10;
+        
+        // Default strategy
+        let strategy = {
+            avoidTokyo: false,
+            targetTokyo: false,
+            reason: 'Standard attack evaluation'
+        };
+
+        if (!tokyoPlayer) {
+            // No one in Tokyo - normal attack evaluation
+            return strategy;
+        }
+
+        const tokyoHealth = tokyoPlayer.health || 10;
+        const tokyoMaxHealth = tokyoPlayer.maxHealth || 10;
+        
+        // Get personality traits with defaults
+        const aggression = personality?.aggression || 3;
+        const strategy_trait = personality?.strategy || 3;
+        const risk = personality?.risk || 3;
+        
+        console.log(`🏛️ TOKYO STRATEGY: My health ${myHealth}/${maxHealth}, Tokyo player health ${tokyoHealth}/${tokyoMaxHealth}`);
+        console.log(`🏛️ PERSONALITY: Aggression ${aggression}, Strategy ${strategy_trait}, Risk ${risk}`);
+        
+        // Critical health thresholds
+        const myHealthLow = myHealth <= 3;
+        const tokyoHealthLow = tokyoHealth <= 3;
+        const myHealthCritical = myHealth <= 2;
+        const tokyoHealthCritical = tokyoHealth <= 2;
+        
+        // Check for protective power cards (like Jets)
+        const hasTokyoProtection = this.hasTokyoProtectionCards(player);
+        console.log(`🏛️ PROTECTION: Has Tokyo protection cards: ${hasTokyoProtection}`);
+        
+        // AVOID TOKYO scenarios
+        if (myHealthCritical && !hasTokyoProtection) {
+            // Critical health - avoid Tokyo at all costs unless very aggressive
+            if (aggression < 4) {
+                return {
+                    avoidTokyo: true,
+                    targetTokyo: false,
+                    reason: `Critical health (${myHealth}) - avoiding Tokyo entry unless very aggressive`
+                };
+            }
+        }
+        
+        if (myHealthLow && !tokyoHealthCritical && !hasTokyoProtection) {
+            // Low health, but Tokyo player is healthy - consider personality
+            if (risk <= 2) {
+                // Risk-averse - avoid Tokyo
+                return {
+                    avoidTokyo: true,
+                    targetTokyo: false,
+                    reason: `Low health (${myHealth}) + risk-averse personality - avoiding Tokyo`
+                };
+            } else if (strategy_trait >= 4) {
+                // Strategic - look for protection cards instead
+                return {
+                    avoidTokyo: true,
+                    targetTokyo: false,
+                    reason: `Strategic personality seeking protection cards before Tokyo entry`
+                };
+            }
+        }
+        
+        // TARGET TOKYO scenarios
+        if (tokyoHealthCritical && myHealth > tokyoHealth) {
+            // Tokyo player is critically low and we're healthier
+            if (aggression >= 3 || risk >= 4) {
+                return {
+                    avoidTokyo: false,
+                    targetTokyo: true,
+                    reason: `Tokyo player critical (${tokyoHealth}) - going for elimination even with health risk`
+                };
+            }
+        }
+        
+        if (tokyoHealthLow && myHealth >= (tokyoHealth + 2)) {
+            // We have significantly more health than Tokyo player
+            return {
+                avoidTokyo: false,
+                targetTokyo: true,
+                reason: `Health advantage (${myHealth} vs ${tokyoHealth}) - targeting Tokyo player`
+            };
+        }
+        
+        if (hasTokyoProtection && tokyoHealthLow) {
+            // We have protection and Tokyo player is vulnerable
+            return {
+                avoidTokyo: false,
+                targetTokyo: true,
+                reason: `Have Tokyo protection + Tokyo player low health (${tokyoHealth}) - safe to attack`
+            };
+        }
+        
+        // High aggression personalities attack more regardless
+        if (aggression >= 4 && myHealth >= 4) {
+            return {
+                avoidTokyo: false,
+                targetTokyo: true,
+                reason: `High aggression (${aggression}) + adequate health (${myHealth}) - attacking`
+            };
+        }
+        
+        return strategy;
+    }
+
+    // Check if player has cards that provide Tokyo protection
+    hasTokyoProtectionCards(player) {
+        if (!player.powerCards) return false;
+        
+        const protectionCards = [
+            'Jets', // Classic Tokyo protection
+            'Armor Plating', // Damage reduction
+            'Healing Ray', // Heal while in Tokyo
+            'Force Field', // Damage prevention
+            'Regeneration' // Ongoing healing
+        ];
+        
+        return player.powerCards.some(card => 
+            protectionCards.includes(card.name)
+        );
+    }
+
+    // Evaluate the value of Tokyo protection cards based on strategy and health
+    evaluateTokyoProtectionValue(card, player) {
+        const personality = player.monster.personality;
+        const strategy_trait = personality?.strategy || 3;
+        const aggression = personality?.aggression || 3;
+        const myHealth = player.health || 10;
+        
+        // Tokyo protection cards
+        const protectionCards = {
+            'Jets': { value: 70, reason: 'Jets provides excellent Tokyo protection' },
+            'Armor Plating': { value: 50, reason: 'Armor Plating reduces Tokyo damage' },
+            'Healing Ray': { value: 45, reason: 'Healing Ray allows healing in Tokyo' },
+            'Force Field': { value: 55, reason: 'Force Field prevents Tokyo damage' },
+            'Regeneration': { value: 40, reason: 'Regeneration provides ongoing healing' }
+        };
+        
+        if (!protectionCards[card.name]) {
+            return { value: 0, reason: '' };
+        }
+        
+        let value = protectionCards[card.name].value;
+        let reason = protectionCards[card.name].reason;
+        
+        // Strategic personalities value protection more highly
+        if (strategy_trait >= 4) {
+            value *= 1.5;
+            reason += ' - strategic personality prioritizes protection';
+        }
+        
+        // Low health players value protection extremely highly
+        if (myHealth <= 3) {
+            value *= 2.0;
+            reason += ` - critical with low health (${myHealth})`;
+        } else if (myHealth <= 5) {
+            value *= 1.3;
+            reason += ` - important with moderate health (${myHealth})`;
+        }
+        
+        // Aggressive personalities still value protection but less so
+        if (aggression >= 4 && myHealth > 5) {
+            value *= 0.8;
+            reason += ' - aggressive personality but still values protection';
+        }
+        
+        // If we already have protection, value diminishes
+        if (this.hasTokyoProtectionCards(player)) {
+            value *= 0.4;
+            reason += ' - already have Tokyo protection';
+        }
+        
+        console.log(`🏛️ TOKYO PROTECTION: ${card.name} valued at ${value} - ${reason}`);
+        
+        return { value: Math.round(value), reason };
     }
 
     // ===== DICE MANIPULATION CARD ANALYSIS =====

@@ -2862,31 +2862,6 @@ class KingOfTokyoGame {
         this.triggerEvent('logUpdated', { logTree: this.gameLogTree });
     }
 
-    // Log a setup action with persistence
-    async logSetupActionWithStorage(action, category = 'setup') {
-        // Use the existing logSetupAction for UI
-        this.logSetupAction(action, category);
-        
-        // Also save to persistent storage
-        if (this.storageManager) {
-            const logEntry = {
-                id: `setup_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                timestamp: new Date().toISOString(),
-                action,
-                category,
-                playerId: null,
-                round: 'Setup',
-                phase: 'setup'
-            };
-
-            try {
-                await this.storageManager.saveLogEntry(this.gameId, logEntry);
-            } catch (error) {
-                console.warn('Failed to save setup log entry to storage:', error);
-            }
-        }
-    }
-
     // Chunk and compress logs to manage memory
     async chunkAndCompressLogs() {
         if (!this.storageManager) return;
