@@ -191,3 +191,41 @@ body.dark-mode .log-entry {
     background: rgba(255, 255, 255, 0.05) !important;
     color: #e0e0e0;
 }
+
+/* Cursor Fix - Ensure all interactive elements have pointer cursor */
+button,
+.btn,
+.toolbar-btn,
+.clickable,
+[role="button"],
+[onclick],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+input[type="checkbox"],
+input[type="radio"],
+select,
+a,
+.monster-card,
+.die:not(.disabled),
+.power-card:not(.disabled),
+.dropdown-selected,
+.dropdown-option,
+.modal-header .close-btn,
+.close-btn,
+.settings-gear-icon,
+.tab-btn,
+.radio-option,
+.player-tile,
+.polaroid {
+    cursor: pointer !important;
+}
+
+/* Ensure disabled elements don't have pointer cursor */
+button:disabled,
+.btn:disabled,
+.die.disabled,
+.power-card.disabled,
+input:disabled {
+    cursor: default !important;
+}

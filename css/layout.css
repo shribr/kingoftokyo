@@ -125,7 +125,7 @@ body::before {
     font-family: 'Bangers', cursive;
     font-size: 2em;
     font-weight: bold;
-    color: white;
+    color: #FFD700; /* Changed from white to yellow */
     text-shadow: 
         -2px -2px 0 #000,
         2px -2px 0 #000,

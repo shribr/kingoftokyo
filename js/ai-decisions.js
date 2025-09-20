@@ -1837,8 +1837,19 @@ class AIDecisionEngine {
         
         console.log('🎲 DEBUG: Evaluating dice:', currentDice, 'Current state:', probabilities.currentState);
         
+        // Pre-analyze potential number combinations to boost their value
+        const numberComboPotential = this.analyzeNumberCombinations(currentDice);
+        console.log('🎯 DEBUG: Number combination potential:', numberComboPotential);
+        
         currentDice.forEach((face, index) => {
-            let keepProbability = this.getDiceKeepProbability(face, situation, personality);
+            let keepProbability = this.getDiceKeepProbability(face, situation, personality, probabilities.currentState);
+            
+            // Apply combination bonuses for number dice
+            if (numberComboPotential[face] && numberComboPotential[face].count >= 2) {
+                const bonusMultiplier = numberComboPotential[face].count >= 3 ? 3.0 : 2.0;
+                keepProbability *= bonusMultiplier;
+                console.log(`🎯 COMBO BONUS: Boosting ${face} probability by ${bonusMultiplier}x to`, keepProbability, 'due to', numberComboPotential[face].count, 'available');
+            }
             
             // Apply extra dice bonus to keep probability
             keepProbability *= (1 + probabilities.extraDiceBonus);
@@ -1853,7 +1864,7 @@ class AIDecisionEngine {
                     face, 
                     index, 
                     probability: keepProbability,
-                    strategicValue: this.calculateDiceStrategicValue(face, situation, probabilities)
+                    strategicValue: this.calculateDiceStrategicValue(face, situation, probabilities, numberComboPotential)
                 });
             }
         });
@@ -1862,7 +1873,34 @@ class AIDecisionEngine {
         return diceToKeep;
     }
 
-    calculateDiceStrategicValue(face, situation, probabilities) {
+    // Analyze potential number combinations in current dice
+    analyzeNumberCombinations(currentDice) {
+        const counts = { one: 0, two: 0, three: 0 };
+        
+        // Count each number type
+        currentDice.forEach(face => {
+            if (face === 'one' || face === 'two' || face === 'three') {
+                counts[face]++;
+            }
+        });
+        
+        // Return potential for each number type
+        const potential = {};
+        Object.keys(counts).forEach(numberType => {
+            if (counts[numberType] > 0) {
+                potential[numberType] = {
+                    count: counts[numberType],
+                    isPair: counts[numberType] >= 2,
+                    isTriple: counts[numberType] >= 3,
+                    potential: counts[numberType] >= 2 ? 'high' : 'low'
+                };
+            }
+        });
+        
+        return potential;
+    }
+
+    calculateDiceStrategicValue(face, situation, probabilities, numberComboPotential = {}) {
         let value = 0;
         
         // Base strategic value
@@ -1877,19 +1915,34 @@ class AIDecisionEngine {
                 value = situation.player.isInTokyo ? 20 : 15;
                 break;
             case 'one':
-                // Only valuable if we have multiples or very close to completing a set
-                value = probabilities.currentState.ones >= 2 ? 35 : 
-                       (probabilities.currentState.ones === 1 ? 5 : 2);
+                // Use combination potential if available, otherwise fall back to current state
+                if (numberComboPotential[face]) {
+                    const count = numberComboPotential[face].count;
+                    value = count >= 3 ? 80 : (count >= 2 ? 50 : 8);
+                } else {
+                    value = probabilities.currentState.ones >= 2 ? 35 : 
+                           (probabilities.currentState.ones === 1 ? 5 : 2);
+                }
                 break;
             case 'two':
-                // Only valuable if we have multiples or very close to completing a set
-                value = probabilities.currentState.twos >= 2 ? 40 : 
-                       (probabilities.currentState.twos === 1 ? 8 : 3);
+                // Use combination potential if available, otherwise fall back to current state  
+                if (numberComboPotential[face]) {
+                    const count = numberComboPotential[face].count;
+                    value = count >= 3 ? 90 : (count >= 2 ? 60 : 12);
+                } else {
+                    value = probabilities.currentState.twos >= 2 ? 40 : 
+                           (probabilities.currentState.twos === 1 ? 8 : 3);
+                }
                 break;
             case 'three':
-                // Only valuable if we have multiples or very close to completing a set
-                value = probabilities.currentState.threes >= 2 ? 45 : 
-                       (probabilities.currentState.threes === 1 ? 12 : 5);
+                // Use combination potential if available, otherwise fall back to current state
+                if (numberComboPotential[face]) {
+                    const count = numberComboPotential[face].count;
+                    value = count >= 3 ? 100 : (count >= 2 ? 70 : 15);
+                } else {
+                    value = probabilities.currentState.threes >= 2 ? 45 : 
+                           (probabilities.currentState.threes === 1 ? 12 : 5);
+                }
                 break;
         }
         
@@ -1897,7 +1950,7 @@ class AIDecisionEngine {
     }
 
     // Calculate the probability of keeping a specific dice face
-    getDiceKeepProbability(face, situation, personality) {
+    getDiceKeepProbability(face, situation, personality, currentState) {
         let baseProbability = 0.5; // Default 50% chance to keep
         
         // Base probabilities for each face type
@@ -1939,8 +1992,8 @@ class AIDecisionEngine {
             case 'one':
                 baseProbability = 0.5;
                 // Higher probability if already have some 1s for combinations
-                if (situation.currentDice) {
-                    const oneCount = situation.currentDice.filter(d => d === '1' || d === 'one').length;
+                if (currentState) {
+                    const oneCount = currentState.ones || 0;
                     if (oneCount >= 2) baseProbability = 0.9; // Keep for triple
                     else if (oneCount === 1) baseProbability = 0.6; // Keep for potential pair
                 }
@@ -1949,8 +2002,8 @@ class AIDecisionEngine {
             case '2':
             case 'two':
                 baseProbability = 0.6;
-                if (situation.currentDice) {
-                    const twoCount = situation.currentDice.filter(d => d === '2' || d === 'two').length;
+                if (currentState) {
+                    const twoCount = currentState.twos || 0;
                     if (twoCount >= 2) baseProbability = 0.9;
                     else if (twoCount === 1) baseProbability = 0.7;
                 }
@@ -1959,8 +2012,8 @@ class AIDecisionEngine {
             case '3':
             case 'three':
                 baseProbability = 0.7;
-                if (situation.currentDice) {
-                    const threeCount = situation.currentDice.filter(d => d === '3' || d === 'three').length;
+                if (currentState) {
+                    const threeCount = currentState.threes || 0;
                     if (threeCount >= 2) baseProbability = 0.9;
                     else if (threeCount === 1) baseProbability = 0.8;
                 }
@@ -1986,17 +2039,16 @@ class AIDecisionEngine {
     }
 
     shouldKeepDiceEnhanced(face, keepProbability, currentState) {
-        // Special logic for number combinations - only keep if we already have multiples
+        // Special logic for number combinations - keep if we already have multiples
         if (face === 'one' && currentState.ones >= 2) return true;
         if (face === 'two' && currentState.twos >= 2) return true;
         if (face === 'three' && currentState.threes >= 2) return true;
         
-        // Don't keep single number dice regardless of probability
-        if ((face === 'one' || face === 'two' || face === 'three') && 
-            ((face === 'one' && currentState.ones < 2) ||
-             (face === 'two' && currentState.twos < 2) ||
-             (face === 'three' && currentState.threes < 2))) {
-            return false;
+        // For single number dice, use a lower threshold but don't completely reject
+        if (face === 'one' || face === 'two' || face === 'three') {
+            // Consider keeping single numbers if we have good value elsewhere or high probability
+            const singleNumberThreshold = 0.3; // Lower threshold for number dice
+            return keepProbability >= singleNumberThreshold;
         }
         
         // Always keep if probability is very high (for non-single number dice)
@@ -2031,7 +2083,7 @@ class AIDecisionEngine {
         
         // Calculate total strategic value
         const totalValue = diceEvaluations.reduce((sum, dice) => sum + dice.strategicValue, 0);
-        const currentValue = probabilities.currentState.victoryPoints + probabilities.currentState.hearts + probabilities.currentState.energy;
+        const currentValue = probabilities.currentState.victoryPoints + probabilities.currentState.hearts + probabilities.currentState.energy + probabilities.currentState.attacks;
         
         // Enhanced stopping conditions
         if (totalValue >= 80 || currentValue >= 6) {
@@ -2044,14 +2096,14 @@ class AIDecisionEngine {
         }
         
         // Risk-adjusted continuation logic
-        let continueThreshold = risk >= 4 ? 1 : (risk <= 2 ? 3 : 2);
+        let continueThreshold = risk >= 4 ? 1 : (risk <= 2 ? 4 : 3);
         continueThreshold -= Math.floor(probabilities.extraDiceBonus * 10);
         
         if (diceEvaluations.length < continueThreshold && rollsRemaining > 0) {
             return {
                 action: 'reroll',
                 keepDice: diceEvaluations.map(d => d.index),
-                reason: `Continue with ${diceEvaluations.length} dice (enhanced threshold: ${continueThreshold})`,
+                reason: `Continue with ${diceEvaluations.length} dice (enhanced threshold: ${continueThreshold}, risk: ${risk})`,
                 confidence: 0.7
             };
         }

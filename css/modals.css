@@ -2939,6 +2939,78 @@ body:has(#decision-modal:not(.hidden)) .player-dashboard.active {
     color: #654321;
 }
 
+/* AI Mode Button State Indicator (for toolbar button, not settings toggle) */
+#ai-mode-btn .toolbar-icon {
+    position: relative;
+}
+
+#ai-mode-btn .ai-state-indicator {
+    position: absolute;
+    bottom: -4px;
+    right: -15px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 1px solid #000;
+    background: #E74C3C; /* Red for disabled */
+    opacity: 0.8;
+    transition: all 0.3s ease;
+}
+
+#ai-mode-btn .ai-state-indicator::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 6px;
+    height: 1px;
+    background: #fff;
+    transform: translate(-50%, -50%) rotate(45deg);
+    box-shadow: 0 0 0 1px #000;
+}
+
+#ai-mode-btn .ai-state-indicator::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 6px;
+    height: 1px;
+    background: #fff;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    box-shadow: 0 0 0 1px #000;
+}
+
+#ai-mode-btn.active .ai-state-indicator {
+    background: #27AE60; /* Green for enabled */
+}
+
+#ai-mode-btn.active .ai-state-indicator::before {
+    width: 3px;
+    height: 1px;
+    transform: translate(-25%, 10%) rotate(45deg);
+}
+
+#ai-mode-btn.active .ai-state-indicator::after {
+    width: 5px;
+    height: 1px;
+    transform: translate(-15%, -20%) rotate(-45deg);
+}
+
+#ai-mode-btn:hover {
+    background: linear-gradient(135deg, #F5DEB3 0%, #F4A460 100%);
+}
+
+#ai-mode-btn .toolbar-icon svg {
+    color: #8B4513;
+    transition: all 0.3s ease;
+}
+
+#ai-mode-btn.active .toolbar-icon svg {
+    color: #654321;
+}
+
 #ai-mode-toggle:hover .toolbar-icon svg {
     color: #654321;
 }
@@ -3533,6 +3605,40 @@ body:has(#decision-modal:not(.hidden)) .player-dashboard.active {
     display: inline-block !important;
     border: 2px solid #000 !important;
     box-shadow: 2px 2px 0px #000 !important;
+}
+
+/* AI Logic Flow dice containers - make dice display horizontally within each section, but sections stack vertically */
+.ai-roll-dice {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 8px 0;
+}
+
+.ai-kept-dice,
+.dice-outcome,
+.dice-kept {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin: 4px 0;
+}
+
+.ai-roll-dice .die,
+.ai-kept-dice .die,
+.dice-outcome .die,
+.dice-kept .die {
+    margin: 0 !important; /* Remove individual margins since we're using gap */
+}
+
+/* Text in dice displays should be inline with dice */
+.dice-outcome strong,
+.dice-kept strong {
+    margin-right: 8px;
+    font-family: 'Bangers', cursive;
+    color: #FFD700;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
 }
 
 .probability-section {
@@ -6195,12 +6301,6 @@ body.dark-mode .quick-ref-item {
     align-items: center;
 }
 
-/* Bouncer font class for AI Logic Flow */
-.bouncer-font {
-    font-family: 'Bangers', cursive !important;
-    color: #000 !important;
-}
-
 /* AI Logic Flow Container Styles */
 .ai-turn-container {
     border: 2px solid #ccc;
@@ -6639,6 +6739,44 @@ body.dark-mode .quick-ref-item {
 .rolloff-actions {
     text-align: center;
     margin-top: 25px;
+    position: relative;
+}
+
+.rolloff-skip-link {
+    position: absolute;
+    bottom: -35px;
+    right: 8px;
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    font-size: 0.85rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.rolloff-skip-link:hover {
+    color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(255, 255, 255, 0.1);
+    text-decoration: underline;
+}
+
+.rolloff-skip-link .info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    background: white;
+    color: black;
+    border-radius: 50%;
+    font-size: 10px;
+    font-weight: bold;
+    font-style: normal;
+    line-height: 1;
+    border: 1px solid #ccc;
 }
 
 

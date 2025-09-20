@@ -695,6 +695,23 @@ class KingOfTokyoUI {
         UIUtilities.safeAddEventListener(this.elements.aiModeToggle, 'change', 
             () => this.toggleAIMode(), 'AI mode toggle not found');
 
+        // Monster avatar click handler for profile modal
+        if (this.elements.playersContainer) {
+            this.elements.playersContainer.addEventListener('click', (e) => {
+                // Check if clicked element is a monster avatar image
+                if (e.target.classList.contains('monster-avatar-image')) {
+                    const playerDashboard = e.target.closest('.player-dashboard');
+                    if (playerDashboard) {
+                        const playerId = playerDashboard.dataset.playerId;
+                        const player = this.game.getPlayerById(playerId);
+                        if (player) {
+                            this.openMonsterProfileModal(player);
+                        }
+                    }
+                }
+            });
+        }
+
         // Close modals when clicking outside using UIUtilities
         UIUtilities.safeAddEventListener(this.elements.gameLogModal, 'click', 
             UIUtilities.createModalClickOutsideHandler(this.elements.gameLogModal));
@@ -968,82 +985,8 @@ class KingOfTokyoUI {
                 throw new Error('Roll-off failed to determine a winner');
             }
             
-            // Reorder players so winner becomes Player 1
-            window.UI && window.UI._debug && window.UI._debug('🔍 DEBUG: Before reordering - rollOffWinner.index:', rollOffWinner.index);
-            console.log('🔍 DEBUG: Before reordering - selectedMonsters:', this.selectedMonsters.map((m, i) => `${i}: ${m.name}`));
-            console.log('🔍 DEBUG: Before reordering - playerTypes:', playerTypes);
-            
-            const reorderedData = this.game.reorderPlayersForFirstPlayer(this.selectedMonsters, playerTypes, rollOffWinner.index);
-            const finalMonsters = reorderedData.selectedMonsters;
-            const finalPlayerTypes = reorderedData.playerTypes;
-            
-            console.log('🔍 DEBUG: After reordering - finalMonsters:', finalMonsters.map((m, i) => `${i}: ${m.name}`));
-            console.log('🔍 DEBUG: After reordering - finalPlayerTypes:', finalPlayerTypes);
-            
-            // Initialize game with reordered players (winner is now index 0)
-            console.log('About to initialize game with reordered monsters and player types:', finalMonsters, finalPlayerTypes);
-            const result = await this.game.initializeGame(finalMonsters, this.currentPlayerCount, finalPlayerTypes, 0);
-            console.log('Game initialization result:', result);
-            
-            // 3. Log who goes first (after game initialization so we know the randomized starting player)
-            if (result.success) {
-                console.log('🔍 DEBUG: Game initialization successful');
-                console.log('🔍 DEBUG: result.currentPlayer:', result.currentPlayer.monster.name, 'ID:', result.currentPlayer.id, 'Type:', result.currentPlayer.playerType);
-                console.log('🔍 DEBUG: All players after init:', this.game.players.map(p => `${p.monster.name} (ID: ${p.id}, Type: ${p.playerType})`));
-                await this.game.logSetupActionWithStorage(`🎲 ${result.currentPlayer.monster.name} goes first!`, 'ready-to-start');
-            }
-            
-            if (result.success) {
-                // Setup modal already hidden before roll-off
-                
-                // Show the game toolbar now that the game has started
-                const gameToolbar = document.getElementById('game-toolbar');
-                if (gameToolbar) {
-                    gameToolbar.classList.add('show');
-                }
-                
-                // Add player count class to game board for CSS styling
-                const gameBoard = document.querySelector('.game-board');
-                if (gameBoard) {
-                    gameBoard.className = 'game-board'; // Reset classes
-                    if (this.currentPlayerCount === 5) {
-                        gameBoard.classList.add('five-players');
-                    } else if (this.currentPlayerCount === 6) {
-                        gameBoard.classList.add('six-players');
-                    }
-                }
-                
-                // REMOVED: Automatic Tokyo entry at game start
-                // Players should only enter Tokyo when they END their turn, not at game start
-                // The original automatic Tokyo entry logic has been removed to fix the turn flow
-                
-                this.updateGameDisplay();
-                
-                UIUtilities.showMessage(`Game started! ${result.currentPlayer.monster.name} goes first!`, 3000, this.elements);
-                
-                // Check if the first player is CPU and start their turn immediately
-                setTimeout(() => {
-                    const firstPlayer = this.game.getCurrentPlayer();
-                    console.log('🔄 Post-initialization check - First player:', firstPlayer);
-                    if (firstPlayer && firstPlayer.playerType === 'cpu') {
-                        console.log('🤖 First player is CPU, starting turn immediately');
-                        this.startAutomaticCPUTurn(firstPlayer);
-                    } else if (firstPlayer) {
-                        console.log('👤 First player is human:', firstPlayer.monster.name);
-                    }
-                }, 1000); // Check after 1 second to let the UI settle
-                
-                // Log storage statistics
-                const stats = await this.game.getStorageStats();
-                if (stats) {
-                    console.log('📊 Storage Statistics:', stats);
-                }
-                
-                console.log('Game started successfully!');
-            } else {
-                console.error('Game initialization failed:', result);
-                alert('Failed to initialize game: ' + (result.error || 'Unknown error'));
-            }
+            // Use the same continuation logic as skip
+            await this.continueGameAfterRolloff(rollOffWinner);
         } catch (error) {
             console.error('Error starting game:', error);
             alert('Error starting game: ' + error.message);
@@ -4438,8 +4381,8 @@ class KingOfTokyoUI {
         turnContainer.innerHTML = `
             <div class="ai-turn-header">
                 <div class="ai-turn-title">
-                    <h3 class="bouncer-font">Round ${gameState.round}</h3>
-                    <div class="ai-turn-monster-name bouncer-font">${playerName}</div>
+                    <h3>Round ${gameState.round}</h3>
+                    <div class="ai-turn-monster-name">${playerName}</div>
                 </div>
                 <div class="ai-turn-player-info">
                     <div class="ai-player-stats">
@@ -4471,7 +4414,7 @@ class KingOfTokyoUI {
         if (rollNumber === 1) {
             rollEntry.innerHTML = `
                 <div class="ai-roll-header">
-                    <div class="ai-roll-title bouncer-font">
+                    <div class="ai-roll-title">
                         Initial Dice Results
                     </div>
                 </div>
@@ -4489,8 +4432,8 @@ class KingOfTokyoUI {
             rollEntry.innerHTML = `
                 <div class="ai-roll-header">
                     <div class="ai-roll-title">
-                        <span class="roll-number bouncer-font">Roll ${rollNumber}</span>
-                        <span class="roll-timestamp bouncer-font">${timestamp}</span>
+                        <span class="roll-number">Roll ${rollNumber}</span>
+                        <span class="roll-timestamp">${timestamp}</span>
                     </div>
                     <div class="ai-roll-action">
                         <span class="decision-badge ${decision.action}">
@@ -4501,12 +4444,12 @@ class KingOfTokyoUI {
                 
                 <div class="ai-roll-dice">
                     <div class="dice-outcome">
-                        <strong class="bouncer-font">Dice Results:</strong>
+                        <strong>Dice Results:</strong>
                         <div class="dice-outcome-container"></div>
                     </div>
                     ${decision.keepDice && decision.keepDice.length > 0 ? `
                         <div class="dice-kept">
-                            <strong class="bouncer-font">Keeping:</strong> 
+                            <strong>Keeping:</strong> 
                             <div class="dice-kept-container"></div>
                         </div>
                     ` : ''}
@@ -4530,22 +4473,22 @@ class KingOfTokyoUI {
                 
                 <div class="ai-roll-analysis">
                     <div class="ai-reasoning">
-                        <span class="ai-section-title bouncer-font">AI Reasoning: </span>
+                        <span class="ai-section-title">AI Reasoning: </span>
                         <span class="ai-reasoning-text">${decision.reason}</span>
                     </div>
                     
                     <div class="ai-probability-analysis">
-                        <span class="ai-section-title bouncer-font">Probability Analysis:</span>
+                        <span class="ai-section-title">Probability Analysis:</span>
                         ${this.generateProbabilityAnalysis(diceArray, decision)}
                     </div>
                     
                     <div class="ai-strategic-analysis">
-                        <span class="ai-section-title bouncer-font">Strategic Assessment:</span>
+                        <span class="ai-section-title">Strategic Assessment:</span>
                         ${this.generateStrategicAnalysis(diceArray, decision, analysisData)}
                     </div>
                     
                     <div class="ai-confidence-meter">
-                        <span class="ai-section-title bouncer-font">Confidence: </span>
+                        <span class="ai-section-title">Confidence: </span>
                         <span class="ai-metric-value">${Math.round((decision.confidence || 0) * 100)}%</span>
                         <div class="confidence-bar">
                             <div class="confidence-fill confidence-${this.getConfidenceLevel(decision.confidence || 0)}" style="width: ${Math.round((decision.confidence || 0) * 100)}%"></div>
@@ -4793,12 +4736,19 @@ class KingOfTokyoUI {
             description.push(`${faceCounts['attack']} Attacks`);
         }
         
-        // Victory points
+        // Victory points from 3+ of a kind
         ['1', '2', '3'].forEach(num => {
             if (faceCounts[num] >= 3) {
                 const vp = parseInt(num) + (faceCounts[num] - 3);
                 score += vp * 3; // Weight VP very high
                 description.push(`${vp} ⭐ from ${num}s`);
+            }
+        });
+        
+        // Individual number dice (show even if not scoring)
+        ['1', '2', '3'].forEach(num => {
+            if (faceCounts[num] && faceCounts[num] < 3) {
+                description.push(`${faceCounts[num]} ${num}${faceCounts[num] > 1 ? 's' : ''}`);
             }
         });
         
@@ -4844,35 +4794,61 @@ class KingOfTokyoUI {
     }
 
     updateTurnStats(turnContainer, decision, analysisData) {
+        // Add null safety checks for all DOM elements
         const rollCountElement = turnContainer.querySelector('.roll-count');
         const finalDecisionElement = turnContainer.querySelector('.final-decision');
         const avgConfidenceElement = turnContainer.querySelector('.avg-confidence');
         
+        // Safety check: if any required elements are missing, log warning and return
+        if (!rollCountElement || !finalDecisionElement || !avgConfidenceElement) {
+            console.warn('⚠️ AI Logic Flow: Turn stats elements not found in DOM, skipping update', {
+                rollCountElement: !!rollCountElement,
+                finalDecisionElement: !!finalDecisionElement,
+                avgConfidenceElement: !!avgConfidenceElement,
+                turnContainer: !!turnContainer
+            });
+            return;
+        }
+        
         // Update roll count
-        const currentCount = parseInt(rollCountElement.textContent) + 1;
-        rollCountElement.textContent = currentCount;
+        try {
+            const currentCount = parseInt(rollCountElement.textContent) + 1;
+            rollCountElement.textContent = currentCount;
+        } catch (error) {
+            console.warn('⚠️ AI Logic Flow: Error updating roll count:', error);
+        }
         
         // Update final decision if turn is ending
-        if (decision.action === 'keep' || decision.action === 'endRoll') {
-            finalDecisionElement.textContent = 'Keep Dice';
-            finalDecisionElement.className = 'final-decision complete';
-        } else {
-            finalDecisionElement.textContent = 'Rolling...';
-            finalDecisionElement.className = 'final-decision rolling';
+        try {
+            if (decision.action === 'keep' || decision.action === 'endRoll') {
+                finalDecisionElement.textContent = 'Keep Dice';
+                finalDecisionElement.className = 'final-decision complete';
+            } else {
+                finalDecisionElement.textContent = 'Rolling...';
+                finalDecisionElement.className = 'final-decision rolling';
+            }
+        } catch (error) {
+            console.warn('⚠️ AI Logic Flow: Error updating final decision:', error);
         }
         
         // Calculate and update average confidence
-        const rollEntries = turnContainer.querySelectorAll('.ai-roll-entry');
-        let totalConfidence = 0;
-        rollEntries.forEach(entry => {
-            const confidenceText = entry.querySelector('.confidence-text')?.textContent;
-            if (confidenceText) {
-                totalConfidence += parseInt(confidenceText.replace('%', ''));
+        try {
+            const rollEntries = turnContainer.querySelectorAll('.ai-roll-entry');
+            let totalConfidence = 0;
+            rollEntries.forEach(entry => {
+                const confidenceText = entry.querySelector('.confidence-text')?.textContent;
+                if (confidenceText) {
+                    totalConfidence += parseInt(confidenceText.replace('%', ''));
+                }
+            });
+            
+            if (rollEntries.length > 0) {
+                const avgConfidence = Math.round(totalConfidence / rollEntries.length);
+                avgConfidenceElement.textContent = `${avgConfidence}%`;
             }
-        });
-        
-        const avgConfidence = Math.round(totalConfidence / rollEntries.length);
-        avgConfidenceElement.textContent = `${avgConfidence}%`;
+        } catch (error) {
+            console.warn('⚠️ AI Logic Flow: Error updating average confidence:', error);
+        }
     }
 
     // Format player status with emojis for visual display
@@ -7114,6 +7090,16 @@ class KingOfTokyoUI {
 
         console.log(`🤖 NEW CPU: ${player.monster.name} starting turn`);
         
+        // Initialize CPU turn state if not exists
+        if (!this.cpuTurnState) {
+            this.cpuTurnState = {
+                player: player,
+                isProcessing: true,
+                isPaused: false,
+                rollNumber: 1
+            };
+        }
+        
         // Show thinking bubble at start of turn
         this.showCPUThoughtBubble(player, 'planning');
         
@@ -7124,6 +7110,11 @@ class KingOfTokyoUI {
         this.showSimpleCPUNotification(player, `🎲 ${player.monster.name}'s turn begins...`);
         
         setTimeout(() => {
+            // Check for pause before proceeding
+            if (this.gamePaused || (this.cpuTurnState && this.cpuTurnState.isPaused)) {
+                console.log('⏸️ CPU turn paused during initial delay');
+                return;
+            }
             this.cpuRollDice(player, 1);
         }, this.getCPUThinkingTime('turnStart'));
     }
@@ -7142,6 +7133,12 @@ class KingOfTokyoUI {
     cpuRollDiceSimple(player, rollNumber) {
         window.UI && window.UI._debug && window.UI._debug(`🎲 SIMPLE CPU: Starting roll ${rollNumber}/3`);
         
+        // Check for pause before rolling
+        if (this.gamePaused || (this.cpuTurnState && this.cpuTurnState.isPaused)) {
+            console.log('⏸️ CPU turn paused during simple roll');
+            return;
+        }
+        
         // Always roll, regardless of dice state
         if (rollNumber <= 3) {
             window.UI && window.UI._debug && window.UI._debug(`🎲 SIMPLE CPU: Executing roll ${rollNumber}/3`);
@@ -7152,12 +7149,24 @@ class KingOfTokyoUI {
             
             // Wait for dice animation to complete (400ms + buffer)
             setTimeout(() => {
+                // Check for pause after roll
+                if (this.gamePaused || (this.cpuTurnState && this.cpuTurnState.isPaused)) {
+                    console.log('⏸️ CPU turn paused after simple roll');
+                    return;
+                }
+                
                 const diceState = this.game.diceRoller.getState();
                 
                 window.UI && window.UI._debug && window.UI._debug(`🎲 SIMPLE CPU: After roll ${rollNumber}, rolls remaining: ${diceState.rollsRemaining}`);
                 
                 // Add delay for human to see dice outcome
                 setTimeout(() => {
+                    // Check for pause before decision
+                    if (this.gamePaused || (this.cpuTurnState && this.cpuTurnState.isPaused)) {
+                        console.log('⏸️ CPU turn paused during simple decision delay');
+                        return;
+                    }
+                    
                     console.log('🔍 DEBUG: Simple CPU decision point:', {
                         rollNumber: rollNumber,
                         maxRolls: 3,
@@ -7176,6 +7185,12 @@ class KingOfTokyoUI {
                         this.showSimpleCPUNotification(player, `✅ ${player.monster.name} considering power cards...`);
                         
                         setTimeout(() => {
+                            // Check for pause before ending
+                            if (this.gamePaused || (this.cpuTurnState && this.cpuTurnState.isPaused)) {
+                                console.log('⏸️ CPU turn paused before ending turn');
+                                return;
+                            }
+                            
                             // Update controls before ending turn to re-enable action menu
                             this.updateDiceControls();
                             
@@ -7192,6 +7207,12 @@ class KingOfTokyoUI {
     cpuRollDiceAI(player, rollNumber) {
         console.log('🔍 DEBUG: cpuRollDiceAI called with rollNumber:', rollNumber);
         window.UI && window.UI._debug && window.UI._debug(`🎲 AI CPU: Starting roll ${rollNumber}/3`);
+        
+        // Check for pause before rolling
+        if (this.gamePaused || (this.cpuTurnState && this.cpuTurnState.isPaused)) {
+            console.log('⏸️ CPU turn paused during AI roll');
+            return;
+        }
         
         // Always roll, regardless of dice state
         if (rollNumber <= 3) {
@@ -7213,12 +7234,24 @@ class KingOfTokyoUI {
             
             // Wait for dice animation to complete (400ms + buffer)
             setTimeout(() => {
+                // Check for pause after roll
+                if (this.gamePaused || (this.cpuTurnState && this.cpuTurnState.isPaused)) {
+                    console.log('⏸️ CPU turn paused after AI roll');
+                    return;
+                }
+                
                 const diceState = this.game.diceRoller.getState();
                 
                 window.UI && window.UI._debug && window.UI._debug(`🎲 AI CPU: After roll ${rollNumber}, rolls remaining: ${diceState.rollsRemaining}`);
                 
                 // Add 3-second delay AFTER showing dice outcome for human player to see results
                 setTimeout(() => {
+                    // Check for pause before decision
+                    if (this.gamePaused || (this.cpuTurnState && this.cpuTurnState.isPaused)) {
+                        console.log('⏸️ CPU turn paused during AI decision delay');
+                        return;
+                    }
+                    
                     console.log('🔍 DEBUG: Roll decision logic:', {
                         rollNumber: rollNumber,
                         rollsRemaining: diceState.rollsRemaining,
@@ -7238,6 +7271,12 @@ class KingOfTokyoUI {
                         this.showSimpleCPUNotification(player, `✅ ${player.monster.name} considering power cards...`);
                         
                         setTimeout(() => {
+                            // Check for pause before ending
+                            if (this.gamePaused || (this.cpuTurnState && this.cpuTurnState.isPaused)) {
+                                console.log('⏸️ CPU turn paused before ending turn');
+                                return;
+                            }
+                            
                             // Update controls before ending turn to re-enable action menu
                             this.updateDiceControls();
                             
@@ -7252,6 +7291,12 @@ class KingOfTokyoUI {
             console.log('🔍 DEBUG: rollNumber > 3, force ending turn. rollNumber:', rollNumber);
             this.showSimpleCPUNotification(player, `✅ ${player.monster.name} considering power cards...`);
             setTimeout(() => {
+                // Check for pause before ending
+                if (this.gamePaused || (this.cpuTurnState && this.cpuTurnState.isPaused)) {
+                    console.log('⏸️ CPU turn paused before force ending turn');
+                    return;
+                }
+                
                 this.updateDiceControls();
                 this.handleCPUPowerCardPhase(player);
             }, this.getCPUThinkingTime('endTurn'));
@@ -7507,6 +7552,11 @@ class KingOfTokyoUI {
     endCPUTurn(player) {
         console.log(`🔄 ${player.monster.name} ending turn after power card phase`);
         this.showSimpleCPUNotification(player, `✅ ${player.monster.name} ending turn...`);
+        
+        // Clear CPU turn state
+        if (this.cpuTurnState && this.cpuTurnState.player && this.cpuTurnState.player.id === player.id) {
+            this.cpuTurnState = null;
+        }
         
         setTimeout(() => {
             this.game.endTurn();
@@ -7782,6 +7832,145 @@ class KingOfTokyoUI {
         }
     }
 
+    // Skip the rolloff and randomly assign player order
+    skipRolloff() {
+        console.log('⏩ Skipping rolloff - randomly assigning player order');
+        
+        // Get player data from the rolloff table DOM
+        const tableBody = document.getElementById('rolloff-table-body');
+        const rows = tableBody.querySelectorAll('tr[id^="rolloff-row-"]');
+        
+        if (rows.length === 0) {
+            console.error('❌ No rolloff players found in DOM');
+            UIUtilities.showMessage('Error: No players found for rolloff skip', 3000, this.elements);
+            return;
+        }
+        
+        // Extract monsters and player types from DOM
+        const selectedMonsters = [];
+        const playerTypes = [];
+        
+        rows.forEach((row, index) => {
+            const monsterImg = row.querySelector('.monster-avatar img');
+            const monsterName = monsterImg ? monsterImg.alt : `Player ${index + 1}`;
+            
+            // Find the monster from original data or create a basic one
+            let monster = null;
+            if (this.selectedMonsters && this.selectedMonsters.length > index) {
+                monster = this.selectedMonsters[index];
+            } else {
+                // Fallback: create basic monster object from DOM data
+                monster = {
+                    name: monsterName,
+                    image: monsterImg ? monsterImg.src : 'images/characters/king_of_tokyo_the_king.png'
+                };
+            }
+            
+            selectedMonsters.push(monster);
+            
+            // Get player type (defaulting to human if not available)
+            const playerType = (this.playerTypes && this.playerTypes[index]) || 'human';
+            playerTypes.push(playerType);
+        });
+        
+        console.log('🎲 Extracted rolloff data:', { selectedMonsters, playerTypes });
+        
+        // Hide the rolloff modal
+        UIUtilities.hideModal(this.elements.rollOffModal);
+        
+        // Create a random winner from the extracted players
+        const playerCount = selectedMonsters.length;
+        const randomWinnerIndex = Math.floor(Math.random() * playerCount);
+        
+        const fakeRollOffWinner = {
+            index: randomWinnerIndex,
+            player: {
+                monster: selectedMonsters[randomWinnerIndex],
+                playerType: playerTypes[randomWinnerIndex]
+            },
+            attacks: Math.floor(Math.random() * 6), // Random result for display
+            isSkipped: true
+        };
+        
+        console.log('🎲 Random winner assigned:', fakeRollOffWinner);
+        
+        // Store the data for the continuation function
+        this.selectedMonsters = selectedMonsters;
+        this.playerTypes = playerTypes;
+        
+        // Continue with the same flow as if rolloff completed
+        this.continueGameAfterRolloff(fakeRollOffWinner);
+    }
+    
+    // Extract the continuation logic to be reusable
+    async continueGameAfterRolloff(rollOffWinner) {
+        // Reorder players based on the winner
+        const reorderedData = this.game.reorderPlayersForFirstPlayer(this.selectedMonsters, this.playerTypes, rollOffWinner.index);
+        
+        // Initialize the game with the reordered data
+        const result = this.game.initializeGame(reorderedData.monsters, reorderedData.playerTypes);
+        
+        if (result.success) {
+            // Show the game toolbar now that the game has started
+            const gameToolbar = document.getElementById('game-toolbar');
+            if (gameToolbar) {
+                gameToolbar.classList.add('show');
+            }
+            
+            // Add player count class to game board for CSS styling
+            const gameBoard = document.querySelector('.game-board');
+            if (gameBoard) {
+                gameBoard.className = 'game-board'; // Reset classes
+                if (this.currentPlayerCount === 5) {
+                    gameBoard.classList.add('five-players');
+                } else if (this.currentPlayerCount === 6) {
+                    gameBoard.classList.add('six-players');
+                }
+            }
+            
+            // Update the UI
+            this.updateGameUI(result.gameState);
+            this.updateDiceControls();
+            this.updateGameDisplay();
+            
+            // Log who goes first (after game initialization so we know the starting player)
+            const currentPlayer = this.game.getCurrentPlayer();
+            if (currentPlayer) {
+                const logMessage = rollOffWinner.isSkipped 
+                    ? `🎲 Player order randomly assigned! ${currentPlayer.monster.name} goes first.`
+                    : `🎲 Roll-off complete! ${currentPlayer.monster.name} goes first with ${rollOffWinner.attacks} attacks.`;
+                this.logGameEvent('game', logMessage);
+                
+                UIUtilities.showMessage(rollOffWinner.isSkipped 
+                    ? `Random order! ${currentPlayer.monster.name} goes first!` 
+                    : `${currentPlayer.monster.name} goes first!`, 3000, this.elements);
+            }
+            
+            // Start CPU turn if first player is CPU
+            setTimeout(() => {
+                const firstPlayer = this.game.getCurrentPlayer();
+                console.log('🔄 Post-initialization check - First player:', firstPlayer);
+                if (firstPlayer && firstPlayer.playerType === 'cpu') {
+                    console.log('🤖 First player is CPU, starting turn immediately');
+                    this.startAutomaticCPUTurn(firstPlayer);
+                } else if (firstPlayer) {
+                    console.log('👤 First player is human:', firstPlayer.monster.name);
+                }
+            }, 1000);
+            
+            // Log storage statistics
+            const stats = await this.game.getStorageStats();
+            if (stats) {
+                console.log('📊 Storage Statistics:', stats);
+            }
+            
+            console.log('Game started successfully!');
+        } else {
+            console.error('❌ Failed to initialize game after rolloff:', result.error);
+            UIUtilities.showMessage('Failed to start game. Please try again.', 3000, this.elements);
+        }
+    }
+
     handleRollOffDiceRoll(player) {
         window.UI && window.UI._debug && window.UI._debug(`🎲 Human player ${player.index} clicked roll dice button`);
         
@@ -8022,20 +8211,154 @@ class KingOfTokyoUI {
             .replace('{name}', winnerName)
             .replace('{count}', attackCount);
         this.updateCommentary(victoryCommentary);
+    }
+
+    // Open monster profile modal for a specific player
+    openMonsterProfileModal(player) {
+        console.log('🐾 Opening monster profile modal for:', player.monster.name);
         
-        // Show subtle center notification about who goes first
-        const message = `${winnerName} goes first!`;
-        UIUtilities.showCenterNotification(message, 2500);
-        
-        // Reset dice to initial state instead of clearing
-        const diceContainer = this.elements.diceContainer;
-        if (diceContainer) {
-            this.showInitialEmptyDice();
+        // Update the modal title to show it's for a specific player
+        const modalHeader = this.elements.monsterProfilesModal.querySelector('.modal-header h2');
+        if (modalHeader) {
+            modalHeader.textContent = `👹 ${player.monster.name} Profile`;
         }
         
-        // Restore normal action button states
-        this.restoreNormalActionStates();
+        // Update the profiles grid to show only this player's monster
+        const profilesGrid = this.elements.monsterProfilesModal.querySelector('#monster-profiles-grid');
+        if (profilesGrid) {
+            // Use similar structure to the setupManager's generateMonsterProfilesGrid
+            const monster = player.monster;
+            const currentProfile = this.setupManager.monsterProfiles[monster.id] || monster.personality;
+            
+            profilesGrid.innerHTML = this.generateSingleMonsterProfileCard(monster, currentProfile);
+            
+            // Add event listeners for this specific profile
+            this.setupProfileSliders(monster.id, currentProfile, player);
+        }
         
+        // Update the intro text
+        const profilesIntro = this.elements.monsterProfilesModal.querySelector('.profiles-intro p');
+        if (profilesIntro) {
+            profilesIntro.textContent = `Customize ${player.monster.name}'s personality traits. Changes take effect immediately.`;
+        }
+        
+        // Hide the reset and save buttons since this is for live editing
+        const resetBtn = this.elements.monsterProfilesModal.querySelector('#reset-profiles-btn');
+        const saveBtn = this.elements.monsterProfilesModal.querySelector('#save-profiles-btn');
+        if (resetBtn) resetBtn.style.display = 'none';
+        if (saveBtn) saveBtn.style.display = 'none';
+        
+        // Show the modal
+        this.elements.monsterProfilesModal.classList.remove('hidden');
+    }
+    
+    // Generate a single monster profile card
+    generateSingleMonsterProfileCard(monster, profile) {
+        return `
+            <div class="monster-profile-card" data-monster-id="${monster.id}" style="border-color: ${monster.color}">
+                <div class="monster-profile-header">
+                    <div class="monster-profile-avatar">
+                        <img src="${monster.image}" alt="${monster.name}" />
+                    </div>
+                    <div class="monster-profile-info">
+                        <h3>${monster.name}</h3>
+                        <p>${monster.description}</p>
+                    </div>
+                </div>
+                <div class="personality-traits">
+                    <div class="trait-container">
+                        <div class="trait-header">
+                            <span class="trait-label">🔥 Aggression</span>
+                            <span class="trait-value" data-trait-value="aggression">${profile.aggression}</span>
+                        </div>
+                        <div class="trait-slider-container">
+                            <input type="range" min="1" max="5" value="${profile.aggression}" step="0.1"
+                                   class="trait-slider" data-monster="${monster.id}" data-trait="aggression">
+                            <div class="trait-bar">
+                                <span>Passive</span>
+                                <span>Aggressive</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="trait-container">
+                        <div class="trait-header">
+                            <span class="trait-label">🧠 Strategy</span>
+                            <span class="trait-value" data-trait-value="strategy">${profile.strategy}</span>
+                        </div>
+                        <div class="trait-slider-container">
+                            <input type="range" min="1" max="5" value="${profile.strategy}" step="0.1"
+                                   class="trait-slider" data-monster="${monster.id}" data-trait="strategy">
+                            <div class="trait-bar">
+                                <span>Simple</span>
+                                <span>Strategic</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="trait-container">
+                        <div class="trait-header">
+                            <span class="trait-label">🎲 Risk Taking</span>
+                            <span class="trait-value" data-trait-value="risk">${profile.risk}</span>
+                        </div>
+                        <div class="trait-slider-container">
+                            <input type="range" min="1" max="5" value="${profile.risk}" step="0.1"
+                                   class="trait-slider" data-monster="${monster.id}" data-trait="risk">
+                            <div class="trait-bar">
+                                <span>Cautious</span>
+                                <span>Risky</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="trait-container">
+                        <div class="trait-header">
+                            <span class="trait-label">💰 Economic Focus</span>
+                            <span class="trait-value" data-trait-value="economic">${profile.economic}</span>
+                        </div>
+                        <div class="trait-slider-container">
+                            <input type="range" min="1" max="5" value="${profile.economic}" step="0.1"
+                                   class="trait-slider" data-monster="${monster.id}" data-trait="economic">
+                            <div class="trait-bar">
+                                <span>Ignores</span>
+                                <span>Focused</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Setup sliders for a specific monster profile with live updates
+    setupProfileSliders(monsterId, currentProfile, player) {
+        const profileCard = this.elements.monsterProfilesModal.querySelector(`[data-monster-id="${monsterId}"]`);
+        if (!profileCard) return;
+        
+        const sliders = profileCard.querySelectorAll('.trait-slider');
+        sliders.forEach(slider => {
+            const trait = slider.dataset.trait;
+            const valueDisplay = profileCard.querySelector(`[data-trait-value="${trait}"]`);
+            
+            slider.addEventListener('input', () => {
+                const value = parseFloat(slider.value);
+                if (valueDisplay) {
+                    valueDisplay.textContent = value.toFixed(1);
+                }
+                
+                // Update the monster's personality in real-time
+                if (!player.monster.personality) {
+                    player.monster.personality = {};
+                }
+                player.monster.personality[trait] = value;
+                
+                // Also update the setupManager's profiles for persistence
+                if (!this.setupManager.monsterProfiles[monsterId]) {
+                    this.setupManager.monsterProfiles[monsterId] = {};
+                }
+                this.setupManager.monsterProfiles[monsterId][trait] = value;
+                this.setupManager.saveMonsterProfiles();
+                
+                console.log(`🔧 Updated ${player.monster.name}'s ${trait} to ${value}`);
+            });
+        });
     }
 }
 // Note: Game initialization is now handled by the splash screen
