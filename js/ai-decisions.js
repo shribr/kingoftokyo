@@ -256,7 +256,8 @@ class AIDecisionEngine {
             opportunities,
             powerCardStrategy,
             multiPlayerScenarios,
-            gamePhase: this.determineGamePhase(gameState)
+            gamePhase: this.determineGamePhase(gameState),
+            gameState: gameState // Add gameState for first turn detection
         };
     }
 
@@ -1862,7 +1863,7 @@ class AIDecisionEngine {
             keepProbability *= (1 + probabilities.extraDiceBonus);
             
             // Enhanced decision logic based on current state
-            const shouldKeep = this.shouldKeepDiceEnhanced(face, keepProbability, probabilities.currentState);
+            const shouldKeep = this.shouldKeepDiceEnhanced(face, keepProbability, probabilities.currentState, situation);
             
             console.log(`🎲 DEBUG: Dice ${index} (${face}) - keepProb: ${keepProbability.toFixed(2)}, shouldKeep: ${shouldKeep}`);
             
@@ -1922,33 +1923,33 @@ class AIDecisionEngine {
                 value = situation.player.isInTokyo ? 20 : 15;
                 break;
             case 'one':
-                // Use combination potential if available, otherwise fall back to current state
+                // CRITICAL FIX: Pairs give ZERO VP in King of Tokyo - only 3+ of a kind matter
                 if (numberComboPotential[face]) {
                     const count = numberComboPotential[face].count;
-                    value = count >= 3 ? 80 : (count >= 2 ? 50 : 8);
+                    value = count >= 3 ? 150 : (count >= 2 ? 25 : 5); // Pairs much lower value since they give 0 VP
                 } else {
-                    value = probabilities.currentState.ones >= 2 ? 35 : 
-                           (probabilities.currentState.ones === 1 ? 5 : 2);
+                    value = probabilities.currentState.ones >= 3 ? 80 :
+                           (probabilities.currentState.ones === 2 ? 15 : 1); // Pairs are only valuable for potential
                 }
                 break;
             case 'two':
-                // Use combination potential if available, otherwise fall back to current state  
+                // CRITICAL FIX: Pairs give ZERO VP in King of Tokyo - only 3+ of a kind matter
                 if (numberComboPotential[face]) {
                     const count = numberComboPotential[face].count;
-                    value = count >= 3 ? 90 : (count >= 2 ? 60 : 12);
+                    value = count >= 3 ? 180 : (count >= 2 ? 35 : 8); // Pairs much lower value since they give 0 VP
                 } else {
-                    value = probabilities.currentState.twos >= 2 ? 40 : 
-                           (probabilities.currentState.twos === 1 ? 8 : 3);
+                    value = probabilities.currentState.twos >= 3 ? 100 : 
+                           (probabilities.currentState.twos === 2 ? 20 : 2); // Pairs are only valuable for potential
                 }
                 break;
             case 'three':
-                // Use combination potential if available, otherwise fall back to current state
+                // CRITICAL FIX: Pairs give ZERO VP in King of Tokyo - only 3+ of a kind matter
                 if (numberComboPotential[face]) {
                     const count = numberComboPotential[face].count;
-                    value = count >= 3 ? 100 : (count >= 2 ? 70 : 15);
+                    value = count >= 3 ? 220 : (count >= 2 ? 45 : 12); // Pairs much lower value since they give 0 VP
                 } else {
-                    value = probabilities.currentState.threes >= 2 ? 45 : 
-                           (probabilities.currentState.threes === 1 ? 12 : 5);
+                    value = probabilities.currentState.threes >= 3 ? 120 : 
+                           (probabilities.currentState.threes === 2 ? 25 : 3); // Pairs are only valuable for potential
                 }
                 break;
         }
@@ -2060,15 +2061,25 @@ class AIDecisionEngine {
         return Math.max(0.1, Math.min(0.95, baseProbability));
     }
 
-    shouldKeepDiceEnhanced(face, keepProbability, currentState) {
-        // Special logic for number combinations - keep if we already have multiples
+    shouldKeepDiceEnhanced(face, keepProbability, currentState, situation = {}) {
+        // CRITICAL: Check if this is the first turn of the game
+        const gameState = situation.gameState || situation;
+        const isFirstTurn = gameState?.round === 1 && gameState?.currentPlayerIndex === 0;
+        
+        // On first turn as first player, NEVER keep attack or hearts - they're completely useless
+        if (isFirstTurn && (face === 'attack' || face === 'heart')) {
+            console.log(`🚫 FIRST TURN: Never keeping ${face} on first turn as first player - completely useless`);
+            return false;
+        }
+        
+        // Special logic for number combinations - SIGNIFICANTLY boost pairs/triples
         if (face === 'one' && currentState.ones >= 2) return true;
         if (face === 'two' && currentState.twos >= 2) return true;
         if (face === 'three' && currentState.threes >= 2) return true;
         
-        // For single number dice, apply much stricter logic
+        // For single number dice, apply much stricter logic that prioritizes combinations
         if (face === 'one' || face === 'two' || face === 'three') {
-            // Don't keep single number dice if we have pairs/triples of other numbers
+            // MAJOR FIX: Strongly favor pairs over single high numbers
             const hasBetterCombination = (currentState.ones >= 2 && face !== 'one') ||
                                        (currentState.twos >= 2 && face !== 'two') ||
                                        (currentState.threes >= 2 && face !== 'three');
@@ -2081,6 +2092,22 @@ class AIDecisionEngine {
                     currentFace: face
                 });
                 return false;
+            }
+            
+            // NEW: Check if we have an incomplete pair that's more valuable than this single
+            const incompleteHigherPairs = [];
+            if (currentState.threes === 1 && face !== 'three') incompleteHigherPairs.push({ type: 'three', value: 9 });
+            if (currentState.twos === 1 && face !== 'two' && face !== 'three') incompleteHigherPairs.push({ type: 'two', value: 6 });
+            
+            // If we have a single three and this is a one or two, don't keep it
+            if (incompleteHigherPairs.length > 0) {
+                const faceValue = face === 'three' ? 9 : (face === 'two' ? 6 : 3);
+                const bestIncompleteValue = Math.max(...incompleteHigherPairs.map(p => p.value));
+                
+                if (faceValue < bestIncompleteValue) {
+                    console.log(`❌ Not keeping single ${face} (value: ${faceValue}) because we have incomplete higher combo (value: ${bestIncompleteValue})`);
+                    return false;
+                }
             }
             
             // Don't keep single number dice if we have multiple good non-number dice
@@ -2103,8 +2130,65 @@ class AIDecisionEngine {
         // Don't keep if probability is very low
         if (keepProbability <= 0.2) return false;
         
-        // For non-number dice (attack, heart, energy), use standard threshold
+        // For non-number dice (attack, heart, energy), check if we should prioritize number combinations
         if (face === 'attack' || face === 'heart' || face === 'energy') {
+            // Enhanced first turn logic - be more restrictive on attack/hearts early game
+            if (gameState?.round <= 2) {
+                if (face === 'attack' && keepProbability < 0.7) {
+                    console.log(`❌ Early game: Not keeping ${face} (probability: ${keepProbability.toFixed(2)}) - attacks less valuable early`);
+                    return false;
+                }
+                if (face === 'heart' && keepProbability < 0.6) {
+                    console.log(`❌ Early game: Not keeping ${face} (probability: ${keepProbability.toFixed(2)}) - healing less valuable early`);
+                    return false;
+                }
+            }
+            
+            // Check if we have incomplete number combinations that are more valuable
+            const incompleteCombos = [];
+            if (currentState.ones === 2) incompleteCombos.push({ type: 'ones', vpValue: 1 });
+            if (currentState.twos === 2) incompleteCombos.push({ type: 'twos', vpValue: 2 });
+            if (currentState.threes === 2) incompleteCombos.push({ type: 'threes', vpValue: 3 });
+            
+            // If we have incomplete high-value combos, be more selective about keeping non-number dice
+            if (incompleteCombos.length > 0) {
+                const bestComboValue = Math.max(...incompleteCombos.map(c => c.vpValue));
+                
+                // For hearts, only keep if we're critically injured and the combo value isn't too high
+                if (face === 'heart') {
+                    const player = situation.player || {};
+                    const healthRatio = player.health && player.maxHealth ? (player.health / player.maxHealth) : 1;
+                    const isCriticallyInjured = healthRatio <= 0.3; // 30% health or less
+                    
+                    if (!isCriticallyInjured && bestComboValue >= 2) {
+                        console.log(`❌ Not keeping ${face} because we have incomplete ${bestComboValue}VP combo and health isn't critical (${Math.round(healthRatio * 100)}%)`);
+                        return false;
+                    }
+                }
+                
+                // For energy, only keep if we're very low on energy and the combo value isn't max
+                if (face === 'energy') {
+                    const player = situation.player || {};
+                    const energyCount = player.energy || 0;
+                    const isEnergyDesperate = energyCount <= 1;
+                    
+                    if (!isEnergyDesperate && bestComboValue >= 3) {
+                        console.log(`❌ Not keeping ${face} because we have incomplete ${bestComboValue}VP combo and energy isn't desperate (${energyCount})`);
+                        return false;
+                    }
+                }
+                
+                // For attack, be more lenient but still consider high-value combos
+                if (face === 'attack') {
+                    // Only reject attack if we have a 3VP combo potential and no immediate threats
+                    if (bestComboValue >= 3 && keepProbability < 0.7) {
+                        console.log(`❌ Not keeping ${face} because we have incomplete ${bestComboValue}VP combo and attack probability is only ${keepProbability.toFixed(2)}`);
+                        return false;
+                    }
+                }
+            }
+            
+            // Use standard threshold if no incomplete combos or exceptions apply
             return keepProbability >= 0.5;
         }
         
@@ -2134,30 +2218,52 @@ class AIDecisionEngine {
         console.log('🔍 DEBUG: Strategic values - total:', totalValue, 'current:', currentValue, 'dice count:', diceEvaluations.length);
         
         // CRITICAL: Check if we have incomplete number combinations that need the third dice
-        const incompleteCombos = this.checkIncompleteNumberCombinations(probabilities.currentState, rollsRemaining);
+        const incompleteCombos = this.checkIncompleteNumberCombinations(probabilities.currentState, rollsRemaining, player);
         if (incompleteCombos.shouldContinue && rollsRemaining > 0) {
             console.log('🎯 INCOMPLETE COMBO: Must continue rolling -', incompleteCombos.reason);
+            
+            // ADVANCED STRATEGY: If we need to drop a pair to focus on another, filter the dice
+            let finalKeepDice = diceEvaluations.map(d => d.index);
+            
+            if (incompleteCombos.dropCombo && incompleteCombos.focusCombo) {
+                // Final roll strategy: drop the lower-value pair, keep only the higher-value pair
+                console.log(`🎯 FINAL ROLL FOCUS: Dropping ${incompleteCombos.dropCombo.type}, keeping only ${incompleteCombos.focusCombo.type}`);
+                
+                // Filter out dice from the combo we want to drop
+                const dropDiceType = incompleteCombos.dropCombo.type.slice(0, -1); // Remove 's' from 'ones'/'twos'/'threes'
+                finalKeepDice = diceEvaluations
+                    .filter(dice => dice.face !== dropDiceType)
+                    .map(d => d.index);
+                
+                console.log(`🎯 FILTERED DICE: Originally keeping ${diceEvaluations.length} dice, now keeping ${finalKeepDice.length} dice (dropped ${dropDiceType}s)`);
+            }
+            
             return {
                 action: 'reroll',
-                keepDice: diceEvaluations.map(d => d.index),
+                keepDice: finalKeepDice,
                 reason: incompleteCombos.reason,
                 confidence: 0.9
             };
         }
         
-        // Enhanced stopping conditions - increased thresholds to account for enhanced values
-        if (totalValue >= 150 || currentValue >= 8) {
+        // Enhanced stopping conditions - much higher thresholds to prevent premature stopping
+        if (totalValue >= 300 || currentValue >= 12) {
             return {
-                action: 'stop',
+                action: 'endRoll',
                 keepDice: diceEvaluations.map(d => d.index),
-                reason: `High strategic value achieved (total: ${totalValue}, current: ${currentValue})`,
+                reason: `Exceptional strategic value achieved (total: ${totalValue}, current: ${currentValue})`,
                 confidence: 0.85
             };
         }
         
-        // Risk-adjusted continuation logic
-        let continueThreshold = risk >= 4 ? 1 : (risk <= 2 ? 4 : 3);
-        continueThreshold -= Math.floor(probabilities.extraDiceBonus * 10);
+        // Risk-adjusted continuation logic - be more aggressive about continuing
+        let continueThreshold = risk >= 4 ? 2 : (risk <= 2 ? 5 : 4); // Increased thresholds
+        // Only apply extraDiceBonus if it's significant 
+        if (probabilities.extraDiceBonus > 0.1) {
+            continueThreshold -= 1;
+        }
+        
+        console.log(`🎲 DEBUG: Continue threshold: ${continueThreshold}, dice count: ${diceEvaluations.length}, risk: ${risk}`);
         
         if (diceEvaluations.length < continueThreshold && rollsRemaining > 0) {
             return {
@@ -2169,7 +2275,7 @@ class AIDecisionEngine {
         }
         
         return {
-            action: 'stop',
+            action: 'endRoll',
             keepDice: diceEvaluations.map(d => d.index),
             reason: `Stopping with sufficient dice (enhanced risk: ${risk})`,
             confidence: 0.6
@@ -2207,7 +2313,7 @@ class AIDecisionEngine {
     }
 
     // Check for incomplete number combinations that require the third dice
-    checkIncompleteNumberCombinations(currentState, rollsRemaining) {
+    checkIncompleteNumberCombinations(currentState, rollsRemaining, player = null) {
         // Only check if we have rolls remaining
         if (rollsRemaining <= 0) {
             return { shouldContinue: false, reason: 'No rolls remaining' };
@@ -2243,21 +2349,161 @@ class AIDecisionEngine {
             });
         }
 
-        // If we have any incomplete combos, we should continue rolling
-        if (incompleteCombos.length > 0) {
-            // Prioritize the highest value incomplete combo
-            const bestCombo = incompleteCombos.reduce((best, current) => 
-                current.vpValue > best.vpValue ? current : best
-            );
+        // ADVANCED MULTI-ROLL STRATEGY: Handle multiple pairs with roll-dependent logic
+        if (incompleteCombos.length >= 2) {
+            console.log('🎯 MULTIPLE PAIRS STRATEGY: Analyzing', incompleteCombos.length, 'pairs with', rollsRemaining, 'rolls left');
             
-            return {
-                shouldContinue: true,
-                reason: `${bestCombo.reason} - potential ${bestCombo.vpValue} VP`,
-                combo: bestCombo
-            };
+            // Use personality-based decision making
+            const personality = player?.monster?.personality || { risk: 3 };
+            const pairDecision = this.makeMultiplePairDecision(incompleteCombos, rollsRemaining, personality);
+            
+            if (pairDecision.strategy === 'keep_both') {
+                return { 
+                    shouldContinue: true, 
+                    reason: pairDecision.reason
+                };
+            } else if (pairDecision.strategy === 'focus_best') {
+                return { 
+                    shouldContinue: true, 
+                    reason: pairDecision.reason,
+                    focusCombo: pairDecision.focusCombo,
+                    dropCombo: pairDecision.dropCombo
+                };
+            }
+        }
+
+        // Single incomplete combo logic with roll-dependent strategy
+        if (incompleteCombos.length === 1) {
+            const combo = incompleteCombos[0];
+            
+            // Calculate dice available for reroll
+            const diceKept = (currentState.ones || 0) + (currentState.twos || 0) + (currentState.threes || 0) + 
+                           (currentState.attacks || 0) + (currentState.energy || 0) + (currentState.heal || 0);
+            const diceToReroll = 6 - diceKept;
+            
+            if (diceToReroll <= 0) {
+                return { shouldContinue: false, reason: 'No dice available to reroll for completion' };
+            }
+            
+            // Calculate probability of success
+            const successProbability = this.calculateCompletionProbability(combo.type, diceToReroll, rollsRemaining);
+            
+            console.log(`🎯 SINGLE PAIR ANALYSIS: ${combo.type} (${combo.vpValue}VP) - ${successProbability.toFixed(1)}% chance with ${diceToReroll} dice, ${rollsRemaining} rolls`);
+            
+            // Risk-based decision threshold
+            const minimumProbability = rollsRemaining >= 2 ? 15 : 25; // Lower threshold with more rolls
+            
+            if (successProbability >= minimumProbability) {
+                return {
+                    shouldContinue: true,
+                    reason: `${combo.reason} - ${successProbability.toFixed(1)}% success chance (${diceToReroll} dice, ${rollsRemaining} rolls)`,
+                    combo: combo,
+                    probability: successProbability
+                };
+            } else {
+                return { 
+                    shouldContinue: false, 
+                    reason: `Low success probability (${successProbability.toFixed(1)}%) for ${combo.type} completion - not worth the risk` 
+                };
+            }
         }
 
         return { shouldContinue: false, reason: 'No incomplete number combinations' };
+    }
+    
+    // Calculate probability of completing a triplet
+    calculateCompletionProbability(numberType, diceToReroll, rollsRemaining) {
+        if (diceToReroll <= 0 || rollsRemaining <= 0) return 0;
+        
+        // Base probability of rolling the needed number on a single die
+        const singleDieProbability = 1/6; // 16.67%
+        
+        // Probability of NOT getting the number on a single die
+        const failureProbability = 5/6; // 83.33%
+        
+        // For multiple dice in a single roll: 1 - (probability of failing on all dice)
+        const singleRollSuccess = 1 - Math.pow(failureProbability, diceToReroll);
+        
+        // For multiple rolls: probability of success in at least one roll
+        const overallFailure = Math.pow(1 - singleRollSuccess, rollsRemaining);
+        const overallSuccess = 1 - overallFailure;
+        
+        return overallSuccess * 100; // Return as percentage
+    }
+
+    // Enhanced risk-based decision making for multiple pairs
+    makeMultiplePairDecision(incompleteCombos, rollsRemaining, personality) {
+        const risk = personality?.risk || 3;
+        
+        console.log(`🎯 MULTIPLE PAIR DECISION: ${incompleteCombos.length} pairs, ${rollsRemaining} rolls, risk level ${risk}`);
+        
+        if (rollsRemaining >= 2) {
+            // Early rolls: All personality types should keep both pairs
+            return {
+                strategy: 'keep_both',
+                reason: `Early roll (${rollsRemaining} rolls left) - keeping both pairs regardless of risk level`
+            };
+        } else if (rollsRemaining === 1) {
+            // Final roll: Risk-based decision
+            const bestCombo = incompleteCombos.reduce((best, current) => 
+                current.vpValue > best.vpValue ? current : best
+            );
+            const worstCombo = incompleteCombos.reduce((worst, current) => 
+                current.vpValue < worst.vpValue ? current : worst
+            );
+            
+            // Calculate potential VP gain difference
+            const vpDifference = bestCombo.vpValue - worstCombo.vpValue;
+            
+            if (risk >= 4) {
+                // High risk: Go for maximum VP, keep both pairs ("shoot the moon")
+                if (vpDifference >= 2) {
+                    // Significant difference: still go for broke
+                    return {
+                        strategy: 'keep_both',
+                        reason: `High-risk personality shooting for maximum VP (both ${bestCombo.type} and ${worstCombo.type}) despite final roll`
+                    };
+                } else {
+                    // Small difference: focus on better odds
+                    return {
+                        strategy: 'focus_best',
+                        focusCombo: bestCombo,
+                        dropCombo: worstCombo,
+                        reason: `High-risk but small VP difference (${vpDifference}) - focusing on ${bestCombo.type} for better odds`
+                    };
+                }
+            } else if (risk <= 2) {
+                // Low risk: Always focus on highest value with best odds
+                return {
+                    strategy: 'focus_best',
+                    focusCombo: bestCombo,
+                    dropCombo: worstCombo,
+                    reason: `Conservative personality focusing on highest value (${bestCombo.type} for ${bestCombo.vpValue}VP) with better odds`
+                };
+            } else {
+                // Medium risk: Balanced decision based on VP difference
+                if (vpDifference >= 2) {
+                    // Large difference: focus on better combo
+                    return {
+                        strategy: 'focus_best',
+                        focusCombo: bestCombo,
+                        dropCombo: worstCombo,
+                        reason: `Moderate risk with significant VP difference (${vpDifference}) - focusing on ${bestCombo.type}`
+                    };
+                } else {
+                    // Small difference: slight preference for "shooting the moon"
+                    return {
+                        strategy: 'keep_both',
+                        reason: `Moderate risk with small VP difference (${vpDifference}) - attempting both pairs for maximum VP`
+                    };
+                }
+            }
+        }
+        
+        return {
+            strategy: 'keep_both',
+            reason: 'Default strategy - keeping both pairs'
+        };
     }
 
     // Evaluate complex Tokyo entry/attack strategy based on health and personality
