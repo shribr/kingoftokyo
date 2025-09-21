@@ -238,8 +238,9 @@ class AIDecisionEngine {
         }
 
         // Make final decision with enhanced risk assessment
-    const decision = await this.makeKeepDecisionEnhanced(diceEvaluations, rollsRemaining, player, situation, probabilities);
-        console.log(`🧠 Enhanced final decision:`, decision);
+    let decision = await this.makeKeepDecisionEnhanced(diceEvaluations, rollsRemaining, player, situation, probabilities);
+        decision = this.normalizeDecision(decision, diceEvaluations, 'post-makeKeepDecisionEnhanced');
+        console.log(`🧠 Enhanced final decision (normalized):`, decision);
 
         // POST-DECISION SAFEGUARD #1: Never drop an existing triple on first roll without extreme pressure
         if (rollsRemaining === 2) { // means this was the first roll just completed
@@ -466,9 +467,15 @@ class AIDecisionEngine {
             }
         }
 
+        // Ensure decision is well-formed; if somehow null action occurs, fallback to reroll keeping current kept dice (or none).
+        decision = this.normalizeDecision(decision, diceEvaluations, 'pre-safeguard-4');
+
         // NEW POST-DECISION SAFEGUARD #4: Auto-release lowest marginal die when all 6 are kept but growth potential exists (two pairs OR triple+pair) to allow a reroll.
-        if (decision.action === 'endRoll') {
-            const numberCounts = { one:counts.one, two:counts.two, three:counts.three };
+            if (decision.action === 'endRoll') {
+                // Recompute counts locally; earlier "counts" identifier is out of scope here.
+                const localCounts = { one:0, two:0, three:0 };
+                currentDice.forEach(f=>{ if(localCounts.hasOwnProperty(f)) localCounts[f]++; });
+                const numberCounts = { one:localCounts.one, two:localCounts.two, three:localCounts.three };
             const pairFaces = Object.entries(numberCounts).filter(([_,c])=>c===2).map(([f])=>f);
             const tripleFaces = Object.entries(numberCounts).filter(([_,c])=>c===3).map(([f])=>f);
             const growthPotential = (pairFaces.length >= 2) || (tripleFaces.length === 1 && pairFaces.length === 1);
@@ -2881,6 +2888,53 @@ class AIDecisionEngine {
             overrideReasons: [],
             confidence: 0.55
         };
+    }
+
+    /**
+     * Decision normalization: guarantees a well-formed decision object.
+     * Never returns null; defaults to reroll if malformed.
+     * @param {Object} decision Raw decision candidate
+     * @param {Array} diceEvaluations Current dice evaluations (for keep indices)
+     * @param {string} stage Tag describing when normalization occurs
+     */
+    normalizeDecision(decision, diceEvaluations, stage='unknown') {
+        const fallback = () => ({
+            action: 'reroll',
+            keepDice: (diceEvaluations||[]).map(d=>d.index),
+            reason: `Fallback normalization (${stage})`,
+            confidence: 0.4,
+            normalized: true
+        });
+        let repaired = false;
+        if (!decision || typeof decision !== 'object') {
+            console.warn(`⚠️ AI Normalize: non-object decision at stage ${stage}`, decision);
+            decision = fallback(); repaired = true;
+        }
+        if (!decision.action || (decision.action !== 'reroll' && decision.action !== 'endRoll')) {
+            console.warn(`⚠️ AI Normalize: invalid action '${decision.action}' at stage ${stage}`);
+            decision.action = 'reroll'; repaired = true;
+        }
+        if (!Array.isArray(decision.keepDice)) {
+            decision.keepDice = (diceEvaluations||[]).map(d=>d.index);
+            repaired = true;
+        }
+        // Ensure indices are unique & in range (defensive)
+        const seen = new Set();
+        decision.keepDice = decision.keepDice.filter(i=> Number.isInteger(i) && i>=0 && i<6 && (!seen.has(i) && seen.add(i)===undefined));
+        if (decision.keepDice.length === 0 && diceEvaluations && diceEvaluations.length>0) {
+            // Keep at least the top valued die to avoid pathological empty keeps
+            const top = [...diceEvaluations].sort((a,b)=>b.totalValue-a.totalValue)[0];
+            if (top) decision.keepDice = [top.index]; repaired = true;
+        }
+        if (repaired) {
+            try {
+                window.AIValidationStats = window.AIValidationStats || { repairs:0, stages:{} };
+                window.AIValidationStats.repairs++;
+                window.AIValidationStats.stages[stage] = (window.AIValidationStats.stages[stage]||0)+1;
+            } catch(_) { /* ignore */ }
+            decision.repaired = true;
+        }
+        return decision;
     }
 
     /**
