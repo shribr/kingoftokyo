@@ -45,6 +45,12 @@
 		_core(diceRaw, rollsRemaining, player, gameState){
 			const dice = diceRaw.map(f=>this._canon(f));
 			const state = this._extractState(dice, rollsRemaining, player, gameState);
+			// Personality snapshot (default mid values if absent)
+			state.personality = {
+				aggression: player.monster?.personality?.aggression ?? 3,
+				risk: player.monster?.personality?.risk ?? 3,
+				strategy: player.monster?.personality?.strategy ?? 3
+			};
 			const goal = this._selectOrMaintainGoal(state, player);
 			const scored = this._scoreDice(state, goal, player);
 			const ev = this._computeSetEV(state, goal);
@@ -68,15 +74,33 @@
 			const criticalThreat = gameState.players.some(p=>p.id!==player.id && !p.isEliminated && p.victoryPoints>=18);
 			const cardSummary = this._summarizeCards(player.powerCards||[]);
 			const effectiveRollsRemaining = rollsRemaining + (cardSummary.extraReroll>0 ? 1:0); // treat extra reroll as future improvement window
+			// Represent extra die as virtual available slot for EV modeling (not altering current dice array contents directly)
 			return { dice, counts, numbers, phase, tokyoOccupant, criticalThreat, cardSummary, player, rollsRemaining:effectiveRollsRemaining, origRolls:rollsRemaining };
 		}
 
 		_summarizeCards(cards){
-			const flags = { extraDie:0, extraReroll:0, attackBoost:0, vpBoost:0, energyEngine:0, healEngine:0 };
+			const flags = { extraDie:0, extraReroll:0, attackBoost:0, vpBoost:0, energyEngine:0, healEngine:0, bonusVP:0, bonusEnergyFlat:0, healPoints:0 };
 			cards.forEach(c=>{
 				const name = (c.name||c.id||'').toLowerCase();
+				// Name-based tags fallback
 				for (const k of Object.keys(CARD_TAGS)) {
 					if (CARD_TAGS[k].some(tag=> tag.toLowerCase()===name)) flags[k]++;
+				}
+				// Structured effects parsing if exists
+				if (Array.isArray(c.effects)){
+					c.effects.forEach(e=>{
+						const type = (e.type||'').toLowerCase();
+						const val = Number(e.value||e.amount||1) || 1;
+						switch(type){
+							case 'extradie': flags.extraDie += val; break;
+							case 'extrareroll': flags.extraReroll += val; break;
+							case 'attackbonus': flags.attackBoost += val; break;
+							case 'bonusenergy': flags.energyEngine += val; flags.bonusEnergyFlat += val; break;
+							case 'healpoints': flags.healEngine += Math.ceil(val/2); flags.healPoints += val; break;
+							case 'victorypoints': flags.vpBoost += Math.ceil(val/2); flags.bonusVP += val; break;
+							default: break; // ignore unknown
+						}
+					});
 				}
 			});
 			return flags;
@@ -86,7 +110,20 @@
 		_selectOrMaintainGoal(state, player){
 			if (player._aiTurnGoal){
 				const face = player._aiTurnGoal.face;
-				if (state.counts[face]>0) return player._aiTurnGoal; // still viable
+				// Goal fostering: if current goal is a low-value formed or near-formed set of ones while a higher face has emerging potential
+				if (state.counts[face]>0){
+					if (face==='one'){
+						const twoCount = state.counts.two;
+						const threeCount = state.counts.three;
+						// Switch if we only have exactly a triple of ones but there is at least a pair of threes or twos with more rolls remaining
+						if (state.counts.one===3 && state.rollsRemaining>=2 && (threeCount>=2 || twoCount>=2)){
+							const targetFace = threeCount>=2? 'three': 'two';
+							player._aiTurnGoal = { type:'numberSet', face:targetFace, at:Date.now(), fosteredFrom:'one' };
+							return player._aiTurnGoal;
+						}
+					}
+					return player._aiTurnGoal; // keep existing goal
+				}
 			}
 			// pick pair with highest count then value
 			const candidates = state.numbers.filter(n=>n.count>=2);
@@ -106,9 +143,12 @@
 
 		// ---------- Scoring ----------
 		_scoreDice(state, goal, player){
-			const { counts, phase, cardSummary } = state;
+			const { counts, phase, cardSummary, personality } = state;
 			const needHealing = player.health <= CFG.healingCriticalHP;
 			const attackPressure = state.tokyoOccupant && state.tokyoOccupant.id !== player.id ? 1:0;
+			const tokyoEmpty = !state.tokyoOccupant;
+			const tokyoOccupiedBySelf = !!player.isInTokyo;
+			const enemyTokyoOccupant = state.tokyoOccupant && state.tokyoOccupant.id !== player.id ? state.tokyoOccupant : null;
 			const arr = [];
 			state.dice.forEach((face,index)=>{
 				let score=0, locked=false;
@@ -123,18 +163,43 @@
 						if (goal && goal.face===face && !locked) score *= CFG.goalAlignmentMultiplier;
 						if (cardSummary.vpBoost) score *= (1 + 0.15*cardSummary.vpBoost);
 				} else if (face==='attack'){
-					score = 18 + attackPressure*8;
+					// Base attack weighting with pressure & aggression scaling
+					const aggressionAdj = 1 + ((personality.aggression - 3) * 0.15);
+					const threatBonus = state.criticalThreat ? 12 : 0;
+					let baseAtk = 18 + attackPressure*8 + threatBonus;
+					// Tokyo strategic modifiers
+					if (tokyoEmpty && !tokyoOccupiedBySelf && player.health >= 6){
+						// Encourage entering when healthy
+						baseAtk += 6 + (personality.aggression-3)*2;
+					}
+					if (enemyTokyoOccupant){
+						if (enemyTokyoOccupant.health <=5) baseAtk += 5; // pressure weakened occupant
+						if (enemyTokyoOccupant.victoryPoints >=10) baseAtk += 5; // deny high VP occupant
+					}
+					if (tokyoOccupiedBySelf && player.health <=5){
+						baseAtk -= 6; // survival over aggression inside Tokyo when low HP
+					}
+					score = baseAtk * aggressionAdj;
 					if (cardSummary.attackBoost) score += 6*cardSummary.attackBoost;
-					if (state.criticalThreat) score += 12;
 					if (player.isInTokyo) score -= 4; // self-preservation tilt
 					if (goal && counts[goal.face]===2) score *= 0.75; // leave space for forming triple
 				} else if (face==='energy'){
-					score = phase==='early'?16: phase==='mid'?12:8;
+					// Strategy emphasizes resource prep; risk slightly de-emphasizes energy (prefers explosive outcomes)
+					const baseEnergy = phase==='early'?16: phase==='mid'?12:8;
+					const stratAdj = 1 + ((personality.strategy - 3) * 0.12);
+					const riskAdj = 1 - ((personality.risk - 3) * 0.07);
+					score = baseEnergy * stratAdj * riskAdj;
 					if (cardSummary.energyEngine) score += 5*cardSummary.energyEngine;
 					if (player.energy <=2) score += 6;
 					if (goal && counts[goal.face]===2) score *= 0.85;
 				} else if (face==='heart'){
-					score = needHealing? (25 + (CFG.healingCriticalHP - player.health)*4): (player.health===player.maxHealth?0:10);
+					const riskHealscale = 1 - ((personality.risk - 3) * 0.12); // high risk reduces heal priority
+					let baseHeal = needHealing? (25 + (CFG.healingCriticalHP - player.health)*4): (player.health===player.maxHealth?0:10);
+					// Pre-enter top-off: if Tokyo empty & planning to enter (healthy threshold) but still below max, modest boost
+					if (tokyoEmpty && !tokyoOccupiedBySelf && player.health < player.maxHealth && player.health <= 6){
+						baseHeal += 6;
+					}
+					score = baseHeal * riskHealscale;
 					if (cardSummary.healEngine) score += 4*cardSummary.healEngine;
 					if (player.isInTokyo) score = 0; // cannot heal
 				}
@@ -147,17 +212,57 @@
 
 		// ---------- Set EV ----------
 		_computeSetEV(state, goal){
-			const free = state.dice.length - state.numbers.filter(n=>n.formed).reduce((a,n)=>a+n.count,0);
-			const items=[]; state.numbers.forEach(n=>{
-				if (n.count===2 && state.rollsRemaining>0){
-					const p = 1 - Math.pow(5/6, free * state.rollsRemaining);
-					items.push({ face:n.face, type:'completeTriple', ev: p * n.faceValue });
-				} else if (n.count===3 && state.rollsRemaining>0){
-					const p4 = 1 - Math.pow(5/6, free * state.rollsRemaining * CFG.fourKindEVFocus);
-					items.push({ face:n.face, type:'fourKind', ev: p4 });
+			// Effective free dice consider extra die cards (each adds another potential matching source)
+			const extraDie = state.cardSummary?.extraDie || 0;
+			const effectiveDiceCount = state.dice.length + extraDie;
+			const committedToFormed = state.numbers.filter(n=>n.formed).reduce((a,n)=>a+n.count,0);
+			const free = Math.max(0, effectiveDiceCount - committedToFormed);
+			const R = state.rollsRemaining;
+			const items=[];
+			state.numbers.forEach(n=>{
+				if (R<=0) return;
+				// Probability helpers
+				if (n.count===2){
+					// Chance to hit at least one matching face across remaining rolls (binomial complement approximation)
+					const pTriple = 1 - Math.pow(5/6, free * R);
+					items.push({ face:n.face, type:'completeTriple', ev: pTriple * n.faceValue });
+				} else if (n.count===3){
+					// Four-of-a-kind chase
+					const p4 = 1 - Math.pow(5/6, free * R * CFG.fourKindEVFocus);
+					items.push({ face:n.face, type:'fourKind', ev: p4 * 0.9 });
+					// Five-of-a-kind extended chase (only if free dice + potential future still leave capacity)
+					if (free>=2 || (free>=1 && (state.cardSummary.extraReroll>0 || extraDie>0))){
+						// Expected additional matches approximation: E = free * R * (1/6) (cap at 2 remaining steps to five-of-a-kind)
+						const expectedMatches = Math.min(2, (free * R)/6);
+						// Diminishing weight beyond four-kind (slightly less than perfect info)
+						const ev5 = expectedMatches>1? (expectedMatches-1)*0.75 : 0; // only second expected match contributes to push to 5 kind
+						if (ev5>0) items.push({ face:n.face, type:'fiveKindChase', ev: ev5 });
+					}
+				} else if (n.count===4){
+					// Already four-of-a-kind, compute marginal for five
+					if (free>0){
+						const p5 = 1 - Math.pow(5/6, free * R * 0.65); // slight discount
+						items.push({ face:n.face, type:'fiveKind', ev: p5 * 0.8 });
+					}
 				}
 			});
-			return { items, total: items.reduce((s,i)=>s+i.ev,0) };
+			let total = items.reduce((s,i)=>s+i.ev,0);
+			// Add additive EV for generic faces from free dice (approximate marginal future benefit)
+			if (R>0 && free>0){
+				// Simple expected counts over R rolls: free * R / 6 for any specific face.
+				const expPerFace = (free * R)/6;
+				// Weight attack higher if threat, healing if low HP, energy early/mid
+				const player = state.player;
+				const phase = state.phase;
+				const threatFactor = state.criticalThreat?1.4:1;
+				const lowHP = player.health <= CFG.healingCriticalHP;
+				const attackEV = expPerFace * 0.9 * threatFactor; // abstract attack value
+				const healEV = lowHP? expPerFace * 1.2: expPerFace*0.2;
+				const energyEV = phase==='early'? expPerFace*0.9: phase==='mid'?expPerFace*0.6:expPerFace*0.3;
+				const additive = attackEV + healEV + energyEV;
+				if (additive>0){ items.push({ face:'*', type:'additiveFuture', ev:additive }); total += additive; }
+			}
+			return { items, total };
 		}
 
 		// ---------- Decision Assembly ----------
@@ -180,17 +285,32 @@
 			const improvement = ev.total;
 			let action='reroll';
 			const unresolvedPairs = state.numbers.filter(n=> n.pair && !n.formed).length;
+			// Adaptive thresholds
+			const personality = state.personality || { risk:3, aggression:3, strategy:3 };
+			const riskFactor = (personality.risk - 3); // -2..+2
+			const adaptiveMinKept = Math.max(3, CFG.earlyStopMinKept + (riskFactor<=0 ? -riskFactor : 0)); // cautious (low risk) needs fewer kept to stop
+			const adaptiveEVThreshold = CFG.earlyStopImprovementThreshold + (riskFactor * -0.07); // high risk raises threshold (harder to stop)
 			if (rollsRemaining>0){
-				if (kept.length>=CFG.earlyStopMinKept && improvement < CFG.earlyStopImprovementThreshold && unresolvedPairs===0){ action='endRoll'; }
+				if (kept.length>=adaptiveMinKept && improvement < adaptiveEVThreshold && unresolvedPairs===0){ action='endRoll'; }
 			} else action='endRoll';
 			const reasonParts=[];
 			if (goal) reasonParts.push('Goal:'+goal.face);
-			reasonParts.push((action==='endRoll'?'Stop':'Cont')+` kept=${kept.length} EV=${improvement.toFixed(2)} pairs=${unresolvedPairs}`);
+			reasonParts.push((action==='endRoll'?'Stop':'Cont')+` kept=${kept.length} EV=${improvement.toFixed(2)} pairs=${unresolvedPairs} riskAdjEV=${adaptiveEVThreshold.toFixed(2)} minKept=${adaptiveMinKept}` + (state.cardSummary.extraDie?` extraDie=${state.cardSummary.extraDie}`:''));
 			if (state.cardSummary.attackBoost) reasonParts.push(`AtkBoost x${state.cardSummary.attackBoost}`);
 			if (state.cardSummary.energyEngine) reasonParts.push(`EnergyEng x${state.cardSummary.energyEngine}`);
 			if (state.cardSummary.healEngine) reasonParts.push(`HealEng x${state.cardSummary.healEngine}`);
 			const confidence = action==='endRoll'? (rollsRemaining>0?0.8:0.92):0.6;
-			return { action, keepDice: kept, reason: reasonParts.join(' | '), confidence };
+			// Yield / retreat suggestion (does not alter dice action, only advisory flag) when inside Tokyo low HP and multiple opponents can strike
+			let yieldSuggestion = false;
+			if (player.isInTokyo){
+				const threateningEnemies = state.player.gameState?.players?.filter(p=> !p.isEliminated && p.id!==player.id && p.health>0).length || 0;
+				const lowHP = player.health <= CFG.healingCriticalHP;
+				if (lowHP && threateningEnemies>=2){
+					yieldSuggestion = true;
+					reasonParts.push('SuggestYield');
+				}
+			}
+			return { action, keepDice: kept, reason: reasonParts.join(' | '), confidence, yieldSuggestion };
 		}
 
 		// ---------- Invariants ----------
