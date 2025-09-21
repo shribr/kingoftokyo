@@ -4436,6 +4436,13 @@ class KingOfTokyoUI {
                     </div>
                 </div>
             </div>
+            <div class="ai-turn-summary">
+                <div class="ai-turn-stats">
+                    <div class="stat-item">Rolls: <span class="roll-count">0</span></div>
+                    <div class="stat-item">Decision: <span class="final-decision rolling">Rolling...</span></div>
+                    <div class="stat-item">Avg Confidence: <span class="avg-confidence">--</span></div>
+                </div>
+            </div>
             
             <div class="ai-turn-rolls">
                 <!-- Roll entries will be added here -->
@@ -4867,8 +4874,10 @@ class KingOfTokyoUI {
         
         // Update roll count
         try {
-            const currentCount = parseInt(rollCountElement.textContent) + 1;
-            rollCountElement.textContent = currentCount;
+            const existing = parseInt(rollCountElement.textContent);
+            const safeExisting = isNaN(existing) ? 0 : existing;
+            const currentCount = safeExisting + 1;
+            rollCountElement.textContent = String(currentCount);
         } catch (error) {
             console.warn('⚠️ AI Logic Flow: Error updating roll count:', error);
         }
@@ -6460,7 +6469,8 @@ class KingOfTokyoUI {
         // Get context-appropriate phrase
         const phrase = this.getCPUThoughtPhrase(player, context);
         if (!phrase) {
-            console.log('🔍 DEBUG: No phrase found for context:', context);
+            // Detailed failure already logged inside getCPUThoughtPhrase; emit lightweight debug only
+            window.UI && window.UI._debug && window.UI._debug(`💭 No phrase produced for context '${context}'`);
             return;
         }
         
@@ -6681,8 +6691,40 @@ class KingOfTokyoUI {
     }
     
     getCPUThoughtPhrase(player, context) {
-        if (!player.monster || !player.monster.profile) return null;
-        
+        // Initialize global stats container
+        if (!window.AIUIThoughtStats) {
+            window.AIUIThoughtStats = { unknownContexts: {}, lastContext: null, failures: {}, totalRequests: 0 };
+        }
+        window.AIUIThoughtStats.totalRequests++;
+
+        // Normalize incoming context aliases
+        const originalContext = context;
+        const contextMap = {
+            analyse: 'analyzing',
+            analysis: 'analyzing',
+            numbers: 'needNumbers',
+            healing: 'needHearts',
+            hearts: 'needHearts',
+            energy: 'needEnergy',
+            plan: 'planning'
+        };
+        context = contextMap[context] || context;
+
+        // Provide a resilient default profile if missing
+        if (!player.monster) {
+            this._logThoughtFailure('no-monster', originalContext, context, player);
+            return null;
+        }
+        if (!player.monster.profile) {
+            // Create a lightweight inferred profile so UI still works
+            player.monster.profile = {
+                aggression: 2,
+                strategy: 2,
+                risk: 2,
+                themeColor: '#555',
+                inferred: true
+            };
+        }
         const profile = player.monster.profile;
         const gameState = this.game?.getCurrentGameState ? this.game.getCurrentGameState() : {};
         
@@ -6695,6 +6737,14 @@ class KingOfTokyoUI {
                 "Time to strategize!",
                 "What would a monster do?",
                 "Let me calculate the odds..."
+            ],
+            planning: [
+                "Formulating a plan...",
+                "Let me map this out...",
+                "Setting up the next moves...",
+                "I should plan ahead...",
+                "Long-term advantage time...",
+                "What's the optimal sequence?"
             ],
             
             uncertain: [
@@ -6803,11 +6853,34 @@ class KingOfTokyoUI {
                 "Time to cut off their supply!",
                 "Prevention is better than cure!",
                 "I'll take this away from them!"
+            ],
+            analyzing: [
+                "Running calculations...",
+                "Crunching probabilities...",
+                "Evaluating outcomes...",
+                "Let me process this...",
+                "Analyzing the roll...",
+                "Simulating possibilities..."
             ]
         };
         
         // Determine appropriate context based on game state
         let selectedPhrases = phrases.general;
+
+        // Initialize metrics container once
+        if (!window.AIUIThoughtStats) {
+            window.AIUIThoughtStats = { unknownContexts: {}, lastContext: null };
+        }
+
+        // If context explicitly provided but not in phrases, track & downgrade (after normalization)
+        if (context && !phrases[context]) {
+            if (!window.AIUIThoughtStats.unknownContexts[context]) {
+                window.AIUIThoughtStats.unknownContexts[context] = 1;
+                console.warn(`💭 Thought Bubble: Unknown context '${context}' – falling back to general.`);
+            } else {
+                window.AIUIThoughtStats.unknownContexts[context]++;
+            }
+        }
         
         if (context === 'tokyo-decision') {
             selectedPhrases = phrases.tokyoDecision;
@@ -6832,10 +6905,28 @@ class KingOfTokyoUI {
         } else if (phrases[context]) {
             selectedPhrases = phrases[context];
         }
+
+        window.AIUIThoughtStats.lastContext = context;
         
         // Add personality-based phrase modifications
+        if (!selectedPhrases || selectedPhrases.length === 0) {
+            this._logThoughtFailure('empty-selection', originalContext, context, player);
+            return null;
+        }
+
         const basePhrase = selectedPhrases[Math.floor(Math.random() * selectedPhrases.length)];
-        return this.personalizePhrase(basePhrase, profile);
+        const personalized = this.personalizePhrase(basePhrase, profile);
+        window.AIUIThoughtStats.lastContext = context;
+        return personalized;
+    }
+
+    _logThoughtFailure(type, originalContext, normalizedContext, player) {
+        if (!window.AIUIThoughtStats) return;
+        const key = `${type}:${normalizedContext}`;
+        window.AIUIThoughtStats.failures[key] = (window.AIUIThoughtStats.failures[key] || 0) + 1;
+        if (window.AIUIThoughtStats.failures[key] === 1) {
+            console.warn(`💭 Thought Bubble Failure (${type}) for context '${originalContext}' (normalized: '${normalizedContext}') player=${player?.monster?.name || 'unknown'}`);
+        }
     }
     
     personalizePhrase(phrase, profile) {
@@ -7503,6 +7594,10 @@ class KingOfTokyoUI {
                 }
                 
                 // Normalize and validate action
+                if (!decision || !decision.action) {
+                    console.warn('🤖 AI Action Validation: Missing or null action from decision, applying fallback END_ROLL', decision);
+                    decision.action = this.ACTIONS.END_ROLL;
+                }
                 decision.action = this.normalizeAIAction(decision.action);
                 if (!this.validateAIAction(decision.action)) {
                     // Fallback: treat as END_ROLL to avoid stalling
