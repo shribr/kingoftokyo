@@ -107,6 +107,15 @@ class AIDecisionEngine {
     constructor() {
         this.config = null;
         this.loadConfiguration();
+        // Lightweight runtime AI debug/config toggles (can be modified from console)
+        window.AIConfig = window.AIConfig || {
+            enablePersonalityThresholds: true,
+            personalityJitter: true,
+            jitterMagnitude: 0.04, // max +/- applied to base thresholds
+            logPersonalityAdjust: false,
+            showSetEV: false,
+            showFourKindEV: false
+        };
     }
 
     /**
@@ -196,7 +205,7 @@ class AIDecisionEngine {
      * @param {Object} gameState - Current game state including other players
      * @returns {Object} Decision object with action and dice to keep
      */
-    makeRollDecision(currentDice, rollsRemaining, player, gameState) {
+    async makeRollDecision(currentDice, rollsRemaining, player, gameState) {
         if (!this.config) {
             // Fallback to simple behavior if config not loaded
             return { action: 'reroll', keepDice: [], reason: 'Config not loaded' };
@@ -229,7 +238,7 @@ class AIDecisionEngine {
         }
 
         // Make final decision with enhanced risk assessment
-        const decision = this.makeKeepDecisionEnhanced(diceEvaluations, rollsRemaining, player, situation, probabilities);
+    const decision = await this.makeKeepDecisionEnhanced(diceEvaluations, rollsRemaining, player, situation, probabilities);
         console.log(`🧠 Enhanced final decision:`, decision);
 
         // POST-DECISION SAFEGUARD #1: Never drop an existing triple on first roll without extreme pressure
@@ -252,7 +261,7 @@ class AIDecisionEngine {
                         if (player.energy === 0 && energyIndices.length === 1) keepIdx.push(energyIndices[0]);
                         // Ensure at least one reroll target (the stray number). All stray numbers will be rerolled by omission.
                         console.log('⚔️ ATTACK-CLUSTER-CONTINUE: 4+ attacks with stray number -> reroll non-attack dice to fish for set/utility.');
-                        window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, decisions:0, attackCluster:0 };
+                        window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, decisions:0, attackCluster:0, threatBias:0 };
                         window.AIOverrideStats.attackCluster = (window.AIOverrideStats.attackCluster||0)+1;
                         return {
                             action: 'reroll',
@@ -289,7 +298,7 @@ class AIDecisionEngine {
                         // Force reroll of all remaining off-set dice
                         if (keepIdx.length) {
                             console.log('🚀 EARLY-TRIPLE-CONTINUE: Forcing continuation to extend triple', tripleFace, 'keeping indices', keepIdx);
-                            window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, attackCluster:0, decisions:0 };
+                            window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, attackCluster:0, decisions:0, threatBias:0 };
                             window.AIOverrideStats.tripleExtend++; // reuse stat bucket for growth pursuit
                             return {
                                 action: 'reroll',
@@ -315,7 +324,7 @@ class AIDecisionEngine {
                         // Add any missing indices of triple
                         currentDice.forEach((f,i)=>{ if(f===face && !newKeep.includes(i)) newKeep.push(i); });
                         console.log(`🛡️ TRIPLE-KEEP OVERRIDE: Restoring triple ${face}s on first roll (pressure=${pressure}).`);
-                        window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, attackCluster:0, decisions:0 };
+                        window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, attackCluster:0, decisions:0, threatBias:0 };
                         window.AIOverrideStats.tripleKeep++;
                         return {
                             action: 'reroll',
@@ -354,7 +363,7 @@ class AIDecisionEngine {
                         if (energyIndex !== -1) { keepIdx.push(energyIndex); supportAdded = true; }
                     }
                     console.log('♻️ SINGLE-PAIR-CONTINUE OVERRIDE: Pursuing triple of', targetPairFace, 'keeping indices', keepIdx);
-                    window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, attackCluster:0, singlePair:0, decisions:0 };
+                    window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, attackCluster:0, singlePair:0, decisions:0, personalityAdjust:0, threatBias:0 };
                     window.AIOverrideStats.singlePair = (window.AIOverrideStats.singlePair||0)+1;
                     return {
                         action: 'reroll',
@@ -376,7 +385,7 @@ class AIDecisionEngine {
                         if (attackIndex !== -1) keepIdx.push(attackIndex);
                     }
                     console.log('♻️ TWO-PAIRS-CONTINUE OVERRIDE: Forcing reroll to convert a pair into a triple');
-                    window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, attackCluster:0, decisions:0 };
+                    window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, attackCluster:0, decisions:0, personalityAdjust:0, threatBias:0 };
                     window.AIOverrideStats.twoPairs++;
                     return {
                         action: 'reroll',
@@ -412,7 +421,7 @@ class AIDecisionEngine {
                     diceEvaluations.filter(d=>d.face==='attack').forEach(d=>{ if(!indicesToKeep.has(d.index)) newKeepList.push(d.index); });
                 }
                 console.log('🔄 NO-SET-CONTINUE OVERRIDE: Forcing reroll to chase set (counts=',counts,')');
-                window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, attackCluster:0, decisions:0 };
+                window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, attackCluster:0, decisions:0, personalityAdjust:0, threatBias:0 };
                 window.AIOverrideStats.noSetContinue++;
                 return {
                     action: 'reroll',
@@ -443,7 +452,7 @@ class AIDecisionEngine {
                             // Keep attacks & energy already in decision
                             diceEvaluations.filter(d=> (d.face==='attack'||d.face==='energy')).forEach(d=>{ if(!keepIndices.includes(d.index)) keepIndices.push(d.index); });
                             console.log('🧩 TRIPLE-EXTEND OVERRIDE: Rerolling lone stray number to pursue 4-of-a-kind');
-                            window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, attackCluster:0, decisions:0 };
+                            window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, attackCluster:0, decisions:0, personalityAdjust:0, threatBias:0 };
                             window.AIOverrideStats.tripleExtend++;
                             return {
                                 action: 'reroll',
@@ -455,54 +464,54 @@ class AIDecisionEngine {
                     }
                 }
             }
+        }
 
-            // NEW POST-DECISION SAFEGUARD #4: Auto-release lowest marginal die when all 6 are kept but growth potential exists (two pairs OR triple+pair) to allow a reroll.
-            if (decision.action === 'endRoll') {
-                const numberCounts = { one:counts.one, two:counts.two, three:counts.three };
-                const pairFaces = Object.entries(numberCounts).filter(([_,c])=>c===2).map(([f])=>f);
-                const tripleFaces = Object.entries(numberCounts).filter(([_,c])=>c===3).map(([f])=>f);
-                const growthPotential = (pairFaces.length >= 2) || (tripleFaces.length === 1 && pairFaces.length === 1);
-                if (growthPotential) {
-                    // Identify lowest marginal single to drop (priority: lone off-number not part of pair/triple, excess energy if mid/late game and energy >=2, low-impact attack if no Tokyo incentive)
-                    let releaseIndex = -1;
-                    // Pass 1: lone off-number
-                    currentDice.forEach((f,i)=>{
-                        if (releaseIndex !== -1) return;
-                        if ((f==='one'||f==='two'||f==='three') && numberCounts[f]===1) releaseIndex = i;
-                    });
-                    // Pass 2: excess energy (late/mid game heuristic) if none selected
-                    if (releaseIndex === -1) {
-                        const gamePhase = situation.gamePhase || 'mid';
-                        if (gamePhase !== 'early') {
-                            let energyIndices = [];
-                            currentDice.forEach((f,i)=>{ if(f==='energy') energyIndices.push(i); });
-                            if (energyIndices.length >= 2) releaseIndex = energyIndices[0];
-                        }
+        // NEW POST-DECISION SAFEGUARD #4: Auto-release lowest marginal die when all 6 are kept but growth potential exists (two pairs OR triple+pair) to allow a reroll.
+        if (decision.action === 'endRoll') {
+            const numberCounts = { one:counts.one, two:counts.two, three:counts.three };
+            const pairFaces = Object.entries(numberCounts).filter(([_,c])=>c===2).map(([f])=>f);
+            const tripleFaces = Object.entries(numberCounts).filter(([_,c])=>c===3).map(([f])=>f);
+            const growthPotential = (pairFaces.length >= 2) || (tripleFaces.length === 1 && pairFaces.length === 1);
+            if (growthPotential) {
+                // Identify lowest marginal single to drop (priority: lone off-number not part of pair/triple, excess energy if mid/late game and energy >=2, low-impact attack if no Tokyo incentive)
+                let releaseIndex = -1;
+                // Pass 1: lone off-number
+                currentDice.forEach((f,i)=>{
+                    if (releaseIndex !== -1) return;
+                    if ((f==='one'||f==='two'||f==='three') && numberCounts[f]===1) releaseIndex = i;
+                });
+                // Pass 2: excess energy (late/mid game heuristic) if none selected
+                if (releaseIndex === -1) {
+                    const gamePhase = situation.gamePhase || 'mid';
+                    if (gamePhase !== 'early') {
+                        let energyIndices = [];
+                        currentDice.forEach((f,i)=>{ if(f==='energy') energyIndices.push(i); });
+                        if (energyIndices.length >= 2) releaseIndex = energyIndices[0];
                     }
-                    // Pass 3: attack with no strong incentive
-                    if (releaseIndex === -1) {
-                        const attackIndex = currentDice.findIndex(f=>f==='attack');
-                        if (attackIndex !== -1) releaseIndex = attackIndex;
-                    }
-                    if (releaseIndex !== -1) {
-                        const keepIndices = diceEvaluations.map(d=>d.index).filter(idx => idx !== releaseIndex);
-                        console.log('🪓 RELEASE-OVERRIDE: Freeing one die to pursue growth (index '+releaseIndex+')');
-                        window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, attackCluster:0, decisions:0 };
-                        window.AIOverrideStats.release++;
-                        return {
-                            action: 'reroll',
-                            keepDice: keepIndices,
-                            reason: 'Override: releasing low-value die to pursue set growth',
-                            confidence: (decision.confidence||0.6)+0.06
-                        };
-                    }
+                }
+                // Pass 3: attack with no strong incentive
+                if (releaseIndex === -1) {
+                    const attackIndex = currentDice.findIndex(f=>f==='attack');
+                    if (attackIndex !== -1) releaseIndex = attackIndex;
+                }
+                if (releaseIndex !== -1) {
+                    const keepIndices = diceEvaluations.map(d=>d.index).filter(idx => idx !== releaseIndex);
+                    console.log('🪓 RELEASE-OVERRIDE: Freeing one die to pursue growth (index '+releaseIndex+')');
+                    window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, attackCluster:0, decisions:0, personalityAdjust:0, threatBias:0 };
+                    window.AIOverrideStats.release++;
+                    return {
+                        action: 'reroll',
+                        keepDice: keepIndices,
+                        reason: 'Override: releasing low-value die to pursue set growth',
+                        confidence: (decision.confidence||0.6)+0.06
+                    };
                 }
             }
         }
 
         // Increment decision counter & periodic summary
         try {
-            window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, attackCluster:0, decisions:0 };
+            window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, attackCluster:0, decisions:0, personalityAdjust:0, threatBias:0 };
             window.AIOverrideStats.decisions++;
             if (window.AIOverrideStats.decisions % 10 === 0) {
                 console.log('📊 AI Override Summary (last '+window.AIOverrideStats.decisions+' decisions):', {
@@ -2024,6 +2033,59 @@ class AIDecisionEngine {
         return result;
     }
 
+    /**
+     * Phase 4 Helper: Approximate Expected Value (EV) of pursuing/improving a number set.
+     * We treat existing count of a face (1/2/3) and remaining rolls as an opportunity to gain VP.
+     * Simplified model assumptions:
+     *  - Chance to acquire an additional specific number on a single die in one roll = 1/6.
+     *  - Treat remaining rolls as independent opportunities across all non-kept dice.
+     *  - Diminishing marginal probability handled by geometric approximation (1 - (5/6)^dice*rollsRemaining).
+     *  - Reward structure: forming initial triple yields base VP (face value 1/2/3), each die beyond triple +1 VP.
+     * Returns object with { expectedGain, tripleCompletionProb, fourKindProb }.
+     */
+    computeSetEV(faceCount, faceValue, freeDice, rollsRemaining) {
+        if (rollsRemaining <= 0 || freeDice <= 0) {
+            return { expectedGain: 0, tripleCompletionProb: 0, fourKindProb: 0 };
+        }
+        // Probability to hit at least one of target face over remaining rolls across free dice
+        const pHitOne = 1 - Math.pow(5/6, freeDice * rollsRemaining);
+        let tripleCompletionProb = 0;
+        let fourKindProb = 0;
+        let expectedGain = 0;
+        if (faceCount < 3) {
+            const neededForTriple = 3 - faceCount; // 1 or 2
+            // Rough probability of completing triple: scaled by pHitOne and needing multiple hits if count==1
+            tripleCompletionProb = neededForTriple === 1 ? pHitOne : Math.pow(pHitOne * 0.7, 2); // dampen double requirement
+            expectedGain += tripleCompletionProb * faceValue; // base VP when triple achieved
+        } else {
+            tripleCompletionProb = 1; // already formed
+        }
+        // Probability of extending to 4-of-a-kind (only if triple already or expected to form)
+        if (faceCount >= 3) {
+            const pExtra = 1 - Math.pow(5/6, freeDice * rollsRemaining * 0.6); // dampening factor: not all dice devoted
+            fourKindProb = pExtra * 0.85; // adjust
+            expectedGain += fourKindProb * 1; // +1 VP for the 4th die
+        } else if (tripleCompletionProb > 0) {
+            // Expected incremental after forming triple within horizon
+            const pExtraConditional = 1 - Math.pow(5/6, (freeDice-1) * Math.max(rollsRemaining-1,0) * 0.5);
+            fourKindProb = tripleCompletionProb * pExtraConditional * 0.5; // formation then extension
+            expectedGain += fourKindProb * 1;
+        }
+        return { expectedGain, tripleCompletionProb, fourKindProb };
+    }
+
+    /**
+     * Phase 4 Helper: Marginal EV of pushing a formed triple toward a 4-of-a-kind specifically.
+     * Focused model used when deciding whether to reroll a stray die vs banking.
+     */
+    computeFourKindIncrementalEV(freeDice, rollsRemaining) {
+        if (rollsRemaining <= 0 || freeDice <= 0) return 0;
+        // Probability of at least one success over remaining opportunities devoted to target face.
+        const pSuccess = 1 - Math.pow(5/6, freeDice * rollsRemaining * 0.7); // 0.7 focus factor
+        // Value of success assumed +1 VP
+        return pSuccess * 1;
+    }
+
     analyzeDiceResults(diceResults) {
         const analysis = {
             hearts: 0,
@@ -2125,8 +2187,65 @@ class AIDecisionEngine {
     evaluateDiceEnhanced(currentDice, player, situation, probabilities, rollsRemaining = 0) {
         const diceToKeep = [];
         const personality = player.monster.personality;
+
+        // Phase 4: Pre-compute EV for each number face (1/2/3) to inform weighting.
+        // Count occurrences first.
+        const numberFaces = ['one','two','three'];
+        const faceCounts = { one:0, two:0, three:0 };
+        currentDice.forEach(f=>{ if(faceCounts.hasOwnProperty(f)) faceCounts[f]++; });
+        // Free dice concept: dice not currently locked to a decided keep set; for approximation use total dice minus those already part of solid sets (triples+) or that we plan to always keep (hearts when low HP).
+        const totalDice = currentDice.length;
+        const lowHP = player.health <= 3;
+        const lockedDiceApprox = currentDice.filter(f=>{
+            if(numberFaces.includes(f) && faceCounts[f] >= 3) return true; // formed triple
+            if(f==='heart' && lowHP) return true; // emergency healing
+            return false;
+        }).length;
+        const freeDiceApprox = Math.max(totalDice - lockedDiceApprox, 0);
+        const setEVMap = { one:0, two:0, three:0 };
+        const setEVDetail = {};
+        numberFaces.forEach(face => {
+            const value = face === 'one' ? 1 : (face === 'two' ? 2 : 3);
+            const res = this.computeSetEV(faceCounts[face], value, freeDiceApprox, rollsRemaining);
+            setEVMap[face] = res.expectedGain;
+            setEVDetail[face] = res;
+        });
+        // If exactly one triple present consider incremental EV for pushing to 4-of-a-kind (used later in overrides)
+        const tripleFaces = numberFaces.filter(f=>faceCounts[f]===3);
+        let fourKindIncrementalEV = 0;
+        if (tripleFaces.length === 1) {
+            // free dice are those not part of the triple; approximate again
+            const freeForFour = totalDice - 3; // ignoring other locks for simplicity
+            fourKindIncrementalEV = this.computeFourKindIncrementalEV(freeForFour, rollsRemaining);
+            if (typeof window !== 'undefined') {
+                window.AIOverrideStats.fourKindEVEvaluations = (window.AIOverrideStats.fourKindEVEvaluations||0)+1;
+            }
+            if (window?.AIDebugConfig?.showFourKindEV) {
+                console.log('🧪 FourKind Incremental EV:', { face: tripleFaces[0], freeForFour, fourKindIncrementalEV });
+            }
+        }
+        if (typeof window !== 'undefined') {
+            window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, decisions:0, attackCluster:0, singlePair:0, personalityAdjust:0, threatBias:0 };
+            window.AIOverrideStats.setEVEvaluations = (window.AIOverrideStats.setEVEvaluations||0)+1;
+        }
+        if (window?.AIDebugConfig?.showSetEV) {
+            console.log('📈 Set EV Detail (Phase4):', { counts: faceCounts, freeDiceApprox, setEVDetail });
+        }
+
+        // Phase 5: compute threat context once per evaluation (lightweight)
+        let threatContext = null;
+        try {
+            // Expect situation.allPlayers or derive from player.game?.players
+            const allPlayers = situation?.allPlayers || (player?.game?.players) || [];
+            threatContext = computeThreatContext(player, allPlayers);
+            if (threatContext && typeof window !== 'undefined' && window.AIDebugConfig?.threatDebug) {
+                console.log('🛡️ ThreatContext:', threatContext);
+                window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, decisions:0, attackCluster:0, singlePair:0, personalityAdjust:0, threatBias:0 };
+                window.AIOverrideStats.threatBias = (window.AIOverrideStats.threatBias||0)+1;
+            }
+        } catch(e) { /* silent */ }
         
-        console.log('🎲 DEBUG: Evaluating dice:', currentDice, 'Current state:', probabilities.currentState);
+        console.log('🎲 DEBUG: Evaluating dice:', currentDice, 'Current state:', probabilities.currentState, threatContext?{threat:threatContext.threatScore}:'' );
         
         // Pre-analyze potential number combinations to boost their value
         const numberComboPotential = this.analyzeNumberCombinations(currentDice);
@@ -2142,6 +2261,26 @@ class AIDecisionEngine {
 
         currentDice.forEach((face, index) => {
             let keepProbability = this.getDiceKeepProbability(face, situation, personality, probabilities.currentState);
+
+            // Phase 4: adjust keep probability by expected value pursuit incentives for number dice.
+            if (face === 'one' || face === 'two' || face === 'three') {
+                const evBoost = setEVMap[face];
+                if (evBoost > 0) {
+                    // Scale: modest boost; cap influence to avoid overpowering base heuristics.
+                    const boostFactor = 1 + Math.min(evBoost * 0.35, 0.4);
+                    keepProbability *= boostFactor;
+                }
+            }
+
+            // Phase 5 dynamic weighting BEFORE structural bonuses
+            if (threatContext) {
+                // Attack emphasis affects attack faces
+                if (face === 'attack') keepProbability *= threatContext.attackEmphasis;
+                // Healing emphasis
+                if (face === 'heart') keepProbability *= threatContext.healEmphasis;
+                // VP emphasis for number dice
+                if (face === 'one' || face === 'two' || face === 'three') keepProbability *= threatContext.vpEmphasis;
+            }
 
             // Auto-keep rule: any completed number set (triple or more) is always kept
             if ((face === 'one' || face === 'two' || face === 'three') && numberComboPotential[face] && numberComboPotential[face].count >= 3) {
@@ -2208,6 +2347,13 @@ class AIDecisionEngine {
         });
         
         console.log('🎲 DEBUG: Final dice to keep:', diceToKeep.map(d => `${d.index}:${d.face}`));
+        if (threatContext && typeof window !== 'undefined' && window.AIDebugConfig?.threatDebug) {
+            console.log('🛡️ Applied Threat Multipliers:', {
+                attack: threatContext.attackEmphasis,
+                heal: threatContext.healEmphasis,
+                vp: threatContext.vpEmphasis
+            });
+        }
         return diceToKeep;
     }
 
@@ -2404,6 +2550,18 @@ class AIDecisionEngine {
     }
 
     shouldKeepDiceEnhanced(face, keepProbability, currentState) {
+        // Setup dynamic thresholds (Phase 2 personality influence)
+        const baseThresholds = {
+            singleNumberHigh: 0.85,
+            singleNumberLow: 0.7,
+            nonNumberHigh: 0.8,
+            nonNumberBase: 0.5,
+            nonNumberLow: 0.2
+        };
+        // Attempt to access player via closure (this.currentPlayer maybe) else fallback
+        const player = this.currentPlayer || this.player || null;
+        const thresholds = getPersonalityAdjustedThresholds(baseThresholds, face, currentState, player);
+
         // Special logic for number combinations - keep if we already have multiples
         if (face === 'one' && currentState.ones >= 2) return true;
         if (face === 'two' && currentState.twos >= 2) return true;
@@ -2411,51 +2569,55 @@ class AIDecisionEngine {
         
         // For single number dice, apply much stricter logic
         if (face === 'one' || face === 'two' || face === 'three') {
-            // Don't keep single number dice if we have pairs/triples of other numbers
             const hasBetterCombination = (currentState.ones >= 2 && face !== 'one') ||
                                        (currentState.twos >= 2 && face !== 'two') ||
                                        (currentState.threes >= 2 && face !== 'three');
-            
             if (hasBetterCombination) {
-                console.log(`❌ Not keeping single ${face} because we have better combinations:`, {
-                    ones: currentState.ones,
-                    twos: currentState.twos, 
-                    threes: currentState.threes,
-                    currentFace: face
-                });
+                console.log(`❌ Not keeping single ${face} (better combos)`, { ones: currentState.ones, twos: currentState.twos, threes: currentState.threes });
                 return false;
             }
-            
-            // Don't keep single number dice if we have multiple good non-number dice
             const goodNonNumberDice = (currentState.attacks || 0) + (currentState.energy || 0) + (currentState.heal || 0);
             if (goodNonNumberDice >= 2) {
-                console.log(`❌ Not keeping single ${face} because we have ${goodNonNumberDice} good non-number dice (attack/energy/heal)`);
+                console.log(`❌ Not keeping single ${face} due to ${goodNonNumberDice} good non-number dice`);
                 return false;
             }
-            
-            // For single number dice, require a much higher threshold unless it's desperate
-            const singleNumberThreshold = goodNonNumberDice >= 1 ? 0.85 : 0.7; // Even higher if we have any good dice
-            const shouldKeep = keepProbability >= singleNumberThreshold;
-            console.log(`🎲 Single ${face} decision: probability=${keepProbability.toFixed(2)}, threshold=${singleNumberThreshold}, goodNonNumber=${goodNonNumberDice}, keeping=${shouldKeep}`);
+            const threshold = goodNonNumberDice >= 1 ? thresholds.singleNumberHigh : thresholds.singleNumberLow;
+            const shouldKeep = keepProbability >= threshold;
+            console.log(`🎲 Single ${face} decision (dyn): p=${keepProbability.toFixed(2)}, thr=${threshold.toFixed(2)}, goodNN=${goodNonNumberDice}, keep=${shouldKeep}`);
             return shouldKeep;
         }
         
-        // Always keep if probability is very high (for non-single number dice)
-        if (keepProbability >= 0.8) return true;
-        
-        // Don't keep if probability is very low
-        if (keepProbability <= 0.2) return false;
-        
-        // For non-number dice (attack, heart, energy), use standard threshold
+        // Non-number dice logic with dynamic thresholds
+        if (keepProbability >= thresholds.nonNumberHigh) return true;
+        if (keepProbability <= thresholds.nonNumberLow) return false;
         if (face === 'attack' || face === 'heart' || face === 'energy') {
-            return keepProbability >= 0.5;
+            return keepProbability >= thresholds.nonNumberBase;
         }
-        
-        // Standard threshold for everything else
-        return keepProbability >= 0.6; // Slightly higher threshold for better decisions
+        return keepProbability >= (thresholds.nonNumberBase + 0.1); // default slightly higher
     }
 
-    makeKeepDecisionEnhanced(diceEvaluations, rollsRemaining, player, situation, probabilities) {
+    /**
+     * Make final decision on what dice to keep
+     */
+    async makeKeepDecisionEnhanced(diceEvaluations, rollsRemaining, player, situation, probabilities) {
+        // Personality-differentiated dynamic threshold preprocessing (Phase 2)
+        const personality = player.monster && player.monster.personality ? player.monster.personality : { aggression:3, risk:3, strategy:3 };
+        const aiCfg = (typeof window !== 'undefined' ? (window.AIConfig||{}) : {});
+        const usePersonality = aiCfg.enablePersonalityThresholds !== false; // default on
+        let personalityContext = null;
+        if (usePersonality) {
+            personalityContext = this._computePersonalityThresholdContext(personality, player, situation);
+            // Attach for later inspection
+            probabilities.personalityThresholds = personalityContext.thresholds;
+            try {
+                window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, attackCluster:0, singlePair:0, decisions:0, personalityAdjust:0, threatBias:0 };
+                window.AIOverrideStats.personalityAdjust++;
+            } catch(e) { /* ignore */ }
+            if (aiCfg.logPersonalityAdjust) {
+                console.log('🧬 Personality thresholds applied:', personalityContext);
+            }
+        }
+
         const risk = this.assessPersonalityRisk(player.monster.personality, situation);
         const projectedOutcome = probabilities.projectedOutcomes;
         
@@ -2469,10 +2631,45 @@ class AIDecisionEngine {
                 confidence: 0.9
             };
         }
+
+        // Phase 3: Optional async deep evaluation hook (preview / off by default)
+        // This allows future heavier EV analysis without blocking main thread when enabled.
+        try {
+            const asyncCfg = (typeof window !== 'undefined') ? (window.AIAsyncConfig || {}) : {};
+            const enableAsync = asyncCfg.enableDeepEval === true; // explicit opt-in only
+            if (enableAsync && typeof this.evaluateDiceDeepAsync === 'function') {
+                window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, attackCluster:0, singlePair:0, decisions:0, personalityAdjust:0, threatBias:0, asyncAttempt:0, asyncUsed:0, asyncFailed:0 };
+                window.AIOverrideStats.asyncAttempt++;
+                const timeoutMs = Math.min( (asyncCfg.timeoutMs || 18), 100); // very small budget to avoid UI lag
+                const startT = performance && performance.now ? performance.now() : Date.now();
+                const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve({ _timeout:true }), timeoutMs));
+                const deepPromise = this.evaluateDiceDeepAsync(diceEvaluations, probabilities, player, situation, { rollsRemaining, risk });
+                const deepResult = await Promise.race([timeoutPromise, deepPromise]).catch(err => ({ _error: err }));
+                const elapsed = (performance && performance.now ? performance.now() : Date.now()) - startT;
+                if (deepResult && !deepResult._timeout && !deepResult._error) {
+                    window.AIOverrideStats.asyncUsed++;
+                    if (asyncCfg.logResults) {
+                        console.log(`🧪 Async deep eval success in ${elapsed.toFixed(1)}ms`, deepResult);
+                    }
+                    // If deep evaluation suggests a different action with higher confidence, adopt it.
+                    if (deepResult.decision && typeof deepResult.decision === 'object' && deepResult.decision.confidence > 0.9) {
+                        deepResult.decision.reason = (deepResult.decision.reason||'') + ' (async)';
+                        return deepResult.decision;
+                    }
+                } else {
+                    window.AIOverrideStats.asyncFailed++;
+                    if (asyncCfg.logTimeouts) {
+                        console.warn(`⏱️ Async deep eval ${deepResult?._timeout ? 'timed out' : 'failed'} in ${elapsed.toFixed(1)}ms`, deepResult && deepResult._error ? deepResult._error : '');
+                    }
+                }
+            }
+        } catch (e) {
+            try { window.AIOverrideStats.asyncFailed = (window.AIOverrideStats.asyncFailed||0)+1; } catch(_){}
+        }
         
         // Calculate total strategic value
         const totalValue = diceEvaluations.reduce((sum, dice) => sum + dice.strategicValue, 0);
-        const currentValue = probabilities.currentState.victoryPoints + probabilities.currentState.hearts + probabilities.currentState.energy + probabilities.currentState.attacks;
+        const currentValue = projectedOutcome.expectedVP + projectedOutcome.expectedHearts + projectedOutcome.expectedEnergy + projectedOutcome.expectedAttacks;
         
         console.log('🔍 DEBUG: Strategic values - total:', totalValue, 'current:', currentValue, 'dice count:', diceEvaluations.length);
         
@@ -2487,7 +2684,41 @@ class AIDecisionEngine {
                 confidence: 0.9
             };
         }
+
+        // AI_EXT: Phase 1 additions (pair sacrifice + resource filters)
+        // Sacrifice logic: if we have 2 of a kind and not much else, consider rerolling one to chase triple
+        const twoOfAKindFaces = ['ones','twos','threes'].filter(k => probabilities.currentState[k] === 2);
+        const hasTwoOfAKind = twoOfAKindFaces.length > 0;
+        const hasStrongSupport = (probabilities.currentState.attacks || 0) + (probabilities.currentState.energy || 0) >= 3;
         
+        if (hasTwoOfAKind && !hasStrongSupport && rollsRemaining > 0) {
+            console.log('🎯 PAIR SACRIFICE: Rerolling one die from two of a kind to chase triple');
+            const keepIdx = diceEvaluations.filter(d => {
+                const face = d.face;
+                return !(twoOfAKindFaces.includes(face) && probabilities.currentState[face] === 2);
+            }).map(d => d.index);
+            return {
+                action: 'reroll',
+                keepDice: keepIdx,
+                reason: 'Sacrificing one die from two of a kind to chase triple',
+                confidence: 0.85
+            };
+        }
+
+        // Resource filters: if energy is low and we have good energy dice, prioritize keeping them
+        if (player.energy <= 2 && rollsRemaining > 0) {
+            const energyDice = diceEvaluations.filter(d => d.face === 'energy' && d.totalValue > 5);
+            if (energyDice.length > 0) {
+                console.log('🔋 ENERGY FILTER: Keeping high-value energy dice');
+                return {
+                    action: 'reroll',
+                    keepDice: energyDice.map(d => d.index),
+                    reason: 'Keeping high-value energy dice due to low energy',
+                    confidence: 0.8
+                };
+            }
+        }
+
         // Assess potential improvement if we continue rolling
         const keptCount = diceEvaluations.length;
         const diceRemaining = 6 - keptCount;
@@ -2495,8 +2726,7 @@ class AIDecisionEngine {
 
         // Incomplete number sets (two of a kind) offer strong improvement prospects
         const cs = probabilities.currentState;
-        const twoOfKindFaces = ['ones','twos','threes'].filter(k => cs[k] === 2);
-        const twoOfKinds = twoOfKindFaces.length; // property keys maybe ones/twos/threes
+        const twoOfKinds = twoOfAKindFaces.length; // property keys maybe ones/twos/threes
         // Baseline weight for each pair
         improvementPotentialScore += twoOfKinds * 25; // base incentive
 
@@ -2512,7 +2742,7 @@ class AIDecisionEngine {
         const rollsLeft = rollsRemaining; // inclusive of current decision phase
         const pairEVDetails = [];
         if (diceRemainingForEV > 0 && rollsLeft > 0) {
-            twoOfKindFaces.forEach(faceKey => {
+            twoOfAKindFaces.forEach(faceKey => {
                 const trials = diceRemainingForEV * rollsLeft;
                 const probComplete = 1 - Math.pow(5/6, trials);
                 const incrementalVP = faceBaseVP[faceKey] + 2; // triple gives value of base face + 2 bonus
@@ -2594,7 +2824,7 @@ class AIDecisionEngine {
                 action: 'endRoll',
                 keepDice: diceEvaluations.map(d => d.index),
                 reason: `Stopping early: strong value total=${totalValue} current=${currentValue} lowImprovement=${improvementPotentialScore}`,
-                improvementDetail: { twoOfKinds: twoOfKindFaces, diceRemaining: diceRemainingForEV, rollsLeft, pairEVDetails, note: 'Early stop gate passed' },
+                improvementDetail: { twoOfKinds: twoOfAKindFaces, diceRemaining: diceRemainingForEV, rollsLeft, pairEVDetails, note: 'Early stop gate passed' },
                 overrideReasons: [],
                 confidence: 0.82
             };
@@ -2636,7 +2866,7 @@ class AIDecisionEngine {
                 action: 'endRoll',
                 keepDice: diceEvaluations.map(d => d.index),
                 reason: `Marginal improvement potential (${improvementPotentialScore}), locking in`,
-                improvementDetail: { twoOfKinds: twoOfKindFaces, diceRemaining: diceRemainingForEV, rollsLeft, pairEVDetails, note: 'KeptCount>=5 gate' },
+                improvementDetail: { twoOfKinds: twoOfAKindFaces, diceRemaining: diceRemainingForEV, rollsLeft, pairEVDetails, note: 'KeptCount>=5 gate', personality: personalityContext },
                 overrideReasons: [],
                 confidence: 0.62
             };
@@ -2647,9 +2877,70 @@ class AIDecisionEngine {
             action: 'reroll',
             keepDice: diceEvaluations.map(d => d.index),
             reason: `Continuing - improvement potential ${improvementPotentialScore} (threshold logic)`,
-            improvementDetail: { twoOfKinds: twoOfKindFaces, diceRemaining: diceRemainingForEV, rollsLeft, pairEVDetails, note: 'Continue path' },
+            improvementDetail: { twoOfKinds: twoOfAKindFaces, diceRemaining: diceRemainingForEV, rollsLeft, pairEVDetails, note: 'Continue path', personality: personalityContext },
             overrideReasons: [],
             confidence: 0.55
+        };
+    }
+
+    /**
+     * Phase 2 helper: compute dynamic thresholds influenced by personality & state.
+     * Returns object { thresholds, factors } where thresholds influence keep heuristics elsewhere.
+     */
+    _computePersonalityThresholdContext(personality, player, situation) {
+        // Base thresholds (conceptual) representing how many dice the AI is comfortable keeping early.
+        let baseContinueBias = 0; // positive => more likely to continue
+        baseContinueBias += (personality.risk||3) - 3; // higher risk pushes continuing
+        baseContinueBias += (personality.aggression||3) >= 4 ? 0.5 : 0; // aggressive nudges continuation for attacks
+        baseContinueBias -= (personality.strategy||3) >= 4 ? 0.3 : 0; // strategic may settle earlier if value good
+
+        // Health influences caution: low health reduces continuation
+        if (player.health <= 3) baseContinueBias -= 1.0;
+        else if (player.health <= 5) baseContinueBias -= 0.4;
+
+        // Tokyo presence: inside Tokyo encourages continuing if not at critical health
+        if (player.isInTokyo && player.health > 3) baseContinueBias += 0.4;
+
+        // Threat pressure: if a critical VP threat exists, bias toward continuation for attack / disruption
+        const criticalThreat = situation?.threats?.hasCriticalThreat;
+        if (criticalThreat) baseContinueBias += 0.7;
+
+        // Clamp bias
+        baseContinueBias = Math.max(-2, Math.min(2.5, baseContinueBias));
+
+        // Translate bias into threshold scaling factors used conceptually by number/ non-number keep logic
+        const singleNumberHigh = 0.55 - (baseContinueBias * 0.03); // higher bias => slightly lower threshold to keep
+        const singleNumberLow = 0.35 - (baseContinueBias * 0.02);
+        const nonNumberBase = 0.50 - (baseContinueBias * 0.025);
+        const nonNumberHigh = 0.70 - (baseContinueBias * 0.03);
+        const nonNumberLow = 0.25 - (baseContinueBias * 0.015);
+
+        // Jitter to avoid deterministic edge cases
+        const aiCfg = (typeof window !== 'undefined' ? (window.AIConfig||{}) : {});
+        let jitter = 0; let appliedJitter = 0;
+        if (aiCfg.personalityJitter) {
+            const magnitude = aiCfg.jitterMagnitude || 0.04;
+            jitter = (Math.random()*2 - 1) * magnitude; // [-mag, +mag]
+            appliedJitter = Number(jitter.toFixed(3));
+        }
+
+        function clamp01(v){ return Math.max(0.05, Math.min(0.95, v)); }
+        const thresholds = {
+            singleNumberHigh: clamp01(singleNumberHigh + jitter),
+            singleNumberLow: clamp01(singleNumberLow + jitter),
+            nonNumberBase: clamp01(nonNumberBase + jitter),
+            nonNumberHigh: clamp01(nonNumberHigh + jitter),
+            nonNumberLow: clamp01(nonNumberLow + jitter)
+        };
+
+        return {
+            thresholds,
+            bias: Number(baseContinueBias.toFixed(2)),
+            appliedJitter,
+            personality: { ...personality },
+            health: player.health,
+            inTokyo: !!player.isInTokyo,
+            criticalThreat: !!criticalThreat
         };
     }
 
@@ -2769,37 +3060,14 @@ class AIDecisionEngine {
         
         // Critical health thresholds
         const myHealthLow = myHealth <= 3;
-        const tokyoHealthLow = tokyoHealth <= 3;
-        const myHealthCritical = myHealth <= 2;
+        const tokyoHealthLow = tokyoHealth <= 4; // heuristic low threshold
         const tokyoHealthCritical = tokyoHealth <= 2;
-        
-        // Check for protective power cards (like Jets)
         const hasTokyoProtection = this.hasTokyoProtectionCards(player);
-        console.log(`🏛️ PROTECTION: Has Tokyo protection cards: ${hasTokyoProtection}`);
-        
-        // AVOID TOKYO scenarios
-        if (myHealthCritical && !hasTokyoProtection) {
-            // Critical health - avoid Tokyo at all costs unless very aggressive
-            if (aggression < 4) {
-                return {
-                    avoidTokyo: true,
-                    targetTokyo: false,
-                    reason: `Critical health (${myHealth}) - avoiding Tokyo entry unless very aggressive`
-                };
-            }
-        }
-        
-        if (myHealthLow && !tokyoHealthCritical && !hasTokyoProtection) {
-            // Low health, but Tokyo player is healthy - consider personality
-            if (risk <= 2) {
-                // Risk-averse - avoid Tokyo
-                return {
-                    avoidTokyo: true,
-                    targetTokyo: false,
-                    reason: `Low health (${myHealth}) + risk-averse personality - avoiding Tokyo`
-                };
-            } else if (strategy_trait >= 4) {
-                // Strategic - look for protection cards instead
+
+        // Strategic personalities may delay Tokyo entry to secure protection if not pressured
+        if (strategy_trait >= 4 && !myHealthLow && !tokyoHealthCritical && !player.isInTokyo) {
+            if (!hasTokyoProtection && player.energy <= 2) {
+                // Avoid committing until we can buy or draw protection
                 return {
                     avoidTokyo: true,
                     targetTokyo: false,
@@ -3308,12 +3576,216 @@ class AIDecisionEngine {
         return value;
     }
 
-    hasAttackCards(player) {
-        if (!player.powerCards) return false;
+    // ===== DEBUGGING AND VISUALIZATION HELPERS =====
+    logCurrentState(player, gameState) {
+        const diceResults = gameState.diceResults || [];
+        const analysis = this.analyzeDiceResults(diceResults);
+        const threats = this.identifyThreats(player, gameState);
+        const opportunities = this.identifyOpportunities(player, gameState);
+        const powerCardStrategy = this.evaluatePowerCardStrategy(player, gameState);
+        const multiPlayerScenarios = this.analyzeMultiPlayerScenarios(player, gameState);
         
-        return player.powerCards.some(card => this.isAttackCard(card));
+        console.log(`\n🧠 AI Debug State for ${player.monster.name}:`);
+        console.log(`  Health: ${player.health}, Energy: ${player.energy}, VP: ${player.victoryPoints}, In Tokyo: ${player.isInTokyo}`);
+        console.log(`  Dice Results: ${JSON.stringify(diceResults)}`);
+        console.log(`  Analysis: ${JSON.stringify(analysis)}`);
+        console.log(`  Threats: ${JSON.stringify(threats)}`);
+        console.log(`  Opportunities: ${JSON.stringify(opportunities)}`);
+        console.log(`  Power Card Strategy: ${JSON.stringify(powerCardStrategy)}`);
+        console.log(`  Multi-Player Scenarios: ${JSON.stringify(multiPlayerScenarios)}`);
+    }
+
+    // ===== Phase 3 Async Deep Evaluation (Stub) =====
+    /**
+     * Asynchronous deeper evaluation placeholder.
+     * Intention: Evaluate alternative keep sets via simulation / combinatorics without blocking main thread.
+     * Current stub returns a resolved promise with a basic structure and no override decision.
+     * Future expansion: Monte Carlo simulation of reroll outcomes, card synergy forecasting, threat-adjusted EV.
+     * @param {Array} diceEvaluations - current dice evaluation objects
+     * @param {Object} probabilities - probability state snapshot
+     * @param {Object} player - player state
+     * @param {Object} situation - broader situation context
+     * @param {Object} meta - { rollsRemaining, risk }
+     * @returns Promise<{ analysis:object, decision?:object }>
+     */
+    async evaluateDiceDeepAsync(diceEvaluations, probabilities, player, situation, meta) {
+        try {
+            // Lightweight micro-task yield to illustrate async path
+            await new Promise(r => setTimeout(r, 0));
+            const analysis = {
+                timestamp: Date.now(),
+                diceCount: diceEvaluations.length,
+                rollsRemaining: meta.rollsRemaining,
+                risk: meta.risk,
+                largestSet: Math.max(probabilities.currentState.ones||0, probabilities.currentState.twos||0, probabilities.currentState.threes||0),
+                pairs: ['ones','twos','threes'].filter(f => (probabilities.currentState[f]||0) === 2),
+                energy: probabilities.currentState.energy||0,
+                attacks: probabilities.currentState.attacks||0,
+                hearts: probabilities.currentState.hearts||0,
+                note: 'Phase 3 async stub - no deep simulation executed'
+            };
+            // Example heuristic: If we have two distinct pairs and high rolls remaining, propose forcing reroll (higher confidence)
+            if (analysis.pairs.length >= 2 && meta.rollsRemaining > 0) {
+                return {
+                    analysis,
+                    decision: {
+                        action: 'reroll',
+                        keepDice: diceEvaluations.map(d => d.index),
+                        reason: 'Async: multi-pair high opportunity (stub)',
+                        confidence: 0.91
+                    }
+                };
+            }
+            return { analysis };
+        } catch (e) {
+            return { _error: e };
+        }
     }
 }
 
 // Make AIDecisionEngine available globally
 window.AIDecisionEngine = AIDecisionEngine;
+
+// Personality threshold adjustment helper (Phase 2)
+if (typeof window !== 'undefined') {
+    window.AIDebugConfig = window.AIDebugConfig || { personalityJitter:true, logPersonalityAdjust:true };
+}
+
+function getPersonalityAdjustedThresholds(base, face, currentState, player) {
+    // base: { singleNumberHigh, singleNumberLow, nonNumberHigh, nonNumberBase, nonNumberLow }
+    // Returns object with dynamic thresholds after personality + situation adjustments
+    const personality = player?.monster?.personality || 'balanced';
+    const situation = player?.gameSituationAnalyzer ? player.gameSituationAnalyzer() : null;
+    const hp = player?.health ?? 10;
+    const inTokyo = !!player?.inTokyo;
+    let riskLevel = 'normal';
+    if (situation && situation.riskAssessment) riskLevel = situation.riskAssessment;
+
+    // Clone baseline
+    const t = { ...base };
+
+    // Personality scaling factors
+    const scaleMap = {
+        aggressive: { numberAgg: -0.05, attackBias: -0.05, healBias: +0.05 },
+        defensive: { numberAgg: +0.05, attackBias: +0.05, healBias: -0.05 },
+        economic:  { numberAgg: 0, attackBias: +0.02, healBias: 0 }
+    };
+    const scale = scaleMap[personality] || { numberAgg:0, attackBias:0, healBias:0 };
+
+    // Adjust number thresholds (encourage/discourage keeping singles)
+    t.singleNumberHigh += scale.numberAgg; // aggressive lowers high bar slightly
+    t.singleNumberLow  += scale.numberAgg;
+
+    // Risk-based adjustments (game situation)
+    if (riskLevel === 'high') {
+        // Be more selective with single numbers, unless we already have pairs
+        if ((currentState?.ones||0) < 2 && (currentState?.twos||0) < 2 && (currentState?.threes||0) < 2) {
+            t.singleNumberHigh += 0.05;
+            t.singleNumberLow  += 0.05;
+        }
+    } else if (riskLevel === 'low') {
+        t.singleNumberHigh -= 0.05;
+        t.singleNumberLow  -= 0.05;
+    }
+
+    // Health / Tokyo context
+    if (inTokyo && hp <= 4) {
+        // Need hearts, reduce thresholds for healing if face is heart
+        if (face === 'heart') t.nonNumberBase = Math.max(0.35, t.nonNumberBase - 0.1);
+    }
+
+    // Clamp values
+    const clamp = (v) => Math.max(0.1, Math.min(0.95, v));
+    Object.keys(t).forEach(k => { t[k] = clamp(t[k]); });
+
+    // Optional jitter to avoid predictability
+    if (typeof window !== 'undefined' && window.AIDebugConfig?.personalityJitter) {
+        const jitter = (min, max) => (Math.random() * (max - min) + min);
+        const j = jitter(-0.015, 0.015);
+        t.singleNumberHigh = clamp(t.singleNumberHigh + j);
+        t.singleNumberLow  = clamp(t.singleNumberLow + j);
+        t.nonNumberBase    = clamp(t.nonNumberBase + j/2);
+    }
+
+    if (typeof window !== 'undefined' && window.AIDebugConfig?.logPersonalityAdjust) {
+    window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, decisions:0, attackCluster:0, singlePair:0, personalityAdjust:0, threatBias:0 };
+        window.AIOverrideStats.personalityAdjust = (window.AIOverrideStats.personalityAdjust||0)+1;
+        console.log('🧬 Personality thresholds', { face, personality, riskLevel, hp, inTokyo, thresholds:t });
+    }
+
+    return t;
+}
+
+// Threat context helper (Phase 5)
+if (typeof window !== 'undefined') {
+    window.AIDebugConfig = window.AIDebugConfig || {};
+    if (window.AIDebugConfig.threatDebug === undefined) window.AIDebugConfig.threatDebug = true; // default on for development
+}
+
+function computeThreatContext(player, allPlayers) {
+    try {
+        if (!allPlayers || !Array.isArray(allPlayers)) return null;
+        const alive = allPlayers.filter(p => !p.eliminated);
+        if (alive.length <= 1) return null;
+
+        const me = player;
+        const maxVP = Math.max(...alive.map(p => p.victoryPoints || 0), 0);
+        const vpRacePressure = Math.min(1, Math.max(0, (maxVP - (me.victoryPoints||0)) / 10));
+        const lowHealthPressure = me.health <= 4 ? (me.health <= 2 ? 1 : 0.6) : 0;
+
+        let topThreat = null;
+        let topThreatScore = -Infinity;
+        alive.forEach(op => {
+            if (op === me) return;
+            const vpComponent = (op.victoryPoints||0) * 1.4;
+            const energyComponent = (op.energy||0) * 0.5;
+            const healthComponent = (op.health||0) * 0.3;
+            const tokyoComponent = op.inTokyo ? 3 : 0;
+            const recentAttack = (op.lastRolledAttack||0) * 0.8;
+            const score = vpComponent + energyComponent + healthComponent + tokyoComponent + recentAttack;
+            if (score > topThreatScore) { topThreatScore = score; topThreat = op; }
+        });
+
+        // Emphasis multipliers start neutral
+        let attackEmphasis = 1.0;
+        let healEmphasis = 1.0;
+        let vpEmphasis = 1.0;
+
+        if (lowHealthPressure > 0) {
+            healEmphasis += 0.5 * lowHealthPressure;
+            attackEmphasis -= 0.3 * lowHealthPressure;
+        }
+        if (vpRacePressure > 0.4) {
+            vpEmphasis += 0.6 * vpRacePressure;
+            attackEmphasis += 0.4 * vpRacePressure;
+        }
+        if (topThreat && topThreat.inTokyo && me.health >= 5) {
+            attackEmphasis += 0.5;
+        }
+
+        // Clamp
+        const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
+        attackEmphasis = clamp(attackEmphasis, 0.4, 2.0);
+        healEmphasis = clamp(healEmphasis, 0.5, 2.0);
+        vpEmphasis = clamp(vpEmphasis, 0.6, 2.0);
+
+        const ctx = {
+            topThreat,
+            threatScore: topThreatScore,
+            vpRacePressure:+vpRacePressure.toFixed(2),
+            lowHealthPressure:+lowHealthPressure,
+            attackEmphasis:+attackEmphasis.toFixed(2),
+            healEmphasis:+healEmphasis.toFixed(2),
+            vpEmphasis:+vpEmphasis.toFixed(2)
+        };
+
+        if (typeof window !== 'undefined') {
+            try {
+                window.lastThreatContext = ctx;
+            } catch(_) {}
+        }
+        return ctx;
+    } catch(e) {
+        return null;
+    }
+}
