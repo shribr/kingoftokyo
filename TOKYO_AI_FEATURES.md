@@ -71,10 +71,10 @@ _Last updated: 2025-09-21_
 | Defensive Card Purchase Evaluation | Implemented | ⚔️💰 | Adds denial premium vs opponent trajectories | Strategic counterplay |
 | Player Purchase Memory Store | Implemented | 🧠🛠 | Tracks acquired cards & feature counts | Foundation for adaptive builds |
 | Feature Extraction Helper | Implemented | 🛠 | Central utility for tagging cards | Feeds synergy & DR layers |
-| Synergy Matrix (Multiplicative) | Scaffolded | 🧠💰 | Bonus multipliers across feature pairs | Drives cohesive archetypes |
-| Purchase History Diminishing Returns | In-Progress | 💰🧠 | Value decay for repeated feature stacking | Encourages diversified builds |
-| Synergy-Aware Greedy Optimizer | Planned | 💰🎯 | Iterative marginal gain selection | Efficient budget utilization |
-| Rationale Object Output | Planned | 🛠 | Debug/analysis artifact detailing scoring | Transparency & tuning |
+| Synergy Matrix (Multiplicative) | Implemented | 🧠💰 | Bonus multipliers across feature pairs | Drives cohesive archetypes |
+| Purchase History Diminishing Returns | Implemented | 💰🧠 | Value decay (geometric curve) for repeated feature stacking | Encourages diversified builds |
+| Synergy-Aware Greedy Optimizer | Implemented | 💰🎯 | Iterative marginal gain selection with threshold | Efficient budget utilization |
+| Rationale Object Output | Implemented | 🛠 | Per-card + aggregate scoring breakdown | Transparency & tuning |
 
 ## 10. Adaptivity & Phase Awareness
 | Feature | Status | Impact | Description | Gameplay Effect |
@@ -120,15 +120,16 @@ _Last updated: 2025-09-21_
 
 ---
 ## Roadmap (Next Updates)
-1. Integrate diminishing returns curve into optimizer.
-2. Refactor `optimizePowerCardPortfolio` for synergy-aware marginal greedy selection.
-3. Emit rationale object (card-level + aggregate strategic intent).
-4. Add defensive synergy foresight scoring (planned extension of denial logic).
-5. Surface rationale optionally in UI / debug overlay.
+1. Add defensive synergy foresight scoring (extend denial to predictive combos).
+2. Surface rationale optionally in UI / debug overlay.
+3. Calibrate threshold & weights from telemetry (future tuning loop).
+4. Expand synergy matrix for multi-feature chained scaling.
+5. Optional: Introduce opponent-aware negative synergy denial modeling.
 
 ---
 ## Change Log
 - 2025-09-21: Initial comprehensive document created (baseline + scaffolded synergy & memory additions).
+- 2025-09-21: Implemented synergy-aware greedy optimizer, diminishing returns curve, rationale output; updated statuses accordingly.
 
 ---
 ## Maintenance Instructions

@@ -8305,6 +8305,10 @@ class KingOfTokyoUI {
                 // Update UI to reflect the purchase
                 this.updateCardsDisplay();
                 this.updatePlayerDisplay(player);
+                // Record purchase in AI memory for synergy/diminishing returns
+                if (this.aiEngine && typeof this.aiEngine.recordPowerCardPurchase === 'function') {
+                    try { this.aiEngine.recordPowerCardPurchase(player, card); } catch(e){ console.warn('AI purchase record failed', e); }
+                }
                 
                 // Wait a moment then continue to next purchase
                 setTimeout(() => {

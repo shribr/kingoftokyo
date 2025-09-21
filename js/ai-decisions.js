@@ -407,37 +407,121 @@
 		}
 
 		// ---------- Power Card Portfolio (Heuristic Stub) ----------
-		// expected usage: optimizePowerCardPortfolio(availableCards, player) -> { cards:[], totalCost, strategy, efficiency }
+		// expected usage: optimizePowerCardPortfolio(availableCards, player) -> { cards:[], totalCost, strategy, efficiency, rationale: { perCard:[], aggregate:{} } }
+		// New version: synergy-aware greedy optimizer with diminishing returns & rationale output
+		_getDiminishingFactor(feature, count){
+			// count = already owned BEFORE purchase; returns multiplier applied to base value of new feature instance
+			// Curve chosen for gentle early stacking then tapering
+			if (count <= 0) return 1.0;
+			if (count === 1) return 0.82;
+			if (count === 2) return 0.6;
+			if (count === 3) return 0.45;
+			return 0.35; // 4 or more
+		}
+
 		optimizePowerCardPortfolio(availableCards, player){
-			if (!Array.isArray(availableCards) || !availableCards.length) return { cards:[], totalCost:0, strategy:'none', efficiency:0 };
-			const energy = player.energy || 0;
-			// Score cards by simple tags (reuse summarization approach if structure present)
-			const scored = availableCards.map(c=>{
-				const name = (c.name||'').toLowerCase();
-				let score=0, role=[];
-				const cost = c.cost||0;
-				if (name.includes('energy') || name.includes('metabolism')) { score+=8; role.push('economy'); }
-				if (name.includes('attack') || name.includes('spiked') || name.includes('fire')) { score+=10; role.push('offense'); }
-				if (name.includes('heal') || name.includes('regeneration') || name.includes('rapid')) { score+=9; role.push('sustain'); }
-				if (name.includes('extra') && name.includes('head')) { score+=12; role.push('scaling'); }
-				if (name.includes('brain')) { score+=11; role.push('reroll'); }
-				if (name.includes('victory') || name.includes('point') || name.includes('news')) { score+=7; role.push('vp'); }
-				// Light diminishing by cost
-				const efficiency = cost>0? score / Math.pow(cost,0.85): score;
-				return { card:c, score, efficiency, cost, role:role.join('+') };
+			if (!Array.isArray(availableCards) || !availableCards.length) return { cards:[], totalCost:0, strategy:'none', efficiency:0, rationale:{ perCard:[], aggregate:{} } };
+			const energyBudget = player.energy || 0;
+			if (energyBudget <= 0) return { cards:[], totalCost:0, strategy:'none', efficiency:0, rationale:{ perCard:[], aggregate:{} } };
+
+			// Base feature weights (tunable)
+			const baseWeights = { extraDie:22, extraReroll:18, attack:14, energy:12, heal:10, vp:8 };
+			// Personality adjustments
+			const { aggression=0.5, strategy: stratBias=0.5, risk=0.5 } = player.personality || {};
+			// Copy existing purchase memory counts
+			const mem = this._getOrInitPlayerMemory(player);
+			const ownedCounts = { ...mem.counts };
+			const ownedFeaturesSet = new Set(Object.keys(ownedCounts).filter(k=>ownedCounts[k]>0));
+
+			// Helper to compute base value for a card
+			const computeBase = (features)=>{
+				let v=0; features.forEach(f=>{ v += (baseWeights[f]||5); });
+				return v;
+			};
+
+			// Pre-extract features per card
+			const cardMeta = availableCards.map(c=>{
+				const feats = this._extractCardFeatures(c);
+				return { card:c, features:feats, cost:c.cost||0 };
 			});
-			// Sort by efficiency then raw score
-			scored.sort((a,b)=> b.efficiency - a.efficiency || b.score - a.score);
-			const chosen=[]; let spent=0; let aggScore=0;
-			for (const s of scored){
-				if (s.cost + spent <= energy){ chosen.push(s.card); spent+=s.cost; aggScore+=s.score; }
+
+			const rationalePerCard = [];
+			const chosenCards=[]; let spent=0; let cumulativeScore=0;
+			const simulatedCounts = { ...ownedCounts };
+			const simulatedFeatures = new Set(ownedFeaturesSet);
+
+			// Greedy selection loop
+			while (true){
+				let best=null;
+				for (const meta of cardMeta){
+					if (chosenCards.includes(meta.card)) continue;
+					if (meta.cost + spent > energyBudget) continue;
+					const base = computeBase(meta.features);
+					// Diminishing returns factor (average across features for stability)
+					let drFactors=[]; meta.features.forEach(f=>{ const cnt = simulatedCounts[f]||0; drFactors.push(this._getDiminishingFactor(f,cnt)); });
+					const diminishing = drFactors.length? (drFactors.reduce((a,b)=>a+b,0)/drFactors.length):1;
+					// Synergy multiplier relative to already simulated features
+					const synergyMult = this._computeSynergyMultiplier(simulatedFeatures, meta.features) || 1;
+					// Personality adjustments
+					let personalityMult = 1;
+					if (meta.features.has('attack')) personalityMult *= (1 + (aggression-0.5)*0.6);
+					if (meta.features.has('extraDie') || meta.features.has('extraReroll')) personalityMult *= (1 + (stratBias-0.5)*0.5);
+					if (meta.features.has('vp')) personalityMult *= (1 + (stratBias-0.5)*0.3);
+					if (meta.features.has('heal') && player.health <= 4) personalityMult *= 1.25; // situational urgency
+					// Risk leaning favors scaling pieces earlier
+					if (meta.features.has('extraDie') && risk>0.6) personalityMult *= 1.1;
+					// Raw adjusted value
+					const rawAdjusted = base * diminishing * synergyMult * personalityMult;
+					// Cost pressure (slightly superlinear) to discourage overpay
+					const net = meta.cost>0? rawAdjusted / Math.pow(meta.cost,0.92): rawAdjusted;
+					// Track candidate rationale (temporary)
+					if (!best || net > best.net){
+						best = { meta, base, diminishing, synergyMult, personalityMult, rawAdjusted, net };
+					}
+				}
+				if (!best || best.net <= 5) break; // threshold guard; tunable
+				// Accept best pick
+				chosenCards.push(best.meta.card);
+				spent += best.meta.cost;
+				cumulativeScore += best.rawAdjusted;
+				// Update simulated ownership
+				best.meta.features.forEach(f=>{
+					simulatedCounts[f] = (simulatedCounts[f]||0)+1;
+					simulatedFeatures.add(f);
+				});
+				// Store rationale entry
+				rationalePerCard.push({
+					cardId: best.meta.card.id || best.meta.card.name,
+					name: best.meta.card.name,
+					features:[...best.meta.features],
+					base: best.base,
+					diminishing: best.diminishing,
+					synergyMultiplier: best.synergyMult,
+					personalityMultiplier: best.personalityMult,
+					cost: best.meta.cost,
+					netValue: best.net,
+					rawAdjusted: best.rawAdjusted
+				});
+				if (spent >= energyBudget) break;
 			}
-			const avgEfficiency = chosen.length? aggScore / Math.max(1,spent):0;
-			// Determine dominant strategy label
-			const roleCounts={}; scored.filter(s=>chosen.includes(s.card)).forEach(s=>{ if(!s.role) return; s.role.split('+').forEach(r=>{ if(!r) return; roleCounts[r]=(roleCounts[r]||0)+1; }); });
-			let strategy='balanced';
-			if (Object.keys(roleCounts).length){ strategy = Object.entries(roleCounts).sort((a,b)=> b[1]-a[1])[0][0]; }
-			return { cards: chosen, totalCost: spent, strategy, efficiency: avgEfficiency };
+
+			// Strategy label: pick most common feature category among chosen
+			const featureTally={};
+			for (const r of rationalePerCard){ r.features.forEach(f=> featureTally[f]=(featureTally[f]||0)+1); }
+			let strategyLabel='balanced';
+			if (Object.keys(featureTally).length){ strategyLabel = Object.entries(featureTally).sort((a,b)=> b[1]-a[1])[0][0]; }
+			const efficiency = spent>0? cumulativeScore / spent : 0;
+			const rationaleAggregate = {
+				energyBudget,
+				energySpent: spent,
+				unspent: energyBudget-spent,
+				selectedCount: chosenCards.length,
+				featureTally,
+				strategicIntent: strategyLabel,
+				stoppedReason: (spent>=energyBudget? 'budget_exhausted': 'marginal_value_below_threshold'),
+				thresholdUsed: 5
+			};
+			return { cards: chosenCards, totalCost: spent, strategy: strategyLabel, efficiency, rationale:{ perCard: rationalePerCard, aggregate: rationaleAggregate } };
 		}
 
 		// expected usage: evaluateDefensiveCardPurchase(card, player, availableCards) -> { shouldBuyDefensively, defensiveValue, denialReason }
