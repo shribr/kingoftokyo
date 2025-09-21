@@ -658,3 +658,57 @@ This development session showcased how human creativity and contextual understan
 - Comprehensive documentation of development process
 
 This session demonstrates the potential for effective human-AI collaboration in software development when proper communication strategies are employed.
+
+---
+
+## Post-Rollback Baseline Establishment (September 21, 2025)
+**Context**: After UI experimentation introduced instability and remote `main` diverged unexpectedly, the repository was intentionally rolled back to a stable AI-enhanced gameplay baseline. A missing victory point (VP) award on automatic forced Tokyo entry (first player condition) was restored, integrity artifacts were generated, and the remote was force-overwritten with a documented, auditable state.
+
+### Timeline
+- Previous remote `main` HEAD: `98b61e0` (captured & preserved)
+- Local stabilized HEAD (with VP fix + integrity docs): `9992538`
+- Safety Tag Created: `backup-pre-force-main-20250921` -> points to `98b61e0`
+- Force Push: Local `main (9992538)` overwrote remote `main`
+- Baseline Tag Added: `baseline-stable-2025-09-21` -> points to `9992538`
+
+### Key Artifacts
+- `docs/integrity/integrity-manifest.json` – Complete file → blob SHA mapping at baseline
+- `docs/integrity/diff-summary.md` – Categorized diff vs UI branch snapshot (16 modified files)
+- Git Tags:
+    - `backup-pre-force-main-20250921` (recovery anchor – pre-overwrite remote)
+    - `baseline-stable-2025-09-21` (canonical post-rollback reference)
+
+### Restored Gameplay Logic
+Issue: First player entering Tokyo due to all others yielding did not receive the intended +1 VP because entry was being invoked with an `automatic=true` style flag suppressing VP gain.
+
+Resolution: `handleEndOfTurnTokyoEntry` now calls `enterTokyo(player, false)` ensuring standard VP award logic executes. This preserves intended early momentum dynamics and aligns with refactored Tokyo entry flow semantics.
+
+### Rationale for Force Overwrite
+1. Remote divergence introduced uncertainty about authoritative state.
+2. UI regression experiments had reduced confidence in visual layer integrity.
+3. A clean, reproducible gameplay-focused baseline was required to proceed safely.
+4. Full audit trail + recovery tag mitigate risk traditionally associated with force pushing.
+
+### Validation Steps Executed
+1. Captured remote HEAD hash before overwrite.
+2. Created & pushed safety tag referencing prior remote state.
+3. Patched VP award logic and committed integrity artifacts.
+4. Performed `git push --force-with-lease origin main`.
+5. Verified remote `origin/main` == local HEAD (`9992538`).
+6. Created & pushed annotated baseline tag for long-term reference.
+
+### Integrity & Audit Guarantees
+- Any future drift can be detected by regenerating a manifest and diffing against `docs/integrity/integrity-manifest.json`.
+- Recovery path guaranteed via safety tag if historical forensic comparison is required.
+- Baseline tag provides immutable semantic anchor for future branches (e.g., `feature/ui-refactor-from-baseline`).
+
+### Recommended Next Hardening Steps (Deferred)
+1. Add lightweight CI job to recompute manifest and alert on unexpected hash changes.
+2. Introduce smoke test harness to simulate: initial roll-off → first Tokyo entry → VP verification.
+3. Add unit-level test scaffolding for Tokyo entry / exit sequencing and edge elimination scenarios.
+4. Document semantic contract for `enterTokyo(automaticFlag)` clarifying side-effects (VP award, log emission, event dispatch).
+
+### Summary
+The repository now has a clearly defined, integrity-documented, gameplay-correct baseline suitable for forward development without ambiguity. Future feature work should branch from `baseline-stable-2025-09-21` (or current `main`) to ensure consistent lineage.
+
+---
