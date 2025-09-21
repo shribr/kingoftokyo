@@ -217,7 +217,7 @@ class AIDecisionEngine {
         console.log(`🧠 Situation analysis:`, situation);
 
         // Evaluate dice strategies with enhanced probability data
-        const diceEvaluations = this.evaluateDiceEnhanced(currentDice, player, situation, probabilities);
+    const diceEvaluations = this.evaluateDiceEnhanced(currentDice, player, situation, probabilities, rollsRemaining);
         console.log(`🧠 Enhanced dice evaluations:`, diceEvaluations);
 
         // 🧠 MULTI-PLAYER STRATEGIC THINKING: Generate complex thought process
@@ -231,6 +231,261 @@ class AIDecisionEngine {
         // Make final decision with enhanced risk assessment
         const decision = this.makeKeepDecisionEnhanced(diceEvaluations, rollsRemaining, player, situation, probabilities);
         console.log(`🧠 Enhanced final decision:`, decision);
+
+        // POST-DECISION SAFEGUARD #1: Never drop an existing triple on first roll without extreme pressure
+        if (rollsRemaining === 2) { // means this was the first roll just completed
+            // NEW EARLY CONTINUATION: If we have exactly one triple and any non-triple dice not contributing to that set, never end immediately.
+            if (decision.action === 'endRoll') {
+                // ATTACK CLUSTER SAFEGUARD: If we have 4+ attacks on first roll plus any single number die (one|two|three) and rolls remain, pursue set growth instead of ending.
+                const attackCount = currentDice.filter(f=>f==='attack').length;
+                if (attackCount >= 4) {
+                    const numberFaces = ['one','two','three'];
+                    const strayNumberIndices = [];
+                    currentDice.forEach((f,i)=>{ if(numberFaces.includes(f)) strayNumberIndices.push(i); });
+                    if (strayNumberIndices.length >= 1) {
+                        // Keep all attacks (they already represent pressure); reroll at least the first stray number and any energy unless energy shortage scenario.
+                        const keepIdx = [];
+                        currentDice.forEach((f,i)=>{ if(f==='attack') keepIdx.push(i); });
+                        // Decide if we also keep energy (keep if player.energy === 0 and we have exactly one energy die)
+                        const energyIndices = [];
+                        currentDice.forEach((f,i)=>{ if(f==='energy') energyIndices.push(i); });
+                        if (player.energy === 0 && energyIndices.length === 1) keepIdx.push(energyIndices[0]);
+                        // Ensure at least one reroll target (the stray number). All stray numbers will be rerolled by omission.
+                        console.log('⚔️ ATTACK-CLUSTER-CONTINUE: 4+ attacks with stray number -> reroll non-attack dice to fish for set/utility.');
+                        window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, decisions:0, attackCluster:0 };
+                        window.AIOverrideStats.attackCluster = (window.AIOverrideStats.attackCluster||0)+1;
+                        return {
+                            action: 'reroll',
+                            keepDice: keepIdx,
+                            reason: 'Override: early attack cluster - reroll stray number for improvement',
+                            confidence: (decision.confidence||0.6)+0.05
+                        };
+                    }
+                }
+                const earlyCounts = { one:0,two:0,three:0 };
+                currentDice.forEach(f=>{ if(earlyCounts.hasOwnProperty(f)) earlyCounts[f]++; });
+                const tripleEntry = Object.entries(earlyCounts).find(([_,c])=>c===3);
+                if (tripleEntry) {
+                    const [tripleFace] = tripleEntry;
+                    // Collect indices of triple and identify other dice
+                    const keepIdx = [];
+                    currentDice.forEach((f,i)=>{ if(f===tripleFace) keepIdx.push(i); });
+                    // Keep at most one high-value support die (attack if outside Tokyo & attacks matter)
+                    const otherDiceIndices = [];
+                    currentDice.forEach((f,i)=>{ if(f!==tripleFace) otherDiceIndices.push({face:f,index:i}); });
+                    if (otherDiceIndices.length) {
+                        // Heuristic: retain one attack if present; else retain one energy if energy low; else keep none.
+                        let supportIndex = -1;
+                        const inTokyo = player.isInTokyo;
+                        if (!inTokyo) {
+                            const attackDie = otherDiceIndices.find(d=>d.face==='attack');
+                            if (attackDie) supportIndex = attackDie.index;
+                        }
+                        if (supportIndex === -1 && player.energy === 0) {
+                            const energyDie = otherDiceIndices.find(d=>d.face==='energy');
+                            if (energyDie) supportIndex = energyDie.index;
+                        }
+                        if (supportIndex !== -1) keepIdx.push(supportIndex);
+                        // Force reroll of all remaining off-set dice
+                        if (keepIdx.length) {
+                            console.log('🚀 EARLY-TRIPLE-CONTINUE: Forcing continuation to extend triple', tripleFace, 'keeping indices', keepIdx);
+                            window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, attackCluster:0, decisions:0 };
+                            window.AIOverrideStats.tripleExtend++; // reuse stat bucket for growth pursuit
+                            return {
+                                action: 'reroll',
+                                keepDice: keepIdx,
+                                reason: 'Override: extend early triple – reroll non-set dice',
+                                confidence: (decision.confidence||0.6)+0.08
+                            };
+                        }
+                    }
+                }
+            }
+            const counts = { one:0, two:0, three:0 };
+            currentDice.forEach(f=>{ if(counts.hasOwnProperty(f)) counts[f]++; });
+            const tripleFace = Object.entries(counts).find(([face,c]) => c >= 3);
+            if (tripleFace) {
+                const face = tripleFace[0];
+                const keptFaceCounts = diceEvaluations.filter(d=>d.face===face).length;
+                if (keptFaceCounts < tripleFace[1]) {
+                    // Override: ensure triple retained unless sacrifice conditions present
+                    const pressure = (player.health <= 3 ? 40:0) + (player.energy <=1 ? 15:0) + (player.victoryPoints >= 15 ? 20:0);
+                    if (pressure < 50) {
+                        const newKeep = [...diceEvaluations.map(d=>d.index)];
+                        // Add any missing indices of triple
+                        currentDice.forEach((f,i)=>{ if(f===face && !newKeep.includes(i)) newKeep.push(i); });
+                        console.log(`🛡️ TRIPLE-KEEP OVERRIDE: Restoring triple ${face}s on first roll (pressure=${pressure}).`);
+                        window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, attackCluster:0, decisions:0 };
+                        window.AIOverrideStats.tripleKeep++;
+                        return {
+                            action: 'reroll',
+                            keepDice: newKeep,
+                            reason: `Override: preserve early triple of ${face}s`,
+                            confidence: (decision.confidence||0.6)+0.1
+                        };
+                    }
+                }
+            }
+        }
+
+        // POST-DECISION SAFEGUARD (NEW): If two distinct pairs and no triple, with rolls left, force continuation to chase at least one triple.
+        if (decision.action === 'endRoll' && rollsRemaining > 0) {
+            const countsPairsCheck = { one:0,two:0,three:0 };
+            currentDice.forEach(f=>{ if(countsPairsCheck.hasOwnProperty(f)) countsPairsCheck[f]++; });
+            const hasTriple = Object.values(countsPairsCheck).some(c=>c>=3);
+            if (!hasTriple) {
+                const pairFaces = Object.entries(countsPairsCheck).filter(([_,c])=>c===2).map(([f])=>f);
+                if (pairFaces.length >= 2) {
+                    // Keep both pairs; reroll everything else (including energy) unless energy count is already 3+ (rare here)
+                    const keepIdx = [];
+                    currentDice.forEach((f,i)=>{
+                        if (pairFaces.includes(f)) keepIdx.push(i);
+                    });
+                    // If nothing else kept (only 4 dice), optionally keep one high-utility non-number (attack if in/out Tokyo dynamics favor it)
+                    if (keepIdx.length === 4) {
+                        const attackIndex = currentDice.findIndex(f=>f==='attack');
+                        if (attackIndex !== -1) keepIdx.push(attackIndex);
+                    }
+                    console.log('♻️ TWO-PAIRS-CONTINUE OVERRIDE: Forcing reroll to convert a pair into a triple');
+                    window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, attackCluster:0, decisions:0 };
+                    window.AIOverrideStats.twoPairs++;
+                    return {
+                        action: 'reroll',
+                        keepDice: keepIdx,
+                        reason: 'Override: two distinct pairs - pursue at least one triple',
+                        confidence: (decision.confidence||0.6)+0.07
+                    };
+                }
+            }
+        }
+
+        // POST-DECISION SAFEGUARD #2: Do not end early with no completed set and mixed singles when improvement possible
+        if (decision.action === 'endRoll' && rollsRemaining > 0) {
+            const counts = { one:0,two:0,three:0 };
+            currentDice.forEach(f=>{ if(counts.hasOwnProperty(f)) counts[f]++; });
+            const hasSet = Object.values(counts).some(c=>c>=3);
+            const hasPair = Object.values(counts).some(c=>c===2);
+            if (!hasSet && (hasPair || (counts.one+counts.two+counts.three)>=2)) {
+                // Identify weakest dice to reroll: prefer rerolling solitary numbers that are not part of a pair, then low utility hearts (if full health), then excess singles of different numbers
+                const indicesToKeep = new Set();
+                // Keep any pairs entirely
+                Object.keys(counts).forEach(faceKey => {
+                    if (counts[faceKey] === 2) {
+                        currentDice.forEach((f,i)=>{ if(f===faceKey) indicesToKeep.add(i); });
+                    }
+                });
+                // Keep any energy already chosen in original decision
+                diceEvaluations.filter(d=>d.face==='energy').forEach(d=>indicesToKeep.add(d.index));
+                // Build new keep list
+                const newKeepList = [...indicesToKeep];
+                // Add any attack dice originally chosen if few kept (avoid keeping nothing)
+                if (newKeepList.length < 2) {
+                    diceEvaluations.filter(d=>d.face==='attack').forEach(d=>{ if(!indicesToKeep.has(d.index)) newKeepList.push(d.index); });
+                }
+                console.log('🔄 NO-SET-CONTINUE OVERRIDE: Forcing reroll to chase set (counts=',counts,')');
+                window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, attackCluster:0, decisions:0 };
+                window.AIOverrideStats.noSetContinue++;
+                return {
+                    action: 'reroll',
+                    keepDice: newKeepList.length ? newKeepList : diceEvaluations.map(d=>d.index),
+                    reason: 'Override: continue - no completed set yet and improvement potential remains',
+                    confidence: (decision.confidence||0.6)+0.05
+                };
+            }
+            // NEW POST-DECISION SAFEGUARD #3: If exactly one triple (size 3) plus exactly one stray number (not part of set) and rolls remain, keep triple + useful non-number dice, reroll stray number to chase 4-of-a-kind.
+            if (hasSet) {
+                const setFaceEntry = Object.entries(counts).find(([_,c])=>c>=3);
+                if (setFaceEntry) {
+                    const [setFace,setCount] = setFaceEntry;
+                    if (setCount === 3) {
+                        // count stray number dice not matching set
+                        const strayNumberIndices = [];
+                        currentDice.forEach((f,i)=>{
+                            if ((f==='one'||f==='two'||f==='three') && f!==setFace && counts[f]===1) {
+                                strayNumberIndices.push(i);
+                            }
+                        });
+                        if (strayNumberIndices.length === 1) {
+                            // Force reroll that single stray number
+                            const keepIndices = [];
+                            currentDice.forEach((f,i)=>{
+                                if (f===setFace) keepIndices.push(i); // keep all dice that form the triple
+                            });
+                            // Keep attacks & energy already in decision
+                            diceEvaluations.filter(d=> (d.face==='attack'||d.face==='energy')).forEach(d=>{ if(!keepIndices.includes(d.index)) keepIndices.push(d.index); });
+                            console.log('🧩 TRIPLE-EXTEND OVERRIDE: Rerolling lone stray number to pursue 4-of-a-kind');
+                            window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, attackCluster:0, decisions:0 };
+                            window.AIOverrideStats.tripleExtend++;
+                            return {
+                                action: 'reroll',
+                                keepDice: keepIndices,
+                                reason: 'Override: extend triple - reroll lone off-set number',
+                                confidence: (decision.confidence||0.7)+0.08
+                            };
+                        }
+                    }
+                }
+            }
+
+            // NEW POST-DECISION SAFEGUARD #4: Auto-release lowest marginal die when all 6 are kept but growth potential exists (two pairs OR triple+pair) to allow a reroll.
+            if (decision.action === 'endRoll') {
+                const numberCounts = { one:counts.one, two:counts.two, three:counts.three };
+                const pairFaces = Object.entries(numberCounts).filter(([_,c])=>c===2).map(([f])=>f);
+                const tripleFaces = Object.entries(numberCounts).filter(([_,c])=>c===3).map(([f])=>f);
+                const growthPotential = (pairFaces.length >= 2) || (tripleFaces.length === 1 && pairFaces.length === 1);
+                if (growthPotential) {
+                    // Identify lowest marginal single to drop (priority: lone off-number not part of pair/triple, excess energy if mid/late game and energy >=2, low-impact attack if no Tokyo incentive)
+                    let releaseIndex = -1;
+                    // Pass 1: lone off-number
+                    currentDice.forEach((f,i)=>{
+                        if (releaseIndex !== -1) return;
+                        if ((f==='one'||f==='two'||f==='three') && numberCounts[f]===1) releaseIndex = i;
+                    });
+                    // Pass 2: excess energy (late/mid game heuristic) if none selected
+                    if (releaseIndex === -1) {
+                        const gamePhase = situation.gamePhase || 'mid';
+                        if (gamePhase !== 'early') {
+                            let energyIndices = [];
+                            currentDice.forEach((f,i)=>{ if(f==='energy') energyIndices.push(i); });
+                            if (energyIndices.length >= 2) releaseIndex = energyIndices[0];
+                        }
+                    }
+                    // Pass 3: attack with no strong incentive
+                    if (releaseIndex === -1) {
+                        const attackIndex = currentDice.findIndex(f=>f==='attack');
+                        if (attackIndex !== -1) releaseIndex = attackIndex;
+                    }
+                    if (releaseIndex !== -1) {
+                        const keepIndices = diceEvaluations.map(d=>d.index).filter(idx => idx !== releaseIndex);
+                        console.log('🪓 RELEASE-OVERRIDE: Freeing one die to pursue growth (index '+releaseIndex+')');
+                        window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, attackCluster:0, decisions:0 };
+                        window.AIOverrideStats.release++;
+                        return {
+                            action: 'reroll',
+                            keepDice: keepIndices,
+                            reason: 'Override: releasing low-value die to pursue set growth',
+                            confidence: (decision.confidence||0.6)+0.06
+                        };
+                    }
+                }
+            }
+        }
+
+        // Increment decision counter & periodic summary
+        try {
+            window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, attackCluster:0, decisions:0 };
+            window.AIOverrideStats.decisions++;
+            if (window.AIOverrideStats.decisions % 10 === 0) {
+                console.log('📊 AI Override Summary (last '+window.AIOverrideStats.decisions+' decisions):', {
+                    tripleKeep: window.AIOverrideStats.tripleKeep,
+                    noSetContinue: window.AIOverrideStats.noSetContinue,
+                    tripleExtend: window.AIOverrideStats.tripleExtend,
+                    twoPairs: window.AIOverrideStats.twoPairs,
+                    release: window.AIOverrideStats.release,
+                    attackCluster: window.AIOverrideStats.attackCluster
+                });
+            }
+        } catch(e) { /* ignore */ }
 
         return decision;
     }
@@ -1838,7 +2093,7 @@ class AIDecisionEngine {
     }
 
     // Enhanced dice evaluation with probability calculations
-    evaluateDiceEnhanced(currentDice, player, situation, probabilities) {
+    evaluateDiceEnhanced(currentDice, player, situation, probabilities, rollsRemaining = 0) {
         const diceToKeep = [];
         const personality = player.monster.personality;
         
@@ -1848,31 +2103,78 @@ class AIDecisionEngine {
         const numberComboPotential = this.analyzeNumberCombinations(currentDice);
         console.log('🎯 DEBUG: Number combination potential:', numberComboPotential);
         
+        // Determine global strategic pressures that could justify sacrificing a triple
+        const cs = probabilities.currentState || {};
+        const needHealing = player.health <= 3; // critical health
+        const lethalThreat = situation.threats?.hasCriticalThreat; // someone may win next turn
+        const needEnergy = situation.gamePhase !== 'late' && player.energy <= 1 && rollsRemaining > 0; // early ramp potential
+        const inTokyoNeedingAttacks = (!player.isInTokyo && situation.threats?.threats?.some(t => t.player.isInTokyo)) || (player.isInTokyo && situation.threats?.threats?.length > 0);
+        const allowTripleSacrifice = (needHealing || lethalThreat || needEnergy || inTokyoNeedingAttacks) && rollsRemaining > 0;
+
         currentDice.forEach((face, index) => {
             let keepProbability = this.getDiceKeepProbability(face, situation, personality, probabilities.currentState);
-            
-            // Apply combination bonuses for number dice
+
+            // Auto-keep rule: any completed number set (triple or more) is always kept
+            if ((face === 'one' || face === 'two' || face === 'three') && numberComboPotential[face] && numberComboPotential[face].count >= 3) {
+                // Evaluate if we should consider sacrificing ONE die of the triple
+                if (allowTripleSacrifice) {
+                    // Heuristic: only consider giving up exactly one die from the triple if face === 'one' (lowest VP) OR health/energy pressure high
+                    const tripleCount = numberComboPotential[face].count;
+                    const lowValueTriple = face === 'one';
+                    const pressureScore = (needHealing ? 40 : 0) + (lethalThreat ? 50 : 0) + (needEnergy ? 25 : 0) + (inTokyoNeedingAttacks ? 20 : 0);
+                    const sacrificeThreshold = lowValueTriple ? 30 : 60; // require higher pressure to break higher-value triples
+                    if (pressureScore >= sacrificeThreshold) {
+                        console.log(`⚖️ STRATEGIC SACRIFICE CONSIDERED: Triple ${face} (count=${tripleCount}) pressureScore=${pressureScore} >= threshold=${sacrificeThreshold}. Allowing re-roll of one die.`);
+                        // Don't auto-keep; fall through to normal logic so some dice may be rerolled.
+                    } else {
+                        diceToKeep.push({
+                            face,
+                            index,
+                            probability: 1,
+                            strategicValue: this.calculateDiceStrategicValue(face, situation, probabilities, numberComboPotential),
+                            autoKept: true
+                        });
+                        console.log(`✅ AUTO-KEEP: Keeping ${face} (count=${numberComboPotential[face].count}) as completed set (pressureScore=${pressureScore} < threshold).`);
+                        return;
+                    }
+                } else {
+                    diceToKeep.push({
+                        face,
+                        index,
+                        probability: 1,
+                        strategicValue: this.calculateDiceStrategicValue(face, situation, probabilities, numberComboPotential),
+                        autoKept: true
+                    });
+                    console.log(`✅ AUTO-KEEP: Keeping ${face} (count=${numberComboPotential[face].count}) as completed set (no sacrifice conditions).`);
+                    return;
+                }
+            }
+
+            // Apply combination bonuses for number dice (pairs)
             if (numberComboPotential[face] && numberComboPotential[face].count >= 2) {
-                const bonusMultiplier = numberComboPotential[face].count >= 3 ? 3.0 : 2.0;
+                const bonusMultiplier = numberComboPotential[face].count >= 3 ? 3.0 : 2.0; // triple path now mostly caught above
                 keepProbability *= bonusMultiplier;
                 console.log(`🎯 COMBO BONUS: Boosting ${face} probability by ${bonusMultiplier}x to`, keepProbability, 'due to', numberComboPotential[face].count, 'available');
             }
-            
+
             // Apply extra dice bonus to keep probability
             keepProbability *= (1 + probabilities.extraDiceBonus);
-            
+
             // Enhanced decision logic based on current state
             const shouldKeep = this.shouldKeepDiceEnhanced(face, keepProbability, probabilities.currentState);
-            
+
             console.log(`🎲 DEBUG: Dice ${index} (${face}) - keepProb: ${keepProbability.toFixed(2)}, shouldKeep: ${shouldKeep}`);
-            
+
             if (shouldKeep) {
-                diceToKeep.push({ 
-                    face, 
-                    index, 
+                diceToKeep.push({
+                    face,
+                    index,
                     probability: keepProbability,
                     strategicValue: this.calculateDiceStrategicValue(face, situation, probabilities, numberComboPotential)
                 });
+            } else if ((face === 'one' || face === 'two' || face === 'three') && numberComboPotential[face] && numberComboPotential[face].count >= 3) {
+                // Safety: warn if logic ever decides not to keep a triple (should not happen due to auto-keep branch)
+                console.warn(`⚠️ WARNING: Triple ${face} (count=${numberComboPotential[face].count}) was NOT kept by evaluation logic.`);
             }
         });
         
@@ -1909,6 +2211,9 @@ class AIDecisionEngine {
 
     calculateDiceStrategicValue(face, situation, probabilities, numberComboPotential = {}) {
         let value = 0;
+        const phase = situation.gamePhase || 'mid';
+        const vpDeficit = (situation.player && typeof situation.player.victoryPoints === 'number') ? Math.max(0, (situation.opponents||[]).reduce((m,o)=>Math.max(m,o.victoryPoints||0),0) - situation.player.victoryPoints) : 0;
+        const behindOnVP = vpDeficit >= 3; // threshold for being meaningfully behind
         
         // Base strategic value
         switch (face) {
@@ -1917,9 +2222,18 @@ class AIDecisionEngine {
                 break;
             case 'energy':
                 value = situation.player.energy <= 3 ? 25 : 15;
+                // If mid/late and behind on VP, de-prioritize excess energy (prefer pushing number sets for VP catch-up)
+                if (behindOnVP && phase !== 'early') {
+                    value -= 5;
+                }
                 break;
             case 'attack':
                 value = situation.player.isInTokyo ? 20 : 15;
+                // If behind on VP and not leveraging attack for Tokyo pressure (not in Tokyo & no occupant), slightly reduce
+                const anyInTokyo = (situation.opponents||[]).some(o=>o.isInTokyo);
+                if (behindOnVP && !situation.player.isInTokyo && !anyInTokyo && phase !== 'early') {
+                    value -= 4;
+                }
                 break;
             case 'one':
                 // Use combination potential if available, otherwise fall back to current state
@@ -2145,19 +2459,128 @@ class AIDecisionEngine {
             };
         }
         
-        // Enhanced stopping conditions - increased thresholds to account for enhanced values
-        if (totalValue >= 150 || currentValue >= 8) {
+        // Assess potential improvement if we continue rolling
+        const keptCount = diceEvaluations.length;
+        const diceRemaining = 6 - keptCount;
+        let improvementPotentialScore = 0;
+
+        // Incomplete number sets (two of a kind) offer strong improvement prospects
+        const cs = probabilities.currentState;
+        const twoOfKindFaces = ['ones','twos','threes'].filter(k => cs[k] === 2);
+        const twoOfKinds = twoOfKindFaces.length; // property keys maybe ones/twos/threes
+        // Baseline weight for each pair
+        improvementPotentialScore += twoOfKinds * 25; // base incentive
+
+        // Bonus when two distinct pairs exist (very strong multi-out state)
+        if (twoOfKinds >= 2) {
+            improvementPotentialScore += 20; // encourage continuing even if many dice currently kept
+        }
+
+        // Probability-based EV boost for completing each pair to triple across remaining rolls
+        // Each triple completion yields: base VP (1/2/3) + 2 bonus (net incremental vs current pair partial). We approximate incremental gain.
+        const faceBaseVP = { ones:1, twos:2, threes:3 };
+        const diceRemainingForEV = Math.max(0, 6 - diceEvaluations.length); // dice that would reroll
+        const rollsLeft = rollsRemaining; // inclusive of current decision phase
+        const pairEVDetails = [];
+        if (diceRemainingForEV > 0 && rollsLeft > 0) {
+            twoOfKindFaces.forEach(faceKey => {
+                const trials = diceRemainingForEV * rollsLeft;
+                const probComplete = 1 - Math.pow(5/6, trials);
+                const incrementalVP = faceBaseVP[faceKey] + 2; // triple gives value of base face + 2 bonus
+                const evGain = probComplete * incrementalVP;
+                const scaled = Math.min(30, evGain * 6);
+                improvementPotentialScore += scaled;
+                pairEVDetails.push({ face: faceKey, trials, probComplete: Number(probComplete.toFixed(3)), incrementalVP, evGain: Number(evGain.toFixed(2)), contribution: Number(scaled.toFixed(1)) });
+            });
+        }
+
+        // Healing potential if low health and hearts not yet locked
+        if (player.health <= 5 && (cs.hearts || 0) < 3) {
+            improvementPotentialScore += 20;
+        }
+
+        // Attack improvement: if in Tokyo want more attacks to hit all; if outside and someone in Tokyo, attacks are valuable
+        const anyTokyo = situation.gamePhase && situation.player.isInTokyo || situation.threats.threats?.some(t => t.player.isInTokyo);
+        if (anyTokyo && (cs.attacks || 0) < 3) improvementPotentialScore += 15;
+
+        // Energy ramp early game
+        if (situation.gamePhase === 'early' && (cs.energy || 0) < 3) improvementPotentialScore += 10;
+
+        // More dice remaining increases variance potential
+        improvementPotentialScore += diceRemaining * 5;
+
+        // Extra dice bonus (if any mechanic adds) further increases chance
+        if (probabilities.extraDiceBonus > 0) improvementPotentialScore += Math.round(probabilities.extraDiceBonus * 50);
+
+        // Triple expansion potential: if exactly 3-of-a-kind and space to grow, add modest incentive
+        const numberSetSizes = [cs.ones||0, cs.twos||0, cs.threes||0];
+        const largestSet = Math.max(...numberSetSizes);
+        if (largestSet === 3 && diceRemaining > 0) {
+            improvementPotentialScore += 15; // reward chasing 4th for +1 VP and future growth
+        } else if (largestSet === 4 && diceRemaining > 0) {
+            improvementPotentialScore += 10; // still some value to reach 5/6
+        }
+
+        // Normalize to 0-100 cap
+        improvementPotentialScore = Math.min(100, improvementPotentialScore);
+
+        // Determine if improvement potential is considered low
+        const lowImprovement = improvementPotentialScore < 30; // threshold can be tuned
+
+        // High current value thresholds scale by game phase (harder to stop early in early phase)
+        const phaseMultiplier = situation.gamePhase === 'early' ? 1.3 : (situation.gamePhase === 'late' ? 0.8 : 1.0);
+        const adjustedTotalStopThreshold = 150 * phaseMultiplier; // scaled dynamic threshold
+        const adjustedCurrentValueThreshold = 8 * phaseMultiplier;
+
+        const strongCurrentValue = (totalValue >= adjustedTotalStopThreshold) || (currentValue >= adjustedCurrentValueThreshold);
+
+        // Only allow early stop (with rolls left) if current value strong AND improvement potential low AND we kept at least 4 dice
+        if (rollsRemaining > 0 && strongCurrentValue && lowImprovement && keptCount >= 4) {
+            // NEW GUARD: Prevent premature stop when we have a large number set that can still grow AND a useless heart
+            const csNumbers = { ones: cs.ones||0, twos: cs.twos||0, threes: cs.threes||0 };
+            const largestSetSize = Math.max(csNumbers.ones, csNumbers.twos, csNumbers.threes);
+            const hasFourOfAKind = largestSetSize >= 4; // e.g., 4x 2s
+            const hasUselessHeart = (cs.hearts||0) === 1 && player.health === player.maxHealth; // heart provides zero value
+            const setTargetFace = Object.entries(csNumbers).find(([k,v]) => v === largestSetSize)?.[0];
+            const canStillImproveSet = largestSetSize < 6; // still room to add more of that number
+            const improvementStillMeaningful = largestSetSize === 4 || largestSetSize === 5; // adding 5th/6th gives +1 VP each
+
+            if (hasFourOfAKind && hasUselessHeart && canStillImproveSet && improvementStillMeaningful) {
+                if (window.UI && window.UI.debugMode) {
+                    window.UI._debug(`🛑 OVERRIDE: Not stopping early. Holding ${largestSetSize} of a kind (${setTargetFace}) + useless heart with ${rollsRemaining} roll(s) left.`);
+                }
+                return {
+                    action: 'reroll',
+                    // Keep all dice except the heart (we'll recompute keep list filtering hearts not part of set)
+                    keepDice: diceEvaluations.filter(d => {
+                        const face = d.face;
+                        if (face === 'heart') return false; // drop the useless heart
+                        return true;
+                    }).map(d => d.index),
+                    reason: `Override: Chase larger set; drop useless heart (have ${largestSetSize} of a kind)` ,
+                    confidence: 0.88
+                };
+            }
             return {
-                action: 'stop',
+                action: 'endRoll',
                 keepDice: diceEvaluations.map(d => d.index),
-                reason: `High strategic value achieved (total: ${totalValue}, current: ${currentValue})`,
-                confidence: 0.85
+                reason: `Stopping early: strong value total=${totalValue} current=${currentValue} lowImprovement=${improvementPotentialScore}`,
+                improvementDetail: { twoOfKinds: twoOfKindFaces, diceRemaining: diceRemainingForEV, rollsLeft, pairEVDetails, note: 'Early stop gate passed' },
+                overrideReasons: [],
+                confidence: 0.82
             };
         }
         
-        // Risk-adjusted continuation logic
+        // Risk-adjusted continuation logic (re-evaluated after improvement potential)
         let continueThreshold = risk >= 4 ? 1 : (risk <= 2 ? 4 : 3);
         continueThreshold -= Math.floor(probabilities.extraDiceBonus * 10);
+        // Ensure minimum threshold of 1 and max 5
+        continueThreshold = Math.min(5, Math.max(1, continueThreshold));
+
+        // If we have high improvement potential and rolls remain, be more willing to continue unless we already keep 5 dice
+        if (!lowImprovement && rollsRemaining > 0 && keptCount < 5) {
+            continueThreshold = Math.min(5, continueThreshold + 1);
+        }
         
         if (diceEvaluations.length < continueThreshold && rollsRemaining > 0) {
             return {
@@ -2168,11 +2591,36 @@ class AIDecisionEngine {
             };
         }
         
+        // Default decision: if last roll or nothing compelling to reroll
+        if (rollsRemaining === 0) {
+            return {
+                action: 'endRoll',
+                keepDice: diceEvaluations.map(d => d.index),
+                reason: `Final roll complete (risk: ${risk})`,
+                confidence: 0.65
+            };
+        }
+
+        // If improvement potential moderate but dice kept high (>=5), accept current state
+        if (keptCount >= 5 && improvementPotentialScore < 60) {
+            return {
+                action: 'endRoll',
+                keepDice: diceEvaluations.map(d => d.index),
+                reason: `Marginal improvement potential (${improvementPotentialScore}), locking in`,
+                improvementDetail: { twoOfKinds: twoOfKindFaces, diceRemaining: diceRemainingForEV, rollsLeft, pairEVDetails, note: 'KeptCount>=5 gate' },
+                overrideReasons: [],
+                confidence: 0.62
+            };
+        }
+
+        // Otherwise continue (reroll) to seek improvement
         return {
-            action: 'stop',
+            action: 'reroll',
             keepDice: diceEvaluations.map(d => d.index),
-            reason: `Stopping with sufficient dice (enhanced risk: ${risk})`,
-            confidence: 0.6
+            reason: `Continuing - improvement potential ${improvementPotentialScore} (threshold logic)`,
+            improvementDetail: { twoOfKinds: twoOfKindFaces, diceRemaining: diceRemainingForEV, rollsLeft, pairEVDetails, note: 'Continue path' },
+            overrideReasons: [],
+            confidence: 0.55
         };
     }
 

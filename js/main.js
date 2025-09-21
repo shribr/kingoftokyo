@@ -198,6 +198,16 @@ class KingOfTokyoUI {
         
         // End turn button functionality now handled in dice controls
         // No need to add duplicate button
+
+        // Centralized AI action constants (prevent string literal drift)
+        this.ACTIONS = Object.freeze({
+            REROLL: 'reroll',
+            KEEP: 'keep',
+            END_ROLL: 'endRoll'
+        });
+
+        // Track which unknown actions we've warned about to throttle console noise
+        this._unknownActionWarned = new Set();
         
         // Load configuration first, then initialize settings
         this.loadConfiguration().then(() => {
@@ -213,6 +223,28 @@ class KingOfTokyoUI {
                 this.setupManager.updateMonsterSelection(); // Refresh the monster grid display
             }
         });
+    } // END constructor
+
+    // Normalize legacy / deprecated action names to canonical ones
+    normalizeAIAction(action) {
+        if (!action) return null;
+        switch (action) {
+            case 'stop':
+                return this.ACTIONS.END_ROLL; // legacy alias
+            default:
+                return action;
+        }
+    }
+
+    // Validate an AI action; warn once if it's not recognized
+    validateAIAction(action) {
+        const valid = Object.values(this.ACTIONS);
+        if (valid.includes(action)) return true;
+        if (!this._unknownActionWarned.has(action)) {
+            console.warn(`🤖 AI Action Validation: Unknown action '${action}' encountered.`);
+            this._unknownActionWarned.add(action);
+        }
+        return false;
     }
 
     // Load UI configuration from config.json
@@ -4322,17 +4354,27 @@ class KingOfTokyoUI {
 
     // Add AI logic entry to the AI Logic Flow tab
     addAILogicEntry(playerName, decision, analysis) {
-        console.log('� AI LOGIC ENTRY CALLED!!!'); // Very obvious debug
-        console.log('�🔍 DEBUG: addAILogicEntry called with:', {
-            playerName: playerName,
-            decision: decision,
-            analysis: analysis,
-            hasAiLogContent: !!this.elements.aiLogContent
-        });
-        
-        if (!this.elements.aiLogContent) {
-            console.error('No aiLogContent element found for AI logging');
+        // Feature flag: allow AI Logic Flow to be globally disabled (e.g., when shelved)
+        if (window.disableAILogicFlow) {
+            return; // Silently skip
+        }
+
+        // If required container elements missing, set flag to avoid repeated warnings and bail out
+        if (!this.elements.aiLogContent || !document.getElementById('ai-logic-tab')) {
+            if (!window._aiLogicDisabledLogged) {
+                console.info('AI Logic Flow disabled automatically (DOM elements not present).');
+                window._aiLogicDisabledLogged = true;
+            }
+            window.disableAILogicFlow = true;
             return;
+        }
+
+        // (Optional) Verbose debug only if debugMode flag set
+        if (window.UI && window.UI.debugMode) {
+            console.debug('[AI LOGIC] addAILogicEntry', {
+                playerName,
+                hasAiLogContent: !!this.elements.aiLogContent
+            });
         }
 
         try {
@@ -4795,18 +4837,30 @@ class KingOfTokyoUI {
     }
 
     updateTurnStats(turnContainer, decision, analysisData) {
+        const disabled = !!window.disableAILogicFlow;
+        // If container missing entirely still allow warning (indicates broken integration)
+        if (disabled && !turnContainer) {
+            console.warn('⚠️ AI Logic Flow: Turn container missing while feature disabled flag is set - stats will not update');
+            return;
+        }
+        if (disabled) {
+            // Feature intentionally disabled – skip without noise
+            return;
+        }
+
         // Add null safety checks for all DOM elements
         const rollCountElement = turnContainer.querySelector('.roll-count');
         const finalDecisionElement = turnContainer.querySelector('.final-decision');
         const avgConfidenceElement = turnContainer.querySelector('.avg-confidence');
-        
-        // Safety check: if any required elements are missing, log warning and return
+
+        // Safety check: if any required elements are missing, emit actionable warning
         if (!rollCountElement || !finalDecisionElement || !avgConfidenceElement) {
-            console.warn('⚠️ AI Logic Flow: Turn stats elements not found in DOM, skipping update', {
+            console.warn('⚠️ AI Logic Flow: Turn stats elements missing – stats not updated', {
                 rollCountElement: !!rollCountElement,
                 finalDecisionElement: !!finalDecisionElement,
                 avgConfidenceElement: !!avgConfidenceElement,
-                turnContainer: !!turnContainer
+                hasContainer: !!turnContainer,
+                disableFlag: disabled
             });
             return;
         }
@@ -5396,10 +5450,7 @@ class KingOfTokyoUI {
 
     // Programmatically select dice for CPU (same as human click)
     cpuSelectDice(diceIndices) {
-        console.log('🔍 DEBUG: cpuSelectDice called with indices:', diceIndices);
-        
         if (!this.game || !this.game.diceCollection || !Array.isArray(diceIndices)) {
-            console.log('🔍 DEBUG: cpuSelectDice early return - missing game/diceCollection or invalid indices');
             return;
         }
 
@@ -5411,30 +5462,23 @@ class KingOfTokyoUI {
             dieElement.classList.remove('selected');
         });
         
-        console.log('🔍 DEBUG: Cleared existing selections');
+    // (Debug removed) Cleared previous selections
 
         // Select the dice the AI wants to keep
         diceIndices.forEach(index => {
             const dieId = `die-${index}`;
-            console.log('🔍 DEBUG: Trying to select die with ID:', dieId);
             
             // Use the same logic as the human click handler
             if (this.game.diceCollection) {
-                const isSelected = this.game.diceCollection.toggleDiceSelection(dieId);
-                console.log('🔍 DEBUG: toggleDiceSelection result:', isSelected);
+                this.game.diceCollection.toggleDiceSelection(dieId);
                 
                 // Also manually add visual selection class
                 const dieElement = document.getElementById(dieId);
                 if (dieElement) {
                     dieElement.classList.add('selected');
-                    console.log('🔍 DEBUG: Added selected class to element:', dieId);
-                } else {
-                    console.log('🔍 DEBUG: Die element not found:', dieId);
                 }
             }
         });
-        
-        console.log('🔍 DEBUG: cpuSelectDice completed');
         
         // Update dice controls to reflect the selection
         this.updateDiceControls();
@@ -5633,6 +5677,24 @@ class KingOfTokyoUI {
                     });
                 }
             }, 1000);
+
+            // Attach debug panel rendering if script loaded
+            try {
+                if (typeof window.renderAIDecisionDebug === 'function' && this.aiEngine && !this.aiEngine._debugWrapped) {
+                    const originalMakeRollDecision = this.aiEngine.makeRollDecision.bind(this.aiEngine);
+                    this.aiEngine.makeRollDecision = (currentDice, rollsRemaining, player, gameState) => {
+                        const decision = originalMakeRollDecision(currentDice, rollsRemaining, player, gameState);
+                        try { window.renderAIDecisionDebug(decision); } catch(e) { /* swallow */ }
+                        return decision;
+                    };
+                    this.aiEngine._debugWrapped = true;
+                    console.log('🛠️ AI decision debug hook installed.');
+                } else {
+                    console.log('ℹ️ AI debug panel not yet available or already wrapped.');
+                }
+            } catch(debugErr) {
+                console.warn('AI debug panel hook error:', debugErr);
+            }
         } else {
             console.warn('⚠️ AIDecisionEngine not available - CPU will use fallback logic');
             this.aiEngine = null;
@@ -6386,8 +6448,14 @@ class KingOfTokyoUI {
         
         console.log('🔍 DEBUG: Found player card, creating thought bubble...');
         
-        // Remove any existing thought bubble
-        this.hideCPUThoughtBubble(player);
+        // Allow stacking: keep up to 3 recent bubbles
+        const existingPlayerBubbles = Array.from(document.querySelectorAll(`.cpu-thought-bubble[data-player-id="${player.id}"]`));
+        if (existingPlayerBubbles.length >= 3) {
+            // Remove oldest (first in DOM order)
+            const oldest = existingPlayerBubbles[0];
+            oldest.classList.add('disappearing');
+            setTimeout(() => oldest.parentNode && oldest.parentNode.removeChild(oldest), 400);
+        }
         
         // Get context-appropriate phrase
         const phrase = this.getCPUThoughtPhrase(player, context);
@@ -6405,28 +6473,46 @@ class KingOfTokyoUI {
         
         const bubbleContent = document.createElement('div');
         bubbleContent.className = 'thought-bubble-content';
+
+        // Determine monster theme color for border
+        const monsterColor = this.getMonsterThemeColor(player.monster);
+        if (monsterColor) {
+            bubbleContent.style.setProperty('--bubble-border-color', monsterColor);
+            bubbleContent.style.textShadow = `0 0 4px ${monsterColor}88, 1px 1px 0 rgba(255,255,255,0.9)`;
+            bubbleContent.style.boxShadow = `4px 4px 0px #000, 0 0 10px ${monsterColor}55, 0 4px 14px rgba(0,0,0,0.35)`;
+        }
         
-        // Add context-specific styling
-        if (context === 'uncertain' || context === 'confused') {
-            bubbleContent.classList.add('thought-bubble-uncertain');
-        } else if (context === 'confident' || context === 'planning') {
-            bubbleContent.classList.add('thought-bubble-confident');
-        } else if (context === 'aggressive' || context === 'attacking') {
-            bubbleContent.classList.add('thought-bubble-aggressive');
-        } else if (context === 'strategic' || context === 'analyzing') {
-            bubbleContent.classList.add('thought-bubble-strategic');
-        } else if (context === 'defensive') {
-            bubbleContent.classList.add('thought-bubble-defensive');
+        // Add context-specific glow styling if enabled
+        const glowEnabled = localStorage.getItem('thoughtBubbleGlowEnabled') !== 'false';
+        if (glowEnabled) {
+            if (context === 'uncertain' || context === 'confused') {
+                bubbleContent.classList.add('thought-bubble-uncertain');
+            } else if (context === 'confident' || context === 'planning') {
+                bubbleContent.classList.add('thought-bubble-confident');
+            } else if (context === 'aggressive' || context === 'attacking') {
+                bubbleContent.classList.add('thought-bubble-aggressive');
+            } else if (context === 'strategic' || context === 'analyzing') {
+                bubbleContent.classList.add('thought-bubble-strategic');
+            } else if (context === 'defensive') {
+                bubbleContent.classList.add('thought-bubble-defensive');
+            }
         }
         
         bubbleContent.textContent = phrase;
         thoughtBubble.appendChild(bubbleContent);
         
-        // Position relative to screen center instead of player card to avoid stacking context issues
-        document.body.appendChild(thoughtBubble);
-        
-        // Ensure the thought bubble is properly positioned as a modal
-        this.ensureThoughtBubbleModal(thoughtBubble);
+    // Append early so we can measure & position
+    document.body.appendChild(thoughtBubble);
+
+    // Animation speed override (localStorage: thoughtBubbleAnimSpeed = slow|normal|fast)
+    const animPref = localStorage.getItem('thoughtBubbleAnimSpeed') || 'normal';
+    let duration = '0.8s';
+    if (animPref === 'slow') duration = '1.2s';
+    else if (animPref === 'fast') duration = '0.45s';
+    thoughtBubble.style.setProperty('--thought-bubble-anim-duration', duration);
+
+    // Position near player card with directional tail
+    this.positionThoughtBubbleNearPlayer(thoughtBubble, playerCard);
         
         window.UI && window.UI._debug && window.UI._debug(`💭 ${player.monster.name} thinks: "${phrase}"`);
         
@@ -6454,6 +6540,32 @@ class KingOfTokyoUI {
         }
         
         setTimeout(() => this.hideCPUThoughtBubble(player), configuredDelay);
+    }
+
+    /**
+     * Resolve a theme color for a monster to use in UI accents (thought bubble border, etc.)
+     */
+    getMonsterThemeColor(monster) {
+        if (!monster) return '#000';
+        // If profile already exposes a color, prefer it
+        if (monster.profile && monster.profile.themeColor) {
+            return monster.profile.themeColor;
+        }
+        // Fallback mapping by canonical monster name
+        const name = (monster.name || '').toLowerCase();
+        const fallback = {
+            'alienoid': '#6a1b9a',      // purple
+            'cyber bunny': '#ff1493',   // deep pink
+            'gigazaur': '#2e8b57',      // sea green
+            'kraken': '#1e88e5',        // blue
+            'meka dragon': '#c62828',   // dark red
+            'the king': '#ff8f00',      // amber
+        };
+        // Try partial matches for robustness
+        for (const key in fallback) {
+            if (name.includes(key)) return fallback[key];
+        }
+        return '#333';
     }
     
     /**
@@ -6499,11 +6611,35 @@ class KingOfTokyoUI {
         // Store reference to overlay for cleanup
         thoughtBubble.thoughtOverlay = thoughtOverlay;
     }
+
+    positionThoughtBubbleNearPlayer(thoughtBubble, playerCard) {
+        if (!playerCard) return this.ensureThoughtBubbleModal(thoughtBubble);
+        const cardRect = playerCard.getBoundingClientRect();
+        const bubbleRect = thoughtBubble.getBoundingClientRect();
+        // Default above card
+        let top = cardRect.top - bubbleRect.height - 12;
+        let left = cardRect.left + (cardRect.width / 2) - (bubbleRect.width / 2);
+        let direction = 'down'; // tail points downward toward card
+        // If not enough space above, place below
+        if (top < 10) {
+            top = cardRect.bottom + 12;
+            direction = 'up';
+        }
+        // Clamp horizontally
+        const viewportWidth = window.innerWidth;
+        if (left < 8) left = 8;
+        if (left + bubbleRect.width > viewportWidth - 8) left = viewportWidth - bubbleRect.width - 8;
+        thoughtBubble.style.position = 'fixed';
+        thoughtBubble.style.top = `${Math.round(top)}px`;
+        thoughtBubble.style.left = `${Math.round(left)}px`;
+        thoughtBubble.style.transform = 'none';
+        thoughtBubble.style.zIndex = '3999';
+        thoughtBubble.classList.add(`tail-${direction}`);
+    }
     
     hideCPUThoughtBubble(player) {
-        const existingBubble = document.querySelector(`.cpu-thought-bubble[data-player-id="${player.id}"]`);
-        if (existingBubble) {
-            // Clean up overlay if it exists
+        const existingBubbles = document.querySelectorAll(`.cpu-thought-bubble[data-player-id="${player.id}"]`);
+        existingBubbles.forEach(existingBubble => {
             if (existingBubble.thoughtOverlay) {
                 existingBubble.thoughtOverlay.style.opacity = '0';
                 setTimeout(() => {
@@ -6512,14 +6648,9 @@ class KingOfTokyoUI {
                     }
                 }, 300);
             }
-            
             existingBubble.classList.add('disappearing');
-            setTimeout(() => {
-                if (existingBubble.parentNode) {
-                    existingBubble.parentNode.removeChild(existingBubble);
-                }
-            }, 500);
-        }
+            setTimeout(() => existingBubble.parentNode && existingBubble.parentNode.removeChild(existingBubble), 500);
+        });
     }
 
     // Clean up all thought bubbles (called when turn ends)
@@ -7329,7 +7460,7 @@ class KingOfTokyoUI {
                     rollNumber: rollNumber
                 });
                 
-                const decision = this.aiEngine.makeRollDecision(
+                let decision = this.aiEngine.makeRollDecision(
                     diceResults.map(d => d.face), // Just the face values
                     rollsRemaining,
                     player,
@@ -7371,14 +7502,21 @@ class KingOfTokyoUI {
                     console.log('🔍 DEBUG: CPU not keeping any dice');
                 }
                 
-                if (decision.action === 'reroll') {
+                // Normalize and validate action
+                decision.action = this.normalizeAIAction(decision.action);
+                if (!this.validateAIAction(decision.action)) {
+                    // Fallback: treat as END_ROLL to avoid stalling
+                    decision.action = this.ACTIONS.END_ROLL;
+                }
+
+                if (decision.action === this.ACTIONS.REROLL) {
                     // Show aggressive thought bubble if continuing to roll
                     this.showCPUThoughtBubble(player, 'aggressive');
                     // Continue to next roll
                     setTimeout(() => {
                         this.cpuRollDice(player, rollNumber + 1);
                     }, this.getCPUThinkingTime('nextRoll'));
-                } else if (decision.action === 'keep' || decision.action === 'endRoll') {
+                } else if (decision.action === this.ACTIONS.KEEP || decision.action === this.ACTIONS.END_ROLL) {
                     // AI decided to stop rolling - resolve dice and end turn
                     window.UI && window.UI._debug && window.UI._debug(`🤖 AI CPU: ${player.monster.name} stopping at roll ${rollNumber}, resolving dice and ending turn`);
                     this.showSimpleCPUNotification(player, `✅ ${player.monster.name} ending turn...`);

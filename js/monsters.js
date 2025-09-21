@@ -6,6 +6,7 @@ let MONSTERS = {
         emoji: '🦕',
         image: 'images/characters/king_of_tokyo_gigazaur.png',
         color: '#1e3a1e', // Dark forest green (matches game dashboard)
+        themeColor: '#2e8b57', // UI accent (border/glow)
         description: 'The mighty dinosaur monster',
         symbol: '🌿', // Alternative nature symbol
         personality: {
@@ -20,6 +21,7 @@ let MONSTERS = {
         emoji: '🤖',
         image: 'images/characters/king_of_tokyo_cyber_bunny.png',
         color: '#dda0dd', // Plum (matches game dashboard)
+        themeColor: '#ff1493', // Deep pink accent
         description: 'The cybernetic rabbit',
         symbol: '⚡', // Electric symbol
         personality: {
@@ -34,6 +36,7 @@ let MONSTERS = {
         emoji: '🐙',
         image: 'images/characters/king_of_tokyo_kraken.png',
         color: '#1e3a37', // Dark greenish blue (matches game dashboard)
+        themeColor: '#1e88e5', // Oceanic blue accent
         description: 'The sea monster from the depths',
         symbol: '🌊', // Wave symbol
         personality: {
@@ -48,6 +51,7 @@ let MONSTERS = {
         emoji: '🦍',
         image: 'images/characters/king_of_tokyo_the_king.png',
         color: '#4a3c1f', // Dark brown (matches game dashboard)
+        themeColor: '#ff8f00', // Amber accent
         description: 'The giant ape',
         symbol: '👑', // Crown symbol
         personality: {
@@ -62,6 +66,7 @@ let MONSTERS = {
         emoji: '🐲',
         image: 'images/characters/king_of_tokyo_meka_dragon.png',
         color: '#cd5c5c', // Indian red (matches game dashboard)
+        themeColor: '#c62828', // Darker red accent
         description: 'The mechanical dragon',
         symbol: '⚙️', // Gear symbol
         personality: {
@@ -76,6 +81,7 @@ let MONSTERS = {
         emoji: '👽',
         image: 'images/characters/king_of_tokyo_alienoid.png',
         color: '#8fbc8f', // Dark sea green (matches game dashboard)
+        themeColor: '#6a1b9a', // Purple accent
         description: 'The extraterrestrial being',
         symbol: '🛸', // UFO symbol
         personality: {

@@ -206,6 +206,35 @@ class KingOfTokyoGame {
         this.diceEffectsResolved = false; // Track if dice effects have been resolved this turn
     }
 
+    // Verify internal vs UI displayed stats for a player (debug mode aid)
+    verifyStatsConsistency(player) {
+        try {
+            if (!window.document) return;
+            const container = document.querySelector(`[data-player-id="${player.id}"]`);
+            if (!container) {
+                window.UI && window.UI._debug && window.UI._debug('verifyStatsConsistency: player container not found', { playerId: player.id });
+                return;
+            }
+            const energyEl = container.querySelector('.player-energy');
+            const vpEl = container.querySelector('.player-vp');
+            const healthEl = container.querySelector('.player-health');
+            const uiEnergy = energyEl ? parseInt(energyEl.textContent) : null;
+            const uiVP = vpEl ? parseInt(vpEl.textContent) : null;
+            const uiHealth = healthEl ? parseInt(healthEl.textContent) : null;
+            const discrepancies = {};
+            if (uiEnergy !== null && uiEnergy !== player.energy) discrepancies.energy = { ui: uiEnergy, internal: player.energy };
+            if (uiVP !== null && uiVP !== player.victoryPoints) discrepancies.victoryPoints = { ui: uiVP, internal: player.victoryPoints };
+            if (uiHealth !== null && uiHealth !== player.health) discrepancies.health = { ui: uiHealth, internal: player.health };
+            if (Object.keys(discrepancies).length > 0) {
+                console.error('🚨 UI / INTERNAL STATS MISMATCH', { player: player.monster.name, discrepancies });
+            } else {
+                window.UI && window.UI._debug && window.UI._debug('✅ UI stats match internal state for player', player.monster.name);
+            }
+        } catch (err) {
+            console.warn('⚠️ verifyStatsConsistency encountered error', err);
+        }
+    }
+
     // Roll off to determine first player - each player rolls 6 dice, highest attack dice goes first
     async rollForFirstPlayer(selectedMonsters, playerTypes = null) {
         if (window.UI && window.UI.debugMode) {
@@ -932,6 +961,12 @@ class KingOfTokyoGame {
         }
         
         const player = this.getCurrentPlayer();
+        // Capture baseline stats BEFORE applying dice for consistency checking
+        const preResolutionStats = {
+            energy: player.energy,
+            victoryPoints: player.victoryPoints,
+            health: player.health
+        };
         
         window.UI && window.UI._debug && window.UI._debug('🔍 resolveDiceEffects called with results:', results);
         window.UI && window.UI._debug && window.UI._debug('🔍 Dice collection internal state at time of resolution:');
@@ -976,7 +1011,24 @@ class KingOfTokyoGame {
             this.logDetailedAction(`${this.getCurrentPlayer().monster.name} rolled: ${visualDice} (roll ${rollNumber}/${this.currentTurnTotalRolls})`, 'dice-faces');
         }
         
-        // Mark dice effects as resolved for this turn
+        // BEFORE marking resolved, perform integrity checks comparing passed-in summary vs fresh snapshot
+        const freshResultsSnapshot = this.diceCollection.getResults();
+        const snapshotMismatch = JSON.stringify(freshResultsSnapshot) !== JSON.stringify(results);
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debug('🧪 Dice Results Integrity Check', {
+                passedIn: results,
+                freshSnapshot: freshResultsSnapshot,
+                mismatch: snapshotMismatch
+            });
+        }
+        if (snapshotMismatch) {
+            console.warn('⚠️ DICE RESULTS MISMATCH: passed-in results differ from live dice snapshot', {
+                passedIn: results,
+                fresh: freshResultsSnapshot
+            });
+        }
+
+        // Mark dice effects as resolved for this turn (after integrity snapshot)
         this.diceEffectsResolved = true;
         
         let totalVictoryPoints = 0;
@@ -986,6 +1038,15 @@ class KingOfTokyoGame {
 
         // Calculate victory points from number sets
         const numberPoints = this.diceCollection.getVictoryPoints();
+
+        // Additional anomaly detection for number set scoring
+        if (window.UI && window.UI.debugMode) {
+            const counts = freshResultsSnapshot.numbers;
+            const qualifyingSets = Object.entries(counts).filter(([n,c]) => c >= 3);
+            if (qualifyingSets.length > 0 && numberPoints === 0) {
+                console.error('🚨 ANOMALY: Qualifying number sets detected but numberPoints==0', { counts, numberPoints, qualifyingSets });
+            }
+        }
         
         if (numberPoints > 0) {
             totalVictoryPoints += numberPoints;
@@ -1006,6 +1067,11 @@ class KingOfTokyoGame {
 
         // Energy
         totalEnergy = results.energy;
+        if (window.UI && window.UI.debugMode) {
+            if (totalEnergy !== freshResultsSnapshot.energy) {
+                console.error('🚨 ENERGY MISMATCH between passed results and fresh snapshot', { passedIn: totalEnergy, fresh: freshResultsSnapshot.energy });
+            }
+        }
         window.UI && window.UI._debug && window.UI._debug('- Energy from dice:', totalEnergy);
         
         if (totalEnergy > 0) {
@@ -1142,14 +1208,42 @@ class KingOfTokyoGame {
             this.triggerEvent('playerGainedPoints', { playerId: player.id, pointsGained: totalVictoryPoints });
         }
 
-        window.UI && window.UI._debug && window.UI._debug('Current player after effects:', {
-            name: player.monster.name,
-            energy: player.energy,
-            health: player.health,
-            victoryPoints: player.victoryPoints
-        });
+        // Post dice (pre passive effects) consistency check
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debug('Current player after effects (pre-passive):', {
+                name: player.monster.name,
+                energy: player.energy,
+                health: player.health,
+                victoryPoints: player.victoryPoints,
+                gainedEnergy: player.energy - preResolutionStats.energy,
+                gainedVP: player.victoryPoints - preResolutionStats.victoryPoints
+            });
+            // Expected direct gains from dice only
+            const expectedEnergyGain = freshResultsSnapshot.energy;
+            const expectedVPGain = numberPoints; // from number sets only
+            if ((player.energy - preResolutionStats.energy) !== expectedEnergyGain) {
+                console.error('🚨 ENERGY GAIN DISCREPANCY: expected vs actual', {
+                    expectedEnergyGain,
+                    actualGain: player.energy - preResolutionStats.energy,
+                    pre: preResolutionStats.energy,
+                    post: player.energy,
+                    snapshot: freshResultsSnapshot
+                });
+            }
+            if ((player.victoryPoints - preResolutionStats.victoryPoints) !== expectedVPGain) {
+                console.error('🚨 VP GAIN DISCREPANCY: expected vs actual', {
+                    expectedVPGain,
+                    actualGain: player.victoryPoints - preResolutionStats.victoryPoints,
+                    pre: preResolutionStats.victoryPoints,
+                    post: player.victoryPoints,
+                    snapshot: freshResultsSnapshot,
+                    numberPoints,
+                    counts: freshResultsSnapshot.numbers
+                });
+            }
+        }
 
-        // Apply power card effects
+    // Apply power card effects
         this.applyPassiveCardEffects(player, results);
 
         // Apply turn-based power card effects immediately after dice resolution
@@ -1166,6 +1260,27 @@ class KingOfTokyoGame {
 
         // Stay in resolving phase - turn can be ended when ready
         window.UI && window.UI._debug && window.UI._debug('Dice effects resolved, ready to end turn');
+
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debug('🧮 Dice Resolution Summary', {
+                player: player.monster.name,
+                preResolutionStats,
+                postResolutionStats: {
+                    energy: player.energy,
+                    health: player.health,
+                    victoryPoints: player.victoryPoints
+                },
+                diceContribution: {
+                    energy: freshResultsSnapshot.energy,
+                    numberPoints,
+                    attack: results.attack,
+                    heal: results.heal,
+                    counts: freshResultsSnapshot.numbers
+                }
+            });
+            // Attempt UI consistency verification if UI present
+            this.verifyStatsConsistency(player);
+        }
         this.triggerEvent('turnPhaseChanged', { phase: 'resolving' });
         
         // Trigger UI update to reflect stat changes
@@ -1177,6 +1292,25 @@ class KingOfTokyoGame {
 
         // Resolve attack effects
     resolveAttacks(attacker, attackPower) {
+        // === DEBUG INSTRUMENTATION START (Tokyo attack diagnostics) ===
+        if (window.UI && window.UI.debugMode) {
+            const snapshot = this.players.map(p => ({
+                id: p.id,
+                name: p.monster?.name,
+                hp: p.health,
+                isInTokyo: p.isInTokyo,
+                tokyoLocation: p.tokyoLocation,
+                eliminated: p.isEliminated
+            }));
+            window.UI._debug('[ATTACK] resolveAttacks entry', {
+                attacker: attacker.monster?.name,
+                attackPower,
+                attackerInTokyo: attacker.isInTokyo,
+                attackerTokyoLocation: attacker.tokyoLocation,
+                playerSnapshot: snapshot
+            });
+        }
+        // === DEBUG INSTRUMENTATION END ===
         if (window.UI && window.UI.debugMode) {
             window.UI._debug(`DEBUG - resolveAttacks called:`, {
                 attackerName: attacker.monster.name,
@@ -1190,6 +1324,7 @@ class KingOfTokyoGame {
         console.log(`Attacker location - isInTokyo: ${attacker.isInTokyo}, tokyoLocation: ${attacker.tokyoLocation}`);
         
         if (attacker.isInTokyo) {
+            window.UI && window.UI._debug && window.UI._debug('[ATTACK] Branch: Attacker in Tokyo');
             if (attacker.tokyoLocation === 'city') {
                 // Player in Tokyo City attacks only players outside Tokyo (NOT Tokyo Bay)
                 const attackTargets = [];
@@ -1236,6 +1371,15 @@ class KingOfTokyoGame {
         } else {
             // Player outside Tokyo attacks players in Tokyo
             const tokyoPlayers = this.players.filter(p => p.isInTokyo && !p.isEliminated);
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debug('[ATTACK] Branch: Attacker outside Tokyo targeting tokyoPlayers', tokyoPlayers.map(p=>({name:p.monster.name,hp:p.health,loc:p.tokyoLocation})));
+                if (tokyoPlayers.length === 0) {
+                    const anyoneMarkedTokyo = this.players.some(p=>p.isInTokyo);
+                    if (anyoneMarkedTokyo) {
+                        console.warn('⚠️ DEBUG ANOMALY: Some player has isInTokyo=true but tokyoPlayers filter returned empty set. Player states:', this.players.map(p=>({name:p.monster.name,isInTokyo:p.isInTokyo,loc:p.tokyoLocation,elim:p.isEliminated})));
+                    }
+                }
+            }
             
             if (tokyoPlayers.length > 0) {
                 const attackTargets = [];
@@ -1292,6 +1436,20 @@ class KingOfTokyoGame {
 
         // Deal damage to a player
     dealDamage(player, damage, attacker) {
+        // === DEBUG INSTRUMENTATION START (Damage pipeline) ===
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debug('[DAMAGE] dealDamage start', {
+                target: player.monster?.name,
+                attacker: attacker.monster?.name,
+                incoming: damage,
+                targetHpBefore: player.health,
+                targetInTokyo: player.isInTokyo,
+                targetTokyoLoc: player.tokyoLocation,
+                attackerInTokyo: attacker.isInTokyo,
+                timestamp: Date.now()
+            });
+        }
+        // === DEBUG INSTRUMENTATION END ===
         if (window.UI && window.UI.debugMode) {
             window.UI._debug(`DEBUG - dealDamage called:`, {
                 targetPlayer: player.monster.name,
@@ -1308,6 +1466,7 @@ class KingOfTokyoGame {
         });
         
         if (hasCamouflage) {
+            window.UI && window.UI._debug && window.UI._debug('[DAMAGE] Camouflage protection active, no damage applied');
             this.logAction(`${player.monster.name} is protected by camouflage and cannot be attacked directly!`);
             return 0;
         }
@@ -1320,10 +1479,12 @@ class KingOfTokyoGame {
             });
             
             if (hasWings) {
+                window.UI && window.UI._debug && window.UI._debug('[DAMAGE] Wings detected for target in Tokyo');
                 // For CPU players, make a decision based on health/damage ratio
                 if (!player.isHuman) {
                     const shouldFlee = (player.health <= damage) || (player.health <= 3 && damage >= 2);
                     if (shouldFlee) {
+                        window.UI && window.UI._debug && window.UI._debug('[DAMAGE] CPU chooses to flee with Wings');
                         this.logAction(`${player.monster.name} uses Wings to flee Tokyo without taking damage!`);
                         this.removePlayerFromTokyo(player);
                         
@@ -1347,6 +1508,7 @@ class KingOfTokyoGame {
                         ]
                     };
                     
+                    window.UI && window.UI._debug && window.UI._debug('[DAMAGE] Human Wings decision queued', decision);
                     this.pendingDecisions.push(decision);
                     this.triggerEvent('showDecision', decision);
                     return 0; // Damage will be resolved after decision
@@ -1355,6 +1517,16 @@ class KingOfTokyoGame {
         }
         
         const damageResult = player.takeDamage(damage);
+        if (window.UI && window.UI.debugMode) {
+            window.UI._debug('[DAMAGE] takeDamage result', {
+                target: player.monster?.name,
+                requested: damage,
+                actual: damageResult.actualDamage,
+                hpAfter: player.health,
+                eliminated: damageResult.eliminationInfo ? true : false,
+                eliminationInfo: damageResult.eliminationInfo || null
+            });
+        }
         const actualDamage = damageResult.actualDamage;
         const eliminationInfo = damageResult.eliminationInfo;
         
@@ -1431,6 +1603,8 @@ class KingOfTokyoGame {
             console.log('🔥 Triggering playerAttacked event for:', player.monster.name, 'playerId:', player.id, 'damage:', actualDamage);
             console.trace('🔥 Stack trace for playerAttacked event:');
             this.triggerEvent('playerAttacked', { playerId: player.id });
+        } else {
+            window.UI && window.UI._debug && window.UI._debug('[DAMAGE] No actual damage applied (0) so playerAttacked event skipped');
         }
         
         // Return actual damage for compatibility with existing code
