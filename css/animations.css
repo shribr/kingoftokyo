@@ -353,6 +353,51 @@
     border: 2px solid transparent;
 }
 
+/* Rumble animation (intro) - reuse shake without glow */
+.player-rumble {
+    animation: attackShake 0.6s ease-in-out;
+}
+
+/* Intro Thought Bubble Effects */
+.intro-effect { position:absolute; inset:0; pointer-events:none; z-index:1500; overflow:hidden; }
+.game-board .intro-effect { position:fixed; top:0; left:0; width:100%; height:100%; }
+
+/* Party (balloons + confetti) */
+.intro-effect-party { background: radial-gradient(circle at 50% 60%, rgba(0,0,0,0.55), rgba(0,0,0,0.85)); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
+.intro-effect-party.intro-effect-fade { animation: fadeOutOverlay .8s forwards; }
+.balloon { position:absolute; bottom:-120px; width:46px; height:58px; background:var(--balloon-color,linear-gradient(135deg,#ff9a9e,#fad0c4)); border-radius:50% 50% 45% 45%; box-shadow:0 4px 8px rgba(0,0,0,0.3); animation: balloonRise 6s linear forwards; }
+.balloon::after { content:''; position:absolute; bottom:-18px; left:50%; width:2px; height:22px; background:#fff; transform:translateX(-50%); }
+.balloon:nth-child(odd){ --balloon-color:linear-gradient(135deg,#a1c4fd,#c2e9fb);} 
+.balloon:nth-child(3n){ --balloon-color:linear-gradient(135deg,#fddb92,#d1fdff);} 
+.balloon:nth-child(4n){ --balloon-color:linear-gradient(135deg,#e0c3fc,#8ec5fc);} 
+.confetti { position:absolute; top:-10px; width:10px; height:14px; background:#FF4757; animation: confettiFall 3.2s linear forwards; transform: rotate(0deg); }
+.confetti:nth-child(3n){ width:8px; height:12px; }
+.confetti:nth-child(4n){ border-radius:50%; }
+
+@keyframes balloonRise { 0%{ transform:translateY(0) scale(.9); opacity:0;} 10%{opacity:1;} 85%{opacity:1;} 100%{ transform:translateY(-120vh) scale(1); opacity:0;} }
+@keyframes confettiFall { 0%{ transform:translateY(0) rotate(0deg);} 100%{ transform:translateY(110vh) rotate(540deg); opacity:0;} }
+@keyframes fadeOutOverlay { to { opacity:0; } }
+
+/* Showtime (spotlights) */
+.intro-effect-showtime { background:#000; }
+.intro-effect-showtime .spotlight { position:absolute; top:0; width:55%; height:150%; background:radial-gradient(ellipse at top, rgba(255,255,200,0.85), rgba(255,255,200,0.15) 60%, rgba(0,0,0,0) 75%); mix-blend-mode:screen; opacity:0; transform-origin:top center; }
+.spotlight-left { left:-10%; animation: spotlightSweepLeft .9s ease-out forwards; }
+.spotlight-right { right:-10%; animation: spotlightSweepRight .9s ease-out forwards; }
+.intro-effect-showtime.lights-on { background:rgba(0,0,0,0.35); transition:background .4s ease; }
+@keyframes spotlightSweepLeft { 0%{ transform:rotate(-35deg) scale(0.6); opacity:0;} 30%{opacity:1;} 100%{ transform:rotate(-5deg) scale(1); opacity:1;} }
+@keyframes spotlightSweepRight { 0%{ transform:rotate(35deg) scale(0.6); opacity:0;} 30%{opacity:1;} 100%{ transform:rotate(5deg) scale(1); opacity:1;} }
+
+/* Dawn transition */
+.intro-effect-dawn { background: linear-gradient(#020617,#0f172a); animation: dawnCycle 3s ease-in-out forwards; }
+@keyframes dawnCycle {
+    0% { background:linear-gradient(#020617,#0f172a); filter:brightness(.5) saturate(.7); }
+    25% { background:linear-gradient(#0a2540,#1e3a8a); filter:brightness(.7) saturate(.85); }
+    55% { background:linear-gradient(#1e3a8a,#2563eb); filter:brightness(.9) saturate(.95); }
+    75% { background:linear-gradient(#2563eb,#60a5fa); filter:brightness(1) saturate(1); }
+    100% { background:linear-gradient(#60a5fa,#93c5fd); filter:brightness(1.05) saturate(1.05); }
+}
+
+
 /* Heart healing animation */
 @keyframes heartFloat {
     0% {

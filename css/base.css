@@ -17,6 +17,15 @@ body {
     height: 100vh; /* Ensure body takes full viewport height */
 }
 
+/* While an element is being dragged (JS adds .dragging to element) */
+.dragging {
+    -ms-user-select: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    touch-action: none !important; /* Prevent browser gestures interfering */
+    cursor: grabbing !important;
+}
+
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
     font-family: 'Bangers', cursive;
@@ -232,6 +241,102 @@ body.dark-mode button {
 body.dark-mode .log-entry {
     background: rgba(255, 255, 255, 0.05) !important;
     color: #e0e0e0;
+}
+
+/* Utility classes for settings modal */
+.settings-option.indented { margin-left: 1rem; }
+.setting-help.small-note { margin:4px 0 6px; font-size:0.85em; }
+.visually-hidden { position:absolute !important; left:-9999px !important; width:1px !important; height:1px !important; overflow:hidden !important; }
+
+/* When settings modal open: freeze gameplay visuals */
+body.settings-modal-open #game-container, 
+body.settings-modal-open .game-board {
+    filter: blur(2px) brightness(0.9);
+    transition: filter .25s ease;
+}
+body.settings-modal-open .dice-area .die,
+body.settings-modal-open .power-card,
+body.settings-modal-open .player-card,
+body.settings-modal-open button.action-btn,
+body.settings-modal-open .monster-avatar {
+    pointer-events: none !important;
+}
+/* Pause CSS animations (non-critical float, pulse) */
+body.settings-modal-open .cpu-thought-bubble,
+body.settings-modal-open .pulse-ring,
+body.settings-modal-open .tokyo-pulse-ring,
+body.settings-modal-open .floating,
+body.settings-modal-open .tokyo-city {
+    animation-play-state: paused !important;
+}
+/* Prevent accidental drags while modal open */
+body.settings-modal-open .draggable { cursor: default !important; }
+
+/* Themed select for settings panel (matches setup-form aesthetic) */
+#settings-modal .themed-select,
+.settings-panel .themed-select,
+select.themed-select {
+    padding: 10px 16px;
+    border: 3px solid #000;
+    border-radius: 0;
+    font-size: 1.05em;
+    font-family: 'Bangers', cursive;
+    font-weight: 900;
+    background:
+        radial-gradient(circle at 3px 3px, rgba(0,0,0,0.12) 1px, transparent 0),
+        linear-gradient(135deg, #FFD700 0%, #FF8C00 100%);
+    background-size: 14px 14px, 100% 100%;
+    color: #000;
+    box-shadow:
+        4px 4px 0px #000,
+        0 0 0 3px rgba(0,0,0,0.15),
+        6px 6px 18px rgba(0,0,0,0.35);
+    letter-spacing: 1px;
+    transition: all .25s ease;
+    -webkit-appearance: none;
+    appearance: none;
+    position: relative;
+    cursor: pointer;
+}
+
+select.themed-select:focus {
+    outline: none;
+    border-color: #FF4500;
+    background:
+        radial-gradient(circle at 3px 3px, rgba(0,0,0,0.18) 1px, transparent 0),
+        linear-gradient(135deg, #FFED4E 0%, #FF9500 100%);
+    background-size: 14px 14px, 100% 100%;
+    box-shadow:
+        6px 6px 0px #000,
+        0 0 0 3px #FF4500,
+        8px 8px 24px rgba(255,69,0,0.55);
+    transform: translateY(-2px);
+}
+
+select.themed-select:hover {
+    transform: translateY(-1px);
+    box-shadow:
+        5px 5px 0px #000,
+        0 0 0 3px rgba(0,0,0,0.18),
+        7px 7px 20px rgba(0,0,0,0.4);
+}
+
+/* Custom arrow using a pseudo-element wrapper technique */
+select.themed-select {
+    background-repeat: no-repeat;
+    background-position: right 14px center, 0 0;
+    background-size: 12px 12px, 100% 100%;
+}
+
+/* Dark mode adjustments */
+body.dark-mode select.themed-select {
+    color: #111;
+}
+body.dark-mode select.themed-select:focus {
+    box-shadow:
+        6px 6px 0px #000,
+        0 0 0 3px #FF9500,
+        8px 8px 24px rgba(255,150,0,0.55);
 }
 
 /* Cursor Fix - Ensure all interactive elements have pointer cursor */

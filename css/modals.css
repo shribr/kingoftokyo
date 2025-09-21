@@ -1201,14 +1201,99 @@
 
 .settings-option {
     margin-bottom: 20px;
-    padding: 15px;
+    padding: 15px 18px;
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.9); /* More opaque for better text readability */
     border: 2px solid rgba(0, 0, 0, 0.2);
-    overflow: hidden; /* Prevent content from bleeding out */
+    /* overflow removed so nested dropdown menus can extend beyond container */
+    overflow: visible;
     word-wrap: break-word;
     box-sizing: border-box;
+    width: 100%;
+    max-width: 640px; /* Consistent width across all sections */
 }
+
+/* Remove indentation from legacy indented class inside settings modal */
+#settings-modal .settings-option.indented { margin-left: 0 !important; }
+
+/* Center settings sections and ensure consistent alignment */
+#settings-modal .settings-section { display: flex; flex-direction: column; align-items: flex-start; }
+#settings-modal .settings-section > .settings-option { align-self: stretch; }
+
+/* Custom dropdown inside settings should stretch */
+#settings-modal .thought-bubble-position-dropdown { width: 100%; max-width: 100%; }
+#settings-modal .thought-bubble-position-dropdown .dropdown-selected { width: 100%; }
+/* Ensure the thought bubble dropdown layers above sibling content */
+#settings-modal .thought-bubble-position-dropdown { position: relative; z-index: 1100; }
+#settings-modal .thought-bubble-position-dropdown .dropdown-options { z-index: 1200; }
+
+/* Simplified neutral thought bubble duration slider */
+#thought-bubble-duration {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 10px;
+    background: #e1e1e1;
+    border-radius: 6px;
+    border: 1px solid #b5b5b5;
+    outline: none;
+    cursor: pointer;
+    margin-top: 6px;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.15);
+}
+#thought-bubble-duration:focus { box-shadow: 0 0 0 3px rgba(0,0,0,0.12); }
+/* WebKit */
+#thought-bubble-duration::-webkit-slider-runnable-track { height: 10px; background: #e1e1e1; border-radius: 6px; }
+#thought-bubble-duration::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: #555; border: 2px solid #222; box-shadow: 0 2px 3px rgba(0,0,0,0.35); margin-top: -6px; transition: background .15s ease, transform .15s ease; }
+#thought-bubble-duration:hover::-webkit-slider-thumb { background:#4a4a4a; }
+#thought-bubble-duration:active::-webkit-slider-thumb { transform: scale(.9); background:#3a3a3a; }
+/* Firefox */
+#thought-bubble-duration::-moz-range-track { height:10px; background:#e1e1e1; border-radius:6px; }
+#thought-bubble-duration::-moz-range-thumb { width:22px; height:22px; border-radius:50%; background:#555; border:2px solid #222; box-shadow:0 2px 3px rgba(0,0,0,0.35); transition:background .15s ease, transform .15s ease; cursor:pointer; }
+#thought-bubble-duration:hover::-moz-range-thumb { background:#4a4a4a; }
+#thought-bubble-duration:active::-moz-range-thumb { transform:scale(.9); background:#3a3a3a; }
+/* Edge/IE */
+#thought-bubble-duration::-ms-track { height:10px; background:transparent; border-color:transparent; color:transparent; }
+#thought-bubble-duration::-ms-fill-lower, #thought-bubble-duration::-ms-fill-upper { background:#e1e1e1; border-radius:6px; }
+#thought-bubble-duration::-ms-thumb { width:22px; height:22px; border-radius:50%; background:#555; border:2px solid #222; box-shadow:0 2px 3px rgba(0,0,0,0.35); }
+
+/* Readable value badge */
+/* Unified yellow styling (match dropdown theme) */
+:root {
+    --ui-yellow-start: #FFD700;
+    --ui-yellow-end: #FF8C00;
+    --ui-yellow-accent: #FFED4E;
+    --ui-yellow-border: #000; /* dropdown uses solid black border */
+}
+
+#thought-bubble-duration-value {
+    display:inline-block;
+    margin-top:8px;
+    padding:4px 14px;
+    background:
+        radial-gradient(circle at 3px 3px, rgba(0,0,0,0.10) 1px, transparent 0),
+        linear-gradient(135deg, var(--ui-yellow-start) 0%, var(--ui-yellow-end) 100%);
+    background-size:15px 15px, 100% 100%;
+    color:#000;
+    font-weight:800;
+    border:2px solid var(--ui-yellow-border);
+    border-radius:18px;
+    font-size:0.9rem;
+    letter-spacing:0.5px;
+    font-family:'Bangers', cursive;
+    box-shadow:6px 6px 0px #000, 8px 8px 18px rgba(0,0,0,0.35);
+    position:relative;
+}
+
+#thought-bubble-duration-value::after {
+    content:'';
+    position:absolute; inset:0; pointer-events:none; border-radius:18px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0) 60%);
+    mix-blend-mode:overlay;
+}
+
+/* Add a little more separation under the section title */
+#settings-modal #thought-bubble-duration + #thought-bubble-duration-value { margin-left: 0; }
 
 .settings-option > label {
     font-family: 'Bangers', cursive;
@@ -5198,6 +5283,7 @@ body.dark-mode .quick-ref-item {
     z-index: 3999 !important; /* Just below action-menu (4000) but above game content */
     pointer-events: none;
     animation: thoughtBubbleAppear 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transition: top .15s ease, left .15s ease; /* Smooth reposition on resize */
 }
 
 .thought-bubble-content {
@@ -5263,6 +5349,49 @@ body.dark-mode .quick-ref-item {
     border-right: 12px solid transparent;
     border-top: 12px solid #FFFFFF;
     z-index: 1;
+}
+
+/* Variant: arrow on top (used when anchored above Tokyo and pointing downward) */
+.cpu-thought-bubble.tokyo-anchor .thought-bubble-content::after {
+    bottom: auto;
+    top: -18px;
+    border-top: none;
+    border-bottom: 18px solid #000;
+}
+.cpu-thought-bubble.tokyo-anchor .thought-bubble-content::before {
+    bottom: auto;
+    top: -14px;
+    border-top: none;
+    border-bottom: 14px solid #FFFFFF;
+}
+
+/* Tokyo occupant highlight */
+.cpu-thought-bubble.tokyo-occupant .thought-bubble-content {
+    box-shadow: 0 0 0 4px rgba(255,215,0,0.6), 6px 6px 0 #000, 10px 12px 25px rgba(0,0,0,0.5);
+    position: relative;
+}
+.cpu-thought-bubble.tokyo-occupant .thought-bubble-content::before,
+.cpu-thought-bubble.tokyo-occupant .thought-bubble-content::after {
+    filter: drop-shadow(0 0 4px rgba(255,215,0,0.7));
+}
+
+@keyframes tokyoPulseRing {
+    0% { box-shadow: 0 0 0 0 rgba(255,215,0,0.6); }
+    70% { box-shadow: 0 0 0 10px rgba(255,215,0,0); }
+    100% { box-shadow: 0 0 0 0 rgba(255,215,0,0); }
+}
+.cpu-thought-bubble.tokyo-occupant .thought-bubble-content {
+    animation: thoughtBubbleFloat 2s ease-in-out infinite, tokyoPulseRing 2.8s ease-out infinite;
+}
+
+/* Slight slide-in from anchor instead of center when positioned near player */
+.cpu-thought-bubble.anchor-mode {
+    animation: anchorBubbleAppear .35s cubic-bezier(.25,.8,.25,1);
+}
+@keyframes anchorBubbleAppear {
+    0% { opacity:0; transform:translate(-50%, -90%) scale(.85); }
+    60% { opacity:1; transform:translate(-50%, -105%) scale(1.05); }
+    100% { opacity:1; transform:translate(-50%, -100%) scale(1); }
 }
 
 /* Thought bubble variations for different contexts */

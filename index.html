@@ -139,11 +139,11 @@
         
         <!-- Row 2: Dice Area (left) and Action Menu (right) -->
         <div class="ui-row action-row">
-            <div class="dice-area draggable hidden-until-game-start" draggable="true" id="dice-area">
+            <div class="dice-area draggable hidden-until-game-start" id="dice-area">
                 <div id="dice-container" class="dice-container"></div>
             </div>
             
-            <div class="action-menu draggable" draggable="true" id="action-menu">
+            <div class="action-menu draggable" id="action-menu">
                 <button id="roll-dice" class="action-button btn primary">Roll Dice</button>
                 <button id="keep-dice" class="action-button btn secondary" disabled>Keep Dice</button>
                 <!-- <button id="buy-cards" class="action-button btn tertiary">Buy Power Cards</button> -->
@@ -713,20 +713,31 @@
                             💭 Show CPU thought bubbles
                         </label>
                     </div>
-                    <div class="settings-option" id="thought-bubble-advanced" style="margin-left:1rem;">
-                        <label>Thought Bubble Position</label>
-                        <select id="thought-bubble-position">
+                    <div class="settings-option indented" id="thought-bubble-advanced">
+                        <label for="thought-bubble-position-select">Thought Bubble Position</label>
+                        <!-- Hidden native select for accessibility/fallback -->
+                        <select id="thought-bubble-position-select" class="visually-hidden" aria-hidden="true" tabindex="-1">
                             <option value="player">From Player</option>
                             <option value="center">Centered</option>
                         </select>
+                        <div class="custom-dropdown thought-bubble-position-dropdown" id="thought-bubble-position-dropdown">
+                            <div class="dropdown-selected" id="thought-bubble-position-selected">
+                                From Player
+                                <span class="dropdown-arrow">▼</span>
+                            </div>
+                            <div class="dropdown-options" id="thought-bubble-position-options">
+                                <div class="dropdown-option" data-value="player">From Player</div>
+                                <div class="dropdown-option" data-value="center">Centered</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="settings-option" style="margin-left:1rem;">
+                    <div class="settings-option indented">
                         <label>Thought Bubble Duration</label>
-                        <p style="margin:4px 0 6px;font-size:0.85em;">Adjust how long bubbles remain visible (multiplier).</p>
-                        <input type="range" id="thought-bubble-duration" min="0.5" max="2.0" step="0.1" value="1">
+                        <p class="setting-help small-note">Adjust how long bubbles remain visible (multiplier).</p>
+                        <input type="range" id="thought-bubble-duration" min="0.5" max="2.0" step="0.1" value="1" aria-label="Thought bubble duration multiplier">
                         <div><span id="thought-bubble-duration-value">1.0x</span></div>
                     </div>
-                    <div class="settings-option" style="margin-left:1rem;">
+                    <div class="settings-option indented">
                         <label>
                             <input type="checkbox" id="thought-bubble-dim" checked>
                             Dim background behind bubbles
@@ -824,7 +835,7 @@
                     </table>
                 </div>
                 <div class="rolloff-actions">
-                    <button id="rolloff-roll-btn" class="btn primary" style="display: none;" onclick="window.gameUI?.handleRolloffRoll()">
+                    <button id="rolloff-roll-btn" class="btn primary hidden" onclick="window.gameUI?.handleRolloffRoll()">
                         🎲 Roll Dice
                     </button>
                     <a id="rolloff-skip-link" class="rolloff-skip-link" href="#" onclick="window.gameUI?.skipRolloff(); return false;" title="Clicking this link skips the dice &quot;roll off&quot; and selects a player at random to go first instead.">

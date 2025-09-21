@@ -91,6 +91,12 @@ class KingOfTokyoUI {
     // Thought bubble control
     this._lastGlobalThought = 0; // timestamp of last bubble shown (any CPU)
     this._lastPlayerThought = {}; // per-player timestamps
+    // Thought bubble context state
+    this._lastDiceSummary = {}; // per-player last stable dice faces for context-aware chatter
+    this._recentThoughts = {}; // per-player queue of recent phrases to reduce repetition
+    this._activeThoughtBubble = null; // current DOM element
+    this._activeThoughtPlayerId = null;
+    this._pendingRepositionRaf = null;
     this.tempSetupLog = []; // Store setup actions before game is created
     this.endingTurnInProgress = false; // Flag to prevent multiple endTurn calls
     this.previousRound = 1; // Track previous round for animation
@@ -622,7 +628,18 @@ class KingOfTokyoUI {
 
         // Settings modal close button using UIUtilities
         UIUtilities.safeAddEventListener(this.elements.closeSettingsBtn, 'click', 
-            () => UIUtilities.hideModal(this.elements.settingsModal), 
+            () => {
+                UIUtilities.hideModal(this.elements.settingsModal);
+                document.body.classList.remove('settings-modal-open');
+                // Resume only if we auto-paused
+                if (this._wasAutoPausedForSettings) {
+                    this._wasAutoPausedForSettings = false;
+                    if (this.gamePaused) {
+                        this.gamePaused = false; // ensure flag sync
+                        this.unpauseGame();
+                    }
+                }
+            }, 
             'Close settings button not found');
 
         // Settings save button using UIUtilities
@@ -880,15 +897,57 @@ class KingOfTokyoUI {
 
     // Initialize drag and drop functionality for moveable components
     initializeDragAndDrop() {
-        const draggableElements = document.querySelectorAll('.draggable');
-        
-        draggableElements.forEach(element => {
-            this.makeDraggable(element);
-        });
+        const bindAll = () => {
+            const draggableElements = document.querySelectorAll('.draggable');
+            draggableElements.forEach(el => {
+                if (!el.dataset.draggableBound) {
+                    this.makeDraggable(el);
+                    el.dataset.draggableBound = '1';
+                }
+            });
+        };
+        bindAll();
+
+        // Observe DOM for dynamically added draggable elements (e.g., active player card)
+        if (!this._dragObserver) {
+            const observer = new MutationObserver(mutations => {
+                for (const m of mutations) {
+                    if (m.type === 'childList' && (m.addedNodes?.length || 0) > 0) {
+                        m.addedNodes.forEach(node => {
+                            if (!(node instanceof HTMLElement)) return;
+                            if (node.classList?.contains('draggable') && !node.dataset.draggableBound) {
+                                this.makeDraggable(node);
+                                node.dataset.draggableBound = '1';
+                            }
+                            // Also scan descendants once
+                            const inner = node.querySelectorAll?.('.draggable');
+                            inner && inner.forEach(desc => {
+                                if (!desc.dataset.draggableBound) {
+                                    this.makeDraggable(desc);
+                                    desc.dataset.draggableBound = '1';
+                                }
+                            });
+                        });
+                    }
+                }
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+            this._dragObserver = observer;
+        }
     }
 
     // Helper method to make a single element draggable
     makeDraggable(element) {
+        // Pointer Events unified implementation
+        // Rationale:
+        //  - Replaces separate mouse/touch listeners
+        //  - Allows fine-grained control via pointerType ("mouse","touch","pen")
+        //  - Eliminates passive event warning while minimizing preventDefault calls
+        // Ensure native HTML5 drag doesn't interfere
+        try {
+            element.setAttribute('draggable', 'false');
+            element.ondragstart = (e) => { e.preventDefault(); return false; };
+        } catch(_) {}
         let isDragging = false;
         let currentX = 0;
         let currentY = 0;
@@ -896,131 +955,161 @@ class KingOfTokyoUI {
         let initialY = 0;
         let xOffset = 0;
         let yOffset = 0;
+        let activePointerId = null;
+        let saveDebounceTimer = null;
+        const SAVE_KEY = element.id ? `${element.id}-position` : null;
 
-            // Use the whole element as draggable (not just the drag handle)
-            const dragHandle = element;
+        // Generic addListener helper with defaults; allows override
+        const addL = (target, type, handler, opts = {}) => {
+            // We pass passive:false because we may call preventDefault during drag to block scrolling for touch
+            const finalOpts = { passive: false, ...opts };
+            target.addEventListener(type, handler, finalOpts);
+        };
 
-            dragHandle.addEventListener('mousedown', dragStart);
-            document.addEventListener('mousemove', drag);
-            document.addEventListener('mouseup', dragEnd);
+        const persistPosition = () => {
+            if (!SAVE_KEY) return;
+            localStorage.setItem(SAVE_KEY, JSON.stringify({ x: currentX, y: currentY }));
+        };
 
-            // Touch events for mobile
-            dragHandle.addEventListener('touchstart', dragStart);
-            document.addEventListener('touchmove', drag);
-            document.addEventListener('touchend', dragEnd);
+        const debouncedPersist = () => {
+            if (!SAVE_KEY) return;
+            if (saveDebounceTimer) cancelAnimationFrame(saveDebounceTimer);
+            // Use rAF instead of setTimeout for smoother batching while dragging
+            saveDebounceTimer = requestAnimationFrame(persistPosition);
+        };
 
-            function dragStart(e) {
-                // Prevent dragging when clicking on interactive elements
-                if (e.target.tagName === 'BUTTON' || 
-                    e.target.tagName === 'INPUT' || 
-                    e.target.tagName === 'SELECT' ||
-                    e.target.closest('button') ||
-                    e.target.closest('input') ||
-                    e.target.closest('select')) {
-                    return;
+        const applyPositionStyles = () => {
+            element.style.setProperty('position', 'fixed', 'important');
+            element.style.setProperty('left', `${currentX}px`, 'important');
+            element.style.setProperty('top', `${currentY}px`, 'important');
+            element.style.setProperty('bottom', 'auto', 'important');
+            element.style.setProperty('transform', 'none', 'important');
+        };
+
+        let suppressClick = false; // used to cancel click if a drag occurred
+        // Cancel click if it followed a drag gesture
+        element.addEventListener('click', (ce) => {
+            if (suppressClick) {
+                ce.stopPropagation();
+                ce.preventDefault();
+                suppressClick = false; // reset
+            }
+        }, true);
+
+        const pointerDown = (e) => {
+            // Ignore if already tracking another pointer (prevents multi-touch conflicts)
+            if (activePointerId !== null && activePointerId !== e.pointerId) return;
+
+            // Only exclusion: actual dice elements (retain ability to click/select dice without moving container)
+            const diceContainer = this.elements && this.elements.diceContainer;
+            if (diceContainer && diceContainer.contains(e.target)) {
+                // Identify die elements by common classes
+                const isDie = e.target.classList?.contains('die') || e.target.classList?.contains('single-die') || e.target.closest?.('.die');
+                if (isDie) {
+                    return; // Allow normal die click / selection without initiating drag
                 }
+            }
 
+            activePointerId = e.pointerId;
+            // Delay pointer capture until we confirm user intent to drag (movement threshold)
+
+            // Prevent scroll only for touch/pen (mouse doesn't need it)
+            if ((e.pointerType === 'touch' || e.pointerType === 'pen') && e.cancelable) {
                 e.preventDefault();
-                element.classList.add('dragging');
+            }
 
-                // Get the element's current position to calculate proper offset
-                const rect = element.getBoundingClientRect();
-                
-                // If this is the first drag and no position has been set, use current position
-                if (xOffset === 0 && yOffset === 0) {
-                    xOffset = rect.left;
-                    yOffset = rect.top;
+            // Record the element's starting position in the viewport each drag start
+            const rect = element.getBoundingClientRect();
+            xOffset = rect.left; // base (starting) left
+            yOffset = rect.top;  // base (starting) top
+
+            // Store the raw pointer down coordinates so we can compute deltas directly
+            initialX = e.clientX;
+            initialY = e.clientY;
+            isDragging = false; // Will become true after threshold exceeded
+            if (window.UI && window.UI._debug) {
+                window.UI._debug('🧲 Drag start', { id: element.id, xOffset, yOffset, pointerType: e.pointerType });
+            }
+        };
+
+        const DRAG_THRESHOLD = 6; // pixels
+        const pointerMove = (e) => {
+            if (e.pointerId !== activePointerId) return;
+
+            // Raw deltas from pointer-down position
+            const deltaX = e.clientX - initialX;
+            const deltaY = e.clientY - initialY;
+
+            if (!isDragging) {
+                const dist = Math.hypot(deltaX, deltaY);
+                if (dist < DRAG_THRESHOLD) {
+                    return; // Not yet a drag; allow click/tap events to go through
                 }
-
-                if (e.type === 'touchstart') {
-                    initialX = e.touches[0].clientX - xOffset;
-                    initialY = e.touches[0].clientY - yOffset;
-                } else {
-                    initialX = e.clientX - xOffset;
-                    initialY = e.clientY - yOffset;
-                }
-
+                // Commit to drag
                 isDragging = true;
+                element.classList.add('dragging');
+                try { element.setPointerCapture(e.pointerId); } catch(_) {}
+                suppressClick = true; // prevent the ensuing click event firing button actions after drag
             }
 
-            function drag(e) {
-                if (!isDragging) return;
-
+            if ((e.pointerType === 'touch' || e.pointerType === 'pen') && e.cancelable) {
                 e.preventDefault();
-
-                if (e.type === 'touchmove') {
-                    currentX = e.touches[0].clientX - initialX;
-                    currentY = e.touches[0].clientY - initialY;
-                } else {
-                    currentX = e.clientX - initialX;
-                    currentY = e.clientY - initialY;
-                }
-
-                xOffset = currentX;
-                yOffset = currentY;
-
-                // Keep element within viewport bounds
-                const rect = element.getBoundingClientRect();
-                const maxX = window.innerWidth - rect.width;
-                const maxY = window.innerHeight - rect.height;
-
-                currentX = Math.max(0, Math.min(currentX, maxX));
-                currentY = Math.max(0, Math.min(currentY, maxY));
-
-                // Override CSS positioning with !important
-                element.style.setProperty('position', 'fixed', 'important');
-                element.style.setProperty('left', `${currentX}px`, 'important');
-                element.style.setProperty('top', `${currentY}px`, 'important');
-                element.style.setProperty('bottom', 'auto', 'important');
-                element.style.setProperty('transform', 'none', 'important');
             }
 
-            function dragEnd(e) {
-                if (!isDragging) return;
+            // New target position is starting element position + pointer delta
+            currentX = xOffset + deltaX;
+            currentY = yOffset + deltaY;
 
-                isDragging = false;
-                element.classList.remove('dragging');
+            // Constrain to viewport (use element's current dimensions)
+            const rectNow = element.getBoundingClientRect();
+            const maxX = window.innerWidth - rectNow.width;
+            const maxY = window.innerHeight - rectNow.height;
+            currentX = Math.max(0, Math.min(currentX, maxX));
+            currentY = Math.max(0, Math.min(currentY, maxY));
 
-                // Save position to localStorage
-                const elementId = element.id;
-                if (elementId) {
-                    localStorage.setItem(`${elementId}-position`, JSON.stringify({
-                        x: currentX,
-                        y: currentY
-                    }));
-                }
+            applyPositionStyles();
+            debouncedPersist();
+        };
+
+        const pointerUpOrCancel = (e) => {
+            if (e.pointerId !== activePointerId) return;
+            // If we never transitioned to dragging, treat as a simple click/tap; no cleanup needed beyond resetting state
+            if (!isDragging) {
+                activePointerId = null;
+                return;
             }
+            isDragging = false;
+            element.classList.remove('dragging');
+            persistPosition();
+            activePointerId = null;
+        };
 
-            // Restore saved position on load
-            const elementId = element.id;
-            if (elementId) {
-                const savedPosition = localStorage.getItem(`${elementId}-position`);
-                if (savedPosition) {
-                    try {
-                        const position = JSON.parse(savedPosition);
-                        currentX = position.x;
-                        currentY = position.y;
-                        
-                        // Only apply saved position if it's valid (not at 0,0 or negative)
-                        if (currentX > 10 && currentY > 10) {
-                            xOffset = currentX;
-                            yOffset = currentY;
-                            
-                            // Override CSS positioning with !important
-                            element.style.setProperty('position', 'fixed', 'important');
-                            element.style.setProperty('left', `${currentX}px`, 'important');
-                            element.style.setProperty('top', `${currentY}px`, 'important');
-                            element.style.setProperty('bottom', 'auto', 'important');
-                            element.style.setProperty('transform', 'none', 'important');
-                        } else {
-                            // Clear invalid saved position
-                            localStorage.removeItem(`${elementId}-position`);
-                        }
-                    } catch (e) {
-                        console.warn('Failed to restore position for', elementId);
+        // Register unified pointer event listeners
+        addL(element, 'pointerdown', pointerDown);
+        addL(window, 'pointermove', pointerMove);
+        addL(window, 'pointerup', pointerUpOrCancel);
+        addL(window, 'pointercancel', pointerUpOrCancel);
+
+        // Restore saved position on load
+        if (SAVE_KEY) {
+            const saved = localStorage.getItem(SAVE_KEY);
+            if (saved) {
+                try {
+                    const pos = JSON.parse(saved);
+                    currentX = pos.x;
+                    currentY = pos.y;
+                    if (currentX > 10 && currentY > 10) {
+                        xOffset = currentX;
+                        yOffset = currentY;
+                        applyPositionStyles();
+                    } else {
+                        localStorage.removeItem(SAVE_KEY);
                     }
+                } catch (err) {
+                    console.warn('Failed to restore position for', SAVE_KEY, err);
                 }
             }
+        }
         }
 
     // Reset all draggable elements to their default positions
@@ -1067,6 +1156,15 @@ class KingOfTokyoUI {
             console.log('About to create KingOfTokyoGame instance');
             this.game = new KingOfTokyoGame(storageManager);
             console.log('Game instance created successfully:', !!this.game);
+
+            // Initialize first-player intro thought bubble phase flags
+            try {
+                const fp = this.game.getCurrentPlayer && this.game.getCurrentPlayer();
+                this._firstPlayerId = fp ? fp.id : null;
+                this._firstPlayerIntroActive = !!fp; // active until first roll occurs
+                this._firstPlayerFirstRollOccurred = false;
+                this._firstPlayerRumbleUsed = false; // ensure rumble animation only once
+            } catch(e){ console.warn('Failed to init first player intro flags', e); }
             
             // Set up event callback
             this.game.setEventCallback((eventType, data) => {
@@ -3008,6 +3106,8 @@ class KingOfTokyoUI {
             element.style.display = 'none';
         });
         
+        // Track whether any dice still rolling for context logic
+        let anyRolling = false;
         // Update and show only the dice elements we need
         dicesToDisplay.forEach((dieData, index) => {
             const dieElement = diceElements[index];
@@ -3015,6 +3115,7 @@ class KingOfTokyoUI {
                 // Update content - show previous dice values during animation
                 let displaySymbol;
                 if (dieData.isRolling) {
+                    anyRolling = true;
                     // During animation: show previous face (or ? if first roll ever)
                     if (dieData.previousFace === null || dieData.previousFace === undefined) {
                         displaySymbol = '?'; // First roll ever - no previous face
@@ -3659,6 +3760,15 @@ class KingOfTokyoUI {
         window.UI && window.UI._debug && window.UI._debug('🎲 Disabling roll dice button and calling game.startRoll()');
         this.elements.rollDiceBtn.disabled = true;
         await this.game.startRoll();
+        // Mark first player's first roll occurrence
+        if (this._firstPlayerIntroActive && !this._firstPlayerFirstRollOccurred) {
+            const cp = this.game.getCurrentPlayer && this.game.getCurrentPlayer();
+            if (cp && cp.id === this._firstPlayerId) {
+                this._firstPlayerFirstRollOccurred = true;
+                // Disable intro gating after first roll completes
+                this._firstPlayerIntroActive = false;
+            }
+        }
         window.UI && window.UI._debug && window.UI._debug('🎯 ROLL DEBUG: game.startRoll() completed');
         // Button state will be updated by event callback
     }
@@ -3783,6 +3893,25 @@ class KingOfTokyoUI {
                 this.closeTargetSelectionModal();
             }
         });
+
+        // If all dice are stable (not rolling), capture summary for contextual thought bubbles
+        if (!anyRolling && this.game && this.game.diceCollection) {
+            try {
+                const currentPlayer = this.game.getCurrentPlayer && this.game.getCurrentPlayer();
+                if (currentPlayer && currentPlayer.id) {
+                    const faces = this.game.diceCollection.dice
+                        .filter(d => !d.isDisabled)
+                        .map(d => d.face)
+                        .filter(Boolean);
+                    if (faces.length) {
+                        const counts = faces.reduce((acc, f) => { acc[f] = (acc[f]||0)+1; return acc; }, {});
+                        this._lastDiceSummary[currentPlayer.id] = { faces, counts, ts: Date.now() };
+                    }
+                }
+            } catch(e) {
+                console.warn('Dice summary update failed', e);
+            }
+        }
     }
 
     // Close target selection modal
@@ -5835,6 +5964,18 @@ class KingOfTokyoUI {
 
     showSettings() {
         UIUtilities.showModal(this.elements.settingsModal);
+        // Add body class for global styling (freeze animations, etc.)
+        document.body.classList.add('settings-modal-open');
+        // Auto-pause if game running and not already paused
+        if (this.game && !this.gamePaused) {
+            this._wasAutoPausedForSettings = true;
+            if (!this.gamePaused) {
+                this.gamePaused = true;
+                this.pauseGame();
+            }
+        } else {
+            this._wasAutoPausedForSettings = false;
+        }
         this.loadSettings();
     }
 
@@ -6419,7 +6560,11 @@ class KingOfTokyoUI {
     initializeThoughtBubbleSettingsUI() {
         try {
             const toggle = document.getElementById('thought-bubbles-toggle');
-            const posSelect = document.getElementById('thought-bubble-position');
+            // Legacy select replaced by custom dropdown; still keep hidden native for accessibility
+            const posSelect = document.getElementById('thought-bubble-position-select');
+            const customDropdown = document.getElementById('thought-bubble-position-dropdown');
+            const customSelected = document.getElementById('thought-bubble-position-selected');
+            const customOptions = document.getElementById('thought-bubble-position-options');
             const durationRange = document.getElementById('thought-bubble-duration');
             const durationValue = document.getElementById('thought-bubble-duration-value');
             const dimToggle = document.getElementById('thought-bubble-dim');
@@ -6430,6 +6575,10 @@ class KingOfTokyoUI {
             if (enabled !== null) toggle.checked = enabled !== 'false';
             const positionMode = this.getThoughtBubbleSetting('positionMode', 'player');
             if (posSelect) posSelect.value = positionMode;
+            if (customSelected) {
+                const label = positionMode === 'center' ? 'Centered' : 'From Player';
+                customSelected.firstChild.textContent = label + ' ';
+            }
             const durationMultiplier = this.getThoughtBubbleSetting('durationMultiplier', '1');
             if (durationRange) {
                 durationRange.value = durationMultiplier;
@@ -6442,9 +6591,30 @@ class KingOfTokyoUI {
             toggle.addEventListener('change', () => {
                 localStorage.setItem('thoughtBubblesEnabled', toggle.checked);
             });
-            posSelect && posSelect.addEventListener('change', () => {
-                localStorage.setItem('thoughtBubble.positionMode', posSelect.value);
-            });
+            // Custom dropdown behavior
+            if (customDropdown && customSelected && customOptions) {
+                customSelected.addEventListener('click', () => {
+                    customDropdown.classList.toggle('open');
+                });
+                customOptions.querySelectorAll('.dropdown-option').forEach(opt => {
+                    opt.addEventListener('click', () => {
+                        const value = opt.dataset.value;
+                        const label = opt.textContent.trim();
+                        localStorage.setItem('thoughtBubble.positionMode', value);
+                        if (posSelect) posSelect.value = value; // mirror hidden select
+                        if (customSelected.firstChild) {
+                            customSelected.firstChild.textContent = label + ' ';
+                        }
+                        customDropdown.classList.remove('open');
+                    });
+                });
+                // Close on outside click
+                document.addEventListener('click', (e) => {
+                    if (!customDropdown.contains(e.target)) {
+                        customDropdown.classList.remove('open');
+                    }
+                });
+            }
             durationRange && durationRange.addEventListener('input', () => {
                 const val = durationRange.value;
                 localStorage.setItem('thoughtBubble.durationMultiplier', val);
@@ -6512,6 +6682,8 @@ class KingOfTokyoUI {
             if (b.thoughtOverlay && b.thoughtOverlay.parentNode) b.thoughtOverlay.parentNode.removeChild(b.thoughtOverlay);
             b.remove();
         });
+        this._activeThoughtBubble = null;
+        this._activeThoughtPlayerId = null;
 
         console.log('🔍 DEBUG: Creating new thought bubble...');
         
@@ -6523,10 +6695,42 @@ class KingOfTokyoUI {
         }
         
         console.log('🔍 DEBUG: Using phrase:', phrase);
+
+        // Intro phrase special effect handling (only before first roll and first player)
+        if (this._firstPlayerIntroActive && !this._firstPlayerFirstRollOccurred && player.id === this._firstPlayerId && !options.skipIntroEffect) {
+            const lower = phrase.toLowerCase();
+            if (lower.includes("let's get this party started")) {
+                return this.triggerIntroEffect('party', () => this.showCPUThoughtBubble(player, context, { ...options, skipIntroEffect: true }), player.id);
+            } else if (lower.includes('showtime!') || lower === 'showtime!') {
+                return this.triggerIntroEffect('showtime', () => this.showCPUThoughtBubble(player, context, { ...options, skipIntroEffect: true }), player.id);
+            } else if (lower.includes('time to wake this city up')) {
+                return this.triggerIntroEffect('dawn', () => this.showCPUThoughtBubble(player, context, { ...options, skipIntroEffect: true }), player.id);
+            }
+        }
+
+        // If rumble intro phrase is used for first player before first roll, trigger rumble animation
+        if (this._firstPlayerIntroActive && !this._firstPlayerFirstRollOccurred && player.id === this._firstPlayerId) {
+            if (/let's get ready to rumble!/i.test(phrase) && !this._firstPlayerRumbleUsed) {
+                const playerElement = this.findPlayerElement ? this.findPlayerElement(player.id) : null;
+                if (playerElement) {
+                    // Use existing attackShake keyframes without glow by temporarily adding a lightweight class
+                    playerElement.classList.remove('player-rumble');
+                    void playerElement.offsetHeight; // force reflow
+                    playerElement.classList.add('player-rumble');
+                    setTimeout(()=>{ playerElement.classList.remove('player-rumble'); }, 700);
+                }
+                this._firstPlayerRumbleUsed = true;
+            }
+        }
         
-    // Create thought bubble
+        // Create thought bubble
         const thoughtBubble = document.createElement('div');
         thoughtBubble.className = 'cpu-thought-bubble floating';
+        if (player.inTokyo) {
+            thoughtBubble.classList.add('tokyo-occupant','tokyo-anchor');
+        } else {
+            thoughtBubble.classList.add('anchor-mode');
+        }
         thoughtBubble.setAttribute('data-player-id', player.id);
         
         const bubbleContent = document.createElement('div');
@@ -6566,11 +6770,16 @@ class KingOfTokyoUI {
         // Decide positioning mode based on settings
         const tbMode = this.getThoughtBubbleSetting('positionMode', 'player'); // 'player' | 'center'
         document.body.appendChild(thoughtBubble);
-        if (tbMode === 'player') {
+    if (tbMode === 'player') {
             this.positionThoughtBubbleAtPlayer(thoughtBubble, player);
         } else {
             this.ensureThoughtBubbleModal(thoughtBubble); // legacy center modal
         }
+
+        // Track active bubble for repositioning
+        this._activeThoughtBubble = thoughtBubble;
+        this._activeThoughtPlayerId = player.id;
+        this._installThoughtBubbleRepositionHandlers();
         
         window.UI && window.UI._debug && window.UI._debug(`💭 ${player.monster.name} thinks: "${phrase}"`);
         
@@ -6610,6 +6819,62 @@ class KingOfTokyoUI {
             }
         } catch (markErr) {
             console.warn('Failed marking bubble turn state:', markErr);
+        }
+    }
+
+    // Trigger intro visual effects for specific first-player phrases
+    triggerIntroEffect(type, onComplete, playerId) {
+        try {
+            const container = document.querySelector('.game-board') || document.body;
+            const overlay = document.createElement('div');
+            overlay.className = `intro-effect intro-effect-${type}`;
+            overlay.setAttribute('data-effect-type', type);
+            container.appendChild(overlay);
+
+            const cleanup = () => {
+                if (!overlay.parentNode) return;
+                overlay.classList.add('intro-effect-fade');
+                setTimeout(() => { overlay.parentNode && overlay.parentNode.removeChild(overlay); }, 800);
+            };
+
+            if (type === 'party') {
+                // Generate balloons & confetti
+                for (let i = 0; i < 18; i++) {
+                    const b = document.createElement('div');
+                    b.className = 'balloon';
+                    b.style.left = (Math.random()*100) + '%';
+                    b.style.animationDelay = (Math.random()*0.8)+'s';
+                    b.style.animationDuration = (5 + Math.random()*3)+'s';
+                    overlay.appendChild(b);
+                }
+                for (let i = 0; i < 80; i++) {
+                    const c = document.createElement('div');
+                    c.className = 'confetti';
+                    c.style.left = (Math.random()*100) + '%';
+                    c.style.animationDelay = (Math.random()*1.2)+'s';
+                    c.style.backgroundColor = ['#FF4757','#1E90FF','#2ED573','#FFA502','#FF6B81'][i%5];
+                    overlay.appendChild(c);
+                }
+                setTimeout(() => { cleanup(); onComplete && onComplete(); }, 2200);
+            } else if (type === 'showtime') {
+                // Spotlights sweep quickly then reveal
+                const left = document.createElement('div');
+                const right = document.createElement('div');
+                left.className = 'spotlight spotlight-left';
+                right.className = 'spotlight spotlight-right';
+                overlay.appendChild(left); overlay.appendChild(right);
+                setTimeout(() => { overlay.classList.add('lights-on'); }, 400);
+                setTimeout(() => { cleanup(); onComplete && onComplete(); }, 1200);
+            } else if (type === 'dawn') {
+                // Multi-stage gradient transition controlled by CSS animation length
+                setTimeout(() => { cleanup(); onComplete && onComplete(); }, 3000);
+            } else {
+                // Fallback just execute
+                setTimeout(() => { cleanup(); onComplete && onComplete(); }, 800);
+            }
+        } catch(e) {
+            console.warn('Intro effect error:', e);
+            onComplete && onComplete();
         }
     }
     
@@ -6660,27 +6925,38 @@ class KingOfTokyoUI {
     // Position bubble near player's card element (with viewport bounds safety)
     positionThoughtBubbleAtPlayer(thoughtBubble, player) {
         try {
-            const card = document.querySelector(`.player-card[data-player-id="${player.id}"]`);
-            if (!card) return this.ensureThoughtBubbleModal(thoughtBubble); // fallback
-            const rect = card.getBoundingClientRect();
-            // Base offsets
-            const offsetY = -10; // slightly above top edge
-            const offsetX = rect.width / 2; // center horizontally
+            // Special handling: if player is in Tokyo, anchor above Tokyo City tile
+            if (player.inTokyo) {
+                const tokyoCity = document.querySelector('.tokyo-city');
+                if (tokyoCity) {
+                    const tRect = tokyoCity.getBoundingClientRect();
+                    thoughtBubble.style.position = 'fixed';
+                    thoughtBubble.style.top = `${Math.max(10, tRect.top - 20)}px`;
+                    thoughtBubble.style.left = `${tRect.left + tRect.width / 2}px`;
+                    thoughtBubble.style.transform = 'translate(-50%, -100%)';
+                    thoughtBubble.style.zIndex = '3999';
+                    thoughtBubble.style.pointerEvents = 'none';
+                    return; // No overlay for Tokyo anchor to keep board clear
+                }
+            }
+
+            // Otherwise anchor near the active player's profile picture (avatar) if available
+            let anchor = document.querySelector(`.player-card[data-player-id="${player.id}"] .monster-avatar, .player-card[data-player-id="${player.id}"] .monster-headshot, .player-card[data-player-id="${player.id}"] img`);
+            if (!anchor) {
+                // Fallback to entire card
+                anchor = document.querySelector(`.player-card[data-player-id="${player.id}"]`);
+            }
+            if (!anchor) return this.ensureThoughtBubbleModal(thoughtBubble); // fallback modal
+            const rect = anchor.getBoundingClientRect();
+            const offsetY = -12; // just above avatar
+            const offsetX = rect.width / 2;
             thoughtBubble.style.position = 'fixed';
             thoughtBubble.style.top = `${Math.max(10, rect.top + offsetY)}px`;
             thoughtBubble.style.left = `${rect.left + offsetX}px`;
             thoughtBubble.style.transform = 'translate(-50%, -100%)';
             thoughtBubble.style.zIndex = '3999';
             thoughtBubble.style.pointerEvents = 'none';
-            // Overlay still for dim effect (optional per setting)
-            if (this.getThoughtBubbleSetting('dimBackground', 'true') === 'true') {
-                const overlay = document.createElement('div');
-                overlay.className = 'thought-bubble-overlay';
-                overlay.style.cssText = `position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.08);z-index:3998;pointer-events:none;opacity:0;transition:opacity .3s ease;`;
-                document.body.appendChild(overlay);
-                setTimeout(()=> overlay.style.opacity='1',50);
-                thoughtBubble.thoughtOverlay = overlay;
-            }
+            // No dim overlay for inline player bubbles (less intrusive)
         } catch (e) {
             console.warn('Failed positioning thought bubble at player, fallback to modal:', e);
             this.ensureThoughtBubbleModal(thoughtBubble);
@@ -6749,8 +7025,66 @@ class KingOfTokyoUI {
         const profile = player.monster.profile || player.monster.personality;
         if (!profile) return null;
         const gameState = this.game?.getCurrentGameState ? this.game.getCurrentGameState() : {};
+        const isInTokyo = !!player.inTokyo;
+        const tokyoPlayer = this.game?.getPlayerInTokyo ? this.game.getPlayerInTokyo() : null;
+        const currentPlayer = this.game?.getCurrentPlayer ? this.game.getCurrentPlayer() : null;
+        const diceSummary = currentPlayer && this._lastDiceSummary[currentPlayer.id];
+        const outsidePlayers = this.game?.players ? this.game.players.filter(p => !p.inTokyo) : [];
+
+        // --- New dynamic phrase banks ---
+        const dynamicBanks = {
+            tokyoLowHealthDefensive: [
+                "Please don't kill me!",
+                "Mercy! I'm almost done!",
+                "I can't take much more!",
+                "Don't finish me off!",
+                "Just one more turn... please!"
+            ],
+            tokyoDefiant: [
+                "If you attack me you'll regret it!",
+                "Come on then! I dare you!",
+                "Hit me and I'll hit back harder!",
+                "Tokyo is MINE. Back off!",
+                "You'll pay for every scratch!"
+            ],
+            tokyoTauntHighHP: [
+                "You can't push me out!",
+                "Still plenty of roar left!",
+                "Come at me, lightweights!",
+                "Is that all you've got?",
+                "Tokyo loves a real champion!"
+            ],
+            outsideChasingSet: [
+                "One more {face}... come on!",
+                "Please roll another {face}!",
+                "YES, just need one more {face}!",
+                "Set it up... now finish it!",
+                "Need that last {face} for big points!"
+            ],
+            outsideHopingNoSet: [
+                "Don't roll another {face}...",
+                "Please miss that {face}!",
+                "No more {face}, no more!",
+                "Break that streak!",
+                "C'mon dice, betray them!"
+            ],
+            tokyoHopingNoAttack: [
+                "Don't roll claws... don't roll claws...",
+                "Please no attacks this time...",
+                "Let them go for numbers, not me!",
+                "Stay peaceful... stay peaceful...",
+                "Maybe they'll chase points instead"
+            ],
+            tokyoWelcomingAttacksForExit: [
+                "Hit me so I can LEAVE!",
+                "Please knock me out so I can heal!",
+                "One more hit and I bail!",
+                "Almost time to abandon Tokyo...",
+                "Just push me out already!"
+            ]
+        };
         
-        // Context-specific phrase collections
+    // Context-specific phrase collections (static legacy sets)
         const phrases = {
             general: [
                 "Let me think about this...",
@@ -6888,7 +7222,65 @@ class KingOfTokyoUI {
             ]
         };
         
+        // First-player pre-first-roll intro gating
+        if (this._firstPlayerIntroActive && !this._firstPlayerFirstRollOccurred && this._firstPlayerId === player.id) {
+            const introPhrases = [
+                "Let's get ready to rumble!",
+                "Let's get this party started!",
+                "Time to wake this city up!",
+                "Cue the chaos!",
+                "Showtime!",
+                "Here we go!",
+                "Let the smashing commence!"
+            ];
+            const chosen = introPhrases[Math.floor(Math.random()*introPhrases.length)];
+            return chosen; // bypass other logic until first roll
+        }
+
         // Determine appropriate context based on game state
+        // 1. High-priority contextual overrides
+        // a) Tokyo occupant special logic
+        if (isInTokyo) {
+            if (player.health <= 2) {
+                return this.personalizePhrase(randomFrom(dynamicBanks.tokyoLowHealthDefensive), profile);
+            }
+            // If healthy and being threatened (any outside player has >=2 attack icons locked in current summary)
+            if (currentPlayer && currentPlayer !== player && !currentPlayer.inTokyo && diceSummary && diceSummary.counts['attack'] >= 2) {
+                // Lower health -> defensive, higher health -> defiant/taunt
+                if (player.health <= 5) {
+                    return this.personalizePhrase(randomFrom(dynamicBanks.tokyoDefiant), profile);
+                } else {
+                    return this.personalizePhrase(randomFrom(dynamicBanks.tokyoTauntHighHP), profile);
+                }
+            }
+            // If it's the Tokyo player's own turn and they are low-ish and might want to leave after an attack
+            if (currentPlayer === player && player.health <= 3) {
+                return this.personalizePhrase(randomFrom(dynamicBanks.tokyoHopingNoAttack), profile);
+            }
+        } else { // Outside Tokyo logic
+            if (tokyoPlayer) {
+                // If current outside player is chasing a set (two of same number)
+                if (currentPlayer === player && diceSummary) {
+                    const targetSetFace = Object.entries(diceSummary.counts).find(([face, c]) => ['1','2','3'].includes(face) && c === 2);
+                    if (targetSetFace) {
+                        return this.personalizePhrase(randomFrom(dynamicBanks.outsideChasingSet).replace('{face}', targetSetFace[0]), profile);
+                    }
+                }
+                // If Tokyo player's turn and they have two of a number, outside player may hope they miss third
+                if (currentPlayer === tokyoPlayer && diceSummary) {
+                    const nearSet = Object.entries(diceSummary.counts).find(([face, c]) => ['1','2','3'].includes(face) && c === 2);
+                    if (nearSet) {
+                        return this.personalizePhrase(randomFrom(dynamicBanks.outsideHopingNoSet).replace('{face}', nearSet[0]), profile);
+                    }
+                }
+            }
+        }
+
+        // b) Reaction when another player (outside) is building attacks against Tokyo occupant
+        if (tokyoPlayer && currentPlayer && currentPlayer !== tokyoPlayer && !currentPlayer.inTokyo && tokyoPlayer.health <= 4 && diceSummary && diceSummary.counts['attack'] >= 3) {
+            return this.personalizePhrase(randomFrom(dynamicBanks.tokyoDefiant), profile);
+        }
+
         let selectedPhrases = phrases.general;
         
         if (context === 'tokyo-decision') {
@@ -6920,8 +7312,21 @@ class KingOfTokyoUI {
         }
         
         // Add personality-based phrase modifications
-        const basePhrase = selectedPhrases[Math.floor(Math.random() * selectedPhrases.length)];
+        let basePhrase = selectedPhrases[Math.floor(Math.random() * selectedPhrases.length)];
+        // Anti-repetition: keep last 3 phrases per player
+        const pid = player.id;
+        this._recentThoughts[pid] = this._recentThoughts[pid] || [];
+        let guard = 0;
+        while (this._recentThoughts[pid].includes(basePhrase) && guard < 5) {
+            basePhrase = selectedPhrases[Math.floor(Math.random() * selectedPhrases.length)];
+            guard++;
+        }
+        this._recentThoughts[pid].push(basePhrase);
+        if (this._recentThoughts[pid].length > 3) this._recentThoughts[pid].shift();
         return this.personalizePhrase(basePhrase, profile);
+
+        // Helper used above
+        function randomFrom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
     }
     
     personalizePhrase(phrase, profile) {
@@ -8602,5 +9007,22 @@ class KingOfTokyoUI {
             });
         });
     }
+
+    _installThoughtBubbleRepositionHandlers() {
+        if (this._thoughtBubbleHandlersInstalled) return;
+        const handler = () => {
+            if (!this._activeThoughtBubble || !this._activeThoughtPlayerId) return;
+            if (this._pendingRepositionRaf) cancelAnimationFrame(this._pendingRepositionRaf);
+            this._pendingRepositionRaf = requestAnimationFrame(() => {
+                const player = (this.game && this.game.players) ? this.game.players.find(p => p.id === this._activeThoughtPlayerId) : null;
+                if (!player || !this._activeThoughtBubble) return;
+                this.positionThoughtBubbleAtPlayer(this._activeThoughtBubble, player);
+            });
+        };
+        window.addEventListener('resize', handler);
+        window.addEventListener('scroll', handler, true);
+        this._thoughtBubbleHandlersInstalled = true;
+    }
+
 }
 // Note: Game initialization is now handled by the splash screen
