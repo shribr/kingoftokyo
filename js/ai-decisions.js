@@ -340,6 +340,126 @@
 
 		// ---------- Utility ----------
 		_canon(f){ switch(f){ case '1': return 'one'; case '2': return 'two'; case '3': return 'three'; default: return f; } }
+
+		// ---------- Power Card Feature Extraction & Synergy ----------
+		_getOrInitPlayerMemory(player){
+			if (!player._aiMemory) player._aiMemory = { purchases:[], counts:{} };
+			return player._aiMemory;
+		}
+
+		_extractCardFeatures(card){
+			const features = new Set();
+			if (!card) return features;
+			const name = (card.name||'').toLowerCase();
+			// Name hints (fallback)
+			if (name.includes('extra') && name.includes('head')) features.add('extraDie');
+			if (name.includes('brain')) features.add('extraReroll');
+			if (name.includes('attack') || name.includes('spiked') || name.includes('fire')) features.add('attack');
+			if (name.includes('heal') || name.includes('regeneration') || name.includes('rapid')) features.add('heal');
+			if (name.includes('energy') || name.includes('metabolism') || name.includes('store')) features.add('energy');
+			if (name.includes('victory') || name.includes('point') || name.includes('news')) features.add('vp');
+			// Structured effects
+			if (Array.isArray(card.effects)){
+				card.effects.forEach(e=>{
+					const type=(e.type||'').toLowerCase();
+					if (type==='extradie') features.add('extraDie');
+					else if (type==='extrareroll') features.add('extraReroll');
+					else if (type==='attackbonus') features.add('attack');
+					else if (type==='bonusenergy') features.add('energy');
+					else if (type==='healpoints') features.add('heal');
+					else if (type==='victorypoints') features.add('vp');
+				});
+			}
+			return features;
+		}
+
+		// Basic synergy weight matrix (symmetric assumed); key: feature -> otherFeature -> multiplier bonus
+		_getSynergyMatrix(){
+			return {
+				extraDie: { extraReroll: 1.15, attack:1.08, vp:1.05 },
+				extraReroll: { extraDie:1.15, attack:1.07, vp:1.04 },
+				attack: { extraDie:1.08, extraReroll:1.07, energy:1.03 },
+				energy: { extraDie:1.05, vp:1.05 },
+				heal: { energy:1.04, vp:1.03 },
+				vp: { extraDie:1.05, extraReroll:1.04 }
+			};
+		}
+
+		_computeSynergyMultiplier(existingFeatures, newFeatures){
+			const matrix = this._getSynergyMatrix();
+			let mult = 1.0;
+			newFeatures.forEach(nf=>{
+				existingFeatures.forEach(ef=>{
+					const row = matrix[ef];
+					if (row && row[nf]) mult *= row[nf];
+					const row2 = matrix[nf];
+					if (row2 && row2[ef]) mult *= row2[ef];
+				});
+			});
+			return mult;
+		}
+
+		recordPowerCardPurchase(player, card){
+			const mem = this._getOrInitPlayerMemory(player);
+			mem.purchases.push({ id:card.id||card.name, ts:Date.now(), name:card.name });
+			const feats = this._extractCardFeatures(card);
+			feats.forEach(f=> mem.counts[f] = (mem.counts[f]||0)+1);
+		}
+
+		// ---------- Power Card Portfolio (Heuristic Stub) ----------
+		// expected usage: optimizePowerCardPortfolio(availableCards, player) -> { cards:[], totalCost, strategy, efficiency }
+		optimizePowerCardPortfolio(availableCards, player){
+			if (!Array.isArray(availableCards) || !availableCards.length) return { cards:[], totalCost:0, strategy:'none', efficiency:0 };
+			const energy = player.energy || 0;
+			// Score cards by simple tags (reuse summarization approach if structure present)
+			const scored = availableCards.map(c=>{
+				const name = (c.name||'').toLowerCase();
+				let score=0, role=[];
+				const cost = c.cost||0;
+				if (name.includes('energy') || name.includes('metabolism')) { score+=8; role.push('economy'); }
+				if (name.includes('attack') || name.includes('spiked') || name.includes('fire')) { score+=10; role.push('offense'); }
+				if (name.includes('heal') || name.includes('regeneration') || name.includes('rapid')) { score+=9; role.push('sustain'); }
+				if (name.includes('extra') && name.includes('head')) { score+=12; role.push('scaling'); }
+				if (name.includes('brain')) { score+=11; role.push('reroll'); }
+				if (name.includes('victory') || name.includes('point') || name.includes('news')) { score+=7; role.push('vp'); }
+				// Light diminishing by cost
+				const efficiency = cost>0? score / Math.pow(cost,0.85): score;
+				return { card:c, score, efficiency, cost, role:role.join('+') };
+			});
+			// Sort by efficiency then raw score
+			scored.sort((a,b)=> b.efficiency - a.efficiency || b.score - a.score);
+			const chosen=[]; let spent=0; let aggScore=0;
+			for (const s of scored){
+				if (s.cost + spent <= energy){ chosen.push(s.card); spent+=s.cost; aggScore+=s.score; }
+			}
+			const avgEfficiency = chosen.length? aggScore / Math.max(1,spent):0;
+			// Determine dominant strategy label
+			const roleCounts={}; scored.filter(s=>chosen.includes(s.card)).forEach(s=>{ if(!s.role) return; s.role.split('+').forEach(r=>{ if(!r) return; roleCounts[r]=(roleCounts[r]||0)+1; }); });
+			let strategy='balanced';
+			if (Object.keys(roleCounts).length){ strategy = Object.entries(roleCounts).sort((a,b)=> b[1]-a[1])[0][0]; }
+			return { cards: chosen, totalCost: spent, strategy, efficiency: avgEfficiency };
+		}
+
+		// expected usage: evaluateDefensiveCardPurchase(card, player, availableCards) -> { shouldBuyDefensively, defensiveValue, denialReason }
+		evaluateDefensiveCardPurchase(card, player, available){
+			if (!card) return { shouldBuyDefensively:false, defensiveValue:0, denialReason:'' };
+			// Heuristic: if card grants rerolls/extra heads/healing and opponents low HP or racing VP, deny
+			const name = (card.name||'').toLowerCase();
+			let defensiveValue=0; let reasonParts=[];
+			if (name.includes('head')) { defensiveValue+=8; reasonParts.push('deny extra die potential'); }
+			if (name.includes('brain')) { defensiveValue+=7; reasonParts.push('deny reroll boost'); }
+			if (name.includes('heal') || name.includes('regeneration')) { defensiveValue+=6; reasonParts.push('deny sustain'); }
+			if (name.includes('attack') || name.includes('spiked') || name.includes('fire')) { defensiveValue+=5; reasonParts.push('deny offense'); }
+			// Scale by threat level among opponents
+			const threats = (player.gameState?.players||[]).filter(p=> p.id!==player.id && !p.isEliminated);
+			const highVP = threats.some(t=> t.victoryPoints>=15);
+			if (highVP) defensiveValue *= 1.2;
+			const lowHPEnemy = threats.some(t=> t.health<=3);
+			if (lowHPEnemy && (name.includes('heal')||name.includes('regeneration'))) defensiveValue *= 0.6; // less need to deny heal if they may die soon
+			// Budget gate: must still be affordable after portfolio plan (caller handles leftover energy)
+			const should = defensiveValue >= 9 && (card.cost || 0) <= player.energy;
+			return { shouldBuyDefensively: should, defensiveValue, denialReason: reasonParts.join(', ') };
+		}
 	}
 
 	if (typeof window !== 'undefined') window.AIDecisionEngine = AIDecisionEngine;

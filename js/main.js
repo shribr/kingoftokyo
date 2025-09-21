@@ -996,6 +996,8 @@ class KingOfTokyoUI {
             
             // Prepare player types array
             const playerTypes = this.playerTiles.map(tile => tile.type);
+            // Store on instance so continueGameAfterRolloff can access (was missing causing all to default to human)
+            this.playerTypes = playerTypes;
             console.log('Player types:', playerTypes);
             
             // Perform roll-off to determine first player
