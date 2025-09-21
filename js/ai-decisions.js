@@ -334,6 +334,35 @@ class AIDecisionEngine {
             currentDice.forEach(f=>{ if(countsPairsCheck.hasOwnProperty(f)) countsPairsCheck[f]++; });
             const hasTriple = Object.values(countsPairsCheck).some(c=>c>=3);
             if (!hasTriple) {
+                // NEW OVERRIDE: Single pair continuation heuristic
+                // If exactly one pair among numbers (1/2/3), no triple, and AI is ending early, force continuation to try forming a triple.
+                const pairFacesSingle = Object.entries(countsPairsCheck).filter(([_,c])=>c===2).map(([f])=>f);
+                if (pairFacesSingle.length === 1) {
+                    const targetPairFace = pairFacesSingle[0];
+                    const keepIdx = [];
+                    currentDice.forEach((f,i)=>{ if(f===targetPairFace) keepIdx.push(i); });
+                    // Optionally retain one high-utility non-number (attack if aggression high or inTokyo logic; else one energy if energy==0)
+                    let supportAdded = false;
+                    const personality = player.monster && player.monster.personality ? player.monster.personality : { aggression:3 };
+                    // Keep one attack if not already kept and player not in Tokyo (trying to pressure) and aggression >=4
+                    if (!player.isInTokyo && personality.aggression >=4) {
+                        const attackIndex = currentDice.findIndex(f=>f==='attack');
+                        if (attackIndex !== -1) { keepIdx.push(attackIndex); supportAdded = true; }
+                    }
+                    if (!supportAdded && player.energy === 0) {
+                        const energyIndex = currentDice.findIndex(f=>f==='energy');
+                        if (energyIndex !== -1) { keepIdx.push(energyIndex); supportAdded = true; }
+                    }
+                    console.log('♻️ SINGLE-PAIR-CONTINUE OVERRIDE: Pursuing triple of', targetPairFace, 'keeping indices', keepIdx);
+                    window.AIOverrideStats = window.AIOverrideStats || { tripleKeep:0, noSetContinue:0, tripleExtend:0, twoPairs:0, release:0, attackCluster:0, singlePair:0, decisions:0 };
+                    window.AIOverrideStats.singlePair = (window.AIOverrideStats.singlePair||0)+1;
+                    return {
+                        action: 'reroll',
+                        keepDice: keepIdx,
+                        reason: 'Override: single pair - continue to chase triple',
+                        confidence: (decision.confidence||0.6)+0.05
+                    };
+                }
                 const pairFaces = Object.entries(countsPairsCheck).filter(([_,c])=>c===2).map(([f])=>f);
                 if (pairFaces.length >= 2) {
                     // Keep both pairs; reroll everything else (including energy) unless energy count is already 3+ (rare here)
