@@ -6943,6 +6943,36 @@ class KingOfTokyoUI {
                 "Let me process this...",
                 "Analyzing the roll...",
                 "Simulating possibilities..."
+            ],
+            postTurnGreatVP: [
+                "Excellent! I got a nice VP boost!",
+                "Big points swing—love it!",
+                "Triples converted into solid progress!"
+            ],
+            postTurnGreatEnergy: [
+                "Charged up—card shop soon!",
+                "Great energy haul!",
+                "Plenty of ⚡ to work with now."
+            ],
+            postTurnBigHit: [
+                "Crushing hit landed!",
+                "That damage should shake them!",
+                "Tokyo will remember that smash."
+            ],
+            postTurnNiceHeal: [
+                "Feeling sturdier now.",
+                "Good hearts—breathing room.",
+                "Stabilized a bit this turn." 
+            ],
+            postTurnWhiff: [
+                "Shoot—missed what I needed.",
+                "Not what I was hoping for...",
+                "That roll sequence fizzled." 
+            ],
+            postTurnMixed: [
+                "Mixed results—can adapt.",
+                "Not perfect, but workable.",
+                "Partial gains—pivot next round." 
             ]
         });
         
@@ -7048,6 +7078,22 @@ class KingOfTokyoUI {
         history.lastUsed[basePhrase] = now;
         window.AIUIThoughtStats.lastContext = context;
         window.AIUIThoughtStats.phraseSelections++;
+        // Append delta information if decisionReason carries structured deltas from post-turn summary
+        if (decisionReason) {
+            try {
+                const parsed = JSON.parse(decisionReason);
+                if (parsed && parsed.deltas) {
+                    const d = parsed.deltas;
+                    const frags = [];
+                    if (d.vp>0) frags.push(`+${d.vp} VP`);
+                    if (d.energy>0) frags.push(`+${d.energy}⚡`);
+                    if (d.damageDealt>0) frags.push(`${d.damageDealt} dmg`);
+                    if (d.healthChange>0) frags.push(`+${d.healthChange}❤`);
+                    if (d.healthChange<0) frags.push(`-${Math.abs(d.healthChange)}❤`);
+                    if (frags.length) return `${personalized} (${frags.join(', ')})`;
+                }
+            } catch(e) { /* ignore */ }
+        }
         return personalized;
     }
 
@@ -7983,6 +8029,15 @@ class KingOfTokyoUI {
             });
         });
 
+        // Thought process toggles
+        container.querySelectorAll('.ai-flow-thought-toggle').forEach(tog => {
+            tog.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const section = tog.closest('.ai-flow-thought');
+                if (section) section.classList.toggle('ai-flow-thought-collapsed');
+            });
+        });
+
         // Populate dice using existing generic mini dice creator (supports symbols) after DOM inserted
         container.querySelectorAll('.ai-flow-dice[data-dice]')?.forEach(dc => {
             try {
@@ -8028,14 +8083,163 @@ class KingOfTokyoUI {
     buildTurnHTML(round, turn) {
         const duration = turn.endTime ? (turn.endTime - turn.startTime) : null;
         const chainExplanation = this.buildTurnChainNarrative(turn);
+        // Build opening intent / initial goal narrative (personality + state based)
+        const openingIntent = this.buildInitialGoalNarrative(turn) || '';
+        const initialGoalHTML = `<div class=\"ai-flow-opening-intent\">${openingIntent}</div>`;
+        // Build goal evolution timeline nodes
+        const goalTimeline = this.buildGoalTimeline(turn);
         return `
         <div class="ai-flow-turn collapsed" data-player-id="${turn.playerId}">
             <div class="ai-flow-turn-header">🐲 ${turn.playerName} <span class="ai-flow-turn-meta">${turn.rolls.length} roll(s)${duration?` • ${(duration/1000).toFixed(1)}s`:''}</span></div>
+            <div class="ai-flow-turn-initial-goal-row">${initialGoalHTML}</div>
+            ${goalTimeline}
             <div class="ai-flow-turn-body">
                 ${turn.rolls.map(r => this.buildRollHTML(turn, r)).join('')}
                 <div class="ai-flow-turn-chain">${chainExplanation}</div>
             </div>
         </div>`;
+    }
+
+    buildInitialGoalNarrative(turn){
+        try {
+            const playerName = turn.playerName;
+            const player = (this.game && this.game.players) ? this.game.players.find(p=>p.id===turn.playerId) : null;
+            const profile = player?.monster?.profile || {};
+            const aggression = profile.aggression ?? turn.aggression ?? 2;
+            const strategy = profile.strategy ?? 2;
+            const risk = profile.risk ?? turn.riskTolerance ?? 2;
+            const health = player?.health ?? 10;
+            const energy = player?.energy ?? 0;
+            const vp = player?.victoryPoints ?? 0;
+            const opponents = (this.game?.players || []).filter(p=>p.id!==player?.id);
+            const lowHealthOpponentInTokyo = opponents.find(o=> o.isInTokyo && o.health <=3);
+            const wantsHeal = health <=4;
+            const wantsEnergy = energy <=2 || strategy >=4;
+            const wantsAttack = aggression >=4 || !!lowHealthOpponentInTokyo;
+            const wantsPoints = vp < 10 && strategy >=3 && !wantsHeal && !wantsAttack && !wantsEnergy;
+            // Pick a focus
+            let focus='explore';
+            if (wantsHeal) focus='heal'; else if (wantsAttack) focus='attack'; else if (wantsEnergy) focus='energy'; else if (wantsPoints) focus='points';
+            // Icon clusters
+            const icon = (f)=>{
+                switch(f){
+                    case 'attack': return this.renderMiniDie?this.renderMiniDie('attack',false):'🗡️';
+                    case 'energy': return this.renderMiniDie?this.renderMiniDie('energy',false):'⚡';
+                    case 'heal': return this.renderMiniDie?this.renderMiniDie('heal',false):'❤';
+                    case 'points': return this.renderMiniDie?this.renderMiniDie('3',false):'3';
+                    default: return '';
+                }
+            };
+            const repeatIcons = (f,n)=> new Array(n).fill(icon(f)).join('');
+            // Synergy / card desire detection
+            let desiredCard = null;
+            if (this.game?.availablePowerCards?.length) {
+                // Prefer unaffordable-but-close beneficial card if strategy high, else first
+                const sorted = [...this.game.availablePowerCards].sort((a,b)=>a.cost-b.cost);
+                desiredCard = sorted.find(c=> c.synergyScore>1.2) || sorted[0];
+            }
+            const cardRef = desiredCard? `${desiredCard.name}` : 'a power card';
+            // Phrase templates
+            const templates = {
+                heal: [
+                    `${playerName} needs recovery and is fishing for hearts ${repeatIcons('heal',5)}`,
+                    `${playerName} eyes survival first—healing would stabilize ${repeatIcons('heal',4)}`,
+                    `${playerName} is vulnerable; hearts now, risks later ${repeatIcons('heal',3)}`
+                ],
+                attack: [
+                    lowHealthOpponentInTokyo?
+                        `${playerName} smells weakness in ${lowHealthOpponentInTokyo.monster.name} and wants a finishing claw ${repeatIcons('attack',5)}`:
+                        `${playerName} wants to pressure the table with claws ${repeatIcons('attack',4)}`,
+                    lowHealthOpponentInTokyo?
+                        `${playerName} is poised to punish wounded ${lowHealthOpponentInTokyo.monster.name} ${repeatIcons('attack',4)}`:
+                        `${playerName} is building offensive tempo ${repeatIcons('attack',3)}`,
+                    `${playerName} leans aggressive—damage creates leverage ${repeatIcons('attack',3)}`
+                ],
+                energy: [
+                    `${playerName} is charging toward ${cardRef} ${repeatIcons('energy',5)}`,
+                    `${playerName} wants ⚡ now to unlock ${cardRef}`,
+                    `${playerName} prioritizes energy economy this turn ${repeatIcons('energy',4)}`
+                ],
+                points: [
+                    `${playerName} is lining up early scoring via triples ${repeatIcons('points',3)}`,
+                    `${playerName} angles for VP acceleration—set math matters ${repeatIcons('points',2)}`,
+                    `${playerName} weighs set potential over immediate damage`
+                ],
+                explore: [
+                    `${playerName} is evaluating flexible lines before committing`,
+                    `${playerName} keeps options open this opening roll`,
+                    `${playerName} scouts probability contours this turn`
+                ]
+            };
+            const pool = templates[focus] || templates.explore;
+            const phrase = pool[Math.floor(Math.random()*pool.length)];
+            return phrase;
+        } catch(e){ return ''; }
+    }
+
+    deriveCompositeGoal(previousRoll){
+        if (!previousRoll) return { html:'', categories:[], counts:{} };
+        const faces = (previousRoll.dice||[]).filter(f=>f!=null);
+        const kept = previousRoll.keptIndices||[];
+        const keptFaces = kept.map(i=>faces[i]).filter(f=>f!==undefined);
+        if (!keptFaces.length) return { html:'', categories:[], counts:{} };
+        const counts = { attack:0, energy:0, heal:0, one:0, two:0, three:0 };
+        keptFaces.forEach(f=>{
+            const lf = (''+f).toLowerCase();
+            if (lf==='attack' || lf==='claw') counts.attack++;
+            else if (lf==='energy' || lf==='⚡') counts.energy++;
+            else if (lf==='heart'|| lf==='heal' || lf==='❤') counts.heal++;
+            else if (lf==='1' || lf==='one') counts.one++;
+            else if (lf==='2' || lf==='two') counts.two++;
+            else if (lf==='3' || lf==='three') counts.three++;
+        });
+        // Determine dominant numeric (if any)
+        const numeric = ['three','two','one'].find(k=>counts[k]>0); // prefer higher value
+        const categories=[];
+        ['attack','energy','heal'].forEach(k=>{ if(counts[k]>0) categories.push(k); });
+        if (numeric) categories.push(numeric);
+        const iconFor = (k)=>{
+            let face;
+            switch(k){
+                case 'attack': face='attack'; break;
+                case 'energy': face='energy'; break;
+                case 'heal': face='heal'; break;
+                case 'three': face='3'; break;
+                case 'two': face='2'; break;
+                case 'one': face='1'; break;
+                default: face='';
+            }
+            const icon = this.renderMiniDie?this.renderMiniDie(face,true):face;
+            const c = counts[k];
+            if (c>1) return `<span class="goal-icon-wrap">${icon}<span class="goal-count">x${c}</span></span>`;
+            return icon;
+        };
+        const html = categories.length? categories.map(iconFor).join(' ') : '';
+        return { html, categories, counts };
+    }
+
+    buildGoalTimeline(turn) {
+        if (!turn.rolls || !turn.rolls.length) return '';
+        const nodes = [];
+        let lastFace = null;
+        turn.rolls.forEach(r => {
+            const face = r.goal && r.goal.face ? r.goal.face : null;
+            if (face) {
+                const changed = lastFace !== null && face !== lastFace;
+                nodes.push({ face, changed, rollNumber: r.rollNumber });
+                lastFace = face;
+            } else {
+                nodes.push({ face: null, changed: false, rollNumber: r.rollNumber });
+            }
+        });
+        if (nodes.filter(n=>n.face!=null).length <= 1) return ''; // No evolution
+        const html = nodes.map(n => {
+            if (!n.face) return `<div class=\"goal-node empty\" title=\"Roll ${n.rollNumber}: no goal\">–</div>`;
+            const cls = `goal-node ${n.changed? 'changed':''}`;
+            const content = this.renderMiniDie?this.renderMiniDie(n.face,true):n.face;
+            return `<div class=\"${cls}\" title=\"Roll ${n.rollNumber}: goal ${n.face}${n.changed?' (changed)':''}\">${content}</div>`;
+        }).join('<div class=\"goal-edge\"></div>');
+        return `<div class=\"ai-flow-goal-timeline\"><div class=\"goal-timeline-label\">Goal Evolution:</div><div class=\"goal-timeline-track\">${html}</div></div>`;
     }
 
     buildRollHTML(turn, roll) {
@@ -8045,24 +8249,47 @@ class KingOfTokyoUI {
         const confClass = roll.confidence >= 0.8 ? 'high' : roll.confidence >= 0.5 ? 'med' : 'low';
         const actionLabel = roll.action || '—';
         const analysisCategory = roll.analysis?.category ? `<span class="ai-flow-tag cat">${roll.analysis.category}</span>` : '';
-        const analysisSummary = roll.analysis?.summary ? `<span class="ai-flow-summary">${roll.analysis.summary}</span>` : '';
-        const reasonLine = roll.reason ? `<div class="ai-flow-reason-line" title="${roll.reason}">${roll.reason}</div>` : '';
-        const analysisLine = (analysisCategory || analysisSummary) ? `<div class="ai-flow-analysis-line">${analysisCategory} ${analysisSummary}</div>` : '';
-        const narrative = this.buildRollNarrative(turn, roll, faces, kept);
-        const probChart = this.buildRollProbabilityChart(turn, roll, faces, kept);
+        const analysisSummary = roll.analysis?.summary ? `${roll.analysis.summary}` : '';
+        // Build narrative once, then split into justification + mindset sentences
+        const fullNarr = this.buildRollNarrative(turn, roll, faces, kept) || '';
+        // Extract mindset sentence (heuristic: last sentence after period before inline dice)
+        let justificationText = fullNarr;
+        let mindsetText = '';
+        const mindsetMarker = 'Their current mindset blends';
+        if (fullNarr.includes(mindsetMarker)) {
+            const idx = fullNarr.indexOf(mindsetMarker);
+            justificationText = fullNarr.slice(0, idx).trim();
+            mindsetText = fullNarr.slice(idx).replace(/<div.*$/,'').trim();
+        }
+        // Decision + Justification combined
+    const confidencePct = (roll.confidence*100).toFixed(0);
+        const keptFacesHTML = kept.map(i=> faces[i]).filter(f=>f!==undefined).map(f=> this.renderMiniDie?this.renderMiniDie(f,true):f).join('');
+        // Determine composite goal based on previous roll (except for first roll)
+        let goalDisplay;
+        if (roll.rollNumber === 1) {
+            goalDisplay = ''; // hide first roll goal entirely per new requirement
+        } else {
+            const prev = turn.rolls.find(r=>r.rollNumber === roll.rollNumber -1);
+            const comp = this.deriveCompositeGoal(prev);
+            goalDisplay = comp.html ? `Goal: ${comp.html}` : '';
+        }
+    const diceKeptRow = `<div class=\"ai-flow-kept-dice-row\"><span class=\"ai-flow-kept-label\">Dice Kept:</span><div class=\"ai-flow-kept-dice\">${keptFacesHTML || '<span style=\\"opacity:.5;\\">None</span>'}</div></div>`;
+    const decisionJust = `<div class=\"ai-flow-section\"><div class=\"ai-flow-sec-h\">Decision & Justification</div><div class=\"ai-flow-sec-body\"><div class=\"ai-flow-decision-line\"><span class=\"ai-flow-decision-action-main\">Decision: <strong>${actionLabel.toUpperCase()}</strong> <span class=\"ai-flow-confidence-inline ${confClass}\">Confidence Level ${confidencePct}%</span></span><span class=\"ai-flow-decision-goal\">${goalDisplay}</span></div>${diceKeptRow}<div class=\"ai-flow-just-text\">${this.capitalizeFirst(justificationText)}</div></div></div>`;
+        const mindsetSection = mindsetText ? `<div class="ai-flow-section"><div class="ai-flow-sec-h">Mindset</div><div class="ai-flow-sec-body">${this.capitalizeFirst(mindsetText)}</div></div>`:'';
+        const thoughtSection = (analysisCategory || analysisSummary) ? `<div class=\"ai-flow-section ai-flow-thought ai-flow-thought-collapsed\"><div class=\"ai-flow-thought-toggle\" data-toggle=\"thought\">Thought Process</div><div class=\"ai-flow-thought-body\"><div class=\"ai-flow-sec-body\">${analysisCategory} ${analysisSummary}</div></div></div>`:'';
+        const probChart = this.buildRollProbabilityChart(turn, roll, faces, kept, true);
         return `
         <div class="ai-flow-roll">
             <div class="ai-flow-roll-header">
                 <span class="ai-flow-roll-number">Roll ${roll.rollNumber}</span>
-                <span class="ai-flow-action"><strong>${actionLabel}</strong></span>
-                <span class="ai-flow-confidence ${confClass}">${(roll.confidence*100).toFixed(0)}%</span>
+                <span class="ai-flow-confidence ${confClass}" title="Confidence in decision">${(roll.confidence*100).toFixed(0)}%</span>
             </div>
             <div class="ai-flow-dice-row">
                 <div class="ai-flow-dice" data-dice='${JSON.stringify(faces)}' data-kept='${JSON.stringify(kept)}'></div>
             </div>
-            ${reasonLine}
-            ${analysisLine}
-            <div class="ai-flow-narrative">${narrative}</div>
+            ${decisionJust}
+            ${thoughtSection}
+            ${mindsetSection}
             ${probChart}
         </div>`;
     }
@@ -8075,8 +8302,6 @@ class KingOfTokyoUI {
             const riskDescriptor = risk >= 0.75 ? 'high risk tolerance' : risk >= 0.55 ? 'moderate risk appetite' : risk >= 0.35 ? 'balanced caution' : 'very cautious stance';
             const aggressionDescriptor = aggression >= 0.75 ? 'very aggressive posture' : aggression >= 0.55 ? 'assertive approach' : aggression >= 0.35 ? 'measured stance' : 'defensive posture';
             const keptFaces = kept.map(i => faces[i]).filter(v => v !== undefined);
-            const diceHTML = faces.map((f,i)=> this.renderMiniDie ? this.renderMiniDie(f, kept.includes(i)) : f).join('');
-            const keptHTML = keptFaces.map(f => this.renderMiniDie ? this.renderMiniDie(f, true) : f).join('');
 
             // Outcome emphasis
             const action = roll.action || 'undecided';
@@ -8085,7 +8310,7 @@ class KingOfTokyoUI {
             // Basic probability delta placeholder (future enhancement)
             const probInfo = roll.analysis?.probabilityShift ? ` Probability focus shifted toward ${this.inlineFaceList(roll.analysis.probabilityShift.targets || [])}.` : '';
 
-            let keptClause = keptHTML ? ` kept ${keptHTML} ` : ' kept no dice ';
+            let keptClause = keptFaces.length ? ` kept ${keptFaces.length} dice ` : ' kept no dice ';
             let base;
             if (roll.rollNumber === 1) {
                 base = `After the initial roll, ${playerName}${keptClause}while adopting a ${riskDescriptor} with an ${aggressionDescriptor}.`;
@@ -8098,7 +8323,7 @@ class KingOfTokyoUI {
                 because += ` Pursuing goal set of ${goalFaceDisp}.`;
             }
             let riskAgg = ` Their current mindset blends ${riskDescriptor} and ${aggressionDescriptor}, influencing the evaluation of reroll value vs. locking gains.`;
-            return `${base}${because}${probInfo} ${riskAgg} <div class="ai-flow-inline-dice-seq">${diceHTML}</div>`;
+            return `${base}${because}${probInfo} ${riskAgg}`;
         } catch(e) {
             return '';
         }
@@ -8118,7 +8343,7 @@ class KingOfTokyoUI {
             .replace(/\bexpected value\b/ig,'expected payoff');
     }
 
-    buildRollProbabilityChart(turn, roll, faces, kept) {
+    buildRollProbabilityChart(turn, roll, faces, kept, withHeader=false) {
         try {
             const perFace = roll.perFaceProbabilities;
             if (!Array.isArray(perFace) || !perFace.length) return '';
@@ -8147,35 +8372,74 @@ class KingOfTokyoUI {
                 const rel = maxAvg>0 ? (r.avg / maxAvg) : 0;
                 const pct = rel * 100;
                 const valPct = (r.avg*100).toFixed(0);
-                return `<div class="ai-flow-prob-row"><div class="ai-flow-prob-label">${r.key}</div><div class="ai-flow-prob-bar-wrap"><div class="ai-flow-prob-bar" style="width:${pct.toFixed(1)}%"></div></div><div class="ai-flow-prob-val">${valPct}%</div></div>`;
+                const dieIcon = this.renderMiniDie ? this.renderMiniDie(r.key==='heart'?'heal': (r.key==='attack'? 'attack': r.key), false) : r.key;
+                return `<div class="ai-flow-prob-row"><div class="ai-flow-prob-label">${dieIcon}<span>${r.key}</span></div><div class="ai-flow-prob-bar-wrap"><div class="ai-flow-prob-bar" style="width:${pct.toFixed(1)}%"></div></div><div class="ai-flow-prob-val" title="Estimated chance of keeping">${valPct}%</div></div>`;
             }).join('');
-            return `<div class="ai-flow-prob-chart">${htmlRows}</div>`;
+            const header = withHeader? `<div class="ai-flow-sec-h" style="margin:0 0 4px 0;">Rolling Odds</div>`:'';
+            return `<div class="ai-flow-prob-chart">${header}${htmlRows}</div>`;
         } catch(e) {
             return '';
         }
     }
 
+    capitalizeFirst(str){ if(!str) return str; return str.charAt(0).toUpperCase()+str.slice(1); }
+
     buildTurnChainNarrative(turn) {
         try {
             if (!turn.rolls || turn.rolls.length < 2) return '';
-            const parts = [];
-            turn.rolls.forEach((r,i) => {
+            const segments = [];
+            const cleanToken = (t)=>{
+                if(!t) return '';
+                return t.replace(/^(Continuing|Chasing|Maintaining)[:]?/i,'').trim();
+            };
+            turn.rolls.forEach((r,i)=>{
                 const faces = (r.dice||[]).filter(f=>f!=null);
                 const keptFaces = (r.keptIndices||[]).map(idx=>faces[idx]).filter(f=>f!==undefined);
-                const keptHTML = keptFaces.map(f=> this.renderMiniDie ? this.renderMiniDie(f,true) : f).join('');
-                const action = r.action || 'undecided';
-                const reason = r.reason ? this.simplifyReason(r.reason) : '';
-                const clause = `After roll ${r.rollNumber}, kept ${keptHTML || 'nothing'} aiming for '${action}'${reason?` because ${reason}`:''}.`;
-                parts.push(clause);
+                const keptHTML = keptFaces.length? keptFaces.map(f=> this.renderMiniDie?this.renderMiniDie(f,true):f).join('') : 'nothing';
+                const action = (r.action||'reroll').toLowerCase();
+                const rawReason = r.reason ? this.simplifyReason(r.reason) : '';
+                // Extract emphasis phrases (Continuing/Chasing/Maintaining) if present
+                const emphasisMatches = rawReason.match(/(Continuing|Chasing|Maintaining)[^\.]{0,80}/gi) || [];
+                const emphasis = emphasisMatches.map(m=>m.split(/because/i)[0].trim());
+                let core = cleanToken(rawReason);
+                // Build natural language
+                let sentence;
+                if (i===0) {
+                    sentence = `Opened with roll 1, keeping ${keptHTML} to ${action}${core?` — ${core}`:''}`;
+                } else {
+                    const rollLabel = `after roll ${r.rollNumber}`;
+                    const connectors = ['then','subsequently','next','afterwards'];
+                    const connector = connectors[(i-1)%connectors.length];
+                    let emphText = '';
+                    if (emphasis.length){
+                        // e.g., "continuing to pressure" or "chasing a set of 2s"
+                        const phrase = emphasis[0].toLowerCase();
+                        if (/continuing/i.test(phrase)) emphText = 'continuing the prior plan';
+                        else if (/chasing/i.test(phrase)) emphText = phrase.replace(/chasing/i,'chasing');
+                        else if (/maintaining/i.test(phrase)) emphText = 'maintaining flexibility';
+                    }
+                    sentence = `${connector} ${rollLabel}, kept ${keptHTML} to ${action}${emphText?` while ${emphText}`:''}${core? (emphText?` (${core})`:` — ${core}`):''}`;
+                }
+                segments.push(sentence);
             });
-            const summary = parts.join(' Then, ');
+            const summary = segments.join('; ') + '.';
             return `<strong>Roll Sequence:</strong> ${summary}`;
         } catch(e) { return ''; }
     }
 
     renderMiniDie(face, kept) { // Legacy helper (still used elsewhere maybe)
-        const cls = this.getDiceFaceClass ? this.getDiceFaceClass(face) : `face-${face}`;
-        const display = this.getDiceFaceDisplay ? this.getDiceFaceDisplay(face) : face;
+        const mapWordToDigit = (f) => {
+            if (!f) return f;
+            const lower = (''+f).toLowerCase();
+            if (lower === 'one') return '1';
+            if (lower === 'two') return '2';
+            if (lower === 'three') return '3';
+            return f;
+        };
+        const normalizedFace = mapWordToDigit(face);
+        const cls = this.getDiceFaceClass ? this.getDiceFaceClass(normalizedFace) : `face-${normalizedFace}`;
+        const rawDisplay = this.getDiceFaceDisplay ? this.getDiceFaceDisplay(normalizedFace) : normalizedFace;
+        const display = mapWordToDigit(rawDisplay);
         return `<span class="mini-die logic-flow-die ${cls} ${kept?'kept':''}" data-face="${face}">${display}</span>`;
     }
     // ================= END AI LOGIC FLOW RENDERING =================

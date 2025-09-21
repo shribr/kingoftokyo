@@ -293,12 +293,20 @@
 			if (rollsRemaining>0){
 				if (kept.length>=adaptiveMinKept && improvement < adaptiveEVThreshold && unresolvedPairs===0){ action='endRoll'; }
 			} else action='endRoll';
+			// Human-readable explanation parts (remove raw debug noise)
 			const reasonParts=[];
-			if (goal) reasonParts.push('Goal:'+goal.face);
-			reasonParts.push((action==='endRoll'?'Stop':'Cont')+` kept=${kept.length} EV=${improvement.toFixed(2)} pairs=${unresolvedPairs} riskAdjEV=${adaptiveEVThreshold.toFixed(2)} minKept=${adaptiveMinKept}` + (state.cardSummary.extraDie?` extraDie=${state.cardSummary.extraDie}`:''));
-			if (state.cardSummary.attackBoost) reasonParts.push(`AtkBoost x${state.cardSummary.attackBoost}`);
-			if (state.cardSummary.energyEngine) reasonParts.push(`EnergyEng x${state.cardSummary.energyEngine}`);
-			if (state.cardSummary.healEngine) reasonParts.push(`HealEng x${state.cardSummary.healEngine}`);
+			if (goal) reasonParts.push(`Chasing a set of ${goal.face}s`);
+			if (unresolvedPairs>0) reasonParts.push(`Maintaining ${unresolvedPairs} potential pair${unresolvedPairs>1?'s':''}`);
+			if (state.cardSummary.attackBoost) reasonParts.push(`Attack boost synergy active x${state.cardSummary.attackBoost}`);
+			if (state.cardSummary.energyEngine) reasonParts.push(`Energy engine pieces ${state.cardSummary.energyEngine}`);
+			if (state.cardSummary.healEngine) reasonParts.push(`Healing engine pieces ${state.cardSummary.healEngine}`);
+			if (action==='endRoll'){
+				reasonParts.push(`Stopping because expected improvement (${improvement.toFixed(2)}) below adaptive threshold (${adaptiveEVThreshold.toFixed(2)}) with ${kept.length} dice locked`);
+			} else {
+				reasonParts.push(`Continuing: expected gain (${improvement.toFixed(2)}) still above stop threshold or more consolidation desired`);
+			}
+			if (state.cardSummary.extraDie) reasonParts.push(`Extra die capacity influences future odds`);
+			const techMeta = { keptCount: kept.length, evGain: improvement, unresolvedPairs, adaptiveEVThreshold, adaptiveMinKept, extraDie: state.cardSummary.extraDie||0 };
 			const confidence = action==='endRoll'? (rollsRemaining>0?0.8:0.92):0.6;
 			// Yield / retreat suggestion (does not alter dice action, only advisory flag) when inside Tokyo low HP and multiple opponents can strike
 			let yieldSuggestion = false;
@@ -310,7 +318,7 @@
 					reasonParts.push('SuggestYield');
 				}
 			}
-			return { action, keepDice: kept, reason: reasonParts.join(' | '), confidence, yieldSuggestion };
+			return { action, keepDice: kept, reason: reasonParts.join(' '), confidence, yieldSuggestion, techMeta, goal };
 		}
 
 		// ---------- Invariants ----------

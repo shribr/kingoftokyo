@@ -923,6 +923,8 @@ class KingOfTokyoGame {
                 context: context,
                 results: results 
             });
+            // Ensure rolling indicator visible
+            this._showCPURollingIndicator(player);
         }
         
         // Log what was rolled with specific emojis
@@ -941,13 +943,82 @@ class KingOfTokyoGame {
         if (rollsLeft === 0) {
             window.UI && window.UI._debug && window.UI._debug('No rolls left, transitioning to resolving phase');
             this.currentTurnPhase = 'resolving';
+            // Capture pre-resolution snapshot for CPU summary bubble
+            let preCPUStats = null;
+            if (player.playerType === 'cpu') {
+                preCPUStats = {
+                    energy: player.energy,
+                    vp: player.victoryPoints,
+                    health: player.health,
+                    opponents: (this.players||[]).filter(p=>p.id!==player.id).map(p=>({id:p.id, health:p.health, inTokyo:p.isInTokyo}))
+                };
+            }
             this.resolveDiceEffects(results);
+            // Schedule post-resolution thought bubble for CPU (slight delay to allow animations)
+            if (player.playerType === 'cpu') {
+                setTimeout(()=>{
+                    try {
+                        this._hideCPURollingIndicator(player);
+                        const post = {
+                            energy: player.energy,
+                            vp: player.victoryPoints,
+                            health: player.health
+                        };
+                        const deltas = {
+                            energy: post.energy - preCPUStats.energy,
+                            vp: post.vp - preCPUStats.vp,
+                            healthChange: post.health - preCPUStats.health
+                        };
+                        // Very rough damage dealt inference: sum opponent health delta
+                        let damageDealt = 0;
+                        (this.players||[]).filter(p=>p.id!==player.id).forEach(op=>{
+                            const before = preCPUStats.opponents.find(o=>o.id===op.id);
+                            if (before) {
+                                const delta = before.health - op.health;
+                                if (delta>0) damageDealt += delta;
+                            }
+                        });
+                        deltas.damageDealt = damageDealt;
+                        // Determine context bucket
+                        let context = 'postTurnMixed';
+                        if (deltas.vp >=3) context = 'postTurnGreatVP';
+                        else if (deltas.energy >=3) context = 'postTurnGreatEnergy';
+                        else if (deltas.damageDealt >=3) context = 'postTurnBigHit';
+                        else if (deltas.healthChange >=2) context = 'postTurnNiceHeal';
+                        else if (deltas.vp===0 && deltas.energy===0 && deltas.damageDealt===0 && deltas.healthChange <=0) context = 'postTurnWhiff';
+                        // Pass deltas via decisionReason placeholder
+                        this.triggerEvent('showCPUThought', { player, context, decisionReason: JSON.stringify({deltas}) });
+                    } catch(e) { console.warn('Post-turn CPU bubble failed', e); }
+                }, 650); // moderate delay
+            }
             this.triggerEvent('turnPhaseChanged', { phase: 'resolving' });
         } else {
             window.UI && window.UI._debug && window.UI._debug('Rolls remaining:', rollsLeft, 'staying in rolling phase');
         }
 
         this.triggerEvent('diceRollComplete', { results, rollsLeft });
+    }
+
+    _showCPURollingIndicator(player){
+        try {
+            const card = document.querySelector(`.player-card[data-player-id='${player.id}']`);
+            if (!card) return;
+            if (card.querySelector('.cpu-rolling-indicator')) return;
+            const ind = document.createElement('div');
+            ind.className = 'cpu-rolling-indicator';
+            ind.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
+            card.appendChild(ind);
+        } catch(e) {}
+    }
+
+    _hideCPURollingIndicator(player){
+        try {
+            const card = document.querySelector(`.player-card[data-player-id='${player.id}']`);
+            if (!card) return;
+            const ind = card.querySelector('.cpu-rolling-indicator');
+            if (ind) ind.classList.add('fade');
+            if (ind) setTimeout(()=> ind && ind.parentNode && ind.parentNode.removeChild(ind), 400);
+        } catch(e) {}
     }
 
     // Resolve dice effects
