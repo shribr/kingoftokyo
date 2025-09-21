@@ -2281,14 +2281,27 @@ class KingOfTokyoGame {
         this.diceRoller.startNewTurn();
         this.currentTurnPhase = 'rolling';
         
-        // Move to next player AFTER resetting turn state
+        // IMPORTANT: Handle mandatory Tokyo entry BEFORE switching players.
+        // Previous ordering called switchToNextPlayer() first, which reset diceEffectsResolved=false
+        // for the *next* player, causing handleEndOfTurnTokyoEntry(currentPlayer) to early-return
+        // (it checks !this.diceEffectsResolved). That prevented first attacker from auto-entering Tokyo.
+        this.handleEndOfTurnTokyoEntry(currentPlayer);
+
+        // Invariant Guard: After handling Tokyo entry, if diceEffectsResolved is true (turn fully resolved),
+        // the current player is not eliminated, and Tokyo City is still empty while player not in Tokyo,
+        // auto-correct by forcing entry (logs as invariant breach). This should never normally trigger now.
+        if (this.diceEffectsResolved && !currentPlayer.isEliminated && this.tokyoCity === null && !currentPlayer.isInTokyo) {
+            console.warn('⚠️ Invariant Breach: Tokyo City empty after endTurn Tokyo handling. Auto-entering for', currentPlayer.monster.name);
+            this.enterTokyo(currentPlayer, false);
+        }
+
+        // Move to next player AFTER resolving mandatory Tokyo entry
         this.switchToNextPlayer();
         
-        // Trigger turn ended event to update UI with new active player
+        // Trigger turn ended event (now reflects new active player state)
         this.triggerEvent('turnEnded', this.getGameState());
-
-            // RULE: Handle mandatory Tokyo entry at end of any turn - AFTER new player is active
-            this.handleEndOfTurnTokyoEntry(currentPlayer);
+            
+            window.UI && window.UI._debug && window.UI._debug('[FIX] endTurn ordering: Tokyo entry processed before player switch');
             
             window.UI && window.UI._debug && window.UI._debug('Turn ended. New current player:', this.getCurrentPlayer().monster.name, 'Index:', this.currentPlayerIndex);
         } finally {
