@@ -409,7 +409,7 @@
     gap: 0px; /* Remove gap since cards are now overlapping naturally */
     height: 100%; /* Use full height now that dice controls are moved */
     overflow: visible; /* Allow hover effects to show */
-    padding: 5px 15px 5px 15px; /* Further reduced padding to maximize available space */
+    padding: 40px 15px 5px 15px; /* Added top padding to clear Monsters panel title */
     position: relative;
 }
 
@@ -445,32 +445,32 @@
 
 /* Better condensed spacing for non-active players to fit 5 cards */
 .player-dashboard:not(.active):nth-child(1) {
-    margin-bottom: -100px; /* More aggressive to pull stack up */
+    margin-bottom: -80px; /* Reduced overlap to respect panel title */
 }
 
 .player-dashboard:not(.active):nth-child(2) {
-    margin-top: -50px; /* More aggressive pull-up */
-    margin-bottom: -105px; /* More aggressive to pull stack up */
+    margin-top: -35px; /* Slightly less aggressive pull-up */
+    margin-bottom: -90px; /* Reduced overlap */
 }
 
 .player-dashboard:not(.active):nth-child(3) {
-    margin-top: -50px; /* More aggressive pull-up */
-    margin-bottom: -105px; /* More aggressive to pull stack up */
+    margin-top: -35px; /* Slightly less aggressive */
+    margin-bottom: -90px; /* Reduced overlap */
 }
 
 .player-dashboard:not(.active):nth-child(4) {
-    margin-top: -55px; /* More aggressive pull-up */
-    margin-bottom: -105px; /* More aggressive to pull stack up */
+    margin-top: -40px; /* Slightly less aggressive */
+    margin-bottom: -95px; /* Slightly reduced */
 }
 
 .player-dashboard:not(.active):nth-child(5) {
-    margin-top: -55px; /* More aggressive pull-up */
-    margin-bottom: -105px; /* More aggressive to pull stack up */
+    margin-top: -40px; /* Slightly less aggressive */
+    margin-bottom: -95px; /* Slightly reduced */
 }
 
 .player-dashboard:not(.active):nth-child(6) {
-    margin-top: -40px; /* More aggressive pull-up */
-    margin-bottom: 5px; /* Small positive margin for last card visibility */
+    margin-top: -30px; /* Slightly less aggressive */
+    margin-bottom: 10px; /* More breathing room at end */
 }
 
 /* Add variation to card angles for haphazard look - balanced for 6 players - ONLY for non-active players */

@@ -519,7 +519,7 @@ function createDiceHTML(diceData, maxDiceToShow = null, customStyles = null) {
         if (die.isDisabled) classes.push('disabled');
         if (die.className) classes.push(die.className);
         
-        return `<div class="${classes.join(' ')}" data-die-id="${die.id}"${styleString}>
+        return `<div id="${die.id}" class="${classes.join(' ')}" data-die-id="${die.id}"${styleString}>
             ${die.symbol}
         </div>`;
     }).join('');

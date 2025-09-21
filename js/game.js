@@ -783,9 +783,9 @@ class KingOfTokyoGame {
 
     // Debug method to test Friend of Children card
     debugGiveFriendOfChildren() {
-        const currentPlayer = this.getCurrentPlayer();
+            const currentPlayer = this.getCurrentPlayer();
         const friendOfChildrenCard = POWER_CARDS.find(card => card.id === 'friend_of_children');
-        if (friendOfChildrenCard && !currentPlayer.powerCards.some(card => card.id === 'friend_of_children')) {
+            if (friendOfChildrenCard && !(Array.isArray(currentPlayer.powerCards) && currentPlayer.powerCards.some(card => card.id === 'friend_of_children'))) {
             currentPlayer.powerCards.push(friendOfChildrenCard);
             this.logAction(`DEBUG: Gave ${currentPlayer.monster.name} the Friend of Children card!`, 'debug');
             if (window.UI && window.UI.debugMode) {
@@ -798,9 +798,9 @@ class KingOfTokyoGame {
 
     // Debug method to test Extra Head card
     debugGiveExtraHead() {
-        const currentPlayer = this.getCurrentPlayer();
+            const currentPlayer = this.getCurrentPlayer();
         const extraHeadCard = POWER_CARDS.find(card => card.id === 'extra_head');
-        if (extraHeadCard && !currentPlayer.powerCards.some(card => card.id === 'extra_head')) {
+            if (extraHeadCard && !(Array.isArray(currentPlayer.powerCards) && currentPlayer.powerCards.some(card => card.id === 'extra_head'))) {
             currentPlayer.powerCards.push(extraHeadCard);
             this.logAction(`DEBUG: Gave ${currentPlayer.monster.name} the Extra Head card!`, 'debug');
             if (window.UI && window.UI.debugMode) {
@@ -1074,7 +1074,7 @@ class KingOfTokyoGame {
         // Enhanced dice state debugging with DOM verification
         const diceStateDetails = this.diceCollection.dice.map(die => {
             // Use cached dice element if UI is available
-            const domElement = window.kingOfTokyoUI?.getDiceElement?.(die.id) || 
+            const domElement = window.gameUI?.getDiceElement?.(die.id) || 
                               document.querySelector(`[data-die-id="${die.id}"]`);
             const visualText = domElement ? domElement.textContent.trim() : 'not-found';
             const visualSymbol = die.getSymbol ? die.getSymbol() : 'no-getSymbol';
@@ -1270,11 +1270,27 @@ class KingOfTokyoGame {
                 if (attackerRollsRemaining === 0 && playersWhoTookDamage.length > 0) {
                     playersWhoTookDamage.forEach(player => {
                         // Check if player has Background Dweller (can always stay)
-                        const hasStayInTokyoPower = player.powerCards.some(card => {
-                            const effect = applyCardEffect(card, player, this);
-                            return effect.type === 'passive' && effect.effect === 'forcedStay';
-                        });
-                        
+                        // Prefer centralized modifiers to detect forcedStay
+                        // Prefer centralized modifier evaluation to determine 'stay in Tokyo' powers
+                        let hasStayInTokyoPower = false;
+                        try {
+                            const aiEngine = (window && window.aiEngine) || (this.aiEngine) || null;
+                            if (aiEngine && typeof aiEngine.evaluateTargetPowerModifiers === 'function') {
+                                const mods = aiEngine.evaluateTargetPowerModifiers(player, { considerShop: false });
+                                hasStayInTokyoPower = !!(mods && mods.forcedStay);
+                            }
+                        } catch (e) {
+                            // ignore and fallback
+                        }
+
+                        // Fallback to per-card detection if central helper isn't available or is inconclusive
+                        if (!hasStayInTokyoPower) {
+                            hasStayInTokyoPower = Array.isArray(player.powerCards) && player.powerCards.some(card => {
+                                const effect = applyCardEffect(card, player, this);
+                                return effect && effect.type === 'passive' && (effect.effect === 'forcedStay' || effect.effect === 'stayInTokyo');
+                            });
+                        }
+
                         if (hasStayInTokyoPower) {
                             this.logAction(`${player.monster.name} has the power to stay in Tokyo despite taking damage!`);
                         }
@@ -1301,12 +1317,26 @@ class KingOfTokyoGame {
             });
         }
         
-        // Check if target has camouflage protection
-        const hasCamouflage = player.powerCards.some(card => {
+        // Check if target has camouflage protection: prefer centralized modifier evaluation
+        try {
+            const aiEngine = (window && window.aiEngine) || (this.aiEngine) || null;
+            if (aiEngine && typeof aiEngine.evaluateTargetPowerModifiers === 'function') {
+                const mods = aiEngine.evaluateTargetPowerModifiers(player, { considerShop: false });
+                if (mods && mods.isUntargetable) {
+                    this.logAction(`${player.monster.name} is protected by camouflage and cannot be attacked directly!`);
+                    return 0;
+                }
+            }
+        } catch (e) {
+            // fall through to per-card checks
+        }
+
+        // Fallback per-card check for camouflage/protection
+        const hasCamouflage = Array.isArray(player.powerCards) && player.powerCards.some(card => {
             const effect = applyCardEffect(card, player, this);
-            return effect.type === 'passive' && effect.effect === 'protection';
+            return effect && effect.type === 'passive' && (effect.effect === 'protection' || effect.effect === 'camouflage');
         });
-        
+
         if (hasCamouflage) {
             this.logAction(`${player.monster.name} is protected by camouflage and cannot be attacked directly!`);
             return 0;
@@ -1314,11 +1344,24 @@ class KingOfTokyoGame {
         
         // Check if player in Tokyo has Wings and can choose to flee instead of taking damage
         if (player.isInTokyo) {
-            const hasWings = player.powerCards.some(card => {
-                const effect = applyCardEffect(card, player, this);
-                return effect.type === 'passive' && effect.effect === 'safeFlight';
-            });
-            
+            // Prefer centralized modifiers for freeEscape/safeFlight
+            let hasWings = false;
+            try {
+                const aiEngine = (window && window.aiEngine) || (this.aiEngine) || null;
+                if (aiEngine && typeof aiEngine.evaluateTargetPowerModifiers === 'function') {
+                    const mods = aiEngine.evaluateTargetPowerModifiers(player, { considerShop: false });
+                    hasWings = !!(mods && (mods.freeEscape || mods.safeFlight));
+                }
+            } catch (e) {}
+
+            // Fallback per-card detection
+            if (!hasWings) {
+                hasWings = Array.isArray(player.powerCards) && player.powerCards.some(card => {
+                    const effect = applyCardEffect(card, player, this);
+                    return effect && effect.type === 'passive' && (effect.effect === 'safeFlight' || effect.effect === 'freeEscape' || effect.effect === 'wings');
+                });
+            }
+
             if (hasWings) {
                 // For CPU players, make a decision based on health/damage ratio
                 if (!player.isHuman) {
@@ -1448,12 +1491,23 @@ class KingOfTokyoGame {
             const isStandardOutsideTokyoAttack = !attacker.isInTokyo;
             
             if (attackerRollsRemaining === 0 && !isStandardOutsideTokyoAttack) {
-                // Check if player has Background Dweller (can always stay)
-                const hasStayInTokyoPower = player.powerCards.some(card => {
-                    const effect = applyCardEffect(card, player, this);
-                    return effect.type === 'passive' && effect.effect === 'forcedStay';
-                });
-                
+                // Check if player has Background Dweller (can always stay) via modifiers helper
+                let hasStayInTokyoPower = false;
+                try {
+                    const aiEngine = (window && window.aiEngine) || (this.aiEngine) || null;
+                    if (aiEngine && typeof aiEngine.evaluateTargetPowerModifiers === 'function') {
+                        const mods = aiEngine.evaluateTargetPowerModifiers(player, { considerShop: false });
+                        hasStayInTokyoPower = !!(mods && mods.forcedStay);
+                    }
+                } catch (e) {}
+
+                if (!hasStayInTokyoPower) {
+                    hasStayInTokyoPower = Array.isArray(player.powerCards) && player.powerCards.some(card => {
+                        const effect = applyCardEffect(card, player, this);
+                        return effect && effect.type === 'passive' && effect.effect === 'forcedStay';
+                    });
+                }
+
                 if (hasStayInTokyoPower) {
                     this.logAction(`${player.monster.name} has the power to stay in Tokyo despite taking damage!`);
                     // Still offer the choice, but player can always choose to stay
@@ -1644,18 +1698,49 @@ class KingOfTokyoGame {
     calculateFinalDamage(victim, baseDamage, attacker) {
         let finalDamage = baseDamage;
         
-        // Apply victim's defensive effects
-        victim.powerCards.forEach(card => {
-            const effect = applyCardEffect(card, victim, this);
-            if (effect.type === 'passive' && effect.effect === 'damageReduction') {
-                // Armor plating - ignore damage on dice roll 1-2
+        // Apply victim's defensive effects via unified modifier helper when available
+        try {
+            const aiEngine = (window && window.aiEngine) || (this.aiEngine) || null;
+            let modifiers = null;
+            if (aiEngine && typeof aiEngine.evaluateTargetPowerModifiers === 'function') {
+                modifiers = aiEngine.evaluateTargetPowerModifiers(victim, { considerShop: false });
+            }
+
+            if (modifiers && modifiers.damageReduction) {
+                // Simulate chance to fully block a small attack (preserve original armor-plating randomness)
                 const roll = Math.floor(Math.random() * 6) + 1;
                 if (roll <= 2) {
                     finalDamage = 0;
                     this.logAction(`${victim.monster.name}'s armor deflects the attack!`);
+                } else {
+                    finalDamage = Math.max(0, finalDamage - (modifiers.damageReduction || 0));
                 }
+            } else {
+                // Fallback: existing per-card behavior
+                victim.powerCards.forEach(card => {
+                    const effect = applyCardEffect(card, victim, this);
+                    if (effect.type === 'passive' && effect.effect === 'damageReduction') {
+                        const roll = Math.floor(Math.random() * 6) + 1;
+                        if (roll <= 2) {
+                            finalDamage = 0;
+                            this.logAction(`${victim.monster.name}'s armor deflects the attack!`);
+                        }
+                    }
+                });
             }
-        });
+        } catch (e) {
+            // On error, preserve original per-card handling
+            victim.powerCards.forEach(card => {
+                const effect = applyCardEffect(card, victim, this);
+                if (effect.type === 'passive' && effect.effect === 'damageReduction') {
+                    const roll = Math.floor(Math.random() * 6) + 1;
+                    if (roll <= 2) {
+                        finalDamage = 0;
+                        this.logAction(`${victim.monster.name}'s armor deflects the attack!`);
+                    }
+                }
+            });
+        }
 
         // Apply attacker's offensive effects
         attacker.powerCards.forEach(card => {
@@ -2030,12 +2115,30 @@ class KingOfTokyoGame {
         const player = this.players.find(p => p.id === playerId);
         if (!player) return false;
         
-        // Check if player has energy healing power
-        const hasEnergyHealing = player.powerCards.some(card => {
-            const effect = applyCardEffect(card, player, this);
-            return effect.type === 'passive' && effect.effect === 'energyHealing';
-        });
-        
+        // Prefer centralized modifier check for energy-healing capability
+        let hasEnergyHealing = false;
+        try {
+            const aiEngine = (window && window.aiEngine) || (this.aiEngine) || null;
+            if (aiEngine && typeof aiEngine.evaluateTargetPowerModifiers === 'function') {
+                const mods = aiEngine.evaluateTargetPowerModifiers(player, { considerShop: false });
+                hasEnergyHealing = !!(mods && mods.healPossible);
+            }
+        } catch (e) {
+            // ignore and fallback
+        }
+
+        // Fallback per-card detection
+        if (!hasEnergyHealing) {
+            try {
+                hasEnergyHealing = Array.isArray(player.powerCards) && player.powerCards.some(card => {
+                    const effect = applyCardEffect(card, player, this);
+                    return effect && effect.type === 'passive' && effect.effect === 'energyHealing';
+                });
+            } catch (e) {
+                hasEnergyHealing = false;
+            }
+        }
+
         if (!hasEnergyHealing) {
             this.logAction(`${player.monster.name} doesn't have the power to heal with energy!`);
             return false;
@@ -2103,17 +2206,17 @@ class KingOfTokyoGame {
         this.diceCollection.resetToBaseDiceCount(this.gameSettings.diceCount);
         this.diceRoller.startNewTurn();
         this.currentTurnPhase = 'rolling';
-        
-        // Move to next player AFTER resetting turn state
+
+        // RULE: Handle mandatory Tokyo entry at end of any turn - check now while dice effects are still resolved
+        this.handleEndOfTurnTokyoEntry(currentPlayer);
+
+        // Move to next player AFTER handling end-of-turn Tokyo entry
         this.switchToNextPlayer();
-        
+
         // Trigger turn ended event to update UI with new active player
         this.triggerEvent('turnEnded', this.getGameState());
 
-            // RULE: Handle mandatory Tokyo entry at end of any turn - AFTER new player is active
-            this.handleEndOfTurnTokyoEntry(currentPlayer);
-            
-            window.UI && window.UI._debug && window.UI._debug('Turn ended. New current player:', this.getCurrentPlayer().monster.name, 'Index:', this.currentPlayerIndex);
+        window.UI && window.UI._debug && window.UI._debug('Turn ended. New current player:', this.getCurrentPlayer().monster.name, 'Index:', this.currentPlayerIndex);
         } finally {
             // Always reset the flag
             this.endingTurn = false;

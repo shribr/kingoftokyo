@@ -217,22 +217,7 @@
                         </svg>
                     </span>
                 </button>
-                <button id="ai-mode-btn" class="toolbar-btn" title="Toggle AI Enhanced Mode">
-                    <span class="toolbar-icon">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                            <!-- Large central sparkle -->
-                            <path d="M12,1L15,9L23,12L15,15L12,23L9,15L1,12L9,9L12,1Z"/>
-                            <!-- Small top-right sparkle -->
-                            <circle cx="18" cy="6" r="1"/>
-                            <path d="M18,4.5L18.5,6L20,6.5L18.5,7L18,8.5L17.5,7L16,6.5L17.5,6L18,4.5Z"/>
-                            <!-- Small bottom-left sparkle -->
-                            <circle cx="6" cy="18" r="0.8"/>
-                            <path d="M6,16.8L6.4,18L7.6,18.4L6.4,18.8L6,20L5.6,18.8L4.4,18.4L5.6,18L6,16.8Z"/>
-                        </svg>
-                        <!-- State indicator overlay -->
-                        <span class="ai-state-indicator"></span>
-                    </span>
-                </button>
+                <!-- AI mode button removed; AI is the single mode -->
             </div>
         </div>
 
@@ -728,14 +713,27 @@
                             💭 Show CPU thought bubbles
                         </label>
                     </div>
-                    
-                    <div class="settings-option">
-                        <label>
-                            <input type="checkbox" id="ai-mode-toggle">
-                            🤖 Enable AI Mode
-                        </label>
-                        <p class="settings-note">Temporarily override config.json setting. Default AI mode is controlled by config.json (currently: simple mode). When enabled, CPU uses advanced AI; when disabled, CPU always rolls 3 times.</p>
+                    <div class="settings-option" id="thought-bubble-advanced" style="margin-left:1rem;">
+                        <label>Thought Bubble Position</label>
+                        <select id="thought-bubble-position">
+                            <option value="player">From Player</option>
+                            <option value="center">Centered</option>
+                        </select>
                     </div>
+                    <div class="settings-option" style="margin-left:1rem;">
+                        <label>Thought Bubble Duration</label>
+                        <p style="margin:4px 0 6px;font-size:0.85em;">Adjust how long bubbles remain visible (multiplier).</p>
+                        <input type="range" id="thought-bubble-duration" min="0.5" max="2.0" step="0.1" value="1">
+                        <div><span id="thought-bubble-duration-value">1.0x</span></div>
+                    </div>
+                    <div class="settings-option" style="margin-left:1rem;">
+                        <label>
+                            <input type="checkbox" id="thought-bubble-dim" checked>
+                            Dim background behind bubbles
+                        </label>
+                    </div>
+                    
+                    <!-- AI mode settings removed — AI is the single mode -->
                     
                     <div class="settings-option">
                         <label>
@@ -826,10 +824,10 @@
                     </table>
                 </div>
                 <div class="rolloff-actions">
-                    <button id="rolloff-roll-btn" class="btn primary" style="display: none;" onclick="window.kingOfTokyoUI?.handleRolloffRoll()">
+                    <button id="rolloff-roll-btn" class="btn primary" style="display: none;" onclick="window.gameUI?.handleRolloffRoll()">
                         🎲 Roll Dice
                     </button>
-                    <a id="rolloff-skip-link" class="rolloff-skip-link" href="#" onclick="window.kingOfTokyoUI?.skipRolloff(); return false;" title="Clicking this link skips the dice &quot;roll off&quot; and selects a player at random to go first instead.">
+                    <a id="rolloff-skip-link" class="rolloff-skip-link" href="#" onclick="window.gameUI?.skipRolloff(); return false;" title="Clicking this link skips the dice &quot;roll off&quot; and selects a player at random to go first instead.">
                         skip <span class="info-icon">i</span>
                     </a>
                 </div>

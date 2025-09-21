@@ -861,9 +861,9 @@ class SetupManager {
         window.UI && window.UI._debug && window.UI._debug('Selected monsters count:', this.selectedMonsters.length);
         window.UI && window.UI._debug && window.UI._debug('Current player count:', this.currentPlayerCount);
         
-        // Delegate to main.js instance - we need access to the main KingOfTokyoUI instance
-        if (window.kingOfTokyoUI && typeof window.kingOfTokyoUI.startGameFromSetup === 'function') {
-            await window.kingOfTokyoUI.startGameFromSetup(this.selectedMonsters, this.currentPlayerCount, this.playerTiles);
+    // Delegate to main UI instance (exposed globally as window.gameUI)
+        if (window.gameUI && typeof window.gameUI.startGameFromSetup === 'function') {
+            await window.gameUI.startGameFromSetup(this.selectedMonsters, this.currentPlayerCount, this.playerTiles);
         } else {
             console.error('Cannot start game: main UI instance not available');
             throw new Error('Game initialization failed - main UI not ready');
@@ -921,8 +921,8 @@ class SetupManager {
     // Regenerate player tiles
     regeneratePlayerTiles() {
         // This calls back to main.js to regenerate the player tiles based on current setup
-        if (window.kingOfTokyoUI && typeof window.kingOfTokyoUI.regeneratePlayerTilesFromSetup === 'function') {
-            window.kingOfTokyoUI.regeneratePlayerTilesFromSetup(this.currentPlayerCount);
+        if (window.gameUI && typeof window.gameUI.regeneratePlayerTilesFromSetup === 'function') {
+            window.gameUI.regeneratePlayerTilesFromSetup(this.currentPlayerCount);
         } else {
             console.log('SetupManager: regeneratePlayerTiles - main UI not available, skipping');
         }

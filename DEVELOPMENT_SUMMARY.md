@@ -131,7 +131,7 @@ We've built a fully-featured digital version of the King of Tokyo board game wit
 ```
 
 ### 🏗️ **Core Classes**
-- **`KingOfTokyoUI`**: Main UI controller, event handling, visual updates
+- **`KingOfTokyoUI`** (exposed globally as `window.gameUI`): Main UI controller, event handling, visual updates
 - **`KingOfTokyoGame`**: Core game logic, rules enforcement, state management
 - **`Player`**: Individual player/monster representation
 - **`DiceCollection`**: Manages 6-dice system with selection

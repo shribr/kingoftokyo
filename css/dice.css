@@ -223,6 +223,18 @@
     background: none !important;
 }
 
+/* CPU auto-selection pop animation */
+@keyframes cpuSelectPulse {
+    0% { transform: perspective(300px) rotateX(0deg) rotateY(0deg) translateY(0) scale(1); box-shadow: 0 0 0 #000; }
+    40% { transform: perspective(300px) rotateX(12deg) rotateY(-18deg) translateY(-18px) scale(1.15); box-shadow: 6px 6px 0 #000; }
+    70% { transform: perspective(300px) rotateX(9deg) rotateY(-16deg) translateY(-14px) scale(1.1); box-shadow: 5px 5px 0 #000; }
+    100% { transform: perspective(300px) rotateX(10deg) rotateY(-20deg) translateY(-15px) scale(1.08); box-shadow: 4px 4px 0 #000; }
+}
+
+.die.selected.cpu-auto-select {
+    animation: cpuSelectPulse 480ms ease-out;
+}
+
 /* Disabled dice styling - show placeholder but hide die content */
 .die.disabled {
     opacity: 0.3;

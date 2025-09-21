@@ -106,7 +106,8 @@ const AI_CONSTANTS = {
 class AIDecisionEngine {
     constructor() {
         this.config = null;
-        this.loadConfiguration();
+        // Expose a readiness promise so callers can await configuration
+        this.configReady = this.loadConfiguration();
     }
 
     /**
@@ -127,15 +128,9 @@ class AIDecisionEngine {
             const response = await fetch('ai-config.json');
             this.config = await response.json();
         } catch (error) {
-            console.warn('Could not load AI configuration, using defaults:', error);
-            // Use minimal config with just personality defaults
-            this.config = {
-                personalities: {
-                    aggression: {
-                        3: { attackBonus: 0, healPenalty: 0, vpBonus: 0 }
-                    }
-                }
-            };
+            console.warn('Could not load AI configuration, falling back to internal defaults:', error);
+            // Use comprehensive internal defaults to avoid undefined personality traits
+            this.config = this.getDefaultConfig();
         }
     }
 
@@ -196,10 +191,20 @@ class AIDecisionEngine {
      * @param {Object} gameState - Current game state including other players
      * @returns {Object} Decision object with action and dice to keep
      */
-    makeRollDecision(currentDice, rollsRemaining, player, gameState) {
+    async makeRollDecision(currentDice, rollsRemaining, player, gameState) {
+        // Ensure configuration is loaded (await if still pending)
         if (!this.config) {
-            // Fallback to simple behavior if config not loaded
-            return { action: 'reroll', keepDice: [], reason: 'Config not loaded' };
+            try {
+                if (this.configReady) {
+                    await this.configReady;
+                }
+            } catch (e) {
+                console.warn('Config load promise rejected, using defaults');
+                this.config = this.getDefaultConfig();
+            }
+        }
+        if (!this.config) {
+            this.config = this.getDefaultConfig();
         }
 
         console.log(`🧠 AI Decision for ${player.monster.name}:`, {
@@ -229,7 +234,7 @@ class AIDecisionEngine {
         }
 
         // Make final decision with enhanced risk assessment
-        const decision = this.makeKeepDecisionEnhanced(diceEvaluations, rollsRemaining, player, situation, probabilities);
+        const decision = await this.makeKeepDecisionEnhanced(diceEvaluations, rollsRemaining, player, situation, probabilities);
         console.log(`🧠 Enhanced final decision:`, decision);
 
         return decision;
@@ -399,23 +404,249 @@ class AIDecisionEngine {
      */
     getPowerCardEffect(cardName) {
         const effects = {
-            'Energize': 'Gain energy at start of turn',
-            'Heal': 'Gain health at start of turn', 
-            'Extra Head': 'Roll extra die',
-            'It Has a Child': 'Gain VP when not attacking',
-            'Complete Destruction': 'Extra damage potential',
-            'Nuclear Power Plant': 'Energy from other players\' energy',
-            'Dedicated News Team': 'Energy from victory points',
-            'Acid Attack': 'Extra attack damage',
-            'Fire Breathing': 'Attack all players',
-            'Giant Brain': 'Extra energy and attack',
-            'Friend of Children': 'VP from staying out of Tokyo',
-            'Evacuation Orders': 'VP from others entering Tokyo',
-            'Opportunist': 'VP from others\' misfortune'
+            'alien-metabolism': 'Buy cards cost 1 less energy (min 1)',
+            'armor-plating': 'Ignore 1 damage each turn',
+            'background-dweller': 'Access to hidden cards',
+            'camouflage': 'Cannot be attacked when outside Tokyo',
+            'complete-destruction': 'Gain extra points on destroying a monster',
+            'corner-store': 'Start turn with +1 energy',
+            'dedicated-news-team': 'Gain extra points when attacking',
+            'energy-hoarder': 'Gain +1 energy when not buying cards',
+            'even-bigger': 'Gain extra points when attacking',
+            'extra-head': 'Increase max health',
+            'fire-breathing': 'Deal extra damage to all when attacking',
+            'friend-of-children': 'You don\'t take damage when yielding Tokyo',
+            'giant-brain': 'Increase hand limit / planning advantage',
+            'healing-ray': 'Spend energy to heal',
+            'herbivore': 'Cannot attack, gain points each turn',
+            'it-has-a-child': 'Gain VP at start of turn',
+            'jets': 'Spend energy to avoid losing points when leaving Tokyo',
+            'made-in-a-lab': 'Bonus points when certain conditions met',
+            'metamorphosis': 'Spend energy to heal and gain VP',
+            'nova-breath': 'Spend energy to gain extra attack die',
+            'parasitic-tentacles': 'Steal energy when you damage others',
+            'solar-powered': 'Gain energy when outside Tokyo',
+            'urbavore': 'Gain VP each turn in Tokyo',
+            'wings': 'Leave Tokyo without taking damage'
         };
-        
+
         return effects[cardName] || 'Unknown effect';
     }
+
+    /**
+     * Evaluate target player's power-card modifiers asynchronously.
+     * Returns an object with modifiers to adjust attack utility and kill estimates.
+     * This function is non-blocking to callers; callers can use the sync wrapper
+     * which returns cached/default modifiers immediately.
+     */
+    async evaluateTargetPowerModifiersAsync(player, options = {}) {
+        // options: { strategyLevel: 0..1, considerShop: bool }
+        const strategy = (options.strategyLevel == null) ? (player?.monster?.personality?.strategy || 3) / 5 : Math.max(0, Math.min(1, options.strategyLevel));
+
+        // Default modifiers
+        const modifiers = {
+            damageReduction: 0,
+            yieldProtection: false,
+            isUntargetable: false,
+            attackUtilityMultiplier: 1,
+            attackPriorityDelta: 0,
+            healPossible: false,
+            extraHP: 0,
+            canBlockDamageWithEnergy: false,
+            shopInfluences: []
+        };
+
+        // --- Per-turn cache ---
+        try {
+            // Initialize cache store on the engine instance
+            if (!this._ttCache) this._ttCache = { lastTurnKey: null, map: new Map() };
+
+            // Determine a stable per-turn key using global game state when available
+            let turnKey = null;
+            if (window && window.game && window.game.currentPlayerTurn && window.game.currentPlayerTurn.id) {
+                turnKey = `turn:${window.game.currentPlayerTurn.id}`;
+            } else if (window && window.game && window.game.currentRound && typeof window.game.currentPlayerIndex === 'number') {
+                turnKey = `round:${window.game.currentRound.roundNumber}:p${window.game.currentPlayerIndex}`;
+            } else {
+                // Fallback to a coarse timestamp per 2-second window to avoid unbounded caching
+                turnKey = `time:${Math.floor(Date.now() / 2000)}`;
+            }
+
+            // Compose cache id for this player
+            const cacheId = `${turnKey}::player:${player && player.id ? player.id : (player && player.monster && player.monster.name) || 'unknown'}`;
+
+            // If there's a cached value for this player for this turn, return it immediately
+            const cached = this._ttCache.map.get(cacheId);
+            if (cached && cached.turnKey === turnKey && cached.modifiers) {
+                // Lightweight instrumentation
+                if (window && window.UI && window.UI._debug) window.UI._debug(`AI cache hit for ${cacheId}`);
+                return Object.assign({}, cached.modifiers);
+            }
+
+            // Otherwise continue to compute and will store below
+        } catch (cacheErr) {
+            console.warn('AI per-turn cache check failed', cacheErr);
+        }
+
+        // Try to get local game/shop data from global 'game' if available
+        try {
+            const owned = (player && (player.powerCards || player.cards || player.ownedCards)) || [];
+
+            // Map known config ids to semantic effects
+            const applyCard = (card) => {
+                if (!card || !card.effect) return;
+                const eff = card.effect;
+                switch (eff.target) {
+                    case 'yieldProtection':
+                        modifiers.yieldProtection = true;
+                        modifiers.attackUtilityMultiplier *= 0.5;
+                        modifiers.attackPriorityDelta -= 2;
+                        break;
+                    case 'damageReduction':
+                        modifiers.damageReduction += (eff.value || 1);
+                        modifiers.attackUtilityMultiplier *= Math.max(0.25, 1 - 0.15 * (eff.value || 1));
+                        break;
+                    case 'outsideTokyoImmunity':
+                        modifiers.isUntargetable = true;
+                        modifiers.attackUtilityMultiplier = 0;
+                        break;
+                    case 'maxHealth':
+                        modifiers.extraHP += (eff.value || 0);
+                        break;
+                    case 'heal':
+                        modifiers.healPossible = true;
+                        modifiers.attackUtilityMultiplier *= 0.85;
+                        break;
+                    case 'pointProtection':
+                        modifiers.canBlockDamageWithEnergy = true;
+                        modifiers.attackUtilityMultiplier *= 0.6;
+                        break;
+                    case 'globalAttackBonus':
+                        modifiers.attackPriorityDelta += 2;
+                        break;
+                    case 'attackDice':
+                        modifiers.attackPriorityDelta += 1;
+                        break;
+                    case 'attackPoints':
+                        modifiers.attackPriorityDelta += 1;
+                        break;
+                    default:
+                        // No-op: prefer canonical effect.target mapping from config.json
+                }
+            };
+
+            // If _powerCardCatalog is available on this instance, use it; else try to read global config
+            const catalog = (this.catalog || (window && window.CONFIG && window.CONFIG.powerCards) || null);
+
+            // Normalize owned cards to card definitions when possible
+            for (const c of owned) {
+                let def = null;
+                if (!c) continue;
+                if (typeof c === 'string') {
+                    // try find in catalog
+                    if (catalog) def = catalog.find(x => x.id === c || x.name === c);
+                } else if (c.id) {
+                    def = c;
+                } else if (c.name && catalog) {
+                    def = catalog.find(x => x.name === c.name || x.id === c.name);
+                }
+                applyCard(def || c);
+            }
+
+            // Consider shop cards if strategy says to (and if game exposes available cards)
+            if (options.considerShop && strategy > 0.5 && window && window.game) {
+                const shop = window.game.availableCards || window.game.availablePowerCards || window.game.availableCards || [];
+                for (const sc of shop) {
+                    const def = sc;
+                    if (!def || !def.effect) continue;
+                    // If target can afford or almost afford protective card, reduce utility
+                    const cost = def.cost || (def.effect && def.effect.cost) || 0;
+                    const energy = player.energy || 0;
+                    if (def.effect.target === 'yieldProtection' && (energy >= cost - 1)) {
+                        modifiers.shopInfluences.push({ card: def.id || def.name, reason: 'yieldProtectionAvailable' });
+                        modifiers.attackUtilityMultiplier *= 0.7;
+                    }
+                    if (def.effect.target === 'damageReduction' && (energy >= cost - 1)) {
+                        modifiers.shopInfluences.push({ card: def.id || def.name, reason: 'damageReductionAvailable' });
+                        modifiers.attackUtilityMultiplier *= 0.85;
+                    }
+                }
+            }
+
+        } catch (e) {
+            console.warn('evaluateTargetPowerModifiersAsync failed', e);
+        }
+
+        // Store in per-turn cache before returning
+        try {
+            if (this._ttCache) {
+                const turnKey = (window && window.game && window.game.currentPlayerTurn && window.game.currentPlayerTurn.id)
+                    ? `turn:${window.game.currentPlayerTurn.id}`
+                    : (window && window.game && window.game.currentRound && typeof window.game.currentPlayerIndex === 'number')
+                        ? `round:${window.game.currentRound.roundNumber}:p${window.game.currentPlayerIndex}`
+                        : `time:${Math.floor(Date.now() / 2000)}`;
+                const cacheId = `${turnKey}::player:${player && player.id ? player.id : (player && player.monster && player.monster.name) || 'unknown'}`;
+                this._ttCache.map.set(cacheId, { turnKey, modifiers: Object.assign({}, modifiers), storedAt: Date.now() });
+                // Keep lastTurnKey for quick eviction if needed
+                this._ttCache.lastTurnKey = turnKey;
+                // Optional: prune cache if it grows too big
+                if (this._ttCache.map.size > 300) {
+                    // delete oldest entries (simple strategy)
+                    const keys = Array.from(this._ttCache.map.keys()).slice(0, 50);
+                    for (const k of keys) this._ttCache.map.delete(k);
+                }
+            }
+        } catch (cacheErr) {
+            console.warn('AI per-turn cache store failed', cacheErr);
+        }
+
+        return modifiers;
+    }
+
+    /**
+     * Synchronous wrapper that returns conservative defaults immediately and
+     * schedules async evaluation if needed. Callers that want exact modifiers
+     * can await evaluateTargetPowerModifiersAsync.
+     */
+    evaluateTargetPowerModifiers(player, options = {}) {
+        // Quick conservative defaults
+        const defaults = {
+            damageReduction: 0,
+            yieldProtection: false,
+            isUntargetable: false,
+            attackUtilityMultiplier: 1,
+            attackPriorityDelta: 0,
+            healPossible: false,
+            extraHP: 0,
+            canBlockDamageWithEnergy: false,
+            shopInfluences: []
+        };
+
+        // Try to return a cached value from the per-turn cache if available (synchronous fast path)
+        try {
+            if (this._ttCache) {
+                let turnKey = null;
+                if (window && window.game && window.game.currentPlayerTurn && window.game.currentPlayerTurn.id) {
+                    turnKey = `turn:${window.game.currentPlayerTurn.id}`;
+                } else if (window && window.game && window.game.currentRound && typeof window.game.currentPlayerIndex === 'number') {
+                    turnKey = `round:${window.game.currentRound.roundNumber}:p${window.game.currentPlayerIndex}`;
+                }
+                const cacheId = `${turnKey || 'time:null'}::player:${player && player.id ? player.id : (player && player.monster && player.monster.name) || 'unknown'}`;
+                const cached = this._ttCache.map.get(cacheId);
+                if (cached && cached.modifiers) {
+                    if (window && window.UI && window.UI._debug) window.UI._debug(`AI sync-cache hit for ${cacheId}`);
+                    return Object.assign({}, cached.modifiers);
+                }
+            }
+        } catch (syncCacheErr) {
+            // ignore and fall back to defaults
+        }
+
+        // Kick off async evaluation in background for better accuracy next time
+        this.evaluateTargetPowerModifiersAsync(player, options).catch(() => {});
+        return defaults;
+    }
+    
 
     /**
      * Advanced multi-player strategic analysis - predicts what other players might do
@@ -1273,28 +1504,52 @@ class AIDecisionEngine {
     playerDependsOnDice(player) {
         // Players in Tokyo depend on dice for attacks
         if (player.inTokyo) return true;
-        
-        // Players with dice-enhancing cards depend on dice
+
+        // Known dice-enhancing cards (fallback list)
         const diceCards = ['Extra Head', 'Giant Brain', 'Opportunist'];
-        const hasDiceCards = player.powerCards.some(card => diceCards.includes(card.name));
-        if (hasDiceCards) return true;
-        
+
+        // Try the centralized helper once (fast sync wrapper that may return cached modifiers)
+        try {
+            const mods = this.evaluateTargetPowerModifiers(player, { considerShop: false });
+            // If helper indicates extra dice or attack-dice capability, treat as dice-dependent
+            if (mods && (mods.extraDice || mods.attackDice || mods.rollProbabilityBonus)) return true;
+        } catch (e) {
+            // ignore and fall back to name-based detection below
+        }
+
+        // Fallback name-based detection (used only if helper doesn't provide dice info)
+        try {
+            if (player.powerCards && player.powerCards.some(card => diceCards.includes(card.name))) return true;
+        } catch (e) {
+            // Defensive: if player's powerCards isn't iterable, ignore
+        }
+
         // Players with low energy depend on dice for energy generation
-        if (player.energy <= 3) return true;
-        
+        if (typeof player.energy === 'number' && player.energy <= 3) return true;
+
         return false;
     }
 
     // Check if opponent can easily heal ailment tokens
     opponentCanEasilyHeal(opponent) {
-        // Check for healing cards
-        const healingCards = ['Regeneration', 'Healing Ray', 'Dedicated News Team'];
-        const hasHealingCards = opponent.powerCards.some(card => healingCards.includes(card.name));
-        if (hasHealingCards) return true;
-        
-        // Check if they're outside Tokyo (can heal with hearts)
-        if (!opponent.inTokyo && opponent.energy >= 2) return true;
-        
+        // Prefer centralized modifier evaluation to detect healing capability
+        try {
+            const mods = this.evaluateTargetPowerModifiers(opponent, { considerShop: false });
+            if (mods && mods.healPossible) return true;
+        } catch (e) {
+            // ignore and fall back to name-based checks
+        }
+
+        // Fallback: check common healing card names conservatively
+        try {
+            const healingCards = ['Regeneration', 'Healing Ray', 'Dedicated News Team'];
+            const hasHealingCards = opponent.powerCards && opponent.powerCards.some(card => healingCards.includes(card.name));
+            if (hasHealingCards) return true;
+        } catch (e) {}
+
+        // Check if they're outside Tokyo (can heal with hearts) or have energy to buy healing
+        if (!opponent.inTokyo && typeof opponent.energy === 'number' && opponent.energy >= 2) return true;
+
         return false;
     }
 
@@ -2196,7 +2451,7 @@ class AIDecisionEngine {
         return keepProbability >= 0.6; // Slightly higher threshold for better decisions
     }
 
-    makeKeepDecisionEnhanced(diceEvaluations, rollsRemaining, player, situation, probabilities) {
+    async makeKeepDecisionEnhanced(diceEvaluations, rollsRemaining, player, situation, probabilities) {
         const risk = this.assessPersonalityRisk(player.monster.personality, situation);
         const projectedOutcome = probabilities.projectedOutcomes;
         
@@ -2245,6 +2500,43 @@ class AIDecisionEngine {
                 confidence: 0.9
             };
         }
+
+        // Heuristic: If we already have a triple of one number but also have a pair
+        // of another number, prefer to hold the triple and reroll the other dice
+        // to try converting that pair into another triple (aggressive VP optimization).
+        // Example: 4x 'three' and 2x 'two' -> keep the 3s, reroll the 2s.
+        if (rollsRemaining > 0) {
+            const cs = probabilities.currentState || {};
+            const ones = cs.ones || 0;
+            const twos = cs.twos || 0;
+            const threes = cs.threes || 0;
+
+            const hasTriple = ones >= 3 || twos >= 3 || threes >= 3;
+            const hasOtherPair = (ones >= 2 && ones < 3) || (twos >= 2 && twos < 3) || (threes >= 2 && threes < 3);
+
+            if (hasTriple && hasOtherPair) {
+                // Find which face is the triple we should hold (prefer highest face)
+                let holdFace = null;
+                if (threes >= 3) holdFace = 'three';
+                else if (twos >= 3) holdFace = 'two';
+                else if (ones >= 3) holdFace = 'one';
+
+                if (holdFace) {
+                    const finalKeepDice = diceEvaluations
+                        .filter(d => d.face === holdFace)
+                        .map(d => d.index);
+
+                    if (finalKeepDice.length > 0) {
+                        return {
+                            action: 'reroll',
+                            keepDice: finalKeepDice,
+                            reason: `Holding ${holdFace} triple, rerolling other dice to convert pairs`,
+                            confidence: 0.8
+                        };
+                    }
+                }
+            }
+        }
         
         // Enhanced stopping conditions - much higher thresholds to prevent premature stopping
         if (totalValue >= 300 || currentValue >= 12) {
@@ -2264,7 +2556,226 @@ class AIDecisionEngine {
         }
         
         console.log(`🎲 DEBUG: Continue threshold: ${continueThreshold}, dice count: ${diceEvaluations.length}, risk: ${risk}`);
-        
+
+        // Evaluate expected victory points (EV) for a small set of candidate keep sets
+        // and choose the option that maximizes EV adjusted by risk tolerance.
+        if (rollsRemaining > 0) {
+            const totalDice = 6; // standard dice count
+
+            // Helper: compute expected VP when rerolling N dice given current counts
+            const expectedVPWhenRerolling = (currentCounts, rerollCount) => {
+                // For each face '1','2','3' compute expected contribution
+                const p = 1 / 6; // chance for a specific number on each die
+                let ev = 0;
+
+                ['1','2','3'].forEach(face => {
+                    const current = currentCounts[face] || 0;
+                    // Sum over possible successes from 0..rerollCount
+                    for (let k = 0; k <= rerollCount; k++) {
+                        // probability of k successes
+                        const comb = factorial(rerollCount) / (factorial(k) * factorial(rerollCount - k));
+                        const prob = comb * Math.pow(p, k) * Math.pow(1 - p, rerollCount - k);
+                        const finalCount = current + k;
+                        if (finalCount >= 3) {
+                            const basePoints = parseInt(face, 10);
+                            const extra = finalCount - 3;
+                            const points = basePoints + extra;
+                            ev += prob * points;
+                        }
+                    }
+                });
+
+                return ev;
+            };
+
+            // Small factorial helper
+            const factorial = (n) => n <= 1 ? 1 : n * factorial(n - 1);
+
+            // Build current counts from actual dice results
+            const currentDiceFaces = probabilities.currentState || {};
+            const currentCounts = {
+                '1': currentDiceFaces.ones || 0,
+                '2': currentDiceFaces.twos || 0,
+                '3': currentDiceFaces.threes || 0
+            };
+
+            // Generate candidate keep sets: keepAll, keepThrees, keepTwos, keepOnes, keepCurrent
+            const keptByFace = (face) => {
+                // keep indices of dice that currently match face
+                return diceEvaluations.filter(d => d.face === faceToName(face)).map(d => d.index);
+            };
+
+            const faceToName = (face) => {
+                // Accept '1','2','3' to names used in evaluateDiceEnhanced (one/two/three or '1'?)
+                // Our diceEvaluations use faces like 'one','two','three' earlier; probabilities.currentState uses ones/twos/threes.
+                // So map numeric string to word where needed for diceEvaluations comparisons.
+                const map = { '1': 'one', '2': 'two', '3': 'three' };
+                return map[face] || face;
+            };
+
+            // Count kept indices for each candidate using existing dice data
+            const candidates = [];
+
+            // Candidate: keep all current number-scoring dice (i.e., any that contribute to numbers)
+            const keepCurrent = diceEvaluations.map(d => d.index);
+            candidates.push({ label: 'keepCurrent', keep: keepCurrent });
+
+            // Candidate: keep only threes
+            const keepThrees = diceEvaluations.filter(d => d.face === 'three').map(d => d.index);
+            candidates.push({ label: 'keepThrees', keep: keepThrees });
+
+            // Candidate: keep only twos
+            const keepTwos = diceEvaluations.filter(d => d.face === 'two').map(d => d.index);
+            candidates.push({ label: 'keepTwos', keep: keepTwos });
+
+            // Candidate: keep only ones
+            const keepOnes = diceEvaluations.filter(d => d.face === 'one').map(d => d.index);
+            candidates.push({ label: 'keepOnes', keep: keepOnes });
+
+            // Candidate: keep none (reroll all)
+            candidates.push({ label: 'keepNone', keep: [] });
+
+            // Evaluate each candidate
+            const currentVP = this.calculateCurrentVPFromCounts(currentCounts);
+            let best = null;
+            // Evaluate candidates in sequence to allow awaiting power-card modifier checks for high-strategy CPUs
+            for (const c of candidates) {
+                const keptCount = c.keep.length;
+                const rerollCount = totalDice - keptCount;
+
+                // Build counts assuming kept dice are those kept (we'll approximate using currentCounts proportions)
+                // For simplicity, assume kept dice reflect currentCounts proportionally; better accuracy requires actual dice list.
+                const adjustedCounts = Object.assign({}, currentCounts);
+
+                // Expected VP after reroll
+                const ev = expectedVPWhenRerolling(adjustedCounts, rerollCount);
+
+                // Utility: EV adjusted by risk preference (risk 1-5). Higher risk adds weight to chance of improvement.
+                // Calculate simple improvement chance: ev > currentVP probability approximated by (ev - currentVP)/max(1,currentVP)
+                const improvementMetric = Math.max(0, ev - currentVP);
+                const riskFactor = (player?.monster?.personality?.risk || 3) - 3; // -2..+2
+                const utility = ev + (riskFactor * 0.5 * improvementMetric);
+
+                c.ev = ev;
+                // --- Attack/threat adjustment ---
+                // Compute probability to roll at least one attack across the reroll attempts (approx across remaining rolls)
+                const perDieAttackProb = 1 / 6;
+                const singleRollNoAttackProb = Math.pow(1 - perDieAttackProb, rerollCount);
+                // Approximate across remaining rolls: chance to get at least one attack in remaining attempts
+                const attackProbTotal = 1 - Math.pow(singleRollNoAttackProb, Math.max(1, rollsRemaining));
+
+                // Determine threat level from situation: prioritize attacking if someone in Tokyo is an immediate win threat
+                let attackPriority = 0; // 0..5
+                if (situation && situation.threats && situation.threats.length > 0) {
+                    // Find a player in Tokyo with highest threat
+                    const tokyoThreat = situation.threats.find(t => t.player && t.player.isInTokyo) || null;
+                    if (tokyoThreat) {
+                        const vp = tokyoThreat.player.victoryPoints || 0;
+                        if (tokyoThreat.isCritical || vp >= AI_CONSTANTS.THREAT_DETECTION.highVP) attackPriority = 5;
+                        else if (vp >= AI_CONSTANTS.THREAT_DETECTION.tokyoVP) attackPriority = 4;
+                        else attackPriority = Math.min(3, Math.max(1, Math.floor(tokyoThreat.level || 2)));
+                    }
+                }
+
+                // Extra incentive if this CPU is one point away from winning: prefer attacks that let you enter Tokyo on kill
+                const cpuNeedsVP = Math.max(0, (player?.victoryPoints || 0) - 0);
+                // If CPU is one point from winning, weight attacks higher
+                if ((player && player.victoryPoints >= 17) ) {
+                    attackPriority = Math.max(attackPriority, 4);
+                }
+
+                // Base attack value (how valuable is getting at least one attack? scale with priority)
+                const baseAttackValue = 3; // heuristic points-equivalent for a single attack in urgent contexts
+                let attackUtility = attackProbTotal * baseAttackValue * (1 + attackPriority * 0.25);
+
+                // Adjust attack utility based on known opponent power-cards and situation
+                let adjustedAttackUtility = attackUtility;
+                try {
+                    const tokyoThreat = situation && situation.threats ? situation.threats.find(t => t.player && t.player.isInTokyo) : null;
+                    if (tokyoThreat && tokyoThreat.player) {
+                        const victim = tokyoThreat.player;
+
+                        // For high-strategy monsters, await a more thorough modifier evaluation (may consult shop)
+                        const strategyLevel = (player && player.monster && player.monster.personality) ? player.monster.personality.strategy : 3;
+                        let modifiers = null;
+                        if (strategyLevel >= 4 && typeof this.evaluateTargetPowerModifiersAsync === 'function') {
+                            // await the async evaluator, pass considerShop for strategic players
+                            try {
+                                modifiers = await this.evaluateTargetPowerModifiersAsync(victim, { strategyLevel: strategyLevel / 5, considerShop: true });
+                                console.debug('[AI DEBUG] modifiers for victim', victim.id || victim.name, modifiers);
+                            } catch (e) {
+                                console.warn('AI: evaluateTargetPowerModifiersAsync failed', e);
+                                modifiers = this.evaluateTargetPowerModifiers(victim, { strategyLevel: strategyLevel / 5, considerShop: true });
+                            }
+                        } else {
+                            // Low-strategy: use fast synchronous conservative defaults
+                            modifiers = this.evaluateTargetPowerModifiers(victim, { strategyLevel: strategyLevel / 5, considerShop: false });
+                        }
+
+                        // Apply modifiers to adjust attack utility and expected damage
+                        if (modifiers) {
+                            if (modifiers.yieldProtection) adjustedAttackUtility *= (modifiers.attackUtilityMultiplier || 0.5);
+                            if (modifiers.canBlockDamageWithEnergy) adjustedAttackUtility *= (modifiers.attackUtilityMultiplier || 0.6);
+                            if (modifiers.isUntargetable) adjustedAttackUtility = 0;
+
+                            // Compute damage estimate considering damageReduction and extraHP
+                            const damageReduction = modifiers.damageReduction || 0;
+                            const currentKeptAttacks = c.keep ? diceEvaluations.filter(d => c.keep.includes(d.index) && d.face === 'attack').length : 0;
+                            const expectedFutureAttacks = perDieAttackProb * rerollCount * Math.max(1, rollsRemaining);
+                            const approxExpectedDamage = currentKeptAttacks + expectedFutureAttacks - damageReduction;
+                            const targetHealth = (victim.health || 10) + (modifiers.extraHP || 0);
+                            if (approxExpectedDamage >= Math.max(1, targetHealth - 1)) {
+                                adjustedAttackUtility *= 1.8;
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.warn('AI: error adjusting attack utility', e);
+                }
+
+                // Combine EV utility with adjusted attack utility, factoring risk preference
+                c.utility = utility + (adjustedAttackUtility * (1 + (riskFactor * 0.3)));
+
+                // Debug trace for candidate utilities
+                if (typeof console !== 'undefined' && console.debug) {
+                    console.debug('[AI DEBUG] candidate', c.label, {
+                        ev: c.ev,
+                        attackProbTotal,
+                        attackPriority,
+                        baseAttackValue,
+                        attackUtilityBeforeAdjust: attackUtility,
+                        attackUtilityAfterAdjust: adjustedAttackUtility,
+                        utilityBefore: utility,
+                        utilityFinal: c.utility
+                    });
+                }
+
+                if (!best || c.utility > best.utility) best = c;
+            }
+
+            if (best) {
+                // If best candidate is to keep all current scoring dice and it yields no reroll, consider ending
+                if (best.label === 'keepCurrent' && best.keep.length === totalDice) {
+                    return {
+                        action: 'endRoll',
+                        keepDice: best.keep,
+                        reason: `Best EV indicates stopping (${best.label})`,
+                        confidence: 0.8
+                    };
+                }
+
+                // If best implies keeping something and rerolling others, continue rolling
+                if (rollsRemaining > 0) {
+                    return {
+                        action: 'reroll',
+                        keepDice: best.keep,
+                        reason: `EV-based choice: ${best.label} (ev=${best.ev.toFixed(3)})`,
+                        confidence: 0.75
+                    };
+                }
+            }
+        }
+
         if (diceEvaluations.length < continueThreshold && rollsRemaining > 0) {
             return {
                 action: 'reroll',
@@ -2621,19 +3132,23 @@ class AIDecisionEngine {
 
     // Check if player has cards that provide Tokyo protection
     hasTokyoProtectionCards(player) {
-        if (!player.powerCards) return false;
-        
-        const protectionCards = [
-            'Jets', // Classic Tokyo protection
-            'Armor Plating', // Damage reduction
-            'Healing Ray', // Heal while in Tokyo
-            'Force Field', // Damage prevention
-            'Regeneration' // Ongoing healing
-        ];
-        
-        return player.powerCards.some(card => 
-            protectionCards.includes(card.name)
-        );
+        // Use the unified modifiers helper to determine if the player has protection
+        try {
+            const mods = this.evaluateTargetPowerModifiers(player, { considerShop: false });
+            if (mods) {
+                if (mods.isUntargetable) return true;
+                if (mods.canBlockDamageWithEnergy) return true;
+                if (mods.damageReduction && mods.damageReduction > 0) return true;
+                if (mods.healPossible) return true;
+            }
+        } catch (e) {
+            // ignore and fallback
+        }
+
+        // Fallback: conservative check against names
+        if (!Array.isArray(player.powerCards)) return false;
+        const protectionCards = [ 'Jets', 'Armor Plating', 'Healing Ray', 'Force Field', 'Regeneration' ];
+        return player.powerCards.some(card => protectionCards.includes(card.name));
     }
 
     // Evaluate the value of Tokyo protection cards based on strategy and health
@@ -2642,39 +3157,23 @@ class AIDecisionEngine {
         const strategy_trait = personality?.strategy || 3;
         const aggression = personality?.aggression || 3;
         const myHealth = player.health || 10;
-        
-        // Tokyo protection cards
-        const protectionCards = {
-            'Jets': { value: 70, reason: 'Jets provides excellent Tokyo protection' },
-            'Armor Plating': { value: 50, reason: 'Armor Plating reduces Tokyo damage' },
-            'Healing Ray': { value: 45, reason: 'Healing Ray allows healing in Tokyo' },
-            'Force Field': { value: 55, reason: 'Force Field prevents Tokyo damage' },
-            'Regeneration': { value: 40, reason: 'Regeneration provides ongoing healing' }
-        };
-        
-        if (!protectionCards[card.name]) {
-            return { value: 0, reason: '' };
+
+        // Use modifiers to score protection value instead of hardcoded card names
+        const mods = this.evaluateTargetPowerModifiers(player, { considerShop: false });
+        let value = 0;
+        let reason = '';
+
+        if (mods) {
+            if (mods.canBlockDamageWithEnergy) { value += 60; reason += 'Can pay to avoid points/leave Tokyo; '; }
+            if (mods.damageReduction && mods.damageReduction > 0) { value += 45 + (mods.damageReduction * 5); reason += `Damage reduction ${mods.damageReduction}; `; }
+            if (mods.healPossible) { value += 40; reason += 'Has healing potential; '; }
+            if (mods.isUntargetable) { value += 80; reason += 'Untargetable outside Tokyo; '; }
         }
-        
-        let value = protectionCards[card.name].value;
-        let reason = protectionCards[card.name].reason;
-        
-        // Strategic personalities value protection more highly
-        if (strategy_trait >= 4) {
-            value *= 1.5;
-            reason += ' - strategic personality prioritizes protection';
-        }
-        
-        // Low health players value protection extremely highly
-        if (myHealth <= 3) {
-            value *= 2.0;
-            reason += ` - critical with low health (${myHealth})`;
-        } else if (myHealth <= 5) {
-            value *= 1.3;
-            reason += ` - important with moderate health (${myHealth})`;
-        }
-        
-        // Aggressive personalities still value protection but less so
+
+        // Personality modifiers
+        if (strategy_trait >= 4) { value *= 1.25; reason += 'Strategic personality ups value; '; }
+        if (myHealth <= 3) { value *= 1.7; reason += `Critical low health (${myHealth}); `; }
+        else if (myHealth <= 5) { value *= 1.2; reason += `Moderate health (${myHealth}); `; }
         if (aggression >= 4 && myHealth > 5) {
             value *= 0.8;
             reason += ' - aggressive personality but still values protection';
@@ -3078,9 +3577,38 @@ class AIDecisionEngine {
     }
 
     hasAttackCards(player) {
-        if (!player.powerCards) return false;
-        
+        if (!player || !player.powerCards) return false;
+        // Prefer centralized modifiers to detect attack-enhancing cards
+        try {
+            const mods = this.evaluateTargetPowerModifiers(player, { considerShop: false });
+            if (mods) {
+                if (mods.attackUtilityMultiplier && mods.attackUtilityMultiplier > 1) return true;
+                if (mods.attackPriorityDelta && mods.attackPriorityDelta > 0) return true;
+            }
+        } catch (e) {
+            // ignore and fallback
+        }
+
+        // Fallback to per-card detection
         return player.powerCards.some(card => this.isAttackCard(card));
+    }
+
+    // ===== NUMBER DICE VP HELPER =====
+    // Calculates current VP contributed by number dice counts (1/2/3) following King of Tokyo rules:
+    // - A set of three of a number gives that number in VP (three 1s = 1 VP, three 2s = 2 VP, three 3s = 3 VP)
+    // - Each additional matching die beyond three adds +1 VP
+    // counts: { '1': n1, '2': n2, '3': n3 }
+    calculateCurrentVPFromCounts(counts) {
+        if (!counts) return 0;
+        let vp = 0;
+        ['1','2','3'].forEach(face => {
+            const c = counts[face] || 0;
+            if (c >= 3) {
+                const base = parseInt(face, 10); // 1,2,3
+                vp += base + (c - 3); // extra dice beyond 3 each add +1
+            }
+        });
+        return vp;
     }
 }
 

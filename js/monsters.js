@@ -114,7 +114,7 @@ async function loadMonsterConfiguration() {
                 }
                 
                 // Trigger event for UI to reload monsters if already initialized
-                if (typeof window !== 'undefined' && window.kingOfTokyoUI) {
+                if (typeof window !== 'undefined' && window.gameUI) {
                     window.dispatchEvent(new CustomEvent('monstersConfigLoaded'));
                     window.UI && window.UI._debug && window.UI._debug('🎭 Monster configuration loaded! Available monsters:', Object.keys(MONSTERS));
                     window.UI && window.UI._debug && window.UI._debug('🎭 Total monster count:', Object.keys(MONSTERS).length);

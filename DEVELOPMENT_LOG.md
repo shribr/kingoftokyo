@@ -77,6 +77,22 @@ This document provides a comprehensive technical chronicle of the King of Tokyo 
 - **CSS Architecture**: Grid-based layouts with responsive design patterns
 
 ---
+### Refactor Note (September 20, 2025)
+Global UI reference standardized to `window.gameUI`.
+ - Added deprecated alias `window.kingOfTokyoUI` (one-time console warning).
+ - Updated references in `index.html`, `monsters.js`, `js/ui/setup.js`, `game.js`.
+ - Documentation updated (`DEVELOPMENT_SUMMARY.md`).
+Reason: remove dual-global ambiguity and simplify cross-module access.
+
+### UX Enhancement (September 20, 2025)
+Contextual CPU thought bubble system expanded.
+ - Added attack-context bubbles: `targetTokyo` (attacker) and `underAttack` (Tokyo defender).
+ - Introduced player-relative positioning (configurable: from player or centered modal fallback).
+ - Added new settings (Settings > CPU Settings): position mode, duration multiplier (0.5x–2.0x), dim background toggle.
+ - Extended default display duration window (base ~3.2–4.8s before multipliers) for better readability.
+ - High-priority bubbles bypass throttle to ensure critical combat intent/defense messages appear.
+Technical: `showCPUThoughtBubble` now accepts options `{ highPriority, force }`, retrieves settings via `getThoughtBubbleSetting`, and uses `positionThoughtBubbleAtPlayer` when mode is `player`.
+
 
 ### Days 2-4: September 9-11, 2025 - Planning & Architecture Phase
 **Git Commits**: 0 commits - No development activity
@@ -238,6 +254,20 @@ class MonsterProfile {
 ---
 
 ### Day 8: September 14, 2025 - Core Systems Integration
+
+### Day 13: September 20, 2025 - Repo-wide AI Mode Cleanup
+**Summary**: Removed legacy "simple vs AI" mode, deleted UI toggles, and unified CPU behavior to a single AI-only execution path. Cleaned HTML, CSS, and JavaScript artifacts related to the old toggle.
+
+**Files Modified**:
+- `index.html` (removed `ai-mode-btn` toolbar button and `ai-mode-toggle` settings checkbox)
+- `css/modals.css` (removed ai-mode related styles)
+- `js/main.js` (removed `cpuRollDiceSimple`, `showSimpleCPUNotification`, `isAIModeEnabled`, and toggle helpers; `cpuRollDice` now always delegates to `cpuRollDiceAI`)
+- `config.json` (removed `enableAIMode` setting from `gameRules.ai`)
+
+**Notes**:
+- Left a single, generic `showCPUNotification(player, message)` helper to show short CPU action notifications.
+- Performed repo-wide search and static checks to ensure no remaining references to the removed toggle or simple CPU helpers.
+
 **Git Commits**: 8 commits focusing on system integration and polish
 
 #### Drag-and-Drop System (`2af7369`, `5a2ada4`, `565cd45`)
@@ -658,3 +688,53 @@ This development session showcased how human creativity and contextual understan
 - Comprehensive documentation of development process
 
 This session demonstrates the potential for effective human-AI collaboration in software development when proper communication strategies are employed.
+
+---
+
+### Day 13: September 20, 2025 - AI Consolidation, Async Integration, Caching, and Final Polishing
+**Git Commits**: Multiple incremental commits (feature, refactor, and fixes)
+
+#### Summary
+This day's work focused on consolidating duplicated power-card logic into a single authoritative helper, integrating asynchronous AI decision flows, fixing race conditions (Tokyo entry sequencing), improving CPU dice selection synchronization, enhancing AI UI layout, and adding a short-lived per-turn cache to keep CPU decision work efficient.
+
+#### Key Technical Changes
+- **Centralized Power-Card Semantics**: Introduced `evaluateTargetPowerModifiersAsync` and a sync wrapper `evaluateTargetPowerModifiers` in `js/ai-decisions.js`.
+    - Purpose: Return a single modifiers object describing effects like `damageReduction`, `yieldProtection`, `isUntargetable`, `attackUtilityMultiplier`, `attackPriorityDelta`, `healPossible`, `extraHP`, and `shopInfluences`.
+    - Behavior: Reads `player.powerCards` and consults `config.json`/global `window.CONFIG.powerCards` when available, falling back to conservative defaults.
+
+- **Per-Turn Cache for Modifiers**: Added a lightweight per-turn cache to avoid repeated expensive lookups during a multi-step CPU decision (stored on the AI engine instance as `_ttCache`).
+    - Keying: Uses `window.game.currentPlayerTurn.id` when present, falls back to `round:<roundNumber>:p<currentPlayerIndex>`, and finally to a coarse timestamp bucket.
+    - Eviction: Prunes oldest entries when the cache exceeds a size threshold; cache is refreshed each turn by keying semantics.
+
+- **Async Decision Flow**: Converted key AI decision paths to support async modifier evaluation.
+    - Converted `makeKeepDecisionEnhanced` to async so it can `await` modifier evaluations for higher-strategy monsters.
+    - Updated call-sites (e.g., `makeRollDecision`, `makeAIRollDecision` in `js/main.js`) to `await` AI decisions to ensure consistent behavior.
+
+- **CPU Dice Selection Synchronization**: Rewrote CPU dice selection to use DOM `data-die-id` attributes and to wait for dice animation `isRolling` flags before toggling dice selection. This removed timing flakiness that previously caused wrong keep/reroll behavior.
+
+- **Tokyo Entry Race Condition Fix**: Ensured mandatory Tokyo entry/exit logic runs only after dice effects are fully resolved by gating Tokyo entry behind `diceEffectsResolved` and moving entry handling to end-of-turn processing.
+
+- **AI Logic Flow UI & Minor CSS**: Updated AI mini-dice layout in AI logic flow panels to render horizontally and added `dice-outcome-container`/`dice-kept-container` flex tweaks for better readability.
+
+- **Repo-Wide Consolidation**: Replaced multiple scattered ad-hoc per-card checks in AI and game logic with calls to the centralized helper where safe to do so. Left a small number of game-critical UI prompts and debug helpers intact (e.g., Wings decision popup, debug card grants), but documented these as deliberate exceptions.
+
+#### Files Touched (high level)
+- `js/ai-decisions.js` — central helper, async integration, per-turn cache, EV-based evaluator enhancements, instrumented decision traces.
+- `js/main.js` — awaited AI decision flows, CPU dice selection DOM updates, minor UI instrumentation.
+- `js/game.js` — Tokyo entry reordering, damage resolution now consults modifiers helper when available, preserved UI prompt flows (Wings, ForcedStay) with safe fallbacks.
+- `js/dice.js` — die markup/data attribute updates to support stable CPU selection.
+- `css/modals.css` — AI logic flow dice layout tweaks.
+- `config.json` / `js/cards.js` — canonical card definitions used by helper; small references maintained.
+
+#### Testing / Validation
+- Ran static syntax checks across edited files (no syntax errors found).
+- Performed a repo-wide search to catalog remaining explicit name/id checks. Many were consolidated; a few game-critical checks remain intentionally (UI prompts, debug helpers).
+
+#### Next Steps (recommended)
+- Optional: Replace remaining AI-only name-list heuristics with modifier-based checks (fully completing the consolidation).
+- Optional: Replace the simple size-based cache prune with TTL-based eviction keyed to the game's turn lifecycle.
+- Manual runtime validation required: please run a CPU turn in the browser with DevTools open to verify:
+    - the CPU rerolls correctly on a `4×3 + 2×2` scenario, and
+    - the monsters-panel disappearance bug (if still present) with the added instrumentation logs.
+
+---
