@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="css/cards.css">
     <link rel="stylesheet" href="css/modals.css">
     <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/ai-logic-flow.css">
 </head>
 <body>
     <!-- Splash Screen -->
@@ -358,12 +359,15 @@
                     </div>
                 </div>
                 
-                <!-- AI Logic Flow Tab -->
+                <!-- AI Logic Flow Tab (New Hierarchical Visualization) -->
                 <div id="ai-logic-tab" class="tab-content">
                     <div class="game-log-entries">
-                        <h3>🧠 AI Decision Logic</h3>
-                        <div id="ai-log-content">
-                            <!-- AI decision logs will be populated here -->
+                        <h3>🧠 AI Logic Flow</h3>
+                        <div id="ai-logic-flow" class="ai-logic-flow-container">
+                            <div class="ai-flow-empty">No AI roll data yet.</div>
+                        </div>
+                        <div class="ai-logic-help">
+                            Click a round or player turn to expand. Each roll will soon include detailed reasoning, probability shifts, and how aggression/risk tolerance shaped choices.
                         </div>
                     </div>
                 </div>

@@ -5330,16 +5330,23 @@ body.dark-mode .quick-ref-item {
 
 /* CPU Thought Bubble System */
 .cpu-thought-bubble {
-    position: fixed !important; /* Changed to fixed positioning to avoid stacking context issues */
-    top: 30% !important; /* Position in the center area of the screen */
+    position: fixed !important; /* default fallback (centered) */
+    top: 30% !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
     min-width: 200px;
     max-width: 350px;
-    z-index: 3999 !important; /* Just below action-menu (4000) but above game content */
+    z-index: 3999 !important;
     pointer-events: none;
     --thought-bubble-anim-duration: 0.8s;
     animation: thoughtBubbleAppear var(--thought-bubble-anim-duration) cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Anchored variant (positioned near player). JS sets explicit top/left and removes centering transform */
+.cpu-thought-bubble.anchored {
+    top: auto !important; /* actual values overridden inline */
+    left: auto !important;
+    transform: none !important;
 }
 
 .thought-bubble-content {
@@ -5404,6 +5411,35 @@ body.dark-mode .quick-ref-item {
     bottom: auto;
     border-top: none;
     border-bottom: 12px solid rgba(255,255,255,0.8);
+}
+
+/* Tail-down uses base styles; class retained for semantics (no extra rules needed) */
+
+/* Horizontal tails */
+.tail-left .thought-bubble-content::after,
+.tail-right .thought-bubble-content::after,
+.tail-left .thought-bubble-content::before,
+.tail-right .thought-bubble-content::before { bottom: auto; top: 50%; transform: translateY(-50%); }
+
+.tail-left .thought-bubble-content::after {
+    left: -15px; right: auto; transform: none;
+    border: none; border-right: 15px solid var(--bubble-border-color);
+    border-top: 15px solid transparent; border-bottom: 15px solid transparent;
+}
+.tail-left .thought-bubble-content::before {
+    left: -11px; right: auto; transform: none;
+    border: none; border-right: 12px solid rgba(255,255,255,0.8);
+    border-top: 12px solid transparent; border-bottom: 12px solid transparent;
+}
+.tail-right .thought-bubble-content::after {
+    left: auto; right: -15px; transform: none;
+    border: none; border-left: 15px solid var(--bubble-border-color);
+    border-top: 15px solid transparent; border-bottom: 15px solid transparent;
+}
+.tail-right .thought-bubble-content::before {
+    left: auto; right: -11px; transform: none;
+    border: none; border-left: 12px solid rgba(255,255,255,0.8);
+    border-top: 12px solid transparent; border-bottom: 12px solid transparent;
 }
 
 

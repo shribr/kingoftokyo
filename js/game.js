@@ -2010,11 +2010,19 @@ class KingOfTokyoGame {
             return;
         }
 
-        // CRITICAL: Only handle Tokyo entry if dice have been resolved (i.e., a turn was actually completed)
-        // AND the player has explicitly ended their turn (not during dice resolution)
+    // CRITICAL: Normally only handle Tokyo entry if dice effects were resolved (turn completed).
+    // RULE CLARIFICATION: The FIRST player MUST enter Tokyo City at the end of their FIRST turn if it's empty,
+    // regardless of whether they attacked or any dice effects resolved. Attacking is irrelevant for this rule.
+    // We therefore bypass the diceEffectsResolved gate for that specific startup condition (Tokyo empty, round 1).
         if (!this.diceEffectsResolved) {
-            window.UI && window.UI._debug && window.UI._debug(`🚫 No Tokyo entry - dice effects not resolved yet (no actual turn taken)`);
-            return;
+            const noTokyoOccupants = (this.tokyoCity === null && (this.gameSettings.playerCount < 5 || this.tokyoBay === null));
+            const earlyGame = this.round === 1; // first round safeguard
+            if (!(noTokyoOccupants && earlyGame)) {
+                window.UI && window.UI._debug && window.UI._debug(`🚫 No Tokyo entry - dice effects not resolved yet (no actual turn taken)`);
+                return;
+            } else {
+                window.UI && window.UI._debug && window.UI._debug(`⚠️ Allowing early mandatory Tokyo entry despite diceEffectsResolved=false (startup corner case)`);
+            }
         }
 
         window.UI && window.UI._debug && window.UI._debug(`🏯 End-of-turn Tokyo entry check for ${currentPlayer.monster.name}:`);

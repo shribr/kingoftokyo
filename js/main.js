@@ -4350,68 +4350,17 @@ class KingOfTokyoUI {
             content.classList.remove('active');
         });
         document.getElementById(`${targetTab}-tab`).classList.add('active');
+
+        // If switching to AI Logic tab, trigger hierarchical render (new system)
+        if (targetTab === 'ai-logic') {
+            if (typeof this.renderAILogicFlow === 'function') {
+                this.renderAILogicFlow();
+            }
+        }
     }
 
-    // Add AI logic entry to the AI Logic Flow tab
-    addAILogicEntry(playerName, decision, analysis) {
-        // Feature flag: allow AI Logic Flow to be globally disabled (e.g., when shelved)
-        if (window.disableAILogicFlow) {
-            return; // Silently skip
-        }
-
-        // If required container elements missing, set flag to avoid repeated warnings and bail out
-        if (!this.elements.aiLogContent || !document.getElementById('ai-logic-tab')) {
-            if (!window._aiLogicDisabledLogged) {
-                console.info('AI Logic Flow disabled automatically (DOM elements not present).');
-                window._aiLogicDisabledLogged = true;
-            }
-            window.disableAILogicFlow = true;
-            return;
-        }
-
-        // (Optional) Verbose debug only if debugMode flag set
-        if (window.UI && window.UI.debugMode) {
-            console.debug('[AI LOGIC] addAILogicEntry', {
-                playerName,
-                hasAiLogContent: !!this.elements.aiLogContent
-            });
-        }
-
-        try {
-            const timestamp = new Date().toLocaleTimeString();
-            const gameState = this.game.getGameState();
-            const currentPlayer = this.game.getCurrentPlayer();
-            
-            // Parse the analysis to extract detailed information
-            const analysisData = this.parseAIAnalysis(analysis);
-            
-            // Get or create turn container for this player's current turn
-            const turnId = `turn-${gameState.round}-${currentPlayer.id}`;
-            let turnContainer = document.getElementById(turnId);
-            
-            if (!turnContainer) {
-                turnContainer = this.createTurnContainer(playerName, gameState, currentPlayer, turnId);
-                this.elements.aiLogContent.appendChild(turnContainer);
-            }
-            
-            // Add this roll as a child entry to the turn container
-            const rollNumber = this.getRollNumberFromContainer(turnContainer) + 1;
-            const rollEntry = this.createRollEntry(decision, analysisData, rollNumber, timestamp);
-            
-            const rollsContainer = turnContainer.querySelector('.ai-turn-rolls');
-            rollsContainer.appendChild(rollEntry);
-
-            // Update turn stats
-            this.updateTurnStats(turnContainer, decision, analysisData);
-        } catch (error) {
-            console.error('Error in AI Logic Flow logging:', error);
-        }
-        
-        // Auto-scroll to bottom if tab is active
-        if (document.getElementById('ai-logic-tab').classList.contains('active')) {
-            this.elements.aiLogContent.scrollTop = this.elements.aiLogContent.scrollHeight;
-        }
-    }
+    // Legacy addAILogicEntry retained as no-op for backward compatibility with older calls
+    addAILogicEntry() { /* deprecated: replaced by structured aiLogicFlow model & renderAILogicFlow() */ }
 
     createTurnContainer(playerName, gameState, currentPlayer, turnId) {
         const turnContainer = document.createElement('div');
@@ -6447,6 +6396,55 @@ class KingOfTokyoUI {
             console.log('🔍 DEBUG: Thought bubbles disabled in localStorage');
             return;
         }
+
+        // ------------------------------------------------------------------
+        // Pacing / Throttling Layer
+        // ------------------------------------------------------------------
+        // Goal: Reduce visual spam by rate limiting globally & per-player,
+        //        and capping simultaneous active bubbles.
+        // Assumptions (tunable constants):
+        const GLOBAL_MIN_INTERVAL = 900;      // ms between ANY two bubbles
+        const PER_PLAYER_MIN_INTERVAL = 2200; // ms between bubbles for same player
+        const MAX_GLOBAL_ACTIVE = 2;          // concurrent bubbles allowed
+        const MAX_PER_PLAYER_ACTIVE = 1;      // concurrent per player
+
+        // Lazy init pacing state container on UI instance
+        if (!this._thoughtBubbleState) {
+            this._thoughtBubbleState = {
+                lastShownTime: 0,
+                perPlayer: {},
+            };
+        }
+
+        const now = performance.now();
+        const state = this._thoughtBubbleState;
+        const playerState = state.perPlayer[player.id] || { lastShownTime: 0 };
+        const activeBubblesAll = document.querySelectorAll('.cpu-thought-bubble').length;
+        const activeBubblesPlayer = document.querySelectorAll(`.cpu-thought-bubble[data-player-id="${player.id}"]`).length;
+
+        // Hard caps first (visual saturation guard)
+        if (activeBubblesAll >= MAX_GLOBAL_ACTIVE) {
+            console.log('🔍 DEBUG: Skipping bubble (global active cap)');
+            return;
+        }
+        if (activeBubblesPlayer >= MAX_PER_PLAYER_ACTIVE) {
+            console.log('🔍 DEBUG: Skipping bubble (per-player active cap)');
+            return;
+        }
+
+        // Global pacing
+        if (now - state.lastShownTime < GLOBAL_MIN_INTERVAL) {
+            console.log('🔍 DEBUG: Skipping bubble (global interval)');
+            return;
+        }
+
+        // Per-player pacing (unless context marked as priority)
+        const priorityContext = ['attacking','damage','eliminated','critical'];
+        const isPriority = priorityContext.includes(context);
+        if (!isPriority && (now - playerState.lastShownTime < PER_PLAYER_MIN_INTERVAL)) {
+            console.log('🔍 DEBUG: Skipping bubble (per-player interval)');
+            return;
+        }
         
         // Find the player card container
         const playerCard = document.querySelector(`[data-player-id="${player.id}"]`);
@@ -6477,8 +6475,8 @@ class KingOfTokyoUI {
         console.log('🔍 DEBUG: Using phrase:', phrase);
         
         // Create thought bubble
-        const thoughtBubble = document.createElement('div');
-        thoughtBubble.className = 'cpu-thought-bubble floating';
+    const thoughtBubble = document.createElement('div');
+    thoughtBubble.className = 'cpu-thought-bubble floating anchored';
         thoughtBubble.setAttribute('data-player-id', player.id);
         
         const bubbleContent = document.createElement('div');
@@ -6523,6 +6521,10 @@ class KingOfTokyoUI {
 
     // Position near player card with directional tail
     this.positionThoughtBubbleNearPlayer(thoughtBubble, playerCard);
+
+        // Update pacing state timestamps once we actually show
+        state.lastShownTime = now;
+        state.perPlayer[player.id] = { lastShownTime: now };
         
         window.UI && window.UI._debug && window.UI._debug(`💭 ${player.monster.name} thinks: "${phrase}"`);
         
@@ -6626,24 +6628,84 @@ class KingOfTokyoUI {
         if (!playerCard) return this.ensureThoughtBubbleModal(thoughtBubble);
         const cardRect = playerCard.getBoundingClientRect();
         const bubbleRect = thoughtBubble.getBoundingClientRect();
-        // Default above card
-        let top = cardRect.top - bubbleRect.height - 12;
-        let left = cardRect.left + (cardRect.width / 2) - (bubbleRect.width / 2);
-        let direction = 'down'; // tail points downward toward card
-        // If not enough space above, place below
-        if (top < 10) {
-            top = cardRect.bottom + 12;
-            direction = 'up';
-        }
-        // Clamp horizontally
         const viewportWidth = window.innerWidth;
-        if (left < 8) left = 8;
-        if (left + bubbleRect.width > viewportWidth - 8) left = viewportWidth - bubbleRect.width - 8;
+        const viewportHeight = window.innerHeight;
+
+        // Attempt vertical placement first (above preferred, else below)
+        let direction = 'down';
+        let top = cardRect.top - bubbleRect.height - 12; // place above
+        let left = cardRect.left + (cardRect.width / 2) - (bubbleRect.width / 2);
+
+        const spaceAbove = cardRect.top;
+        const spaceBelow = viewportHeight - cardRect.bottom;
+
+        // Not enough space above?
+        if (top < 8) {
+            // Try below
+            if (spaceBelow >= bubbleRect.height + 20) {
+                top = cardRect.bottom + 12;
+                direction = 'up';
+            } else if (spaceAbove >= bubbleRect.height + 20) {
+                // Keep above but clamp
+                top = Math.max(8, cardRect.top - bubbleRect.height - 12);
+                direction = 'down';
+            } else {
+                // Vertical insufficient: switch to side placement
+                const spaceRight = viewportWidth - cardRect.right;
+                const spaceLeft = cardRect.left;
+                const placeRight = spaceRight >= bubbleRect.width + 30 || spaceRight > spaceLeft; // heuristic
+                if (placeRight) {
+                    left = cardRect.right + 12;
+                    top = cardRect.top + (cardRect.height / 2) - (bubbleRect.height / 2);
+                    direction = 'left'; // tail points left toward card
+                } else {
+                    left = cardRect.left - bubbleRect.width - 12;
+                    top = cardRect.top + (cardRect.height / 2) - (bubbleRect.height / 2);
+                    direction = 'right';
+                }
+            }
+        }
+
+        // If we chose vertical below earlier and still overflowing bottom, try switching to side
+        if ((direction === 'up' || direction === 'down') && (top + bubbleRect.height > viewportHeight - 8)) {
+            const spaceRight = viewportWidth - cardRect.right;
+            const spaceLeft = cardRect.left;
+            const placeRight = spaceRight >= bubbleRect.width + 30 || spaceRight > spaceLeft;
+            if (placeRight) {
+                left = cardRect.right + 12;
+                top = Math.min(Math.max(8, cardRect.top + (cardRect.height / 2) - (bubbleRect.height / 2)), viewportHeight - bubbleRect.height - 8);
+                direction = 'left';
+            } else {
+                left = cardRect.left - bubbleRect.width - 12;
+                top = Math.min(Math.max(8, cardRect.top + (cardRect.height / 2) - (bubbleRect.height / 2)), viewportHeight - bubbleRect.height - 8);
+                direction = 'right';
+            }
+        }
+
+        // Clamp horizontal for vertical placements
+        if (direction === 'up' || direction === 'down') {
+            if (left < 8) left = 8;
+            if (left + bubbleRect.width > viewportWidth - 8) left = viewportWidth - bubbleRect.width - 8;
+            // Recompute top for below when we picked up earlier
+            if (direction === 'up') {
+                top = Math.min(top, viewportHeight - bubbleRect.height - 8);
+            } else {
+                top = Math.max(8, top);
+            }
+        } else {
+            // Clamp side placement
+            if (top < 8) top = 8;
+            if (top + bubbleRect.height > viewportHeight - 8) top = viewportHeight - bubbleRect.height - 8;
+        }
+
         thoughtBubble.style.position = 'fixed';
         thoughtBubble.style.top = `${Math.round(top)}px`;
         thoughtBubble.style.left = `${Math.round(left)}px`;
         thoughtBubble.style.transform = 'none';
         thoughtBubble.style.zIndex = '3999';
+
+        // Remove prior tail direction classes (if reused in future repositioning logic)
+        ['tail-up','tail-down','tail-left','tail-right'].forEach(cls => thoughtBubble.classList.remove(cls));
         thoughtBubble.classList.add(`tail-${direction}`);
     }
     
@@ -7630,15 +7692,66 @@ class KingOfTokyoUI {
                     rollsRemaining: rollsRemaining,
                     rollNumber: rollNumber
                 });
+
+                // Async-capable decision handling
+                const faces = diceResults.map(d => d.face);
+                let decisionPromise;
+                let rawDecision;
+                try {
+                    rawDecision = this.aiEngine.makeRollDecision(faces, rollsRemaining, player, gameState);
+                } catch (e) {
+                    console.error('🚨 AI decision threw synchronously, falling back:', e);
+                }
+
+                const isPromise = rawDecision && typeof rawDecision.then === 'function';
+                if (isPromise) {
+                    decisionPromise = rawDecision;
+                } else {
+                    decisionPromise = Promise.resolve(rawDecision);
+                }
+
+                // Instrumentation container
+                if (!window.AIDecisionAsyncStats) {
+                    window.AIDecisionAsyncStats = { resolved: 0, timedOut: 0, errors: 0 };
+                }
+
+                const timeoutMs = 1200; // safety budget per roll
+                const timeoutToken = Symbol('decision-timeout');
+                const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(timeoutToken), timeoutMs));
+
+                Promise.race([decisionPromise, timeoutPromise])
+                    .then(result => {
+                        if (result === timeoutToken || !result) {
+                            window.AIDecisionAsyncStats.timedOut++;
+                            console.warn('⏱️ AI decision timeout – applying fallback heuristic');
+                            result = {
+                                action: rollsRemaining > 0 ? this.ACTIONS.REROLL : this.ACTIONS.END_ROLL,
+                                keepDice: [],
+                                confidence: 0.4,
+                                reason: 'Fallback after timeout'
+                            };
+                        } else {
+                            window.AIDecisionAsyncStats.resolved++;
+                        }
+                        this._processResolvedAIDecision(player, rollNumber, diceState, diceResults, gameState, result);
+                    })
+                    .catch(err => {
+                        window.AIDecisionAsyncStats.errors++;
+                        console.error('🚨 AI decision promise rejected, fallback engaged:', err);
+                        const fallback = {
+                            action: rollsRemaining > 0 ? this.ACTIONS.REROLL : this.ACTIONS.END_ROLL,
+                            keepDice: [],
+                            confidence: 0.3,
+                            reason: 'Fallback after error'
+                        };
+                        this._processResolvedAIDecision(player, rollNumber, diceState, diceResults, gameState, fallback);
+                    });
+                return; // Defer remainder until promise settles
                 
-                let decision = this.aiEngine.makeRollDecision(
-                    diceResults.map(d => d.face), // Just the face values
-                    rollsRemaining,
-                    player,
-                    gameState
-                );
+                // (Legacy synchronous path continues below if we didn't early return) 
                 
-                console.log('🔍 DEBUG: AI decision received:', decision);
+                let decision = rawDecision;
+                console.log('🔍 DEBUG: AI decision received (sync):', decision);
                 
                 console.log(`🧠 AI decision:`, decision);
                 this.showSimpleCPUNotification(player, `🧠 ${player.monster.name} ${decision.reason}`);
@@ -7675,7 +7788,7 @@ class KingOfTokyoUI {
                 
                 // Normalize and validate action
                 if (!decision || !decision.action) {
-                    console.warn('🤖 AI Action Validation: Missing or null action from decision, applying fallback END_ROLL', decision);
+                    console.warn('🤖 AI Action Validation: Missing or null action from decision (sync path), applying fallback END_ROLL', decision);
                     decision.action = this.ACTIONS.END_ROLL;
                 }
                 decision.action = this.normalizeAIAction(decision.action);
@@ -7724,6 +7837,346 @@ class KingOfTokyoUI {
             this.cpuRollDice(player, rollNumber + 1);
         }
     }
+
+    _processResolvedAIDecision(player, rollNumber, diceState, diceResults, gameState, decision) {
+        try {
+            if (!decision || typeof decision !== 'object') {
+                decision = { action: this.ACTIONS.END_ROLL, keepDice: [], confidence: 0.2, reason: 'Malformed decision fallback' };
+            }
+
+            // ================= AI LOGIC FLOW CAPTURE (Per Roll) =================
+            try {
+                // Lazy init top structure on UI instance
+                if (!this.aiLogicFlow) {
+                    this.aiLogicFlow = { rounds: [] };
+                }
+                // Determine round number from game state if available
+                const roundNumber = this.game && this.game.round ? this.game.round : 1;
+                let roundEntry = this.aiLogicFlow.rounds.find(r => r.roundNumber === roundNumber);
+                if (!roundEntry) {
+                    roundEntry = { roundNumber, created: Date.now(), turns: [] };
+                    this.aiLogicFlow.rounds.push(roundEntry);
+                }
+                // Player turn entry (one per player per round built incrementally)
+                let turnEntry = roundEntry.turns.find(t => t.playerId === player.id);
+                if (!turnEntry) {
+                    turnEntry = { playerId: player.id, playerName: player.monster?.name || `Player ${player.playerNumber}`, rolls: [], startTime: Date.now(), completed: false };
+                    roundEntry.turns.push(turnEntry);
+                }
+                // Dice faces array
+                const faces = diceResults.map(d => d.face);
+                // Compute kept indices from decision.keepDice (which stores indices) or derive from diceState
+                const kept = Array.isArray(decision.keepDice) ? [...decision.keepDice] : [];
+                // Snapshot of any analysis data we can derive
+                let analysisSnapshot = null;
+                try {
+                    analysisSnapshot = this.createDiceAnalysis ? this.createDiceAnalysis(diceResults, player, gameState) : null;
+                } catch (e) { /* swallow */ }
+                // Build roll record
+                const rollRecord = {
+                    rollNumber,
+                    time: Date.now(),
+                    dice: faces,
+                    keptIndices: kept,
+                    action: decision.action,
+                    confidence: decision.confidence,
+                    reason: decision.reason,
+                    rerollsRemaining: (gameState && gameState.rollsRemaining) || (this.aiEngine?.config?.maxRolls ? (this.aiEngine.config.maxRolls - rollNumber) : null),
+                    analysis: analysisSnapshot && {
+                        counts: analysisSnapshot.counts,
+                        category: analysisSnapshot.category,
+                        potential: analysisSnapshot.potentialOutcomes,
+                        summary: analysisSnapshot.summary
+                    }
+                };
+                // Attach raw per-face probabilities if AI engine captured them
+                try {
+                    if (this.aiEngine && Array.isArray(this.aiEngine._lastPerFaceProbabilities)) {
+                        rollRecord.perFaceProbabilities = this.aiEngine._lastPerFaceProbabilities;
+                    }
+                } catch(e) { /* ignore */ }
+                // Attach turn goal (if any) for transparency
+                try {
+                    if (player._aiTurnGoal) {
+                        rollRecord.goal = { ...player._aiTurnGoal };
+                    }
+                } catch(e) { /* ignore */ }
+                turnEntry.rolls.push(rollRecord);
+                // Flag completion if action ends rolling
+                if (decision.action !== this.ACTIONS.REROLL) {
+                    turnEntry.completed = true;
+                    turnEntry.endTime = Date.now();
+                    // Clear any lingering goal at end of rolling
+                    if (player._aiTurnGoal) delete player._aiTurnGoal;
+                }
+                // Trigger lightweight re-render for AI logic flow tab if visible
+                this.refreshAILogicFlowView && this.refreshAILogicFlowView(roundNumber, player.id);
+            } catch (flowErr) {
+                console.warn('AI Logic Flow capture error:', flowErr);
+            }
+            // ====================================================================
+
+            // Notification and confidence handling
+            this.showSimpleCPUNotification(player, `🧠 ${player.monster.name} ${decision.reason || ''}`);
+            if (decision.confidence > 0.8) this.showCPUThoughtBubble(player, 'confident', decision.reason);
+            else if (decision.confidence > 0.5) this.showCPUThoughtBubble(player, 'strategic', decision.reason);
+            else this.showCPUThoughtBubble(player, 'uncertain', decision.reason);
+
+            if (player.playerType === 'cpu') {
+                const diceAnalysis = this.createDiceAnalysis(diceResults, player, gameState);
+                this.addAILogicEntry(player.monster.name, decision, diceAnalysis);
+            }
+
+            if (decision.keepDice && decision.keepDice.length > 0) {
+                this.cpuSelectDice(decision.keepDice);
+            }
+
+            // Normalize & validate action
+            if (!decision.action) {
+                console.warn('🤖 AI Action Validation: Missing or null action from async decision, applying fallback END_ROLL');
+                decision.action = this.ACTIONS.END_ROLL;
+            }
+            decision.action = this.normalizeAIAction(decision.action);
+            if (!this.validateAIAction(decision.action)) {
+                decision.action = this.ACTIONS.END_ROLL;
+            }
+
+            if (decision.action === this.ACTIONS.REROLL) {
+                this.showCPUThoughtBubble(player, 'aggressive', decision.reason);
+                setTimeout(() => this.cpuRollDice(player, rollNumber + 1), this.getCPUThinkingTime('nextRoll'));
+            } else if (decision.action === this.ACTIONS.KEEP || decision.action === this.ACTIONS.END_ROLL) {
+                this.showSimpleCPUNotification(player, `✅ ${player.monster.name} ending turn...`);
+                setTimeout(() => {
+                    this.updateDiceControls();
+                    this.handleCPUPowerCardPhase(player);
+                }, this.getCPUThinkingTime('endTurn'));
+            } else {
+                console.warn(`🤖 Unknown AI action (async path): ${decision.action}, defaulting to end turn`);
+                setTimeout(() => {
+                    this.updateDiceControls();
+                    this.handleCPUPowerCardPhase(player);
+                }, this.getCPUThinkingTime('endTurn'));
+            }
+        } catch (e) {
+            console.error('🚨 Error processing resolved AI decision:', e);
+            setTimeout(() => this.cpuRollDice(player, rollNumber + 1), this.getCPUThinkingTime('nextRoll'));
+        }
+    }
+
+    // ================= AI LOGIC FLOW RENDERING =================
+    // Public method to rebuild entire AI Logic Flow tab content
+    renderAILogicFlow() {
+        const container = document.querySelector('#ai-logic-flow');
+        if (!container) return;
+        container.innerHTML = this.buildAILogicFlowHTML();
+        // Attach expand/collapse listeners
+        container.querySelectorAll('.ai-flow-round-header').forEach(el => {
+            el.addEventListener('click', () => {
+                el.parentElement.classList.toggle('collapsed');
+            });
+        });
+        container.querySelectorAll('.ai-flow-turn-header').forEach(el => {
+            el.addEventListener('click', () => {
+                el.parentElement.classList.toggle('collapsed');
+            });
+        });
+
+        // Populate dice using existing generic mini dice creator (supports symbols) after DOM inserted
+        container.querySelectorAll('.ai-flow-dice[data-dice]')?.forEach(dc => {
+            try {
+                const faces = JSON.parse(dc.getAttribute('data-dice')) || [];
+                const kept = JSON.parse(dc.getAttribute('data-kept') || '[]');
+                if (Array.isArray(faces) && faces.length) {
+                    this.createMiniDice(faces, dc, { baseClass: 'mini-die logic-flow-die', keptIndices: new Set(kept) });
+                }
+            } catch(e) {
+                console.warn('AI Logic Flow dice render error', e);
+            }
+        });
+    }
+
+    // Lightweight partial refresh after a new roll (optional optimization)
+    refreshAILogicFlowView(roundNumber, playerId) {
+        const container = document.querySelector('#ai-logic-flow');
+        if (!container || !this.aiLogicFlow) return;
+        // For simplicity now, full re-render (can optimize later)
+        this.renderAILogicFlow();
+    }
+
+    buildAILogicFlowHTML() {
+        if (!this.aiLogicFlow || this.aiLogicFlow.rounds.length === 0) {
+            return '<div class="ai-flow-empty">No AI roll data yet.</div>';
+        }
+        return this.aiLogicFlow.rounds
+            .sort((a,b)=>a.roundNumber-b.roundNumber)
+            .map(round => this.buildRoundHTML(round))
+            .join('');
+    }
+
+    buildRoundHTML(round) {
+        return `
+        <div class="ai-flow-round collapsed" data-round="${round.roundNumber}">
+            <div class="ai-flow-round-header">🆕 Round ${round.roundNumber} <span class="ai-flow-round-meta">${round.turns.length} turns</span></div>
+            <div class="ai-flow-round-body">
+                ${round.turns.map(t => this.buildTurnHTML(round, t)).join('')}
+            </div>
+        </div>`;
+    }
+
+    buildTurnHTML(round, turn) {
+        const duration = turn.endTime ? (turn.endTime - turn.startTime) : null;
+        const chainExplanation = this.buildTurnChainNarrative(turn);
+        return `
+        <div class="ai-flow-turn collapsed" data-player-id="${turn.playerId}">
+            <div class="ai-flow-turn-header">🐲 ${turn.playerName} <span class="ai-flow-turn-meta">${turn.rolls.length} roll(s)${duration?` • ${(duration/1000).toFixed(1)}s`:''}</span></div>
+            <div class="ai-flow-turn-body">
+                ${turn.rolls.map(r => this.buildRollHTML(turn, r)).join('')}
+                <div class="ai-flow-turn-chain">${chainExplanation}</div>
+            </div>
+        </div>`;
+    }
+
+    buildRollHTML(turn, roll) {
+        // Filter out null/undefined dice so we only show physical dice actually rolled
+        const faces = (roll.dice || []).filter(f => f !== null && f !== undefined);
+        const kept = roll.keptIndices || [];
+        const confClass = roll.confidence >= 0.8 ? 'high' : roll.confidence >= 0.5 ? 'med' : 'low';
+        const actionLabel = roll.action || '—';
+        const analysisCategory = roll.analysis?.category ? `<span class="ai-flow-tag cat">${roll.analysis.category}</span>` : '';
+        const analysisSummary = roll.analysis?.summary ? `<span class="ai-flow-summary">${roll.analysis.summary}</span>` : '';
+        const reasonLine = roll.reason ? `<div class="ai-flow-reason-line" title="${roll.reason}">${roll.reason}</div>` : '';
+        const analysisLine = (analysisCategory || analysisSummary) ? `<div class="ai-flow-analysis-line">${analysisCategory} ${analysisSummary}</div>` : '';
+        const narrative = this.buildRollNarrative(turn, roll, faces, kept);
+        const probChart = this.buildRollProbabilityChart(turn, roll, faces, kept);
+        return `
+        <div class="ai-flow-roll">
+            <div class="ai-flow-roll-header">
+                <span class="ai-flow-roll-number">Roll ${roll.rollNumber}</span>
+                <span class="ai-flow-action"><strong>${actionLabel}</strong></span>
+                <span class="ai-flow-confidence ${confClass}">${(roll.confidence*100).toFixed(0)}%</span>
+            </div>
+            <div class="ai-flow-dice-row">
+                <div class="ai-flow-dice" data-dice='${JSON.stringify(faces)}' data-kept='${JSON.stringify(kept)}'></div>
+            </div>
+            ${reasonLine}
+            ${analysisLine}
+            <div class="ai-flow-narrative">${narrative}</div>
+            ${probChart}
+        </div>`;
+    }
+
+    buildRollNarrative(turn, roll, faces, kept) {
+        try {
+            const playerName = turn.playerName;
+            const risk = (roll.analysis?.riskTolerance != null) ? roll.analysis.riskTolerance : (turn.riskTolerance || this.aiEngine?.config?.personality?.riskTolerance || 0.5);
+            const aggression = (roll.analysis?.aggression != null) ? roll.analysis.aggression : (turn.aggression || this.aiEngine?.config?.personality?.aggression || 0.5);
+            const riskDescriptor = risk >= 0.75 ? 'high risk tolerance' : risk >= 0.55 ? 'moderate risk appetite' : risk >= 0.35 ? 'balanced caution' : 'very cautious stance';
+            const aggressionDescriptor = aggression >= 0.75 ? 'very aggressive posture' : aggression >= 0.55 ? 'assertive approach' : aggression >= 0.35 ? 'measured stance' : 'defensive posture';
+            const keptFaces = kept.map(i => faces[i]).filter(v => v !== undefined);
+            const diceHTML = faces.map((f,i)=> this.renderMiniDie ? this.renderMiniDie(f, kept.includes(i)) : f).join('');
+            const keptHTML = keptFaces.map(f => this.renderMiniDie ? this.renderMiniDie(f, true) : f).join('');
+
+            // Outcome emphasis
+            const action = roll.action || 'undecided';
+            const reason = roll.reason || roll.analysis?.summary || '';
+
+            // Basic probability delta placeholder (future enhancement)
+            const probInfo = roll.analysis?.probabilityShift ? ` Probability focus shifted toward ${this.inlineFaceList(roll.analysis.probabilityShift.targets || [])}.` : '';
+
+            let keptClause = keptHTML ? ` kept ${keptHTML} ` : ' kept no dice ';
+            let base;
+            if (roll.rollNumber === 1) {
+                base = `After the initial roll, ${playerName}${keptClause}while adopting a ${riskDescriptor} with an ${aggressionDescriptor}.`;
+            } else {
+                base = `After seeing the result of roll ${roll.rollNumber}, ${playerName}${keptClause}to pursue the '${action}' plan.`;
+            }
+            let because = reason ? ` This decision was made because ${this.simplifyReason(reason)}.` : '';
+            if (roll.goal && roll.goal.face) {
+                const goalFaceDisp = this.renderMiniDie ? this.renderMiniDie(roll.goal.face, true) : roll.goal.face;
+                because += ` Pursuing goal set of ${goalFaceDisp}.`;
+            }
+            let riskAgg = ` Their current mindset blends ${riskDescriptor} and ${aggressionDescriptor}, influencing the evaluation of reroll value vs. locking gains.`;
+            return `${base}${because}${probInfo} ${riskAgg} <div class="ai-flow-inline-dice-seq">${diceHTML}</div>`;
+        } catch(e) {
+            return '';
+        }
+    }
+
+    inlineFaceList(arr) {
+        if (!Array.isArray(arr) || !arr.length) return '';
+        return arr.map(f => this.renderMiniDie ? this.renderMiniDie(f,false) : f).join('');
+    }
+
+    simplifyReason(reason) {
+        if (!reason) return '';
+        return reason
+            .replace(/\bprobability\b/ig,'chance')
+            .replace(/\boptimization\b/ig,'better outcome')
+            .replace(/\bvector\b/ig,'path')
+            .replace(/\bexpected value\b/ig,'expected payoff');
+    }
+
+    buildRollProbabilityChart(turn, roll, faces, kept) {
+        try {
+            const perFace = roll.perFaceProbabilities;
+            if (!Array.isArray(perFace) || !perFace.length) return '';
+            // Aggregate by logical category
+            const agg = { attack:[], energy:[], heart:[], one:[], two:[], three:[] };
+            const mapFace = f => {
+                if (f==='1'||f==='one') return 'one';
+                if (f==='2'||f==='two') return 'two';
+                if (f==='3'||f==='three') return 'three';
+                if (f==='attack'||f==='claw') return 'attack';
+                if (f==='energy'||f==='⚡') return 'energy';
+                if (f==='heart'||f==='❤'||f==='❤️') return 'heart';
+                return null;
+            };
+            perFace.forEach(p => {
+                const cat = mapFace(p.face);
+                if (cat && agg[cat]) agg[cat].push(p.keepProbability);
+            });
+            const rows = Object.entries(agg)
+                .filter(([_,arr])=>arr.length>0)
+                .map(([k,arr])=>({ key:k, avg: arr.reduce((a,b)=>a+b,0)/arr.length }));
+            if (!rows.length) return '';
+            // Normalize widths to max among averages for relative emphasis
+            const maxAvg = Math.max(...rows.map(r=>r.avg));
+            const htmlRows = rows.map(r => {
+                const rel = maxAvg>0 ? (r.avg / maxAvg) : 0;
+                const pct = rel * 100;
+                const valPct = (r.avg*100).toFixed(0);
+                return `<div class="ai-flow-prob-row"><div class="ai-flow-prob-label">${r.key}</div><div class="ai-flow-prob-bar-wrap"><div class="ai-flow-prob-bar" style="width:${pct.toFixed(1)}%"></div></div><div class="ai-flow-prob-val">${valPct}%</div></div>`;
+            }).join('');
+            return `<div class="ai-flow-prob-chart">${htmlRows}</div>`;
+        } catch(e) {
+            return '';
+        }
+    }
+
+    buildTurnChainNarrative(turn) {
+        try {
+            if (!turn.rolls || turn.rolls.length < 2) return '';
+            const parts = [];
+            turn.rolls.forEach((r,i) => {
+                const faces = (r.dice||[]).filter(f=>f!=null);
+                const keptFaces = (r.keptIndices||[]).map(idx=>faces[idx]).filter(f=>f!==undefined);
+                const keptHTML = keptFaces.map(f=> this.renderMiniDie ? this.renderMiniDie(f,true) : f).join('');
+                const action = r.action || 'undecided';
+                const reason = r.reason ? this.simplifyReason(r.reason) : '';
+                const clause = `After roll ${r.rollNumber}, kept ${keptHTML || 'nothing'} aiming for '${action}'${reason?` because ${reason}`:''}.`;
+                parts.push(clause);
+            });
+            const summary = parts.join(' Then, ');
+            return `<strong>Roll Sequence:</strong> ${summary}`;
+        } catch(e) { return ''; }
+    }
+
+    renderMiniDie(face, kept) { // Legacy helper (still used elsewhere maybe)
+        const cls = this.getDiceFaceClass ? this.getDiceFaceClass(face) : `face-${face}`;
+        const display = this.getDiceFaceDisplay ? this.getDiceFaceDisplay(face) : face;
+        return `<span class="mini-die logic-flow-die ${cls} ${kept?'kept':''}" data-face="${face}">${display}</span>`;
+    }
+    // ================= END AI LOGIC FLOW RENDERING =================
 
     // Handle CPU power card purchasing phase with defensive strategies
     handleCPUPowerCardPhase(player) {
@@ -8416,23 +8869,29 @@ class KingOfTokyoUI {
     }
 
     // Generic function to create mini dice displays in any container
-    createMiniDice(rolls, diceContainer, animationClass = null) {
+    createMiniDice(rolls, diceContainer, options = null) {
         if (!diceContainer) {
             console.warn('createMiniDice: No dice container provided');
             return;
         }
-        
-        // Clear existing content
+        const defaults = { animationClass: null, baseClass: 'mini-die', keptIndices: null };
+        if (options && typeof options === 'string') { // backward compat: animationClass string
+            options = { animationClass: options };
+        }
+        const cfg = Object.assign({}, defaults, options || {});
+
         diceContainer.innerHTML = '';
-        
-        // Create mini dice displays like in game log
-        rolls.forEach(roll => {
+        rolls.forEach((roll, idx) => {
             const die = document.createElement('div');
-            die.className = roll === 6 ? 'mini-die attack' : 'mini-die';
-            if (animationClass) {
-                die.classList.add(animationClass);
+            const symbolic = this.getDieFaceSymbol(roll);
+            let cls = cfg.baseClass;
+            if (roll === 6) cls += ' attack';
+            if (cfg.animationClass) cls += ' ' + cfg.animationClass;
+            if (cfg.keptIndices && cfg.keptIndices.has && cfg.keptIndices.has(idx)) {
+                cls += ' kept';
             }
-            die.textContent = this.getDieFaceSymbol(roll);
+            die.className = cls;
+            die.textContent = symbolic;
             diceContainer.appendChild(die);
         });
     }
