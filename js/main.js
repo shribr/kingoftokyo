@@ -6433,7 +6433,7 @@ class KingOfTokyoUI {
     }
 
     // CPU Thinking System
-    showCPUThoughtBubble(player, context = 'general') {
+    showCPUThoughtBubble(player, context = 'general', decisionReason = null) {
         console.log('🔍 DEBUG: showCPUThoughtBubble called:', player.monster.name, context);
         
         if (player.playerType !== 'cpu') {
@@ -6467,7 +6467,7 @@ class KingOfTokyoUI {
         }
         
         // Get context-appropriate phrase
-        const phrase = this.getCPUThoughtPhrase(player, context);
+        const phrase = this.getCPUThoughtPhrase(player, context, decisionReason);
         if (!phrase) {
             // Detailed failure already logged inside getCPUThoughtPhrase; emit lightweight debug only
             window.UI && window.UI._debug && window.UI._debug(`💭 No phrase produced for context '${context}'`);
@@ -6690,10 +6690,10 @@ class KingOfTokyoUI {
         }
     }
     
-    getCPUThoughtPhrase(player, context) {
+    getCPUThoughtPhrase(player, context, decisionReason = null) {
         // Initialize global stats container
         if (!window.AIUIThoughtStats) {
-            window.AIUIThoughtStats = { unknownContexts: {}, lastContext: null, failures: {}, totalRequests: 0 };
+            window.AIUIThoughtStats = { unknownContexts: {}, lastContext: null, failures: {}, totalRequests: 0, phraseSelections: 0, contextSwitches: 0, cooldownEvents: 0 };
         }
         window.AIUIThoughtStats.totalRequests++;
 
@@ -6726,10 +6726,28 @@ class KingOfTokyoUI {
             };
         }
         const profile = player.monster.profile;
+
+        // Initialize per-player phrase history store
+        if (!this._playerPhraseHistory) this._playerPhraseHistory = new Map();
+        if (!this._playerPhraseHistory.has(player.id)) {
+            this._playerPhraseHistory.set(player.id, { phrases: [], contexts: [], lastContextTime: {}, lastUsed: {} });
+        }
+        const history = this._playerPhraseHistory.get(player.id);
         const gameState = this.game?.getCurrentGameState ? this.game.getCurrentGameState() : {};
         
         // Context-specific phrase collections
-        const phrases = {
+        // Load external phrase packs lazily (once)
+        if (!this._externalPhrasesRequested && !this._externalPhrasesLoaded) {
+            this._externalPhrasesRequested = true;
+            // Fire and forget async load
+            fetch('ai-phrases.json').then(r => r.ok ? r.json() : null).then(data => {
+                if (data && typeof data === 'object') {
+                    this._mergeExternalPhrases(data);
+                }
+            }).catch(() => {/* swallow */});
+        }
+
+        const phrases = this._basePhrases || (this._basePhrases = {
             general: [
                 "Let me think about this...",
                 "What's the best move here?",
@@ -6862,10 +6880,25 @@ class KingOfTokyoUI {
                 "Analyzing the roll...",
                 "Simulating possibilities..."
             ]
-        };
+        });
         
         // Determine appropriate context based on game state
         let selectedPhrases = phrases.general;
+
+        // Context cooldown (avoid repeating same context too soon)
+        const now = Date.now();
+        const contextCooldownMs = 2500; // configurable
+        if (history.lastContextTime[context] && (now - history.lastContextTime[context] < contextCooldownMs)) {
+            // Try to switch to a related but different context
+            window.AIUIThoughtStats.cooldownEvents++;
+            const altContexts = ['general','strategic','planning','analyzing'];
+            const candidate = altContexts.find(c => c !== context && phrases[c]);
+            if (candidate) {
+                history.contexts.push(candidate);
+                context = candidate;
+                window.AIUIThoughtStats.contextSwitches++;
+            }
+        }
 
         // Initialize metrics container once
         if (!window.AIUIThoughtStats) {
@@ -6914,10 +6947,57 @@ class KingOfTokyoUI {
             return null;
         }
 
-        const basePhrase = selectedPhrases[Math.floor(Math.random() * selectedPhrases.length)];
+        // Personality weighting: bias selection list based on traits (duplicate some phrases)
+        const weighted = [];
+        selectedPhrases.forEach(p => {
+            weighted.push(p);
+            if (profile.strategy >= 4 && (context === 'strategic' || context === 'analyzing')) weighted.push(p);
+            if (profile.aggression >= 4 && context === 'aggressive') weighted.push(p);
+            if (profile.risk >= 4 && (context === 'confident' || context === 'aggressive')) weighted.push(p);
+        });
+        const pool = weighted.length > 0 ? weighted : selectedPhrases;
+
+        // Phrase de-dup: avoid last N repeats
+        const recentLimit = 4;
+        const recent = history.phrases.slice(-recentLimit);
+        let attempt = 0;
+        let basePhrase;
+        do {
+            basePhrase = pool[Math.floor(Math.random() * pool.length)];
+            attempt++;
+        } while (recent.includes(basePhrase) && attempt < 6);
+
         const personalized = this.personalizePhrase(basePhrase, profile);
+
+        // Optionally append rationale snippet
+        if (decisionReason && Math.random() < 0.45) {
+            const trimmed = ('' + decisionReason).split(/[.!?]/)[0].slice(0, 80).trim();
+            if (trimmed && trimmed.length > 10) {
+                return `${personalized} (${trimmed}…)`;
+            }
+        }
+
+        // Update history & instrumentation
+        history.phrases.push(basePhrase);
+        history.contexts.push(context);
+        history.lastContextTime[context] = now;
+        history.lastUsed[basePhrase] = now;
         window.AIUIThoughtStats.lastContext = context;
+        window.AIUIThoughtStats.phraseSelections++;
         return personalized;
+    }
+
+    _mergeExternalPhrases(external) {
+        if (!external) return;
+        this._externalPhrasesLoaded = true;
+        if (!this._basePhrases) return; // will be merged next access
+        Object.keys(external).forEach(ctx => {
+            if (!Array.isArray(external[ctx])) return;
+            if (!this._basePhrases[ctx]) this._basePhrases[ctx] = [];
+            // Merge unique
+            const set = new Set(this._basePhrases[ctx]);
+            external[ctx].forEach(p => { if (typeof p === 'string' && !set.has(p)) { set.add(p); this._basePhrases[ctx].push(p); } });
+        });
     }
 
     _logThoughtFailure(type, originalContext, normalizedContext, player) {
