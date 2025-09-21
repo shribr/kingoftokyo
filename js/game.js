@@ -2023,15 +2023,18 @@ class KingOfTokyoGame {
         window.UI && window.UI._debug && window.UI._debug(`🏯 Player count: ${this.gameSettings.playerCount}`);
         window.UI && window.UI._debug && window.UI._debug(`🏯 Current player in Tokyo: ${currentPlayer.isInTokyo ? 'Yes' : 'No'}`);
 
-        // RULE: If Tokyo City is empty at end of turn, current player MUST enter it
+        // RULE: If Tokyo City is empty at end of turn, current player MUST enter it.
+        // NOTE: Previously we passed automatic=true which suppressed the +1 VP grant.
+        // Original behavior (and physical rules) award +1 VP immediately upon entering.
+        // We therefore call enterTokyo WITHOUT the automatic flag so the entry bonus is applied.
         if (this.tokyoCity === null && !currentPlayer.isInTokyo) {
-            window.UI && window.UI._debug && window.UI._debug(`🏯 ${currentPlayer.monster.name} MUST enter Tokyo City at end of turn`);
-            this.enterTokyo(currentPlayer, true); // Mark as automatic
+            window.UI && window.UI._debug && window.UI._debug(`🏯 ${currentPlayer.monster.name} MUST enter Tokyo City at end of turn (awarding entry VP)`);
+            this.enterTokyo(currentPlayer, false);
         } 
-        // RULE: If Tokyo Bay is empty (5+ players), current player MUST enter it
+        // RULE: If Tokyo Bay is empty (5+ players), current player MUST enter it (also award entry VP)
         else if (this.tokyoBay === null && this.gameSettings.playerCount >= 5 && this.tokyoCity !== null && !currentPlayer.isInTokyo) {
-            window.UI && window.UI._debug && window.UI._debug(`🏯 ${currentPlayer.monster.name} MUST enter Tokyo Bay at end of turn`);
-            this.enterTokyo(currentPlayer, true); // Mark as automatic
+            window.UI && window.UI._debug && window.UI._debug(`🏯 ${currentPlayer.monster.name} MUST enter Tokyo Bay at end of turn (awarding entry VP)`);
+            this.enterTokyo(currentPlayer, false);
         }
     }
 
