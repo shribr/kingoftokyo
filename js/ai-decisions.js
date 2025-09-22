@@ -344,6 +344,31 @@
 								if (idxs.length===2){ const rel = idxs[1]; if (keep.delete(rel)){ releasedIndices.push(rel); freeDice++; } }
 							}
 						}
+						// NEW: If after releases we still have zero free dice AND goalCount < 3, forcibly release lowest priority kept non-goal number die to avoid impossible chase
+						if (goalCount < 3){
+							let freeNow = state.dice.length - Array.from(keep).length;
+							if (freeNow === 0){
+								// Identify candidate kept dice that do not match goal face
+								const candidates=[]; state.dice.forEach((f,i)=>{ if (keep.has(i) && f!==goal.face){
+									let priority=10; // lower = release first
+									if (['one','two','three'].includes(f)){
+										// release lower face values first (1 then 2 then 3) when they are not goal
+										priority = { one:1, two:2, three:3 }[f] || 9;
+									} else {
+										priority = { heart:0, energy:1, attack:2 }[f] ?? 8; // hearts easiest to sacrifice
+									}
+									candidates.push({index:i, face:f, priority});
+								} });
+								candidates.sort((a,b)=> a.priority - b.priority);
+								if (candidates.length){
+									const rel = candidates[0];
+									if (keep.delete(rel.index)) { releasedIndices.push(rel.index); freeNow++; }
+									// annotate reasoning
+									if (!player._aiForcedFreeForGoal) player._aiForcedFreeForGoal = 0;
+									player._aiForcedFreeForGoal++;
+								}
+							}
+						}
 					}
 				}
 			}

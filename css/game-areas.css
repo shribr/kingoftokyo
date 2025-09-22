@@ -21,6 +21,12 @@
     display: block; /* Change back to block for positioning */
 }
 
+/* Debug outline for hidden/offscreen detection */
+.dash-debug-outline {
+    outline: 2px dashed #ff0066 !important;
+    outline-offset: 2px;
+}
+
 .tokyo-area::before {
     content: '';
     position: absolute;

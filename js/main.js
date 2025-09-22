@@ -799,6 +799,130 @@ class KingOfTokyoUI {
             });
         }
 
+        // Capture-phase logging for clicks/mousedowns even if bubbling is stopped
+        ['click','mousedown'].forEach(evt => {
+            document.addEventListener(evt, (e) => {
+                const dash = e.target.closest && e.target.closest('.player-dashboard');
+                if (dash) {
+                    const cs = getComputedStyle(dash);
+                    console.debug(`[CAPTURE ${evt}] player-dashboard`, { playerId: dash.dataset.playerId, tag: e.target.tagName, x: e.clientX, y: e.clientY, disp: cs.display, vis: cs.visibility, z: cs.zIndex, opacity: cs.opacity });
+                }
+            }, true);
+        });
+
+        // Mutation observer for player dashboard removals/moves
+        const playersContainer = this.elements.playersContainer || document.getElementById('players-container');
+        if (playersContainer && !playersContainer.__dashMutationObserver) {
+            const dashObserver = new MutationObserver(muts => {
+                muts.forEach(m => {
+                    if (m.type === 'childList') {
+                        m.removedNodes.forEach(n => {
+                            if (n.classList && n.classList.contains('player-dashboard')) {
+                                console.debug('[UI] Dashboard node REMOVED', { playerId: n.dataset.playerId });
+                            }
+                        });
+                        m.addedNodes.forEach(n => {
+                            if (n.classList && n.classList.contains('player-dashboard')) {
+                                console.debug('[UI] Dashboard node ADDED', { playerId: n.dataset.playerId });
+                            }
+                        });
+                    }
+                });
+            });
+            dashObserver.observe(playersContainer, { childList: true });
+            playersContainer.__dashMutationObserver = true;
+        }
+
+        // Periodic audit of dashboard visibility/position with auto-correct safeguard
+        const auditDashboards = () => {
+            const cards = document.querySelectorAll('.player-dashboard');
+            cards.forEach(c => {
+                const cs = getComputedStyle(c);
+                const rect = c.getBoundingClientRect();
+                const hidden = cs.display === 'none' || cs.visibility === 'hidden' || parseFloat(cs.opacity) === 0;
+                const offscreen = (rect.right < 0 || rect.left > window.innerWidth || rect.bottom < 0 || rect.top > window.innerHeight);
+                const negZ = (parseInt(cs.zIndex)||0) < 0;
+                if (hidden || offscreen || negZ) {
+                    if (!c.classList.contains('dash-debug-outline')) c.classList.add('dash-debug-outline');
+                    console.warn('[DASHBOARD-AUDIT] anomaly', { playerId: c.dataset.playerId, hidden, offscreen, negZ, rect:{ x:rect.x, y:rect.y, w:rect.width, h:rect.height }, z:cs.zIndex, disp:cs.display, vis:cs.visibility, opacity:cs.opacity });
+                    this._autoCorrectDashboard(c, { hidden, offscreen, negZ, rect });
+                } else if (c.classList.contains('dash-debug-outline')) {
+                    // Remove outline if previously anomalous but now healthy
+                    c.classList.remove('dash-debug-outline');
+                }
+            });
+        };
+        setInterval(auditDashboards, 4000);
+
+        // Enhanced instrumentation: watch for transform/position/margin changes leading to offscreen state
+        if (!window.__dashStyleWatch){
+            window.__dashStyleWatch = true;
+            const tracked = new WeakMap();
+            const captureSnapshot = (el) => {
+                const cs = getComputedStyle(el);
+                return {
+                    transform: cs.transform,
+                    top: cs.top,
+                    left: cs.left,
+                    right: cs.right,
+                    bottom: cs.bottom,
+                    position: cs.position,
+                    marginTop: cs.marginTop,
+                    marginBottom: cs.marginBottom,
+                    marginLeft: cs.marginLeft,
+                    marginRight: cs.marginRight,
+                    z: cs.zIndex
+                };
+            };
+            const diffSnapshots = (prev, next) => {
+                const diff={};
+                Object.keys(next).forEach(k=>{ if(prev[k]!==next[k]) diff[k] = { before: prev[k], after: next[k] }; });
+                return diff;
+            };
+            const dashStyleObserver = new MutationObserver(muts => {
+                muts.forEach(m => {
+                    if (m.type === 'attributes' && m.attributeName === 'style') {
+                        const el = m.target;
+                        if (!el.classList.contains('player-dashboard')) return;
+                        const prev = tracked.get(el) || {};
+                        const next = captureSnapshot(el);
+                        const diff = diffSnapshots(prev, next);
+                        if (Object.keys(diff).length){
+                            const rect = el.getBoundingClientRect();
+                            const offscreen = rect.right < 0 || rect.left > window.innerWidth || rect.bottom < 0 || rect.top > window.innerHeight;
+                            if (offscreen){
+                                console.error('[DASHBOARD-OFFSCREEN-STYLE-CHANGE]', { playerId: el.dataset.playerId, diff, rect:{top:rect.top,left:rect.left,bottom:rect.bottom,right:rect.right,w:rect.width,h:rect.height}, stack:(new Error('stack')).stack });
+                                // Attempt immediate reposition clamp
+                                this._clampDashboardIntoView(el, rect);
+                            } else {
+                                console.debug('[DASHBOARD-STYLE-CHANGE]', { playerId: el.dataset.playerId, diff });
+                                // Prevent creeping drift far outside safe bounds (e.g., large translate)
+                                if (Math.abs(rect.left) > window.innerWidth*0.6 || Math.abs(rect.top) > window.innerHeight*0.6) {
+                                    this._clampDashboardIntoView(el, rect);
+                                }
+                            }
+                        }
+                        tracked.set(el, next);
+                    } else if (m.type === 'attributes' && m.attributeName === 'class') {
+                        const el = m.target;
+                        if (!el.classList.contains('player-dashboard')) return;
+                        const rect = el.getBoundingClientRect();
+                        const offscreen = rect.right < 0 || rect.left > window.innerWidth || rect.bottom < 0 || rect.top > window.innerHeight;
+                        console.debug('[DASHBOARD-CLASS-CHANGE]', { playerId: el.dataset.playerId, classList: el.className, offscreen });
+                    }
+                });
+            });
+            const seedDashWatch = () => {
+                document.querySelectorAll('.player-dashboard').forEach(el => {
+                    if (!tracked.has(el)) tracked.set(el, captureSnapshot(el));
+                    dashStyleObserver.observe(el, { attributes:true, attributeFilter:['style','class'] });
+                });
+            };
+            seedDashWatch();
+            // Re-seed occasionally in case new nodes are added
+            setInterval(seedDashWatch, 3000);
+        }
+
         // Observe player dashboard display changes for debugging disappear issue
         const observeDashboards = () => {
             const dashboards = document.querySelectorAll('.player-dashboard');
@@ -862,15 +986,96 @@ class KingOfTokyoUI {
 
     // Initialize drag and drop functionality for moveable components
     initializeDragAndDrop() {
-        const draggableElements = document.querySelectorAll('.draggable');
+        // Exclude player dashboards from draggable selection to avoid interfering with their layout logic
+        const draggableElements = document.querySelectorAll('.draggable:not(.player-dashboard)');
         
         draggableElements.forEach(element => {
             this.makeDraggable(element);
         });
     }
 
+    // Safeguard method: restore dashboard visibility/position if anomalous
+    _autoCorrectDashboard(card, flags){
+        try {
+            const cs = getComputedStyle(card);
+            const before = { display: cs.display, visibility: cs.visibility, opacity: cs.opacity, z: cs.zIndex, transform: cs.transform, position: cs.position };
+            let changed = false;
+            if (flags.hidden){
+                if (cs.display === 'none') { card.style.display = 'block'; changed = true; }
+                if (cs.visibility === 'hidden') { card.style.visibility = 'visible'; changed = true; }
+                if (parseFloat(cs.opacity) === 0) { card.style.opacity = '1'; changed = true; }
+            }
+            if (flags.negZ){ card.style.zIndex = '400'; changed = true; }
+            if (flags.offscreen){
+                // Reset transform and positioning to a safe baseline
+                card.style.transform = 'none';
+                if (card.classList.contains('active')) {
+                    card.style.position = 'fixed';
+                    card.style.bottom = '420px';
+                    card.style.right = '520px';
+                } else {
+                    card.style.position = 'relative';
+                    card.style.top = 'auto';
+                    card.style.left = 'auto';
+                    card.style.right = 'auto';
+                    card.style.bottom = 'auto';
+                }
+                changed = true;
+            }
+            if (changed){
+                const afterCS = getComputedStyle(card);
+                const after = { display: afterCS.display, visibility: afterCS.visibility, opacity: afterCS.opacity, z: afterCS.zIndex, transform: afterCS.transform, position: afterCS.position };
+                console.warn('[DASHBOARD-AUTOCORRECT] applied', { playerId: card.dataset.playerId, flags, before, after });
+            }
+        } catch(err){
+            console.error('[DASHBOARD-AUTOCORRECT] error', err);
+        }
+    }
+
+    // Ensure a dashboard card is within viewport bounds; adjust positioning heuristically
+    _clampDashboardIntoView(card, rect) {
+        try {
+            const r = rect || card.getBoundingClientRect();
+            const vw = window.innerWidth; const vh = window.innerHeight;
+            let moved = false;
+            if (card.classList.contains('active')) {
+                // Active card uses fixed positioning
+                const targetBottom = 420; // existing baseline
+                const targetRight = 520;  // existing baseline
+                // If baseline pushes it off (e.g., smaller viewport), clamp
+                const maxRight = Math.max(200, Math.min(targetRight, vw - 300));
+                const maxBottom = Math.max(150, Math.min(targetBottom, vh - 200));
+                card.style.position = 'fixed';
+                card.style.right = `${maxRight}px`;
+                card.style.bottom = `${maxBottom}px`;
+                // Remove rogue transforms
+                card.style.transform = 'none';
+                moved = true;
+            } else {
+                // Non-active: ensure relative and clear transforms if far outside
+                if (r.left < -50 || r.right > vw + 50 || r.top < -50 || r.bottom > vh + 50) {
+                    card.style.position = 'relative';
+                    card.style.top = 'auto'; card.style.left = 'auto'; card.style.right = 'auto'; card.style.bottom = 'auto';
+                    card.style.transform = 'none';
+                    moved = true;
+                }
+            }
+            if (moved) {
+                const after = card.getBoundingClientRect();
+                console.warn('[DASHBOARD-CLAMP] repositioned', { playerId: card.dataset.playerId, before:{top:r.top,left:r.left,bottom:r.bottom,right:r.right}, after:{top:after.top,left:after.left,bottom:after.bottom,right:after.right} });
+            }
+        } catch(err){
+            console.error('[DASHBOARD-CLAMP] error', err);
+        }
+    }
+
     // Helper method to make a single element draggable
     makeDraggable(element) {
+        // Safety guard: never make player dashboards draggable (prevents offscreen fixed positioning overrides)
+        if (element.classList && element.classList.contains('player-dashboard')) {
+            console.debug('[DRAG-GUARD] Skipping draggable init for player dashboard', element.dataset && element.dataset.playerId);
+            return;
+        }
         let isDragging = false;
         let currentX = 0;
         let currentY = 0;
@@ -949,7 +1154,7 @@ class KingOfTokyoUI {
                 currentX = Math.max(0, Math.min(currentX, maxX));
                 currentY = Math.max(0, Math.min(currentY, maxY));
 
-                // Override CSS positioning with !important
+                // Override CSS positioning with !important for draggable UI components (NOT dashboards)
                 element.style.setProperty('position', 'fixed', 'important');
                 element.style.setProperty('left', `${currentX}px`, 'important');
                 element.style.setProperty('top', `${currentY}px`, 'important');
@@ -982,21 +1187,21 @@ class KingOfTokyoUI {
                         const position = JSON.parse(savedPosition);
                         currentX = position.x;
                         currentY = position.y;
-                        
-                        // Only apply saved position if it's valid (not at 0,0 or negative)
-                        if (currentX > 10 && currentY > 10) {
+                        const maxX = window.innerWidth - 50; // simple clamp allowing some width assumption
+                        const maxY = window.innerHeight - 50;
+                        const inBounds = currentX >= 0 && currentY >= 0 && currentX <= maxX && currentY <= maxY;
+                        // Only apply saved position if it's inside current viewport bounds and not near origin dummy values
+                        if (inBounds && currentX > 10 && currentY > 10) {
                             xOffset = currentX;
                             yOffset = currentY;
-                            
-                            // Override CSS positioning with !important
                             element.style.setProperty('position', 'fixed', 'important');
                             element.style.setProperty('left', `${currentX}px`, 'important');
                             element.style.setProperty('top', `${currentY}px`, 'important');
                             element.style.setProperty('bottom', 'auto', 'important');
                             element.style.setProperty('transform', 'none', 'important');
                         } else {
-                            // Clear invalid saved position
                             localStorage.removeItem(`${elementId}-position`);
+                            console.debug('[DRAG-RESTORE] Discarded out-of-bounds saved position', { elementId, currentX, currentY, maxX, maxY });
                         }
                     } catch (e) {
                         console.warn('Failed to restore position for', elementId);
@@ -1147,6 +1352,10 @@ class KingOfTokyoUI {
             case 'statsUpdated':
                 console.log('Stats updated event received');
                 this.updateGameDisplay(); // Refresh entire game display when stats change
+                // After general update, force reconciliation of Tokyo indicators
+                if (this.game && Array.isArray(this.game.players)) {
+                    this.forceTokyoIndicators();
+                }
                 break;
             case 'cardPurchased':
                 console.log('Card purchased event received:', data);
@@ -2045,6 +2254,7 @@ class KingOfTokyoUI {
 
     // Update stats inside an existing card
     _updateSinglePlayerStats(cardEl, player) {
+        try { console.debug('[UI] _updateSinglePlayerStats: begin', { playerId: player.id, isInTokyo: player.isInTokyo }); } catch(e){}
         // Update health bar
         const healthBarFill = cardEl.querySelector('.health-bar-fill');
         const healthBarLabel = cardEl.querySelector('.health-bar-label');
@@ -2079,6 +2289,7 @@ class KingOfTokyoUI {
                     tokyoInline = document.createElement('div');
                     tokyoInline.className = 'tokyo-indicator-inline';
                     nameContainer.appendChild(tokyoInline);
+                    console.debug('[UI] Tokyo indicator CREATED during single stat update', player.id);
                 }
                 tokyoInline.textContent = `In Tokyo ${player.tokyoLocation === 'city' ? 'City' : 'Bay'}`;
                 console.debug('[UI] Tokyo indicator updated for player', player.id, tokyoInline.textContent);
@@ -2087,6 +2298,39 @@ class KingOfTokyoUI {
                 console.debug('[UI] Tokyo indicator removed for player', player.id);
             }
         }
+        try { console.debug('[UI] _updateSinglePlayerStats: end', { playerId: player.id }); } catch(e){}
+    }
+
+    // Reconcile Tokyo indicators in case a partial refresh missed them
+    forceTokyoIndicators() {
+        if (!this.game || !Array.isArray(this.game.players)) return;
+        console.debug('[UI] forceTokyoIndicators invoked');
+        let created=0, updated=0, removed=0;
+        this.game.players.forEach(p => {
+            const card = document.querySelector(`.player-dashboard[data-player-id="${p.id}"] .player-name-container`);
+            if (!card) return;
+            let existing = card.querySelector('.tokyo-indicator-inline');
+            if (p.isInTokyo) {
+                if (!existing) {
+                    existing = document.createElement('div');
+                    existing.className = 'tokyo-indicator-inline';
+                    card.appendChild(existing);
+                    console.debug('[UI] forceTokyoIndicators created indicator', { playerId: p.id });
+                    created++;
+                }
+                const txt = `In Tokyo ${p.tokyoLocation === 'city' ? 'City' : 'Bay'}`;
+                if (existing.textContent !== txt) {
+                    existing.textContent = txt;
+                    console.debug('[UI] forceTokyoIndicators updated text', { playerId: p.id, text: txt });
+                    updated++;
+                }
+            } else if (existing) {
+                existing.remove();
+                console.debug('[UI] forceTokyoIndicators removed indicator (player not in Tokyo)', { playerId: p.id });
+                removed++;
+            }
+        });
+        console.debug('[UI] forceTokyoIndicators summary', { created, updated, removed });
     }
 
     // Defensive: ensure dice area becomes visible if game active but style remained hidden
@@ -4098,14 +4342,33 @@ class KingOfTokyoUI {
         // Restore original z-index values
         const activePlayerDashboard = document.querySelector('.player-dashboard.active');
         if (activePlayerDashboard) {
+            console.debug('[UI] hideDecisionModal resetting active player z-index', { playerId: activePlayerDashboard.dataset.playerId, prev: activePlayerDashboard.style.zIndex });
             activePlayerDashboard.style.zIndex = ''; // Reset to CSS default
         }
         
         // Reset all player cards z-index
         const allPlayerCards = document.querySelectorAll('.player-dashboard');
         allPlayerCards.forEach(card => {
+            if (card.style.zIndex) {
+                console.debug('[UI] hideDecisionModal clearing z-index on card', { playerId: card.dataset.playerId, prev: card.style.zIndex });
+            }
             card.style.zIndex = ''; // Reset to CSS default
         });
+
+        // Additional defensive normalization
+        this._restoreDashboardZLayers();
+    }
+
+    _restoreDashboardZLayers() {
+        const cards = document.querySelectorAll('.player-dashboard');
+        let changed = 0;
+        cards.forEach(c => {
+            if (c.style && c.style.zIndex) {
+                changed++;
+                c.style.zIndex = '';
+            }
+        });
+        console.debug('[UI] _restoreDashboardZLayers executed', { total: cards.length, cleared: changed });
     }
 
     // Show game over modal
@@ -8539,6 +8802,7 @@ class KingOfTokyoUI {
             let numericGoalProb = null;
             let numericGoalProbIfFree = null;
             let numericNeed = 0;
+            let numericImpossibleMsg = '';
             if (roll.goal && roll.goal.face) {
                 const g = (''+roll.goal.face).toLowerCase();
                 const isNum = ['1','2','3','one','two','three'].includes(g);
@@ -8555,6 +8819,9 @@ class KingOfTokyoUI {
                     const keptCurrent = kept.length; // dice kept this roll
                     const freeDice = diceTotal - keptCurrent; // dice to reroll next
                     const rollsLeft = 3 - roll.rollNumber; // remaining rerolls after this roll
+                    if (numericNeed>0 && freeDice===0 && rollsLeft>0) {
+                        numericImpossibleMsg = `Goal blocked: need ${numericNeed} more but no free dice. Free a non-${targetSym} die.`;
+                    }
                     if (numericNeed>0 && freeDice>0 && rollsLeft>0) {
                         // Per-die success probability each roll is 1/6. We approximate by treating (freeDice * rollsLeft) independent trials (upper bound simplification).
                         const trials = freeDice * rollsLeft;
@@ -8606,7 +8873,7 @@ class KingOfTokyoUI {
             }
             // Considerations / Alternative Strategies section
             let considerations = '';
-            if (numericGoalProb != null) {
+            if (numericGoalProb != null || numericImpossibleMsg) {
                 const fmt = (p)=> {
                     if (p>=1) return '100%';
                     const pct = p*100;
@@ -8614,11 +8881,12 @@ class KingOfTokyoUI {
                     if (pct>=99) return '99%';
                     return Math.round(pct)+'%';
                 };
-                let line = `Chance to finish set this turn: ${fmt(numericGoalProb)}`;
+                let line = numericGoalProb != null ? `Chance to finish set this turn: ${fmt(numericGoalProb)}` : '';
                 if (numericGoalProbIfFree != null && numericGoalProbIfFree > numericGoalProb) {
                     line += ` (could rise to ${fmt(numericGoalProbIfFree)} by freeing a non-goal die)`;
                 }
                 if (numericNeed === 1) line += ' – only one more needed; maximizing roll volume matters.';
+                if (numericImpossibleMsg) line = `${numericImpossibleMsg} ${line}`.trim();
                 considerations = `<div class=\"ai-flow-consider\"><div class=\"ai-flow-consider-h\">Considerations & Alternative Strategies:</div><div class=\"ai-flow-consider-body\">${line}</div></div>`;
             }
             return `<div class=\"ai-flow-prob-chart\" aria-label=\"Roll goal probability summary\" role=\"group\">${header}${htmlRows}${compositeRow}${considerations}</div>`;
