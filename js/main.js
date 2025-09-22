@@ -185,6 +185,8 @@ class KingOfTokyoUI {
         window.setupManager = this.setupManager;
         
     this.initializeElements();
+    // Ensure critical interactive elements are bound before any game state ticks fire
+    this._ensureCoreUIElements();
     this.attachEventListeners();
         this.initializeGamePause(); // Initialize pause system
         this.initializeDragAndDrop();
@@ -338,6 +340,31 @@ class KingOfTokyoUI {
             darkModeToggle: document.getElementById('dark-mode-toggle'),
             gamePauseOverlay: document.getElementById('game-pause-overlay')
     };
+    // Add dice container (missing earlier causing initialization to bail)
+    this.elements.diceContainer = document.getElementById('dice-container');
+    // Players container (was previously omitted causing undefined errors during initial card creation)
+    this.elements.playersContainer = this.elements.playersContainer || document.getElementById('players-container');
+        // Available cards container
+        this.elements.availableCards = this.elements.availableCards || document.getElementById('available-cards');
+        if (!this.elements.availableCards) {
+            console.warn('⚠️ availableCards container not found during initializeElements');
+        }
+        // Decision modal related elements
+        this.elements.decisionModal = this.elements.decisionModal || document.getElementById('decision-modal');
+        this.elements.decisionTitle = this.elements.decisionTitle || document.getElementById('decision-title');
+        this.elements.decisionContext = this.elements.decisionContext || document.getElementById('decision-context');
+        this.elements.decisionMessage = this.elements.decisionMessage || document.getElementById('decision-message');
+        this.elements.decisionMonster = this.elements.decisionMonster || document.getElementById('decision-monster');
+        this.elements.decisionOption1 = this.elements.decisionOption1 || document.getElementById('decision-option-1');
+        this.elements.decisionOption2 = this.elements.decisionOption2 || document.getElementById('decision-option-2');
+    // Intentionally do NOT acquire rolls-left / dice/action buttons here if splash not dismissed yet
+    // They may already exist, but _ensureCoreUIElements() will reconcile.
+        // Acquire header display elements now (they exist outside splash lifecycle once page loads)
+        this.elements.roundCounter = this.elements.roundCounter || document.getElementById('round-counter');
+        this.elements.activePlayerName = this.elements.activePlayerName || document.getElementById('active-player-name');
+        // Tokyo slots
+        this.elements.tokyoCitySlot = this.elements.tokyoCitySlot || document.getElementById('tokyo-city-monster');
+        this.elements.tokyoBaySlot = this.elements.tokyoBaySlot || document.getElementById('tokyo-bay-monster');
         
         // Specific debug for AI Log Content
         console.log('🔍 DEBUG: aiLogContent element check:', {
@@ -377,39 +404,78 @@ class KingOfTokyoUI {
         }
     }
 
-    // Attach event listeners
-    attachEventListeners() {
-        // Use UIUtilities to validate required elements
-        const requiredElements = [
-            'dropdownSelected', 'playerCount', 'dropdownOptions', 'startGameBtn',
-            'rollDiceBtn', 'keepDiceBtn', 'endTurnBtn'
-        ];
-        
-        if (!UIUtilities.validateRequiredElements(this.elements, requiredElements)) {
-            return; // Exit early if required elements are missing
-        }
-        
-        // Monster profiles modal events
-        this.elements.closeMonsterProfiles.addEventListener('click', () => {
-            this.setupManager.hideMonsterProfilesModal();
-        });
-
-        this.elements.resetProfilesBtn.addEventListener('click', () => {
-            this.setupManager.resetMonsterProfiles();
-        });
-
-        this.elements.saveProfilesBtn.addEventListener('click', () => {
-            this.setupManager.saveMonsterProfiles();
-            UIUtilities.showMessage('Monster profiles saved!', 3000, this.elements);
-            this.setupManager.hideMonsterProfilesModal();
-        });
-
-        // Close modal when clicking outside
-        this.elements.monsterProfilesModal.addEventListener('click', (e) => {
-            if (e.target === this.elements.monsterProfilesModal) {
-                this.setupManager.hideMonsterProfilesModal();
+    // Guarantee core dice/action elements exist in this.elements once visible in DOM
+    _ensureCoreUIElements(retries=0) {
+        const ids = {
+            rollsLeft: 'rolls-left',
+            rollDiceBtn: 'roll-dice',
+            keepDiceBtn: 'keep-dice',
+            endTurnBtn: 'end-turn',
+            actionMenu: 'action-menu',
+            diceContainer: 'dice-container'
+        };
+        let allFound = true;
+        Object.entries(ids).forEach(([key,id]) => {
+            if (!this.elements[key]) {
+                const el = document.getElementById(id);
+                if (el) {
+                    this.elements[key] = el;
+                    // If we just discovered the dice container late, initialize dice area once
+                    if (key === 'diceContainer' && !this._diceAreaInitialized && typeof this.initializeDiceArea === 'function') {
+                        try {
+                            this.initializeDiceArea();
+                            this._diceAreaInitialized = true;
+                        } catch(e) { console.warn('Dice area late initialization failed:', e); }
+                    }
+                } else {
+                    allFound = false;
+                }
             }
         });
+        if (!allFound && retries < 20) { // up to ~2s
+            setTimeout(()=> this._ensureCoreUIElements(retries+1), 100);
+        }
+    }
+
+    // Attach event listeners
+    attachEventListeners() {
+        // Legacy setup elements removed; only validate core in-game controls that must exist post-splash
+        const requiredElements = [ 'rollDiceBtn', 'keepDiceBtn', 'endTurnBtn' ];
+        // Defer strict validation until after splash screen fade-out has likely injected / revealed buttons
+        const haveAnyCore = requiredElements.some(k => !!this.elements[k]);
+        if (!haveAnyCore) {
+            // Attempt delayed attachment once core UI ensured
+            setTimeout(() => this.attachEventListeners(), 200);
+            return;
+        }
+        // Validate only the subset that should now exist; harmless warning if any missing
+        UIUtilities.validateRequiredElements(this.elements, requiredElements);
+        
+        // Monster profiles modal events (optional if profiles feature removed)
+        if (this.elements.closeMonsterProfiles) {
+            this.elements.closeMonsterProfiles.addEventListener('click', () => {
+                this.setupManager.hideMonsterProfilesModal();
+            });
+        }
+        if (this.elements.resetProfilesBtn) {
+            this.elements.resetProfilesBtn.addEventListener('click', () => {
+                this.setupManager.resetMonsterProfiles();
+            });
+        }
+        if (this.elements.saveProfilesBtn) {
+            this.elements.saveProfilesBtn.addEventListener('click', () => {
+                this.setupManager.saveMonsterProfiles();
+                UIUtilities.showMessage('Monster profiles saved!', 3000, this.elements);
+                this.setupManager.hideMonsterProfilesModal();
+            });
+        }
+        if (this.elements.monsterProfilesModal) {
+            this.elements.monsterProfilesModal.addEventListener('click', (e) => {
+                if (e.target === this.elements.monsterProfilesModal) {
+                    this.setupManager.hideMonsterProfilesModal();
+                }
+            });
+        }
 
         // Game control events
         this.elements.rollDiceBtn.addEventListener('click', () => {
@@ -479,14 +545,14 @@ class KingOfTokyoUI {
 
         // Decision modal keyboard support
         document.addEventListener('keydown', (e) => {
-            if (!this.elements.decisionModal.classList.contains('hidden')) {
+            if (this.elements.decisionModal && !this.elements.decisionModal.classList.contains('hidden')) {
                 if (e.key === 'Escape') {
                     // Default to "Leave Tokyo" on escape (safer choice)
-                    this.elements.decisionOption2.click();
+                    this.elements.decisionOption2 && this.elements.decisionOption2.click();
                 } else if (e.key === 'Enter' || e.key === ' ') {
                     // Default to "Stay in Tokyo" on enter/space (aggressive choice)
                     e.preventDefault();
-                    this.elements.decisionOption1.click();
+                    this.elements.decisionOption1 && this.elements.decisionOption1.click();
                 }
             }
         });
@@ -549,15 +615,23 @@ class KingOfTokyoUI {
                 const current = t.getAttribute('data-mode') || 'verbose';
                 const next = current==='verbose' ? 'concise':'verbose';
                 t.setAttribute('data-mode', next);
-                t.textContent = next==='verbose' ? 'Verbose':'Concise';
+                t.textContent = next==='verbose' ? 'Mode: Verbose':'Mode: Concise';
                 container.classList.toggle('concise', next==='concise');
                 localStorage.setItem('aiFlowMode', next);
-            } else if (t.id === 'ai-collapse-all') {
-                document.querySelectorAll('#ai-decision-tree-container .ai-flow-round:not(.lazy-stub)')?.forEach(r=>r.classList.add('collapsed'));
-                document.querySelectorAll('#ai-decision-tree-container .ai-flow-turn')?.forEach(r=>r.classList.add('collapsed'));
-            } else if (t.id === 'ai-expand-all') {
-                document.querySelectorAll('#ai-decision-tree-container .ai-flow-round:not(.lazy-stub)')?.forEach(r=>r.classList.remove('collapsed'));
-                document.querySelectorAll('#ai-decision-tree-container .ai-flow-turn')?.forEach(r=>r.classList.remove('collapsed'));
+            } else if (t.id === 'ai-expand-collapse-toggle') {
+                const rounds = Array.from(document.querySelectorAll('#ai-decision-tree-container .ai-flow-round:not(.lazy-stub)'));
+                if (!rounds.length) return;
+                const anyExpanded = rounds.some(r=> !r.classList.contains('collapsed'));
+                const turns = Array.from(document.querySelectorAll('#ai-decision-tree-container .ai-flow-turn'));
+                if (anyExpanded){
+                    rounds.forEach(r=>r.classList.add('collapsed'));
+                    turns.forEach(r=>r.classList.add('collapsed'));
+                    t.textContent='Expand All';
+                } else {
+                    rounds.forEach(r=>r.classList.remove('collapsed'));
+                    turns.forEach(r=>r.classList.remove('collapsed'));
+                    t.textContent='Collapse All';
+                }
             }
         });
 
@@ -716,9 +790,37 @@ class KingOfTokyoUI {
                             this.openMonsterProfileModal(player);
                         }
                     }
+                } else {
+                    const dash = e.target.closest('.player-dashboard');
+                    if (dash) {
+                        console.debug('Player Dashboard Card Clicked', { playerId: dash.dataset.playerId, display: dash.style.display || getComputedStyle(dash).display });
+                    }
                 }
             });
         }
+
+        // Observe player dashboard display changes for debugging disappear issue
+        const observeDashboards = () => {
+            const dashboards = document.querySelectorAll('.player-dashboard');
+            dashboards.forEach(d => {
+                if (d.__displayObserverAttached) return;
+                const observer = new MutationObserver(muts => {
+                    muts.forEach(m => {
+                        if (m.type === 'attributes' && m.attributeName === 'style') {
+                            const disp = getComputedStyle(d).display;
+                            if (disp === 'none') {
+                                console.debug('Player Dashboard Card Hidden (display:none applied)', { playerId: d.dataset.playerId, inlineStyle: d.getAttribute('style') });
+                            }
+                        }
+                    });
+                });
+                observer.observe(d, { attributes:true, attributeFilter:['style'] });
+                d.__displayObserverAttached = true;
+            });
+        };
+        // Initial attach and on a short delay (in case cards added later)
+        setTimeout(observeDashboards, 500);
+        setInterval(observeDashboards, 4000);
 
         // Close modals when clicking outside using UIUtilities
         UIUtilities.safeAddEventListener(this.elements.gameLogModal, 'click', 
@@ -1090,7 +1192,14 @@ class KingOfTokyoUI {
                 this.animatePlayerFromTokyo(data);
                 break;
             case 'tokyoChanged':
+                // Update central Tokyo slots
                 this.updateTokyoDisplay(data);
+                // ALSO refresh player dashboards so inline "In Tokyo" indicators reflect new state
+                try {
+                    if (this.game && Array.isArray(this.game.players)) {
+                        this.updatePlayersDisplay(this.game.players);
+                    }
+                } catch(e){ console.warn('tokyoChanged: failed to update player dashboards', e); }
                 break;
             case 'playerAttacked':
                 this.animatePlayerAttacked(data.playerId);
@@ -1260,10 +1369,18 @@ class KingOfTokyoUI {
             this.previousRound = gameState.round;
         } else {
             // Normal update without animation
-            this.elements.roundCounter.textContent = gameState.round;
+            if (!this.elements.roundCounter) {
+                this.elements.roundCounter = document.getElementById('round-counter');
+            }
+            if (this.elements.roundCounter) {
+                this.elements.roundCounter.textContent = gameState.round;
+            }
         }
         
         // Update active player name
+        if (!this.elements.activePlayerName) {
+            this.elements.activePlayerName = document.getElementById('active-player-name');
+        }
         if (this.elements.activePlayerName && gameState.currentPlayer) {
             this.elements.activePlayerName.textContent = gameState.currentPlayer.monster.name;
         }
@@ -1357,11 +1474,27 @@ class KingOfTokyoUI {
     // Initial creation of player cards (only called once at game start)
     _createInitialPlayerCards(players, currentPlayer) {
         console.log('🏗️ Creating initial player cards');
-        
-        // Use the old method for initial creation
-        this.elements.playersContainer.innerHTML = players.map(player => 
-            this._generatePlayerHTML(player, player.id === currentPlayer.id)
-        ).join('');
+        // Ensure playersContainer exists; attempt lazy acquisition
+        if (!this.elements.playersContainer) {
+            this.elements.playersContainer = document.getElementById('players-container');
+        }
+        // If still missing, create a fallback container inside gameContainer to prevent hard crash
+        if (!this.elements.playersContainer) {
+            console.warn('⚠️ playersContainer element missing in DOM. Creating fallback container.');
+            const fallback = document.createElement('div');
+            fallback.id = 'players-container';
+            fallback.className = 'players-container';
+            // Insert into game container if available, else body
+            (this.elements.gameContainer || document.body).appendChild(fallback);
+            this.elements.playersContainer = fallback;
+        }
+        // Create persistent card elements only once
+        const frag = document.createDocumentFragment();
+        players.forEach(p => {
+            const card = this._buildPlayerCardElement(p, p.id === currentPlayer.id);
+            frag.appendChild(card);
+        });
+        this.elements.playersContainer.appendChild(frag);
         // Update player dashboard cache
         this._cachePlayerDashboards();
         
@@ -1707,12 +1840,29 @@ class KingOfTokyoUI {
             }
         });
         
-        // Render all players in the main container
-        this.elements.playersContainer.innerHTML = players.map(player => 
-            this._generatePlayerHTML(player, player.id === currentPlayer.id)
-        ).join('');
-        
-        window.UI && window.UI._debug && window.UI._debug('📄 Generated HTML for players container');
+        // Instead of full innerHTML rebuild, ensure each player has a card element; reuse existing nodes
+        const container = this.elements.playersContainer;
+        const existingById = new Map(Array.from(container.querySelectorAll('.player-dashboard')).map(el => [el.dataset.playerId, el]));
+        const desiredOrder = [];
+        players.forEach(player => {
+            let card = existingById.get(String(player.id));
+            if (!card) {
+                card = this._buildPlayerCardElement(player, player.id === currentPlayer.id);
+            } else {
+                // Update active class
+                if (player.id === currentPlayer.id) card.classList.add('active'); else card.classList.remove('active');
+                // Update stats text without tearing down card
+                this._updateSinglePlayerStats(card, player);
+            }
+            desiredOrder.push(card);
+        });
+        // Reorder DOM to match players array (minimal moves)
+        desiredOrder.forEach((card, idx) => {
+            if (container.children[idx] !== card) {
+                container.insertBefore(card, container.children[idx] || null);
+            }
+        });
+        window.UI && window.UI._debug && window.UI._debug('🔁 Reconciled player card DOM without full rebuild');
         
         // Restore original positioning for non-active players and set up active player
         this._setupPlayerPositioning(players, currentPlayer, originalPositions);
@@ -1848,6 +1998,110 @@ class KingOfTokyoUI {
                       (Math.round((t - B) * p / 100) + B)).toString(16).slice(1);
     }
 
+    // Build a persistent player card element (only created once per player)
+    _buildPlayerCardElement(player, isActive=false) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'player-dashboard';
+        if (isActive) wrapper.classList.add('active');
+        wrapper.dataset.playerId = player.id;
+        wrapper.dataset.playerType = player.playerType;
+        const monster = player.monster;
+    const isCPU = player.playerType === 'cpu';
+        const healthPct = (player.health / player.maxHealth) * 100;
+        const healthBarClass = this.getHealthBarClass(player.health, player.maxHealth);
+        // Layout restored: name & Tokyo indicator grouped, avatar to the right, stats grid above health bar.
+        wrapper.innerHTML = `
+            <div class="player-info">
+                <div class="player-name-container">
+                    <div class="player-name">${monster.name}${player.playerType === 'cpu' ? ' <span class="player-subtitle">(CPU)</span>' : ''}</div>
+                    ${player.isInTokyo ? `<div class="tokyo-indicator-inline">In Tokyo ${player.tokyoLocation === 'city' ? 'City' : 'Bay'}</div>` : ''}
+                </div>
+                <div class="monster-avatar" data-monster="${monster.id}">
+                    <img src="${monster.image}" alt="${monster.name}" class="monster-avatar-image" />
+                </div>
+            </div>
+            <div class="player-stats" data-player-id="${player.id}">
+                <div class="stat power-cards" data-player-id="${player.id}" title="Click to view power cards">
+                    <span class="stat-label">Cards</span>
+                    <span class="stat-value" data-cards="${player.powerCards.length}">${player.powerCards.length}</span>
+                </div>
+                <div class="stat energy">
+                    <span class="stat-label">Energy</span>
+                    <span class="stat-value" data-energy="${player.energy}">${player.energy}</span>
+                </div>
+                <div class="stat points">
+                    <span class="stat-label">Points</span>
+                    <span class="stat-value" data-vp="${player.victoryPoints}">${player.victoryPoints}</span>
+                </div>
+            </div>
+            <div class="health-bar-container" role="progressbar" aria-label="Health" aria-valuenow="${player.health}" aria-valuemin="0" aria-valuemax="${player.maxHealth}">
+                <div class="health-bar-label">Health ${player.health}/${player.maxHealth}</div>
+                <div class="health-bar"><div class="health-bar-fill ${healthBarClass}" style="width:${healthPct}%;"></div></div>
+            </div>
+            <div class="player-effects" data-effects-for="${player.id}"></div>
+        `;
+        return wrapper;
+    }
+
+    // Update stats inside an existing card
+    _updateSinglePlayerStats(cardEl, player) {
+        // Update health bar
+        const healthBarFill = cardEl.querySelector('.health-bar-fill');
+        const healthBarLabel = cardEl.querySelector('.health-bar-label');
+        if (healthBarFill) {
+            healthBarFill.style.width = `${(player.health / player.maxHealth) * 100}%`;
+            healthBarFill.className = `health-bar-fill ${this.getHealthBarClass(player.health, player.maxHealth)}`;
+        }
+        if (healthBarLabel) {
+            healthBarLabel.textContent = `Health ${player.health}/${player.maxHealth}`;
+            const container = cardEl.querySelector('.health-bar-container');
+            if (container) {
+                container.setAttribute('aria-valuenow', player.health);
+                container.setAttribute('aria-valuemax', player.maxHealth);
+            }
+        }
+        // Update stat values
+        const energyVal = cardEl.querySelector('.stat-value[data-energy]');
+        if (energyVal) { energyVal.textContent = player.energy; energyVal.dataset.energy = player.energy; }
+        const vpVal = cardEl.querySelector('.stat-value[data-vp]');
+        if (vpVal) { vpVal.textContent = player.victoryPoints; vpVal.dataset.vp = player.victoryPoints; }
+        const cardsVal = cardEl.querySelector('.stat-value[data-cards]');
+        if (cardsVal) { cardsVal.textContent = player.powerCards.length; cardsVal.dataset.cards = player.powerCards.length; }
+        // CPU badge (in case player type changed dynamically)
+        const avatar = cardEl.querySelector('.monster-avatar');
+        // CPU indicator now only appears as (CPU) next to name at build time; no avatar badge maintenance required.
+        // Tokyo inline indicator sync
+        const nameContainer = cardEl.querySelector('.player-name-container');
+        if (nameContainer) {
+            let tokyoInline = nameContainer.querySelector('.tokyo-indicator-inline');
+            if (player.isInTokyo) {
+                if (!tokyoInline) {
+                    tokyoInline = document.createElement('div');
+                    tokyoInline.className = 'tokyo-indicator-inline';
+                    nameContainer.appendChild(tokyoInline);
+                }
+                tokyoInline.textContent = `In Tokyo ${player.tokyoLocation === 'city' ? 'City' : 'Bay'}`;
+                console.debug('[UI] Tokyo indicator updated for player', player.id, tokyoInline.textContent);
+            } else if (tokyoInline) {
+                tokyoInline.remove();
+                console.debug('[UI] Tokyo indicator removed for player', player.id);
+            }
+        }
+    }
+
+    // Defensive: ensure dice area becomes visible if game active but style remained hidden
+    _ensureDiceAreaVisible() {
+        const diceArea = this.elements?.diceArea || document.getElementById('dice-area');
+        if (!diceArea) return;
+        if (this.game && this.game.players && this.game.players.length && diceArea.classList.contains('hidden-until-game-start')) {
+            diceArea.classList.remove('hidden-until-game-start');
+        }
+        // Remove any accidental inline display none
+        const style = window.getComputedStyle(diceArea);
+        if (style.display === 'none') {
+            diceArea.style.display = 'block';
+        }
+    }
     // Setup dragging for the active player only
     _setupActivePlayerDragging(activePlayerId) {
         // Remove draggable from all players first
@@ -2519,11 +2773,21 @@ class KingOfTokyoUI {
 
     // Update Tokyo display
     updateTokyoDisplay(gameState) {
+        if (!gameState) return;
+        // Reacquire slots if lost
+        if (!this.elements.tokyoCitySlot) this.elements.tokyoCitySlot = document.getElementById('tokyo-city-monster');
+        if (!this.elements.tokyoBaySlot) this.elements.tokyoBaySlot = document.getElementById('tokyo-bay-monster');
+        const cityEl = this.elements.tokyoCitySlot;
+        const bayEl = this.elements.tokyoBaySlot;
+        if (!cityEl || !bayEl) {
+            console.warn('Tokyo slot elements missing; aborting updateTokyoDisplay');
+            return;
+        }
         // Tokyo City
         if (gameState.tokyoCity) {
             const player = gameState.players.find(p => p.id === gameState.tokyoCity);
-            
-            this.elements.tokyoCitySlot.innerHTML = `
+            if (player) {
+            cityEl.innerHTML = `
                 <div class="tokyo-monster">
                     <div class="monster-avatar" data-monster="${player.monster.id}">
                         <img src="${player.monster.image}" alt="${player.monster.name}" class="monster-avatar-image" />
@@ -2531,9 +2795,10 @@ class KingOfTokyoUI {
                     <div class="monster-name">${player.monster.name}</div>
                 </div>
             `;
-            this.elements.tokyoCitySlot.classList.add('occupied');
-            this.elements.tokyoCitySlot.setAttribute('data-monster', player.monster.id);
-            this.elements.tokyoCitySlot.setAttribute('data-player-id', player.id); // Add player ID for hover logic
+            cityEl.classList.add('occupied');
+            cityEl.setAttribute('data-monster', player.monster.id);
+            cityEl.setAttribute('data-player-id', player.id); // Add player ID for hover logic
+            }
             
             // Set CSS custom properties for monster-specific colors
             if (player.monster.color) {
@@ -2551,9 +2816,9 @@ class KingOfTokyoUI {
                 }
             }
         } else {
-            this.elements.tokyoCitySlot.innerHTML = '<div class="empty-slot">Empty</div>';
-            this.elements.tokyoCitySlot.classList.remove('occupied');
-            this.elements.tokyoCitySlot.removeAttribute('data-monster'); // Remove monster data when empty
+            cityEl.innerHTML = '<div class="empty-slot">Empty</div>';
+            cityEl.classList.remove('occupied');
+            cityEl.removeAttribute('data-monster'); // Remove monster data when empty
         }
 
         // Tokyo Bay (for 5-6 players)
@@ -2601,6 +2866,31 @@ class KingOfTokyoUI {
         
         // Add hover event listeners for Tokyo hover effects
         this.setupTokyoHoverEffects(gameState);
+    }
+
+    // Generate player dashboard HTML (restored helper)
+    _generatePlayerHTML(player, isActive=false) {
+        if (!player || !player.monster) return '';
+        const monster = player.monster;
+        const classes = ['player-dashboard'];
+        if (isActive) classes.push('active');
+        const status = `${player.health}♥ ${player.energy}⚡ ${player.victoryPoints}🏆`;
+        return `
+        <div class="${classes.join(' ')}" data-player-id="${player.id}" data-player-type="${player.playerType}">
+            <div class="player-header">
+                <div class="monster-avatar" data-monster="${monster.id}">
+                    <img src="${monster.image}" alt="${monster.name}" class="monster-avatar-image" />
+                </div>
+                <div class="player-name">${monster.name}</div>
+            </div>
+            <div class="player-stats" data-player-id="${player.id}">
+                <span class="player-health" data-health="${player.health}">${player.health}♥</span>
+                <span class="player-energy" data-energy="${player.energy}">${player.energy}⚡</span>
+                <span class="player-vp" data-vp="${player.victoryPoints}">${player.victoryPoints}🏆</span>
+            </div>
+            <div class="player-status-line">${status}</div>
+            <div class="player-effects" data-effects-for="${player.id}"></div>
+        </div>`;
     }
     
     // Remove existing Tokyo hover listeners
@@ -2914,6 +3204,35 @@ class KingOfTokyoUI {
         if (!this.game) {
             if (this.debugMode) {
                 this._debug('No game instance in updateDiceControls, returning');
+            }
+            return;
+        }
+
+        // Defensive: ensure critical elements exist (can happen if initialization order shifts or modal markup not yet injected)
+        if (!this.elements.rollsLeft) {
+            this.elements.rollsLeft = document.getElementById('rolls-left');
+        }
+        if (!this.elements.rollDiceBtn) {
+            this.elements.rollDiceBtn = document.getElementById('roll-dice');
+        }
+        if (!this.elements.keepDiceBtn) {
+            this.elements.keepDiceBtn = document.getElementById('keep-dice');
+        }
+        if (!this.elements.endTurnBtn) {
+            this.elements.endTurnBtn = document.getElementById('end-turn');
+        }
+        if (!this.elements.actionMenu) {
+            this.elements.actionMenu = document.getElementById('action-menu');
+        }
+
+        // If still missing a critical element, abort safely
+        if (!this.elements.rollsLeft || !this.elements.rollDiceBtn || !this.elements.keepDiceBtn) {
+            if (this.debugMode) {
+                this._debug('Aborting updateDiceControls due to missing elements', {
+                    rollsLeft: !!this.elements.rollsLeft,
+                    rollDiceBtn: !!this.elements.rollDiceBtn,
+                    keepDiceBtn: !!this.elements.keepDiceBtn
+                });
             }
             return;
         }
@@ -3312,10 +3631,18 @@ class KingOfTokyoUI {
     // Update cards display
     updateCardsDisplay() {
         if (!this.game) return;
-
+        if (!this.elements.availableCards) {
+            console.warn('updateCardsDisplay: availableCards element missing');
+            return;
+        }
         const gameState = this.game.getGameState();
+        if (!gameState) return;
         const currentPlayer = gameState.currentPlayer;
-        
+        if (!currentPlayer) return;
+        if (!Array.isArray(gameState.availableCards)) {
+            console.warn('updateCardsDisplay: gameState.availableCards not array');
+            return;
+        }
         this.elements.availableCards.innerHTML = gameState.availableCards.map(card => {
             // Calculate the actual cost including discounts
             let actualCost = this.game.calculateCardCost(currentPlayer.id, card.id);
@@ -3620,6 +3947,14 @@ class KingOfTokyoUI {
 
     // Show decision modal
     showDecisionModal(decision) {
+        if (!this.elements.decisionModal) {
+            console.warn('showDecisionModal: decisionModal element missing');
+            return;
+        }
+        if (!this.elements.decisionOption1 || !this.elements.decisionOption2) {
+            console.warn('showDecisionModal: decision buttons missing');
+            return;
+        }
         if (decision.type === 'tokyoExit') {
             // Get the player data
             const player = this.game.players.find(p => p.id === decision.playerId);
@@ -3758,7 +4093,7 @@ class KingOfTokyoUI {
     // Hide decision modal
     hideDecisionModal() {
         console.log('🔄 hideDecisionModal called!');
-        this.elements.decisionModal.classList.add('hidden');
+        if (this.elements.decisionModal) this.elements.decisionModal.classList.add('hidden');
         
         // Restore original z-index values
         const activePlayerDashboard = document.querySelector('.player-dashboard.active');
@@ -7783,7 +8118,7 @@ class KingOfTokyoUI {
         if (lazyStub) {
             return `<div class="ai-flow-round lazy-stub collapsed" data-round="${round.roundNumber}"><div class="ai-flow-round-header">⬇ Older Round ${round.roundNumber} <span class="ai-flow-round-meta">${round.turns.length} turns (click to load)</span></div><div class="ai-flow-round-body"></div></div>`;
         }
-        return `<div class="ai-flow-round collapsed" data-round="${round.roundNumber}"><div class="ai-flow-round-header">🆕 Round ${round.roundNumber} <span class="ai-flow-round-meta">${round.turns.length} turns</span></div><div class="ai-flow-round-body">${round.turns.map(t => this.buildTurnHTML(round, t)).join('')}</div></div>`;
+    return `<div class="ai-flow-round collapsed" data-round="${round.roundNumber}"><div class="ai-flow-round-header">Round ${round.roundNumber} <span class="ai-flow-round-meta">${round.turns.length} turns</span></div><div class="ai-flow-round-body">${round.turns.map(t => this.buildTurnHTML(round, t)).join('')}</div></div>`;
     }
 
     buildTurnHTML(round, turn) {
@@ -7925,27 +8260,54 @@ class KingOfTokyoUI {
     }
 
     buildGoalTimeline(turn) {
+        // Humanized goal evolution timeline
         if (!turn.rolls || !turn.rolls.length) return '';
-        const nodes = [];
-        let lastFace = null;
-        turn.rolls.forEach(r => {
-            const face = r.goal && r.goal.face ? r.goal.face : null;
-            if (face) {
-                const changed = lastFace !== null && face !== lastFace;
-                nodes.push({ face, changed, rollNumber: r.rollNumber });
-                lastFace = face;
+        // Extract goal faces per roll
+        const raw = turn.rolls.map(r => ({
+            rollNumber: r.rollNumber,
+            face: r.goal && r.goal.face ? r.goal.face : null
+        }));
+
+        // Filter out rolls with no declared goal when compressing but keep for tooltips
+        // Build compressed segments: consecutive identical non-null faces collapsed
+        const segments = [];
+        raw.forEach(entry => {
+            if (!entry.face) return; // skip empty goals for the evolution path
+            const last = segments[segments.length - 1];
+            if (last && last.face === entry.face) {
+                last.rollNumbers.push(entry.rollNumber);
             } else {
-                nodes.push({ face: null, changed: false, rollNumber: r.rollNumber });
+                segments.push({ face: entry.face, rollNumbers: [entry.rollNumber] });
             }
         });
-        if (nodes.filter(n=>n.face!=null).length <= 1) return ''; // No evolution
-        const html = nodes.map(n => {
-            if (!n.face) return `<div class=\"goal-node empty\" title=\"Roll ${n.rollNumber}: no goal\">–</div>`;
-            const cls = `goal-node ${n.changed? 'changed':''}`;
-            const content = this.renderMiniDie?this.renderMiniDie(n.face,true):n.face;
-            return `<div class=\"${cls}\" title=\"Roll ${n.rollNumber}: goal ${n.face}${n.changed?' (changed)':''}\">${content}</div>`;
-        }).join('<div class=\"goal-edge\"></div>');
-        return `<div class=\"ai-flow-goal-timeline\"><div class=\"goal-timeline-label\">Goal Evolution:</div><div class=\"goal-timeline-track\">${html}</div></div>`;
+
+        // If fewer than 2 distinct goal segments, suppress timeline (no evolution to show)
+        if (segments.length <= 1) return '';
+
+        // Mapping faces to semantic labels
+        const labelFor = (face) => {
+            switch(String(face)) {
+                case 'attack': return 'Attack';
+                case 'energy': return 'Energy';
+                case 'heal': return 'Heal';
+                case '1':
+                case '2':
+                case '3': return 'Triples';
+                default: return String(face);
+            }
+        };
+
+        // Build node HTML with arrow separators
+        const nodeHTML = segments.map((seg, idx) => {
+            const label = labelFor(seg.face);
+            const faceIcon = this.renderMiniDie ? this.renderMiniDie(seg.face, true) : seg.face;
+            const rollsSpan = seg.rollNumbers.length > 1 ? ` (rolls ${seg.rollNumbers[0]}–${seg.rollNumbers[seg.rollNumbers.length-1]})` : ` (roll ${seg.rollNumbers[0]})`;
+            const title = `${label} focus${rollsSpan}`;
+            const changedClass = idx === 0 ? 'initial' : 'changed';
+            return `<div class="goal-node ${changedClass}" title="${title}"><span class="goal-icon">${faceIcon}</span><span class="goal-label">${label}</span></div>`;
+        }).join('<div class="goal-edge" aria-hidden="true">→</div>');
+
+        return `<div class="ai-flow-goal-timeline"><div class="goal-timeline-label">Focus Shift:</div><div class="goal-timeline-track">${nodeHTML}</div></div>`;
     }
 
     buildRollHTML(turn, roll) {
@@ -7968,7 +8330,9 @@ class KingOfTokyoUI {
             mindsetText = fullNarr.slice(idx).replace(/<div.*$/,'').trim();
         }
         // Decision + Justification combined
-    const confidencePct = (roll.confidence*100).toFixed(0);
+    // Confidence percentage: never show 100% unless exactly 1.0
+    const rawConf = roll.confidence*100;
+    const confidencePct = (roll.confidence===1?100: Math.min(99, Math.floor(rawConf))).toFixed(0);
         const keptFacesHTML = kept.map(i=> faces[i]).filter(f=>f!==undefined).map(f=> this.renderMiniDie?this.renderMiniDie(f,true):f).join('');
         // Determine composite goal based on previous roll (except for first roll)
         let goalDisplay;
@@ -7979,32 +8343,74 @@ class KingOfTokyoUI {
             const comp = this.deriveCompositeGoal(prev);
             goalDisplay = comp.html ? `Goal: ${comp.html}` : '';
         }
-    const diceKeptRow = `<div class=\"ai-flow-kept-dice-row\"><span class=\"ai-flow-kept-label\">Dice Kept:</span><div class=\"ai-flow-kept-dice\">${keptFacesHTML || '<span style=\\"opacity:.5;\\">None</span>'}</div></div>`;
-    const decisionJust = `<div class=\"ai-flow-section\"><div class=\"ai-flow-sec-h\">Decision & Justification</div><div class=\"ai-flow-sec-body\">${diceKeptRow}<div class=\"ai-flow-decision-line reordered\"><span class=\"ai-flow-decision-action-main\"><strong>${actionLabel.toUpperCase()}</strong></span><span class=\"ai-flow-decision-goal\">${goalDisplay}</span><span class=\"ai-flow-confidence-inline ${confClass}\">${confidencePct}%</span></div><div class=\"ai-flow-just-text\">${this.capitalizeFirst(justificationText)}</div></div></div>`;
+    // New structured layout
+    const decisionPill = `<span class=\"ai-flow-decision-pill\">${actionLabel.toUpperCase()}</span>`;
+    const confidencePill = `<span class=\"ai-flow-confidence-pill ${confClass}\" title=\"Confidence in decision\">${confidencePct}%</span>`;
+    // Goal determination: if first roll, show TBD; else show derived composite or explicit goal
+    let goalDiceFacesHTML = '';
+    if (roll.rollNumber === 1) {
+        goalDisplay = 'Goal: <span class=\\"goal-tbd\\">TBD</span>';
+    } else if (roll.goal && roll.goal.face){
+        // Determine how many of this face are already kept and typical target count (for numbers often 3 of a kind)
+        const prev = turn.rolls.find(r=>r.rollNumber === roll.rollNumber -1);
+        const prevFaces = prev? (prev.dice||[]).filter(f=>f!=null):[];
+        const prevKept = prev? prev.keptIndices||[]:[];
+        const keptFacesPrev = prevKept.map(i=>prevFaces[i]).filter(f=>f!==undefined);
+        const lf = (''+roll.goal.face).toLowerCase();
+        let haveCount = keptFacesPrev.filter(f=>(''+f).toLowerCase()===lf).length;
+        // Default needed target counts: numbers -> 3, attack/energy/heart -> 1 incremental (show remaining if >0)
+        let targetCount = (lf==='1'||lf==='one'||lf==='2'||lf==='two'||lf==='3'||lf==='three') ? 3 : 1;
+        let need = Math.max(0, targetCount - haveCount);
+        const goalFaceIcon = this.renderMiniDie ? this.renderMiniDie(roll.goal.face,true) : roll.goal.face;
+        goalDiceFacesHTML = goalFaceIcon + (need>0? `<span class=\\"goal-needed\\" title=\\"Needed to reach typical set threshold\\">x${need} more</span>`: '<span class=\\"goal-needed done\\" title=\\"Threshold reached\\">(met)</span>');
+    goalDisplay = 'Goal:';
+    } else if (goalDisplay){
+        // already built composite goal string; indicate counts for each category if >1
+    goalDisplay = 'Goal:';
+    } else {
+    goalDisplay = 'Goal:';
+    }
+    // Odds calculation: use improvementChance if goal face matches improvingFaces; fallback n/a
+    let oddsText = 'n/a';
+    if (roll.rollNumber === 1) {
+        oddsText = 'n/a';
+    } else if (roll.improvementChance != null) {
+        const pct = (roll.improvementChance===1?100: Math.min(99, Math.floor(roll.improvementChance*100)));
+        oddsText = pct + '%';
+    }
+    const goalLine = `<div class=\"ai-flow-line\"><span class=\"ai-flow-line-label\">${goalDisplay}</span><span class=\"ai-flow-line-value\">${goalDiceFacesHTML || (roll.rollNumber===1 ? '' : (goalDisplay.startsWith('Goal') && goalDiceFacesHTML===''?'<span style=\\"opacity:.5;\\">(implicit)</span>':''))}</span></div>`;
+    const diceKeptLine = `<div class=\"ai-flow-line\"><span class=\"ai-flow-line-label\">Dice Kept:</span><span class=\"ai-flow-line-value kept\">${keptFacesHTML || '<span style=\\"opacity:.5;\\">None</span>'}</span></div>`;
+    const decisionLine = `<div class=\"ai-flow-line\"><span class=\"ai-flow-line-label\">Decision:</span><span class=\"ai-flow-line-value\">${decisionPill}</span></div>`;
+    const confidenceLine = `<div class=\"ai-flow-line\"><span class=\"ai-flow-line-label\">Confidence in Decision:</span><span class=\"ai-flow-line-value\">${confidencePill}</span></div>`;
+    const justificationLabel = `<div class=\"ai-flow-line just-label\"><span class=\"ai-flow-line-label\">Justification:</span></div>`;
+    const justificationBlock = `<div class=\"ai-flow-just-text\">${this.capitalizeFirst(justificationText)}</div>`;
+    const decisionJust = `<div class=\"ai-flow-section\"><div class=\"ai-flow-sec-h\">Decision Detail</div><div class=\"ai-flow-sec-body\">${goalLine}${diceKeptLine}${decisionLine}${confidenceLine}${justificationLabel}${justificationBlock}</div></div>`;
         const mindsetSection = mindsetText ? `<div class="ai-flow-section"><div class="ai-flow-sec-h">Mindset</div><div class="ai-flow-sec-body">${this.capitalizeFirst(mindsetText)}</div></div>`:'';
         const thoughtSection = (analysisCategory || analysisSummary) ? `<div class=\"ai-flow-section ai-flow-thought ai-flow-thought-collapsed\"><div class=\"ai-flow-thought-toggle\" data-toggle=\"thought\">Thought Process</div><div class=\"ai-flow-thought-body\"><div class=\"ai-flow-sec-body\">${analysisCategory} ${analysisSummary}</div></div></div>`:'';
         const probChart = this.buildRollProbabilityChart(turn, roll, faces, kept, true);
         // Improvement metrics (may be undefined for legacy turns)
-        const impChance = (roll.improvementChance!=null)? (roll.improvementChance*100).toFixed(0)+'%':'—';
-        const impEV = (roll.improvementEV!=null)? roll.improvementEV.toFixed(2):'—';
+    const hasImpChance = (roll.improvementChance!=null);
+    const hasImpEV = (roll.improvementEV!=null);
+    const impChance = hasImpChance? (roll.improvementChance*100).toFixed(0)+'%':null;
+    const impEV = hasImpEV? roll.improvementEV.toFixed(2):null;
         let evTooltip = '';
         if (Array.isArray(roll.evBreakdown) && roll.evBreakdown.length){
             const rows = roll.evBreakdown.map(r=>`<div class=\"ev-row\"><span class=\"ev-face\">${this.renderMiniDie?this.renderMiniDie(r.face,true):r.face}</span><span class=\"ev-type\">${r.type}</span><span class=\"ev-val\">${r.ev.toFixed(2)}</span></div>`).join('');
             evTooltip = `<div class=\"ev-breakdown-tip\"><div class=\"ev-head\">EV Components</div>${rows}</div>`;
         }
         const released = roll.releasedIndices || [];
+        const impPct = hasImpChance? (roll.improvementChance===1? '100%': (Math.min(99, Math.floor(roll.improvementChance*100)))+'%') : null;
+        const impSection = (hasImpChance || hasImpEV) ? `<span class=\"ai-flow-imp\" title=\"Chance of a better result on remaining rolls\">Impact: <strong>${impPct ?? 'n/a'}</strong></span>` : '';
+        const evSection = hasImpEV ? `<span class=\"ai-flow-ev\" title=\"Average net gain if improvement occurs\">EV Gain: <strong>${impEV}</strong>${evTooltip}</span>` : '';
         return `
-        <div class="ai-flow-roll" data-released='${JSON.stringify(released)}'>
-            <div class="ai-flow-roll-header">
-                <span class="ai-flow-roll-number">Roll ${roll.rollNumber}</span>
-                <span class="ai-flow-roll-decision-label">${actionLabel.toUpperCase()}</span>
-                <span class="ai-flow-confidence ${confClass}" title="Confidence in decision">${(roll.confidence*100).toFixed(0)}%</span>
-                <span class="ai-flow-imp" title="Chance an additional improvement materializes before end">Imp: <strong>${impChance}</strong></span>
-                <span class="ai-flow-ev" title="Estimated expected value of improvement window">EV+: <strong>${impEV}</strong>${evTooltip}</span>
+        <div class=\"ai-flow-roll\" data-released='${JSON.stringify(released)}'>
+            <div class=\"ai-flow-roll-header\">
+                <span class=\"ai-flow-roll-number\"><strong>Roll ${roll.rollNumber}</strong></span>
             </div>
             <div class="ai-flow-dice-row">
                 <div class="ai-flow-dice" data-dice='${JSON.stringify(faces)}' data-kept='${JSON.stringify(kept)}'></div>
             </div>
+            <div class=\"ai-flow-metrics-row\">${impSection}${evSection}</div>
             ${decisionJust}
             ${thoughtSection}
             ${mindsetSection}
@@ -8017,8 +8423,8 @@ class KingOfTokyoUI {
             const playerName = turn.playerName;
             const risk = (roll.analysis?.riskTolerance != null) ? roll.analysis.riskTolerance : (turn.riskTolerance || this.aiEngine?.config?.personality?.riskTolerance || 0.5);
             const aggression = (roll.analysis?.aggression != null) ? roll.analysis.aggression : (turn.aggression || this.aiEngine?.config?.personality?.aggression || 0.5);
-            const riskDescriptor = risk >= 0.75 ? 'high risk tolerance' : risk >= 0.55 ? 'moderate risk appetite' : risk >= 0.35 ? 'balanced caution' : 'very cautious stance';
-            const aggressionDescriptor = aggression >= 0.75 ? 'very aggressive posture' : aggression >= 0.55 ? 'assertive approach' : aggression >= 0.35 ? 'measured stance' : 'defensive posture';
+            const riskDescriptor = risk >= 0.75 ? 'very bold approach' : risk >= 0.55 ? 'willing to take some risks' : risk >= 0.35 ? 'playing it steady' : 'playing it safe';
+            const aggressionDescriptor = aggression >= 0.75 ? 'highly aggressive' : aggression >= 0.55 ? 'leaning aggressive' : aggression >= 0.35 ? 'balanced' : 'defensive';
             const keptFaces = kept.map(i => faces[i]).filter(v => v !== undefined);
 
             // Outcome emphasis
@@ -8028,19 +8434,19 @@ class KingOfTokyoUI {
             // Basic probability delta placeholder (future enhancement)
             const probInfo = roll.analysis?.probabilityShift ? ` Probability focus shifted toward ${this.inlineFaceList(roll.analysis.probabilityShift.targets || [])}.` : '';
 
-            let keptClause = keptFaces.length ? ` kept ${keptFaces.length} dice ` : ' kept no dice ';
+            let keptClause = keptFaces.length ? ` kept ${keptFaces.length} dice ` : ' kept none ';
             let base;
             if (roll.rollNumber === 1) {
-                base = `After the initial roll, ${playerName}${keptClause}while adopting a ${riskDescriptor} with an ${aggressionDescriptor}.`;
+                base = `First roll: ${playerName}${keptClause}and is ${riskDescriptor}, ${aggressionDescriptor}.`;
             } else {
-                base = `After seeing the result of roll ${roll.rollNumber}, ${playerName}${keptClause}to pursue the '${action}' plan.`;
+                base = `Roll ${roll.rollNumber}: ${playerName}${keptClause}and moves toward '${action}'.`;
             }
-            let because = reason ? ` This decision was made because ${this.simplifyReason(reason)}.` : '';
+            let because = reason ? ` Because ${this.simplifyReason(reason)}.` : '';
             if (roll.goal && roll.goal.face) {
                 const goalFaceDisp = this.renderMiniDie ? this.renderMiniDie(roll.goal.face, true) : roll.goal.face;
-                because += ` Pursuing goal set of ${goalFaceDisp}.`;
+                because += ` Targeting ${goalFaceDisp}.`;
             }
-            let riskAgg = ` Their current mindset blends ${riskDescriptor} and ${aggressionDescriptor}, influencing the evaluation of reroll value vs. locking gains.`;
+            let riskAgg = ` Mindset: ${riskDescriptor}, ${aggressionDescriptor}.`;
             return `${base}${because}${probInfo} ${riskAgg}`;
         } catch(e) {
             return '';
@@ -8065,7 +8471,7 @@ class KingOfTokyoUI {
         try {
             const perFace = roll.perFaceProbabilities;
             if (!Array.isArray(perFace) || !perFace.length) return '';
-            // Aggregate by logical category
+            // Aggregate by logical category (raw capture first)
             const agg = { attack:[], energy:[], heart:[], one:[], two:[], three:[] };
             const mapFace = f => {
                 if (f==='1'||f==='one') return 'one';
@@ -8078,23 +8484,144 @@ class KingOfTokyoUI {
             };
             perFace.forEach(p => {
                 const cat = mapFace(p.face);
-                if (cat && agg[cat]) agg[cat].push(p.keepProbability);
+                if (cat && agg[cat]) {
+                    const val = typeof p.keepProbability === 'number' ? p.keepProbability : 0;
+                    if (!Number.isNaN(val) && val >= 0) {
+                        agg[cat].push(Math.min(val, 1)); // clamp to 1
+                    }
+                }
             });
+            // Determine goal categories (derived from previous roll state / explicit goal)
+            let goalCats = [];
+            // If we have explicit goal (single face)
+            if (roll.goal && roll.goal.face) {
+                const g = mapFace(roll.goal.face);
+                if (g) goalCats.push(g);
+            } else {
+                // Use composite goal from previous roll
+                const prev = turn.rolls.find(r=>r.rollNumber === roll.rollNumber -1);
+                if (prev) {
+                    const comp = this.deriveCompositeGoal(prev);
+                    if (Array.isArray(comp.categories)) goalCats = comp.categories.slice();
+                }
+            }
+            // Fallback: if no goal categories (first roll or undefined), keep all (but we may later choose to hide chart on first roll)
+            if (!goalCats.length) {
+                goalCats = Object.keys(agg); // show all if no specific goal yet
+            }
+            // Filter agg to only goal categories
             const rows = Object.entries(agg)
-                .filter(([_,arr])=>arr.length>0)
+                .filter(([k,arr])=>arr.length>0 && goalCats.includes(k))
                 .map(([k,arr])=>({ key:k, avg: arr.reduce((a,b)=>a+b,0)/arr.length }));
             if (!rows.length) return '';
-            // Normalize widths to max among averages for relative emphasis
-            const maxAvg = Math.max(...rows.map(r=>r.avg));
+            // Helper: binomial cumulative probability of getting at least k successes in n trials with p per trial
+            const binomAtLeast = (n,k,p)=> {
+                if (k<=0) return 1;
+                if (n<=0) return 0;
+                let sum=0;
+                for (let i=k;i<=n;i++) {
+                    // C(n,i) * p^i * (1-p)^(n-i)
+                    let comb=1;
+                    for (let j=1;j<=i;j++) comb = comb*(n-j+1)/j;
+                    sum += comb * Math.pow(p,i) * Math.pow(1-p,n-i);
+                }
+                return Math.min(1, Math.max(0,sum));
+            };
+            // Compute composite AND probability if multiple goal categories (simple independence approximation)
+            let compositeProb = null;
+            if (goalCats.length > 1) {
+                // For each needed category, approximate probability of getting at least the kept count again (very rough: use per-face avg probability * remaining dice count)
+                // We'll attempt: P(all) ~= product of category probabilities (clamped)
+                const probs = rows.map(r=> Math.min(Math.max(r.avg,0),1));
+                compositeProb = probs.reduce((a,b)=> a*b, 1);
+            }
+            // Numeric single-face goal improvement using binomial model for remaining rolls
+            let numericGoalProb = null;
+            let numericGoalProbIfFree = null;
+            let numericNeed = 0;
+            if (roll.goal && roll.goal.face) {
+                const g = (''+roll.goal.face).toLowerCase();
+                const isNum = ['1','2','3','one','two','three'].includes(g);
+                if (isNum) {
+                    const prev = turn.rolls.find(r=>r.rollNumber === roll.rollNumber -1);
+                    const prevFaces = prev? (prev.dice||[]).filter(f=>f!=null):[];
+                    const prevKept = prev? prev.keptIndices||[]:[];
+                    const keptFacesPrev = prevKept.map(i=>prevFaces[i]).filter(f=>f!==undefined).map(v=>(''+v).toLowerCase());
+                    const targetSym = g==='one'||g==='1'?'1': g==='two'||g==='2'?'2':'3';
+                    const haveCount = keptFacesPrev.filter(f=>f===targetSym).length;
+                    const targetCount = 3; // standard set aim
+                    numericNeed = Math.max(0, targetCount - haveCount);
+                    const diceTotal = faces.length; // total dice in play this turn
+                    const keptCurrent = kept.length; // dice kept this roll
+                    const freeDice = diceTotal - keptCurrent; // dice to reroll next
+                    const rollsLeft = 3 - roll.rollNumber; // remaining rerolls after this roll
+                    if (numericNeed>0 && freeDice>0 && rollsLeft>0) {
+                        // Per-die success probability each roll is 1/6. We approximate by treating (freeDice * rollsLeft) independent trials (upper bound simplification).
+                        const trials = freeDice * rollsLeft;
+                        numericGoalProb = binomAtLeast(trials, numericNeed, 1/6);
+                        // Scenario: free one extra die (if any kept non-goal die exists)
+                        const prevKeptThisRollFaces = kept.map(i=>faces[i]).filter(f=>f!==undefined).map(v=>(''+v).toLowerCase());
+                        const hasNonGoalKept = prevKeptThisRollFaces.some(f=>f!==targetSym && !['attack','claw','energy','⚡','heart','heal','❤'].includes(f));
+                        if (hasNonGoalKept) {
+                            const freeDiceAlt = freeDice + 1;
+                            const trialsAlt = freeDiceAlt * rollsLeft;
+                            numericGoalProbIfFree = binomAtLeast(trialsAlt, numericNeed, 1/6);
+                        }
+                    }
+                }
+            }
+            // Absolute scale (0-100%). Provide formatting: <1%, 100% only if ==1 exactly, else cap 99%.
             const htmlRows = rows.map(r => {
-                const rel = maxAvg>0 ? (r.avg / maxAvg) : 0;
-                const pct = rel * 100;
-                const valPct = (r.avg*100).toFixed(0);
+                let pctAbs = r.avg * 100;
+                let display;
+                if (r.avg === 1 && !(roll.goal && roll.goal.face)) {
+                    // Unless explicitly achieved, cap at 99%
+                    pctAbs = 99;
+                    display = '99%';
+                } else if (r.avg === 1) {
+                    pctAbs = 100; display = '100%';
+                } else if (r.avg > 0 && pctAbs < 1) {
+                    display = '<1%';
+                } else if (pctAbs >= 99) {
+                    pctAbs = 99;
+                    display = '99%';
+                } else {
+                    display = `${Math.round(pctAbs)}%`;
+                }
+                const widthPct = Math.max(2, Math.min(100, pctAbs)); // ensure a sliver shows for tiny non-zero
                 const dieIcon = this.renderMiniDie ? this.renderMiniDie(r.key==='heart'?'heal': (r.key==='attack'? 'attack': r.key), false) : r.key;
-                return `<div class="ai-flow-prob-row"><div class="ai-flow-prob-label">${dieIcon}<span>${r.key}</span></div><div class="ai-flow-prob-bar-wrap"><div class="ai-flow-prob-bar" style="width:${pct.toFixed(1)}%"></div></div><div class="ai-flow-prob-val" title="Estimated chance of keeping">${valPct}%</div></div>`;
+                const title = `Estimated absolute chance this face category contributes to a keep decision on this roll`;
+                return `<div class="ai-flow-prob-row"><div class="ai-flow-prob-label">${dieIcon}<span>${r.key}</span></div><div class="ai-flow-prob-bar-wrap" aria-label="${r.key} probability" role="img"><div class="ai-flow-prob-bar" style="width:${widthPct.toFixed(1)}%"></div></div><div class="ai-flow-prob-val" title="${title}">${display}</div></div>`;
             }).join('');
-            const header = withHeader? `<div class="ai-flow-sec-h" style="margin:0 0 4px 0;">Rolling Odds</div>`:'';
-            return `<div class="ai-flow-prob-chart">${header}${htmlRows}</div>`;
+            const header = withHeader? `<div class=\"ai-flow-sec-h\" style=\"margin:0 0 4px 0;\">Roll Odds <span style=\"font-weight:400;font-size:10px;opacity:.7;\" title=\"Chances of achieving the stated goal; values >=99% capped unless exactly 100%\">(chances of desired outcome)</span></div>`:'';
+            let compositeRow = '';
+            if (compositeProb != null) {
+                let pct = compositeProb*100;
+                let display;
+                if (compositeProb === 1) display = '100%';
+                else if (pct > 0 && pct < 1) display = '<1%';
+                else if (pct >= 99) display = '99%';
+                else display = Math.round(pct)+'%';
+                compositeRow = `<div class=\"ai-flow-prob-row composite\"><div class=\"ai-flow-prob-label\"><span style=\"font-size:10px;font-weight:600;\">All Goal Faces</span></div><div class=\"ai-flow-prob-bar-wrap\"><div class=\"ai-flow-prob-bar\" style=\"width:${Math.max(2, Math.min(100, pct)).toFixed(1)}%\"></div></div><div class=\"ai-flow-prob-val\" title=\"Approximate joint probability (independence assumption) of achieving all goal components\">${display}</div></div>`;
+            }
+            // Considerations / Alternative Strategies section
+            let considerations = '';
+            if (numericGoalProb != null) {
+                const fmt = (p)=> {
+                    if (p>=1) return '100%';
+                    const pct = p*100;
+                    if (pct>0 && pct<1) return '<1%';
+                    if (pct>=99) return '99%';
+                    return Math.round(pct)+'%';
+                };
+                let line = `Chance to finish set this turn: ${fmt(numericGoalProb)}`;
+                if (numericGoalProbIfFree != null && numericGoalProbIfFree > numericGoalProb) {
+                    line += ` (could rise to ${fmt(numericGoalProbIfFree)} by freeing a non-goal die)`;
+                }
+                if (numericNeed === 1) line += ' – only one more needed; maximizing roll volume matters.';
+                considerations = `<div class=\"ai-flow-consider\"><div class=\"ai-flow-consider-h\">Considerations & Alternative Strategies:</div><div class=\"ai-flow-consider-body\">${line}</div></div>`;
+            }
+            return `<div class=\"ai-flow-prob-chart\" aria-label=\"Roll goal probability summary\" role=\"group\">${header}${htmlRows}${compositeRow}${considerations}</div>`;
         } catch(e) {
             return '';
         }
@@ -8499,7 +9026,21 @@ class KingOfTokyoUI {
 
     enableRollOffActions(player) {
         if (!player) return;
-        
+        // Defensive element acquisition
+        if (!this.elements.actionMenu) {
+            this.elements.actionMenu = document.getElementById('action-menu');
+        }
+        if (!this.elements.rolloffRollBtn) {
+            this.elements.rolloffRollBtn = document.getElementById('rolloff-roll-btn');
+        }
+        if (!this.elements.actionMenu || !this.elements.rolloffRollBtn) {
+            console.warn('enableRollOffActions: required elements missing', {
+                actionMenu: !!this.elements.actionMenu,
+                rolloffRollBtn: !!this.elements.rolloffRollBtn
+            });
+            return;
+        }
+
         this.elements.actionMenu.classList.add('hidden-for-rolloff');
         this.elements.rolloffRollBtn.style.display = 'block';
         this.elements.rolloffRollBtn.disabled = false;
@@ -8669,6 +9210,7 @@ class KingOfTokyoUI {
             // Update the UI
             this.updateDiceControls();
             this.updateGameDisplay();
+            this._ensureDiceAreaVisible();
             
             // Show the dice area and restore action menu now that the game is starting
             const diceArea = this.elements.diceArea;
@@ -8951,6 +9493,7 @@ class KingOfTokyoUI {
             if (diceArea && diceArea.classList.contains('hidden-until-game-start')) {
                 diceArea.classList.remove('hidden-until-game-start');
             }
+            this._ensureDiceAreaVisible();
         }
         
         // Add victory commentary

@@ -318,13 +318,104 @@
 				const goalIdxs=[]; state.dice.forEach((f,i)=>{ if(f===goal.face) goalIdxs.push(i); });
 				if (goalIdxs.length>=2) goalIdxs.forEach(i=>keep.add(i));
 			}
+			// Number goal specialization heuristic: if goal is numberSet and we have <3 copies of goal face, aggressively free specials to chase triple
+			if (goal && goal.type==='numberSet' && ['one','two','three'].includes(goal.face)){
+				const counts = state.counts;
+				const goalCount = counts[goal.face] || 0;
+				if (goalCount < 3 && rollsRemaining>0){
+					// Determine how many free dice we have; release non-number specials first until at least 2 free dice (if possible)
+					let freeDice = state.dice.length - Array.from(keep).length;
+					if (freeDice < 2){
+						// Collect kept specials
+						const keptSpecials=[]; state.dice.forEach((f,i)=>{ if(keep.has(i) && !['one','two','three'].includes(f)) keptSpecials.push({face:f,index:i}); });
+						// Priority release order: heart, energy, attack (attack last for general utility)
+						const pr = { heart:1, energy:2, attack:3 };
+						keptSpecials.sort((a,b)=> (pr[a.face]||5) - (pr[b.face]||5));
+						for (const sp of keptSpecials){
+							if (freeDice>=2) break;
+							keep.delete(sp.index); releasedIndices.push(sp.index); freeDice++;
+						}
+						// If still insufficient free dice and multiple secondary number pairs exist, release one die from lowest face non-goal pair
+						if (freeDice < 2){
+							const secondaryPairs = ['one','two','three'].filter(f=> f!==goal.face && counts[f]===2).sort((a,b)=>{ const val={one:1,two:2,three:3}; return (val[a]||0)-(val[b]||0); });
+							for (const sf of secondaryPairs){
+								if (freeDice>=2) break;
+								const idxs=[]; state.dice.forEach((f,i)=>{ if(f===sf) idxs.push(i); });
+								if (idxs.length===2){ const rel = idxs[1]; if (keep.delete(rel)){ releasedIndices.push(rel); freeDice++; } }
+							}
+						}
+					}
+				}
+			}
 			const kept = Array.from(keep).sort((a,b)=>a-b);
 			const improvement = ev.total;
+
+			// --- Free Dice Guarantee & Pair Refinement Heuristic ---
+			// Rationale: If we have unresolved pairs and no free dice, we cannot improve; force release strategy dice/supplementary pairs.
+			let freeDice = state.dice.length - kept.length;
+			const unresolvedPairFaces = state.numbers.filter(n=> n.pair && !n.formed).map(n=>n.face);
+			if (rollsRemaining > 0 && unresolvedPairFaces.length > 0 && freeDice === 0){
+				// Determine primary target (already computed: primaryFace). Release secondary resources.
+				const secondaryPairFaces = unresolvedPairFaces.filter(f=> f!==primaryFace);
+				// Build candidate release pool: secondary pair dice first, then specials (hearts, energy, attack) by priority.
+				const releaseOrder = [];
+				state.dice.forEach((f,i)=>{
+					if (secondaryPairFaces.includes(f)) releaseOrder.push({index:i, type:'secondaryPair'});
+				});
+				// Specials prioritized: heart (least long-term EV if healthy) < energy < attack (attack often has tempo impact)
+				const specialPriority = { heart:1, energy:2, attack:3 };
+				state.dice.forEach((f,i)=>{
+					if(!['one','two','three'].includes(f) && keep.has(i)){
+						releaseOrder.push({index:i, type:'special', pr: specialPriority[f]||5});
+					}
+				});
+				// Sort: secondary pairs first (stable), then specials by ascending priority value
+				releaseOrder.sort((a,b)=>{
+					if (a.type!==b.type) return a.type==='secondaryPair' ? -1 : 1;
+					return (a.pr||0) - (b.pr||0);
+				});
+				// Release until at least 1 free die (aim for 2 dice if last roll) or pool exhausted
+				const targetFree = rollsRemaining===1 ? 2 : 1;
+				for (const cand of releaseOrder){
+					if (freeDice >= targetFree) break;
+					if (keep.delete(cand.index)) {
+						releasedIndices.push(cand.index);
+						freeDice++;
+					}
+				}
+			}
+			// Last-roll refinement: if this is the final reroll opportunity (rollsRemaining===1 BEFORE rolling again) and we still have multiple unresolved pairs kept fully, prune down.
+			if (rollsRemaining === 1){
+				const pairMeta = state.numbers.filter(n=> n.pair && !n.formed).map(n=>({face:n.face, count:n.count}));
+				if (pairMeta.length > 1){
+					// Ensure only primary pair is fully locked; release one die from each secondary pair if both dice currently kept.
+					pairMeta.forEach(pm=>{
+						if (pm.face === primaryFace) return;
+						// find indices for this face
+						const idxs=[]; state.dice.forEach((f,i)=>{ if(f===pm.face) idxs.push(i); });
+						// if both kept, release one (choose arbitrarily last)
+						const keptIdxs = idxs.filter(i=> keep.has(i));
+						if (keptIdxs.length === 2){
+							const releaseIndex = keptIdxs[keptIdxs.length-1];
+							keep.delete(releaseIndex);
+							releasedIndices.push(releaseIndex);
+						}
+					});
+				}
+			}
+			// Recompute kept and freeDice if modified
+			const keptFinal = Array.from(keep).sort((a,b)=>a-b);
+			freeDice = state.dice.length - keptFinal.length;
+			// If heuristic made releases, append rationale token (UI can surface)
+			let heuristicNote='';
+			if (releasedIndices.length){
+				heuristicNote = ` | heuristic: freed ${releasedIndices.length} die${releasedIndices.length>1?'s':''} for triple chase`;
+			}
+
 			// Refined improvement probability estimation
 			// Consider each numeric face that isn't fully formed. For count==2 need 1 copy; for count==1 a single copy (pair) already improves EV.
 			// Compute probability of at least required copies across all future individual dice results (free dice * remaining rolls)
 			const improvingFaces = [];
-			const freeDice = state.dice.length - kept.length;
 			const trialCount = freeDice * state.rollsRemaining; // number of independent future dice outcomes (upper bound)
 			if (freeDice>0 && state.rollsRemaining>0){
 				state.numbers.forEach(n=>{
@@ -407,7 +498,7 @@
 				}
 			}
 			const evBreakdown = ev.items.map(it=>({ face:it.face, type:it.type, ev:Number(it.ev.toFixed(3)) }));
-			return { action, keepDice: kept, reason: reasonParts.join(' '), confidence, yieldSuggestion, techMeta, goal, releasedIndices, improvementChance:Number(improvementChance.toFixed(3)), improvingFaces:Array.from(improvingFaces), evBreakdown, improvementEV: improvement };
+			return { action, keepDice: keptFinal, reason: reasonParts.join(' ') + heuristicNote, confidence, yieldSuggestion, techMeta, goal, releasedIndices, improvementChance:Number(improvementChance.toFixed(3)), improvingFaces:Array.from(improvingFaces), evBreakdown, improvementEV: improvement };
 		}
 
 		// ---------- Invariants ----------
@@ -425,6 +516,33 @@
 			if (decision.action==='endRoll' && rollsRemaining>0){
 				const pairFaces = ['one','two','three'].filter(f=>counts[f]===2);
 				if (pairFaces.length>=2){ decision.action='reroll'; decision.reason+=' | inv:multi-pair continue'; }
+			}
+			// Reroll with zero free dice invariant: if action is reroll but no free dice & unresolved pairs exist, release one secondary or special.
+			if (decision.action==='reroll' && rollsRemaining>0){
+				const pairFaces = ['one','two','three'].filter(f=>counts[f]===2);
+				const keptSet = new Set(decision.keepDice);
+				const freeDiceNow = state.dice.length - keptSet.size;
+				if (freeDiceNow===0 && pairFaces.length>0){
+					// release one die from lowest-value non-primary pair OR lowest-priority special
+					// Determine primary: highest count then face value (3>2>1)
+					let primaryFace=null;
+					['three','two','one'].forEach(f=>{ if (counts[f]===2 && primaryFace===null) primaryFace=f; });
+					const releaseCandidates=[];
+					// secondary pair dice
+					['one','two','three'].forEach(f=>{
+						if (f!==primaryFace && counts[f]===2){ state.dice.forEach((face,i)=>{ if(face===f) releaseCandidates.push({i, pr:1}); }); }
+					});
+					// specials
+					const spriority={ heart:2, energy:3, attack:4 };
+					state.dice.forEach((face,i)=>{ if(!['one','two','three'].includes(face)) releaseCandidates.push({i, pr:spriority[face]||5}); });
+					releaseCandidates.sort((a,b)=>a.pr-b.pr);
+					if (releaseCandidates.length){
+						const rel = releaseCandidates[0];
+						keptSet.delete(rel.i);
+						decision.keepDice = Array.from(keptSet).sort((a,b)=>a-b);
+						decision.reason+=' | inv:forced free die';
+					}
+				}
 			}
 			// attack cluster rule
 			if (decision.action==='endRoll' && rollsRemaining>0 && counts.attack>=4){
