@@ -2940,76 +2940,6 @@ body:has(#decision-modal:not(.hidden)) .player-dashboard.active {
 }
 
 /* AI Mode Button State Indicator (for toolbar button, not settings toggle) */
-#ai-mode-btn .toolbar-icon {
-    position: relative;
-}
-
-#ai-mode-btn .ai-state-indicator {
-    position: absolute;
-    bottom: -4px;
-    right: -15px;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    border: 1px solid #000;
-    background: #E74C3C; /* Red for disabled */
-    opacity: 0.8;
-    transition: all 0.3s ease;
-}
-
-#ai-mode-btn .ai-state-indicator::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 6px;
-    height: 1px;
-    background: #fff;
-    transform: translate(-50%, -50%) rotate(45deg);
-    box-shadow: 0 0 0 1px #000;
-}
-
-#ai-mode-btn .ai-state-indicator::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 6px;
-    height: 1px;
-    background: #fff;
-    transform: translate(-50%, -50%) rotate(-45deg);
-    box-shadow: 0 0 0 1px #000;
-}
-
-#ai-mode-btn.active .ai-state-indicator {
-    background: #27AE60; /* Green for enabled */
-}
-
-#ai-mode-btn.active .ai-state-indicator::before {
-    width: 3px;
-    height: 1px;
-    transform: translate(-25%, 10%) rotate(45deg);
-}
-
-#ai-mode-btn.active .ai-state-indicator::after {
-    width: 5px;
-    height: 1px;
-    transform: translate(-15%, -20%) rotate(-45deg);
-}
-
-#ai-mode-btn:hover {
-    background: linear-gradient(135deg, #F5DEB3 0%, #F4A460 100%);
-}
-
-#ai-mode-btn .toolbar-icon svg {
-    color: #8B4513;
-    transition: all 0.3s ease;
-}
-
-#ai-mode-btn.active .toolbar-icon svg {
-    color: #654321;
-}
 
 #ai-mode-toggle:hover .toolbar-icon svg {
     color: #654321;
@@ -5340,6 +5270,64 @@ body.dark-mode .quick-ref-item {
     pointer-events: none;
     --thought-bubble-anim-duration: 0.8s;
     animation: thoughtBubbleAppear var(--thought-bubble-anim-duration) cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* AI Decision Tree Modal */
+.ai-tree-modal {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom:0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.55);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+    z-index: 9000; /* Align with settings modal layering */
+}
+.ai-tree-modal.hidden { display: none; }
+.ai-tree-content {
+    width: min(1200px, 94vw);
+    max-height: 86vh;
+    background: #111;
+    border: 4px solid #ffd54f;
+    border-radius: 14px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.6), 0 0 0 4px #000 inset;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: 'Bangers', cursive;
+}
+.ai-tree-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    background: linear-gradient(90deg,#222,#333);
+    border-bottom: 3px solid #ffd54f;
+}
+.ai-tree-header h2 { margin:0; font-size: 1.75rem; letter-spacing:1px; }
+.close-ai-tree {
+    background: #ffd54f;
+    color: #111;
+    border: 2px solid #000;
+    font-size: 1.2rem;
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 2px 2px 0 #000;
+}
+.close-ai-tree:hover { transform: scale(1.05); }
+.ai-tree-body { padding: 14px 18px 24px; overflow-y: auto; }
+.ai-tree-help { margin-top: 12px; font-size: .9rem; opacity:.75; line-height:1.2; }
+.ai-tree-body .ai-logic-flow-container { background:#1c1c1c; border:2px solid #333; border-radius:8px; padding:10px; }
+
+/* Transparent overlay container to ensure stacking above game board if used */
+.thought-bubble-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 3998; /* just under the bubble itself */
 }
 
 /* Anchored variant (positioned near player). JS sets explicit top/left and removes centering transform */

@@ -184,8 +184,8 @@ class KingOfTokyoUI {
         // Expose setupManager globally for cross-component communication
         window.setupManager = this.setupManager;
         
-        this.initializeElements();
-        this.attachEventListeners();
+    this.initializeElements();
+    this.attachEventListeners();
         this.initializeGamePause(); // Initialize pause system
         this.initializeDragAndDrop();
         this.initializeDarkMode();
@@ -194,7 +194,7 @@ class KingOfTokyoUI {
         this.initializeResponsivePanels();
         this.initializeDiceArea(); // Initialize dice area with 6 dice
         this.initializeAI(); // Initialize AI decision engine
-        this.setupManager.showSetupModal(); // Delegate to SetupManager
+    this.setupManager.showSetupModal(); // Delegate to SetupManager
         
         // End turn button functionality now handled in dice controls
         // No need to add duplicate button
@@ -269,67 +269,12 @@ class KingOfTokyoUI {
         } catch (error) {
             console.warn('⚠️ Failed to load UI configuration, using defaults:', error);
         }
-    }
+        }
 
-    // Initialize DOM element references
-    initializeElements() {
-        window.UI && window.UI._debug && window.UI._debug('initializeElements called');
+        // Initialize DOM element references
+        initializeElements() {
         this.elements = {
-            // Screen elements
-            splashScreen: document.getElementById('splash-screen'),
             gameContainer: document.getElementById('game-container'),
-            
-            // Modals
-            setupModal: document.getElementById('setup-modal'),
-            gameOverModal: document.getElementById('game-over-modal'),
-            decisionModal: document.getElementById('decision-modal'),
-            
-            // Decision modal elements
-            decisionTitle: document.getElementById('decision-title'),
-            decisionContext: document.getElementById('decision-context'),
-            decisionMessage: document.getElementById('decision-message'),
-            decisionMonster: document.getElementById('decision-monster'),
-            decisionOption1: document.getElementById('decision-option-1'),
-            decisionOption2: document.getElementById('decision-option-2'),
-            
-            // Setup elements
-            playerCount: document.getElementById('player-count-dropdown'),
-            dropdownSelected: document.getElementById('dropdown-selected'),
-            dropdownOptions: document.getElementById('dropdown-options'),
-            monsterGrid: document.getElementById('monster-grid'),
-            playerTilesGrid: document.getElementById('player-tiles-grid'),
-            resetMonstersBtn: document.getElementById('reset-monsters'),
-            randomSelectionBtn: document.getElementById('random-selection-btn'),
-            monsterProfilesBtn: document.getElementById('monster-profiles-btn'),
-            startGameBtn: document.getElementById('start-game'),
-            
-            // Monster Profiles Modal
-            monsterProfilesModal: document.getElementById('monster-profiles-modal'),
-            monsterProfilesGrid: document.getElementById('monster-profiles-grid'),
-            closeMonsterProfiles: document.getElementById('close-monster-profiles'),
-            resetProfilesBtn: document.getElementById('reset-profiles-btn'),
-            saveProfilesBtn: document.getElementById('save-profiles-btn'),
-            
-            // Game elements
-            roundCounter: document.getElementById('round-counter'),
-            activePlayerName: document.getElementById('active-player-name'),
-            playersContainer: document.getElementById('players-container'),
-            tokyoCitySlot: document.getElementById('tokyo-city-monster'),
-            tokyoBaySlot: document.getElementById('tokyo-bay-monster'),
-            
-            // Dice elements
-            diceArea: document.getElementById('dice-area'),
-            diceContainer: document.getElementById('dice-container'),
-            actionMenu: document.getElementById('action-menu'),
-            rollDiceBtn: document.getElementById('roll-dice'),
-            keepDiceBtn: document.getElementById('keep-dice'),
-            endTurnBtn: document.getElementById('end-turn'),
-            // buyCardsBtn: document.getElementById('buy-cards'),
-            rollsLeft: document.getElementById('rolls-left'),
-            
-            // Cards elements
-            // currentEnergy: document.getElementById('current-energy'),
-            availableCards: document.getElementById('available-cards'),
             // Note: active player uses .player-dashboard.active class
             
             // Game over elements
@@ -349,6 +294,7 @@ class KingOfTokyoUI {
             pauseGameBtn: document.getElementById('pause-game-btn'),
             resetPositionsBtn: document.getElementById('reset-positions-btn'),
             gameLogBtn: document.getElementById('game-log-btn'),
+                aiDecisionTreeBtn: document.getElementById('ai-decision-tree-btn'),
             storageMgmtBtn: document.getElementById('storage-mgmt-btn'),
             saveGameToolbarBtn: document.getElementById('save-game-toolbar-btn'),
             settingsBtn: document.getElementById('settings-btn'),
@@ -356,6 +302,7 @@ class KingOfTokyoUI {
             gameLogModal: document.getElementById('game-log-modal'),
             storageMgmtModal: document.getElementById('storage-mgmt-modal'),
             settingsModal: document.getElementById('settings-modal'),
+                aiDecisionTreeModal: document.getElementById('ai-decision-tree-modal'),
             instructionsModal: document.getElementById('instructions-modal'),
             exitConfirmationModal: document.getElementById('exit-confirmation-modal'),
             exitCancelBtn: document.getElementById('exit-cancel-btn'),
@@ -376,22 +323,21 @@ class KingOfTokyoUI {
             exportLogsBtn: document.getElementById('export-logs-btn'),
             // Tab elements
             gameFlowTab: document.getElementById('game-flow-tab'),
-            aiLogicTab: document.getElementById('ai-logic-tab'),
-            aiLogContent: document.getElementById('ai-log-content'),
+            aiDecisionTreeContainer: document.getElementById('ai-decision-tree-container'),
             closeStorageMgmtBtn: document.getElementById('close-storage-mgmt'),
             closeSettingsBtn: document.getElementById('close-settings'),
+            closeAIDecisionTreeBtn: document.getElementById('close-ai-decision-tree'),
             saveSettingsBtn: document.getElementById('save-settings'),
             resetSettingsBtn: document.getElementById('reset-settings'),
             cpuSpeedRadios: document.querySelectorAll('input[name="cpu-speed"]'),
             thoughtBubblesToggle: document.getElementById('thought-bubbles-toggle'),
-            aiModeToggle: document.getElementById('ai-mode-toggle'),
-            aiModeBtn: document.getElementById('ai-mode-btn'),
+            // aiModeToggle and legacy AI Mode concept fully removed (AI always advanced)
             monsterCheckboxes: document.getElementById('monster-checkboxes'),
             closeInstructionsBtn: document.getElementById('close-instructions'),
             closeGameOverBtn: document.getElementById('close-game-over'),
             darkModeToggle: document.getElementById('dark-mode-toggle'),
             gamePauseOverlay: document.getElementById('game-pause-overlay')
-        };
+    };
         
         // Specific debug for AI Log Content
         console.log('🔍 DEBUG: aiLogContent element check:', {
@@ -580,6 +526,41 @@ class KingOfTokyoUI {
             this.showInstructions();
         });
 
+        if (this.elements.aiDecisionTreeBtn) {
+            this.elements.aiDecisionTreeBtn.addEventListener('click', () => {
+                this.showAIDecisionTree();
+            });
+        }
+
+        if (this.elements.closeAIDecisionTreeBtn) {
+            this.elements.closeAIDecisionTreeBtn.addEventListener('click', () => {
+                try { const sc = document.querySelector('#ai-decision-tree-container'); if (sc) localStorage.setItem('aiTreeScroll', sc.scrollTop); } catch(_){ }
+                UIUtilities.hideModal(this.elements.aiDecisionTreeModal);
+            });
+        }
+
+        // Delegated header controls (concise/verbose, collapse/expand)
+        document.addEventListener('click', (e)=>{
+            const t = e.target;
+            if (!(t instanceof HTMLElement)) return;
+            if (t.id === 'ai-mode-toggle') {
+                const container = document.querySelector('#ai-decision-tree-container');
+                if (!container) return;
+                const current = t.getAttribute('data-mode') || 'verbose';
+                const next = current==='verbose' ? 'concise':'verbose';
+                t.setAttribute('data-mode', next);
+                t.textContent = next==='verbose' ? 'Verbose':'Concise';
+                container.classList.toggle('concise', next==='concise');
+                localStorage.setItem('aiFlowMode', next);
+            } else if (t.id === 'ai-collapse-all') {
+                document.querySelectorAll('#ai-decision-tree-container .ai-flow-round:not(.lazy-stub)')?.forEach(r=>r.classList.add('collapsed'));
+                document.querySelectorAll('#ai-decision-tree-container .ai-flow-turn')?.forEach(r=>r.classList.add('collapsed'));
+            } else if (t.id === 'ai-expand-all') {
+                document.querySelectorAll('#ai-decision-tree-container .ai-flow-round:not(.lazy-stub)')?.forEach(r=>r.classList.remove('collapsed'));
+                document.querySelectorAll('#ai-decision-tree-container .ai-flow-turn')?.forEach(r=>r.classList.remove('collapsed'));
+            }
+        });
+
         this.elements.closeGameLogBtn.addEventListener('click', () => {
             UIUtilities.hideModal(this.elements.gameLogModal);
         });
@@ -719,13 +700,7 @@ class KingOfTokyoUI {
         UIUtilities.safeAddEventListener(this.elements.darkModeToggle, 'change', 
             () => this.toggleDarkMode(), 'Dark mode toggle not found');
 
-        // AI mode toggle button using UIUtilities
-        UIUtilities.safeAddEventListener(this.elements.aiModeBtn, 'click', 
-            () => this.toggleAIModeButton(), 'AI mode button not found');
-
-        // AI mode toggle using UIUtilities
-        UIUtilities.safeAddEventListener(this.elements.aiModeToggle, 'change', 
-            () => this.toggleAIMode(), 'AI mode toggle not found');
+        // (Legacy AI mode toggle removed; AI always operates in advanced mode)
 
         // Monster avatar click handler for profile modal
         if (this.elements.playersContainer) {
@@ -1905,67 +1880,12 @@ class KingOfTokyoUI {
     _updatePlayerStats(players) {
         players.forEach(player => {
             const playerElement = this._getCachedPlayerDashboard(player.id);
-            if (playerElement) {
-                // Update individual stat values without rebuilding the entire card
-                const energyStat = playerElement.querySelector('.stat.energy .stat-value');
-                const pointsStat = playerElement.querySelector('.stat.points .stat-value');
-                const cardsStat = playerElement.querySelector('.stat.power-cards .stat-value');
-                const healthLabel = playerElement.querySelector('.health-bar-label');
-                const healthFill = playerElement.querySelector('.health-bar-fill');
-                
-                if (energyStat) energyStat.textContent = player.energy;
-                if (pointsStat) pointsStat.textContent = player.victoryPoints;
-                if (cardsStat) cardsStat.textContent = player.powerCards.length;
-                if (healthLabel) healthLabel.textContent = `Health ${player.health}/${player.maxHealth}`;
-                if (healthFill) {
-                    healthFill.style.width = `${(player.health / player.maxHealth) * 100}%`;
-                    healthFill.className = `health-bar-fill ${this.getHealthBarClass(player.health, player.maxHealth)}`;
-                }
-                
-                // Update elimination status
-                playerElement.classList.toggle('eliminated', player.isEliminated);
-                
-                // Update Tokyo status in name container
-                const nameContainer = playerElement.querySelector('.player-name-container');
-                if (nameContainer) {
-                    const existingTokyoIndicator = nameContainer.querySelector('.tokyo-indicator-inline');
-                    if (player.isInTokyo) {
-                        if (!existingTokyoIndicator) {
-                            const tokyoIndicator = document.createElement('div');
-                            tokyoIndicator.className = 'tokyo-indicator-inline';
-                            tokyoIndicator.textContent = `In Tokyo ${player.tokyoLocation === 'city' ? 'City' : 'Bay'}`;
-                            nameContainer.appendChild(tokyoIndicator);
-                        } else {
-                            existingTokyoIndicator.textContent = `In Tokyo ${player.tokyoLocation === 'city' ? 'City' : 'Bay'}`;
-                        }
-                    } else if (existingTokyoIndicator) {
-                        existingTokyoIndicator.remove();
-                    }
-                }
-            }
-        });
-    }
-    
-    // Generate HTML for a single player card
-    _generatePlayerHTML(player, isActive) {
-        window.UI && window.UI._debug && window.UI._debug(`🃏 Generating HTML for ${player.monster.name}: isActive=${isActive}, isInTokyo=${player.isInTokyo}, tokyoLocation=${player.tokyoLocation}`);
-        
-        return `
-            <div class="player-dashboard ${isActive ? 'active' : ''} ${player.isEliminated ? 'eliminated' : ''}" 
-                 data-player-id="${player.id}" data-monster="${player.monster.id}">
-                <div class="player-info">
-                    <div class="player-name-container">
-                        <div class="player-name">
-                            ${player.monster.name}${player.playerType === 'cpu' ? ' <span class="player-subtitle">(CPU)</span>' : ''}
-                        </div>
-                        ${player.isInTokyo ? `<div class="tokyo-indicator-inline">In Tokyo ${player.tokyoLocation === 'city' ? 'City' : 'Bay'}</div>` : ''}
-                    </div>
-                    <div class="monster-avatar" data-monster="${player.monster.id}">
-                        <img src="${player.monster.image}" alt="${player.monster.name}" class="monster-avatar-image" />
-                    </div>
-                </div>
-                <div class="player-stats">
-                    <div class="stat power-cards" data-player-id="${player.id}">
+            if (!playerElement) return;
+            // Update stats section only (avoid full re-render flicker)
+            const statsContainer = playerElement.querySelector('.player-stats');
+            if (statsContainer) {
+                statsContainer.innerHTML = `
+                    <div class="stat cards">
                         <span class="stat-label">Cards</span>
                         <span class="stat-value">${player.powerCards.length}</span>
                     </div>
@@ -1976,16 +1896,23 @@ class KingOfTokyoUI {
                     <div class="stat points">
                         <span class="stat-label">Points</span>
                         <span class="stat-value">${player.victoryPoints}</span>
-                    </div>
-                </div>
-                <div class="health-bar-container">
-                    <div class="health-bar-label">Health ${player.health}/${player.maxHealth}</div>
-                    <div class="health-bar">
-                        <div class="health-bar-fill ${this.getHealthBarClass(player.health, player.maxHealth)}" style="width: ${(player.health / player.maxHealth) * 100}%"></div>
-                    </div>
-                </div>
-            </div>
-        `;
+                    </div>`;
+            }
+            const healthBarFill = playerElement.querySelector('.health-bar-fill');
+            const healthBarLabel = playerElement.querySelector('.health-bar-label');
+            if (healthBarFill) {
+                healthBarFill.style.width = `${(player.health / player.maxHealth) * 100}%`;
+                healthBarFill.className = `health-bar-fill ${this.getHealthBarClass(player.health, player.maxHealth)}`;
+            }
+            if (healthBarLabel) {
+                healthBarLabel.textContent = `Health ${player.health}/${player.maxHealth}`;
+            }
+        });
+    }
+
+    cpuRollDice(player, rollNumber) {
+        // Always use advanced AI path
+        this.cpuRollDiceAI(player, rollNumber);
     }
     
     // Handle Tokyo entry at END of turn (proper game rules)
@@ -5667,6 +5594,19 @@ class KingOfTokyoUI {
         this.loadSettings();
     }
 
+    showAIDecisionTree() {
+        if (!this.elements.aiDecisionTreeModal) return;
+        UIUtilities.showModal(this.elements.aiDecisionTreeModal);
+        // Render latest AI decision tree content
+        try { this.renderAILogicFlow(); } catch(e){ console.warn('AI Decision Tree render error', e); }
+        // Restore scroll position
+        try {
+            const sc = document.querySelector('#ai-decision-tree-container');
+            const saved = parseInt(localStorage.getItem('aiTreeScroll')||'0',10);
+            if (sc && !isNaN(saved)) sc.scrollTop = saved;
+        } catch(_){ }
+    }
+
     loadSettings() {
         // Load CPU speed setting
         const cpuSpeed = localStorage.getItem('cpuSpeed') || 'medium';
@@ -5681,51 +5621,7 @@ class KingOfTokyoUI {
             this.elements.thoughtBubblesToggle.checked = thoughtBubblesEnabled;
         }
 
-        // Load AI mode setting with priority: localStorage > config.json
-        const savedAIMode = localStorage.getItem('aiModeEnabled');
-        const configAIMode = this.gameConfig && this.gameConfig.gameRules && this.gameConfig.gameRules.ai 
-            ? this.gameConfig.gameRules.ai.enableAIMode 
-            : false; // Default to simple mode
-        
-        const finalAIMode = savedAIMode !== null ? savedAIMode === 'true' : configAIMode;
-        
-        console.log('🤖 Loading AI settings:', {
-            gameConfigExists: !!this.gameConfig,
-            aiConfigExists: !!(this.gameConfig && this.gameConfig.gameRules && this.gameConfig.gameRules.ai),
-            configAIMode: configAIMode,
-            savedAIMode: savedAIMode,
-            finalAIMode: finalAIMode,
-            toggleExists: !!this.elements.aiModeToggle,
-            buttonExists: !!this.elements.aiModeBtn
-        });
-        
-        // Clean up any old localStorage AI mode settings that might interfere (but keep aiModeEnabled)
-        localStorage.removeItem('ai-mode');
-        localStorage.removeItem('aiMode');
-        
-        // Set checkbox state
-        if (this.elements.aiModeToggle) {
-            this.elements.aiModeToggle.checked = finalAIMode;
-            console.log('🤖 Set AI toggle to:', finalAIMode);
-            
-            // Also set it again after a short delay to ensure it sticks
-            setTimeout(() => {
-                this.elements.aiModeToggle.checked = finalAIMode;
-                console.log('🤖 Confirmed AI toggle set to:', finalAIMode, 'actual value:', this.elements.aiModeToggle.checked);
-            }, 100);
-        }
-
-        // Initialize AI mode button state to match final setting
-        if (this.elements.aiModeBtn) {
-            if (finalAIMode) {
-                this.elements.aiModeBtn.classList.add('active');
-                this.elements.aiModeBtn.title = 'AI Enhanced Mode: ON - Click to disable';
-            } else {
-                this.elements.aiModeBtn.classList.remove('active');
-                this.elements.aiModeBtn.title = 'AI Enhanced Mode: OFF - Click to enable';
-            }
-            console.log('🤖 Set AI button active state to:', finalAIMode);
-        }
+        // AI mode concept removed – advanced AI always active.
 
         // Initialize and load monster configuration
         this.initializeMonsterCheckboxes();
@@ -5832,48 +5728,13 @@ class KingOfTokyoUI {
         }
     }
 
-    // Check if AI mode is enabled
-    isAIModeEnabled() {
-        // Check localStorage first (user preference)
-        const savedState = localStorage.getItem('aiModeEnabled');
-        if (savedState !== null) {
-            return savedState === 'true';
-        }
-        
-        // Check UI elements second (if available)
-        const uiToggle = this.elements.aiModeToggle && this.elements.aiModeToggle.checked;
-        const buttonActive = this.elements.aiModeBtn && this.elements.aiModeBtn.classList.contains('active');
-        
-        // Fallback to config.json setting
-        const configSetting = this.gameConfig && this.gameConfig.gameRules && this.gameConfig.gameRules.ai 
-            ? this.gameConfig.gameRules.ai.enableAIMode 
-            : false; // Default to simple mode
-        
-        // Debug logging
-        console.log('🤖 isAIModeEnabled() check:', {
-            savedState: savedState,
-            uiToggleExists: !!this.elements.aiModeToggle,
-            uiToggleChecked: uiToggle,
-            buttonExists: !!this.elements.aiModeBtn,
-            buttonActive: buttonActive,
-            configSetting: configSetting
-        });
-        
-        // Priority: localStorage > UI toggle > button state > config file
-        if (this.elements.aiModeToggle) {
-            return uiToggle;
-        } else if (this.elements.aiModeBtn) {
-            return buttonActive;
-        } else {
-            return configSetting;
-        }
-    }
+    // AI mode permanently advanced – legacy simple mode removed.
 
     resetSettings() {
         // Reset to default values
         localStorage.removeItem('cpuSpeed');
         localStorage.removeItem('thoughtBubblesEnabled');
-        localStorage.removeItem('aiModeEnabled'); // Clean up old AI mode setting
+    // Legacy aiModeEnabled flag fully removed
         
         // Reload the settings to show defaults
         this.loadSettings();
@@ -6168,23 +6029,23 @@ class KingOfTokyoUI {
 
     // Game log scroll methods
     scrollGameLogToTop() {
-        const gameLogContainer = document.querySelector('.game-log-container');
-        if (gameLogContainer) {
-            gameLogContainer.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-        }
+        const candidates = [
+            document.getElementById('game-log-content'),
+            document.querySelector('.game-log-entries'),
+            document.querySelector('.game-log-container')
+        ].filter(Boolean);
+        const target = candidates.find(el => el.scrollHeight > el.clientHeight) || candidates[0];
+        if (target) target.scrollTo({ top:0, behavior:'smooth' });
     }
 
     scrollGameLogToBottom() {
-        const gameLogContainer = document.querySelector('.game-log-container');
-        if (gameLogContainer) {
-            gameLogContainer.scrollTo({
-                top: gameLogContainer.scrollHeight,
-                behavior: 'smooth'
-            });
-        }
+        const candidates = [
+            document.getElementById('game-log-content'),
+            document.querySelector('.game-log-entries'),
+            document.querySelector('.game-log-container')
+        ].filter(Boolean);
+        const target = candidates.find(el => el.scrollHeight > el.clientHeight) || candidates[0];
+        if (target) target.scrollTo({ top: target.scrollHeight, behavior:'smooth' });
     }
 
     // Storage management methods
@@ -6308,69 +6169,7 @@ class KingOfTokyoUI {
         localStorage.setItem('darkMode', isDarkMode);
     }
 
-    toggleAIMode() {
-        console.log('🤖 AI Mode toggled! Current state:', this.elements.aiModeToggle.checked);
-        
-        // Save the state to localStorage
-        localStorage.setItem('aiModeEnabled', this.elements.aiModeToggle.checked.toString());
-        
-        // Update button state to match checkbox
-        if (this.elements.aiModeBtn) {
-            if (this.elements.aiModeToggle.checked) {
-                this.elements.aiModeBtn.classList.add('active');
-                this.elements.aiModeBtn.title = 'AI Enhanced Mode: ON - Click to disable';
-            } else {
-                this.elements.aiModeBtn.classList.remove('active');
-                this.elements.aiModeBtn.title = 'AI Enhanced Mode: OFF - Click to enable';
-            }
-        }
-        
-        // Show a confirmation message
-        const message = this.elements.aiModeToggle.checked 
-            ? 'AI Mode enabled - CPU players will use advanced decision making'
-            : 'AI Mode disabled - CPU players will use simple logic';
-        
-        UIUtilities.showMessage(message, 3000, this.elements);
-        
-        // Log current AI mode state for debugging
-        console.log('🤖 isAIModeEnabled():', this.isAIModeEnabled());
-    }
-
-    toggleAIModeButton() {
-        console.log('🤖 AI Mode button clicked!');
-        
-        // Toggle the AI mode state
-        const currentState = this.isAIModeEnabled();
-        const newState = !currentState;
-        
-        // Update the checkbox if it exists (for settings modal)
-        if (this.elements.aiModeToggle) {
-            this.elements.aiModeToggle.checked = newState;
-        }
-        
-        // Update button visual state
-        if (this.elements.aiModeBtn) {
-            if (newState) {
-                this.elements.aiModeBtn.classList.add('active');
-                this.elements.aiModeBtn.title = 'AI Enhanced Mode: ON - Click to disable';
-            } else {
-                this.elements.aiModeBtn.classList.remove('active');
-                this.elements.aiModeBtn.title = 'AI Enhanced Mode: OFF - Click to enable';
-            }
-        }
-        
-        // Save the state to localStorage to persist across sessions
-        localStorage.setItem('aiModeEnabled', newState.toString());
-        
-        // Show confirmation message
-        const message = newState 
-            ? '✨ AI Enhanced Mode enabled - CPU players will use advanced decision making'
-            : 'AI Enhanced Mode disabled - CPU players will use simple logic';
-        
-        UIUtilities.showMessage(message, 3000, this.elements);
-        
-        console.log('🤖 AI Mode state changed to:', newState);
-    }
+    // toggleAIMode removed – AI always uses advanced decision engine
 
     // Initialize dark mode from saved preference
     initializeDarkMode() {
@@ -7534,186 +7333,68 @@ class KingOfTokyoUI {
 
     // CPU rolls dice with AI decision making
     cpuRollDice(player, rollNumber) {
-        // Check if AI mode is enabled
-        if (this.isAIModeEnabled()) {
-            this.cpuRollDiceAI(player, rollNumber);
-        } else {
-            this.cpuRollDiceSimple(player, rollNumber);
-        }
+        // Always use advanced AI decision engine
+        this.cpuRollDiceAI(player, rollNumber);
     }
 
-    // Simple CPU rolling (original logic - always 3 rolls)
-    cpuRollDiceSimple(player, rollNumber) {
-        window.UI && window.UI._debug && window.UI._debug(`🎲 SIMPLE CPU: Starting roll ${rollNumber}/3`);
-        
-        // Check for pause before rolling
-        if (this.gamePaused || (this.cpuTurnState && this.cpuTurnState.isPaused)) {
-            console.log('⏸️ CPU turn paused during simple roll');
-            return;
-        }
-        
-        // Always roll, regardless of dice state
-        if (rollNumber <= 3) {
-            window.UI && window.UI._debug && window.UI._debug(`🎲 SIMPLE CPU: Executing roll ${rollNumber}/3`);
-            this.showSimpleCPUNotification(player, `🎲 ${player.monster.name} rolling... (${rollNumber}/3)`);
-            
-            // Execute the roll
-            this.rollDice();
-            
-            // Wait for dice animation to complete (400ms + buffer)
-            setTimeout(() => {
-                // Check for pause after roll
-                if (this.gamePaused || (this.cpuTurnState && this.cpuTurnState.isPaused)) {
-                    console.log('⏸️ CPU turn paused after simple roll');
-                    return;
-                }
-                
-                const diceState = this.game.diceRoller.getState();
-                
-                window.UI && window.UI._debug && window.UI._debug(`🎲 SIMPLE CPU: After roll ${rollNumber}, rolls remaining: ${diceState.rollsRemaining}`);
-                
-                // Add delay for human to see dice outcome
-                setTimeout(() => {
-                    // Check for pause before decision
-                    if (this.gamePaused || (this.cpuTurnState && this.cpuTurnState.isPaused)) {
-                        console.log('⏸️ CPU turn paused during simple decision delay');
-                        return;
-                    }
-                    
-                    console.log('🔍 DEBUG: Simple CPU decision point:', {
-                        rollNumber: rollNumber,
-                        maxRolls: 3,
-                        rollsRemaining: diceState.rollsRemaining,
-                        shouldContinue: rollNumber < 3 && diceState.rollsRemaining > 0
-                    });
-                    
-                    if (rollNumber < 3 && diceState.rollsRemaining > 0) {
-                        // Continue to next roll
-                        console.log('🔍 DEBUG: Simple CPU continuing to next roll:', rollNumber + 1);
-                        this.cpuRollDiceSimple(player, rollNumber + 1);
-                    } else {
-                        // After 3rd roll, CPU is done - resolve dice and consider power cards before ending turn
-                        console.log('🔍 DEBUG: Simple CPU ending turn - rollNumber:', rollNumber, 'rollsRemaining:', diceState.rollsRemaining);
-                        window.UI && window.UI._debug && window.UI._debug(`🤖 SIMPLE CPU: ${player.monster.name} finished rolling, considering power cards`);
-                        this.showSimpleCPUNotification(player, `✅ ${player.monster.name} considering power cards...`);
-                        
-                        setTimeout(() => {
-                            // Check for pause before ending
-                            if (this.gamePaused || (this.cpuTurnState && this.cpuTurnState.isPaused)) {
-                                console.log('⏸️ CPU turn paused before ending turn');
-                                return;
-                            }
-                            
-                            // Update controls before ending turn to re-enable action menu
-                            this.updateDiceControls();
-                            
-                            // Consider power card purchases before ending turn
-                            this.handleCPUPowerCardPhase(player);
-                        }, 1500);
-                    }
-                }, 3000); // 3-second delay for human to see dice outcome
-            }, 600); // Match closer to actual dice animation time (400ms + buffer)
-        }
-    }
 
     // AI-powered CPU rolling (new logic with decision making)
     cpuRollDiceAI(player, rollNumber) {
         console.log('🔍 DEBUG: cpuRollDiceAI called with rollNumber:', rollNumber);
-        window.UI && window.UI._debug && window.UI._debug(`🎲 AI CPU: Starting roll ${rollNumber}/3`);
-        
-        // Check for pause before rolling
+        // Guard clauses
         if (this.gamePaused || (this.cpuTurnState && this.cpuTurnState.isPaused)) {
-            console.log('⏸️ CPU turn paused during AI roll');
+            console.log('⏸️ CPU turn paused before roll');
             return;
         }
-        
-        // Always roll, regardless of dice state
-        if (rollNumber <= 3) {
-            console.log('🔍 DEBUG: rollNumber <= 3, proceeding with roll');
-            window.UI && window.UI._debug && window.UI._debug(`🎲 AI CPU: Executing roll ${rollNumber}/3`);
-            this.showSimpleCPUNotification(player, `🎲 ${player.monster.name} rolling... (${rollNumber}/3)`);
-            
-            // Show thinking bubble during rolling
-            if (rollNumber === 1) {
-                this.showCPUThoughtBubble(player, 'general');
-            } else if (rollNumber === 2) {
-                this.showCPUThoughtBubble(player, 'strategic');
-            } else {
-                this.showCPUThoughtBubble(player, 'aggressive');
-            }
-            
-            // Execute the roll
-            this.rollDice();
-            
-            // Wait for dice animation to complete (400ms + buffer)
-            setTimeout(() => {
-                // Check for pause after roll
-                if (this.gamePaused || (this.cpuTurnState && this.cpuTurnState.isPaused)) {
-                    console.log('⏸️ CPU turn paused after AI roll');
-                    return;
-                }
-                
-                const diceState = this.game.diceRoller.getState();
-                
-                window.UI && window.UI._debug && window.UI._debug(`🎲 AI CPU: After roll ${rollNumber}, rolls remaining: ${diceState.rollsRemaining}`);
-                
-                // Add 3-second delay AFTER showing dice outcome for human player to see results
-                setTimeout(() => {
-                    // Check for pause before decision
-                    if (this.gamePaused || (this.cpuTurnState && this.cpuTurnState.isPaused)) {
-                        console.log('⏸️ CPU turn paused during AI decision delay');
-                        return;
-                    }
-                    
-                    console.log('🔍 DEBUG: Roll decision logic:', {
-                        rollNumber: rollNumber,
-                        rollsRemaining: diceState.rollsRemaining,
-                        condition1: rollNumber < 3,
-                        condition2: diceState.rollsRemaining > 0,
-                        shouldContinue: rollNumber < 3 && diceState.rollsRemaining > 0
-                    });
-                    
-                    // NEW AI LOGIC: Use AI decision engine to decide whether to keep rolling
-                    if (rollNumber < 3 && diceState.rollsRemaining > 0) {
-                        console.log('🔍 DEBUG: Making AI roll decision for roll', rollNumber);
-                        this.makeAIRollDecision(player, rollNumber, diceState);
-                    } else {
-                        // After 3rd roll, CPU is done - resolve dice and consider power cards before ending turn
-                        console.log('🔍 DEBUG: Ending turn - rollNumber:', rollNumber, 'rollsRemaining:', diceState.rollsRemaining);
-                        window.UI && window.UI._debug && window.UI._debug(`🤖 AI CPU: ${player.monster.name} finished rolling, considering power cards and ending turn`);
-                        this.showSimpleCPUNotification(player, `✅ ${player.monster.name} considering power cards...`);
-                        
-                        setTimeout(() => {
-                            // Check for pause before ending
-                            if (this.gamePaused || (this.cpuTurnState && this.cpuTurnState.isPaused)) {
-                                console.log('⏸️ CPU turn paused before ending turn');
-                                return;
-                            }
-                            
-                            // Update controls before ending turn to re-enable action menu
-                            this.updateDiceControls();
-                            
-                            // Consider power card purchases before ending turn
-                            this.handleCPUPowerCardPhase(player);
-                        }, this.getCPUThinkingTime('endTurn'));
-                    }
-                }, this.getCPUThinkingTime('decisionThinking')); // Configurable delay for human to see dice outcome
-            }, 600); // Fixed: Match actual dice animation time (400ms + 200ms buffer)
-        } else {
-            // If somehow rollNumber > 3, force end turn
-            console.log('🔍 DEBUG: rollNumber > 3, force ending turn. rollNumber:', rollNumber);
-            this.showSimpleCPUNotification(player, `✅ ${player.monster.name} considering power cards...`);
-            setTimeout(() => {
-                // Check for pause before ending
-                if (this.gamePaused || (this.cpuTurnState && this.cpuTurnState.isPaused)) {
-                    console.log('⏸️ CPU turn paused before force ending turn');
-                    return;
-                }
-                
-                this.updateDiceControls();
-                this.handleCPUPowerCardPhase(player);
-            }, this.getCPUThinkingTime('endTurn'));
+
+        // Safety: limit to max 3 rolls
+        if (rollNumber > 3) {
+            console.log('⚠️ rollNumber > 3 detected, forcing end-of-rolling sequence');
+            this.finishCPURolling(player);
+            return;
         }
+
+        // Execute the roll
+        this.showSimpleCPUNotification(player, `🎲 ${player.monster.name} rolling... (${rollNumber}/3)`);
+        this.rollDice();
+
+        // Wait for dice animation then evaluate
+        setTimeout(() => {
+            if (this.gamePaused || (this.cpuTurnState && this.cpuTurnState.isPaused)) {
+                console.log('⏸️ CPU turn paused after dice animation');
+                return;
+            }
+
+            const diceState = this.game.diceRoller.getState();
+            window.UI && window.UI._debug && window.UI._debug(`🎲 AI CPU: After roll ${rollNumber}, rolls remaining: ${diceState.rollsRemaining}`);
+
+            // Delay for readability before making decision
+            setTimeout(() => {
+                if (this.gamePaused || (this.cpuTurnState && this.cpuTurnState.isPaused)) {
+                    console.log('⏸️ CPU turn paused during decision delay');
+                    return;
+                }
+
+                if (rollNumber < 3 && diceState.rollsRemaining > 0) {
+                    this.makeAIRollDecision(player, rollNumber, diceState);
+                } else {
+                    this.finishCPURolling(player);
+                }
+            }, this.getCPUThinkingTime('decisionThinking'));
+        }, 600); // dice animation time + buffer
+    }
+
+    finishCPURolling(player) {
+        window.UI && window.UI._debug && window.UI._debug(`🤖 AI CPU: ${player.monster.name} finished rolling, considering power cards`);
+        this.showSimpleCPUNotification(player, `✅ ${player.monster.name} considering power cards...`);
+        setTimeout(() => {
+            if (this.gamePaused || (this.cpuTurnState && this.cpuTurnState.isPaused)) {
+                console.log('⏸️ CPU turn paused before finishing');
+                return;
+            }
+            this.updateDiceControls();
+            this.handleCPUPowerCardPhase(player);
+        }, this.getCPUThinkingTime('endTurn'));
     }
 
     // AI decision logic for CPU dice rolling
@@ -8014,8 +7695,10 @@ class KingOfTokyoUI {
     // ================= AI LOGIC FLOW RENDERING =================
     // Public method to rebuild entire AI Logic Flow tab content
     renderAILogicFlow() {
-        const container = document.querySelector('#ai-logic-flow');
+        const container = document.querySelector('#ai-decision-tree-container');
         if (!container) return;
+        const mode = localStorage.getItem('aiFlowMode') || 'verbose';
+        container.classList.toggle('concise', mode==='concise');
         container.innerHTML = this.buildAILogicFlowHTML();
         // Attach expand/collapse listeners
         container.querySelectorAll('.ai-flow-round-header').forEach(el => {
@@ -8038,13 +7721,36 @@ class KingOfTokyoUI {
             });
         });
 
+        // Lazy stub expansion
+        container.querySelectorAll('.ai-flow-round.lazy-stub').forEach(stub => {
+            stub.addEventListener('click', () => {
+                const rnum = parseInt(stub.getAttribute('data-round'),10);
+                const roundObj = this.aiLogicFlow.rounds.find(r=>r.roundNumber===rnum);
+                if (!roundObj) return;
+                stub.outerHTML = this.buildRoundHTML(roundObj, false); // replace with full
+                this.renderAILogicFlow(); // rebind events & dice
+            });
+        });
+
         // Populate dice using existing generic mini dice creator (supports symbols) after DOM inserted
         container.querySelectorAll('.ai-flow-dice[data-dice]')?.forEach(dc => {
             try {
                 const faces = JSON.parse(dc.getAttribute('data-dice')) || [];
                 const kept = JSON.parse(dc.getAttribute('data-kept') || '[]');
+                const rollWrapper = dc.closest('.ai-flow-roll');
+                let released = [];
+                if (rollWrapper && rollWrapper.dataset.released){
+                    try { released = JSON.parse(rollWrapper.dataset.released)||[]; } catch(_){ released=[]; }
+                }
                 if (Array.isArray(faces) && faces.length) {
                     this.createMiniDice(faces, dc, { baseClass: 'mini-die logic-flow-die', keptIndices: new Set(kept) });
+                    // Highlight released dice
+                    if (released.length){
+                        released.forEach(idx => {
+                            const dieEl = dc.querySelector(`.mini-die[data-index='${idx}']`);
+                            if (dieEl) dieEl.classList.add('released-die');
+                        });
+                    }
                 }
             } catch(e) {
                 console.warn('AI Logic Flow dice render error', e);
@@ -8054,7 +7760,7 @@ class KingOfTokyoUI {
 
     // Lightweight partial refresh after a new roll (optional optimization)
     refreshAILogicFlowView(roundNumber, playerId) {
-        const container = document.querySelector('#ai-logic-flow');
+        const container = document.querySelector('#ai-decision-tree-container');
         if (!container || !this.aiLogicFlow) return;
         // For simplicity now, full re-render (can optimize later)
         this.renderAILogicFlow();
@@ -8064,20 +7770,20 @@ class KingOfTokyoUI {
         if (!this.aiLogicFlow || this.aiLogicFlow.rounds.length === 0) {
             return '<div class="ai-flow-empty">No AI roll data yet.</div>';
         }
-        return this.aiLogicFlow.rounds
-            .sort((a,b)=>a.roundNumber-b.roundNumber)
-            .map(round => this.buildRoundHTML(round))
-            .join('');
+        const roundsSorted = this.aiLogicFlow.rounds.slice().sort((a,b)=>a.roundNumber-b.roundNumber);
+        const FULL_LIMIT = 5;
+        const fullRounds = roundsSorted.slice(-FULL_LIMIT);
+        const older = roundsSorted.slice(0, Math.max(0, roundsSorted.length - FULL_LIMIT));
+        const olderHTML = older.map(r=> this.buildRoundHTML(r, true)).join('');
+        const fullHTML = fullRounds.map(r=> this.buildRoundHTML(r, false)).join('');
+        return olderHTML + fullHTML;
     }
 
-    buildRoundHTML(round) {
-        return `
-        <div class="ai-flow-round collapsed" data-round="${round.roundNumber}">
-            <div class="ai-flow-round-header">🆕 Round ${round.roundNumber} <span class="ai-flow-round-meta">${round.turns.length} turns</span></div>
-            <div class="ai-flow-round-body">
-                ${round.turns.map(t => this.buildTurnHTML(round, t)).join('')}
-            </div>
-        </div>`;
+    buildRoundHTML(round, lazyStub=false) {
+        if (lazyStub) {
+            return `<div class="ai-flow-round lazy-stub collapsed" data-round="${round.roundNumber}"><div class="ai-flow-round-header">⬇ Older Round ${round.roundNumber} <span class="ai-flow-round-meta">${round.turns.length} turns (click to load)</span></div><div class="ai-flow-round-body"></div></div>`;
+        }
+        return `<div class="ai-flow-round collapsed" data-round="${round.roundNumber}"><div class="ai-flow-round-header">🆕 Round ${round.roundNumber} <span class="ai-flow-round-meta">${round.turns.length} turns</span></div><div class="ai-flow-round-body">${round.turns.map(t => this.buildTurnHTML(round, t)).join('')}</div></div>`;
     }
 
     buildTurnHTML(round, turn) {
@@ -8274,15 +7980,27 @@ class KingOfTokyoUI {
             goalDisplay = comp.html ? `Goal: ${comp.html}` : '';
         }
     const diceKeptRow = `<div class=\"ai-flow-kept-dice-row\"><span class=\"ai-flow-kept-label\">Dice Kept:</span><div class=\"ai-flow-kept-dice\">${keptFacesHTML || '<span style=\\"opacity:.5;\\">None</span>'}</div></div>`;
-    const decisionJust = `<div class=\"ai-flow-section\"><div class=\"ai-flow-sec-h\">Decision & Justification</div><div class=\"ai-flow-sec-body\"><div class=\"ai-flow-decision-line\"><span class=\"ai-flow-decision-action-main\">Decision: <strong>${actionLabel.toUpperCase()}</strong> <span class=\"ai-flow-confidence-inline ${confClass}\">Confidence Level ${confidencePct}%</span></span><span class=\"ai-flow-decision-goal\">${goalDisplay}</span></div>${diceKeptRow}<div class=\"ai-flow-just-text\">${this.capitalizeFirst(justificationText)}</div></div></div>`;
+    const decisionJust = `<div class=\"ai-flow-section\"><div class=\"ai-flow-sec-h\">Decision & Justification</div><div class=\"ai-flow-sec-body\">${diceKeptRow}<div class=\"ai-flow-decision-line reordered\"><span class=\"ai-flow-decision-action-main\"><strong>${actionLabel.toUpperCase()}</strong></span><span class=\"ai-flow-decision-goal\">${goalDisplay}</span><span class=\"ai-flow-confidence-inline ${confClass}\">${confidencePct}%</span></div><div class=\"ai-flow-just-text\">${this.capitalizeFirst(justificationText)}</div></div></div>`;
         const mindsetSection = mindsetText ? `<div class="ai-flow-section"><div class="ai-flow-sec-h">Mindset</div><div class="ai-flow-sec-body">${this.capitalizeFirst(mindsetText)}</div></div>`:'';
         const thoughtSection = (analysisCategory || analysisSummary) ? `<div class=\"ai-flow-section ai-flow-thought ai-flow-thought-collapsed\"><div class=\"ai-flow-thought-toggle\" data-toggle=\"thought\">Thought Process</div><div class=\"ai-flow-thought-body\"><div class=\"ai-flow-sec-body\">${analysisCategory} ${analysisSummary}</div></div></div>`:'';
         const probChart = this.buildRollProbabilityChart(turn, roll, faces, kept, true);
+        // Improvement metrics (may be undefined for legacy turns)
+        const impChance = (roll.improvementChance!=null)? (roll.improvementChance*100).toFixed(0)+'%':'—';
+        const impEV = (roll.improvementEV!=null)? roll.improvementEV.toFixed(2):'—';
+        let evTooltip = '';
+        if (Array.isArray(roll.evBreakdown) && roll.evBreakdown.length){
+            const rows = roll.evBreakdown.map(r=>`<div class=\"ev-row\"><span class=\"ev-face\">${this.renderMiniDie?this.renderMiniDie(r.face,true):r.face}</span><span class=\"ev-type\">${r.type}</span><span class=\"ev-val\">${r.ev.toFixed(2)}</span></div>`).join('');
+            evTooltip = `<div class=\"ev-breakdown-tip\"><div class=\"ev-head\">EV Components</div>${rows}</div>`;
+        }
+        const released = roll.releasedIndices || [];
         return `
-        <div class="ai-flow-roll">
+        <div class="ai-flow-roll" data-released='${JSON.stringify(released)}'>
             <div class="ai-flow-roll-header">
                 <span class="ai-flow-roll-number">Roll ${roll.rollNumber}</span>
+                <span class="ai-flow-roll-decision-label">${actionLabel.toUpperCase()}</span>
                 <span class="ai-flow-confidence ${confClass}" title="Confidence in decision">${(roll.confidence*100).toFixed(0)}%</span>
+                <span class="ai-flow-imp" title="Chance an additional improvement materializes before end">Imp: <strong>${impChance}</strong></span>
+                <span class="ai-flow-ev" title="Estimated expected value of improvement window">EV+: <strong>${impEV}</strong>${evTooltip}</span>
             </div>
             <div class="ai-flow-dice-row">
                 <div class="ai-flow-dice" data-dice='${JSON.stringify(faces)}' data-kept='${JSON.stringify(kept)}'></div>
@@ -8387,43 +8105,25 @@ class KingOfTokyoUI {
     buildTurnChainNarrative(turn) {
         try {
             if (!turn.rolls || turn.rolls.length < 2) return '';
-            const segments = [];
-            const cleanToken = (t)=>{
-                if(!t) return '';
-                return t.replace(/^(Continuing|Chasing|Maintaining)[:]?/i,'').trim();
-            };
-            turn.rolls.forEach((r,i)=>{
-                const faces = (r.dice||[]).filter(f=>f!=null);
-                const keptFaces = (r.keptIndices||[]).map(idx=>faces[idx]).filter(f=>f!==undefined);
-                const keptHTML = keptFaces.length? keptFaces.map(f=> this.renderMiniDie?this.renderMiniDie(f,true):f).join('') : 'nothing';
-                const action = (r.action||'reroll').toLowerCase();
-                const rawReason = r.reason ? this.simplifyReason(r.reason) : '';
-                // Extract emphasis phrases (Continuing/Chasing/Maintaining) if present
-                const emphasisMatches = rawReason.match(/(Continuing|Chasing|Maintaining)[^\.]{0,80}/gi) || [];
-                const emphasis = emphasisMatches.map(m=>m.split(/because/i)[0].trim());
-                let core = cleanToken(rawReason);
-                // Build natural language
-                let sentence;
-                if (i===0) {
-                    sentence = `Opened with roll 1, keeping ${keptHTML} to ${action}${core?` — ${core}`:''}`;
-                } else {
-                    const rollLabel = `after roll ${r.rollNumber}`;
-                    const connectors = ['then','subsequently','next','afterwards'];
-                    const connector = connectors[(i-1)%connectors.length];
-                    let emphText = '';
-                    if (emphasis.length){
-                        // e.g., "continuing to pressure" or "chasing a set of 2s"
-                        const phrase = emphasis[0].toLowerCase();
-                        if (/continuing/i.test(phrase)) emphText = 'continuing the prior plan';
-                        else if (/chasing/i.test(phrase)) emphText = phrase.replace(/chasing/i,'chasing');
-                        else if (/maintaining/i.test(phrase)) emphText = 'maintaining flexibility';
+                const segments = [];
+                const simplify = (txt)=> (txt||'')
+                    .replace(/(Continuing|Chasing|Maintaining)[:]?/gi,'')
+                    .replace(/First-roll exploration/ig,'exploring early upside')
+                    .trim();
+                turn.rolls.forEach((r,i)=>{
+                    const faces = (r.dice||[]).filter(f=>f!=null);
+                    const keptFaces = (r.keptIndices||[]).map(idx=>faces[idx]).filter(f=>f!==undefined);
+                    const keptHTML = keptFaces.length? keptFaces.map(f=> this.renderMiniDie?this.renderMiniDie(f,true):f).join('') : 'nothing';
+                    const action = (r.action||'reroll').toLowerCase();
+                    const reason = simplify(r.reason);
+                    if (i===0){
+                        segments.push(`Opened keeping ${keptHTML}${reason?` (${reason})`:''}`);
+                    } else {
+                        const connector = ['then','next','afterwards','finally'][ (i-1) % 4 ];
+                        segments.push(`${connector} kept ${keptHTML} to ${action}${reason?` (${reason})`:''}`);
                     }
-                    sentence = `${connector} ${rollLabel}, kept ${keptHTML} to ${action}${emphText?` while ${emphText}`:''}${core? (emphText?` (${core})`:` — ${core}`):''}`;
-                }
-                segments.push(sentence);
-            });
-            const summary = segments.join('; ') + '.';
-            return `<strong>Roll Sequence:</strong> ${summary}`;
+                });
+                return `<strong>Roll Sequence:</strong> ${segments.join(', ')}.`;
         } catch(e) { return ''; }
     }
 

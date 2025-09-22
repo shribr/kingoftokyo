@@ -268,8 +268,45 @@
 		// ---------- Decision Assembly ----------
 		_assembleDecision(state, goal, scored, ev, rollsRemaining, player){
 			const keep = new Set();
-			// keep all formed sets and pairs fully
-			state.numbers.forEach(n=>{ if (n.formed || n.pair) state.dice.forEach((f,i)=>{ if(f===n.face) keep.add(i); }); });
+			const releasedIndices = [];
+			// Determine primary target face (goal face if present, else highest count number face)
+			let primaryFace = goal?.face || null;
+			if (!primaryFace){
+				const sortedNums = state.numbers.slice().sort((a,b)=> b.count - a.count || (b.face>b.face?1:-1));
+				primaryFace = sortedNums.length? sortedNums[0].face : null;
+			}
+			const formedFaces = new Set(state.numbers.filter(n=> n.formed).map(n=>n.face));
+			const hasFormed = formedFaces.size>0;
+			// Keep logic: always keep dice of formed faces; keep dice of primary target (if pair) even if not formed; for other pairs only keep if no formed set yet or rollsRemaining===0
+			state.numbers.forEach(n=>{
+				if (n.formed){
+					state.dice.forEach((f,i)=>{ if(f===n.face) keep.add(i); });
+				} else if (n.pair){
+					if (n.face===primaryFace){
+						state.dice.forEach((f,i)=>{ if(f===n.face) keep.add(i); });
+					} else if (!hasFormed && rollsRemaining>0){
+						// early game multiple pairs acceptable; keep
+						state.dice.forEach((f,i)=>{ if(f===n.face) keep.add(i); });
+					} else if (hasFormed && rollsRemaining===0){
+						// last roll, locking secondary pair is fine
+						state.dice.forEach((f,i)=>{ if(f===n.face) keep.add(i); });
+					}
+				}
+			});
+			// First-roll variance guard: if everything kept on first roll AND we have at least one unformed pair and at least one special, release lowest priority special to create improvement space
+			if (rollsRemaining>=2) {
+				const unformedPairs = state.numbers.filter(n=> n.pair && !n.formed);
+				if (unformedPairs.length>0 && keep.size===state.dice.length){
+					const specials = [];
+					state.dice.forEach((f,i)=>{ if(!['one','two','three'].includes(f)) specials.push({face:f,index:i}); });
+					if (specials.length){
+						const priority = { heart:1, energy:2, attack:3 };
+						specials.sort((a,b)=> (priority[a.face]||5) - (priority[b.face]||5));
+						keep.delete(specials[0].index);
+						releasedIndices.push(specials[0].index);
+					}
+				}
+			}
 			// high-value non-number dice
 			const pairCount = state.numbers.filter(n=>n.pair).length;
 			scored.filter(s=> !keep.has(s.index) && !['one','two','three'].includes(s.face)).forEach(s=>{
@@ -283,6 +320,46 @@
 			}
 			const kept = Array.from(keep).sort((a,b)=>a-b);
 			const improvement = ev.total;
+			// Refined improvement probability estimation
+			// Consider each numeric face that isn't fully formed. For count==2 need 1 copy; for count==1 a single copy (pair) already improves EV.
+			// Compute probability of at least required copies across all future individual dice results (free dice * remaining rolls)
+			const improvingFaces = [];
+			const freeDice = state.dice.length - kept.length;
+			const trialCount = freeDice * state.rollsRemaining; // number of independent future dice outcomes (upper bound)
+			if (freeDice>0 && state.rollsRemaining>0){
+				state.numbers.forEach(n=>{
+					if (n.count<3){
+						const needed = (n.count===2)?1:1; // treat forming pair or completing triple both as improvement steps
+						// Binomial tail: P(X >= needed) where X~Bin(trialCount,1/6)
+						let p=0;
+						for(let x=needed;x<=trialCount;x++){
+							// nCx *(1/6)^x *(5/6)^{n-x}
+							// Compute nCx iteratively to avoid large factorials
+							let comb=1;
+							for(let i=1;i<=x;i++) comb = comb * (trialCount - (x - i)) / i;
+							p += comb * Math.pow(1/6,x) * Math.pow(5/6, trialCount - x);
+						}
+						improvingFaces.push({face:n.face, p});
+					}
+				});
+				// If a specific goal face exists and not already included, add a light incremental chance (any appearance).
+				if (goal && !improvingFaces.find(f=>f.face===goal.face)){
+					let pGoal = 0;
+					for(let x=1;x<=trialCount;x++){
+						let comb=1;
+						for(let i=1;i<=x;i++) comb = comb * (trialCount - (x - i)) / i;
+						pGoal += comb * Math.pow(1/6,x) * Math.pow(5/6, trialCount - x);
+					}
+					improvingFaces.push({face:goal.face, p:pGoal});
+				}
+			}
+			// Approximate union probability assuming limited overlap (faces mutually exclusive per outcome so independence heuristic acceptable)
+			let improvementChance = 0;
+			if (improvingFaces.length){
+				let logNo = 0; // use log for numerical stability when many faces
+				improvingFaces.forEach(f=>{ const pn = Math.max(0, Math.min(1, 1 - f.p)); logNo += Math.log(pn); });
+				improvementChance = 1 - Math.exp(logNo);
+			}
 			let action='reroll';
 			const unresolvedPairs = state.numbers.filter(n=> n.pair && !n.formed).length;
 			// Adaptive thresholds
@@ -293,19 +370,30 @@
 			if (rollsRemaining>0){
 				if (kept.length>=adaptiveMinKept && improvement < adaptiveEVThreshold && unresolvedPairs===0){ action='endRoll'; }
 			} else action='endRoll';
-			// Human-readable explanation parts (remove raw debug noise)
-			const reasonParts=[];
-			if (goal) reasonParts.push(`Chasing a set of ${goal.face}s`);
-			if (unresolvedPairs>0) reasonParts.push(`Maintaining ${unresolvedPairs} potential pair${unresolvedPairs>1?'s':''}`);
-			if (state.cardSummary.attackBoost) reasonParts.push(`Attack boost synergy active x${state.cardSummary.attackBoost}`);
-			if (state.cardSummary.energyEngine) reasonParts.push(`Energy engine pieces ${state.cardSummary.energyEngine}`);
-			if (state.cardSummary.healEngine) reasonParts.push(`Healing engine pieces ${state.cardSummary.healEngine}`);
-			if (action==='endRoll'){
-				reasonParts.push(`Stopping because expected improvement (${improvement.toFixed(2)}) below adaptive threshold (${adaptiveEVThreshold.toFixed(2)}) with ${kept.length} dice locked`);
-			} else {
-				reasonParts.push(`Continuing: expected gain (${improvement.toFixed(2)}) still above stop threshold or more consolidation desired`);
+			// Guard: never end immediately after first roll (when 2+ rolls remain) to allow pursuit of emerging pairs
+			if (rollsRemaining>=2 && action==='endRoll') {
+				action='reroll';
+				// annotate rationale so UI can reflect safeguard
 			}
-			if (state.cardSummary.extraDie) reasonParts.push(`Extra die capacity influences future odds`);
+			// Natural language explanation
+			const explanationFragments = [];
+			if (goal) explanationFragments.push(`pursuing a potential set of ${goal.face}s`);
+			if (unresolvedPairs>0) explanationFragments.push(`keeping ${unresolvedPairs} live pair${unresolvedPairs>1?'s':''}`);
+			if (state.cardSummary.attackBoost) explanationFragments.push('leveraging attack boost');
+			if (state.cardSummary.energyEngine) explanationFragments.push('building energy engine');
+			if (state.cardSummary.healEngine) explanationFragments.push('maintaining healing synergy');
+			if (state.cardSummary.extraDie) explanationFragments.push('future extra-die odds');
+			const evClause = action==='endRoll'
+				? `stopping as marginal gain ${improvement.toFixed(2)} < threshold ${adaptiveEVThreshold.toFixed(2)}`
+				: `rolling again; projected gain ${improvement.toFixed(2)} ≥ threshold ${adaptiveEVThreshold.toFixed(2)}`;
+			let reasonSentence = '';
+			if (explanationFragments.length) {
+				reasonSentence = `${evClause} while ${explanationFragments.join(', ')}`;
+			} else {
+				reasonSentence = evClause;
+			}
+			if (rollsRemaining>=2 && action==='reroll') reasonSentence += ' (first-roll exploration)';
+			const reasonParts=[reasonSentence];
 			const techMeta = { keptCount: kept.length, evGain: improvement, unresolvedPairs, adaptiveEVThreshold, adaptiveMinKept, extraDie: state.cardSummary.extraDie||0 };
 			const confidence = action==='endRoll'? (rollsRemaining>0?0.8:0.92):0.6;
 			// Yield / retreat suggestion (does not alter dice action, only advisory flag) when inside Tokyo low HP and multiple opponents can strike
@@ -315,10 +403,11 @@
 				const lowHP = player.health <= CFG.healingCriticalHP;
 				if (lowHP && threateningEnemies>=2){
 					yieldSuggestion = true;
-					reasonParts.push('SuggestYield');
+					reasonParts.push('consider vacating Tokyo for survival');
 				}
 			}
-			return { action, keepDice: kept, reason: reasonParts.join(' '), confidence, yieldSuggestion, techMeta, goal };
+			const evBreakdown = ev.items.map(it=>({ face:it.face, type:it.type, ev:Number(it.ev.toFixed(3)) }));
+			return { action, keepDice: kept, reason: reasonParts.join(' '), confidence, yieldSuggestion, techMeta, goal, releasedIndices, improvementChance:Number(improvementChance.toFixed(3)), improvingFaces:Array.from(improvingFaces), evBreakdown, improvementEV: improvement };
 		}
 
 		// ---------- Invariants ----------

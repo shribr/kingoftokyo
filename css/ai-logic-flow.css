@@ -94,6 +94,42 @@ body.dark-mode .ai-flow-thought-toggle { background:#36414b; }
  body.dark-mode .ai-flow-roll { background:#30363d; border-color:#384048; }
  .ai-flow-roll:hover { border-color:#6ea6ff; }
 .ai-flow-roll-header { display:flex; gap:12px; align-items:center; font-size:11px; text-transform:uppercase; letter-spacing:.6px; opacity:.95; }
+.ai-flow-roll-header .ai-flow-imp, .ai-flow-roll-header .ai-flow-ev {
+    font-size:.7rem;
+    background:rgba(255,255,255,0.08);
+    padding:2px 6px;
+    border-radius:4px;
+    position:relative;
+    cursor:default;
+}
+.ai-flow-roll-header .ai-flow-ev:hover .ev-breakdown-tip { opacity:1; pointer-events:auto; transform:translateY(0); }
+.ev-breakdown-tip{
+    position:absolute;
+    top:100%;
+    left:0;
+    background:#111;
+    color:#eee;
+    padding:.4rem .6rem;
+    border:1px solid #333;
+    border-radius:6px;
+    box-shadow:0 4px 12px rgba(0,0,0,.4);
+    width:180px;
+    z-index:40;
+    opacity:0;
+    pointer-events:none;
+    transform:translateY(4px);
+    transition:opacity .18s ease, transform .18s ease;
+}
+.ev-breakdown-tip .ev-head { font-weight:600; font-size:.65rem; text-transform:uppercase; letter-spacing:.05em; margin-bottom:.25rem; opacity:.85; }
+.ev-breakdown-tip .ev-row { display:flex; justify-content:space-between; font-size:.6rem; padding:2px 0; border-bottom:1px dashed #222; }
+.ev-breakdown-tip .ev-row:last-child{ border-bottom:none; }
+.ev-breakdown-tip .ev-face { flex:0 0 auto; }
+.ev-breakdown-tip .ev-type { flex:1; text-align:center; opacity:.7; }
+.ev-breakdown-tip .ev-val { flex:0 0 auto; font-variant-numeric:tabular-nums; }
+
+/* Released dice highlight */
+.ai-flow-dice .released-die { outline:2px dashed #ffcc33; outline-offset:2px; border-radius:4px; position:relative; }
+.ai-flow-dice .released-die:after { content:'R'; position:absolute; top:-6px; right:-6px; background:#ffcc33; color:#222; font-size:.5rem; font-weight:700; padding:2px 3px; border-radius:50%; box-shadow:0 0 0 1px #222; }
  .ai-flow-roll-number { font-weight:600; }
 .ai-flow-dice-row { display:flex; margin-top:4px; margin-bottom:8px; }
 .ai-flow-dice { display:flex; gap:6px; flex-wrap:wrap; }
@@ -177,4 +213,33 @@ body.dark-mode .ai-flow-prob-bar { background:linear-gradient(90deg,#3d7fe0,#619
 .ai-flow-turn-chain { margin-top:12px; font-size:11px; line-height:1.4; background:#eef2f6; border:1px solid #d0d7de; padding:8px 10px; border-radius:6px; }
 body.dark-mode .ai-flow-turn-chain { background:#2b3238; border-color:#30363d; }
 .ai-flow-turn-chain .mini-die { transform:scale(.75); margin:0 1px; }
+
+/* === Header Controls / Modes === */
+.ai-tree-header { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+.ai-tree-header .ai-tree-controls { display:flex; gap:.4rem; flex-wrap:wrap; }
+.ai-tree-ctl { background:#2d3136; color:#e2e6ea; border:1px solid #444c55; padding:4px 10px; font-size:.65rem; text-transform:uppercase; letter-spacing:.06em; border-radius:4px; cursor:pointer; line-height:1; font-weight:600; }
+body.dark-mode .ai-tree-ctl { background:#303840; border-color:#49525b; color:#dbe2e8; }
+.ai-tree-ctl:hover { background:#3a4148; color:#ffffff; }
+body.dark-mode .ai-tree-ctl:hover { background:#3d4750; }
+.ai-tree-ctl.active { background:#1452a5; border-color:#0d3a77; color:#fff; box-shadow:0 0 0 2px rgba(20,82,165,.35); }
+body.dark-mode .ai-tree-ctl.active { background:#1d6fd1; border-color:#0e4483; box-shadow:0 0 0 2px rgba(29,111,209,.4); }
+.ai-tree-ctl:focus-visible { outline:3px solid #ffcc33; outline-offset:2px; }
+body.dark-mode .ai-tree-ctl:focus-visible { outline:3px solid #ffd658; }
+.ai-flow-round-header, .ai-flow-turn-header { position:relative; }
+.ai-flow-round-header:focus-visible, .ai-flow-turn-header:focus-visible { outline:3px solid #ffcc33; outline-offset:2px; }
+body.dark-mode .ai-flow-round-header:focus-visible, body.dark-mode .ai-flow-turn-header:focus-visible { outline:3px solid #ffd658; }
+
+/* Concise Mode */
+.ai-logic-flow-container.concise .ai-flow-turn-initial-goal-row,
+.ai-logic-flow-container.concise .ai-flow-opening-intent,
+.ai-logic-flow-container.concise .ai-flow-turn-chain,
+.ai-logic-flow-container.concise .ai-flow-section:not(.keep-visible),
+.ai-logic-flow-container.concise .ai-flow-thought,
+.ai-logic-flow-container.concise .ai-flow-sec-h { display:none !important; }
+.ai-logic-flow-container.concise .ai-flow-roll { margin-bottom:.4rem; }
+
+/* Lazy stub */
+.ai-flow-round.lazy-stub { border-style:dashed; opacity:.75; cursor:pointer; }
+.ai-flow-round.lazy-stub .ai-flow-round-body { display:none; }
+.ai-flow-round.lazy-stub:hover { opacity:.95; }
 

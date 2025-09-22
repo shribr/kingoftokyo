@@ -183,6 +183,9 @@
                         </svg>
                     </span>
                 </button>
+                <button id="ai-decision-tree-btn" class="toolbar-btn" title="AI Decision Tree">
+                    <span class="toolbar-icon">✨</span>
+                </button>
                 <button id="game-log-btn" class="toolbar-btn" title="Game Log">
                     <span class="toolbar-icon">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -216,22 +219,6 @@
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M17.75,4.09L15.22,6.03L16.13,9.09L13.5,7.28L10.87,9.09L11.78,6.03L9.25,4.09L12.44,4L13.5,1L14.56,4L17.75,4.09M21.25,11L19.61,12.25L20.2,14.23L18.5,13.06L16.8,14.23L17.39,12.25L15.75,11L17.81,10.95L18.5,9L19.19,10.95L21.25,11M18.97,15.95C19.8,15.87 20.69,17.05 20.16,17.8C19.84,18.25 19.5,18.67 19.08,19.07C15.17,23 8.84,23 4.94,19.07C1.03,15.17 1.03,8.83 4.94,4.93C5.34,4.53 5.76,4.17 6.21,3.85C6.96,3.32 8.14,4.21 8.06,5.04C7.79,7.9 8.75,10.87 10.95,13.06C13.14,15.26 16.1,16.22 18.97,15.95M17.33,17.97C14.5,17.81 11.7,16.64 9.53,14.5C7.36,12.31 6.2,9.5 6.04,6.68C3.23,9.82 3.34,14.4 6.35,17.41C9.37,20.43 14,20.54 17.33,17.97Z"/>
                         </svg>
-                    </span>
-                </button>
-                <button id="ai-mode-btn" class="toolbar-btn" title="Toggle AI Enhanced Mode">
-                    <span class="toolbar-icon">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                            <!-- Large central sparkle -->
-                            <path d="M12,1L15,9L23,12L15,15L12,23L9,15L1,12L9,9L12,1Z"/>
-                            <!-- Small top-right sparkle -->
-                            <circle cx="18" cy="6" r="1"/>
-                            <path d="M18,4.5L18.5,6L20,6.5L18.5,7L18,8.5L17.5,7L16,6.5L17.5,6L18,4.5Z"/>
-                            <!-- Small bottom-left sparkle -->
-                            <circle cx="6" cy="18" r="0.8"/>
-                            <path d="M6,16.8L6.4,18L7.6,18.4L6.4,18.8L6,20L5.6,18.8L4.4,18.4L5.6,18L6,16.8Z"/>
-                        </svg>
-                        <!-- State indicator overlay -->
-                        <span class="ai-state-indicator"></span>
                     </span>
                 </button>
             </div>
@@ -345,7 +332,6 @@
             <!-- Tab Navigation -->
             <div class="log-tabs">
                 <button class="tab-btn active" data-tab="game-flow">📝 <span class="tab-label"></span>Game Flow</span></button>
-                <button class="tab-btn" data-tab="ai-logic">🧠 <span class="tab-label">AI Logic Flow</span></button>
             </div>
             
             <div class="game-log-container">
@@ -359,18 +345,7 @@
                     </div>
                 </div>
                 
-                <!-- AI Logic Flow Tab (New Hierarchical Visualization) -->
-                <div id="ai-logic-tab" class="tab-content">
-                    <div class="game-log-entries">
-                        <h3>🧠 AI Logic Flow</h3>
-                        <div id="ai-logic-flow" class="ai-logic-flow-container">
-                            <div class="ai-flow-empty">No AI roll data yet.</div>
-                        </div>
-                        <div class="ai-logic-help">
-                            Click a round or player turn to expand. Each roll will soon include detailed reasoning, probability shifts, and how aggression/risk tolerance shaped choices.
-                        </div>
-                    </div>
-                </div>
+                <!-- AI Logic Flow removed: now lives in standalone AI Decision Tree modal -->
             </div>
             
             <div class="game-log-actions">
@@ -733,13 +708,7 @@
                         </label>
                     </div>
                     
-                    <div class="settings-option">
-                        <label>
-                            <input type="checkbox" id="ai-mode-toggle">
-                            🤖 Enable AI Mode
-                        </label>
-                        <p class="settings-note">Temporarily override config.json setting. Default AI mode is controlled by config.json (currently: simple mode). When enabled, CPU uses advanced AI; when disabled, CPU always rolls 3 times.</p>
-                    </div>
+                    <!-- AI Mode setting removed: AI always uses advanced decision engine -->
                     
                     <div class="settings-option">
                         <label>
@@ -764,6 +733,27 @@
                     <button class="settings-button" id="save-settings">Save Settings</button>
                     <button class="settings-button" id="reset-settings">Reset to Default</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Decision Tree Modal (Standalone replacement for former AI Logic Flow tab) -->
+    <div id="ai-decision-tree-modal" class="ai-tree-modal hidden" role="dialog" aria-modal="true" aria-labelledby="ai-decision-tree-title" aria-hidden="true">
+        <div class="ai-tree-content">
+            <div class="ai-tree-header">
+                <h2 id="ai-decision-tree-title">🧠 AI Decision Tree</h2>
+                <div class="ai-tree-controls">
+                    <button id="ai-mode-toggle" class="ai-tree-ctl" data-mode="verbose" title="Toggle concise / verbose view">Verbose</button>
+                    <button id="ai-collapse-all" class="ai-tree-ctl" title="Collapse all rounds & turns">Collapse All</button>
+                    <button id="ai-expand-all" class="ai-tree-ctl" title="Expand all rounds & turns">Expand All</button>
+                </div>
+                <button class="close-ai-tree" id="close-ai-decision-tree">×</button>
+            </div>
+            <div class="ai-tree-body">
+                <div id="ai-decision-tree-container" class="ai-logic-flow-container">
+                    <div class="ai-flow-empty">No AI roll data yet.</div>
+                </div>
+                <div class="ai-tree-help">Interactive breakdown of CPU turns. Expand rounds and turns to inspect roll-by-roll reasoning, EV thresholds, mindset, and probability evaluations.</div>
             </div>
         </div>
     </div>
