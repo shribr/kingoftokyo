@@ -1,0 +1,61 @@
+import { PLAYER_JOINED, PLAYER_DAMAGE_APPLIED, PLAYER_HEALED, PLAYER_GAINED_ENERGY, PLAYER_SPENT_ENERGY, PLAYER_ENTERED_TOKYO, PLAYER_LEFT_TOKYO } from '../actions.js';
+import { applyDamage, healPlayer, addEnergy, spendEnergy, enterTokyo, leaveTokyo } from '../../domain/player.js';
+
+const initial = { order: [], byId: {} };
+
+export function playersReducer(state = initial, action) {
+  switch (action.type) {
+    case PLAYER_JOINED: {
+      const p = action.payload.player;
+      if (state.byId[p.id]) return state; // ignore duplicate
+      return {
+        order: [...state.order, p.id],
+        byId: { ...state.byId, [p.id]: p }
+      };
+    }
+    case PLAYER_DAMAGE_APPLIED: {
+      const { playerId, amount } = action.payload;
+      const existing = state.byId[playerId];
+      if (!existing) return state;
+      const updated = applyDamage(existing, amount);
+      return { ...state, byId: { ...state.byId, [playerId]: updated } };
+    }
+    case PLAYER_HEALED: {
+      const { playerId, amount } = action.payload;
+      const existing = state.byId[playerId];
+      if (!existing) return state;
+      const updated = healPlayer(existing, amount);
+      return { ...state, byId: { ...state.byId, [playerId]: updated } };
+    }
+    case PLAYER_GAINED_ENERGY: {
+      const { playerId, amount } = action.payload;
+      const existing = state.byId[playerId];
+      if (!existing) return state;
+      const updated = addEnergy(existing, amount);
+      return { ...state, byId: { ...state.byId, [playerId]: updated } };
+    }
+    case PLAYER_SPENT_ENERGY: {
+      const { playerId, amount } = action.payload;
+      const existing = state.byId[playerId];
+      if (!existing) return state;
+      const updated = spendEnergy(existing, amount);
+      return { ...state, byId: { ...state.byId, [playerId]: updated } };
+    }
+    case PLAYER_ENTERED_TOKYO: {
+      const { playerId } = action.payload;
+      const existing = state.byId[playerId];
+      if (!existing) return state;
+      const updated = enterTokyo(existing);
+      return { ...state, byId: { ...state.byId, [playerId]: updated } };
+    }
+    case PLAYER_LEFT_TOKYO: {
+      const { playerId } = action.payload;
+      const existing = state.byId[playerId];
+      if (!existing) return state;
+      const updated = leaveTokyo(existing);
+      return { ...state, byId: { ...state.byId, [playerId]: updated } };
+    }
+    default:
+      return state;
+  }
+}

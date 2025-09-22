@@ -1,0 +1,50 @@
+[
+  {
+    "name": "diceTray",
+    "version": "0.1.0",
+    "selector": ".cmp-dice-tray",
+    "mountPoint": "#app",
+    "order": 10,
+    "enabled": true,
+    "stateKeys": ["dice"],
+    "build": "dice-tray.build",
+    "update": "dice-tray.update",
+    "eventsOut": ["ui/dice/keptToggled","ui/dice/rollRequested"],
+    "eventsIn": ["dice/rolled"],
+    "initialState": { "showProbability": false },
+    "assets": [],
+    "zIndex": 1
+  },
+  {
+    "name": "playerCardList",
+    "version": "0.1.0",
+    "selector": ".cmp-player-card-list",
+    "mountPoint": "#app",
+    "order": 5,
+    "enabled": true,
+    "stateKeys": ["players"],
+    "build": "player-card-list.build",
+    "update": "player-card-list.update",
+    "eventsOut": [],
+    "eventsIn": [],
+    "initialState": {},
+    "assets": [],
+    "zIndex": 1
+  },
+  {
+    "name": "logFeed",
+    "version": "0.1.0",
+    "selector": ".cmp-log-feed",
+    "mountPoint": "#app",
+    "order": 99,
+    "enabled": true,
+    "stateKeys": ["log"],
+    "build": "log-feed.buildLogFeed",
+    "update": "log-feed.updateLogFeed",
+    "eventsOut": [],
+    "eventsIn": [],
+    "initialState": {},
+    "assets": [],
+    "zIndex": 1
+  }
+]

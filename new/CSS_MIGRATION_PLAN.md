@@ -828,7 +828,7 @@ Slots
 States
 - `.is-hovered`: translateY(-2px); box-shadow escalate to `var(--tok-shadow-hard-3)` plus ambient.
 - `.is-selected`: outline 3px solid var(--tok-color-accent-primary); scale 1.02.
-- `.is-disabled`: opacity .4; filter saturate(.4) contrast(.85); cursor not-allowed.
+- `.is-disabled`: opacity:.4; filter saturate(.4) contrast(.85); cursor not-allowed.
 
 ### 4.3 Player Stat Tile
 Structure
@@ -1373,7 +1373,7 @@ Readiness Gate: PASS – Implementation can begin with Phase 1 scaffolding.
 
 Immediate Action Checklist (Pre-Phase 1)
 1. Create `design-system/` directory with placeholder `tokens.css` (scaffold root variables + dark media query skeleton).
-2. Add `bundles/app-modern.css` importing `tokens.css` then existing legacy CSS bundle order.
+2. Add `bundles/app-modern.css` that imports `tokens.css` then existing legacy CSS bundle order.
 3. Swap `<link>` in `index.html` to single modern bundle (maintain legacy internal order).
 4. Add pre-commit lint script stub (even if returning success initially) to establish hook path.
 5. Tag repo `pre-migration-baseline`.
@@ -1412,4 +1412,127 @@ Next Step Owner Actions (Assuming Single Maintainer)
 Closure
 This document is now the authoritative guide for the incremental design system & theme migration. Future deviations require annotation in a `CHANGE_LOG` section or dedicated issue cross-referencing impacted spec paragraphs.
 
---- END OF PLAN ---
+---
+## 13. Component Mapping & JS Integration
+
+Purpose: Provide a bidirectional lookup so implementers can (a) add dual-class bridging safely and (b) refactor JS selectors & event handlers from legacy class names to new `.cmp-*` + `.is-*` taxonomy.
+
+### 13.1 Legend
+- LCSS: Legacy CSS Selector
+- NEW: Planned new base or state class
+- SRC (CSS): file:line-range (approx start of block)
+- JS CREATION: Function(s)/method(s) that create initial DOM
+- JS UPDATE: Functions mutating element after creation
+- JS EVENTS: Functions adding event listeners or toggling classes
+
+### 13.2 Dice Component
+| Aspect | LCSS / Legacy State | NEW Class / State | SRC (CSS) | JS CREATION | JS UPDATE / STATE | JS EVENTS |
+|--------|---------------------|-------------------|-----------|-------------|-------------------|-----------|
+| Die base | `.die` | `.cmp-die` | `css/dice.css:136` | `createDiceHTML()` in `js/dice.js:500-530` | `createDiceHTML()` (rebuild logic), dice collection state toggles | `attachDiceEventListeners()` in `js/dice.js:532+` (click toggles `selected`) |
+| Selected | `.die.selected` | `.cmp-die.is-selected` | `css/dice.css:207` | (class appended during HTML build if die.isSelected) | Toggle via `attachDiceEventListeners()` -> `diceCollection.toggleDiceSelection()` | same |
+| Rolling | `.die.rolling` | `.cmp-die.is-rolling` | `css/dice.css:254` | Not created initially; applied when `die.isRolling` true | Die `roll()` method updates model; UI refresh rebuilds HTML | Indirect (triggered by roll action elsewhere) |
+| Disabled | `.die.disabled` | `.cmp-die.is-disabled` | `css/dice.css:227` | HTML build if `die.isDisabled` | Updated when enabling/disabling extra dice (`enableExtraDie`, etc.) | Selection handler blocks clicks if `.disabled` |
+| Mini (AI) | `.die-mini`, `.die-mini-inline` | `.cmp-die--mini` | `css/ai-logic-flow.css:179` | Generated inside AI logic templates (search to map later) | Re-render of AI panels | N/A (static display) |
+
+Refactor Notes:
+1. Dual-class phase: add `.cmp-die` alongside `.die` in `createDiceHTML()`. For states, keep legacy plus new until CSS flip.
+2. Event delegation: update selector in `attachDiceEventListeners()` from `.die` to `.die, .cmp-die` during bridging, then finally only `.cmp-die`.
+
+### 13.3 Player Dashboard (Card) Component
+| Element | LCSS | NEW | SRC (CSS) | JS CREATION | JS UPDATE | Events |
+|---------|------|-----|-----------|-------------|-----------|--------|
+| Dashboard wrapper | `.player-dashboard` | `.cmp-player-card` | `css/game-areas.css:422` | `_buildPlayerCardElement()` `js/main.js:2068-2145` | `_updateSinglePlayerStats()` `js/main.js:2146-2190`; numerous cache refreshers (`_refreshPlayerDashboardCache`) | Drag logic & active state handlers in `js/main.js` lines ~280–300, 784–806, 1894+ |
+| Active state | `.player-dashboard.active` | `.cmp-player-card.is-active` | `css/game-areas.css` (stacking rules) | Added if `isActive` param in builder | Active player switching logic (search transitions) | Draggability restricted to active card (custom logic) |
+| Health bar container | `.health-bar-container` | `.cmp-health` | `css/game-areas.css:633` | Inner HTML of builder | Width/ARIA updated in `_updateSinglePlayerStats()` | Hover transitions (CSS only) |
+| Health fill tiers | `.health-bar-fill.health-high|medium|low|critical` | `.cmp-health__fill.is-high|is-medium|is-low|is-critical` | `css/game-areas.css:700+` | Builder sets `healthBarClass` | `_updateSinglePlayerStats()` recalculates className | N/A |
+| Stat group | `.player-stats` / `.stat` | `.cmp-stats` / `.cmp-stat` | Various (stat tile styles earlier inventoried) | Builder template | `_updateSinglePlayerStats()` updates textContent & data attrs | Click on `.stat.power-cards` (handled in modal toggle logic lines 2404+) |
+| Power cards count | `.stat.power-cards` | `.cmp-stat--cards` + `.cmp-stat` | `css/game-areas.css:738` | Builder | `_updateSinglePlayerStats()` updates numeric content | Modal open toggles in `main.js:850-860`, 2404+ |
+| Inline Tokyo indicator | `.tokyo-indicator-inline` | `.cmp-indicator--tokyo` | `css/game-areas.css:1008` | Condition in builder line ~2110 | Created/removed in `_updateSinglePlayerStats()` lines 2164–2184 | Hover style at `css/game-areas.css:1031` |
+
+Refactor Notes:
+- Introduce `.cmp-player-card` on wrapper; keep `.player-dashboard` until Phase 9.
+- Replace nested health tier class authoring: generate base `.cmp-health__fill` + separate `.is-*` tier classes.
+
+### 13.4 Power Cards (Marketplace / Owned)
+| Aspect | LCSS | NEW | SRC (CSS) | JS CREATION / UPDATE | Notes |
+|--------|------|-----|-----------|----------------------|-------|
+| Marketplace card | `.power-card` | `.cmp-card` | `css/cards.css:74 / 195` | (Creation logic not yet extracted—needs further search for DOM generation) | nth-child styling replaced by contextual layout tokens |
+| Name | `.power-card .card-name` / `.power-name` | `.cmp-card__name` | `css/cards.css:139-141` | Template function (TBD) | Might merge duplicate name selectors |
+| Cost | `.card-cost` | `.cmp-card__cost` | `css/cards.css:158` | Updated when purchase occurs (`buyCard` in `monsters.js:269-292` triggers UI update pipeline) | After purchase cost may be hidden/opacity; map to `.is-owned` state |
+| Description | `.card-description` | `.cmp-card__description` | `css/cards.css:181` | Template (TBD) | Typography tokenization |
+| Effect categories | Attribute selectors `data-effect*=` | `.is-effect-*` state modifiers | `css/cards.css:203-221` | Assigned at render time | Provide deterministic semantic mapping |
+| Owned list miniature | (Mini `.power-card` scaled) | `.cmp-card--mini` | (Scaling rules to be validated) | Owned cards panel builder (pending mapping) | Add translation to inventory once confirmed |
+
+Action: Locate JS factory rendering power cards (future step) and augment table with exact function names.
+
+### 13.5 Power Card Tabs
+| Element | LCSS | NEW | SRC (CSS) | JS CREATION | Notes |
+|---------|------|-----|-----------|------------|-------|
+| Tabs container | `.power-card-tabs` | `.cmp-tabs` | `css/monsters.css:202` | Hover reveal driven by dashboard presence | Will decouple from dashboard hover dependency |
+| Single tab | `.power-card-tab` | `.cmp-tab` | `css/monsters.css:222` | (Likely static markup) | Active/hover translations to `.is-active` |
+| Preview panel | `.tab-preview` | `.cmp-tab__preview` | (In responsive / monsters CSS) | (TBD) | Might require restructure to remove heavy descendant chains |
+
+### 13.6 Indicators & Badges
+| Element | LCSS | NEW | SRC (CSS) | JS LINK | Notes |
+|---------|------|-----|-----------|--------|-------|
+| Tokyo inline | `.tokyo-indicator-inline` | `.cmp-indicator--tokyo` | `css/game-areas.css:1008` | Built & updated in player dashboard functions | Already mapped above |
+| CPU badge (if reinstated) | (historical avatar badge class) | `.cmp-indicator--cpu` | (Earlier inventory lines) | Avatar build (not active now) | Optional future reactivation |
+
+### 13.7 Probability & Analysis UI
+| Aspect | LCSS | NEW | SRC (CSS) | JS CREATION | States |
+|--------|------|-----|-----------|------------|--------|
+| Probability bar container | `.probability-bar` | `.cmp-probbar` | `css/layout.css:1190` | `generateProbabilityAnalysis()` `main.js:5060-5090` | Width set inline style |
+| Probability fill | `.probability-fill` + `.probability-{low|medium|high}` | `.cmp-probbar__fill` + `.is-low|is-medium|is-high` | `css/layout.css:1200-1214` | Same function | Classification via `getProbabilityLevel()` |
+| Improvement item | `.improvement-item` | `.cmp-prob-improvement` | `css/layout.css:1183` | Same function | Minor styling delta |
+| Kept dice | `.kept-die` | `.cmp-die--mini` | (Style elsewhere) | `formatKeptDice()` `main.js:5048-5058` | Inherits dice semantics |
+
+### 13.8 Game Log Entries
+| Element | LCSS | NEW | SRC (CSS) | JS CREATION | States |
+|---------|------|-----|-----------|------------|--------|
+| Log entry wrapper | `.log-entry` | `.cmp-log` | `css/modals.css:3648` | `formatLogEntry()` `main.js:6389-6420` | Category class appended |
+| Category modifier | `.log-entry.<category>` & `.log-category-*` | `.cmp-log.is-<category>` | `css/modals.css:3734-3764, 4071+` | Same function (categoryClass variable) | Map categories (dice-roll, attack, energy, victory-points, power-card, system, turn-start) |
+| Dark mode styling | `body.dark-mode .log-entry` | `.dark &` via tokens | `css/base.css:232` | Global theme toggle | Replace with token overrides |
+
+### 13.9 Modal / Overlay (Marketplace Refresh)
+| Aspect | LCSS | NEW | SRC (CSS) | JS CREATION | Notes |
+|--------|------|-----|-----------|------------|-------|
+| Marketplace overlay | (TBD: locate actual class) | `.cmp-overlay--market` | (To extract) | Function controlling refresh (search future) | Placeholder until selector confirmed |
+
+### 13.10 Shared State Class Mapping
+| Legacy State | New State | Applies To |
+|--------------|-----------|------------|
+| `.selected` | `.is-selected` | dice, cards (selected/purchased) |
+| `.rolling` | `.is-rolling` | dice |
+| `.disabled` | `.is-disabled` | dice, buttons (future) |
+| `.active` | `.is-active` | player card, tab |
+| `.health-high` | `.is-high` | health fill |
+| `.health-medium` | `.is-medium` | health fill |
+| `.health-low` | `.is-low` | health fill |
+| `.health-critical` | `.is-critical` | health fill |
+| `.probability-low` | `.is-low` | probability fill |
+| `.probability-medium` | `.is-medium` | probability fill |
+| `.probability-high` | `.is-high` | probability fill |
+| Category classes (`log-category-*`) | `.is-<category>` | log entry |
+
+### 13.11 Refactor Sequence (JS)
+1. Introduce new component base classes alongside legacy (dual-class) in creation functions.
+2. Add state class duplication (legacy + new) where states are toggled (e.g., selection, active, health tier, probability level).
+3. Update event listeners to match both (`.die, .cmp-die`).
+4. After visual parity: update queries (`querySelectorAll('.die, .cmp-die')`).
+5. Migrate state toggles to only new state classes (retain legacy for one phase).
+6. Remove legacy state toggling (leave passive legacy states for CSS backward compatibility).
+7. Flip cascade order (legacy first) and confirm no specificity fallout.
+8. Remove legacy base classes from creation functions.
+9. Remove legacy state classes from togglers.
+10. Purge unused legacy selectors (lint + manual verification).
+
+### 13.12 Tooling Suggestions
+- Create a `mapping.json` artifact storing legacy→new mapping for automated codemod (optional future enhancement).
+- Write a codemod script scanning JS for string literals of legacy classes and injecting dual-class or replacing when safe.
+
+### 13.13 Outstanding Mapping Gaps
+| Component | Missing JS Function Mapping | Action |
+|-----------|-----------------------------|--------|
+| Power card marketplace builder | Not yet extracted | Search for template creation (future pass) |
+| Owned card miniature list | Not yet extracted | Identify function adding owned cards to dashboard |
+| Marketplace refresh overlay | Unknown selector | Locate by searching 'refresh' 'overlay' 'market' |
