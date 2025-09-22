@@ -799,129 +799,7 @@ class KingOfTokyoUI {
             });
         }
 
-        // Capture-phase logging for clicks/mousedowns even if bubbling is stopped
-        ['click','mousedown'].forEach(evt => {
-            document.addEventListener(evt, (e) => {
-                const dash = e.target.closest && e.target.closest('.player-dashboard');
-                if (dash) {
-                    const cs = getComputedStyle(dash);
-                    console.debug(`[CAPTURE ${evt}] player-dashboard`, { playerId: dash.dataset.playerId, tag: e.target.tagName, x: e.clientX, y: e.clientY, disp: cs.display, vis: cs.visibility, z: cs.zIndex, opacity: cs.opacity });
-                }
-            }, true);
-        });
-
-        // Mutation observer for player dashboard removals/moves
-        const playersContainer = this.elements.playersContainer || document.getElementById('players-container');
-        if (playersContainer && !playersContainer.__dashMutationObserver) {
-            const dashObserver = new MutationObserver(muts => {
-                muts.forEach(m => {
-                    if (m.type === 'childList') {
-                        m.removedNodes.forEach(n => {
-                            if (n.classList && n.classList.contains('player-dashboard')) {
-                                console.debug('[UI] Dashboard node REMOVED', { playerId: n.dataset.playerId });
-                            }
-                        });
-                        m.addedNodes.forEach(n => {
-                            if (n.classList && n.classList.contains('player-dashboard')) {
-                                console.debug('[UI] Dashboard node ADDED', { playerId: n.dataset.playerId });
-                            }
-                        });
-                    }
-                });
-            });
-            dashObserver.observe(playersContainer, { childList: true });
-            playersContainer.__dashMutationObserver = true;
-        }
-
-        // Periodic audit of dashboard visibility/position with auto-correct safeguard
-        const auditDashboards = () => {
-            const cards = document.querySelectorAll('.player-dashboard');
-            cards.forEach(c => {
-                const cs = getComputedStyle(c);
-                const rect = c.getBoundingClientRect();
-                const hidden = cs.display === 'none' || cs.visibility === 'hidden' || parseFloat(cs.opacity) === 0;
-                const offscreen = (rect.right < 0 || rect.left > window.innerWidth || rect.bottom < 0 || rect.top > window.innerHeight);
-                const negZ = (parseInt(cs.zIndex)||0) < 0;
-                if (hidden || offscreen || negZ) {
-                    if (!c.classList.contains('dash-debug-outline')) c.classList.add('dash-debug-outline');
-                    console.warn('[DASHBOARD-AUDIT] anomaly', { playerId: c.dataset.playerId, hidden, offscreen, negZ, rect:{ x:rect.x, y:rect.y, w:rect.width, h:rect.height }, z:cs.zIndex, disp:cs.display, vis:cs.visibility, opacity:cs.opacity });
-                    this._autoCorrectDashboard(c, { hidden, offscreen, negZ, rect });
-                } else if (c.classList.contains('dash-debug-outline')) {
-                    // Remove outline if previously anomalous but now healthy
-                    c.classList.remove('dash-debug-outline');
-                }
-            });
-        };
-        setInterval(auditDashboards, 4000);
-
-        // Enhanced instrumentation: watch for transform/position/margin changes leading to offscreen state
-        if (!window.__dashStyleWatch){
-            window.__dashStyleWatch = true;
-            const tracked = new WeakMap();
-            const captureSnapshot = (el) => {
-                const cs = getComputedStyle(el);
-                return {
-                    transform: cs.transform,
-                    top: cs.top,
-                    left: cs.left,
-                    right: cs.right,
-                    bottom: cs.bottom,
-                    position: cs.position,
-                    marginTop: cs.marginTop,
-                    marginBottom: cs.marginBottom,
-                    marginLeft: cs.marginLeft,
-                    marginRight: cs.marginRight,
-                    z: cs.zIndex
-                };
-            };
-            const diffSnapshots = (prev, next) => {
-                const diff={};
-                Object.keys(next).forEach(k=>{ if(prev[k]!==next[k]) diff[k] = { before: prev[k], after: next[k] }; });
-                return diff;
-            };
-            const dashStyleObserver = new MutationObserver(muts => {
-                muts.forEach(m => {
-                    if (m.type === 'attributes' && m.attributeName === 'style') {
-                        const el = m.target;
-                        if (!el.classList.contains('player-dashboard')) return;
-                        const prev = tracked.get(el) || {};
-                        const next = captureSnapshot(el);
-                        const diff = diffSnapshots(prev, next);
-                        if (Object.keys(diff).length){
-                            const rect = el.getBoundingClientRect();
-                            const offscreen = rect.right < 0 || rect.left > window.innerWidth || rect.bottom < 0 || rect.top > window.innerHeight;
-                            if (offscreen){
-                                console.error('[DASHBOARD-OFFSCREEN-STYLE-CHANGE]', { playerId: el.dataset.playerId, diff, rect:{top:rect.top,left:rect.left,bottom:rect.bottom,right:rect.right,w:rect.width,h:rect.height}, stack:(new Error('stack')).stack });
-                                // Attempt immediate reposition clamp
-                                this._clampDashboardIntoView(el, rect);
-                            } else {
-                                console.debug('[DASHBOARD-STYLE-CHANGE]', { playerId: el.dataset.playerId, diff });
-                                // Prevent creeping drift far outside safe bounds (e.g., large translate)
-                                if (Math.abs(rect.left) > window.innerWidth*0.6 || Math.abs(rect.top) > window.innerHeight*0.6) {
-                                    this._clampDashboardIntoView(el, rect);
-                                }
-                            }
-                        }
-                        tracked.set(el, next);
-                    } else if (m.type === 'attributes' && m.attributeName === 'class') {
-                        const el = m.target;
-                        if (!el.classList.contains('player-dashboard')) return;
-                        const rect = el.getBoundingClientRect();
-                        const offscreen = rect.right < 0 || rect.left > window.innerWidth || rect.bottom < 0 || rect.top > window.innerHeight;
-                        console.debug('[DASHBOARD-CLASS-CHANGE]', { playerId: el.dataset.playerId, classList: el.className, offscreen });
-                    }
-                });
-            });
-            const seedDashWatch = () => {
-                document.querySelectorAll('.player-dashboard').forEach(el => {
-                    if (!tracked.has(el)) tracked.set(el, captureSnapshot(el));
-                    dashStyleObserver.observe(el, { attributes:true, attributeFilter:['style','class'] });
-                });
-            };
-            seedDashWatch();
-            // Re-seed occasionally in case new nodes are added
-            setInterval(seedDashWatch, 3000);
-        }
+        // (Debug instrumentation removed after resolution of dashboard offscreen issue)
 
         // Observe player dashboard display changes for debugging disappear issue
         const observeDashboards = () => {
@@ -1025,10 +903,10 @@ class KingOfTokyoUI {
             if (changed){
                 const afterCS = getComputedStyle(card);
                 const after = { display: afterCS.display, visibility: afterCS.visibility, opacity: afterCS.opacity, z: afterCS.zIndex, transform: afterCS.transform, position: afterCS.position };
-                console.warn('[DASHBOARD-AUTOCORRECT] applied', { playerId: card.dataset.playerId, flags, before, after });
+                // Autocorrect applied (logging suppressed)
             }
         } catch(err){
-            console.error('[DASHBOARD-AUTOCORRECT] error', err);
+            // Autocorrect error suppressed
         }
     }
 
@@ -1062,20 +940,23 @@ class KingOfTokyoUI {
             }
             if (moved) {
                 const after = card.getBoundingClientRect();
-                console.warn('[DASHBOARD-CLAMP] repositioned', { playerId: card.dataset.playerId, before:{top:r.top,left:r.left,bottom:r.bottom,right:r.right}, after:{top:after.top,left:after.left,bottom:after.bottom,right:after.right} });
+                // Clamp repositioned (logging suppressed)
             }
         } catch(err){
-            console.error('[DASHBOARD-CLAMP] error', err);
+            // Clamp error suppressed
         }
     }
 
     // Helper method to make a single element draggable
     makeDraggable(element) {
-        // Safety guard: never make player dashboards draggable (prevents offscreen fixed positioning overrides)
-        if (element.classList && element.classList.contains('player-dashboard')) {
-            console.debug('[DRAG-GUARD] Skipping draggable init for player dashboard', element.dataset && element.dataset.playerId);
+        // Guard: only allow player dashboards to become draggable if they are the CURRENT active dashboard
+        if (element.classList && element.classList.contains('player-dashboard') && !element.classList.contains('active')) {
+            // Non-active dashboards should not be draggable
             return;
         }
+        // Avoid double-initializing drag handlers
+        if (element._draggableInitialized) return;
+        element._draggableInitialized = true;
         let isDragging = false;
         let currentX = 0;
         let currentY = 0;
@@ -1168,43 +1049,46 @@ class KingOfTokyoUI {
                 isDragging = false;
                 element.classList.remove('dragging');
 
-                // Save position to localStorage
-                const elementId = element.id;
-                if (elementId) {
-                    localStorage.setItem(`${elementId}-position`, JSON.stringify({
-                        x: currentX,
-                        y: currentY
-                    }));
+                // Persist position ONLY for non-dashboard draggable elements to avoid stale dashboard positions
+                if (!(element.classList && element.classList.contains('player-dashboard'))) {
+                    const elementId = element.id;
+                    if (elementId) {
+                        localStorage.setItem(`${elementId}-position`, JSON.stringify({
+                            x: currentX,
+                            y: currentY
+                        }));
+                    }
                 }
             }
 
-            // Restore saved position on load
-            const elementId = element.id;
-            if (elementId) {
-                const savedPosition = localStorage.getItem(`${elementId}-position`);
-                if (savedPosition) {
-                    try {
-                        const position = JSON.parse(savedPosition);
-                        currentX = position.x;
-                        currentY = position.y;
-                        const maxX = window.innerWidth - 50; // simple clamp allowing some width assumption
-                        const maxY = window.innerHeight - 50;
-                        const inBounds = currentX >= 0 && currentY >= 0 && currentX <= maxX && currentY <= maxY;
-                        // Only apply saved position if it's inside current viewport bounds and not near origin dummy values
-                        if (inBounds && currentX > 10 && currentY > 10) {
-                            xOffset = currentX;
-                            yOffset = currentY;
-                            element.style.setProperty('position', 'fixed', 'important');
-                            element.style.setProperty('left', `${currentX}px`, 'important');
-                            element.style.setProperty('top', `${currentY}px`, 'important');
-                            element.style.setProperty('bottom', 'auto', 'important');
-                            element.style.setProperty('transform', 'none', 'important');
-                        } else {
-                            localStorage.removeItem(`${elementId}-position`);
-                            console.debug('[DRAG-RESTORE] Discarded out-of-bounds saved position', { elementId, currentX, currentY, maxX, maxY });
+            // Restore saved position on load (skip dashboards)
+            if (!(element.classList && element.classList.contains('player-dashboard'))) {
+                const elementId = element.id;
+                if (elementId) {
+                    const savedPosition = localStorage.getItem(`${elementId}-position`);
+                    if (savedPosition) {
+                        try {
+                            const position = JSON.parse(savedPosition);
+                            currentX = position.x;
+                            currentY = position.y;
+                            const maxX = window.innerWidth - 50; // simple clamp allowing some width assumption
+                            const maxY = window.innerHeight - 50;
+                            const inBounds = currentX >= 0 && currentY >= 0 && currentX <= maxX && currentY <= maxY;
+                            // Only apply saved position if it's inside current viewport bounds and not near origin dummy values
+                            if (inBounds && currentX > 10 && currentY > 10) {
+                                xOffset = currentX;
+                                yOffset = currentY;
+                                element.style.setProperty('position', 'fixed', 'important');
+                                element.style.setProperty('left', `${currentX}px`, 'important');
+                                element.style.setProperty('top', `${currentY}px`, 'important');
+                                element.style.setProperty('bottom', 'auto', 'important');
+                                element.style.setProperty('transform', 'none', 'important');
+                            } else {
+                                localStorage.removeItem(`${elementId}-position`);
+                            }
+                        } catch (e) {
+                            // silently ignore
                         }
-                    } catch (e) {
-                        console.warn('Failed to restore position for', elementId);
                     }
                 }
             }
