@@ -51,6 +51,15 @@ export const UI_SPLASH_HIDE = 'UI_SPLASH_HIDE';
 // Layout / Positioning
 export const UI_POSITION_SET = 'UI_POSITION_SET';
 export const UI_POSITIONS_RESET = 'UI_POSITIONS_RESET';
+export const UI_SETTINGS_OPEN = 'UI_SETTINGS_OPEN';
+export const UI_SETTINGS_CLOSE = 'UI_SETTINGS_CLOSE';
+export const UI_AI_DECISION_OPEN = 'UI_AI_DECISION_OPEN';
+export const UI_AI_DECISION_CLOSE = 'UI_AI_DECISION_CLOSE';
+export const UI_GAME_LOG_OPEN = 'UI_GAME_LOG_OPEN';
+export const UI_GAME_LOG_CLOSE = 'UI_GAME_LOG_CLOSE';
+// Settings (new slice)
+export const SETTINGS_LOADED = 'SETTINGS_LOADED';
+export const SETTINGS_UPDATED = 'SETTINGS_UPDATED';
 
 // Player action creators
 export const playerJoined = (player) => ({ type: PLAYER_JOINED, payload: { player } });
@@ -103,3 +112,13 @@ export const uiSplashHide = () => ({ type: UI_SPLASH_HIDE });
 // Positioning action creators
 export const uiPositionSet = (componentName, x, y) => ({ type: UI_POSITION_SET, payload: { componentName, x, y } });
 export const uiPositionsReset = () => ({ type: UI_POSITIONS_RESET });
+// New modals
+export const uiSettingsOpen = () => ({ type: UI_SETTINGS_OPEN });
+export const uiSettingsClose = () => ({ type: UI_SETTINGS_CLOSE });
+export const uiAIDecisionOpen = () => ({ type: UI_AI_DECISION_OPEN });
+export const uiAIDecisionClose = () => ({ type: UI_AI_DECISION_CLOSE });
+export const uiGameLogOpen = () => ({ type: UI_GAME_LOG_OPEN });
+export const uiGameLogClose = () => ({ type: UI_GAME_LOG_CLOSE });
+// Settings actions
+export const settingsLoaded = (settings) => ({ type: SETTINGS_LOADED, payload: { settings } });
+export const settingsUpdated = (partial) => ({ type: SETTINGS_UPDATED, payload: { partial } });

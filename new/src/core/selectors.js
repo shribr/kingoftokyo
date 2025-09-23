@@ -47,3 +47,5 @@ export const selectEffectQueueState = (state) => state.effectQueue;
 export const selectEnqueuedEffects = (state) => state.effectQueue.queue;
 export const selectProcessingEffect = (state) => state.effectQueue.processing;
 export const selectResolvedEffectHistory = (state) => state.effectQueue.history;
+export const selectSettings = (state) => state.settings;
+export const selectSetting = (key) => (state) => state.settings?.[key];

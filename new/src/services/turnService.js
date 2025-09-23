@@ -22,7 +22,13 @@ export function createTurnService(store, logger, rng = Math.random) {
   function performRoll() {
     store.dispatch(diceRollStarted());
     const st = store.getState();
-    const faces = rollDice({ currentFaces: st.dice.faces, count: 6, rng });
+    const order = st.players.order;
+    let diceSlots = 6;
+    if (order.length) {
+      const activeId = order[st.meta.activePlayerIndex % order.length];
+      diceSlots = st.players.byId[activeId]?.modifiers?.diceSlots || 6;
+    }
+    const faces = rollDice({ currentFaces: st.dice.faces, count: diceSlots, rng });
     store.dispatch(diceRolled(faces));
   }
 

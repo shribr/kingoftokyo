@@ -1,13 +1,26 @@
 import { DICE_ROLL_STARTED, DICE_ROLLED, DICE_TOGGLE_KEEP, DICE_REROLL_USED, PHASE_CHANGED } from '../actions.js';
 
-const initial = { faces: [], rerollsRemaining: 0, phase: 'idle' };
+const initial = { faces: [], rerollsRemaining: 0, baseRerolls: 2, phase: 'idle' };
 
 export function diceReducer(state = initial, action) {
   switch (action.type) {
     case DICE_ROLL_STARTED: {
-      // If we're starting a fresh roll sequence (not a reroll yet), ensure rerollsRemaining is set.
+      // If starting new sequence, compute rerollsRemaining from active player's modifiers (base + bonus)
       const starting = state.phase === 'idle' || state.phase === 'sequence-complete';
-      const rerollsRemaining = starting ? 2 : state.rerollsRemaining; // 2 rerolls after first roll
+      if (!starting) return { ...state, phase: 'rolling' };
+      // Active player modifiers are injected externally (middleware pattern absent). We'll read off a global for now.
+      let bonus = 0;
+      try {
+        const st = window.__KOT_NEW__?.store?.getState();
+        if (st) {
+          const order = st.players.order;
+            if (order.length) {
+              const activeId = order[st.meta.activePlayerIndex % order.length];
+              bonus = st.players.byId[activeId]?.modifiers?.rerollBonus || 0;
+            }
+        }
+      } catch (_) {}
+      const rerollsRemaining = state.baseRerolls + bonus;
       return { ...state, phase: 'rolling', rerollsRemaining };
     }
     case DICE_ROLLED:

@@ -1,0 +1,59 @@
+/* components.modals.css
+ * Unified styling for new system modals (settings, AI decision tree, game log, card detail, player cards modal).
+ * This is a parity-oriented baseline using design tokens; not a final redesign.
+ */
+
+@layer components.modals {
+  .modal-shell { position: fixed; inset: 0; display: none; align-items: flex-start; justify-content: center; padding-top: 8vh; z-index: var(--z-modal, 5000); }
+  .modal-shell .modal { background: var(--color-bg-panel, #2d2d2d); border: 2px solid #000; box-shadow: var(--shadow-hard-lg, 8px 8px 0 #000), var(--shadow-ambient-md, 6px 6px 20px rgba(0,0,0,.4)); color: var(--color-text-primary,#fff); font-family: var(--font-family-body, system-ui, sans-serif); width: clamp(320px, 60vw, 880px); max-height: 70vh; display:flex; flex-direction:column; border-radius: 4px; overflow:hidden; }
+  .modal-header { background: var(--grad-header, linear-gradient(135deg,#2c1810,#8b4513,#ff6b00,#ffaa00,#8b4513,#2c1810)); padding: var(--space-6,12px) var(--space-8,16px); display:flex; align-items:center; justify-content:space-between; gap: var(--space-6,12px); box-shadow: inset 0 -2px 0 rgba(0,0,0,0.6); }
+  .modal-header h2 { font-family: var(--font-family-brand, 'Bangers', cursive); font-size: var(--text-2xl,1.5rem); letter-spacing:1px; margin:0; text-shadow: 2px 2px 0 #000; }
+  .modal-header button { background:#000; color: var(--color-brand-gold,#ffd700); border:2px solid var(--color-brand-gold,#ffd700); font-family: inherit; font-size:1rem; line-height:1; width:32px; height:32px; border-radius:4px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; box-shadow: 2px 2px 0 #000; transition: transform var(--dur-fast,80ms) var(--ease-emphasized,cubic-bezier(.34,1.56,.64,1)); }
+  .modal-header button:hover { transform: translateY(-2px); }
+  .modal-header button:active { transform: translateY(0); }
+  .modal-body { padding: var(--space-8,16px); overflow:auto; display:flex; flex-direction:column; gap: var(--space-6,12px); }
+  .modal-body::-webkit-scrollbar { width: 10px; }
+  .modal-body::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+  .modal-body::-webkit-scrollbar-thumb { background: var(--color-brand-brown,#8b4513); border:2px solid #000; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.15); }
+
+  /* Forms inside modals */
+  .modal form { display:flex; flex-direction:column; gap: var(--space-6,12px); }
+  .modal .field { display:flex; flex-direction:column; gap: var(--space-2,4px); }
+  .modal label { font-size: var(--text-sm,0.75rem); text-transform:uppercase; letter-spacing:1px; font-weight:600; opacity:.9; }
+  .modal select, .modal input[type="checkbox"], .modal button, .modal .btn { font-family: var(--font-family-body, system-ui, sans-serif); }
+  .modal select { background:#111; border:2px solid #000; color:#fff; padding:6px 10px; font-size: var(--text-md,0.875rem); border-radius:4px; box-shadow:2px 2px 0 #000; }
+  .modal select:focus { outline:2px solid var(--color-brand-gold,#ffd700); }
+  .modal .actions { display:flex; justify-content:flex-end; gap: var(--space-4,8px); margin-top: var(--space-4,8px); }
+  .modal .actions button { background: var(--color-brand-gold,#ffd700); color:#000; border:2px solid #000; padding:6px 16px; font-weight:600; text-transform:uppercase; letter-spacing:1px; box-shadow: 3px 3px 0 #000; cursor:pointer; border-radius:4px; }
+  .modal .actions button:hover { filter: brightness(1.1); }
+  .modal .actions button:active { transform: translate(1px,1px); box-shadow:2px 2px 0 #000; }
+
+  /* Game Log Specific */
+  .modal.game-log .log-scroll { display:flex; flex-direction:column; gap:4px; font-family: var(--font-family-mono, monospace); font-size: var(--text-xs,0.6875rem); background: #141414; padding: var(--space-4,8px); border:1px solid #000; border-radius:4px; max-height:50vh; overflow:auto; }
+  .modal.game-log .round { border:1px solid #000; background:#1f1f1f; padding:4px 6px; border-radius:4px; box-shadow:2px 2px 0 #000; }
+  .modal.game-log .round + .round { margin-top:6px; }
+  .modal.game-log .round-header { cursor:pointer; font-weight:600; color: var(--color-brand-gold,#ffd700); text-shadow:1px 1px 0 #000; }
+  .modal.game-log .turn { margin-top:4px; border:1px solid #000; background:#262626; padding:4px 6px; border-radius:4px; box-shadow:1px 1px 0 #000; }
+  .modal.game-log .turn-header { cursor:pointer; font-weight:500; color: var(--color-brand-orange,#ff6b00); }
+  .modal.game-log .log-line { padding:2px 0; border-bottom:1px dashed rgba(255,255,255,0.08); }
+  .modal.game-log .log-line:last-child { border-bottom:none; }
+  .modal.game-log .collapsed > .round-body, .modal.game-log .collapsed > .turn-body { display:none; }
+
+  /* AI Decision Tree */
+  .modal.ai-decision .ai-tree { display:flex; flex-direction:column; gap:10px; font-size: var(--text-sm,0.75rem); }
+  .modal.ai-decision .ai-round { border:1px solid #000; background:#202020; padding:6px 8px; border-radius:4px; box-shadow:2px 2px 0 #000; }
+  .modal.ai-decision .ai-round-header { font-weight:600; color: var(--color-brand-gold,#ffd700); margin-bottom:4px; text-shadow:1px 1px 0 #000; }
+  .modal.ai-decision .ai-turn { border:1px solid #000; background:#2a2a2a; padding:4px 6px; border-radius:4px; box-shadow:1px 1px 0 #000; }
+  .modal.ai-decision .ai-turn + .ai-turn { margin-top:6px; }
+  .modal.ai-decision .ai-turn-header { font-weight:500; color: var(--color-brand-orange,#ff6b00); margin-bottom:4px; }
+  .modal.ai-decision .ai-turn-rolls { display:flex; flex-direction:column; gap:4px; }
+  .modal.ai-decision .ai-roll { background:#333; border:1px solid #000; padding:4px 6px; border-radius:4px; box-shadow:1px 1px 0 #000; }
+  .modal.ai-decision .ai-roll .faces { font-family: var(--font-family-mono, monospace); margin-right:6px; color: var(--color-brand-gold,#ffd700); }
+  .modal.ai-decision .ai-roll .score { font-weight:600; color: var(--color-brand-orange,#ff6b00); margin-left:4px; }
+  .modal.ai-decision .ai-roll .rationale { font-style:italic; opacity:0.8; margin-top:2px; }
+
+  /* Settings Modal */
+  .modal.settings form { max-width: 420px; }
+  .modal.settings .field select { width: 100%; }
+  .modal.settings input[type="checkbox"] { transform: translateY(1px); }
+}

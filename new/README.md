@@ -152,3 +152,50 @@ Selectors list lives in `DEFAULT_SELECTORS`; expand as new components are stabil
 ## Component Development Notes
 - `eventsToActions.js` currently hosts dice UI bridge logic; will expand for other UI→action translations.
 - Components re-render fully for now; diff optimization deferred to a later phase.
+
+## Phase Progress Tracker (1–11)
+The initial architectural roadmap spans 11 macro phases. Earlier README updates stopped around Phase 5; phases 6–9 work is now documented here.
+
+| Phase | Focus | Status | Key Deliverables |
+|-------|-------|--------|------------------|
+| 1 | Core store, event bus, initial state shape | COMPLETE | `store.js`, `eventBus.js`, base reducers, state factory |
+| 2 | Dice domain + tray + reroll loop seed | COMPLETE | Dice slice, `dice-tray` scaffold |
+| 3 | Player management & turn skeleton | COMPLETE | Players slice, meta turn index |
+| 4 | Phase machine & logging | COMPLETE | `phaseReducer`, logger, `logFeed` |
+| 5 | Card catalog & shop skeleton | COMPLETE | `cardsService`, deck/shop actions |
+| 6 | Player profile cards & positioning | COMPLETE | Profile card + multi manager, drag persistence service |
+| 7 | Effect engine & passive modifiers | COMPLETE | `effectQueue` reducer, `effectEngine`, modifier recalculation |
+| 8 | Modal parity batch 1 | COMPLETE | Card detail, owned cards, monster profiles, splash adjustments |
+| 9 | Modal parity batch 2 | IN PROGRESS | Settings modal + persistence, hierarchical game log, AI decision tree mock, unified modal CSS |
+| 10 | AI transparency & enriched logs | PENDING | Real decision rationale trees, semantic log tagging |
+| 11 | Test hardening & theming (dark hooks) | PENDING | Coverage expansion, accessibility, token override & dark edition scaffolds |
+
+### Recent Work (Phases 7–9)
+1. Added effect queue & processing statuses; integrated card purchase flow to enqueue immediate effects.
+2. Player modifiers (diceSlots, rerollBonus) dynamically alter dice capacity & reroll allowances.
+3. Settings slice with persistence (`cpuSpeed`, `showThoughtBubbles`, `autoActivateMonsters`).
+4. Hierarchical game log (round → turn) with collapsible UI; round tracking added to meta.
+5. AI decision tree placeholder capturing mock roll rationale (will evolve into true scoring engine).
+6. Unified modal styling layer (`components.modals.css`) using design tokens.
+7. Forward Dark Edition hooks: `meta.gameMode`, deck init option, dark token override, planning doc.
+
+### To Finish Phase 9
+- Apply settings semantics (CPU pacing, future thought bubble rendering once migrated).
+- Replace AI decision mock entries with real roll evaluation (basic heuristic) or mark as Phase 10 entry.
+- Semantic enrichment for log entries (damage, purchases, effects) powering category grouping.
+- Persist collapse state for log tree.
+
+### Phase 10 (Planned Outline)
+- Real AI evaluation nodes: reroll branch scoring, card purchase heuristics, risk tolerance metrics.
+- Log + decision cross-link (log line references decision node id).
+- Accessibility upgrades: focus traps & keyboard escape for all modals, aria-live for phase/log updates.
+
+### Phase 11 (Planned Outline)
+- Unit & integration test expansion (effect engine edge cases, settings influences, modal lifecycle).
+- Performance instrumentation (timed effect resolution & AI evaluation stats).
+- Theme consolidation + dark edition bootstrap path (apply `.theme-dark-edition` at start for dark mode runs).
+
+## Dark Edition Preparation (Summary)
+Refer to `DARK_EDITION_PLANNING.md` for a full blueprint. Current code includes inert scaffolds only; gameplay unchanged in classic mode.
+
+---

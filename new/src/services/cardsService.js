@@ -5,8 +5,15 @@ import { buildBaseCatalog, buildDeck, draw } from '../domain/cards.js';
 import { cardsDeckBuilt, cardsShopFilled, cardPurchased, playerSpendEnergy, playerCardGained, cardDiscarded } from '../core/actions.js';
 import { createEffectEngine } from './effectEngine.js';
 
-export function initCards(store, logger, rng = Math.random) {
+export function initCards(store, logger, rng = Math.random, opts = {}) {
   const catalog = buildBaseCatalog();
+  // Dark Edition forward‑compatibility: filter / augment deck based on future mode flag
+  // opts.darkEdition === true will eventually:
+  //  - include dark-only cards (marked with card.dark === true)
+  //  - possibly exclude some base set cards
+  //  - inject progression / Wickness scale related event cards
+  // For now: no-op; placeholder logic below.
+  const activeCatalog = opts.darkEdition ? catalog /* future: catalog.filter(c => !c.excludeInDark) */ : catalog;
   const deck = buildDeck(catalog, rng);
   store.dispatch(cardsDeckBuilt(deck));
   refillShop(store, logger);

@@ -153,4 +153,52 @@
     "assets": [],
     "zIndex": 1
   }
+    ,{
+      "name": "settingsModal",
+      "version": "0.1.0",
+      "selector": ".cmp-settings-modal",
+      "mountPoint": "#app",
+      "order": 300,
+      "enabled": true,
+      "stateKeys": ["ui"],
+      "build": "settings-modal.build",
+      "update": "settings-modal.update",
+      "eventsOut": [],
+      "eventsIn": [],
+      "initialState": {},
+      "assets": [],
+      "zIndex": 120
+    }
+    ,{
+      "name": "aiDecisionModal",
+      "version": "0.1.0",
+      "selector": ".cmp-ai-decision-modal",
+      "mountPoint": "#app",
+      "order": 310,
+      "enabled": true,
+      "stateKeys": ["ui"],
+      "build": "ai-decision-modal.build",
+      "update": "ai-decision-modal.update",
+      "eventsOut": [],
+      "eventsIn": [],
+      "initialState": {},
+      "assets": [],
+      "zIndex": 125
+    }
+    ,{
+      "name": "gameLogModal",
+      "version": "0.1.0",
+      "selector": ".cmp-game-log-modal",
+      "mountPoint": "#app",
+      "order": 320,
+      "enabled": true,
+      "stateKeys": ["ui","log"],
+      "build": "game-log-modal.build",
+      "update": "game-log-modal.update",
+      "eventsOut": [],
+      "eventsIn": [],
+      "initialState": {},
+      "assets": [],
+      "zIndex": 130
+    }
 ]

@@ -18,10 +18,13 @@ import { monstersLoaded } from '../core/actions.js';
 import { createPlayer } from '../domain/player.js';
 import { createLogger } from '../services/logger.js';
 import { initCards } from '../services/cardsService.js';
+import { settingsReducer } from '../core/reducers/settings.reducer.js';
 import { metaReducer } from '../core/reducers/meta.reducer.js';
 import { createTurnService } from '../services/turnService.js';
 import { createEffectEngine } from '../services/effectEngine.js';
 import '../ui/devPanel.js';
+import { loadSettings, bindSettingsPersistence } from '../services/settingsService.js';
+import { bindAIDecisionCapture } from '../services/aiDecisionService.js';
 
 // Placeholder reducers until implemented
 function placeholderReducer(state = {}, _action) { return state; }
@@ -38,6 +41,7 @@ const rootReducer = combineReducers({
   meta: metaReducer,
   monsters: monstersReducer
   , effectQueue: effectQueueReducer
+  , settings: settingsReducer
 });
 
 export const store = createStore(rootReducer, createInitialState());
@@ -49,6 +53,10 @@ if (typeof window !== 'undefined') {
   const effectEngine = createEffectEngine(store, logger);
   window.__KOT_NEW__ = { store, eventBus, logger, turnService, effectEngine };
   eventBus.emit('bootstrap/ready', {});
+  // Load persisted settings before UI mounts
+  loadSettings(store);
+  bindSettingsPersistence(store);
+  bindAIDecisionCapture(store);
   // Demo data
   store.dispatch(playerJoined(createPlayer({ id: 'p1', name: 'Alpha', monsterId: 'king' })));
   store.dispatch(playerJoined(createPlayer({ id: 'p2', name: 'Beta', monsterId: 'alien' })));

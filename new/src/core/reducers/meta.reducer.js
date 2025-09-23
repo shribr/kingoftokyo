@@ -1,6 +1,9 @@
 import { NEXT_TURN, PLAYER_JOINED } from '../actions.js';
 
-const initial = { turn: 0, activePlayerIndex: 0 };
+// Forward-compat fields (dark edition scaffolding):
+// gameMode: 'classic' | 'dark'
+// wickness: tracked externally later; kept out of meta to avoid bloating state watchers now.
+const initial = { turn: 0, activePlayerIndex: 0, round: 1, gameMode: 'classic' };
 
 export function metaReducer(state = initial, action, rootStateRef) {
   switch (action.type) {
@@ -12,7 +15,8 @@ export function metaReducer(state = initial, action, rootStateRef) {
       const order = rootStateRef.players.order;
       if (!order.length) return state;
       const nextIdx = (state.activePlayerIndex + 1) % order.length;
-      return { ...state, turn: state.turn + 1, activePlayerIndex: nextIdx };
+      const wrapped = nextIdx === 0; // completed a full cycle
+      return { ...state, turn: state.turn + 1, activePlayerIndex: nextIdx, round: wrapped ? state.round + 1 : state.round };
     }
     default:
       return state;

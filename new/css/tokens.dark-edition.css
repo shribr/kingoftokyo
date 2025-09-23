@@ -1,0 +1,27 @@
+/* tokens.dark-edition.css
+ * Future Dark Edition token overrides (inactive until .theme-dark-edition is applied to <body> or root container).
+ * These are speculative values; will refine once visual direction is locked.
+ */
+
+.theme-dark-edition {
+  --color-brand-gold: #d7bf5e;
+  --color-brand-orange: #ff4d00;
+  --color-brand-orange-light: #ff7840;
+  --color-bg-root: #06050a;
+  --color-bg-layer-1: #0b0a12;
+  --color-bg-layer-2: #14121d;
+  --color-bg-layer-3: #1c1a27;
+  --color-bg-panel: #13111a;
+  --color-bg-panel-alt: #1d1a25;
+  --color-text-primary: #f2eefc;
+  --color-text-muted: #bdb6d2;
+
+  --grad-header: linear-gradient(135deg,#1a0328,#320a46,#52006a,#8a0072,#320a46,#1a0328);
+  --grad-orange-brown: linear-gradient(135deg,#1a0328,#52006a,#8a0072);
+
+  --shadow-hard-sm: 4px 4px 0px #05030a;
+  --shadow-hard-md: 6px 6px 0px #05030a;
+  --shadow-hard-lg: 8px 8px 0px #05030a;
+  --shadow-ambient-md: 6px 6px 20px rgba(120,0,150,0.35);
+  --shadow-ambient-lg: 10px 10px 26px rgba(140,0,180,0.4);
+}

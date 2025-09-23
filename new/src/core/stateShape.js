@@ -26,6 +26,6 @@ export function createInitialState() {
     log: { entries: [] },
     ui: { modal: { open: false }, flags: { showProbabilities: false } },
     ai: {},
-    meta: { seed: Date.now(), turn: 0 }
+    meta: { seed: Date.now(), turn: 0, gameMode: 'classic' }
   };
 }
