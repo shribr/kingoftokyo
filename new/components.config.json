@@ -121,4 +121,36 @@
     "assets": [],
     "zIndex": 1
   }
+  ,{
+    "name": "playerProfileCard",
+    "version": "0.1.0",
+    "selector": ".cmp-player-profile-card",
+    "mountPoint": "#app",
+    "order": 6,
+    "enabled": false,
+    "stateKeys": ["players"],
+    "build": "player-profile-card.build",
+    "update": "player-profile-card.update",
+    "eventsOut": [],
+    "eventsIn": [],
+    "initialState": { "playerId": null },
+    "assets": [],
+    "zIndex": 1
+  }
+  ,{
+    "name": "playerProfileCards",
+    "version": "0.1.0",
+    "selector": ".cmp-player-profile-cards",
+    "mountPoint": "#app",
+    "order": 6,
+    "enabled": true,
+    "stateKeys": ["players"],
+    "build": "player-profile-cards.build",
+    "update": "player-profile-cards.update",
+    "eventsOut": [],
+    "eventsIn": [],
+    "initialState": {},
+    "assets": [],
+    "zIndex": 1
+  }
 ]

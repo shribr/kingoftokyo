@@ -2,11 +2,15 @@
  * Renders a simple scrolling list of log entries.
  */
 import { store } from '../../../bootstrap/index.js';
+import { createPositioningService } from '../../services/positioningService.js';
 
 export function buildLogFeed(cfg) {
   const root = document.createElement('div');
   root.className = 'cmp-log-feed';
   root.innerHTML = `<h3 class="cmp-log-feed__title">Game Log</h3><ul class="cmp-log-feed__list"></ul>`;
+  const positioning = createPositioningService(store);
+  positioning.hydrate();
+  positioning.makeDraggable(root, 'logFeed', { grid: 4 });
   return root;
 }
 

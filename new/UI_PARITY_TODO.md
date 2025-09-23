@@ -26,12 +26,42 @@ Goal: Achieve reproducible, testable visual parity vs legacy implementation.
 - [ ] Run axe (manual for now) and record findings.
 
 ### Phase P5 – Performance Hooks
-- [ ] Add simple FPS sampler during dice animations (placeholder; logs to console).
-- [ ] Document thresholds (<16ms/frame target for major interactions).
 
 ### Phase P6 – Enforcement
-- [ ] Create Git pre-commit hook (optional) or manual script invocation instructions.
-- [ ] Document variance acceptance criteria (≤2px layout diff, identical hex colors, etc.).
+### Phase 6 – Player Profile Card (COMPLETED)
+Deliverables Achieved:
+	- Component scaffold (`player-profile-card`) with dual-class root.
+	- Token-based structural CSS (`components.player-profile-card.css`).
+	- Config registration (kept disabled) plus separate multi-instance manager (`player-profile-cards`).
+	- Owned cards miniature lane placeholder.
+	- Lightweight test harness (`player-profile-card.test.js`).
+	- Manager component enabled for live multi-player rendering.
+Closure Criteria Met: All planned scaffold objectives done; no redesign introduced; legacy untouched.
+
+### Phase 7 – Layout Rails & Positional Persistence (IN PROGRESS)
+Objectives:
+	- Introduce layout rail container abstraction (players, dice/actions, log, modals staging) inside `new/` only.
+	- Add UI slice support for persisted positions: `ui.positions[componentName] = { x, y }`.
+	- Implement drag handling utility (pointer events) with throttled store writes.
+	- Provide `reset positions` internal API (no legacy UI wiring yet).
+	- Visual parity: maintain current stacking & approximate spacing (no redesign) while decoupling absolute positioning.
+Tasks:
+		[x] Add actions: `UI_POSITION_SET`, `UI_POSITIONS_RESET`.
+		[x] Extend `ui.reducer` to handle position updates.
+		[x] Create `services/positioningService.js` for drag registration & persistence.
+		[x] Add `layout-rails.css` scaffold with rail container tokens.
+		[x] Update `player-profile-cards` container to opt into rail system.
+		[x] Provide test harness to simulate drag and assert state persistence.
+		[x] Integrate draggable persistence into dice tray.
+		[x] Add hydration & localStorage persistence.
+		[x] Add optional bounds & grid snap logic (not yet leveraged).
+			[x] Implement reset-all internal command event (`ui/positions/resetRequested`).
+		[ ] Apply positioning to second future component (e.g., action menu) after migration.
+Exit Criteria:
+	- Dragging a profile card updates stored position.
+	- Refresh (manual test) re-applies last positions via initial mount pass.
+	- Reset API clears positions and DOM transforms.
+
 
 ---
 Maintainer Notes:

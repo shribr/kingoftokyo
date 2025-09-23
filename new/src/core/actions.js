@@ -44,6 +44,9 @@ export const UI_MONSTER_PROFILE_OPEN = 'UI_MONSTER_PROFILE_OPEN';
 export const UI_MONSTER_PROFILE_CLOSE = 'UI_MONSTER_PROFILE_CLOSE';
 // Splash
 export const UI_SPLASH_HIDE = 'UI_SPLASH_HIDE';
+// Layout / Positioning
+export const UI_POSITION_SET = 'UI_POSITION_SET';
+export const UI_POSITIONS_RESET = 'UI_POSITIONS_RESET';
 
 // Player action creators
 export const playerJoined = (player) => ({ type: PLAYER_JOINED, payload: { player } });
@@ -90,3 +93,6 @@ export const uiMonsterProfileOpen = (monsterId) => ({ type: UI_MONSTER_PROFILE_O
 export const uiMonsterProfileClose = () => ({ type: UI_MONSTER_PROFILE_CLOSE });
 // Splash
 export const uiSplashHide = () => ({ type: UI_SPLASH_HIDE });
+// Positioning action creators
+export const uiPositionSet = (componentName, x, y) => ({ type: UI_POSITION_SET, payload: { componentName, x, y } });
+export const uiPositionsReset = () => ({ type: UI_POSITIONS_RESET });

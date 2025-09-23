@@ -1,4 +1,4 @@
-import { UI_CARD_DETAIL_OPEN, UI_CARD_DETAIL_CLOSE, UI_PLAYER_CARDS_OPEN, UI_PLAYER_CARDS_CLOSE, UI_MONSTER_PROFILES_OPEN, UI_MONSTER_PROFILES_CLOSE, UI_MONSTER_PROFILE_OPEN, UI_MONSTER_PROFILE_CLOSE, UI_SPLASH_HIDE } from '../actions.js';
+import { UI_CARD_DETAIL_OPEN, UI_CARD_DETAIL_CLOSE, UI_PLAYER_CARDS_OPEN, UI_PLAYER_CARDS_CLOSE, UI_MONSTER_PROFILES_OPEN, UI_MONSTER_PROFILES_CLOSE, UI_MONSTER_PROFILE_OPEN, UI_MONSTER_PROFILE_CLOSE, UI_SPLASH_HIDE, UI_POSITION_SET, UI_POSITIONS_RESET } from '../actions.js';
 
 const initial = {
   cardDetail: { cardId: null, source: null },
@@ -41,6 +41,13 @@ export function uiReducer(state = initial, action) {
     }
     case UI_SPLASH_HIDE: {
       return { ...state, splash: { visible: false } };
+    }
+    case UI_POSITION_SET: {
+      const { componentName, x, y } = action.payload;
+      return { ...state, positions: { ...state.positions, [componentName]: { x, y } } };
+    }
+    case UI_POSITIONS_RESET: {
+      return { ...state, positions: {} };
     }
     default:
       return state;

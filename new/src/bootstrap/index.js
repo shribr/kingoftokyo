@@ -19,6 +19,7 @@ import { createLogger } from '../services/logger.js';
 import { initCards } from '../services/cardsService.js';
 import { metaReducer } from '../core/reducers/meta.reducer.js';
 import { createTurnService } from '../services/turnService.js';
+import '../ui/devPanel.js';
 
 // Placeholder reducers until implemented
 function placeholderReducer(state = {}, _action) { return state; }

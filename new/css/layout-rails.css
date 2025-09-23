@@ -1,0 +1,20 @@
+/* layout-rails.css
+ * Phase 7: Rail container abstraction (players rail initial)
+ */
+
+.layout-rail--players {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tok-space-4, 14px);
+  padding: var(--tok-space-4, 14px);
+  background: var(--tok-color-rail-bg, rgba(10,12,18,0.4));
+  border: 1px solid rgba(255,255,255,0.08);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  border-radius: var(--tok-radius-md, 6px);
+}
+
+/* Draggable child hint */
+[data-draggable="true"] { cursor: grab; }
+[data-draggable="true"]:active { cursor: grabbing; }

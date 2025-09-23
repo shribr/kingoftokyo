@@ -3,6 +3,8 @@ import { eventBus } from '../core/eventBus.js';
 import { store } from '../bootstrap/index.js';
 import { diceRollStarted, diceRolled, diceToggleKeep, diceRerollUsed, phaseChanged } from '../core/actions.js';
 import { rollDice } from '../domain/dice.js';
+import { uiPositionsReset } from '../core/actions.js';
+import { createPositioningService } from '../services/positioningService.js';
 
 // Move bridge logic here from dice-tray soon; keep idempotent handlers.
 
@@ -33,3 +35,9 @@ eventBus.on('ui/dice/keptToggled', handleKeptToggled);
 
 // Subscribe to store to detect dice sequence completion for phase advancement
 store.subscribe(maybeAdvancePhase);
+
+// Handle UI reset positions event (emitted by dev or future control)
+eventBus.on('ui/positions/reset', () => {
+  const ps = createPositioningService(store);
+  ps.resetPositions();
+});

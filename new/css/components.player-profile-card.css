@@ -1,0 +1,62 @@
+/* components.player-profile-card.css
+ * Player Profile Card (Phase 6 Steps 2-4)
+ * Parity-intent CSS scaffold using tokens. Not a redesign.
+ * Dual-class root: .player-dashboard.cmp-player-profile-card
+ */
+
+.player-dashboard.cmp-player-profile-card {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tok-space-2, 6px);
+  padding: var(--tok-space-3, 10px) var(--tok-space-4, 14px);
+  background: var(--tok-color-panel, rgba(20,22,30,0.85));
+  border: 2px solid var(--tok-color-border-strong, #000);
+  border-radius: var(--tok-radius-md, 6px);
+  box-shadow: var(--tok-shadow-hard-1, 2px 2px 0 #000), var(--tok-shadow-elev-1, 0 4px 12px rgba(0,0,0,0.35));
+  color: var(--tok-color-text-primary, #fff);
+  font-family: var(--tok-font-stack, system-ui, sans-serif);
+  width: 220px; /* parity baseline - subject to future responsive pass */
+  transition: box-shadow .25s var(--tok-ease-standard, ease), transform .25s var(--tok-ease-standard, ease);
+}
+
+.player-dashboard.cmp-player-profile-card.is-active {
+  box-shadow: var(--tok-shadow-hard-2, 3px 3px 0 #000), var(--tok-shadow-elev-2, 0 6px 18px rgba(0,0,0,0.45));
+  outline: 2px solid var(--tok-color-accent, #ffca28);
+}
+
+/* Header */
+.cmp-player-profile-card .ppc-header { display:flex; align-items:center; gap: var(--tok-space-3,8px); }
+.cmp-player-profile-card .ppc-avatar { width:48px; height:48px; background: var(--tok-color-avatar-bg,#333); border:2px solid #000; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.08); border-radius:4px; }
+.cmp-player-profile-card .ppc-name { font-weight:600; letter-spacing:0.5px; font-size:0.95rem; }
+.cmp-player-profile-card .ppc-status-line { display:flex; gap: var(--tok-space-2,6px); font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; }
+.cmp-player-profile-card .ppc-tokyo-indicator { color: var(--tok-color-accent,#ffca28); font-weight:700; }
+
+/* Stats */
+.cmp-player-profile-card .ppc-stats { display:flex; gap: var(--tok-space-3,8px); flex-wrap:wrap; }
+.cmp-player-profile-card .ppc-stat { background: var(--tok-color-chip-bg, rgba(255,255,255,0.08)); padding:2px 6px; border:1px solid rgba(255,255,255,0.15); border-radius:4px; display:flex; gap:4px; align-items:center; font-size:0.72rem; font-weight:500; }
+.cmp-player-profile-card .ppc-stat .label { opacity:0.75; }
+.cmp-player-profile-card .ppc-stat.hp { color: var(--tok-color-hp,#ff5f5f); }
+.cmp-player-profile-card .ppc-stat.energy { color: var(--tok-color-energy,#7be2ff); }
+.cmp-player-profile-card .ppc-stat.vp { color: var(--tok-color-vp,#ffd54f); }
+
+/* Owned Cards Strip */
+.cmp-player-profile-card .ppc-owned-cards { display:flex; flex-direction:column; gap:4px; margin-top:4px; }
+.cmp-player-profile-card .ppc-owned-cards-label { font-size:0.60rem; letter-spacing:1px; opacity:0.65; text-transform:uppercase; }
+.cmp-player-profile-card .ppc-owned-cards-strip { display:flex; gap:4px; flex-wrap:wrap; }
+.cmp-player-profile-card .ppc-card-mini { background: rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.2); padding:2px 4px; font-size:0.55rem; border-radius:3px; max-width:60px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+/* Hover / interaction baseline (parity-light) */
+.player-dashboard.cmp-player-profile-card:hover { transform: translateY(-2px); box-shadow: var(--tok-shadow-hard-2,3px 3px 0 #000), var(--tok-shadow-elev-2,0 6px 18px rgba(0,0,0,0.45)); }
+
+/* Placeholder avatar pattern (until sprite injection) */
+.cmp-player-profile-card .ppc-avatar::after { content:""; display:block; width:100%; height:100%; background: repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0 6px, transparent 6px 12px); }
+
+/* Active indicator dot inherits color via outline for now */
+.cmp-player-profile-card .ppc-active-indicator { color: var(--tok-color-accent,#ffca28); }
+
+/* Manager wrapper */
+.cmp-player-profile-cards.layout-rail--players { display:flex; flex-direction:column; gap: var(--tok-space-4,14px); align-items:flex-start; }
+.cmp-player-profile-cards .ppc-cards-wrapper { display:flex; flex-direction:column; gap: var(--tok-space-4,14px); }
+
