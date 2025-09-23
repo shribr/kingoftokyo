@@ -804,3 +804,36 @@ Once checklist items for Phase 1 are complete, update this plan marking items do
 ---
 
 (End of current migration plan scope. Implementation begins next within `new/src/`.)
+
+---
+
+### Phase 4 Progress Update (Logging, Phases, Rerolls, Tokyo Placeholder)
+Implemented:
+- Reducers: phase, log, tokyo.
+- Structured logger service & `logFeed` component.
+- Dice reroll lifecycle (first roll seeds 2 rerolls, sequence completion detection).
+- Automatic phase transition ROLL -> RESOLVE when rerolls depleted.
+- Tests covering phase/log/reroll sequence.
+
+Deferred (Phase 4 follow-ups): turn rotation, extended phase chain, Tokyo scoring rules.
+
+### Phase 5 Progress Update (Card Engine Skeleton)
+Implemented:
+- Card actions & reducer (`cardsReducer`) for deck build, shop fill, purchase, discard.
+- Domain catalog & shuffle utilities (`domain/cards.js`).
+- Cards service (`services/cardsService.js`) building deck, filling 3-card shop, purchase pipeline (energy spend → ownership → refill).
+- Players reducer extended to track acquired cards.
+- Selectors for cards & player cards.
+- Test `cards.spec.js` validating initialization and purchase flow.
+- Bootstrap integration invoking `initCards`.
+
+Deferred / Next Steps:
+- Effect resolution (queue & application), discard reshuffle.
+- Comprehensive catalog & balancing.
+- UI components for shop & card detail, buy/reroll/refresh interactions.
+- AI valuation for card purchasing.
+
+Risks / Notes:
+- Shop refill reuses deck build action; may introduce a distinct action for clarity (`CARDS_DECK_UPDATED`).
+- Tests mutate player energy directly (replace with proper gain action once energy income logic added).
+

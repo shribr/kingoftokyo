@@ -205,7 +205,7 @@ Element: Power Card Cost Badge
 	padding:0 8px; font-family:'Bangers', cursive; font-size:1.3em; font-weight:200; color:#000;
 	background:linear-gradient(135deg,#ffd700 0%, #ffb300 100%); border:2px solid #000; box-shadow:2px 2px 0px #000; white-space:nowrap; border-radius:0;
 
-#### 1.5 Player Dashboard (Subset – Avatar & Stats Base)
+#### 1.5 Player Profile Card (formerly "Player Dashboard") (Subset – Avatar & Stats Base)
 Element: Monster Avatar Circle
 	width:80px; height:80px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:3em;
 	border:4px solid #000; position:relative; overflow:hidden; transition:all 0.3s ease; transform:translate(-3px,4px);
@@ -1293,7 +1293,7 @@ Migration Notes
 ---
 ## 10. Remaining Inventory Extraction (Pending Targets)
 
-### 10.1 Owned Cards List (Player Dashboard)
+### 10.1 Owned Cards List (Player Profile Card)
 Observed (legacy selectors approximation):
 - Container likely flex column; gap ~8–12px.
 - Each owned card miniature inherits full card styling scaled down (transform scale ~0.75 or explicit width ~140px vs full 180px).
@@ -1438,7 +1438,7 @@ Refactor Notes:
 1. Dual-class phase: add `.cmp-die` alongside `.die` in `createDiceHTML()`. For states, keep legacy plus new until CSS flip.
 2. Event delegation: update selector in `attachDiceEventListeners()` from `.die` to `.die, .cmp-die` during bridging, then finally only `.cmp-die`.
 
-### 13.3 Player Dashboard (Card) Component
+### 13.3 Player Profile Card Component (legacy class `.player-dashboard` retained temporarily)
 | Element | LCSS | NEW | SRC (CSS) | JS CREATION | JS UPDATE | Events |
 |---------|------|-----|-----------|-------------|-----------|--------|
 | Dashboard wrapper | `.player-dashboard` | `.cmp-player-card` | `css/game-areas.css:422` | `_buildPlayerCardElement()` `js/main.js:2068-2145` | `_updateSinglePlayerStats()` `js/main.js:2146-2190`; numerous cache refreshers (`_refreshPlayerDashboardCache`) | Drag logic & active state handlers in `js/main.js` lines ~280–300, 784–806, 1894+ |

@@ -15,6 +15,8 @@ The journey wasn't just about building a game; it was about discovering new patt
 ## Chapter 1: First Contact - The Foundation Days
 *September 8, 2025*
 
+> Terminology Note (Sept 23): What earlier entries and commits refer to as "player dashboards" are now called "player profile cards" for clearer distinction from monster profile modals. Legacy CSS class names remain during migration.
+
 The collaboration began with a seemingly simple request: "if a user is on the Monster selection screen and clicks anywhere outside the modal dialog, hide the Monster Selection dialog and show the splash screen." What appeared to be a straightforward UI enhancement would become the first lesson in the complexities of human-AI collaboration.
 
 ### The Initial Challenge

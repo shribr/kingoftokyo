@@ -1,0 +1,24 @@
+/* Minimal styling scaffolding for card detail & player cards modals */
+.card-detail-modal, .player-cards-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 500; font-family: var(--font-display, sans-serif); }
+.card-detail-modal.hidden, .player-cards-modal.hidden { display: none; }
+.card-detail-frame, .pcm-frame { background: #3f2d62; padding: 1rem 1.25rem 1.25rem; min-width: 260px; max-width: 340px; color: #111; border: 4px solid #111; box-shadow: 6px 6px 0 #000; position: relative; }
+.card-detail-frame { background: var(--color-card-science, rebeccapurple); color: #111; }
+.cd-cost { text-align: right; font-weight: 700; }
+.cost-badge { background: var(--color-brand-gold, #FFB400); padding: 4px 10px; font-weight: 700; border: 2px solid #111; box-shadow: 3px 3px 0 #111; display: inline-block; }
+.cd-name { margin-top: .5rem; font-weight: 700; font-size: 1.1rem; }
+.cd-text { margin: .75rem 0 1rem; line-height: 1.25; font-size: .9rem; background: #f6eedb; border: 2px solid #111; padding: .75rem; }
+.cd-actions { display: flex; gap: .5rem; justify-content: flex-end; }
+.cd-actions .btn { cursor: pointer; font-weight: 700; padding: .5rem .75rem; border: 2px solid #111; box-shadow: 3px 3px 0 #111; background: #ffe; }
+.cd-actions .btn.primary { background: #ffd24d; }
+.cd-actions .btn.danger { background: #e54; color: #fff; }
+.cd-actions .btn.disabled { background: #888; color: #ddd; cursor: not-allowed; }
+
+.player-cards-modal .pcm-frame { background: #f8f3e5; min-width: 620px; min-height: 320px; }
+.pcm-header { display: flex; justify-content: space-between; align-items: center; }
+.pcm-header h2 { font-size: 1.4rem; }
+.pcm-header .btn.circle { width: 36px; height: 36px; border-radius: 50%; }
+.pcm-body { margin-top: 1rem; border: 2px dashed #aaa; min-height: 180px; padding: 1rem; display: flex; align-items: center; justify-content: center; }
+.pcm-empty { font-style: italic; opacity: 0.65; font-weight: 700; }
+.pcm-card-list { list-style: none; margin: 0; padding: 0; width: 100%; display: grid; grid-template-columns: repeat(auto-fill,minmax(180px,1fr)); gap: .75rem; }
+.pcm-card { background: #fff; border: 2px solid #111; padding: .5rem; cursor: pointer; font-weight: 600; box-shadow: 3px 3px 0 #000; }
+.pcm-card:hover { background: #ffe5a0; }

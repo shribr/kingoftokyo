@@ -82,7 +82,7 @@ We've built a fully-featured digital version of the King of Tokyo board game wit
 - **Responsive Design**: Adapts to different screen sizes
 - **Game Board Layout**: 
   - Central Tokyo area
-  - Player dashboards with stats
+  - Player profile cards (formerly player dashboards) with stats
   - Dice area with controls
   - Card marketplace
 - **Visual Polish**:

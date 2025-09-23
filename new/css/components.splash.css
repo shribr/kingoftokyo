@@ -1,0 +1,62 @@
+/* New Splash Screen (tokenized subset) */
+.cmp-splash {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  font-family: var(--font-family-body);
+  color: var(--color-text-primary);
+  background:
+    radial-gradient(2px 2px at 20px 30px, #ffffff, transparent),
+    radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1px 1px at 90px 40px, #ffffff, transparent),
+    radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.6), transparent),
+    radial-gradient(2px 2px at 160px 30px, #ffffff, transparent),
+    radial-gradient(1px 1px at 190px 90px, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1px 1px at 230px 20px, #ffffff, transparent),
+    radial-gradient(2px 2px at 280px 60px, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 320px 10px, #ffffff, transparent),
+    radial-gradient(1px 1px at 350px 50px, rgba(255,255,255,0.8), transparent),
+    linear-gradient(to bottom, #000 0%, #1a1a1a 25%, #2d2d2d 55%, #000 100%);
+  background-size: 400px 400px, 400px 400px, 400px 400px, 400px 400px, 400px 400px,
+                   400px 400px, 400px 400px, 400px 400px, 400px 400px, 400px 400px,
+                   100% 100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index: var(--z-top);
+  transition: opacity var(--dur-slow) var(--ease-standard), visibility var(--dur-slow) var(--ease-standard);
+  animation: starTwinkle 3s ease-in-out infinite alternate;
+}
+.cmp-splash.is-hidden { opacity:0; visibility:hidden; }
+
+.cmp-splash .splash-center { position:relative; z-index:5; text-align:center; }
+.cmp-splash .splash-logo-img { width: clamp(240px, 40vw, 520px); filter: drop-shadow(0 0 12px rgba(255,200,0,0.35)); animation: logoGlow 4s ease-in-out infinite; }
+.cmp-splash .splash-enter { margin-top: var(--space-16); font-family: var(--font-family-brand); font-size: clamp(1.25rem, 2.4vw, 2.25rem); letter-spacing:1px; background: var(--grad-orange-brown); -webkit-background-clip:text; color:transparent; text-shadow: 2px 2px 0 #000, -2px 2px 0 #000, 2px -2px 0 #000, -2px -2px 0 #000; cursor:pointer; animation: subtitleExplode 2.2s var(--ease-emphasized) both; }
+.cmp-splash .splash-enter:hover { filter: brightness(1.15); }
+
+/* Polaroids container */
+.cmp-splash .splash-polaroids { position:absolute; inset:0; pointer-events:none; }
+.cmp-splash .splash-polaroid { position:absolute; width:160px; height:210px; background:linear-gradient(145deg,#fefefe 0%, #f0f0f0 60%, #e5e5e5 100%); padding:14px 14px 52px; box-shadow: var(--shadow-ambient-sm), 0 0 0 2px #fff inset; border-radius:4px; transform-origin:center; animation: polaroidFloat 7s ease-in-out infinite; pointer-events:auto; cursor:pointer; }
+.cmp-splash .splash-polaroid .sp-photo { width:100%; height:100%; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.cmp-splash .splash-polaroid img { width:100%; height:100%; object-fit:cover; filter: contrast(.95) saturate(.9); }
+.cmp-splash .splash-polaroid .sp-caption { position:absolute; bottom:10px; left:0; right:0; text-align:center; font-family:'Kalam', var(--font-family-body); color:#222; font-size:14px; }
+
+/* Basic scattered positions (will refine later) */
+.cmp-splash .polaroid-1 { top:8%; left:6%; transform:rotate(-10deg); }
+.cmp-splash .polaroid-2 { top:32%; left:3%; transform:rotate(8deg); }
+.cmp-splash .polaroid-3 { top:62%; left:8%; transform:rotate(-4deg); }
+.cmp-splash .polaroid-4 { top:10%; right:7%; transform:rotate(12deg); }
+.cmp-splash .polaroid-5 { top:38%; right:5%; transform:rotate(-8deg); }
+.cmp-splash .polaroid-6 { top:70%; right:9%; transform:rotate(5deg); }
+
+/* Skyline */
+.cmp-splash .splash-city { position:absolute; bottom:0; left:0; width:100%; height:180px; pointer-events:none; }
+.cmp-splash .splash-skyline { width:100%; height:100%; animation: skylinePulse 5s ease-in-out infinite; }
+
+/* Keyframes (token-friendly) */
+@keyframes starTwinkle { 0% { opacity:.85; } 100% { opacity:1; } }
+@keyframes logoGlow { 0%,100% { filter: drop-shadow(0 0 6px rgba(255,200,0,0.25)); } 50% { filter: drop-shadow(0 0 18px rgba(255,220,120,0.55)); } }
+@keyframes subtitleExplode { 0% { transform: scale(.4) rotate(-8deg); opacity:0; } 30% { opacity:1; } 60% { transform: scale(1.08) rotate(3deg); } 100% { transform: scale(1) rotate(0deg); opacity:1; } }
+@keyframes polaroidFloat { 0% { transform: translateY(0) rotate(var(--r,0deg)); } 50% { transform: translateY(-18px) rotate(calc(var(--r,0deg) + 3deg)); } 100% { transform: translateY(0) rotate(var(--r,0deg)); } }
+@keyframes skylinePulse { 0%,100% { stroke: rgba(255,180,0,0.3); } 50% { stroke: rgba(255,220,120,0.55); } }

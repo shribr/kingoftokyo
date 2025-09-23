@@ -1,5 +1,5 @@
-import { PLAYER_JOINED, PLAYER_DAMAGE_APPLIED, PLAYER_HEALED, PLAYER_GAINED_ENERGY, PLAYER_SPENT_ENERGY, PLAYER_ENTERED_TOKYO, PLAYER_LEFT_TOKYO } from '../actions.js';
-import { applyDamage, healPlayer, addEnergy, spendEnergy, enterTokyo, leaveTokyo } from '../../domain/player.js';
+import { PLAYER_JOINED, PLAYER_DAMAGE_APPLIED, PLAYER_HEALED, PLAYER_GAINED_ENERGY, PLAYER_SPENT_ENERGY, PLAYER_ENTERED_TOKYO, PLAYER_LEFT_TOKYO, PLAYER_CARD_GAINED, PLAYER_VP_GAINED } from '../actions.js';
+import { applyDamage, healPlayer, addEnergy, spendEnergy, enterTokyo, leaveTokyo, addVictoryPoints } from '../../domain/player.js';
 
 const initial = { order: [], byId: {} };
 
@@ -53,6 +53,19 @@ export function playersReducer(state = initial, action) {
       const existing = state.byId[playerId];
       if (!existing) return state;
       const updated = leaveTokyo(existing);
+      return { ...state, byId: { ...state.byId, [playerId]: updated } };
+    }
+    case PLAYER_CARD_GAINED: {
+      const { playerId, card } = action.payload;
+      const existing = state.byId[playerId];
+      if (!existing || !card) return state;
+      return { ...state, byId: { ...state.byId, [playerId]: { ...existing, cards: [...existing.cards, card] } } };
+    }
+    case PLAYER_VP_GAINED: {
+      const { playerId, amount } = action.payload;
+      const existing = state.byId[playerId];
+      if (!existing || !amount) return state;
+      const updated = addVictoryPoints(existing, amount);
       return { ...state, byId: { ...state.byId, [playerId]: updated } };
     }
     default:

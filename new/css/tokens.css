@@ -1,0 +1,127 @@
+/*
+ * Design Tokens (extracted from legacy CSS under /css)
+ * Source palettes & values were normalized from existing hard-coded styles:
+ *  - Gold / Yellow (#FFD700) used for headers & active labels
+ *  - Orange gradient stops (#ff6b00, #ffaa00) for fiery accents
+ *  - Brown / wood gradients (#2c1810 → #8b4513 → #a0522d → #cd853f)
+ *  - Dark grayscale stack (#000, #1a1a1a, #2a2a2a, #2d2d2d, #3a3a3a, #404040, #4a4a4a)
+ *  - Functional card category colors (attack #dc3545, energy #0d6efd, vp #fd7e14, defense/heal #27ae60, default #663399)
+ *  - Cream card content backgrounds (#fff8dc / #f5deb3)
+ * Only a subset of CSS has been refactored to consume these; progressive replacement planned.
+ */
+
+:root {
+  /* Brand & Accent Colors */
+  --color-brand-gold: #FFD700;
+  --color-brand-orange: #ff6b00;
+  --color-brand-orange-light: #ffaa00;
+  --color-brand-brown-dark: #2c1810;
+  --color-brand-brown: #8b4513;
+  --color-brand-brown-mid: #a0522d;
+  --color-brand-brown-light: #cd853f;
+
+  /* Functional / Semantic */
+  --color-bg-root: #000;
+  --color-bg-layer-1: #1a1a1a;
+  --color-bg-layer-2: #2a2a2a;
+  --color-bg-layer-3: #2d2d2d;
+  --color-bg-panel: #3a3a3a;
+  --color-bg-panel-alt: #404040;
+  --color-bg-panel-alt2: #4a4a4a;
+  --color-border-strong: #000;
+  --color-border-soft: #353b45; /* kept from placeholder set for potential subtle borders */
+  --color-text-primary: #ffffff;
+  --color-text-inverse: #000000;
+  --color-text-muted: #e0e0e0;
+  --color-text-dim: #b2b5bb; /* retained for possible future use */
+
+  /* Category Colors (Cards) */
+  --color-card-default: #663399;
+  --color-card-attack: #dc3545;
+  --color-card-energy: #0d6efd;
+  --color-card-vp: #fd7e14;
+  --color-card-defense: #27ae60;
+  --color-card-cream: #fff8dc;
+  --color-card-cream-alt: #f5deb3;
+  --color-energy-bg-top: #fff3c4;
+  --color-energy-bg-mid: #ffecb3;
+  --color-energy-bg-bottom: #ffc107;
+
+  /* Utility Colors */
+  --color-danger: #dc3545;
+  --color-warning: #fd7e14;
+  --color-success: #27ae60;
+  --color-info: #0d6efd;
+
+  /* Typography */
+  --font-family-brand: 'Bangers', 'Creepster', cursive;
+  --font-family-body: 'Nunito', 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', Arial, sans-serif;
+  --font-family-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+
+  --text-2xs: 0.625rem; /* 10px */
+  --text-xs: 0.6875rem; /* 11px */
+  --text-sm: 0.75rem;    /* 12px */
+  --text-md: 0.875rem;   /* 14px */
+  --text-base: 1rem;     /* 16px */
+  --text-lg: 1.125rem;   /* 18px */
+  --text-xl: 1.25rem;    /* 20px */
+  --text-2xl: 1.5rem;    /* 24px */
+  --text-3xl: 2rem;      /* 32px */
+
+  --line-tight: 1.1;
+  --line-snug: 1.25;
+  --line-normal: 1.4;
+
+  /* Spacing (4-based with extracted legacy offsets) */
+  --space-0: 0;
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 6px;   /* legacy small gap */
+  --space-4: 8px;
+  --space-5: 10px;  /* frequent card/dice padding unit */
+  --space-6: 12px;
+  --space-7: 14px;
+  --space-8: 16px;
+  --space-9: 18px;
+  --space-10: 20px;
+  --space-12: 24px;
+  --space-16: 32px;
+  --space-20: 40px;
+
+  /* Radii (sharp comic style – mostly 0, but include a minimal scale) */
+  --radius-0: 0;
+  --radius-1: 2px;
+  --radius-2: 4px;
+  --radius-round: 50%;
+  --radius-pill: 999px;
+
+  /* Shadows (standardized from varied usage) */
+  --shadow-hard-sm: 4px 4px 0px #000;
+  --shadow-hard-md: 6px 6px 0px #000;
+  --shadow-hard-lg: 8px 8px 0px #000;
+  --shadow-ambient-sm: 0 4px 12px rgba(0,0,0,0.3);
+  --shadow-ambient-md: 6px 6px 20px rgba(0,0,0,0.4);
+  --shadow-ambient-lg: 10px 10px 25px rgba(0,0,0,0.5);
+
+  /* Gradients (representative composites) */
+  --grad-header: linear-gradient(135deg, var(--color-brand-brown-dark) 0%, var(--color-brand-brown) 20%, var(--color-brand-orange) 40%, var(--color-brand-orange-light) 60%, var(--color-brand-brown) 80%, var(--color-brand-brown-dark) 100%);
+  --grad-orange-brown: linear-gradient(135deg, var(--color-brand-brown-dark) 0%, var(--color-brand-brown) 50%, var(--color-brand-orange) 100%);
+  --grad-card-energy: linear-gradient(135deg, var(--color-energy-bg-top) 0%, var(--color-energy-bg-mid) 50%, var(--color-energy-bg-bottom) 100%);
+  --grad-card-default: linear-gradient(135deg, #2a2a2a 0%, #404040 100%);
+
+  /* Motion */
+  --dur-fast: 80ms;
+  --dur-base: 160ms;
+  --dur-slow: 300ms;
+  --ease-standard: cubic-bezier(.4,0,.2,1);
+  --ease-emphasized: cubic-bezier(.34,1.56,.64,1);
+
+  /* Z Layers (kept minimal – detailed stack documented in original layout.css) */
+  --z-base: 1;
+  --z-elevated: 100;
+  --z-overlay: 1000;
+  --z-modal: 5000;
+  --z-top: 10000;
+}
+
+.theme-dark { background: var(--color-bg-root); color: var(--color-text-primary); }

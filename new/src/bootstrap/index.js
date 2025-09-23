@@ -10,8 +10,15 @@ import { playerJoined, phaseChanged } from '../core/actions.js';
 import { phaseReducer } from '../core/reducers/phase.reducer.js';
 import { logReducer } from '../core/reducers/log.reducer.js';
 import { tokyoReducer } from '../core/reducers/tokyo.reducer.js';
+import { cardsReducer } from '../core/reducers/cards.reducer.js';
+import { uiReducer } from '../core/reducers/ui.reducer.js';
+import { monstersReducer } from '../core/reducers/monsters.reducer.js';
+import { monstersLoaded } from '../core/actions.js';
 import { createPlayer } from '../domain/player.js';
 import { createLogger } from '../services/logger.js';
+import { initCards } from '../services/cardsService.js';
+import { metaReducer } from '../core/reducers/meta.reducer.js';
+import { createTurnService } from '../services/turnService.js';
 
 // Placeholder reducers until implemented
 function placeholderReducer(state = {}, _action) { return state; }
@@ -20,12 +27,13 @@ const rootReducer = combineReducers({
   players: playersReducer,
   dice: diceReducer,
   tokyo: tokyoReducer,
-  cards: (s = { deck: [], discard: [], shop: [] }) => s,
+  cards: cardsReducer,
   phase: phaseReducer,
   log: logReducer,
-  ui: (s = { modal: { open: false }, flags: { showProbabilities: false } }) => s,
+  ui: uiReducer,
   ai: (s = {}) => s,
-  meta: (s = { seed: Date.now(), turn: 0 }) => s
+  meta: metaReducer,
+  monsters: monstersReducer
 });
 
 export const store = createStore(rootReducer, createInitialState());
@@ -33,13 +41,25 @@ export const logger = createLogger(store);
 
 // Example diagnostic wiring
 if (typeof window !== 'undefined') {
-  window.__KOT_NEW__ = { store, eventBus, logger };
+  const turnService = createTurnService(store, logger);
+  window.__KOT_NEW__ = { store, eventBus, logger, turnService };
   eventBus.emit('bootstrap/ready', {});
   // Demo data
   store.dispatch(playerJoined(createPlayer({ id: 'p1', name: 'Alpha', monsterId: 'king' })));
   store.dispatch(playerJoined(createPlayer({ id: 'p2', name: 'Beta', monsterId: 'alien' })));
   logger.system('Bootstrap complete. Players seeded.');
-  store.dispatch(phaseChanged('ROLL'));
+  // Load monsters from root config.json (fallback minimal set).
+  fetch('./config.json').then(r => r.json()).then(cfg => {
+    const monsters = Object.values(cfg.monsters || {}).map(m => ({ id: m.id, name: m.name, image: m.image, description: m.description, personality: m.personality || {}, color: m.color }));
+    store.dispatch(monstersLoaded(monsters));
+  }).catch(() => {
+    store.dispatch(monstersLoaded([
+      { id: 'king', name: 'The King', image: '', description: 'A mighty ape', personality: { aggression: 5, strategy: 2, risk: 3 }, color: '#444' }
+    ]));
+  });
+  initCards(store, logger);
+  // Start first turn lifecycle explicitly
+  turnService.startGameIfNeeded();
   // Load component config dynamically
   fetch('./new/components.config.json')
     .then(r => r.json())
