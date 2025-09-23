@@ -13,12 +13,14 @@ import { tokyoReducer } from '../core/reducers/tokyo.reducer.js';
 import { cardsReducer } from '../core/reducers/cards.reducer.js';
 import { uiReducer } from '../core/reducers/ui.reducer.js';
 import { monstersReducer } from '../core/reducers/monsters.reducer.js';
+import { effectQueueReducer } from '../core/reducers/effectQueue.reducer.js';
 import { monstersLoaded } from '../core/actions.js';
 import { createPlayer } from '../domain/player.js';
 import { createLogger } from '../services/logger.js';
 import { initCards } from '../services/cardsService.js';
 import { metaReducer } from '../core/reducers/meta.reducer.js';
 import { createTurnService } from '../services/turnService.js';
+import { createEffectEngine } from '../services/effectEngine.js';
 import '../ui/devPanel.js';
 
 // Placeholder reducers until implemented
@@ -35,6 +37,7 @@ const rootReducer = combineReducers({
   ai: (s = {}) => s,
   meta: metaReducer,
   monsters: monstersReducer
+  , effectQueue: effectQueueReducer
 });
 
 export const store = createStore(rootReducer, createInitialState());
@@ -43,7 +46,8 @@ export const logger = createLogger(store);
 // Example diagnostic wiring
 if (typeof window !== 'undefined') {
   const turnService = createTurnService(store, logger);
-  window.__KOT_NEW__ = { store, eventBus, logger, turnService };
+  const effectEngine = createEffectEngine(store, logger);
+  window.__KOT_NEW__ = { store, eventBus, logger, turnService, effectEngine };
   eventBus.emit('bootstrap/ready', {});
   // Demo data
   store.dispatch(playerJoined(createPlayer({ id: 'p1', name: 'Alpha', monsterId: 'king' })));

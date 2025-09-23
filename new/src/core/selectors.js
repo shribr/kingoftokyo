@@ -41,3 +41,9 @@ export const selectUISingleMonster = (state) => state.ui.singleMonster;
 export const selectMonsters = (state) => state.monsters.order.map(id => state.monsters.byId[id]);
 export const selectMonsterById = (state, id) => state.monsters.byId[id];
 export const selectSplashVisible = (state) => state.ui.splash.visible;
+
+// Effect queue
+export const selectEffectQueueState = (state) => state.effectQueue;
+export const selectEnqueuedEffects = (state) => state.effectQueue.queue;
+export const selectProcessingEffect = (state) => state.effectQueue.processing;
+export const selectResolvedEffectHistory = (state) => state.effectQueue.history;

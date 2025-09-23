@@ -29,6 +29,10 @@ export const CARD_PURCHASED = 'CARD_PURCHASED';
 export const CARD_DISCARDED = 'CARD_DISCARDED';
 export const CARD_EFFECT_QUEUED = 'CARD_EFFECT_QUEUED';
 export const CARD_EFFECT_RESOLVED = 'CARD_EFFECT_RESOLVED';
+// Card Effects (Phase 8 scaffold)
+export const CARD_EFFECT_ENQUEUED = 'CARD_EFFECT_ENQUEUED';
+export const CARD_EFFECT_PROCESSING = 'CARD_EFFECT_PROCESSING';
+export const CARD_EFFECT_FAILED = 'CARD_EFFECT_FAILED';
 // Meta / Turn
 export const NEXT_TURN = 'NEXT_TURN';
 // UI
@@ -78,6 +82,9 @@ export const cardPurchased = (playerId, card) => ({ type: CARD_PURCHASED, payloa
 export const cardDiscarded = (card) => ({ type: CARD_DISCARDED, payload: { card } });
 export const cardEffectQueued = (card, effect) => ({ type: CARD_EFFECT_QUEUED, payload: { card, effect } });
 export const cardEffectResolved = (card, effect) => ({ type: CARD_EFFECT_RESOLVED, payload: { card, effect } });
+export const cardEffectEnqueued = (entry) => ({ type: CARD_EFFECT_ENQUEUED, payload: { entry } });
+export const cardEffectProcessing = (entryId) => ({ type: CARD_EFFECT_PROCESSING, payload: { entryId } });
+export const cardEffectFailed = (entryId, reason) => ({ type: CARD_EFFECT_FAILED, payload: { entryId, reason } });
 // Turn / meta
 export const nextTurn = () => ({ type: NEXT_TURN });
 // UI action creators

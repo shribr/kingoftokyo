@@ -14,6 +14,7 @@ export function createPlayer({ id, name, monsterId }) {
     victoryPoints: 0,
     inTokyo: false,
     cards: [],
+    modifiers: { diceSlots: 6, rerollBonus: 0 },
     status: { alive: true }
   };
 }
@@ -53,4 +54,22 @@ export function enterTokyo(player) {
 
 export function leaveTokyo(player) {
   return { ...player, inTokyo: false };
+}
+
+export function recalcModifiers(player) {
+  // Base defaults
+  let diceSlots = 6; // standard
+  let rerollBonus = 0;
+  for (const c of player.cards) {
+    if (!c.effect) continue;
+    switch (c.effect.kind) {
+      case 'dice_slot':
+        diceSlots += c.effect.value || 0; break;
+      case 'reroll_bonus':
+        rerollBonus += c.effect.value || 0; break;
+      default:
+        break;
+    }
+  }
+  return { ...player, modifiers: { diceSlots, rerollBonus } };
 }
