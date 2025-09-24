@@ -14,6 +14,7 @@ import { cardsReducer } from '../core/reducers/cards.reducer.js';
 import { uiReducer } from '../core/reducers/ui.reducer.js';
 import { monstersReducer } from '../core/reducers/monsters.reducer.js';
 import { effectQueueReducer } from '../core/reducers/effectQueue.reducer.js';
+import { yieldDecisionReducer } from '../core/reducers/yieldDecision.reducer.js';
 import { monstersLoaded } from '../core/actions.js';
 import { createPlayer } from '../domain/player.js';
 import { createLogger } from '../services/logger.js';
@@ -23,13 +24,14 @@ import { metaReducer } from '../core/reducers/meta.reducer.js';
 import { createTurnService } from '../services/turnService.js';
 import { createEffectEngine } from '../services/effectEngine.js';
 import '../ui/devPanel.js';
+import '../ui/a11yOverlays.js';
 import { loadSettings, bindSettingsPersistence, loadLogCollapse } from '../services/settingsService.js';
 import { bindAIDecisionCapture } from '../services/aiDecisionService.js';
 
 // Placeholder reducers until implemented
 function placeholderReducer(state = {}, _action) { return state; }
 
-const rootReducer = combineReducers({
+const baseReducer = combineReducers({
   players: playersReducer,
   dice: diceReducer,
   tokyo: tokyoReducer,
@@ -42,7 +44,20 @@ const rootReducer = combineReducers({
   monsters: monstersReducer
   , effectQueue: effectQueueReducer
   , settings: settingsReducer
+  , yield: yieldDecisionReducer
 });
+
+function rootReducer(state, action) {
+  if (action.type === 'GAME_STATE_IMPORTED') {
+    const snapshot = action.payload.snapshot;
+    const current = state || createInitialState();
+    // Replace only provided slices; keep others (like ui) untouched
+    const merged = { ...current };
+    Object.assign(merged, snapshot.slices || {});
+    return baseReducer(merged, { type: '@@PERSIST/HYDRATED' });
+  }
+  return baseReducer(state, action);
+}
 
 export const store = createStore(rootReducer, createInitialState());
 export const logger = createLogger(store);

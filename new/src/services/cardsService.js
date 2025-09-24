@@ -74,7 +74,15 @@ export function peekTopCard(store, logger, playerId, cost = 1) {
   const top = state.cards.deck[0];
   store.dispatch(playerSpendEnergy(playerId, cost));
   store.dispatch(uiPeekShow(top));
-  logger.info(`${playerId} peeks at top card: ${top.name}`);
+  // Structured log entry for peek action (helps filtering & parity tracking)
+  logger.info(`${playerId} peeks at top card: ${top.name}` , {
+    kind: 'peek',
+    action: 'peek_top_card',
+    playerId,
+    cardId: top.id,
+    cardName: top.name,
+    cost
+  });
   // Auto hide after 3 seconds
   setTimeout(() => {
     store.dispatch(uiPeekHide());
@@ -100,6 +108,15 @@ export function flushShop(store, logger, playerId, cost = 2) {
   const { drawn, rest } = draw(nextState.cards.deck, 3);
   store.dispatch(cardsDeckBuilt(rest));
   store.dispatch(cardShopFlushed(playerId, oldCards, drawn, cost));
-  logger.system(`${playerId} flushed shop for ${cost} energy.`);
+  logger.system(`${playerId} flushed shop for ${cost} energy.`, {
+    kind: 'shop',
+    action: 'flush_shop',
+    playerId,
+    cost,
+    oldCardIds: oldCards.map(c => c.id),
+    oldCardNames: oldCards.map(c => c.name),
+    newCardIds: drawn.map(c => c.id),
+    newCardNames: drawn.map(c => c.name)
+  });
   return { success: true, oldCards, newCards: drawn };
 }

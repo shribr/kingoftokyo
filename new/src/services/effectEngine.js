@@ -1,7 +1,7 @@
 /** services/effectEngine.js
  * Phase 8 scaffold: interprets card effect descriptors and applies outcomes.
  */
-import { cardEffectProcessing, cardEffectFailed, cardEffectResolved, playerGainEnergy, playerVPGained, healPlayerAction, playerCardGained } from '../core/actions.js';
+import { cardEffectProcessing, cardEffectFailed, cardEffectResolved, playerGainEnergy, playerVPGained, healPlayerAction, playerCardGained, applyPlayerDamage } from '../core/actions.js';
 
 let _id = 0; const nextId = () => 'eff_' + (++_id);
 
@@ -27,6 +27,14 @@ export function createEffectEngine(store, logger) {
     },
     reroll_bonus: ({ playerId, card }) => {
       logger.info(`[effectEngine] reroll_bonus effect acknowledged for ${playerId} via ${card.id}`);
+      return true;
+    },
+    damage_all: ({ playerId, effect }) => {
+      const state = store.getState();
+      for (const pid of state.players.order) {
+        if (pid === playerId) continue; // skip source
+        store.dispatch(applyPlayerDamage(pid, effect.value));
+      }
       return true;
     }
   };

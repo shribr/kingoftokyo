@@ -1,0 +1,10 @@
+/* Dice Tray Expansion Animations */
+.cmp-dice-tray .die.extra-die { position:relative; }
+.cmp-dice-tray .die.new-die { animation: diceGrowIn 0.8s ease forwards, diceGlow 1s ease; }
+@keyframes diceGrowIn { 0% { transform:scale(0.4) rotate(-20deg); opacity:0; } 60% { transform:scale(1.08) rotate(3deg); opacity:1; } 100% { transform:scale(1) rotate(0deg); opacity:1; } }
+@keyframes diceGlow { 0% { box-shadow:0 0 0 0 rgba(80,200,255,0.8); } 100% { box-shadow:0 0 0 14px rgba(80,200,255,0); } }
+.cmp-dice-tray [data-dice-count].bump { animation: bumpScale .5s ease; }
+@keyframes bumpScale { 0% { transform:scale(1); } 40% { transform:scale(1.25); } 100% { transform:scale(1); } }
+/* Placeholder styling */
+.cmp-dice-tray .die.pending { filter:grayscale(0.6); opacity:0.5; }
+.cmp-dice-tray .die.extra-die.pending { opacity:0.4; }

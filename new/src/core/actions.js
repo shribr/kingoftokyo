@@ -36,6 +36,7 @@ export const CARD_EFFECT_PROCESSING = 'CARD_EFFECT_PROCESSING';
 export const CARD_EFFECT_FAILED = 'CARD_EFFECT_FAILED';
 // Meta / Turn
 export const NEXT_TURN = 'NEXT_TURN';
+export const GAME_STATE_IMPORTED = 'GAME_STATE_IMPORTED';
 // UI
 export const UI_CARD_DETAIL_OPEN = 'UI_CARD_DETAIL_OPEN';
 export const UI_CARD_DETAIL_CLOSE = 'UI_CARD_DETAIL_CLOSE';
@@ -63,6 +64,9 @@ export const UI_GAME_LOG_COLLAPSE_STATE = 'UI_GAME_LOG_COLLAPSE_STATE';
 export const UI_PEEK_SHOW = 'UI_PEEK_SHOW';
 export const UI_PEEK_HIDE = 'UI_PEEK_HIDE';
 export const UI_ATTACK_PULSE = 'UI_ATTACK_PULSE';
+// Yield decision (Tokyo leave prompt)
+export const YIELD_PROMPT_SHOWN = 'YIELD_PROMPT_SHOWN';
+export const YIELD_PROMPT_DECIDED = 'YIELD_PROMPT_DECIDED';
 // Settings (new slice)
 export const SETTINGS_LOADED = 'SETTINGS_LOADED';
 export const SETTINGS_UPDATED = 'SETTINGS_UPDATED';
@@ -87,7 +91,7 @@ export const diceRerollUsed = () => ({ type: DICE_REROLL_USED });
 // Phase and log actions
 export const phaseChanged = (phase) => ({ type: PHASE_CHANGED, payload: { phase } });
 export const logAppended = (entry) => ({ type: LOG_APPENDED, payload: { entry } });
-export const tokyoOccupantSet = (playerId) => ({ type: TOKYO_OCCUPANT_SET, payload: { playerId } });
+export const tokyoOccupantSet = (playerId, playerCount) => ({ type: TOKYO_OCCUPANT_SET, payload: { playerId, playerCount } });
 export const tokyoOccupantCleared = () => ({ type: TOKYO_OCCUPANT_CLEARED });
 
 // Card actions
@@ -103,6 +107,7 @@ export const cardEffectProcessing = (entryId) => ({ type: CARD_EFFECT_PROCESSING
 export const cardEffectFailed = (entryId, reason) => ({ type: CARD_EFFECT_FAILED, payload: { entryId, reason } });
 // Turn / meta
 export const nextTurn = () => ({ type: NEXT_TURN });
+export const gameStateImported = (snapshot) => ({ type: GAME_STATE_IMPORTED, payload: { snapshot } });
 // UI action creators
 export const uiCardDetailOpen = (cardId, source) => ({ type: UI_CARD_DETAIL_OPEN, payload: { cardId, source } });
 export const uiCardDetailClose = () => ({ type: UI_CARD_DETAIL_CLOSE });
@@ -131,6 +136,9 @@ export const uiGameLogCollapseState = (partial) => ({ type: UI_GAME_LOG_COLLAPSE
 export const uiPeekShow = (card) => ({ type: UI_PEEK_SHOW, payload: { card } });
 export const uiPeekHide = () => ({ type: UI_PEEK_HIDE });
 export const uiAttackPulse = (playerIds, ts = Date.now()) => ({ type: UI_ATTACK_PULSE, payload: { playerIds, ts } });
+// Yield prompt actions
+export const yieldPromptShown = (defenderId, attackerId, slot, expiresAt) => ({ type: YIELD_PROMPT_SHOWN, payload: { defenderId, attackerId, slot, expiresAt } });
+export const yieldPromptDecided = (defenderId, attackerId, slot, decision) => ({ type: YIELD_PROMPT_DECIDED, payload: { defenderId, attackerId, slot, decision } });
 // Settings actions
 export const settingsLoaded = (settings) => ({ type: SETTINGS_LOADED, payload: { settings } });
 export const settingsUpdated = (partial) => ({ type: SETTINGS_UPDATED, payload: { partial } });

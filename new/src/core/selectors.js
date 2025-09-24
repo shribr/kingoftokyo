@@ -51,3 +51,7 @@ export const selectProcessingEffect = (state) => state.effectQueue.processing;
 export const selectResolvedEffectHistory = (state) => state.effectQueue.history;
 export const selectSettings = (state) => state.settings;
 export const selectSetting = (key) => (state) => state.settings?.[key];
+// Tokyo selectors (rewrite dual-slot)
+export const selectTokyoCityOccupant = (state) => state.tokyo.city;
+export const selectTokyoBayOccupant = (state) => state.tokyo.bay;
+export const selectTokyoOccupants = (state) => [state.tokyo.city, state.tokyo.bay].filter(Boolean);

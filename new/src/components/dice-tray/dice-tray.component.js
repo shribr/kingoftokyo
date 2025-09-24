@@ -10,6 +10,8 @@ export function build({ selector, emit }) {
   const root = document.createElement('div');
   root.className = selector.slice(1); // remove leading .
   root.innerHTML = `<div class="tray-header"><button data-action="roll">Roll</button><span class="tray-dice-count" data-dice-count></span></div><div class="dice" data-dice></div>`;
+  // Track previous diceSlots to animate expansions
+  root._prevDiceSlots = 6;
 
   // Make draggable & persistent
   const positioning = createPositioningService(store);
@@ -51,6 +53,24 @@ export function update(root, { state }) {
     }
   }
   diceContainer.innerHTML = rendered.join('');
+  // Detect expansion
+  const prev = root._prevDiceSlots || 6;
+  if (diceSlots > prev) {
+    // Mark new dice indices with animation class
+    for (let i = prev; i < diceSlots; i++) {
+      const el = diceContainer.querySelector(`[data-die-index="${i}"]`);
+      if (el) {
+        el.classList.add('new-die');
+        // Remove after animation completes
+        setTimeout(() => el.classList.remove('new-die'), 1200);
+      }
+    }
+    if (countEl) {
+      countEl.classList.add('bump');
+      setTimeout(() => countEl.classList.remove('bump'), 600);
+    }
+  }
+  root._prevDiceSlots = diceSlots;
   if (countEl) {
     if (diceSlots > 6) {
       countEl.textContent = `${diceSlots} dice (+${diceSlots - 6})`;
