@@ -437,7 +437,7 @@ body::before {
 
 .rolloff-attack-count.highlight {
     color: #FF4444;
-    animation: pulse 1s ease-in-out;
+    animation: pulseEmphasis 1s ease-in-out;
 }
 
 .roll-button {
@@ -472,7 +472,8 @@ body::before {
     display: none !important;
 }
 
-@keyframes pulse {
+/* Renamed from generic 'pulse' to 'pulseEmphasis' to avoid clobbering global pulse animation */
+@keyframes pulseEmphasis {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.1); }
 }

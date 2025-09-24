@@ -57,10 +57,11 @@
 }
 
 .monster-slot.entering-tokyo {
-    animation: tokyoGlow 1s ease-in-out;
+    /* Use unique keyframe to avoid overriding persistent tokyoGlow animation in monsters.css */
+    animation: tokyoEnterGlow 1s ease-in-out;
 }
 
-@keyframes tokyoGlow {
+@keyframes tokyoEnterGlow {
     0% { box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3); }
     50% { box-shadow: 0 0 30px var(--monster-glow-strong, rgba(255, 215, 0, 0.8)), 4px 4px 8px rgba(0, 0, 0, 0.3); }
     100% { box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3); }

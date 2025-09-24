@@ -17,6 +17,23 @@ body {
     height: 100vh; /* Ensure body takes full viewport height */
 }
 
+/* =========================================
+   Reusable Text Shadow & Visual Utilities
+   (Refactor target for repeated comic outlines)
+   ========================================= */
+:root {
+    --ts-comic-heavy: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 4px 4px 8px rgba(0,0,0,.8);
+    --ts-comic-mid: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000;
+    --ts-comic-soft: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
+
+.ts-comic-outline { text-shadow: var(--ts-comic-heavy); }
+.ts-comic-mid { text-shadow: var(--ts-comic-mid); }
+.ts-comic-soft { text-shadow: var(--ts-comic-soft); }
+
+/* Focus ring utility if an element needs explicit override */
+.u-focus-ring { outline: 2px solid #7fd65d !important; outline-offset: 2px; }
+
 /* Accessibility Skip Link */
 .skip-link {
     position: absolute;
