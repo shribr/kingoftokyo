@@ -204,6 +204,11 @@ class KingOfTokyoGame {
         this.currentTurnPhase = 'rolling'; // 'rolling', 'resolving', 'buying', 'ended'
         this.pendingDecisions = []; // For yes/no decisions like "stay in Tokyo?"
         this.diceEffectsResolved = false; // Track if dice effects have been resolved this turn
+
+        // Expose instance globally for VP hook (safe overwrite)
+        if (typeof window !== 'undefined') {
+            window.currentGame = this;
+        }
     }
 
     // Verify internal vs UI displayed stats for a player (debug mode aid)
@@ -2172,6 +2177,23 @@ class KingOfTokyoGame {
         this.availableCards = getRandomCards(3);
     }
 
+    // Flush (discard) the entire market for 2 energy (official rule)
+    flushCardMarket(playerId) {
+        const player = this.players.find(p => p.id === playerId);
+        if (!player || player.isEliminated) return { success: false, reason: 'Invalid player' };
+        const cost = 2;
+        if (player.energy < cost) return { success: false, reason: 'Not enough energy' };
+        // Spend energy
+        if (!player.spendEnergy(cost)) return { success: false, reason: 'Energy spend failed' };
+        const oldCards = [...this.availableCards];
+        this.logAction(`${player.monster.name} spends 2 energy to flush the market`, 'power-card');
+        // Draw 3 new distinct cards
+        this.refreshCardMarket();
+        this.triggerEvent('cardMarketFlushed', { player, oldCards, newCards: this.availableCards });
+        this.triggerEvent('statsUpdated', { player });
+        return { success: true, oldCards, newCards: this.availableCards };
+    }
+
     // Add a new card to replace a purchased one
     addNewCardToMarket() {
         // Get all cards that aren't currently in the market
@@ -2279,6 +2301,20 @@ class KingOfTokyoGame {
         }
         
         return { success: false, reason: 'Not enough energy' };
+    }
+
+    // Centralized hook invoked whenever any player's victory points change
+    onPlayerVictoryPointsChanged(player, delta) {
+        if (this.gamePhase === 'ended') return; // Ignore after game end
+        // Immediate victory point threshold check
+        if (player.victoryPoints >= this.gameSettings.maxVictoryPoints && !player.isEliminated) {
+            // Before declaring VP win, verify no simultaneous eliminations would end game differently
+            // (Rule precedence: elimination can also end game; both rarely simultaneous, but we arbitrate deterministically.)
+            const alivePlayers = this.players.filter(p => !p.isEliminated);
+            if (alivePlayers.length > 1) {
+                this.endGame(player, 'victory_points');
+            }
+        }
     }
 
     // Allow player to spend energy for healing (Rapid Healing card)
