@@ -9418,9 +9418,26 @@ class KingOfTokyoUI {
             // Log who goes first (after game initialization so we know the starting player)
             const currentPlayer = this.game.getCurrentPlayer();
             if (currentPlayer) {
-                UIUtilities.showMessage(rollOffWinner.isSkipped 
-                    ? `Random order! ${currentPlayer.monster.name} goes first!` 
-                    : `${currentPlayer.monster.name} goes first!`, 3000, this.elements);
+                // Roll-off winner announcement with light, non-game-win phrasing
+                const normalPhrases = [
+                    'Well folks, the roll-off results are in and it looks like {m} gets opening honors.',
+                    'Opening bell privilege goes to {m} — the dice have spoken.',
+                    'Your opening act: {m}. Let the monster mayhem commence!',
+                    '{m} claims the first stomp of the city. Everybody else limber up.',
+                    'By claw count decree, {m} will kick things off.',
+                    'First turn momentum belongs to {m}. Buckle up.'
+                ];
+                const skipPhrases = [
+                    'Order fast‑tracked: {m} will lead the opening turn.',
+                    'Random shake says {m} starts us off.',
+                    'Shuffle complete — {m} takes the first turn.'
+                ];
+                const pool = rollOffWinner.isSkipped ? skipPhrases : normalPhrases;
+                const chosen = pool[Math.floor(Math.random()*pool.length)].replace('{m}', currentPlayer.monster.name);
+                UIUtilities.showMessage(chosen, 3400, this.elements);
+                if (window.UI && window.UI.announcePhase) {
+                    try { window.UI.announcePhase(`First player: ${currentPlayer.monster.name}`); } catch(e){}
+                }
             }
             
             // Start CPU turn if first player is CPU
