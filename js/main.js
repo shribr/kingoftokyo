@@ -95,10 +95,7 @@ class KingOfTokyoUI {
     this.draggedMonster = null; // Track currently dragged monster
 
     // Caches for dynamic DOM elements
-    // Renamed: internal concept formerly "player dashboards" now standardized as "player profile cards".
-    // We retain legacy CSS hook `.player-dashboard` for backward compatibility while introducing
-    // the new semantic class `.player-profile-card`. Future migration will phase out the old selector.
-    this.playerDashboards = new Map(); // playerId -> profile card element (legacy name preserved in map key)
+    this.playerDashboards = new Map(); // playerId -> dashboard element
     this.diceElements = new Map(); // diceId -> dice element
     this.monsterCards = new Map(); // monsterId -> monster card element
     
@@ -2097,8 +2094,7 @@ class KingOfTokyoUI {
     // Build a persistent player card element (only created once per player)
     _buildPlayerCardElement(player, isActive=false) {
         const wrapper = document.createElement('div');
-        // Dual-class for transition period: legacy + new semantic
-        wrapper.className = 'player-dashboard player-profile-card';
+        wrapper.className = 'player-dashboard';
         if (isActive) wrapper.classList.add('active');
         wrapper.dataset.playerId = player.id;
         wrapper.dataset.playerType = player.playerType;
