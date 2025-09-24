@@ -70,6 +70,11 @@ export const YIELD_PROMPT_DECIDED = 'YIELD_PROMPT_DECIDED';
 // Settings (new slice)
 export const SETTINGS_LOADED = 'SETTINGS_LOADED';
 export const SETTINGS_UPDATED = 'SETTINGS_UPDATED';
+// Target selection (multi-target effects)
+export const TARGET_SELECTION_STARTED = 'TARGET_SELECTION_STARTED';
+export const TARGET_SELECTION_UPDATED = 'TARGET_SELECTION_UPDATED';
+export const TARGET_SELECTION_CONFIRMED = 'TARGET_SELECTION_CONFIRMED';
+export const TARGET_SELECTION_CANCELLED = 'TARGET_SELECTION_CANCELLED';
 
 // Player action creators
 export const playerJoined = (player) => ({ type: PLAYER_JOINED, payload: { player } });
@@ -142,3 +147,8 @@ export const yieldPromptDecided = (defenderId, attackerId, slot, decision) => ({
 // Settings actions
 export const settingsLoaded = (settings) => ({ type: SETTINGS_LOADED, payload: { settings } });
 export const settingsUpdated = (partial) => ({ type: SETTINGS_UPDATED, payload: { partial } });
+// Target selection actions
+export const targetSelectionStarted = (requestId, effect, min, max, eligibleIds) => ({ type: TARGET_SELECTION_STARTED, payload: { requestId, effect, min, max, eligibleIds } });
+export const targetSelectionUpdated = (requestId, selectedIds) => ({ type: TARGET_SELECTION_UPDATED, payload: { requestId, selectedIds } });
+export const targetSelectionConfirmed = (requestId, selectedIds) => ({ type: TARGET_SELECTION_CONFIRMED, payload: { requestId, selectedIds } });
+export const targetSelectionCancelled = (requestId) => ({ type: TARGET_SELECTION_CANCELLED, payload: { requestId } });

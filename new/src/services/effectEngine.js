@@ -1,7 +1,7 @@
 /** services/effectEngine.js
  * Phase 8 scaffold: interprets card effect descriptors and applies outcomes.
  */
-import { cardEffectProcessing, cardEffectFailed, cardEffectResolved, playerGainEnergy, playerVPGained, healPlayerAction, playerCardGained, applyPlayerDamage } from '../core/actions.js';
+import { cardEffectProcessing, cardEffectFailed, cardEffectResolved, playerGainEnergy, playerVPGained, healPlayerAction, playerCardGained, applyPlayerDamage, targetSelectionStarted, targetSelectionConfirmed } from '../core/actions.js';
 
 let _id = 0; const nextId = () => 'eff_' + (++_id);
 
@@ -80,6 +80,40 @@ export function createEffectEngine(store, logger) {
         if (occ !== playerId) store.dispatch(applyPlayerDamage(occ, effect.value));
       }
       return true;
+    },
+    damage_select: ({ playerId, effect, entry }) => {
+      const state = store.getState();
+      // Determine eligible opponents (exclude self, dead players)
+      const eligible = state.players.order.filter(pid => pid !== playerId && state.players.byId[pid].status.alive);
+      if (!eligible.length) return true; // nothing to do
+      // If selection already captured on entry, apply it.
+      if (entry.selectedIds && entry.selectedIds.length) {
+        entry.selectedIds.forEach(tid => {
+          store.dispatch(applyPlayerDamage(tid, effect.value));
+          logger.combat(`Damage Select: ${playerId} deals ${effect.value} to ${tid}`, { kind: 'damage', source: playerId, target: tid, effect: effect.kind });
+        });
+        return true;
+      }
+      // Otherwise start selection UI (min=1 up to maxTargets or eligible count)
+      const max = effect.maxTargets && effect.maxTargets > 0 ? Math.min(effect.maxTargets, eligible.length) : eligible.length;
+      store.dispatch(targetSelectionStarted(entry.id, effect, 1, max, eligible));
+      // Poll until selection is confirmed by UI.
+      const poll = () => {
+        const st2 = store.getState();
+        const active = st2.targetSelection.active;
+        if (!active || active.requestId !== entry.id) {
+          // Either confirmed (active cleared) or cancelled. If cancelled treat as failure.
+          if (!st2.targetSelection.active) {
+            // Need to check if we stored selection somewhere - simplistic: look for attached meta on entry (not persisted here)
+          }
+          return; // processing will continue after queue rotates (we requeue if needed?)
+        }
+        // Wait for valid selection & confirmation
+        setTimeout(poll, 150);
+      };
+      poll();
+      // Return false to keep processing paused until selection; we won't resolve yet.
+      return false;
     }
   };
 
@@ -93,29 +127,32 @@ export function createEffectEngine(store, logger) {
     const state = store.getState();
     const q = state.effectQueue.queue;
     if (!q.length || state.effectQueue.processing) return; // busy or nothing
-    const entry = q[0];
+    // Prioritize any waiting_selection entry that now has selectedIds
+    const readyIdx = q.findIndex(e => e.status === 'waiting_selection' && e.selectedIds && e.selectedIds.length);
+    const entry = readyIdx !== -1 ? q[readyIdx] : q[0];
     store.dispatch(cardEffectProcessing(entry.id));
     const { effect } = entry;
     const handler = handlers[effect.kind];
     if (!handler) {
       store.dispatch(cardEffectFailed(entry.id, 'NO_HANDLER'));
       logger.warn(`[effectEngine] No handler for effect kind ${effect.kind}`);
+      setTimeout(processNext, 0);
       return;
     }
     try {
-      const ok = handler({ playerId: entry.playerId, card: { id: entry.cardId, effect }, effect });
+      const ok = handler({ playerId: entry.playerId, card: { id: entry.cardId, effect }, effect, entry });
       if (ok) {
         store.dispatch(cardEffectResolved({ id: entry.cardId }, effect));
         logger.info(`[effectEngine] Resolved effect ${effect.kind} from ${entry.cardId}`);
       } else {
-        store.dispatch(cardEffectFailed(entry.id, 'HANDLER_FALSE'));
+        // Async path: mark waiting
+        store.dispatch(cardEffectFailed(entry.id, 'PENDING_SELECTION'));
       }
     } catch (e) {
       store.dispatch(cardEffectFailed(entry.id, 'EXCEPTION'));
       logger.error('[effectEngine] Exception processing effect', e);
     } finally {
-      // Attempt to process subsequent effects (after state update microtask)
-      setTimeout(processNext, 0);
+      setTimeout(processNext, 50); // gentle loop
     }
   }
 

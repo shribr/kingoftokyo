@@ -24,7 +24,7 @@ This document tracks feature/rule implementation status across:
 | Shop Flush | Pay 2⚡ to refresh | ✅ | ✅ | — | Log entry pending |
 | Card Purchase Flow | Keep vs discard | ✅ | ✅ | Limited catalog | Expand catalog incrementally |
 | Discard Effects | Immediate resolution | ✅ | ✅ | Handlers: vp/energy/heal_all/heal_self/damage_all/steals | Add edge-case tests |
-| Keep Effects | Persistent modifiers | ✅ | ⚠️ | Effect queue UI absent | Build effect inspector |
+| Keep Effects | Persistent modifiers | ✅ | ✅ | Aggregated inspector with modifiers | Add unit tests for stacking |
 | Attack Resolution | City/Bay / inside/outside targeting | ✅ | ✅ | Dual-slot now added | Confirm multi-target logging |
 | Entry to Tokyo | Forced entry; multiple slots (5-6 players) | ✅ | ✅ | Interactive takeover after prompts | Add takeover test |
 | Yield / Leave Tokyo | Choice on taking damage | ✅ | ✅ | Interactive prompt + timeout fallback | Add prompt resolution tests |
@@ -33,18 +33,18 @@ This document tracks feature/rule implementation status across:
 | Victory (Last Standing) | Elimination detection | ✅ | ✅ | — | — |
 | Healing Rules | No healing in Tokyo | ✅ | ✅ | — | — |
 | Elimination Flow | Remove, clear Tokyo if occupant | ✅ | ✅ | Auto-clears slots on death/leave | Add death test |
-| Effect Timing System | Sequenced resolution | ✅ | ⚠️ | Queue + UI panel; limited handlers | Add advanced targeting & cancel |
+| Effect Timing System | Sequenced resolution | ✅ | ⚠️ | Queue + UI panel; selection async integrated | Add cancel/interruption controls |
 | Persistence | Save/load full game | ✅ | ✅ | Export/import snapshot v1 | Add migration tests |
-| AI Decision System | Advanced heuristics & transparency | ✅ | ⚠️ | Basic automation only | Port heuristics iteratively |
-| Accessibility | ARIA roles, focus mgmt | ⚠️ | ⚠️ | Peek & yield overlays with ARIA; needs keyboard trapping & announcements | Add focus loop + live regions |
+| AI Decision System | Advanced heuristics & transparency | ✅ | ⚠️ | Auto keep, yield heuristic, purchase scoring added | Add explainability & card synergy |
+| Accessibility | ARIA roles, focus mgmt | ⚠️ | ⚠️ | Skip link + focus outline + traps + live region; needs full landmarking | Add landmarks & SR instructions |
 | Logging | Structured log feed | ✅ | ✅ | Peek & flush entries added | Add tests for new entries |
 | Tokyo Bay Activation | Only for 5-6 players | ✅ | ✅ | Gated at >=5 players | Add gating test |
-| Multi-Target Effects | Heal / damage groups | ✅ | ⚠️ | Partial (heal_all) | Add targeting UI |
+| Multi-Target Effects | Heal / damage groups | ✅ | ✅ | Selection UI + damage_select implemented | Add selection edge-case tests |
 
 ## Current Coverage (Weighted)
 Formula: full = 1, partial = 0.5, planned = 0.25, missing = 0.
 
-Rewrite score = (Full: 25 *1) + (Partial: 7 *0.5) + (Planned: 0) + (Missing: 0) = 25 + 3.5 = 28.5 over 31 ≈ 91.9%.
+Rewrite score = (Full: 27 *1) + (Partial: 5 *0.5) + (Planned: 0) + (Missing: 0) = 27 + 2.5 = 29.5 over 31 ≈ 95.2%.
 
 (Improved from earlier 70% after Tokyo dual-slot + start-of-turn VP refinement.)
 

@@ -4,7 +4,9 @@
  */
 import { eventBus } from '../core/eventBus.js';
 import { tallyFaces, extractTriples, DIE_FACES } from '../domain/dice.js';
-import { selectActivePlayerId } from '../core/selectors.js';
+import { selectActivePlayerId, selectTokyoOccupants } from '../core/selectors.js';
+import { diceToggleKeep } from '../core/actions.js';
+import { purchaseCard, flushShop } from './cardsService.js';
 
 let latestTree = { rounds: [] };
 let lastRollNodeId = null;
@@ -25,6 +27,11 @@ export function bindAIDecisionCapture(store) {
     if (action.type === 'DICE_ROLLED') {
       const facesStr = state.dice.faces.map(f => f.value).join(',');
       captureRoll(state, facesStr, { stage: 'post' });
+      autoKeepHeuristic(store);
+    }
+    if (action.type === 'PHASE_CHANGED' && action.payload?.phase === 'CLEANUP') {
+      // Hook point for future evaluation of purchases before next turn
+      attemptAIPurchases(store);
     }
   });
 }
@@ -84,6 +91,102 @@ function analyzeFaces(faces, state, activeId) {
     });
   }
   return { score, rationale: parts.join(' | ') || 'Neutral roll', tags };
+}
+
+// Decide which dice to keep after a roll (basic heuristic):
+// 1. Keep triples in progress (any number with 2+ copies if no better set already locked)
+// 2. Keep claws if not in Tokyo OR if in Tokyo and aiming for VP defense (still keep some)
+// 3. Keep hearts only if healing is valuable (below 6 HP and not in Tokyo)
+// 4. Keep energy if player has < 6 energy and no immediate lethal setup
+function autoKeepHeuristic(store) {
+  const state = store.getState();
+  const activeId = selectActivePlayerId(state);
+  if (!activeId) return;
+  const player = state.players.byId[activeId];
+  if (!player || state.phase !== 'ROLL') return;
+  // Only act if there are rerolls remaining (skip final roll)
+  if (state.dice.rerollsRemaining <= 0) return;
+  const faces = state.dice.faces;
+  const tally = tallyFaces(faces);
+  const occupants = selectTokyoOccupants(state);
+  const inTokyo = player.inTokyo;
+  // Determine candidate numbers for potential triple (prefer highest numeric value producing VP)
+  const candidateNumbers = ['3','2','1'].filter(n => tally[n] >= 2);
+  let lockedNumber = candidateNumbers.length ? candidateNumbers[0] : null;
+  // Iterate dice and decide keep flags
+  faces.forEach((die, idx) => {
+    let keep = false;
+    if (lockedNumber && die.value === Number(lockedNumber)) keep = true;
+    else if (die.value === 'claw' || die.value === 0) { // 'claw' might be represented differently; adapt if needed
+      if (!inTokyo) keep = true; // attacking from outside
+    }
+    else if (die.value === 'heart' && !inTokyo && player.health < 6) keep = true;
+    else if (die.value === 'energy' && player.energy < 6 && !lockedNumber) keep = true;
+    if (keep && !die.kept) store.dispatch(diceToggleKeep(idx));
+  });
+}
+
+// Yield heuristic suggestion (not auto-dispatched here yet): returns 'yield' | 'stay'
+export function evaluateYieldDecision(state, defenderId, incomingDamage, slot) {
+  const defender = state.players.byId[defenderId];
+  if (!defender) return 'stay';
+  // If damage would put us at <=2 HP and we are early VP ( < 12 ), prefer yield to survive.
+  const projected = defender.health - incomingDamage;
+  if (projected <= 2 && defender.victoryPoints < 12) return 'yield';
+  // If holding strong VP lead and health moderate, stay.
+  if (defender.victoryPoints >= 15 && projected > 0) return 'stay';
+  // If slot is Bay (lower VP yield) and damage moderate (>=3), more incentive to yield.
+  if (slot === 'bay' && incomingDamage >= 3 && projected < defender.health) return 'yield';
+  return 'stay';
+}
+
+// AI purchase heuristic: prefer cheap immediate VP / energy cards under budget; fallback to utility.
+function attemptAIPurchases(store) {
+  const state = store.getState();
+  const activeId = selectActivePlayerId(state);
+  if (!activeId) return;
+  const player = state.players.byId[activeId];
+  if (!player?.isAI) return; // only AI players
+  const shop = state.cards.shop;
+  if (!shop.length) return;
+  // Simple scoring
+  const scored = shop.map(c => ({
+    card: c,
+    score: scoreCardForAI(c, player)
+  })).sort((a,b) => b.score - a.score);
+  const best = scored[0];
+  if (!best || best.score <= 0) return;
+  if (player.energy >= best.card.cost) {
+    purchaseCard(store, store._logger || console, activeId, best.card.id); // logger fallback if needed
+  } else if (player.energy >= 2 && shouldFlushForOpportunity(scored)) {
+    flushShop(store, store._logger || console, activeId, 2);
+  }
+}
+
+function scoreCardForAI(card, player) {
+  const kind = card.effect?.kind;
+  let base = 0;
+  switch (kind) {
+    case 'vp_gain': base = card.effect.value * 3; break; // immediate VP weighted
+    case 'energy_gain': base = card.effect.value * 2; break;
+    case 'heal_self': base = (player.health < 6 ? 2 : 0.5) * card.effect.value; break;
+    case 'damage_all': base = card.effect.value * 2.2; break;
+    case 'damage_select': base = (card.effect.maxTargets||1) * card.effect.value * 2.5; break;
+    case 'energy_steal': base = card.effect.value * 2.4; break;
+    case 'vp_steal': base = card.effect.value * 3.2; break;
+    case 'dice_slot': base = 6; break;
+    case 'reroll_bonus': base = 4; break;
+    default: base = 1;
+  }
+  // Cost efficiency
+  const efficiency = base / Math.max(1, card.cost);
+  return Number((efficiency + base * 0.05).toFixed(2));
+}
+
+function shouldFlushForOpportunity(scoredList) {
+  // If top three scores all low (<=2), flush might improve options
+  const top = scoredList.slice(0,3).map(s => s.score);
+  return top.every(v => v <= 2);
 }
 
 // Generate simple hypothetical reroll evaluations: for each non-kept die, consider swapping to each other face and re-score (lightweight heuristic)

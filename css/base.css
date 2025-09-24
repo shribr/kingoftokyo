@@ -17,6 +17,33 @@ body {
     height: 100vh; /* Ensure body takes full viewport height */
 }
 
+/* Accessibility Skip Link */
+.skip-link {
+    position: absolute;
+    left: -999px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+.skip-link:focus {
+    left: 8px;
+    top: 8px;
+    width: auto;
+    height: auto;
+    background: #111;
+    color: #fff;
+    padding: 6px 10px;
+    z-index: 2000;
+    border: 2px solid #7fd65d;
+    border-radius: 4px;
+}
+
+:focus-visible {
+    outline: 2px solid #7fd65d;
+    outline-offset: 2px;
+}
+
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
     font-family: 'Bangers', cursive;

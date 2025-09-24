@@ -15,6 +15,7 @@ import { uiReducer } from '../core/reducers/ui.reducer.js';
 import { monstersReducer } from '../core/reducers/monsters.reducer.js';
 import { effectQueueReducer } from '../core/reducers/effectQueue.reducer.js';
 import { yieldDecisionReducer } from '../core/reducers/yieldDecision.reducer.js';
+import { targetSelectionReducer } from '../core/reducers/targetSelection.reducer.js';
 import { monstersLoaded } from '../core/actions.js';
 import { createPlayer } from '../domain/player.js';
 import { createLogger } from '../services/logger.js';
@@ -45,6 +46,7 @@ const baseReducer = combineReducers({
   , effectQueue: effectQueueReducer
   , settings: settingsReducer
   , yield: yieldDecisionReducer
+  , targetSelection: targetSelectionReducer
 });
 
 function rootReducer(state, action) {
@@ -67,6 +69,8 @@ if (typeof window !== 'undefined') {
   const turnService = createTurnService(store, logger);
   const effectEngine = createEffectEngine(store, logger);
   window.__KOT_NEW__ = { store, eventBus, logger, turnService, effectEngine };
+  // Provide logger reference for AI utilities lacking direct injection
+  store._logger = logger;
   eventBus.emit('bootstrap/ready', {});
   // Load persisted settings before UI mounts
   loadSettings(store);

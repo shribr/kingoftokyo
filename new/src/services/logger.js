@@ -30,7 +30,8 @@ export function createLogger(store) {
     info: (msg, meta) => append('info', msg, meta || {}),
     warn: (msg, meta) => append('warn', msg, meta || {}),
     error: (msg, meta) => append('error', msg, meta || {}),
-    system: (msg, meta) => append('system', msg, meta || {})
+    system: (msg, meta) => append('system', msg, meta || {}),
+    combat: (msg, meta) => append('combat', msg, { ...(meta||{}), kind: 'damage' })
   };
 }
 

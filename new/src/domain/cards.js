@@ -16,7 +16,8 @@ export function buildBaseCatalog() {
     { id: 'power-siphon', name: 'Power Siphon', cost: 5, type: 'discard', effect: { kind: 'energy_steal', value: 2 } },
     { id: 'fame-heist', name: 'Fame Heist', cost: 6, type: 'discard', effect: { kind: 'vp_steal', value: 1 } },
     { id: 'seismic-blast', name: 'Seismic Blast', cost: 5, type: 'discard', effect: { kind: 'damage_all', value: 2 } },
-    { id: 'focused-beam', name: 'Focused Beam', cost: 3, type: 'discard', effect: { kind: 'damage_tokyo_only', value: 2 } }
+    { id: 'focused-beam', name: 'Focused Beam', cost: 3, type: 'discard', effect: { kind: 'damage_tokyo_only', value: 2 } },
+    { id: 'surgical-strike', name: 'Surgical Strike', cost: 4, type: 'discard', effect: { kind: 'damage_select', value: 1, maxTargets: 2 } }
   ];
 }
 

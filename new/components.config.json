@@ -154,6 +154,22 @@
     "zIndex": 54
   }
   ,{
+    "name": "targetSelector",
+    "version": "0.1.0",
+    "selector": ".cmp-target-selector",
+    "mountPoint": "#app",
+    "order": 300,
+    "enabled": true,
+    "stateKeys": ["targetSelection"],
+    "build": "target-selector.build",
+    "update": "target-selector.update",
+    "eventsOut": [],
+    "eventsIn": [],
+    "initialState": {},
+    "assets": [],
+    "zIndex": 1200
+  }
+  ,{
     "name": "cardShop",
     "version": "0.1.0",
     "selector": ".cmp-card-shop",

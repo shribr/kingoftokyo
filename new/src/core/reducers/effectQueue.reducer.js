@@ -1,4 +1,4 @@
-import { CARD_EFFECT_ENQUEUED, CARD_EFFECT_PROCESSING, CARD_EFFECT_FAILED, CARD_EFFECT_RESOLVED } from '../actions.js';
+import { CARD_EFFECT_ENQUEUED, CARD_EFFECT_PROCESSING, CARD_EFFECT_FAILED, CARD_EFFECT_RESOLVED, TARGET_SELECTION_CONFIRMED } from '../actions.js';
 
 const initial = { queue: [], processing: null, history: [] };
 
@@ -34,9 +34,25 @@ export function effectQueueReducer(state = initial, action) {
       const { entryId, reason } = action.payload;
       const idx = state.queue.findIndex(e => e.id === entryId);
       if (idx === -1) return state;
+      // Special case: PENDING_SELECTION -> keep entry in queue but mark waiting
+      if (reason === 'PENDING_SELECTION') {
+        return {
+          ...state,
+            queue: state.queue.map(e => e.id === entryId ? { ...e, status: 'waiting_selection' } : e),
+            processing: null
+        };
+      }
       const entry = { ...state.queue[idx], status: 'failed', reason, resolvedAt: Date.now() };
       const newQueue = state.queue.slice(); newQueue.splice(idx, 1);
       return { ...state, queue: newQueue, processing: state.processing === entryId ? null : state.processing, history: [...state.history, entry] };
+    }
+    case TARGET_SELECTION_CONFIRMED: {
+      // Attach selectedIds onto matching waiting entry (if present)
+      const { requestId, selectedIds } = action.payload;
+      return {
+        ...state,
+        queue: state.queue.map(e => e.id === requestId ? { ...e, selectedIds, status: 'queued' } : e)
+      };
     }
     default:
       return state;

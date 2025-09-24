@@ -3,6 +3,7 @@
  */
 import { tallyFaces, extractTriples } from '../domain/dice.js';
 import { applyPlayerDamage, healPlayerAction, playerGainEnergy, playerVPGained, playerEnteredTokyo, playerLeftTokyo, uiAttackPulse, tokyoOccupantSet, yieldPromptShown, yieldPromptDecided } from '../core/actions.js';
+import { evaluateYieldDecision } from './aiDecisionService.js';
 import { selectTokyoCityOccupant, selectTokyoBayOccupant } from '../core/selectors.js';
 import { selectActivePlayerId } from '../core/selectors.js';
 
@@ -91,7 +92,7 @@ export function resolveDice(store, logger) {
     // Interactive yield: create prompt(s) for each occupant damaged & still alive
     const post = store.getState();
     const prompts = [];
-    const addPrompt = (pid, slot) => {
+      const addPrompt = (pid, slot) => {
       if (!pid) return;
       const p = post.players.byId[pid];
       if (!p || !p.status.alive) return;
@@ -105,7 +106,9 @@ export function resolveDice(store, logger) {
         const stillPending = s.yield.prompts.find(pr => pr.defenderId === pid && pr.attackerId === activeId && pr.slot === slot && pr.decision == null);
         if (stillPending) {
           const curP = s.players.byId[pid];
-            const autoDecision = curP.health < 3 ? 'yield' : 'stay';
+            // Use heuristic
+            const incomingDamage = tally.claw; // approximate recent damage amount
+            const autoDecision = evaluateYieldDecision(s, pid, incomingDamage, slot);
             store.dispatch(yieldPromptDecided(pid, activeId, slot, autoDecision));
             if (autoDecision === 'yield') {
               store.dispatch(playerLeftTokyo(pid));
@@ -114,6 +117,18 @@ export function resolveDice(store, logger) {
             attemptTokyoTakeover(store, logger, activeId, playerCount, bayAllowed);
         }
       }, 5100);
+        // Early AI auto decision: if defender is AI (heuristic placeholder), decide immediately if clear-cut
+        const sNow = store.getState();
+        const defender = sNow.players.byId[pid];
+        if (defender && defender.isAI) {
+          const immediate = evaluateYieldDecision(sNow, pid, tally.claw, slot);
+          if (immediate === 'yield' && defender.health - tally.claw <= 2) {
+            store.dispatch(yieldPromptDecided(pid, activeId, slot, 'yield'));
+            store.dispatch(playerLeftTokyo(pid));
+            logger.system(`${pid} AI-yields Tokyo ${slot} (immediate)`, { kind:'tokyo', slot });
+            attemptTokyoTakeover(store, logger, activeId, playerCount, bayAllowed);
+          }
+        }
     };
     if (cityOcc) addPrompt(cityOcc, 'city');
     if (bayAllowed && bayOcc) addPrompt(bayOcc, 'bay');

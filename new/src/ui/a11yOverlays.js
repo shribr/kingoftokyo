@@ -6,6 +6,8 @@ import { uiPeekHide, yieldPromptDecided, playerLeftTokyo } from '../core/actions
 
 let peekEl = null;
 let yieldContainer = null;
+let liveRegion = null;
+let lastAnnouncedLogId = 0;
 
 function ensurePeekEl() {
   if (!peekEl) {
@@ -22,7 +24,18 @@ function ensurePeekEl() {
     peekEl.appendChild(inner);
     document.body.appendChild(peekEl);
     inner.querySelector('#peek-close').addEventListener('click', () => store.dispatch(uiPeekHide()));
-    peekEl.addEventListener('keydown', (e) => { if (e.key === 'Escape') store.dispatch(uiPeekHide()); });
+    // Focus trap & ESC
+    peekEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { store.dispatch(uiPeekHide()); return; }
+      if (e.key === 'Tab') {
+        const focusables = Array.from(peekEl.querySelectorAll('button, [href], [tabindex]:not([tabindex="-1"])'));
+        if (!focusables.length) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    });
   }
   return peekEl;
 }
@@ -48,6 +61,18 @@ function ensureYieldContainer() {
   return yieldContainer;
 }
 
+function ensureLiveRegion() {
+  if (!liveRegion) {
+    liveRegion = document.createElement('div');
+    liveRegion.id = 'live-region';
+    liveRegion.setAttribute('role', 'status');
+    liveRegion.setAttribute('aria-live', 'assertive');
+    liveRegion.style.cssText = 'position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;';
+    document.body.appendChild(liveRegion);
+  }
+  return liveRegion;
+}
+
 function renderYieldPrompts(prompts, state) {
   const cont = ensureYieldContainer();
   // Remove resolved
@@ -61,17 +86,20 @@ function renderYieldPrompts(prompts, state) {
     panel.setAttribute('aria-label', `Yield Tokyo ${p.slot}`);
     panel.style.cssText = 'background:#222;color:#fff;padding:8px 12px;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.4);';
     const timeLeft = Math.max(0, p.expiresAt - Date.now());
-    panel.innerHTML = `<div style="font-size:13px">${p.defenderId}: Yield Tokyo ${p.slot}? <span aria-live="polite">${Math.ceil(timeLeft/1000)}s</span></div>`;
-    const btnStay = document.createElement('button'); btnStay.textContent = 'Stay'; btnStay.style.marginRight = '6px';
-    const btnYield = document.createElement('button'); btnYield.textContent = 'Yield';
+    panel.innerHTML = `<div style="font-size:13px">${p.defenderId}: Yield Tokyo ${p.slot}? <span aria-live="polite" class="yield-timer">${Math.ceil(timeLeft/1000)}s</span></div>`;
+    const btnWrap = document.createElement('div'); btnWrap.style.marginTop = '4px';
+    const btnStay = document.createElement('button'); btnStay.textContent = 'Stay'; btnStay.style.marginRight = '6px'; btnStay.setAttribute('aria-label','Stay in Tokyo');
+    const btnYield = document.createElement('button'); btnYield.textContent = 'Yield'; btnYield.setAttribute('aria-label','Yield Tokyo');
     btnStay.addEventListener('click', () => store.dispatch(yieldPromptDecided(p.defenderId, p.attackerId, p.slot, 'stay')));
     btnYield.addEventListener('click', () => {
       store.dispatch(yieldPromptDecided(p.defenderId, p.attackerId, p.slot, 'yield'));
       store.dispatch(playerLeftTokyo(p.defenderId));
     });
-    panel.appendChild(document.createElement('div')).appendChild(btnStay);
-    panel.appendChild(btnYield);
+    btnWrap.appendChild(btnStay); btnWrap.appendChild(btnYield);
+    panel.appendChild(btnWrap);
     cont.appendChild(panel);
+    // Focus first button if newly added
+    setTimeout(() => { if (document.activeElement === document.body) btnStay.focus(); }, 0);
   }
   cont.style.display = pending.length ? 'flex' : 'none';
 }
@@ -86,6 +114,18 @@ store.subscribe((state, action) => {
   if (now - lastYieldRender > 200) {
     renderYieldPrompts(state.yield.prompts, state);
     lastYieldRender = now;
+  }
+  // Live region announcements from logs (announce new meaningful events)
+  ensureLiveRegion();
+  const log = state.log?.entries || state.log; // depending on slice shape
+  if (Array.isArray(log) && log.length) {
+    const latest = log[log.length - 1];
+    if (latest.id && latest.id !== lastAnnouncedLogId) {
+      if (['tokyo','damage','vp','energy','system'].includes(latest.kind)) {
+        liveRegion.textContent = latest.message;
+        lastAnnouncedLogId = latest.id;
+      }
+    }
   }
 });
 
