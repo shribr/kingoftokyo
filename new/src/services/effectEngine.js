@@ -36,6 +36,50 @@ export function createEffectEngine(store, logger) {
         store.dispatch(applyPlayerDamage(pid, effect.value));
       }
       return true;
+    },
+    heal_self: ({ playerId, effect }) => {
+      store.dispatch(healPlayerAction(playerId, effect.value));
+      return true;
+    },
+    energy_steal: ({ playerId, effect }) => {
+      // Steal up to value energy from each opponent (simplified)
+      const state = store.getState();
+      let gained = 0;
+      for (const pid of state.players.order) {
+        if (pid === playerId) continue;
+        const opp = state.players.byId[pid];
+        const steal = Math.min(effect.value, opp.energy);
+        if (steal > 0) {
+          store.dispatch({ type: 'PLAYER_SPENT_ENERGY', payload: { playerId: pid, amount: steal } });
+          gained += steal;
+        }
+      }
+      if (gained) store.dispatch(playerGainEnergy(playerId, gained));
+      return true;
+    },
+    vp_steal: ({ playerId, effect }) => {
+      const state = store.getState();
+      let gained = 0;
+      for (const pid of state.players.order) {
+        if (pid === playerId) continue;
+        const opp = state.players.byId[pid];
+        const steal = Math.min(effect.value, opp.victoryPoints);
+        if (steal > 0) {
+          store.dispatch(playerVPGained(pid, -steal, 'vp_steal_lost'));
+          gained += steal;
+        }
+      }
+      if (gained) store.dispatch(playerVPGained(playerId, gained, 'vp_steal_gain'));
+      return true;
+    },
+    damage_tokyo_only: ({ playerId, effect }) => {
+      const state = store.getState();
+      const { tokyo } = state;
+      const slots = [tokyo.city, tokyo.bay].filter(Boolean);
+      for (const occ of slots) {
+        if (occ !== playerId) store.dispatch(applyPlayerDamage(occ, effect.value));
+      }
+      return true;
     }
   };
 

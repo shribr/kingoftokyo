@@ -23,7 +23,7 @@ This document tracks feature/rule implementation status across:
 | Shop Refill | Always 3 cards | ✅ | ✅ | — | — |
 | Shop Flush | Pay 2⚡ to refresh | ✅ | ✅ | — | Log entry pending |
 | Card Purchase Flow | Keep vs discard | ✅ | ✅ | Limited catalog | Expand catalog incrementally |
-| Discard Effects | Immediate resolution | ✅ | ⚠️ | Effect engine partial (subset kinds) | Extend handlers |
+| Discard Effects | Immediate resolution | ✅ | ✅ | Handlers: vp/energy/heal_all/heal_self/damage_all/steals | Add edge-case tests |
 | Keep Effects | Persistent modifiers | ✅ | ⚠️ | Effect queue UI absent | Build effect inspector |
 | Attack Resolution | City/Bay / inside/outside targeting | ✅ | ✅ | Dual-slot now added | Confirm multi-target logging |
 | Entry to Tokyo | Forced entry; multiple slots (5-6 players) | ✅ | ✅ | Interactive takeover after prompts | Add takeover test |
@@ -33,7 +33,7 @@ This document tracks feature/rule implementation status across:
 | Victory (Last Standing) | Elimination detection | ✅ | ✅ | — | — |
 | Healing Rules | No healing in Tokyo | ✅ | ✅ | — | — |
 | Elimination Flow | Remove, clear Tokyo if occupant | ✅ | ✅ | Auto-clears slots on death/leave | Add death test |
-| Effect Timing System | Sequenced resolution | ✅ | 🧪 | Queue built; limited handlers | Add UI + more effect kinds |
+| Effect Timing System | Sequenced resolution | ✅ | ⚠️ | Queue + UI panel; limited handlers | Add advanced targeting & cancel |
 | Persistence | Save/load full game | ✅ | ✅ | Export/import snapshot v1 | Add migration tests |
 | AI Decision System | Advanced heuristics & transparency | ✅ | ⚠️ | Basic automation only | Port heuristics iteratively |
 | Accessibility | ARIA roles, focus mgmt | ⚠️ | ⚠️ | Peek & yield overlays with ARIA; needs keyboard trapping & announcements | Add focus loop + live regions |
@@ -44,7 +44,7 @@ This document tracks feature/rule implementation status across:
 ## Current Coverage (Weighted)
 Formula: full = 1, partial = 0.5, planned = 0.25, missing = 0.
 
-Rewrite score = (Full: 24 *1) + (Partial: 6 *0.5) + (Planned: 1 *0.25) + (Missing: 0 *0) = 24 + 3 + 0.25 = 27.25 over 31 ≈ 87.9%.
+Rewrite score = (Full: 25 *1) + (Partial: 7 *0.5) + (Planned: 0) + (Missing: 0) = 25 + 3.5 = 28.5 over 31 ≈ 91.9%.
 
 (Improved from earlier 70% after Tokyo dual-slot + start-of-turn VP refinement.)
 

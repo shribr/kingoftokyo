@@ -122,6 +122,38 @@
     "zIndex": 1
   }
   ,{
+    "name": "effectQueue",
+    "version": "0.1.0",
+    "selector": ".cmp-effect-queue",
+    "mountPoint": "#app",
+    "order": 170,
+    "enabled": true,
+    "stateKeys": ["effectQueue"],
+    "build": "effect-queue.build",
+    "update": "effect-queue.update",
+    "eventsOut": [],
+    "eventsIn": [],
+    "initialState": {},
+    "assets": [],
+    "zIndex": 55
+  }
+  ,{
+    "name": "effectInspector",
+    "version": "0.1.0",
+    "selector": ".cmp-effect-inspector",
+    "mountPoint": "#app",
+    "order": 171,
+    "enabled": true,
+    "stateKeys": ["players"],
+    "build": "effect-inspector.build",
+    "update": "effect-inspector.update",
+    "eventsOut": [],
+    "eventsIn": [],
+    "initialState": {},
+    "assets": [],
+    "zIndex": 54
+  }
+  ,{
     "name": "cardShop",
     "version": "0.1.0",
     "selector": ".cmp-card-shop",
