@@ -1,0 +1,14 @@
+.cmp-card-shop.card-shop-panel { position:relative; background:#111c; color:#eee; padding:8px 10px; width:260px; font:12px/1.4 system-ui; border:1px solid #333; border-radius:6px; -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); }
+.cmp-card-shop .shop-cards { display:flex; flex-direction:column; gap:6px; margin-bottom:8px; }
+.cmp-card-shop .shop-card { background:#1d1f22; border:1px solid #2d2f33; padding:6px 6px 8px; border-radius:4px; display:flex; flex-direction:column; gap:4px; }
+.cmp-card-shop .sc-header { display:flex; justify-content:space-between; font-weight:600; letter-spacing:.5px; }
+.cmp-card-shop .sc-cost { color:#6cf; }
+.cmp-card-shop .sc-effect { font-size:11px; opacity:.85; }
+.cmp-card-shop .sc-actions { display:flex; gap:4px; }
+.cmp-card-shop button.btn { cursor:pointer; border:1px solid #444; background:#222; color:#eee; padding:3px 6px; font-size:11px; border-radius:3px; }
+.cmp-card-shop button.btn.primary { background:#145214; border-color:#1d7d1d; }
+.cmp-card-shop button.btn.primary:disabled { opacity:.4; }
+.cmp-card-shop button.btn.disabled { opacity:.4; cursor:not-allowed; }
+.cmp-card-shop button.btn.warning { background:#773a00; border-color:#b96500; }
+.cmp-card-shop .btn.full { width:100%; margin-top:4px; }
+.cmp-card-shop .shop-footer { margin-top:4px; }

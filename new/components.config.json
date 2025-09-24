@@ -122,6 +122,22 @@
     "zIndex": 1
   }
   ,{
+    "name": "cardShop",
+    "version": "0.1.0",
+    "selector": ".cmp-card-shop",
+    "mountPoint": "#app",
+    "order": 15,
+    "enabled": true,
+    "stateKeys": ["cards","players","phase"],
+    "build": "card-shop.build",
+    "update": "card-shop.update",
+    "eventsOut": [],
+    "eventsIn": [],
+    "initialState": {},
+    "assets": [],
+    "zIndex": 2
+  }
+  ,{
     "name": "playerProfileCard",
     "version": "0.1.0",
     "selector": ".cmp-player-profile-card",
@@ -216,5 +232,21 @@
       "initialState": {},
       "assets": [],
       "zIndex": 126
+    }
+    ,{
+      "name": "peekModal",
+      "version": "0.1.0",
+      "selector": ".cmp-peek-modal",
+      "mountPoint": "#app",
+      "order": 205,
+      "enabled": true,
+      "stateKeys": ["ui"],
+      "build": "peek-modal.build",
+      "update": "peek-modal.update",
+      "eventsOut": [],
+      "eventsIn": [],
+      "initialState": {},
+      "assets": [],
+      "zIndex": 55
     }
 ]

@@ -9,7 +9,9 @@ export function buildBaseCatalog() {
     { id: 'evacuation-orders', name: 'Evacuation Orders', cost: 7, type: 'discard', effect: { kind: 'vp_gain', value: 5 } },
     { id: 'nitrous-oxide', name: 'Nitrous Oxide', cost: 3, type: 'keep', effect: { kind: 'reroll_bonus', value: 1 } },
     { id: 'energy-hoard', name: 'Energy Hoard', cost: 3, type: 'discard', effect: { kind: 'energy_gain', value: 3 } },
-    { id: 'healing-ray', name: 'Healing Ray', cost: 4, type: 'discard', effect: { kind: 'heal_all', value: 1 } }
+    { id: 'healing-ray', name: 'Healing Ray', cost: 4, type: 'discard', effect: { kind: 'heal_all', value: 1 } },
+    // Peek card: allows player to pay 1 energy (configurable) to view the next top card of the deck.
+    { id: 'clairvoyance', name: 'Clairvoyance', cost: 2, type: 'keep', effect: { kind: 'peek', value: 1 } }
   ];
 }
 

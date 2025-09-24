@@ -2,13 +2,14 @@
 import { eventBus } from '../../core/eventBus.js';
 import { diceRollStarted, diceRolled, diceToggleKeep } from '../../core/actions.js';
 import { rollDice } from '../../domain/dice.js';
+import { selectActivePlayer } from '../../core/selectors.js';
 import { store } from '../../bootstrap/index.js';
 import { createPositioningService } from '../../services/positioningService.js';
 
 export function build({ selector, emit }) {
   const root = document.createElement('div');
   root.className = selector.slice(1); // remove leading .
-  root.innerHTML = `<div class="tray-header"><button data-action="roll">Roll</button></div><div class="dice" data-dice></div>`;
+  root.innerHTML = `<div class="tray-header"><button data-action="roll">Roll</button><span class="tray-dice-count" data-dice-count></span></div><div class="dice" data-dice></div>`;
 
   // Make draggable & persistent
   const positioning = createPositioningService(store);
@@ -33,15 +34,39 @@ export function build({ selector, emit }) {
 
 export function update(root, { state }) {
   const diceContainer = root.querySelector('[data-dice]');
+  const countEl = root.querySelector('[data-dice-count]');
   if (!diceContainer) return;
+  const globalState = store.getState();
+  const active = selectActivePlayer(globalState);
+  const diceSlots = active?.modifiers?.diceSlots || 6;
   const faces = state.faces || [];
-  diceContainer.innerHTML = faces.map((f,i) => `<span class="die ${f.kept ? 'is-kept' : ''}" data-die-index="${i}">${f.value}</span>`).join('');
+  // Build full list including placeholders for unrolled extra dice
+  const rendered = [];
+  for (let i = 0; i < diceSlots; i++) {
+    const face = faces[i];
+    if (face) {
+      rendered.push(`<span class="die ${face.kept ? 'is-kept' : ''} ${i >= 6 ? 'extra-die' : ''}" data-die-index="${i}">${face.value}</span>`);
+    } else {
+      rendered.push(`<span class="die pending ${i >= 6 ? 'extra-die' : ''}" data-die-index="${i}">?</span>`);
+    }
+  }
+  diceContainer.innerHTML = rendered.join('');
+  if (countEl) {
+    if (diceSlots > 6) {
+      countEl.textContent = `${diceSlots} dice (+${diceSlots - 6})`;
+    } else {
+      countEl.textContent = `${diceSlots} dice`;
+    }
+  }
 }
 
 // Bridge events to actions (will later sit in eventsToActions.js; temporary here until that file exists)
 eventBus.on('ui/dice/rollRequested', () => {
   store.dispatch(diceRollStarted());
-  const faces = rollDice({ count: 6, currentFaces: store.getState().dice.faces });
+  const st = store.getState();
+  const active = selectActivePlayer(st);
+  const diceSlots = active?.modifiers?.diceSlots || 6;
+  const faces = rollDice({ count: diceSlots, currentFaces: st.dice.faces });
   store.dispatch(diceRolled(faces));
 });
 

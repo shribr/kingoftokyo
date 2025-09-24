@@ -37,6 +37,8 @@ export const selectUICardDetail = (state) => state.ui.cardDetail;
 export const selectUIPlayerCards = (state) => state.ui.playerCards;
 export const selectUIMonsterProfiles = (state) => state.ui.monsterProfiles;
 export const selectUISingleMonster = (state) => state.ui.singleMonster;
+export const selectUIPeek = (state) => state.ui.peek;
+export const selectUIAttackPulse = (state) => state.ui.attackPulse;
 // Monsters
 export const selectMonsters = (state) => state.monsters.order.map(id => state.monsters.byId[id]);
 export const selectMonsterById = (state, id) => state.monsters.byId[id];

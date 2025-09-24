@@ -1,4 +1,4 @@
-import { UI_CARD_DETAIL_OPEN, UI_CARD_DETAIL_CLOSE, UI_PLAYER_CARDS_OPEN, UI_PLAYER_CARDS_CLOSE, UI_MONSTER_PROFILES_OPEN, UI_MONSTER_PROFILES_CLOSE, UI_MONSTER_PROFILE_OPEN, UI_MONSTER_PROFILE_CLOSE, UI_SPLASH_HIDE, UI_POSITION_SET, UI_POSITIONS_RESET, UI_SETTINGS_OPEN, UI_SETTINGS_CLOSE, UI_AI_DECISION_OPEN, UI_AI_DECISION_CLOSE, UI_GAME_LOG_OPEN, UI_GAME_LOG_CLOSE, UI_GAME_LOG_COLLAPSE_STATE } from '../actions.js';
+import { UI_CARD_DETAIL_OPEN, UI_CARD_DETAIL_CLOSE, UI_PLAYER_CARDS_OPEN, UI_PLAYER_CARDS_CLOSE, UI_MONSTER_PROFILES_OPEN, UI_MONSTER_PROFILES_CLOSE, UI_MONSTER_PROFILE_OPEN, UI_MONSTER_PROFILE_CLOSE, UI_SPLASH_HIDE, UI_POSITION_SET, UI_POSITIONS_RESET, UI_SETTINGS_OPEN, UI_SETTINGS_CLOSE, UI_AI_DECISION_OPEN, UI_AI_DECISION_CLOSE, UI_GAME_LOG_OPEN, UI_GAME_LOG_CLOSE, UI_GAME_LOG_COLLAPSE_STATE, UI_PEEK_SHOW, UI_PEEK_HIDE, UI_ATTACK_PULSE } from '../actions.js';
 
 const initial = {
   cardDetail: { cardId: null, source: null },
@@ -7,7 +7,9 @@ const initial = {
   monsterProfiles: { open: false },
   singleMonster: { monsterId: null },
   splash: { visible: true },
-  flags: { showProbabilities: false }
+  flags: { showProbabilities: false },
+  peek: { card: null },
+  attackPulse: { ts: 0, playerIds: [] }
 };
 
 export function uiReducer(state = initial, action) {
@@ -60,6 +62,16 @@ export function uiReducer(state = initial, action) {
       const existing = state.gameLog?.collapse || { rounds: {}, turns: {} };
       const kinds = partial.kinds ? partial.kinds : state.gameLog?.kinds;
       return { ...state, gameLog: { ...(state.gameLog||{}), kinds, collapse: { rounds: { ...existing.rounds, ...(partial.rounds||{}) }, turns: { ...existing.turns, ...(partial.turns||{}) } } } };
+    }
+    case UI_PEEK_SHOW: {
+      return { ...state, peek: { card: action.payload.card } };
+    }
+    case UI_PEEK_HIDE: {
+      return { ...state, peek: { card: null } };
+    }
+    case UI_ATTACK_PULSE: {
+      const { playerIds, ts } = action.payload;
+      return { ...state, attackPulse: { playerIds, ts } };
     }
     default:
       return state;

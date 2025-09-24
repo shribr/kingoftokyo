@@ -1,0 +1,10 @@
+.cmp-peek-modal.peek-modal { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#111e; -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); padding:16px 20px; border:1px solid #444; border-radius:8px; z-index:500; color:#fff; font:14px/1.4 system-ui; min-width:220px; animation:fadeIn .25s ease; }
+.cmp-peek-modal.hidden { display:none; }
+.cmp-peek-modal .peek-header { font-weight:600; letter-spacing:1px; font-size:12px; opacity:0.8; margin-bottom:6px; }
+.cmp-peek-modal .peek-name { font-size:18px; font-weight:700; margin-bottom:8px; }
+.cmp-peek-modal .peek-text { font-size:13px; margin-bottom:12px; }
+.cmp-peek-modal .peek-actions { text-align:right; }
+
+/* Attack pulse effect on owned cards / player profile cards */
+.cmp-player-profile-card.attack-pulse { box-shadow:0 0 0 0 rgba(255,50,50,0.7); animation:attackPulse 1s ease-out 2; }
+@keyframes attackPulse { 0% { box-shadow:0 0 0 0 rgba(255,50,50,0.8); } 50% { box-shadow:0 0 12px 6px rgba(255,50,50,0.3); } 100% { box-shadow:0 0 0 0 rgba(255,50,50,0); } }

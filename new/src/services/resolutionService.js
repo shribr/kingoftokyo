@@ -2,7 +2,7 @@
  * Handles resolving dice results at end of roll phase.
  */
 import { tallyFaces, extractTriples } from '../domain/dice.js';
-import { applyPlayerDamage, healPlayerAction, playerGainEnergy, playerVPGained, playerEnteredTokyo, playerLeftTokyo } from '../core/actions.js';
+import { applyPlayerDamage, healPlayerAction, playerGainEnergy, playerVPGained, playerEnteredTokyo, playerLeftTokyo, uiAttackPulse } from '../core/actions.js';
 import { selectActivePlayerId } from '../core/selectors.js';
 
 export function resolveDice(store, logger) {
@@ -41,6 +41,7 @@ export function resolveDice(store, logger) {
     const current = store.getState();
     const attacker = current.players.byId[activeId];
     const occupantId = current.tokyo.occupantId;
+    const damaged = [];
     if (attacker.inTokyo) {
       // Hit all outside
       current.players.order.forEach(pid => {
@@ -49,6 +50,7 @@ export function resolveDice(store, logger) {
           if (!target.inTokyo && target.status.alive) {
             store.dispatch(applyPlayerDamage(pid, tally.claw));
             logger.info(`${activeId} claws ${pid} for ${tally.claw}`);
+            damaged.push(pid);
           }
         }
       });
@@ -57,7 +59,11 @@ export function resolveDice(store, logger) {
       if (occupantId) {
         store.dispatch(applyPlayerDamage(occupantId, tally.claw));
         logger.info(`${activeId} claws ${occupantId} in Tokyo for ${tally.claw}`);
+        damaged.push(occupantId);
       }
+    }
+    if (damaged.length) {
+      store.dispatch(uiAttackPulse(damaged));
     }
   }
   // 5. Tokyo entry/exit decisions (simplified – auto enter if empty and claws rolled; auto leave if damaged & <3 health)

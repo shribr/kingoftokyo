@@ -7,7 +7,7 @@
  *  - Does NOT touch legacy UI.
  */
 import { store } from '../../bootstrap/index.js';
-import { selectPlayerOrder } from '../../core/selectors.js';
+import { selectPlayerOrder, selectUIAttackPulse } from '../../core/selectors.js';
 import { build as buildCard, update as updateCard } from '../player-profile-card/player-profile-card.component.js';
 import { createPositioningService } from '../../services/positioningService.js';
 
@@ -30,6 +30,7 @@ function destroy(root, instances) {
 export function update(root, instances, positioning) {
   const state = store.getState();
   const order = selectPlayerOrder(state);
+  const pulse = selectUIAttackPulse(state);
   const wrapper = root.querySelector('[data-cards-wrapper]');
   if (!wrapper) return;
 
@@ -50,5 +51,11 @@ export function update(root, instances, positioning) {
       wrapper.insertBefore(inst.root, wrapper.children[idx] || null);
     }
     inst.update({ playerId });
+    // Attack pulse application
+    if (pulse.playerIds.includes(playerId)) {
+      inst.root.classList.add('attack-pulse');
+      // Remove after animation duration (~2s) to allow re-trigger
+      setTimeout(() => inst.root.classList.remove('attack-pulse'), 2000);
+    }
   });
 }

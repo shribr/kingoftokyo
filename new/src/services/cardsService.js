@@ -2,7 +2,7 @@
  * Orchestrates deck build & initial / refill shop.
  */
 import { buildBaseCatalog, buildDeck, draw } from '../domain/cards.js';
-import { cardsDeckBuilt, cardsShopFilled, cardPurchased, playerSpendEnergy, playerCardGained, cardDiscarded } from '../core/actions.js';
+import { cardsDeckBuilt, cardsShopFilled, cardPurchased, playerSpendEnergy, playerCardGained, cardDiscarded, cardShopFlushed, uiPeekShow, uiPeekHide } from '../core/actions.js';
 import { createEffectEngine } from './effectEngine.js';
 
 export function initCards(store, logger, rng = Math.random, opts = {}) {
@@ -60,4 +60,46 @@ export function purchaseCard(store, logger, playerId, cardId) {
   }
   refillShop(store, logger);
   return true;
+}
+
+// Peek at next top card if player owns a card with effect.kind==='peek'. Cost defaults to 1 energy.
+export function peekTopCard(store, logger, playerId, cost = 1) {
+  const state = store.getState();
+  const player = state.players.byId[playerId];
+  if (!player) return false;
+  const hasPeek = player.cards.some(c => c.effect?.kind === 'peek');
+  if (!hasPeek) return false;
+  if (player.energy < cost) return false;
+  if (!state.cards.deck.length) return false;
+  const top = state.cards.deck[0];
+  store.dispatch(playerSpendEnergy(playerId, cost));
+  store.dispatch(uiPeekShow(top));
+  logger.info(`${playerId} peeks at top card: ${top.name}`);
+  // Auto hide after 3 seconds
+  setTimeout(() => {
+    store.dispatch(uiPeekHide());
+  }, 3000);
+  return true;
+}
+
+// Flush / clear current shop for a cost (official baseline: 2 energy)
+export function flushShop(store, logger, playerId, cost = 2) {
+  const state = store.getState();
+  const player = state.players.byId[playerId];
+  if (!player) return { success: false, reason: 'NO_PLAYER' };
+  if (player.energy < cost) return { success: false, reason: 'INSUFFICIENT_ENERGY' };
+  // Spend energy
+  store.dispatch(playerSpendEnergy(playerId, cost));
+  const oldCards = [...state.cards.shop];
+  // Move old shop cards to discard (semantic choice; could optionally just rotate without discarding)
+  for (const c of oldCards) {
+    store.dispatch(cardDiscarded(c));
+  }
+  // Draw 3 fresh cards (reuse refill logic partially)
+  const nextState = store.getState();
+  const { drawn, rest } = draw(nextState.cards.deck, 3);
+  store.dispatch(cardsDeckBuilt(rest));
+  store.dispatch(cardShopFlushed(playerId, oldCards, drawn, cost));
+  logger.system(`${playerId} flushed shop for ${cost} energy.`);
+  return { success: true, oldCards, newCards: drawn };
 }

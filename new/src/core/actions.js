@@ -29,6 +29,7 @@ export const CARD_PURCHASED = 'CARD_PURCHASED';
 export const CARD_DISCARDED = 'CARD_DISCARDED';
 export const CARD_EFFECT_QUEUED = 'CARD_EFFECT_QUEUED';
 export const CARD_EFFECT_RESOLVED = 'CARD_EFFECT_RESOLVED';
+export const CARD_SHOP_FLUSHED = 'CARD_SHOP_FLUSHED';
 // Card Effects (Phase 8 scaffold)
 export const CARD_EFFECT_ENQUEUED = 'CARD_EFFECT_ENQUEUED';
 export const CARD_EFFECT_PROCESSING = 'CARD_EFFECT_PROCESSING';
@@ -58,6 +59,10 @@ export const UI_AI_DECISION_CLOSE = 'UI_AI_DECISION_CLOSE';
 export const UI_GAME_LOG_OPEN = 'UI_GAME_LOG_OPEN';
 export const UI_GAME_LOG_CLOSE = 'UI_GAME_LOG_CLOSE';
 export const UI_GAME_LOG_COLLAPSE_STATE = 'UI_GAME_LOG_COLLAPSE_STATE';
+// Peek & attack visual indicators
+export const UI_PEEK_SHOW = 'UI_PEEK_SHOW';
+export const UI_PEEK_HIDE = 'UI_PEEK_HIDE';
+export const UI_ATTACK_PULSE = 'UI_ATTACK_PULSE';
 // Settings (new slice)
 export const SETTINGS_LOADED = 'SETTINGS_LOADED';
 export const SETTINGS_UPDATED = 'SETTINGS_UPDATED';
@@ -90,6 +95,7 @@ export const cardsDeckBuilt = (deck) => ({ type: CARDS_DECK_BUILT, payload: { de
 export const cardsShopFilled = (cards) => ({ type: CARDS_SHOP_FILLED, payload: { cards } });
 export const cardPurchased = (playerId, card) => ({ type: CARD_PURCHASED, payload: { playerId, card } });
 export const cardDiscarded = (card) => ({ type: CARD_DISCARDED, payload: { card } });
+export const cardShopFlushed = (playerId, oldCards, newCards, cost) => ({ type: CARD_SHOP_FLUSHED, payload: { playerId, oldCards, newCards, cost } });
 export const cardEffectQueued = (card, effect) => ({ type: CARD_EFFECT_QUEUED, payload: { card, effect } });
 export const cardEffectResolved = (card, effect) => ({ type: CARD_EFFECT_RESOLVED, payload: { card, effect } });
 export const cardEffectEnqueued = (entry) => ({ type: CARD_EFFECT_ENQUEUED, payload: { entry } });
@@ -121,6 +127,10 @@ export const uiAIDecisionClose = () => ({ type: UI_AI_DECISION_CLOSE });
 export const uiGameLogOpen = () => ({ type: UI_GAME_LOG_OPEN });
 export const uiGameLogClose = () => ({ type: UI_GAME_LOG_CLOSE });
 export const uiGameLogCollapseState = (partial) => ({ type: UI_GAME_LOG_COLLAPSE_STATE, payload: { partial } });
+// Peek + attack visual creators
+export const uiPeekShow = (card) => ({ type: UI_PEEK_SHOW, payload: { card } });
+export const uiPeekHide = () => ({ type: UI_PEEK_HIDE });
+export const uiAttackPulse = (playerIds, ts = Date.now()) => ({ type: UI_ATTACK_PULSE, payload: { playerIds, ts } });
 // Settings actions
 export const settingsLoaded = (settings) => ({ type: SETTINGS_LOADED, payload: { settings } });
 export const settingsUpdated = (partial) => ({ type: SETTINGS_UPDATED, payload: { partial } });
