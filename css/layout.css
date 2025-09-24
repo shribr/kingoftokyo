@@ -158,36 +158,20 @@ body::before {
     font-size: 5em;
     font-weight: 900;
     color: #FFD700;
-    text-shadow: 
-        -6px -6px 0 #000,
-        6px -6px 0 #000,
-        -6px 6px 0 #000,
-        6px 6px 0 #000,
-        -4px -4px 0 #000,
-        4px -4px 0 #000,
-        -4px 4px 0 #000,
-        4px 4px 0 #000,
-        -2px -2px 0 #000,
-        2px -2px 0 #000,
-        -2px 2px 0 #000,
-        2px 2px 0 #000,
-        3px 3px 6px rgba(0, 0, 0, 0.6); /* Reduced shadow */
+    /* Use layered outline via custom property (fallback kept minimal) */
+    text-shadow: var(--ts-comic-heavy, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 4px 4px 8px rgba(0,0,0,.8));
     letter-spacing: 6px;
-    transform: perspective(800px) rotateX(-3deg) rotateY(-2deg) translateX(-100px); /* Restored original positioning */
+    transform: perspective(800px) rotateX(-3deg) rotateY(-2deg) translateX(-100px);
     margin: 0;
     position: relative;
-    z-index: 5000; /* Main "King of Tokyo" header */
-    filter: drop-shadow(8px 8px 0px #000) drop-shadow(10px 10px 15px rgba(0, 0, 0, 0.5)); /* Reduced drop shadow */
+    z-index: 5000;
+    filter: drop-shadow(8px 8px 0px #000) drop-shadow(10px 10px 15px rgba(0, 0, 0, 0.5));
     display: inline-block;
     text-transform: uppercase;
-}
-
-/* Remove any conflicting gradient effects */
-.game-header h1 {
-    background: none !important;
-    -webkit-background-clip: initial !important;
-    background-clip: initial !important;
-    -webkit-text-fill-color: #FFD700 !important;
+    background: none;
+    -webkit-background-clip: initial;
+    background-clip: initial;
+    -webkit-text-fill-color: #FFD700;
 }
 
 .game-info {

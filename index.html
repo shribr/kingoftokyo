@@ -23,9 +23,7 @@
     <link rel="stylesheet" href="css/rolloff.css">
 </head>
 <body>
-    <!-- Accessibility Live Regions (Phase 10) -->
-    <div id="aria-live-phase" class="visually-hidden" aria-live="polite"></div>
-    <div id="aria-live-ai" class="visually-hidden" aria-live="polite"></div>
+    <!-- Removed live regions as part of reversion (migrated to new/) -->
     <!-- Splash Screen -->
     <div id="splash-screen" class="splash-screen">
         <div class="splash-content">
@@ -93,7 +91,7 @@
 
     <div id="game-container">
         <!-- Header -->
-        <header class="game-header">
+    <header class="game-header">
             <h1 data-text="KING OF TOKYO!">KING OF TOKYO!</h1>
             <div id="active-player-name" class="active-player-name"></div>
             <span id="rolls-left" class="rolls-indicator">Rolls left: 3</span>
@@ -102,7 +100,7 @@
         </header>
 
         <!-- Main Game Area -->
-        <main class="game-board">
+    <main class="game-board">
             <!-- Tokyo Area -->
             <div class="tokyo-area">
                 <div class="tokyo-bay">
@@ -157,7 +155,7 @@
         </div>
         
         <!-- Row 3: Game Toolbar (anchor) -->
-        <div class="ui-row toolbar-row">
+    <div class="ui-row toolbar-row">
             <div id="game-toolbar" class="game-toolbar">
                 <button id="exit-game-btn" class="toolbar-btn" title="Exit to Main Menu">
                     <span class="toolbar-icon">
@@ -257,7 +255,7 @@
     </div>
 
     <!-- Decision Modal -->
-    <div id="decision-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="decision-title">
+    <div id="decision-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="decision-title" aria-describedby="decision-message">
         <div class="modal-content decision-modal">
             <div class="decision-header">
                 <h2 id="decision-title">Decision Required</h2>

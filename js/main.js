@@ -6060,6 +6060,14 @@ class KingOfTokyoUI {
                     this.aiEngine.makeRollDecision = (currentDice, rollsRemaining, player, gameState) => {
                         const decision = originalMakeRollDecision(currentDice, rollsRemaining, player, gameState);
                         try { window.renderAIDecisionDebug(decision); } catch(e) { /* swallow */ }
+                        try {
+                            // Attach faces snapshot for explain() readability
+                            decision.diceFaces = currentDice.slice();
+                            if (typeof this.aiEngine.explain === 'function') {
+                                const msg = this.aiEngine.explain(decision);
+                                UIUtilities.announceAI(msg);
+                            }
+                        } catch(ex){ console.warn('AI explain announce failed', ex); }
                         return decision;
                     };
                     this.aiEngine._debugWrapped = true;

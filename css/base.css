@@ -8,58 +8,7 @@
     box-sizing: border-box;
 }
 
-body {
-    font-family: 'Nunito', sans-serif;
-    background: #000;
-    color: #fff;
-    overflow-x: hidden; /* Prevent horizontal scrollbars only */
-    overflow-y: visible; /* Allow vertical expansion for player cards */
-    height: 100vh; /* Ensure body takes full viewport height */
-}
-
-/* =========================================
-   Reusable Text Shadow & Visual Utilities
-   (Refactor target for repeated comic outlines)
-   ========================================= */
-:root {
-    --ts-comic-heavy: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 4px 4px 8px rgba(0,0,0,.8);
-    --ts-comic-mid: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000;
-    --ts-comic-soft: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-}
-
-.ts-comic-outline { text-shadow: var(--ts-comic-heavy); }
-.ts-comic-mid { text-shadow: var(--ts-comic-mid); }
-.ts-comic-soft { text-shadow: var(--ts-comic-soft); }
-
-/* Focus ring utility if an element needs explicit override */
-.u-focus-ring { outline: 2px solid #7fd65d !important; outline-offset: 2px; }
-
-/* Accessibility Skip Link */
-.skip-link {
-    position: absolute;
-    left: -999px;
-    top: auto;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-}
-.skip-link:focus {
-    left: 8px;
-    top: 8px;
-    width: auto;
-    height: auto;
-    background: #111;
-    color: #fff;
-    padding: 6px 10px;
-    z-index: 2000;
-    border: 2px solid #7fd65d;
-    border-radius: 4px;
-}
-
-:focus-visible {
-    outline: 2px solid #7fd65d;
-    outline-offset: 2px;
-}
+body { font-family:'Nunito',sans-serif; background:#000; color:#fff; overflow:hidden; }
 
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
@@ -326,12 +275,4 @@ input:disabled {
     cursor: default !important;
 }
 
-/* Accessibility Utilities (Phase 10) */
-.visually-hidden {
-  position: absolute !important;
-  height: 1px; width: 1px;
-  overflow: hidden;
-  clip: rect(1px, 1px, 1px, 1px);
-  white-space: nowrap;
-  border: 0; padding: 0; margin: 0;
-}
+/* (Removed accessibility utility & custom property section as part of reversion) */
