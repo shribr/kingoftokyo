@@ -29,6 +29,11 @@
 			}
 		}
 	};
+
+	// Expose profiler globally for debug overlay & snapshot (Lean Path Item 2)
+	if (typeof window !== 'undefined') {
+		window.AIDecisionProfiler = AIDecisionProfiler;
+	}
 	const CFG = {
 		goalAlignmentMultiplier: 1.55,
 		pairScoreBase: 60,
@@ -166,6 +171,28 @@
 			const ev = this._computeSetEV(state, goal);
 			let decision = this._assembleDecision(state, goal, scored, ev, rollsRemaining, player);
 			decision = this._enforceInvariants(decision, state, rollsRemaining);
+			// Sanity Assertions (Lean Path Item 3)
+			if (typeof window !== 'undefined' && window.DEBUG_MODE) {
+				try {
+					// Branch ordering sanity if analysis present
+					if (decision.branchAnalysis && Array.isArray(decision.branchAnalysis.evaluated)) {
+						for (let i=1;i<decision.branchAnalysis.evaluated.length;i++) {
+							if (decision.branchAnalysis.evaluated[i].score > decision.branchAnalysis.evaluated[i-1].score) {
+								console.warn('⚠️ Branch ordering anomaly at index', i);
+								break;
+							}
+						}
+						if (decision.branchAnalysis.evaluated.length > 25) {
+							console.warn('⚠️ Branch cap exceeded (>25)');
+						}
+					}
+					// Projection trial bounds if present
+					if (decision.projection && decision.projection.trials) {
+						const t = decision.projection.trials;
+						if (t < 25 || t > 110) console.warn('⚠️ Projection trial count out of adaptive bounds', t);
+					}
+				} catch(e){ console.warn('Sanity assertion error', e); }
+			}
 			// UI probabilities mirror previous expectation
 			this._lastPerFaceProbabilities = scored.map(s=>({ index:s.index, face:s.face, keepProbability:Number((s.normScore||0).toFixed(3)) }));
 			if (typeof window !== 'undefined') window.AIOverrideStats.decisions++;

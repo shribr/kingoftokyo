@@ -186,11 +186,22 @@ class SetupManager {
             this.elements.monsterGrid.querySelectorAll('.monster-option').forEach(option => {
                 option.addEventListener('dragstart', (e) => this.handleDragStart(e));
                 option.addEventListener('dragend', (e) => this.handleDragEnd(e));
-                
+
                 // Touch events for mobile
                 option.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: false });
                 option.addEventListener('touchmove', (e) => this.handleTouchMove(e), { passive: false });
                 option.addEventListener('touchend', (e) => this.handleTouchEnd(e), { passive: false });
+
+                // Accessibility (Lean Path Item 4): make focusable & keyboard activatable
+                option.setAttribute('tabindex', '0');
+                option.setAttribute('role', 'button');
+                option.addEventListener('keydown', (e)=> {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        // Simulate click -> assign to first available tile
+                        try { this.assignMonsterFromOption(option); } catch(err){ console.warn('Keyboard assignment failed', err); }
+                    }
+                });
             });
         }
 
@@ -203,6 +214,30 @@ class SetupManager {
                 tile.addEventListener('drop', (e) => this.handleDrop(e));
             });
         }
+    }
+
+    // Assign monster from option via keyboard (first available or replace own tile)
+    assignMonsterFromOption(option){
+        if (!option) return;
+        const monsterId = option.getAttribute('data-monster-id') || option.dataset.monsterId || option.id || null;
+        if (!monsterId) return;
+        const tiles = this.elements.playerTilesGrid ? Array.from(this.elements.playerTilesGrid.querySelectorAll('.player-tile')) : [];
+        let target = tiles.find(t=> !t.querySelector('img')) || tiles[0];
+        if (!target) return;
+        try {
+            const evt = new Event('drop', { bubbles:true });
+            evt.dataTransfer = { getData: () => monsterId };
+            target.dispatchEvent(evt);
+        } catch(e){
+            const img = option.querySelector('img');
+            if (img) {
+                const clone = img.cloneNode(true);
+                clone.setAttribute('data-monster', clone.getAttribute('alt'));
+                target.innerHTML='';
+                target.appendChild(clone);
+            }
+        }
+        this.updateStartButtonState && this.updateStartButtonState();
     }
 
     // Custom dropdown methods

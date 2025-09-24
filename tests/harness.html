@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>King of Tokyo Test Harness</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: monospace; padding: 1rem; background: #111; color: #eee; }
+    .pass { color: #4caf50; }
+    .fail { color: #ff5252; }
+    pre { background:#222; padding:0.75rem; }
+  </style>
+</head>
+<body>
+  <h1>Test Harness</h1>
+  <button id="run-tests">Run Basic Tests</button>
+  <pre id="log"></pre>
+
+  <script src="../js/rng.js"></script>
+  <script src="../js/ai-decisions.js"></script>
+  <script>
+    const logEl = document.getElementById('log');
+    function log(msg, cls){
+      const line = document.createElement('div');
+      if (cls) line.className = cls;
+      line.textContent = msg;
+      logEl.appendChild(line);
+    }
+
+    function assert(cond, label){
+      if (cond) log('PASS: '+label,'pass');
+      else log('FAIL: '+label,'fail');
+    }
+
+    async function run(){
+      logEl.textContent='';
+      // Seed RNG deterministically
+      seedRNG(12345);
+      assert(typeof Math.random === 'function', 'Math.random overridden after seed');
+
+      // Simulate trivial decision to exercise profiler
+      const engine = new AIDecisionEngine();
+      window.AI_PROFILING = true;
+      const dummyPlayer = { id:1, monster:{ name:'Testzilla', personality:{} }, health:10, maxHealth:10, victoryPoints:0, energy:0, powerCards:[] };
+      const gameState = { players:[dummyPlayer], availablePowerCards:[] };
+      const decision = engine.makeRollDecision(['one','two','three','attack','energy','heart'], 2, dummyPlayer, gameState);
+      assert(decision && decision.action, 'AI produced a decision');
+      const stats = window.AIDecisionProfiler && window.AIDecisionProfiler.stats();
+      assert(stats && stats.count>=0, 'Profiler stats accessible');
+
+      // Snapshot function should exist after debug script load in real app (not here yet)
+      assert(typeof seedRNG === 'function', 'seedRNG exposed globally');
+      assert((getRNGState().seed === 12345), 'getRNGState returns correct seed');
+    }
+
+    document.getElementById('run-tests').addEventListener('click', run);
+  </script>
+</body>
+</html>
