@@ -4,7 +4,6 @@
     --h2-size: clamp(1.5rem, 3vw + 1rem, 2.8rem);
     --body-size: clamp(0.875rem, 1vw + 0.5rem, 1.125rem);
     --btn-size: clamp(0.875rem, 1vw + 0.5rem, 1rem);
-}
 
 /* Base Typography */
 .game-header h1 {
@@ -147,8 +146,16 @@ body, .btn, .card-text {
 @media (max-width: 1200px) {
     .game-header h1 {
         letter-spacing: 2px;
-        /* Mid outline variant at this width */
-        text-shadow: var(--ts-comic-mid);
+        text-shadow: 
+            -2px -2px 0 #000,
+            2px -2px 0 #000,
+            -2px 2px 0 #000,
+            2px 2px 0 #000,
+            -1px -1px 0 #000,
+            1px -1px 0 #000,
+            -1px 1px 0 #000,
+            1px 1px 0 #000,
+            4px 4px 8px rgba(0, 0, 0, 0.7);
     }
     
     .dice-container {
@@ -183,7 +190,12 @@ body, .btn, .card-text {
         letter-spacing: 2px;
         text-align: center;
         transform: perspective(400px) rotateX(2deg);
-        text-shadow: var(--ts-comic-soft);
+        text-shadow: 
+            -1px -1px 0 #000,
+            1px -1px 0 #000,
+            -1px 1px 0 #000,
+            1px 1px 0 #000,
+            2px 2px 4px rgba(0, 0, 0, 0.7);
     }
     
     .game-info {
@@ -309,7 +321,12 @@ body, .btn, .card-text {
         font-size: 2em;
         letter-spacing: 1px;
         transform: perspective(300px) rotateX(1deg);
-        text-shadow: var(--ts-comic-soft);
+        text-shadow: 
+            -1px -1px 0 #000,
+            1px -1px 0 #000,
+            -1px 1px 0 #000,
+            1px 1px 0 #000,
+            2px 2px 4px rgba(0, 0, 0, 0.6);
     }
     
     .tokyo-area h2 {
@@ -532,9 +549,7 @@ body, .btn, .card-text {
         display: flex;
         flex-direction: column;
         min-height: 100vh;
-    }
-
-    .monster-profile .monster-info {
+    }    .monster-profile .monster-info {
         width: 100%;
         text-align: center;
     }
@@ -557,8 +572,69 @@ body, .btn, .card-text {
         gap: clamp(8px, 2vw, 12px);
     }
     
-    /* Extra small devices (consolidated) */
+    /* Extra small devices */
     @media (max-width: 360px) {
+        #monster-profiles-modal .modal-content {
+            padding: 5px;
+            margin: 5px;
+        }
+
+        #monster-profiles-modal .modal-content h2 {
+            font-size: 1rem;
+            padding: 5px 0;
+        }
+
+        #monster-profiles-modal .setup-header {
+            padding: 10px;
+        }
+
+        #monster-profiles-modal .setup-buttons {
+            flex-direction: row;
+            gap: 10px;
+        }
+
+        #monster-profiles-modal .btn {
+            padding: 8px;
+            font-size: 0.9em;
+        }
+
+        .monster-profiles-grid {
+            grid-template-columns: 1fr;
+            gap: 5px;
+            padding: 3px;
+            max-width: 100%;
+        }
+
+        .monster-profile {
+            padding: 6px;
+            gap: 8px;
+        }
+
+        .monster-profile img {
+            width: 50px;
+            height: 50px;
+        }
+
+        .monster-profile h3 {
+            font-size: 0.8rem;
+            margin: 0 0 2px 0;
+        }
+
+        .monster-profile p {
+            font-size: 0.7rem;
+        }
+
+        #monster-profiles-modal select,
+        #monster-profiles-modal button {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            margin: 2px;
+        }
+    }
+}
+
+/* Extra small devices */
+@media (max-width: 360px) {
     #monster-profiles-modal .modal-content {
         padding: 5px;
         margin: 5px;
@@ -595,7 +671,8 @@ body, .btn, .card-text {
         padding: 4px 8px;
         margin: 2px;
     }
-    }
+}
+
     /* Optimize game elements for small screens */
     .player-stats {
         display: grid;
@@ -630,8 +707,7 @@ body, .btn, .card-text {
         margin: 10px auto;
         padding: clamp(10px, 3vw, 20px);
     }
-
-} /* END @media (max-width: 480px) primary mobile adjustments */
+}
 
 /* Touch Device Optimizations */
 @media (hover: none) {

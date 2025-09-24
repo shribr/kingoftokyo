@@ -223,14 +223,6 @@ class Player {
     // Add victory points
     addVictoryPoints(amount) {
         this.victoryPoints += amount;
-        // Immediate victory arbitration hook
-        try {
-            if (typeof window !== 'undefined' && window.currentGame && typeof window.currentGame.onPlayerVictoryPointsChanged === 'function') {
-                window.currentGame.onPlayerVictoryPointsChanged(this, amount);
-            }
-        } catch (err) {
-            console.warn('⚠️ onPlayerVictoryPointsChanged hook error:', err);
-        }
         return this.victoryPoints;
     }
 

@@ -8,7 +8,14 @@
     box-sizing: border-box;
 }
 
-body { font-family:'Nunito',sans-serif; background:#000; color:#fff; overflow:hidden; }
+body {
+    font-family: 'Nunito', sans-serif;
+    background: #000;
+    color: #fff;
+    overflow-x: hidden; /* Prevent horizontal scrollbars only */
+    overflow-y: visible; /* Allow vertical expansion for player cards */
+    height: 100vh; /* Ensure body takes full viewport height */
+}
 
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
@@ -274,5 +281,3 @@ button:disabled,
 input:disabled {
     cursor: default !important;
 }
-
-/* (Removed accessibility utility & custom property section as part of reversion) */
