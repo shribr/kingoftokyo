@@ -23,7 +23,7 @@ import { metaReducer } from '../core/reducers/meta.reducer.js';
 import { createTurnService } from '../services/turnService.js';
 import { createEffectEngine } from '../services/effectEngine.js';
 import '../ui/devPanel.js';
-import { loadSettings, bindSettingsPersistence } from '../services/settingsService.js';
+import { loadSettings, bindSettingsPersistence, loadLogCollapse } from '../services/settingsService.js';
 import { bindAIDecisionCapture } from '../services/aiDecisionService.js';
 
 // Placeholder reducers until implemented
@@ -55,6 +55,7 @@ if (typeof window !== 'undefined') {
   eventBus.emit('bootstrap/ready', {});
   // Load persisted settings before UI mounts
   loadSettings(store);
+  loadLogCollapse(store);
   bindSettingsPersistence(store);
   bindAIDecisionCapture(store);
   // Demo data

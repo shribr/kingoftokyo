@@ -201,4 +201,20 @@
       "assets": [],
       "zIndex": 130
     }
+    ,{
+      "name": "aiThoughtBubble",
+      "version": "0.1.0",
+      "selector": ".cmp-ai-thought-bubble",
+      "mountPoint": "#app",
+      "order": 315,
+      "enabled": true,
+      "stateKeys": ["settings"],
+      "build": "ai-thought-bubble.build",
+      "update": "ai-thought-bubble.update",
+      "eventsOut": [],
+      "eventsIn": [],
+      "initialState": {},
+      "assets": [],
+      "zIndex": 126
+    }
 ]

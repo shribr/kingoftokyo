@@ -1,4 +1,4 @@
-import { UI_CARD_DETAIL_OPEN, UI_CARD_DETAIL_CLOSE, UI_PLAYER_CARDS_OPEN, UI_PLAYER_CARDS_CLOSE, UI_MONSTER_PROFILES_OPEN, UI_MONSTER_PROFILES_CLOSE, UI_MONSTER_PROFILE_OPEN, UI_MONSTER_PROFILE_CLOSE, UI_SPLASH_HIDE, UI_POSITION_SET, UI_POSITIONS_RESET, UI_SETTINGS_OPEN, UI_SETTINGS_CLOSE, UI_AI_DECISION_OPEN, UI_AI_DECISION_CLOSE, UI_GAME_LOG_OPEN, UI_GAME_LOG_CLOSE } from '../actions.js';
+import { UI_CARD_DETAIL_OPEN, UI_CARD_DETAIL_CLOSE, UI_PLAYER_CARDS_OPEN, UI_PLAYER_CARDS_CLOSE, UI_MONSTER_PROFILES_OPEN, UI_MONSTER_PROFILES_CLOSE, UI_MONSTER_PROFILE_OPEN, UI_MONSTER_PROFILE_CLOSE, UI_SPLASH_HIDE, UI_POSITION_SET, UI_POSITIONS_RESET, UI_SETTINGS_OPEN, UI_SETTINGS_CLOSE, UI_AI_DECISION_OPEN, UI_AI_DECISION_CLOSE, UI_GAME_LOG_OPEN, UI_GAME_LOG_CLOSE, UI_GAME_LOG_COLLAPSE_STATE } from '../actions.js';
 
 const initial = {
   cardDetail: { cardId: null, source: null },
@@ -53,8 +53,14 @@ export function uiReducer(state = initial, action) {
     case UI_SETTINGS_CLOSE: return { ...state, settings: { open: false } };
     case UI_AI_DECISION_OPEN: return { ...state, aiDecision: { open: true } };
     case UI_AI_DECISION_CLOSE: return { ...state, aiDecision: { open: false } };
-    case UI_GAME_LOG_OPEN: return { ...state, gameLog: { open: true } };
-    case UI_GAME_LOG_CLOSE: return { ...state, gameLog: { open: false } };
+    case UI_GAME_LOG_OPEN: return { ...state, gameLog: { ...(state.gameLog||{}), open: true } };
+    case UI_GAME_LOG_CLOSE: return { ...state, gameLog: { ...(state.gameLog||{}), open: false } };
+    case UI_GAME_LOG_COLLAPSE_STATE: {
+      const partial = action.payload.partial || {};
+      const existing = state.gameLog?.collapse || { rounds: {}, turns: {} };
+      const kinds = partial.kinds ? partial.kinds : state.gameLog?.kinds;
+      return { ...state, gameLog: { ...(state.gameLog||{}), kinds, collapse: { rounds: { ...existing.rounds, ...(partial.rounds||{}) }, turns: { ...existing.turns, ...(partial.turns||{}) } } } };
+    }
     default:
       return state;
   }

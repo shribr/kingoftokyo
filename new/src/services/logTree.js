@@ -25,6 +25,6 @@ export function buildLogTree(entries) {
   return tree.map(r => ({
     type: 'round',
     round: r.round,
-    turns: Array.from(r.turns.values()).map(t => ({ type: 'turn', turn: t.turn, entries: t.entries }))
+    turns: Array.from(r.turns.values()).sort((a,b)=>a.turn-b.turn).map(t => ({ type: 'turn', turn: t.turn, entries: t.entries.sort((a,b)=>a.id-b.id) }))
   }));
 }

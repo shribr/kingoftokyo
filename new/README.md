@@ -166,8 +166,8 @@ The initial architectural roadmap spans 11 macro phases. Earlier README updates 
 | 6 | Player profile cards & positioning | COMPLETE | Profile card + multi manager, drag persistence service |
 | 7 | Effect engine & passive modifiers | COMPLETE | `effectQueue` reducer, `effectEngine`, modifier recalculation |
 | 8 | Modal parity batch 1 | COMPLETE | Card detail, owned cards, monster profiles, splash adjustments |
-| 9 | Modal parity batch 2 | IN PROGRESS | Settings modal + persistence, hierarchical game log, AI decision tree mock, unified modal CSS |
-| 10 | AI transparency & enriched logs | PENDING | Real decision rationale trees, semantic log tagging |
+| 9 | Modal parity batch 2 | COMPLETE | Settings modal + persistence, hierarchical game log (semantic kinds + collapse persistence), AI decision heuristic w/ hypotheticals, unified modal CSS |
+| 10 | AI transparency & enriched logs | IN PROGRESS | Thought bubble, log kind filters, AI node linking groundwork |
 | 11 | Test hardening & theming (dark hooks) | PENDING | Coverage expansion, accessibility, token override & dark edition scaffolds |
 
 ### Recent Work (Phases 7–9)
@@ -179,16 +179,29 @@ The initial architectural roadmap spans 11 macro phases. Earlier README updates 
 6. Unified modal styling layer (`components.modals.css`) using design tokens.
 7. Forward Dark Edition hooks: `meta.gameMode`, deck init option, dark token override, planning doc.
 
-### To Finish Phase 9
-- Apply settings semantics (CPU pacing, future thought bubble rendering once migrated).
-- Replace AI decision mock entries with real roll evaluation (basic heuristic) or mark as Phase 10 entry.
-- Semantic enrichment for log entries (damage, purchases, effects) powering category grouping.
-- Persist collapse state for log tree.
+### Phase 9 Closure Summary
+Implemented:
+- CPU pacing via `settings.cpuSpeed` (slow/normal/fast) affecting AI roll delays.
+- AI decision heuristic replacing mock (scores claws, energy, healing need, triples + potentials) with hypothetical reroll projections.
+- Semantic log enrichment (uniform fields: `kind`, `round`, `turn`, `phase`) and automatic phase change logging.
+- Persistent hierarchical log collapse state (round & turn) stored in `localStorage`.
+- Added tests for logger semantics & AI decision capture.
+
+Deferred to Phase 10+:
+- Thought bubble visualization for AI rationale (`showThoughtBubbles`).
+- Filtering UI for log kinds.
+- Cross-linking log lines to specific AI decision node IDs.
 
 ### Phase 10 (Planned Outline)
-- Real AI evaluation nodes: reroll branch scoring, card purchase heuristics, risk tolerance metrics.
-- Log + decision cross-link (log line references decision node id).
-- Accessibility upgrades: focus traps & keyboard escape for all modals, aria-live for phase/log updates.
+Current progress:
+- Thought bubble component showing latest roll rationale + top hypotheticals (respects `showThoughtBubbles`).
+- Log kind filtering UI with persistence (round/turn collapse + kind selections stored).
+- AI node id attached to roll-related logs (available via `aiNodeId`).
+
+Remaining:
+- Deep reroll branch tree evaluation & comparative scoring.
+- Card purchase heuristic integration.
+- Full accessibility sweep (focus traps, aria-live regions).
 
 ### Phase 11 (Planned Outline)
 - Unit & integration test expansion (effect engine edge cases, settings influences, modal lifecycle).

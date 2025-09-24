@@ -57,6 +57,7 @@ export const UI_AI_DECISION_OPEN = 'UI_AI_DECISION_OPEN';
 export const UI_AI_DECISION_CLOSE = 'UI_AI_DECISION_CLOSE';
 export const UI_GAME_LOG_OPEN = 'UI_GAME_LOG_OPEN';
 export const UI_GAME_LOG_CLOSE = 'UI_GAME_LOG_CLOSE';
+export const UI_GAME_LOG_COLLAPSE_STATE = 'UI_GAME_LOG_COLLAPSE_STATE';
 // Settings (new slice)
 export const SETTINGS_LOADED = 'SETTINGS_LOADED';
 export const SETTINGS_UPDATED = 'SETTINGS_UPDATED';
@@ -119,6 +120,7 @@ export const uiAIDecisionOpen = () => ({ type: UI_AI_DECISION_OPEN });
 export const uiAIDecisionClose = () => ({ type: UI_AI_DECISION_CLOSE });
 export const uiGameLogOpen = () => ({ type: UI_GAME_LOG_OPEN });
 export const uiGameLogClose = () => ({ type: UI_GAME_LOG_CLOSE });
+export const uiGameLogCollapseState = (partial) => ({ type: UI_GAME_LOG_COLLAPSE_STATE, payload: { partial } });
 // Settings actions
 export const settingsLoaded = (settings) => ({ type: SETTINGS_LOADED, payload: { settings } });
 export const settingsUpdated = (partial) => ({ type: SETTINGS_UPDATED, payload: { partial } });

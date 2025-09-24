@@ -1,9 +1,10 @@
 /** settingsService.js
  * Handles persistence of user-adjustable settings to localStorage.
  */
-import { settingsLoaded } from '../core/actions.js';
+import { settingsLoaded, uiGameLogCollapseState } from '../core/actions.js';
 
 const LS_KEY = 'kot_new_settings_v1';
+const LS_LOG_COLLAPSE = 'kot_new_logCollapse_v1';
 
 export function loadSettings(store) {
   try {
@@ -31,5 +32,29 @@ export function bindSettingsPersistence(store) {
     if (action && action.type === 'SETTINGS_UPDATED') {
       persistSettings(store);
     }
+    if (action && action.type === 'UI_GAME_LOG_COLLAPSE_STATE') {
+      try {
+        const st = store.getState();
+        const collapse = st.ui?.gameLog?.collapse;
+        const kinds = st.ui?.gameLog?.kinds;
+        localStorage.setItem(LS_LOG_COLLAPSE, JSON.stringify({ collapse, kinds }));
+      } catch (_) { /* ignore */ }
+    }
   });
+}
+
+export function loadLogCollapse(store) {
+  try {
+    const raw = localStorage.getItem(LS_LOG_COLLAPSE);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.collapse) {
+        store.dispatch(uiGameLogCollapseState({ ...parsed.collapse, kinds: parsed.kinds }));
+      } else {
+        store.dispatch(uiGameLogCollapseState(parsed));
+      }
+      return parsed;
+    }
+  } catch (_) { /* noop */ }
+  return null;
 }
