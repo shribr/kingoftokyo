@@ -375,8 +375,11 @@ class SetupManager {
                 tileElement.style.removeProperty('background-image');
                 tileElement.style.removeProperty('background-size');
                 
-                // Reset tile content to default
-                tileElement.innerHTML = `<span class="tile-label">${tile.type.toUpperCase()} ${tile.number}</span>`;
+                // Reset tile content to default (human slot always "? Human Player", CPUs "CPU Player")
+                const isHuman = tile.type === 'human';
+                const icon = isHuman ? this.getHumanIcon() : this.getCPUIcon();
+                const label = isHuman ? 'Human Player' : 'CPU Player';
+                tileElement.innerHTML = `\n                        <div class="player-tile-icon">${icon}</div>\n                        <div class="player-tile-label">${label}</div>\n                    `;
             }
         });
         
@@ -418,9 +421,17 @@ class SetupManager {
 
         // Get all available monsters from the displayed monster cards
         const availableMonsters = Object.values(MONSTERS).filter(monster => monster.active !== false);
+        if (availableMonsters.length < this.currentPlayerCount) {
+            alert('Not enough distinct monsters available for that many players.');
+            return;
+        }
         
-        // Shuffle the monsters array
-        const shuffledMonsters = [...availableMonsters].sort(() => Math.random() - 0.5);
+        // Shuffle with Fisher-Yates for better distribution
+        const shuffledMonsters = [...availableMonsters];
+        for (let i = shuffledMonsters.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledMonsters[i], shuffledMonsters[j]] = [shuffledMonsters[j], shuffledMonsters[i]];
+        }
         
         // Get ALL player tiles (both human and CPU) for random assignment
         const allActiveTiles = this.playerTiles.slice(0, this.currentPlayerCount);
@@ -431,12 +442,11 @@ class SetupManager {
             return;
         }
         
-        // Assign random monsters to ALL player tiles (human and CPU)
+        // Assign random monsters ensuring human slot remains index 0 but still gets a random distinct monster
         allActiveTiles.forEach((tile, index) => {
-            if (index < shuffledMonsters.length) {
-                tile.monster = shuffledMonsters[index];
-                tile.occupied = true;
-            }
+            const monster = shuffledMonsters[index];
+            tile.monster = monster;
+            tile.occupied = true;
         });
 
         // Update selected monsters array to match drag-and-drop format
@@ -811,6 +821,14 @@ class SetupManager {
 
     // Helper method to assign monster to tile (used by both drag-drop and touch)
     assignMonsterToTile(monster, tileIndex) {
+        // Prevent duplicate assignments
+        const alreadyUsed = this.playerTiles.some(t => t.monster && t.monster.id === monster.id && t.index !== tileIndex);
+        if (alreadyUsed) {
+            if (window.UI && window.UI.debugMode) {
+                window.UI._debug('⚠️ Duplicate monster drop prevented:', monster.id);
+            }
+            return;
+        }
         // Update tile state
         this.playerTiles[tileIndex].monster = monster;
         this.playerTiles[tileIndex].occupied = true;
@@ -909,12 +927,13 @@ class SetupManager {
         if (!hasPlayerCount) {
             this.elements.startGameBtn.textContent = 'Select Number of Players';
         } else if (!hasRequiredPlayerTypes && this.currentPlayerCount > 1) {
-            this.elements.startGameBtn.textContent = 'Need at least 1 Human player';
+            this.elements.startGameBtn.textContent = 'Need at least 1 human player';
         } else if (canStart) {
             this.elements.startGameBtn.textContent = 'Start Game';
         } else {
             const remaining = monstersRequired - monstersSelected;
-            this.elements.startGameBtn.textContent = `Assign ${remaining} more monster${remaining !== 1 ? 's' : ''}`;
+            // Human slot counts toward requirement only once monster assigned; show remaining excluding already assigned
+            this.elements.startGameBtn.textContent = `Select ${remaining} more player${remaining !== 1 ? 's' : ''} to begin game`;
         }
     }
 
@@ -955,25 +974,6 @@ class SetupManager {
     getSelectedMonsters() {
         // Will return array of selected monsters for game creation
         return [];
-    }
-
-    // Helper methods for randomizeMonsterSelection
-    resetMonsterCards() {
-        const monsterCards = document.querySelectorAll('.monster-option');
-        monsterCards.forEach(card => {
-            // Remove all visual states
-            card.classList.remove('selected', 'grayed-out', 'dragging');
-            
-            // Reset all inline styles that might have been applied
-            card.style.opacity = '';
-            card.style.filter = '';
-            card.style.display = '';
-            card.style.pointerEvents = '';
-            
-            // Ensure the card is visible and interactive
-            card.style.visibility = '';
-            card.style.transform = '';
-        });
     }
 
     // Gray out selected monster cards

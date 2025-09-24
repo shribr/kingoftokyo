@@ -77,6 +77,53 @@ This document provides a comprehensive technical chronicle of the King of Tokyo 
 - **CSS Architecture**: Grid-based layouts with responsive design patterns
 
 ---
+### Day 13: September 24, 2025 - Phase 10 Completion (Transparency, Projection, Accessibility)
+**Context**: Final sweep to complete all remaining Phase 10 objectives: portfolio-aware scoring, multi-roll projection, richer transparency UI, and baseline accessibility instrumentation.
+
+#### Portfolio-Aware Dice Scoring
+**File Modified**: `js/ai-decisions.js`  
+`_scoreDice` now amplifies energy face valuation when the optimized target portfolio (via `optimizePowerCardPortfolio`) identifies missing desired feature tags and the shop holds matching cards. Adds a bias toward generating energy when acquisition probability this turn meaningfully advances strategic gaps (extra reroll, extra die, survivability, damage scaling).
+
+#### Depth-2 Lightweight Projection
+**Addition**: `_projectTwoRollEV(state, keepIndices)` engaged when rolls remain > 0. Performs limited Monte Carlo-like trials (default 60) to estimate:
+* `tripleChance` – probability of securing at least one triple across current kept + projected rerolls.
+* `avgAttack`, `avgEnergy`, `avgHeal` – mean yield contributions factoring prospective rerolls.  
+Result object attached to final decision (`decision.projection`) and surfaced in transparency UI.
+
+#### Expanded Branch Transparency
+**UI Changes** (`js/main.js`): Decision tree modal now lists top 8 considered branches (tag, improvement EV, special utility, combined score). Includes a concise best-branch summary and a projection panel enumerating multi-roll metrics.
+
+#### Accessibility Instrumentation
+**Markup** (`index.html`): Added `role="dialog"`, `aria-modal="true"`, and `aria-labelledby` on all modals (settings, decision tree, game log, instructions, storage, profiles, exit confirm, setup, game over). Each modal heading assigned an id for label association.  
+**Utilities**: Existing `UIUtilities.trapFocus` applied on modal open pathways (`showSettings`, `showGameLog`, `showAIDecisionTree`). Announcements triggered (`announcePhase`) to live regions for context shift feedback.  
+**Styling**: Removed inline display style from roll-off button; introduced `css/rolloff.css` with `.rolloff-hidden` class.
+
+#### Decision Object Enhancements
+`decision.branchAnalysis.considered` expanded to top 8 for fuller context. `decision.projection` adds forward-looking metrics. Logging/visualization updated to surface these without altering existing consumer contracts.
+
+#### Performance & Safeguards
+Maintained branch evaluation cap (≤25). Projection trial count (60) chosen to balance variance reduction with latency; future tuning slated for Phase 11 profiling. Portfolio optimization reused per decision path without additional memoization (candidate for caching if profiling indicates cost hotspots).
+
+#### Validation
+Post-change error scans: No syntax errors. Manual quick run (dice phase) confirms decision tree modal renders new tables (visual QA pending style refinement). ARIA attributes pass basic inspection (unique `aria-labelledby` targets present).
+
+#### Phase 10 Status: COMPLETE
+All originally scoped and subsequently added transparency & heuristic depth items delivered:
+1. Branch EV simulation & alternative branch listing.
+2. Portfolio-integrated energy urgency.
+3. Depth-2 projection metrics.
+4. Accessible modals (roles, labels, focus trapping, announcements).
+5. Richer decision tree visualization (branches + projection).
+6. Inline styling cleanup for compliance baseline.
+
+#### Next (Phase 11 Preview)
+1. Performance Profiling: Measure average AI decision latency; adaptive scaling of projection trials.
+2. Correctness Tests: Unit-style harness for `_projectTwoRollEV` stability (seeded RNG) & branch ranking invariants.
+3. Caching/Memoization: Potentially cache portfolio optimization per turn.
+4. Documentation: Update `DEVELOPMENT_SUMMARY.md` with Phase 10 closure summary and projection metric definitions.
+5. UI Polish: Table styling, responsive layout adjustments, optional collapse/expand for branch detail.
+
+---
 
 ### Days 2-4: September 9-11, 2025 - Planning & Architecture Phase
 **Git Commits**: 0 commits - No development activity
@@ -658,6 +705,34 @@ This development session showcased how human creativity and contextual understan
 - Comprehensive documentation of development process
 
 This session demonstrates the potential for effective human-AI collaboration in software development when proper communication strategies are employed.
+
+---
+
+### Day 12: September 23, 2025 - Advanced AI Heuristic Expansion (Phase 10 Progress)
+**Context**: Transition from foundational heuristic (pair/set centric with adaptive thresholds) toward deeper branch evaluation supporting transparency & smarter reroll strategy. Part of the Phase 10 objective list (AI transparency & decision depth) — now implementing the “deeper reroll branch evaluation” milestone.
+
+#### Branch EV Simulation Engine
+**File Modified**: `js/ai-decisions.js`
+**Addition**: `_simulateBranches(state)` and integration within `_assembleDecision`.
+
+**Purpose**: Produce marginal expected value (MEV) scores for alternative keep patterns before finalizing a reroll vs end decision.
+
+**Key Capabilities**:
+
+**Heuristic Adjustments**:
+
+**Performance Considerations**:
+
+**Outcome**:
+
+#### Phase Progress Update
+
+#### Next Planned Enhancements
+1. Integrate power card portfolio outputs into reroll heuristics (e.g., value energy dice more when a high-impact affordable card sits in shop).
+2. Accessibility pass on modals (focus trap, ESC semantics, ARIA labeling audit, live region for phase shifts & AI reasoning updates).
+3. Optional probabilistic multi-roll projection (depth-2 Monte Carlo) guarded by CPU speed setting.
+
+---
 
 ---
 

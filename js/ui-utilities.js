@@ -12,6 +12,38 @@ class UIUtilities {
             modalElement.classList.remove('hidden');
         }
     }
+    
+    // Accessibility: trap focus inside a modal element
+    static trapFocus(modalEl){
+        try {
+            if (!modalEl) return;
+            const FOCUSABLE = 'a[href], button:not([disabled]), textarea, input[type="text"], input[type="radio"], input[type="checkbox"], select, [tabindex]:not([tabindex="-1"])';
+            const focusable = Array.from(modalEl.querySelectorAll(FOCUSABLE)).filter(el=> el.offsetParent !== null);
+            if (!focusable.length) return;
+            let first = focusable[0];
+            let last = focusable[focusable.length-1];
+            if (document.activeElement && !modalEl.contains(document.activeElement)) first.focus();
+            const handler = (e)=>{
+                if (e.key === 'Tab') {
+                    if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+                    else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+                }
+                if (e.key === 'Escape') {
+                    UIUtilities.hideModal(modalEl);
+                }
+            };
+            modalEl._focusTrapHandler && modalEl.removeEventListener('keydown', modalEl._focusTrapHandler);
+            modalEl._focusTrapHandler = handler;
+            modalEl.addEventListener('keydown', handler);
+        } catch(err){ console.warn('focus trap error', err); }
+    }
+    
+    static announcePhase(message){
+        try { const el = document.getElementById('aria-live-phase'); if (el){ el.textContent=''; setTimeout(()=> el.textContent=message, 10);} } catch(_){ }
+    }
+    static announceAI(message){
+        try { const el = document.getElementById('aria-live-ai'); if (el){ el.textContent=''; setTimeout(()=> el.textContent=message, 10);} } catch(_){ }
+    }
 
     static hideModal(modalElement) {
         if (modalElement) {

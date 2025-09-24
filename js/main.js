@@ -4713,6 +4713,8 @@ class KingOfTokyoUI {
     async showGameLog() {
         this.updateGameLogDisplay();
         this.elements.gameLogModal.classList.remove('hidden');
+        UIUtilities.trapFocus(this.elements.gameLogModal);
+        UIUtilities.announcePhase('Game log opened');
     }
 
     // Initialize tab switching functionality for game log
@@ -6077,12 +6079,16 @@ class KingOfTokyoUI {
 
     showSettings() {
         UIUtilities.showModal(this.elements.settingsModal);
+        UIUtilities.trapFocus(this.elements.settingsModal);
+        UIUtilities.announcePhase('Settings opened');
         this.loadSettings();
     }
 
     showAIDecisionTree() {
         if (!this.elements.aiDecisionTreeModal) return;
         UIUtilities.showModal(this.elements.aiDecisionTreeModal);
+        UIUtilities.trapFocus(this.elements.aiDecisionTreeModal);
+        UIUtilities.announcePhase('AI decision tree opened');
         // Render latest AI decision tree content
         try { this.renderAILogicFlow(); } catch(e){ console.warn('AI Decision Tree render error', e); }
         // Restore scroll position
@@ -7948,6 +7954,14 @@ class KingOfTokyoUI {
                         } else {
                             window.AIDecisionAsyncStats.resolved++;
                         }
+                        // Branch analysis logging (Phase 10 transparency)
+                        try {
+                            if (result && result.branchAnalysis && result.branchAnalysis.best) {
+                                const b = result.branchAnalysis.best;
+                                console.log(`🧩 AI Branch Best -> tag:${b.tag} score:${b.score} keep:[${b.kept.join(',')}] improvEV:${b.improvementEV} specUtil:${b.specialUtility}`);
+                                UIUtilities.announceAI(`AI chose branch ${b.tag} score ${b.score}`);
+                            }
+                        } catch(_){ /* non-fatal */ }
                         this._processResolvedAIDecision(player, rollNumber, diceState, diceResults, gameState, result);
                     })
                     .catch(err => {
@@ -8280,6 +8294,29 @@ class KingOfTokyoUI {
         const initialGoalHTML = `<div class=\"ai-flow-opening-intent\">${openingIntent}</div>`;
         // Build goal evolution timeline nodes
         const goalTimeline = this.buildGoalTimeline(turn);
+        // Branch & projection summary (latest roll if available)
+        let branchHTML='';
+        try {
+            const lastRoll = turn.rolls[turn.rolls.length-1];
+            if (lastRoll && lastRoll.decision && lastRoll.decision.branchAnalysis){
+                const ba = lastRoll.decision.branchAnalysis;
+                if (ba.best){
+                    branchHTML += `<div class=\"ai-flow-branch-best\"><strong>Branch Best:</strong> ${ba.best.tag} (score ${ba.best.score}) kept [${(ba.best.kept||[]).join(', ')}] ΔEV ${ba.best.improvementEV} util ${ba.best.specialUtility}</div>`;
+                }
+                if (ba.considered && ba.considered.length){
+                    branchHTML += `<details class=\"ai-flow-branches\"><summary>Alt Branches (${ba.considered.length})</summary>`;
+                    branchHTML += `<table class=\"ai-branches-table\"><thead><tr><th>tag</th><th>kept</th><th>imprEV</th><th>specU</th><th>score</th></tr></thead><tbody>`;
+                    ba.considered.slice(0,8).forEach(b=>{
+                        branchHTML += `<tr><td>${b.tag}</td><td>${(b.kept||[]).join(',')}</td><td>${b.improvementEV}</td><td>${b.specialUtility}</td><td>${b.score}</td></tr>`;
+                    });
+                    branchHTML += `</tbody></table></details>`;
+                }
+            }
+            if (lastRoll && lastRoll.decision && lastRoll.decision.projection){
+                const pr = lastRoll.decision.projection;
+                branchHTML += `<div class=\"ai-flow-projection\"><strong>2-Roll Projection:</strong> tripleChance ${pr.tripleChance}, atk ${pr.avgAttack}, ⚡ ${pr.avgEnergy}, ❤ ${pr.avgHeal}</div>`;
+            }
+        } catch(e){ /* swallow */ }
         return `
         <div class="ai-flow-turn collapsed" data-player-id="${turn.playerId}">
             <div class="ai-flow-turn-header">🐲 ${turn.playerName} <span class="ai-flow-turn-meta">${turn.rolls.length} roll(s)${duration?` • ${(duration/1000).toFixed(1)}s`:''}</span></div>
@@ -8287,6 +8324,7 @@ class KingOfTokyoUI {
             ${goalTimeline}
             <div class="ai-flow-turn-body">
                 ${turn.rolls.map(r => this.buildRollHTML(turn, r)).join('')}
+                ${branchHTML}
                 <div class="ai-flow-turn-chain">${chainExplanation}</div>
             </div>
         </div>`;

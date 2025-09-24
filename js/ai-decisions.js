@@ -6,6 +6,29 @@
  */
 
 (function(){
+	// Phase 11 Profiling Scaffold
+	const AIDecisionProfiler = {
+		enabled: typeof window !== 'undefined' && !!window.AI_PROFILING,
+		samples: [],
+		record(label, ms) {
+			if (!this.enabled) return;
+			this.samples.push({ label, ms, t: Date.now() });
+			if (this.samples.length > 300) this.samples.shift();
+		},
+		stats() {
+			if (!this.samples.length) return null;
+			const arr = this.samples.map(s=>s.ms);
+			const sum = arr.reduce((a,b)=>a+b,0);
+			return { count: arr.length, avg:+(sum/arr.length).toFixed(2), min:+Math.min(...arr).toFixed(2), max:+Math.max(...arr).toFixed(2) };
+		},
+		maybeLog(){
+			if (!this.enabled) return;
+			if (this.samples.length && this.samples.length % 25 === 0){
+				const s = this.stats();
+				s && console.log('🧪 AI Decision Profiling', s);
+			}
+		}
+	};
 	const CFG = {
 		goalAlignmentMultiplier: 1.55,
 		pairScoreBase: 60,
@@ -35,6 +58,93 @@
 			if (typeof window !== 'undefined') {
 				window.AIOverrideStats = window.AIOverrideStats || { decisions:0, invariants:0, pairProtect:0 };
 			}
+		}
+
+		/**
+		 * NEW (2025-09-23): Branch EV Simulation
+		 * Performs a shallow combinatorial exploration of plausible keep sets to estimate
+		 * marginal expected value (MEV) improvements vs current plan. This helps:
+		 *  - Breaking ties between multiple number pairs
+		 *  - Deciding whether to release an off-strategy high score special (attack / energy)
+		 *  - Early stopping when all promising branches are low-yield
+		 * Constraints: We cap branches for performance (<= 25 evaluated) and use analytical
+		 * probability approximations (binomial) instead of full roll tree enumeration.
+		 */
+		_simulateBranches(state){
+			const faces = state.dice.map(f=>f); // snapshot
+			const numberFaces = ['one','two','three'];
+			// Candidate indices grouped by face for combinatorics
+			const byFace = { one:[], two:[], three:[], attack:[], energy:[], heart:[] };
+			faces.forEach((f,i)=>{ if(byFace[f]) byFace[f].push(i); });
+			// Build base candidate keep patterns:
+			//  1. Keep each existing pair fully
+			//  2. Keep each single high-value special alone (attack if pressure / energy early / heart if critical)
+			//  3. Mixed: primary numeric pair (or proto pair) + one auxiliary special
+			const pairs = numberFaces.filter(f=> byFace[f].length===2);
+			const singles = numberFaces.filter(f=> byFace[f].length===1);
+			const specials = ['attack','energy','heart'].filter(f=> byFace[f].length>0);
+			const branches = new Map(); // key -> {keep:Set, tag:string}
+			const addBranch = (idxs, tag)=>{
+				const key = [...idxs].sort((a,b)=>a-b).join('-');
+				if (!branches.has(key)) branches.set(key,{ keep:new Set(idxs), tag });
+			};
+			pairs.forEach(p=> addBranch(byFace[p], `pair:${p}`));
+			singles.forEach(s=> addBranch(byFace[s], `single:${s}`));
+			specials.forEach(sp=> addBranch(byFace[sp], `special:${sp}`));
+			// Mixed patterns
+			pairs.forEach(p=>{
+				specials.forEach(sp=> addBranch([...byFace[p], byFace[sp][0]], `pair+${sp}:${p}`));
+			});
+			// Proto pair attempts: single + release others
+			singles.forEach(s=> specials.forEach(sp=> addBranch([...byFace[s], byFace[sp][0]], `single+${sp}:${s}`)));
+			// Ensure current actual kept state (by heuristic) is included later by caller.
+			// Evaluate each branch: compute MEV to improve numeric sets based on free dice count.
+			const R = state.rollsRemaining;
+			if (R<=0) return { evaluated:[], best:null };
+			const evald=[];
+			for (const {keep, tag} of branches.values()){
+				// Free dice = remaining dice not kept
+				const free = faces.length - keep.size;
+				if (free<=0) continue; // trivial
+				// Estimate improvement: For each number face f with count<3, probability of at least one more instance.
+				let improvementEV=0; const faceDetails=[];
+				numberFaces.forEach(f=>{
+					const currentCount = byFace[f].filter(i=> keep.has(i)).length;
+					if (currentCount===0) return; // branch not investing in this number
+					if (currentCount>=3) return; // already formed
+					const need = currentCount===2?1:1; // at least one more to improve
+					// Trials = free * R; p(success single trial)=1/6
+					const trials = free * R;
+					let pImprove=0;
+					for(let x=need;x<=trials;x++){
+						let comb=1; // nCx iterative
+						for(let i=1;i<=x;i++) comb = comb * (trials - (x - i)) / i;
+						pImprove += comb * Math.pow(1/6,x) * Math.pow(5/6,trials - x);
+					}
+					// Base value weight: face numeric value scaling (1,2,3) * formedSetBase fraction
+					const faceVal = f==='one'?1: f==='two'?2:3;
+					const unitEV = (CFG.formedSetBase * 0.05 * faceVal); // small arbitrary scaling to compare relative branches
+					const contrib = pImprove * unitEV;
+					improvementEV += contrib;
+					faceDetails.push({ face:f, currentCount, needed:need, pImprove:Number(pImprove.toFixed(3)), unitEV:Number(unitEV.toFixed(2)), contrib:Number(contrib.toFixed(2)) });
+				});
+				// Add generic utility from kept specials (attack / energy / heart conditional)
+				let specialUtility=0;
+				if (keep.size>0){
+					['attack','energy','heart'].forEach(sp=>{
+						if (byFace[sp].some(i=> keep.has(i))){
+							if (sp==='attack') specialUtility += 8 + (state.criticalThreat?4:0);
+							else if (sp==='energy') specialUtility += state.phase==='early'?7: state.phase==='mid'?5:3;
+							else if (sp==='heart' && !state.player.isInTokyo && state.player.health < state.player.maxHealth) specialUtility += (state.player.health<=CFG.healingCriticalHP?9:4);
+						}
+					});
+				}
+				const branchScore = improvementEV + specialUtility;
+				evald.push({ tag, kept:[...keep].sort((a,b)=>a-b), free, improvementEV:Number(improvementEV.toFixed(2)), specialUtility, score:Number(branchScore.toFixed(2)), faces:faceDetails });
+				if (evald.length>=25) break; // performance cap
+			}
+			evald.sort((a,b)=> b.score - a.score);
+			return { evaluated:evald, best: evald[0] || null };
 		}
 
 		makeRollDecision(currentDice, rollsRemaining, player, gameState){
@@ -75,7 +185,14 @@
 			const cardSummary = this._summarizeCards(player.powerCards||[]);
 			const effectiveRollsRemaining = rollsRemaining + (cardSummary.extraReroll>0 ? 1:0); // treat extra reroll as future improvement window
 			// Represent extra die as virtual available slot for EV modeling (not altering current dice array contents directly)
-			return { dice, counts, numbers, phase, tokyoOccupant, criticalThreat, cardSummary, player, rollsRemaining:effectiveRollsRemaining, origRolls:rollsRemaining };
+			// Capture available market snapshot if exposed on gameState (non-destructive). This will allow energy dice to value impending purchases.
+			let shopCards = [];
+			try {
+				if (gameState && Array.isArray(gameState.availablePowerCards)) {
+					shopCards = gameState.availablePowerCards.slice(0,3).map(c=>({ name:c.name, cost:c.cost, id:c.id, effects:c.effects }));
+				}
+			} catch(_){}
+			return { dice, counts, numbers, phase, tokyoOccupant, criticalThreat, cardSummary, player, rollsRemaining:effectiveRollsRemaining, origRolls:rollsRemaining, shopCards };
 		}
 
 		_summarizeCards(cards){
@@ -150,6 +267,42 @@
 			const tokyoOccupiedBySelf = !!player.isInTokyo;
 			const enemyTokyoOccupant = state.tokyoOccupant && state.tokyoOccupant.id !== player.id ? state.tokyoOccupant : null;
 			const arr = [];
+			// Pre-compute shop pressure & portfolio urgency for energy: highest priority affordable delta for impactful card
+			let energyUrgencyBonus = 0;
+			let portfolioDesiredFeature = null;
+			if (state.shopCards && state.shopCards.length){
+				// Use optimized portfolio plan (simulate selection with current budget) to bias feature pursuit
+				try {
+					if (typeof this.optimizePowerCardPortfolio === 'function'){
+						const plan = this.optimizePowerCardPortfolio(state.shopCards.map(c=>({ ...c })), player);
+						if (plan && plan.cards && plan.cards.length){
+							// Choose the first planned card's most salient feature as desire (pref: extraDie > extraReroll > attack > energy > heal > vp)
+							const featurePriority = ['extraDie','extraReroll','attack','energy','heal','vp'];
+							const first = plan.cards[0];
+							const feats = this._extractCardFeatures(first).values ? Array.from(this._extractCardFeatures(first)) : Array.from(this._extractCardFeatures(first));
+							portfolioDesiredFeature = featurePriority.find(f=> feats.includes(f)) || null;
+						}
+					}
+				} catch(e){ /* ignore */ }
+				// Identify impact cards directly for shortfall weighting
+				const impactful = state.shopCards.map(c=>{
+					const feats = this._extractCardFeatures(c);
+					let impactScore = 0;
+					if (feats.has('extraDie')) impactScore += 30;
+					if (feats.has('extraReroll')) impactScore += 24;
+					if (feats.has('attack')) impactScore += 14;
+					if (feats.has('heal') && player.health <= CFG.healingCriticalHP) impactScore += 12;
+					if (feats.has('vp') && phase!=='early') impactScore += 10;
+					const shortfall = Math.max(0, (c.cost||0) - player.energy);
+					return { impactScore, shortfall };
+				}).filter(m=> m.impactScore>0).sort((a,b)=> (a.shortfall - b.shortfall) || (b.impactScore - a.impactScore));
+				if (impactful.length){
+					const top = impactful[0];
+					if (top.shortfall > 0){
+						energyUrgencyBonus = Math.max(4, (top.impactScore/10)) * (top.shortfall <=2 ? 1.4 : 1.0);
+					}
+				}
+			}
 			state.dice.forEach((face,index)=>{
 				let score=0, locked=false;
 				if (face==='one'||face==='two'||face==='three'){
@@ -188,7 +341,11 @@
 					const baseEnergy = phase==='early'?16: phase==='mid'?12:8;
 					const stratAdj = 1 + ((personality.strategy - 3) * 0.12);
 					const riskAdj = 1 - ((personality.risk - 3) * 0.07);
-					score = baseEnergy * stratAdj * riskAdj;
+					score = (baseEnergy * stratAdj * riskAdj) + energyUrgencyBonus;
+					// Portfolio desire: if current desired feature is energy enabler (extraDie/extraReroll) and we're short on energy, amplify
+					if (portfolioDesiredFeature && ['extraDie','extraReroll'].includes(portfolioDesiredFeature)){
+						score *= 1.15;
+					}
 					if (cardSummary.energyEngine) score += 5*cardSummary.energyEngine;
 					if (player.energy <=2) score += 6;
 					if (goal && counts[goal.face]===2) score *= 0.85;
@@ -208,6 +365,58 @@
 			const max = Math.max(1,...arr.map(s=>s.score));
 			arr.forEach(s=> s.normScore = s.score / max);
 			return arr;
+		}
+
+		// ---------- Depth-2 Monte Carlo Projection (Lightweight) ----------
+		// Estimate marginal benefit of current keep plan by simulating one future reroll sequence
+		_projectTwoRollEV(state, keepIndices){
+			try {
+				if (state.rollsRemaining <=1) return null; // need at least two rolls to project
+				// Adaptive trials: if profiler enabled and avg latency low, increase; if high, decrease
+				let baseTrials = 60;
+				if (AIDecisionProfiler.enabled){
+					const s = AIDecisionProfiler.stats();
+					if (s){
+						if (s.avg < 12) baseTrials = 110; // plenty of headroom
+						else if (s.avg < 18) baseTrials = 80;
+						else if (s.avg > 35) baseTrials = 40; // throttle
+						else if (s.avg > 50) baseTrials = 25; // emergency shrink
+					}
+				}
+				const TRIALS = baseTrials;
+				const faces = ['one','two','three','attack','energy','heart'];
+				let aggregate = { tripleGain:0, attack:0, energy:0, heal:0 };
+				for (let t=0;t<TRIALS;t++){
+					// Clone dice, fill unkept with random, then second roll improvement
+					let dice = state.dice.slice();
+					for (let i=0;i<dice.length;i++) if (!keepIndices.has(i)) dice[i] = faces[Math.floor(Math.random()*faces.length)];
+					// Simulate second reroll for any not forming part of a triple pursuit
+					const counts = { one:0,two:0,three:0,attack:0,energy:0,heart:0 };
+					dice.forEach(f=> counts[f]++);
+					// Identify best number target
+					const numSorted = ['one','two','three'].map(f=>({f,c:counts[f]})).sort((a,b)=> b.c - a.c || (b.f==='three'?1:-1));
+					const target = numSorted[0];
+					// Reroll non-target numbers and non-special priority if not locked
+					for (let i=0;i<dice.length;i++){
+						if (dice[i]!==target.f && !['attack','energy','heart'].includes(dice[i])){
+							if (Math.random()<0.8){ dice[i] = faces[Math.floor(Math.random()*faces.length)]; }
+						}
+					}
+					// Final counts
+					const finalCounts = { one:0,two:0,three:0,attack:0,energy:0,heart:0 };
+					dice.forEach(f=> finalCounts[f]++);
+					if (finalCounts[target.f] >=3) aggregate.tripleGain += 1;
+					aggregate.attack += finalCounts.attack;
+					aggregate.energy += finalCounts.energy;
+					aggregate.heal += finalCounts.heart;
+				}
+				return {
+					tripleChance: Number((aggregate.tripleGain/TRIALS).toFixed(3)),
+					avgAttack: Number((aggregate.attack/TRIALS).toFixed(2)),
+					avgEnergy: Number((aggregate.energy/TRIALS).toFixed(2)),
+					avgHeal: Number((aggregate.heal/TRIALS).toFixed(2))
+				};
+			} catch(e){ return null; }
 		}
 
 		// ---------- Set EV ----------
@@ -267,8 +476,11 @@
 
 		// ---------- Decision Assembly ----------
 		_assembleDecision(state, goal, scored, ev, rollsRemaining, player){
+			const __t0 = (typeof performance!=='undefined')? performance.now(): Date.now();
 			const keep = new Set();
 			const releasedIndices = [];
+			// NEW: Invoke branch simulator early to capture alternative plans (before we commit keep set)
+			const branchSim = this._simulateBranches(state);
 			// Determine primary target face (goal face if present, else highest count number face)
 			let primaryFace = goal?.face || null;
 			if (!primaryFace){
@@ -429,7 +641,25 @@
 				}
 			}
 			// Recompute kept and freeDice if modified
-			const keptFinal = Array.from(keep).sort((a,b)=>a-b);
+			let keptFinal = Array.from(keep).sort((a,b)=>a-b);
+			// Branch comparison refinement: If branch simulator identifies a branch with strictly higher score than our current tentative keep set interpretation, compare.
+			if (branchSim && branchSim.best){
+				// Derive current branch descriptor for comparison
+				const currentTag = 'heuristic';
+				// Score current via same metric: treat improvement portion as ev.total scaled + specials present
+				const currentSpecialUtility = keptFinal.reduce((acc,idx)=>{
+					const face = state.dice[idx];
+					if (face==='attack') return acc + 8 + (state.criticalThreat?4:0);
+					if (face==='energy') return acc + (state.phase==='early'?7: state.phase==='mid'?5:3);
+					if (face==='heart' && !state.player.isInTokyo && state.player.health < state.player.maxHealth) return acc + (state.player.health<=CFG.healingCriticalHP?9:4);
+					return acc;
+				},0);
+				const currentScore = (ev.total* (CFG.formedSetBase*0.05)) + currentSpecialUtility; // approximate scaling parity with simulator
+				if (branchSim.best.score > currentScore * 1.08) { // require 8% margin to avoid churn
+					keptFinal = branchSim.best.kept;
+					releasedIndices.push('branch-adjust');
+				}
+			}
 			freeDice = state.dice.length - keptFinal.length;
 			// If heuristic made releases, append rationale token (UI can surface)
 			let heuristicNote='';
@@ -523,7 +753,17 @@
 				}
 			}
 			const evBreakdown = ev.items.map(it=>({ face:it.face, type:it.type, ev:Number(it.ev.toFixed(3)) }));
-			return { action, keepDice: keptFinal, reason: reasonParts.join(' ') + heuristicNote, confidence, yieldSuggestion, techMeta, goal, releasedIndices, improvementChance:Number(improvementChance.toFixed(3)), improvingFaces:Array.from(improvingFaces), evBreakdown, improvementEV: improvement };
+			// Attach branch analysis (trim for payload size)
+			const branchAnalysis = branchSim ? {
+				best: branchSim.best ? { tag: branchSim.best.tag, score: branchSim.best.score, kept: branchSim.best.kept, improvementEV: branchSim.best.improvementEV, specialUtility: branchSim.best.specialUtility } : null,
+				considered: branchSim.evaluated.slice(0,8) // top 8 for richer UI
+			} : null;
+			if (branchAnalysis?.best && !reasonParts.join(' ').includes('branch')){
+				reasonParts.push(`branch opt: ${branchAnalysis.best.tag} score ${branchAnalysis.best.score}`);
+			}
+			// Projection (depth-2) for current keep set
+			const projection = this._projectTwoRollEV(state, new Set(keptFinal));
+			return { action, keepDice: keptFinal, reason: reasonParts.join(' ') + heuristicNote, confidence, yieldSuggestion, techMeta, goal, releasedIndices, improvementChance:Number(improvementChance.toFixed(3)), improvingFaces:Array.from(improvingFaces), evBreakdown, improvementEV: improvement, branchAnalysis, projection };
 		}
 
 		// ---------- Invariants ----------
@@ -575,6 +815,9 @@
 				if (singleNumber){ decision.action='reroll'; decision.reason+=' | inv:attack cluster'; }
 			}
 			decision.keepDice = Array.from(new Set(decision.keepDice)).sort((a,b)=>a-b);
+			const __t1 = (typeof performance!=='undefined')? performance.now(): Date.now();
+			AIDecisionProfiler.record('assembleDecision', __t1-__t0);
+			AIDecisionProfiler.maybeLog();
 			return decision;
 		}
 

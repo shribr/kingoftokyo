@@ -20,8 +20,12 @@
     <link rel="stylesheet" href="css/modals.css">
     <link rel="stylesheet" href="css/animations.css">
     <link rel="stylesheet" href="css/ai-logic-flow.css">
+    <link rel="stylesheet" href="css/rolloff.css">
 </head>
 <body>
+    <!-- Accessibility Live Regions (Phase 10) -->
+    <div id="aria-live-phase" class="visually-hidden" aria-live="polite"></div>
+    <div id="aria-live-ai" class="visually-hidden" aria-live="polite"></div>
     <!-- Splash Screen -->
     <div id="splash-screen" class="splash-screen">
         <div class="splash-content">
@@ -243,17 +247,17 @@
     </div>
 
     <!-- Game Over Modal -->
-    <div id="game-over-modal" class="modal hidden">
+    <div id="game-over-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="game-over-title">
         <div class="modal-content">
             <button class="close-btn" id="close-game-over">×</button>
-            <h2>Game Over!</h2>
+            <h2 id="game-over-title">Game Over!</h2>
             <div id="winner-announcement"></div>
             <button id="new-game" class="btn primary">New Game</button>
         </div>
     </div>
 
     <!-- Decision Modal -->
-    <div id="decision-modal" class="modal hidden">
+    <div id="decision-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="decision-title">
         <div class="modal-content decision-modal">
             <div class="decision-header">
                 <h2 id="decision-title">Decision Required</h2>
@@ -271,10 +275,10 @@
     </div>
 
     <!-- Game Setup Modal -->
-    <div id="setup-modal" class="modal">
+    <div id="setup-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="setup-modal-title">
         <div class="modal-content">
             <div class="modal-header-with-settings">
-                <h2>Monster Selection</h2>
+                <h2 id="setup-modal-title">Monster Selection</h2>
                 <div id="setup-settings-icon" class="settings-gear-icon" title="Open Settings">⚙️</div>
             </div>
             <div class="setup-form">
@@ -322,10 +326,10 @@
     </div>
 
     <!-- Game Log Modal -->
-    <div id="game-log-modal" class="modal hidden">
+    <div id="game-log-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="game-log-title">
         <div class="modal-content game-log-content">
             <div class="modal-header">
-                <h2>Game Log</h2>
+                <h2 id="game-log-title">Game Log</h2>
                 <button class="close-btn" id="close-game-log">×</button>
             </div>
             
@@ -358,11 +362,11 @@
     </div>
 
     <!-- Storage Management Modal -->
-    <div id="storage-mgmt-modal" class="modal hidden">
+    <div id="storage-mgmt-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="storage-mgmt-title">
         <div class="modal-content storage-mgmt-content">
             <div class="modal-header">
                 <button class="info-btn" id="storage-info-btn" title="About Storage">i</button>
-                <h2>Storage Management</h2>
+                <h2 id="storage-mgmt-title">Storage Management</h2>
                 <button class="close-btn" id="close-storage-mgmt">×</button>
             </div>
             <div class="storage-mgmt-container">
@@ -419,11 +423,11 @@
 
     <!-- Instructions Modal -->
         <!-- Instructions Modal -->
-    <div id="instructions-modal" class="modal instructions-modal hidden">
+    <div id="instructions-modal" class="modal instructions-modal hidden" role="dialog" aria-modal="true" aria-labelledby="instructions-title">
         <div class="modal-content">
             <button class="close-btn" id="close-instructions">×</button>
             <div class="instructions-header">
-                <h1 class="instructions-title">KING OF TOKYO</h1>
+                <h1 id="instructions-title" class="instructions-title">KING OF TOKYO</h1>
             </div>
             <div class="instructions-content">
                 <!-- Backstory Section -->
@@ -610,10 +614,10 @@
     </div>
 
     <!-- Monster Profiles Modal -->
-    <div id="monster-profiles-modal" class="modal hidden">
+    <div id="monster-profiles-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="monster-profiles-title">
         <div class="modal-content monster-profiles-content">
             <div class="modal-header">
-                <h2>👹 MONSTER PROFILES 👹</h2>
+                <h2 id="monster-profiles-title">👹 MONSTER PROFILES 👹</h2>
                 <button class="btn close-btn" id="close-monster-profiles">&times;</button>
             </div>
             <div class="modal-body">
@@ -650,10 +654,10 @@
     </div>
 
     <!-- Exit Confirmation Modal -->
-    <div id="exit-confirmation-modal" class="modal hidden">
+    <div id="exit-confirmation-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="exit-confirmation-title">
         <div class="modal-content exit-confirmation-content">
             <div class="modal-header">
-                <h2>🚪 Exit to Splash Screen</h2>
+                <h2 id="exit-confirmation-title">🚪 Exit to Splash Screen</h2>
                 <button class="close-btn" id="close-exit-confirmation">×</button>
             </div>
             <div class="modal-body">
@@ -673,10 +677,10 @@
     </div>
 
     <!-- Settings Modal -->
-    <div id="settings-modal" class="settings-modal hidden">
+    <div id="settings-modal" class="settings-modal hidden" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
         <div class="settings-content">
             <div class="settings-header">
-                <h2>⚙️ Game Settings</h2>
+                <h2 id="settings-modal-title">⚙️ Game Settings</h2>
                 <button class="close-settings" id="close-settings">×</button>
             </div>
             <div class="settings-body">
@@ -819,7 +823,7 @@
                     </table>
                 </div>
                 <div class="rolloff-actions">
-                    <button id="rolloff-roll-btn" class="btn primary" style="display: none;" onclick="window.kingOfTokyoUI?.handleRolloffRoll()">
+                    <button id="rolloff-roll-btn" class="btn primary rolloff-hidden" onclick="window.kingOfTokyoUI?.handleRolloffRoll()">
                         🎲 Roll Dice
                     </button>
                     <a id="rolloff-skip-link" class="rolloff-skip-link" href="#" onclick="window.kingOfTokyoUI?.skipRolloff(); return false;" title="Clicking this link skips the dice &quot;roll off&quot; and selects a player at random to go first instead.">

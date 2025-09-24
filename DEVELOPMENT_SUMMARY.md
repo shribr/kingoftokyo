@@ -236,6 +236,7 @@ We've built a fully-featured digital version of the King of Tokyo board game wit
 - Eliminated method naming conflicts
 - Improved turn transition reliability
 - Added defensive turn protection systems
+- AI heuristic expansion: Added branch EV simulation comparing alternative keep sets (pairs/special mixes) to refine reroll vs end decisions (Phase 10).
 
 ### 🎯 **Future Enhancement Opportunities**
 - Sound effects and music
@@ -244,6 +245,8 @@ We've built a fully-featured digital version of the King of Tokyo board game wit
 - Additional power card expansions
 - Mobile app packaging
 - Localization support
+- Accessibility pass (focus traps, aria-live for phase & AI reasoning, keyboard-only flow)
+- Deeper multi-roll lookahead (Monte Carlo / iterative EV refinement)
 
 ## Development Stats
 
