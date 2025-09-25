@@ -5,7 +5,8 @@ export function renderMonsterCard(monster) {
   const rows = [
     statRow('AGGRESSION', personality.aggression),
     statRow('STRATEGY', personality.strategy),
-    statRow('RISK TAKING', personality.risk)
+    statRow('RISK TAKING', personality.risk),
+    statRow('ECONOMIC FOCUS', personality.economic)
   ].join('');
   return `<div class="monster-profile-card" data-mid="${id}">
     <div class="mpc-header">

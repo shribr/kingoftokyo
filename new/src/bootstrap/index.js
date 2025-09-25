@@ -89,7 +89,7 @@ if (typeof window !== 'undefined') {
     store.dispatch(monstersLoaded(monsters));
   }).catch(() => {
     store.dispatch(monstersLoaded([
-      { id: 'king', name: 'The King', image: '', description: 'A mighty ape', personality: { aggression: 5, strategy: 2, risk: 3 }, color: '#444' }
+      { id: 'king', name: 'The King', image: '', description: 'A mighty ape', personality: { aggression: 5, strategy: 2, risk: 3, economic: 2 }, color: '#444' }
     ]));
   });
   initCards(store, logger);

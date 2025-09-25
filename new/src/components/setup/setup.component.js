@@ -220,8 +220,10 @@ function render(inst, fullState) {
     const slotHTML = inst._local.slots.map((id, i) => {
       if (id) {
         const m = monsters.find(mm => mm.id === id);
-        return miniCard(m, i);
+        return miniCard(m, i, i === 0);
       }
+      // First slot: dedicated human placeholder
+      if (i === 0) return humanPlaceholderCard(i);
       return cpuCard(i);
     }).join('');
     sidebar.innerHTML = `<div class="mini-list">${slotHTML}</div>`;
@@ -256,10 +258,17 @@ function card(m, selected) {
   </div>`;
 }
 
-function miniCard(m, slotIndex) {
-  return `<div class="mini-card human droppable" data-slot-index="${slotIndex}" data-has-monster draggable="true">
+function miniCard(m, slotIndex, isHumanSlot=false) {
+  return `<div class="mini-card human vertical droppable" data-slot-index="${slotIndex}" data-has-monster draggable="true" data-human="${isHumanSlot}">
     <div class="mini-photo"><img src="${m.image}" alt="${m.name}"></div>
     <div class="mini-name">${m.name}</div>
+  </div>`;
+}
+
+function humanPlaceholderCard(slotIndex) {
+  return `<div class="mini-card human-placeholder vertical droppable" data-slot-index="${slotIndex}">
+    <div class="mini-photo placeholder">?</div>
+    <div class="mini-name">HUMAN PLAYER</div>
   </div>`;
 }
 

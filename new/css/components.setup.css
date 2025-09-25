@@ -20,12 +20,21 @@
 .cmp-setup .pill-btn:hover { transform: translateY(-1px); }
 .cmp-setup .pill-btn { text-transform: uppercase; }
 .cmp-setup .dropdown { position:relative; }
-.cmp-setup .dropdown-toggle { display:flex; align-items:center; gap:8px; }
-.cmp-setup .dropdown .chev { font-weight:900; }
-.cmp-setup .dropdown-menu { position:absolute; top:110%; left:0; background:#fff; border:3px solid #111; box-shadow:4px 4px 0 #000; list-style:none; padding:6px 0; margin:0; min-width:200px; display:none; z-index:10; }
-.cmp-setup .dropdown.open .dropdown-menu { display:block; }
-.cmp-setup .dropdown-menu li { padding:8px 12px; cursor:pointer; font-weight:700; }
-.cmp-setup .dropdown-menu li:hover { background:#ffe7a6; }
+/* Legacy-inspired pill styling refinement */
+.cmp-setup .dropdown-toggle { position:relative; display:flex; align-items:center; gap:10px; min-width:210px; justify-content:center; font-family:'Bangers',cursive; font-size:22px; letter-spacing:1px; padding:14px 26px; border:4px solid #000; box-shadow:4px 4px 0 #000, 0 0 0 3px #ffcc33 inset; background:linear-gradient(180deg,#ffc21f 0%, #ff9500 55%, #ffae00 56%, #ffdf7a 100%); color:#000; transition:transform .18s ease, box-shadow .18s ease, filter .3s; }
+.cmp-setup .dropdown-toggle:hover { transform:translateY(-2px); filter:brightness(1.05) saturate(1.05); }
+.cmp-setup .dropdown.open .dropdown-toggle { transform:translateY(0) scale(.98); box-shadow:3px 3px 0 #000, 0 0 0 3px #ffcc33 inset; }
+.cmp-setup .dropdown .chev { font-weight:900; font-size:26px; line-height:1; display:inline-block; transition:transform .25s ease; text-shadow:none; }
+.cmp-setup .dropdown.open .dropdown-toggle .chev { transform:rotate(180deg); }
+
+/* Animated dropdown menu */
+.cmp-setup .dropdown-menu { position:absolute; top:108%; left:0; background:#fffef8; border:4px solid #000; box-shadow:8px 8px 0 #000; list-style:none; padding:8px 0 10px; margin:0; min-width:230px; display:block; opacity:0; transform:translateY(10px) scale(.96); pointer-events:none; transition:opacity .25s ease, transform .3s cubic-bezier(.22,1.15,.32,1); z-index:120; font-family:'Bangers',cursive; }
+.cmp-setup .dropdown.open .dropdown-menu { opacity:1; transform:translateY(0) scale(1); pointer-events:auto; }
+.cmp-setup .dropdown-menu::before { content:""; position:absolute; top:-14px; left:34px; width:26px; height:14px; background:#fffef8; border:4px solid #000; border-bottom:none; clip-path:polygon(0 100%,50% 0,100% 100%); box-sizing:border-box; }
+.cmp-setup .dropdown-menu li { padding:10px 18px 11px; cursor:pointer; font-weight:900; font-size:18px; color:#000; letter-spacing:.5px; text-transform:uppercase; position:relative; }
+.cmp-setup .dropdown-menu li+li { border-top:2px dotted rgba(0,0,0,.15); }
+.cmp-setup .dropdown-menu li:hover { background:linear-gradient(90deg,#ffe9a8,#ffd76a); }
+.cmp-setup .dropdown-menu li:active { background:linear-gradient(90deg,#ffc843,#ffad0a); }
 
 .cmp-setup .setup-body { display:grid; grid-template-columns: 1fr 320px; gap:28px; align-items:start; flex:1; overflow:hidden; min-height:0; }
 .cmp-setup .cards-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:30px; padding:4px; overflow-y:auto; overscroll-behavior:contain; scrollbar-gutter: stable; }
@@ -56,18 +65,24 @@
 
 
 /* Sidebar selection */
-.cmp-setup .selection-sidebar { display:flex; flex-direction:column; gap:16px; align-items:flex-end; }
-.cmp-setup .mini-list { display:grid; grid-template-columns: 1fr; gap:16px; }
-.cmp-setup .mini-card { width:260px; height:92px; border:3px solid #111; box-shadow:6px 6px 0 #000; display:flex; align-items:center; gap:12px; padding:10px 12px; background:#fff; }
+.cmp-setup .selection-sidebar { display:flex; flex-direction:column; gap:16px; align-items:flex-start; }
+/* Two-column grid for selected (human + CPU/monster) tiles */
+.cmp-setup .mini-list { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:16px; width:100%; justify-items:center; }
+.cmp-setup .mini-card { width:140px; min-height:180px; border:3px solid #111; box-shadow:6px 6px 0 #000; display:flex; align-items:center; justify-content:flex-start; gap:8px; padding:14px 10px; background:#fff; flex-direction:column; }
+.cmp-setup .mini-card.vertical { width:140px; min-height:180px; }
+.cmp-setup .mini-card.human-placeholder { background:#fffbe6; }
+.cmp-setup .mini-card.human-placeholder .mini-photo.placeholder { font-family:'Bangers',cursive; font-size:42px; color:#000; display:flex; align-items:center; justify-content:center; }
+.cmp-setup .mini-card.human-placeholder .mini-name { font-size:13px; }
 .cmp-setup .mini-card.human { background: var(--mini-bg, #ffe7f8); }
 .cmp-setup .mini-card.cpu { background: #cfe9ff; flex-direction:column; align-items:flex-start; justify-content:center; padding-left:14px; }
+.cmp-setup .mini-card.cpu.vertical { width:140px; min-height:180px; align-items:center; padding:14px 10px; }
 .cmp-setup .mini-card.droppable { outline:3px solid transparent; }
 .cmp-setup .mini-card.droppable.drag-over { outline-color:#ffb400; box-shadow:0 0 0 4px #000 inset, 6px 6px 0 #000; }
 .cmp-setup .mini-card[draggable="true"] { cursor: grab; }
 .cmp-setup .mini-card[draggable="true"]:active { cursor: grabbing; }
-.cmp-setup .mini-photo { width:56px; height:56px; border:2px solid #111; background:#fff; display:flex; align-items:center; justify-content:center; }
+.cmp-setup .mini-photo { width:70px; height:70px; border:2px solid #111; background:#fff; display:flex; align-items:center; justify-content:center; }
 .cmp-setup .mini-photo img { width:100%; height:100%; object-fit:contain; }
-.cmp-setup .mini-name { font-weight:900; font-size:14px; }
+.cmp-setup .mini-name { font-weight:900; font-size:15px; text-align:center; }
 .cmp-setup .cpu-label { font-family:'Bangers', cursive; font-size:28px; font-weight:900; color:#000; text-shadow: none; }
 .cmp-setup .cpu-sub { margin-top:-4px; font-weight:800; font-size:13px; color:#000; }
 
@@ -76,6 +91,8 @@
 .cmp-setup .reset-link { background:none; border:none; color:#2f506a; font-weight:900; cursor:pointer; text-decoration:none; display:flex; align-items:center; gap:6px; filter: drop-shadow(0 2px 0 #000); }
 .cmp-setup .start-btn { background:#bdbdbd; color:#000; border:3px solid #111; box-shadow:8px 8px 0 #000; padding:14px 22px; font-weight:900; letter-spacing:1px; cursor:not-allowed; }
 .cmp-setup .start-btn:not([disabled]) { background:#4a9f4a; cursor:pointer; }
+
+
 
 @media (max-width: 980px) {
 	.cmp-setup .setup-body { grid-template-columns: 1fr; }
