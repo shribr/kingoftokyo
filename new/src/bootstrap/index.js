@@ -6,7 +6,7 @@ import { diceReducer } from '../core/reducers/dice.reducer.js';
 import { playersReducer } from '../core/reducers/players.reducer.js';
 import { mountRoot } from '../ui/mountRoot.js';
 import { bindUIEventBridges } from '../ui/eventsToActions.js';
-import { playerJoined, phaseChanged } from '../core/actions.js';
+import { playerJoined, phaseChanged, uiSplashHide, uiSetupClose, monstersLoaded } from '../core/actions.js';
 import { phaseReducer } from '../core/reducers/phase.reducer.js';
 import { logReducer } from '../core/reducers/log.reducer.js';
 import { tokyoReducer } from '../core/reducers/tokyo.reducer.js';
@@ -16,7 +16,6 @@ import { monstersReducer } from '../core/reducers/monsters.reducer.js';
 import { effectQueueReducer } from '../core/reducers/effectQueue.reducer.js';
 import { yieldDecisionReducer } from '../core/reducers/yieldDecision.reducer.js';
 import { targetSelectionReducer } from '../core/reducers/targetSelection.reducer.js';
-import { monstersLoaded } from '../core/actions.js';
 import { createPlayer } from '../domain/player.js';
 import { createLogger } from '../services/logger.js';
 import { initCards } from '../services/cardsService.js';
@@ -79,24 +78,49 @@ if (typeof window !== 'undefined') {
   bindAIDecisionCapture(store);
   bindUIEventBridges(store);
   bindA11yOverlays(store);
-  // Demo data
-  store.dispatch(playerJoined(createPlayer({ id: 'p1', name: 'Alpha', monsterId: 'king' })));
-  store.dispatch(playerJoined(createPlayer({ id: 'p2', name: 'Beta', monsterId: 'alien' })));
-  logger.system('Bootstrap complete. Players seeded.');
-  // Load monsters from local new/config.json (fallback minimal set).
+  // Load monsters first, then seed players with randomized monsters for testing.
   fetch('./config.json').then(r => r.json()).then(cfg => {
     const monsters = Object.values(cfg.monsters || {}).map(m => ({ id: m.id, name: m.name, image: m.image, description: m.description, personality: m.personality || {}, color: m.color }));
     store.dispatch(monstersLoaded(monsters));
+    seedRandomPlayers(store, monsters, logger);
   }).catch(() => {
-    store.dispatch(monstersLoaded([
-      { id: 'king', name: 'The King', image: '', description: 'A mighty ape', personality: { aggression: 5, strategy: 2, risk: 3, economic: 2 }, color: '#444' }
-    ]));
+    const fallback = [
+      { id: 'king', name: 'The King', image: '', description: 'A mighty ape', personality: { aggression: 5, strategy: 2, risk: 3, economic: 2 }, color: '#444' },
+      { id: 'alien', name: 'Alienoid', image: '', description: 'A mysterious alien', personality: { aggression: 3, strategy: 4, risk: 2, economic: 3 }, color: '#2aa' },
+      { id: 'kraken', name: 'Kraken', image: '', description: 'Sea terror', personality: { aggression: 4, strategy: 3, risk: 3, economic: 2 }, color: '#2277aa' }
+    ];
+    store.dispatch(monstersLoaded(fallback));
+    seedRandomPlayers(store, fallback, logger);
   });
   initCards(store, logger);
   // Revised start logic: Do NOT auto-start when splash hides.
   // Start only after setup screen has been opened at least once and then closed.
   let prevSetupOpen = store.getState().ui?.setup?.open;
   let setupWasOpened = false;
+
+  // Dev convenience: allow skipping splash + monster selection to jump straight into a playable game.
+  // Activate via one of:
+  //  - URL hash: #skipintro
+  //  - URL query param: ?skipintro=1
+  //  - localStorage flag: localStorage.setItem('KOT_SKIP_INTRO','1')
+  const skipIntro = (() => {
+    try {
+      const w = window.location;
+      return w.hash.includes('skipintro') || w.search.includes('skipintro=1') || localStorage.getItem('KOT_SKIP_INTRO') === '1';
+    } catch(_) { return false; }
+  })();
+
+  if (skipIntro) {
+    // Mark setup as having been opened (bypasses normal open->close detection) and hide splash immediately.
+    setupWasOpened = true;
+    store.dispatch(uiSplashHide());
+    store.dispatch(uiSetupClose());
+    // Defer start to next tick so reducers settle & cards initialize.
+    setTimeout(() => {
+      try { turnService.startGameIfNeeded(); } catch(e) { console.warn('Skip intro start failed', e); }
+    }, 0);
+  }
+
   store.subscribe(() => {
     const st = store.getState();
     const setupOpen = !!st.ui?.setup?.open;
@@ -111,4 +135,22 @@ if (typeof window !== 'undefined') {
   fetch('./components.config.json')
     .then(r => r.json())
     .then(cfg => mountRoot(cfg, store));
+}
+
+function seedRandomPlayers(store, monsters, logger) {
+  try {
+    if (!Array.isArray(monsters) || monsters.length === 0) return;
+    // Ensure distinct monsters for first two players; fallback to reuse if insufficient.
+    const pool = monsters.slice();
+    const pick = () => pool.splice(Math.floor(Math.random()*pool.length),1)[0] || monsters[Math.floor(Math.random()*monsters.length)];
+    const m1 = pick();
+    const m2 = pick();
+    store.dispatch(playerJoined(createPlayer({ id: 'p1', name: 'Alpha', monsterId: m1.id })));
+    store.dispatch(playerJoined(createPlayer({ id: 'p2', name: 'Beta', monsterId: m2.id })));
+    logger.system(`Players seeded with random monsters: ${m1.id}, ${m2.id}`);
+  } catch(e) {
+    logger.warn('Random player seeding failed, falling back to static king/alien', e);
+    store.dispatch(playerJoined(createPlayer({ id: 'p1', name: 'Alpha', monsterId: 'king' })));
+    store.dispatch(playerJoined(createPlayer({ id: 'p2', name: 'Beta', monsterId: 'alien' })));
+  }
 }

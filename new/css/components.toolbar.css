@@ -1,55 +1,32 @@
-/* components.toolbar.css
- * Extracted toolbar styling to remove dependence on legacy .game-toolbar.
- */
+/* components.toolbar.css (revamped legacy-style) */
 :root {
-  --toolbar-bg: rgba(20,22,28,0.78);
-  --toolbar-blur: 6px;
-  --toolbar-border: 1px solid rgba(255,255,255,0.14);
-  --toolbar-radius: 12px;
-  --toolbar-btn-size: 34px;
-  --toolbar-gap: 0.5rem;
-  --toolbar-z: 4100;
-  --toolbar-shadow: 0 4px 12px -4px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.05) inset;
-  --toolbar-accent: #ffcc33;
+  --toolbar-bg: linear-gradient(180deg,#5d3a13,#3b230a);
+  --toolbar-btn-gradient: linear-gradient(180deg,#f7b449,#d47924 60%, #b45d12);
+  --toolbar-btn-gradient-hover: linear-gradient(180deg,#ffc768,#e58a2d 60%, #c66818);
+  --toolbar-btn-border: #000;
+  --toolbar-btn-shadow: 3px 3px 0 #000, 0 0 0 2px #000 inset, 0 6px 14px -6px rgba(0,0,0,.65);
+  --toolbar-btn-size: 46px;
+  --toolbar-gap: 10px;
+  --toolbar-radius: 10px;
+  --toolbar-z: 4200;
+  --toolbar-accent: #ffe066;
+  --toolbar-font: 'Bangers', cursive;
 }
 
-.cmp-toolbar {
-  position: absolute;
-  top: 1.25rem;
-  right: 1.25rem;
-  display: flex;
-  gap: var(--toolbar-gap);
-  align-items: center;
-  background: var(--toolbar-bg);
-  backdrop-filter: blur(var(--toolbar-blur));
-  -webkit-backdrop-filter: blur(var(--toolbar-blur));
-  padding: .6rem .7rem;
-  border: var(--toolbar-border);
-  border-radius: var(--toolbar-radius);
-  box-shadow: var(--toolbar-shadow);
-  z-index: var(--toolbar-z);
-  transition: opacity 180ms ease, transform 220ms ease;
-}
-.cmp-toolbar.is-hidden { opacity:0; pointer-events:none; transform: translateY(-4px); }
+.cmp-toolbar { position:relative; display:flex; gap:var(--toolbar-gap); align-items:center; background:var(--toolbar-bg); padding:12px 18px; border:4px solid #000; border-radius:18px; box-shadow:6px 6px 0 #000, 0 0 0 2px #222 inset, 0 10px 24px -10px rgba(0,0,0,.75); z-index:var(--toolbar-z); transition:opacity .18s ease, transform .22s ease; }
+.cmp-toolbar.is-hidden { opacity:0; pointer-events:none; transform:translateY(-4px); }
 
-.cmp-toolbar .toolbar-btn {
-  width: var(--toolbar-btn-size);
-  height: var(--toolbar-btn-size);
-  border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.15);
-  background: linear-gradient(145deg,#313743,#222830);
-  color: #f5f5f5;
-  font-size: 1rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  outline: none;
-  transition: background 140ms ease, transform 140ms ease, box-shadow 140ms ease;
-  box-shadow: 0 2px 4px -2px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.06) inset;
-}
-.cmp-toolbar .toolbar-btn:hover { background: linear-gradient(145deg,#3b4350,#293038); }
-.cmp-toolbar .toolbar-btn:active { transform: translateY(1px); }
-.cmp-toolbar .toolbar-btn:focus-visible { box-shadow: 0 0 0 2px #14161c, 0 0 0 4px var(--toolbar-accent); }
+.cmp-toolbar .toolbar-btn { position:relative; width:var(--toolbar-btn-size); height:var(--toolbar-btn-size); font-family:var(--toolbar-font); letter-spacing:1px; font-size:0; color:#000; background:var(--toolbar-btn-gradient); border:3px solid var(--toolbar-btn-border); border-radius:var(--toolbar-radius); display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:var(--toolbar-btn-shadow); transition:transform .15s ease, background .2s ease, box-shadow .2s ease; }
+.cmp-toolbar .toolbar-btn .ico { width:28px; height:28px; pointer-events:none; }
+.cmp-toolbar .toolbar-btn .vh { position:absolute; width:1px; height:1px; margin:-1px; border:0; padding:0; clip:rect(0 0 0 0); overflow:hidden; white-space:nowrap; }
+.cmp-toolbar .toolbar-btn:hover { background:var(--toolbar-btn-gradient-hover); transform:translateY(-2px); }
+.cmp-toolbar .toolbar-btn:active { transform:translateY(1px); box-shadow:2px 2px 0 #000, 0 0 0 2px #000 inset; }
+.cmp-toolbar .toolbar-btn:focus-visible { outline:2px solid #fff; outline-offset:2px; }
 
-.cmp-toolbar .toolbar-btn[data-action="reset-positions"] { font-size: .9rem; }
+/* Footer centering support */
+.gl-footer { justify-content:center; }
+
+/* Ensure panel headers have priority over toolbar (in case of overlap on small view heights) */
+.cmp-card-shop .panel-header, .cmp-monsters-panel .mp-header { z-index:4300; position:relative; }
+
+@media (max-width: 800px) { .cmp-toolbar { padding:10px 12px; --toolbar-btn-size:40px; } }

@@ -17,7 +17,30 @@ export async function mountRoot(configEntries, store) {
       dispatch: (action) => store.dispatch(action),
       getState: () => store.getState()
     });
-    const mountPoint = document.querySelector(entry.mountPoint) || app;
+    // Determine mount region if mountPoint is generic #app
+    let mountPoint;
+    if (entry.mountPoint && entry.mountPoint !== '#app') {
+      mountPoint = document.querySelector(entry.mountPoint);
+    }
+    if (!mountPoint) {
+      const left = document.querySelector('[data-gl-left]');
+      const center = document.querySelector('[data-gl-center-content]');
+      const centerBottom = document.querySelector('[data-gl-center-bottom]');
+      const right = document.querySelector('[data-gl-right]');
+      const footer = document.querySelector('[data-gl-footer]');
+      const n = entry.name.toLowerCase();
+      // Layout heuristic mapping:
+      // LEFT  = Power Cards (shop) panel ONLY per latest requirement.
+      // RIGHT = Monsters / player profiles cluster + remaining ancillary panels.
+      if (/arena/.test(n)) mountPoint = center;
+      else if (/cardshop/.test(n)) mountPoint = left; // Power Cards panel on left
+      else if (/monsterspanel|monsterprofiles|monsterprofilesingle|playerprofile|playercards|player-card-list/.test(n)) mountPoint = right; // Monsters & player info on right
+      else if (/dice/.test(n)) mountPoint = centerBottom; // dice lives center-bottom
+      else if (/actionmenu/.test(n)) mountPoint = centerBottom; // action menu near dice
+      else if (/toolbar/.test(n)) mountPoint = footer; // toolbar anchored footer
+      else if (/effectqueue|effectinspector|peekmodal|carddetail|logfeed|settingsmodal|aidecisionmodal|gamelogmodal|aithoughtbubble/.test(n)) mountPoint = right; // ancillary panels default to right
+      else mountPoint = right; // default other UI to right panel for now
+    }
     // Support components that return a plain element
   const rootEl = inst?.root || inst;
   if (!rootEl) continue;
@@ -117,6 +140,23 @@ function ensureAppRoot() {
     el = document.createElement('div');
     el.id = 'app';
     document.body.appendChild(el);
+  }
+  // Inject layout shell once (idempotent)
+  if (!document.querySelector('.game-layout-shell')) {
+    const shell = document.createElement('div');
+    shell.className = 'game-layout-shell';
+    shell.innerHTML = `
+      <header class="gl-header"><h1 class="gl-title" data-game-title>King of Tokyo</h1></header>
+      <div class="gl-main">
+        <div class="gl-left" data-gl-left></div>
+        <div class="gl-center" data-gl-center>
+          <div class="gl-center-content" data-gl-center-content></div>
+          <div class="gl-center-bottom" data-gl-center-bottom></div>
+        </div>
+        <div class="gl-right" data-gl-right></div>
+      </div>
+      <footer class="gl-footer" data-gl-footer></footer>`;
+    el.appendChild(shell);
   }
   return el;
 }

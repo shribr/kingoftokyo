@@ -36,6 +36,7 @@ export function build({ selector }) {
 export function update(root) {
   const state = store.getState();
   // Round: derive from log length or a future dedicated phase tracker; fallback 1
+  // Round indicator restored (distinct from game log)
   const metaRound = state.meta?.round || 1;
   const span = root.querySelector('[data-round-counter]');
   if (span) span.textContent = metaRound;

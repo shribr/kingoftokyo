@@ -15,30 +15,27 @@ import { selectShopCards, selectActivePlayer } from '../../core/selectors.js';
 import { uiCardDetailOpen } from '../../core/actions.js';
 import { purchaseCard, flushShop, peekTopCard } from '../../services/cardsService.js';
 import { logger } from '../../bootstrap/index.js';
-import { createPositioningService } from '../../services/positioningService.js';
+import { initSidePanel } from '../side-panel/side-panel.js';
 
 export function build({ selector }) {
   const root = document.createElement('div');
   // Add legacy class hooks (cards-area, collapsible-panel) for existing layout + transition period.
-  root.className = `${selector.slice(1)} cmp-panel-root`;
+  root.className = `${selector.slice(1)} cmp-card-shop cmp-monsters-panel cmp-side-panel k-panel`;
   root.setAttribute('data-panel','card-shop');
+  root.setAttribute('data-side','left');
   root.innerHTML = `
-    <h3 class="panel-header" data-toggle>
-      <span class="header-text"><span class="toggle-arrow"><</span> Power Cards</span>
-    </h3>
-    <div class="panel-content">
+    <div class="mp-header k-panel__header" data-toggle role="button" aria-expanded="true" tabindex="0">
+      <h2 class="mp-title" data-toggle>Power Cards <span class="mp-arrow" data-arrow-dir data-toggle>◄</span></h2>
+    </div>
+    <div class="mp-body k-panel__body panel-content" data-panel-body>
       <div class="shop-cards" data-cards></div>
       <div class="shop-actions" data-actions></div>
     </div>`;
-  root.addEventListener('click', (e) => {
-    if (e.target.closest('[data-toggle]')) {
-      const willCollapse = root.getAttribute('data-collapsed') !== 'true';
-      if (willCollapse) {
-        root.setAttribute('data-collapsed','true');
-      } else {
-        root.removeAttribute('data-collapsed');
-      }
-    }
+  initSidePanel(root, {
+    side:'left',
+    expandedArrow:'◄',
+    collapsedArrow:'►',
+    bodyClassExpanded:'panels-expanded-left'
   });
 
   root.addEventListener('click', (e) => {
@@ -59,8 +56,7 @@ export function build({ selector }) {
     }
   });
 
-  // Draggable (persisted) positioning
-  try { createPositioningService(store).makeDraggable(root, 'cardShopPanel', { grid:4 }); } catch(_) {}
+  // Draggability removed for side panels to ensure clean click/collapse behavior
 
   return { root, update: () => update(root) };
 }
@@ -98,10 +94,12 @@ function renderActions(active, phase) {
   const flushLabel = 'FLUSH SHOP (2⚡)';
   const hasPeek = !!active && active.cards?.some(c => c.effect?.kind === 'peek');
   const canPeek = hasPeek && active.energy >= 1 && (phase === 'BUY' || phase === 'RESOLVE');
+  // Only render the Peek button if the active player actually owns a peek-granting card.
+  const peekBtn = hasPeek ? `<button data-action="peek-top" class="k-btn k-btn--secondary k-btn--small" ${canPeek? '' : 'disabled'}>PEEK (1⚡)</button>` : '';
   return `<div class="shop-footer">
     <div class="shop-footer-row">
-  <button data-action="flush-shop" class="k-btn k-btn--warning k-btn--small" ${canFlush? '' : 'disabled'}>${flushLabel}</button>
-  <button data-action="peek-top" class="k-btn k-btn--secondary k-btn--small" ${canPeek? '' : 'disabled'}>PEEK (1⚡)</button>
+      <button data-action="flush-shop" class="k-btn k-btn--warning k-btn--small" ${canFlush? '' : 'disabled'}>${flushLabel}</button>
+      ${peekBtn}
     </div>
   </div>`;
 }

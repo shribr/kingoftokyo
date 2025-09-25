@@ -15,10 +15,15 @@
 .cmp-setup .setup-title { font-family:'Bangers', cursive; font-size:56px; color:#FFD700; text-align:center; letter-spacing:2px; text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000; margin-bottom:18px; filter: drop-shadow(0 6px 0 #000); }
 
 .cmp-setup .setup-controls { display:flex; gap:16px; align-items:center; justify-content:center; margin-bottom:18px; }
-.cmp-setup .pill-btn { background: linear-gradient(#ffffff, #efefef); border:3px solid #111; border-radius:999px; padding:10px 18px; font-weight:900; box-shadow:6px 6px 0 #000; cursor:pointer; letter-spacing:.5px; }
+.cmp-setup .pill-btn { background: linear-gradient(#ffffff, #efefef); border:3px solid #111; border-radius:999px; padding:10px 18px; font-weight:900; box-shadow:6px 6px 0 #000; cursor:pointer; letter-spacing:.5px; text-transform:uppercase; position:relative; transition:transform .18s ease, box-shadow .18s ease, filter .28s ease; }
 .cmp-setup .pill-btn.gold { background: linear-gradient(#ffd24a, #ffb400); }
-.cmp-setup .pill-btn:hover { transform: translateY(-1px); }
-.cmp-setup .pill-btn { text-transform: uppercase; }
+/* Unified interactive states for all primary buttons (pill + start) */
+.cmp-setup .pill-btn:hover,
+.cmp-setup .start-btn:not([disabled]):hover { transform: translateY(-2px); box-shadow:5px 5px 0 #000; filter:brightness(1.04) saturate(1.05); }
+.cmp-setup .pill-btn:active,
+.cmp-setup .start-btn:not([disabled]):active { transform: translateY(0) scale(.97); box-shadow:4px 4px 0 #000; filter:brightness(.97); }
+.cmp-setup .pill-btn:focus-visible,
+.cmp-setup .start-btn:focus-visible { outline:3px solid #ffcc33; outline-offset:3px; }
 .cmp-setup .dropdown { position:relative; }
 /* Legacy-inspired pill styling refinement */
 .cmp-setup .dropdown-toggle { position:relative; display:flex; align-items:center; gap:10px; min-width:210px; justify-content:center; font-family:'Bangers',cursive; font-size:22px; letter-spacing:1px; padding:14px 26px; border:4px solid #000; box-shadow:4px 4px 0 #000, 0 0 0 3px #ffcc33 inset; background:linear-gradient(180deg,#ffc21f 0%, #ff9500 55%, #ffae00 56%, #ffdf7a 100%); color:#000; transition:transform .18s ease, box-shadow .18s ease, filter .3s; }
@@ -89,7 +94,7 @@
 /* Footer */
 .cmp-setup .setup-footer { margin-top:18px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
 .cmp-setup .reset-link { background:none; border:none; color:#2f506a; font-weight:900; cursor:pointer; text-decoration:none; display:flex; align-items:center; gap:6px; filter: drop-shadow(0 2px 0 #000); }
-.cmp-setup .start-btn { background:#bdbdbd; color:#000; border:3px solid #111; box-shadow:8px 8px 0 #000; padding:14px 22px; font-weight:900; letter-spacing:1px; cursor:not-allowed; }
+.cmp-setup .start-btn { background:#bdbdbd; color:#000; border:3px solid #111; box-shadow:8px 8px 0 #000; padding:14px 22px; font-weight:900; letter-spacing:1px; cursor:not-allowed; transition:transform .18s ease, box-shadow .18s ease, filter .28s ease; position:relative; }
 .cmp-setup .start-btn:not([disabled]) { background:#4a9f4a; cursor:pointer; }
 
 

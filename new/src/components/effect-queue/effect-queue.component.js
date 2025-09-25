@@ -1,15 +1,17 @@
 /** components/effect-queue/effect-queue.component.js */
 export function build({ selector }) {
   const root = document.createElement('div');
-  root.className = selector.replace('.', '') + ' effect-queue-panel';
-  root.style.cssText = 'position:fixed;top:8px;right:8px;background:#1e1e24;color:#fff;font:12px/1.4 system-ui;border:1px solid #333;padding:6px 8px;border-radius:6px;max-width:240px;z-index:150;';
-  root.innerHTML = `<div style="font-weight:bold;margin-bottom:4px;">Effects</div><div class="eq-current" aria-live="polite"></div><div class="eq-queue" style="margin-top:4px"></div><details style="margin-top:4px"><summary style="cursor:pointer">History</summary><div class="eq-history" style="max-height:120px;overflow:auto;margin-top:4px"></div></details>`;
+  root.className = 'cmp-effect-queue';
+  root.innerHTML = `<div class="cmp-effect-queue__title">Effects</div>
+    <div class="cmp-effect-queue__current eq-current" aria-live="polite"></div>
+    <div class="cmp-effect-queue__list eq-queue"></div>
+    <details class="cmp-effect-queue__history-wrapper"><summary>History</summary><div class="cmp-effect-queue__history eq-history"></div></details>`;
   return { root, update: () => {} };
 }
 
 export function update(ctx) {
   const { state } = ctx;
-  const root = ctx.inst?.root || document.querySelector('.effect-queue-panel');
+  const root = ctx.inst?.root || document.querySelector('.cmp-effect-queue');
   if (!root) return;
   // Hide while splash is visible or debug disabled
   const splashVisible = state?.ui?.splash?.visible === true;
@@ -35,7 +37,7 @@ export function update(ctx) {
   histEl.innerHTML = '';
   eq.history.slice(-10).reverse().forEach(e => {
     const div = document.createElement('div');
-    div.style.opacity = e.status === 'failed' ? 0.6 : 1;
+    if (e.status === 'failed') div.classList.add('cmp-effect-queue__item--failed');
     div.textContent = `${e.status === 'failed' ? '✖' : '✓'} ${e.effect.kind} (${e.cardId})`;
     histEl.appendChild(div);
   });

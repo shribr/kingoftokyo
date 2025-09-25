@@ -12,7 +12,12 @@ export function build({ selector, emit }) {
   const root = document.createElement('div');
   root.className = `${selector.slice(1)} cmp-dice-tray`;
   root.setAttribute('data-draggable','true');
-  root.innerHTML = `<div class="tray-header"><button data-action="roll">Roll</button><span class="tray-dice-count" data-dice-count></span></div><div class="dice" data-dice></div>`;
+  root.innerHTML = `<div class="tray-header">
+    <button data-action="roll" class="tray-roll-btn" aria-label="Roll Dice">Roll</button>
+    <span class="tray-dice-count" data-dice-count aria-label="Dice Count"></span>
+    <span class="tray-rerolls" data-rerolls aria-live="polite" aria-label="Rerolls Remaining"></span>
+  </div>
+  <div class="dice" data-dice></div>`;
   // Track previous diceSlots to animate expansions
   root._prevDiceSlots = 6;
 
@@ -40,6 +45,7 @@ export function build({ selector, emit }) {
 export function update(root, { state }) {
   const diceContainer = root.querySelector('[data-dice]');
   const countEl = root.querySelector('[data-dice-count]');
+  const rerollsEl = root.querySelector('[data-rerolls]');
   if (!diceContainer) return;
   const globalState = store.getState();
   const active = selectActivePlayer(globalState);
@@ -91,6 +97,11 @@ export function update(root, { state }) {
     } else {
       countEl.textContent = `${diceSlots} dice`;
     }
+  }
+  if (rerollsEl) {
+    const remaining = state.rerollsRemaining ?? 0;
+    rerollsEl.textContent = `Rerolls: ${remaining}`;
+    rerollsEl.classList.toggle('low', remaining === 0);
   }
 }
 

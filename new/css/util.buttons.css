@@ -1,0 +1,83 @@
+/* util.buttons.css
+ * Global reusable button system.
+ * Goals:
+ *  - Unify interaction states (hover, active, focus-visible)
+ *  - Provide semantic theme variants using design tokens (fallbacks if tokens absent)
+ *  - Offer size + shape modifiers (small, pill, block, ghost)
+ *  - Accessible disabled styling & high-contrast focus ring
+ */
+ :root {
+  --btn-font-family: 'Bangers', cursive;
+  --btn-font-weight: 900;
+  --btn-radius-sm: 6px;
+  --btn-radius-pill: 999px;
+  --btn-gap: .55rem;
+  --btn-transition: .18s cubic-bezier(.22,1.15,.32,1);
+  --btn-focus-ring: 0 0 0 4px rgba(255,204,51,.85);
+  --btn-shadow-base: 6px 6px 0 #000;
+  --btn-shadow-active: 4px 4px 0 #000;
+  --btn-shadow-flat: 0 2px 4px rgba(0,0,0,.4);
+  /* Thematic palette (fallback values if tokens.css not yet expanded) */
+  --btn-clr-primary-top: #ffc21f; /* gold */
+  --btn-clr-primary-bottom: #ff9500;
+  --btn-clr-accent-top: #4aa8ff;
+  --btn-clr-accent-bottom: #1e65cc;
+  --btn-clr-danger-top: #ff6363;
+  --btn-clr-danger-bottom: #d61111;
+  --btn-clr-neutral-top: #ffffff;
+  --btn-clr-neutral-bottom: #ececec;
+  --btn-clr-dark-top: #2f3642;
+  --btn-clr-dark-bottom: #1d232c;
+  --btn-text-dark: #111;
+  --btn-text-light: #fff;
+ }
+
+/* Base */
+.btn { position:relative; display:inline-flex; align-items:center; justify-content:center; gap:var(--btn-gap); font-family:var(--btn-font-family); font-weight:var(--btn-font-weight); letter-spacing:1px; text-transform:uppercase; border:3px solid #111; padding:10px 20px 11px; cursor:pointer; line-height:1; user-select:none; -webkit-user-select:none; transition:transform var(--btn-transition), box-shadow var(--btn-transition), filter .3s ease; box-shadow:var(--btn-shadow-base); font-size:18px; }
+.btn:focus-visible { outline:3px solid #111; box-shadow:var(--btn-shadow-base), var(--btn-focus-ring); }
+.btn:hover:not([disabled]) { transform:translateY(-2px); }
+.btn:active:not([disabled]) { transform:translateY(0) scale(.97); box-shadow:var(--btn-shadow-active); }
+.btn[disabled] { cursor:not-allowed; opacity:.55; filter:saturate(.6) contrast(.9); }
+.btn .icon { display:inline-flex; align-items:center; }
+
+/* Shapes / sizes */
+.btn--pill { border-radius:var(--btn-radius-pill); }
+.btn--sm { padding:6px 14px 7px; font-size:14px; box-shadow:4px 4px 0 #000; }
+.btn--lg { padding:16px 28px 18px; font-size:24px; }
+.btn--block { display:flex; width:100%; }
+.btn--ghost { background:transparent!important; box-shadow:none; border-style:dashed; }
+
+/* Thematic variants */
+.btn--primary { background:linear-gradient(var(--btn-clr-primary-top), var(--btn-clr-primary-bottom)); color:var(--btn-text-dark); }
+.btn--accent { background:linear-gradient(var(--btn-clr-accent-top), var(--btn-clr-accent-bottom)); color:var(--btn-text-light); }
+.btn--danger { background:linear-gradient(var(--btn-clr-danger-top), var(--btn-clr-danger-bottom)); color:var(--btn-text-light); }
+.btn--neutral { background:linear-gradient(var(--btn-clr-neutral-top), var(--btn-clr-neutral-bottom)); color:var(--btn-text-dark); }
+.btn--dark { background:linear-gradient(var(--btn-clr-dark-top), var(--btn-clr-dark-bottom)); color:var(--btn-text-light); }
+.btn--outline { background:linear-gradient(#fefefe,#f3f3f3); color:#111; box-shadow:var(--btn-shadow-base); }
+
+/* Subtle state filters */
+.btn--primary:hover:not([disabled]) { filter:brightness(1.05) saturate(1.05); }
+.btn--accent:hover:not([disabled]) { filter:brightness(1.06) saturate(1.08); }
+.btn--danger:hover:not([disabled]) { filter:brightness(1.05) saturate(1.06); }
+.btn--dark:hover:not([disabled]) { filter:brightness(1.12); }
+.btn--neutral:hover:not([disabled]) { filter:brightness(1.05); }
+
+/* Mapping legacy-replacement: allow existing k-btn markup to inherit util styles progressively */
+.k-btn { @supports not (background: paint(something)) { /* no-op hack for grouping */ }
+  font-family:var(--btn-font-family); font-weight:var(--btn-font-weight); text-transform:uppercase; letter-spacing:1px; border:2px solid #111; border-radius:8px; padding:8px 16px; background:linear-gradient(#f4f4f4,#dadada); color:#111; cursor:pointer; box-shadow:4px 4px 0 #000; line-height:1; display:inline-flex; align-items:center; gap:.5rem; transition:transform .18s ease, filter .28s ease, box-shadow .28s ease; }
+.k-btn:hover:not([disabled]) { transform:translateY(-2px); filter:brightness(1.05); }
+.k-btn:active:not([disabled]) { transform:translateY(0) scale(.96); box-shadow:3px 3px 0 #000; }
+.k-btn:focus-visible { outline:3px solid #ffcc33; outline-offset:2px; }
+.k-btn[disabled] { opacity:.5; cursor:not-allowed; }
+.k-btn--primary { background:linear-gradient(var(--btn-clr-primary-top), var(--btn-clr-primary-bottom)); }
+.k-btn--secondary { background:linear-gradient(var(--btn-clr-dark-top), var(--btn-clr-dark-bottom)); color:var(--btn-text-light); }
+.k-btn--warning { background:linear-gradient(var(--btn-clr-danger-top), var(--btn-clr-danger-bottom)); color:var(--btn-text-light); }
+.k-btn--small { font-size:12px; padding:6px 10px; box-shadow:3px 3px 0 #000; }
+
+/* Disabled state augmentation for k-btn variants */
+.k-btn[disabled] { filter:grayscale(.4) brightness(.9); }
+
+/* Utility tone overlays (applied alongside variants) */
+.btn--glow { box-shadow:0 0 0 3px rgba(255,255,255,.35), 0 0 18px -2px rgba(255,200,64,.9), var(--btn-shadow-base); }
+.btn--pulse { animation:btnPulse 2.4s ease-in-out infinite; }
+@keyframes btnPulse { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-3px); } }

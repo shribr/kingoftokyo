@@ -1,0 +1,97 @@
+/* components.panel-chrome.css
+ * Unified panel chrome styling (borders, header typography, layered comic shadow) for left/right side rails.
+ */
+.k-panel { position:relative; background:rgba(0,0,0,0.55); border:3px solid #000; border-radius:4px; padding:8px 10px 12px; box-shadow:3px 3px 0 #000, 0 0 0 1px #222 inset; font-family:'Bangers',cursive; letter-spacing:1px; }
+.k-panel + .k-panel { margin-top:14px; }
+.k-panel__header { margin:0 0 8px; font-size:22px; color:#ffd400; text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; display:flex; align-items:center; justify-content:space-between; }
+.k-panel__body { font-family:system-ui,sans-serif; letter-spacing:0; }
+
+/* Shop specific overrides */
+.cmp-card-shop.k-panel { background:linear-gradient(180deg,#2e2e33,#1d1f22); }
+/* Power Cards panel now reuses mp-* header/title classes for parity */
+.cmp-card-shop .mp-header { font-size:24px; font-family:'Bangers',cursive; margin:0 0 10px; color:#ffd400; display:flex; align-items:center; justify-content:flex-end; }
+.cmp-card-shop .mp-title { display:inline-flex; align-items:center; gap:8px; margin:0; font-size:24px; color:#ffd400; white-space:nowrap; }
+.cmp-card-shop .mp-arrow { font-size:14px; line-height:1; }
+/* Arrow (no rotation; we use real directional glyphs) */
+/* Old toggle-arrow selectors removed (arrow now .mp-arrow) */
+/* Monsters panel arrow: add a bit more breathing room from the title; no trailing margin needed */
+.cmp-monsters-panel .mp-header .mp-arrow { font-size:14px; line-height:1; margin:0; }
+.cmp-card-shop[data-collapsed="true"] .panel-content { display:none; }
+
+/* Horizontal slide + header pivot (LEFT PANEL) */
+/* Generic side panel container */
+.cmp-side-panel { transition: transform .35s ease; position:relative; }
+.cmp-side-panel[data-side="left"][data-collapsed="true"] { transform: translateX(calc(-100% + 46px)); }
+.cmp-side-panel[data-side="right"][data-collapsed="true"] { transform: translateX(calc(100% - 46px)); }
+.cmp-side-panel[data-collapsed="true"] { cursor:pointer; padding:0; background:transparent; border:0; box-shadow:none; overflow:hidden; }
+.cmp-side-panel .mp-header { position:relative; z-index:2; }
+.cmp-side-panel .mp-title { transition: transform .35s ease; cursor:pointer; white-space:nowrap; }
+/* Ensure arrow on left panel precedes text with consistent spacing */
+[data-side="left"] .mp-title { flex-direction:row-reverse; }
+[data-side="left"] .mp-title .mp-arrow { order:0; margin-right:8px; margin-left:0; }
+[data-side="right"] .mp-title .mp-arrow { margin-left:6px; }
+/* Pivot directions differ by side */
+.cmp-side-panel[data-side="left"][data-collapsed="true"] .mp-title {
+  /* Left panel rotates clockwise (90deg) so text reads top-to-bottom near left edge */
+  transform: rotate(90deg) translateX(30px);
+  transform-origin:right top;
+  margin-top:90px;
+  margin-right:25px;
+  display:inline-block;
+  white-space:nowrap;
+}
+.cmp-side-panel[data-side="right"][data-collapsed="true"] .mp-title {
+  /* Right panel rotates counter-clockwise ( -90deg ) */
+  transform: rotate(-90deg) translateX(-30px);
+  transform-origin:left;
+  margin-top:90px;
+  margin-left:25px;
+  display:inline-block;
+  white-space:nowrap;
+}
+.cmp-side-panel[data-collapsed="true"] .mp-header { margin:0; padding:4px 4px 2px; width:46px; box-sizing:border-box; background:transparent; border:0; box-shadow:none; }
+.cmp-card-shop[data-collapsed="true"] .panel-content { display:none !important; }
+
+/* Horizontal slide + header pivot (RIGHT PANEL) */
+/* (Removed panel-specific collapse block; now handled by .cmp-side-panel generic rules) */
+
+/* Expand hit target for headers (unified) */
+.cmp-side-panel .mp-header { padding:6px 8px; margin:-6px -8px 8px; cursor:pointer; }
+.cmp-monsters-panel > .mp-header { border-bottom:0 !important; padding-bottom:4px; }
+/* Remove bottom border for Power Cards side panel header as well */
+.cmp-card-shop > .mp-header { border-bottom:0 !important; padding-bottom:4px; }
+
+/* Keep body hidden when collapsed (already handled above but ensure consistency) */
+[data-collapsed="true"] > .k-panel__body { display:none; }
+
+/* Monsters panel overrides */
+.cmp-monsters-panel.k-panel { background:linear-gradient(180deg,#1c1f22,#121315); }
+.cmp-monsters-panel .mp-title { font-size:24px; }
+.cmp-monsters-panel .mp-player-cards { font-family:system-ui,sans-serif; }
+
+/* Full-height side panels with scrolling */
+[data-gl-left] .cmp-card-shop,
+[data-gl-right] .cmp-monsters-panel { height: calc(100vh - 140px); overflow-y:auto; scrollbar-width:thin; }
+[data-gl-left] .cmp-card-shop::-webkit-scrollbar,
+[data-gl-right] .cmp-monsters-panel::-webkit-scrollbar { width:8px; }
+[data-gl-left] .cmp-card-shop::-webkit-scrollbar-thumb,
+[data-gl-right] .cmp-monsters-panel::-webkit-scrollbar-thumb { background:#333; border-radius:4px; }
+
+/* Generic collapse handling */
+[data-collapsed="true"] > .k-panel__body { display:none; }
+/* Collapsed panels always clickable */
+.cmp-side-panel[data-collapsed="true"] { cursor:pointer; }
+
+/* Keep arrow horizontal when titles rotate; side-specific counter-rotation */
+.cmp-side-panel[data-side="right"][data-collapsed="true"] .mp-title .mp-arrow {
+  display:inline-block;
+  transform: rotate(90deg) scale(1);
+  transform-origin:center;
+  font-size:24px;
+}
+.cmp-side-panel[data-side="left"][data-collapsed="true"] .mp-title .mp-arrow {
+  display:inline-block;
+  transform: rotate(-90deg) scale(1);
+  transform-origin:center;
+  font-size:24px;
+}

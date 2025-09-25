@@ -1,19 +1,18 @@
 /** components/effect-inspector/effect-inspector.component.js */
 export function build({ selector }) {
   const root = document.createElement('div');
-  root.className = selector.replace('.', '') + ' effect-inspector';
-  root.style.cssText = 'position:fixed;left:8px;bottom:8px;background:#18181c;color:#fff;font:12px/1.4 system-ui;border:1px solid #333;padding:6px 8px;border-radius:6px;max-width:300px;z-index:150;';
-  root.innerHTML = `<div style="font-weight:bold;margin-bottom:4px;">Active Keep Effects</div>
-  <div style="font-size:11px;margin-bottom:4px;color:#aaa">Aggregated modifiers shown first.</div>
-  <div class="ei-aggregate" aria-live="polite"></div>
-  <hr style="border:none;border-top:1px solid #333;margin:4px 0" />
-  <div class="ei-list" aria-live="polite"></div>`;
+  root.className = 'cmp-effect-inspector';
+  root.innerHTML = `<div class="cmp-effect-inspector__title">Active Keep Effects</div>
+    <div class="cmp-effect-inspector__subtitle">Aggregated modifiers shown first.</div>
+    <div class="cmp-effect-inspector__aggregate ei-aggregate" aria-live="polite"></div>
+    <hr />
+    <div class="cmp-effect-inspector__list ei-list" aria-live="polite"></div>`;
   return { root, update: () => {} };
 }
 
 export function update(ctx) {
   const { state } = ctx;
-  const root = ctx.inst?.root || document.querySelector('.effect-inspector');
+  const root = ctx.inst?.root || document.querySelector('.cmp-effect-inspector');
   if (!root) return;
   // Hide while splash visible or debug disabled
   const splashVisible = state?.ui?.splash?.visible === true;

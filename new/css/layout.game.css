@@ -1,0 +1,57 @@
+/* layout.game.css
+ * Grid shell for primary play surface.
+ * Regions (UPDATED): left (Power Cards shop), center (arena), right (Monsters + ancillary panels)
+ */
+:root {
+  --gl-gap: 18px;
+  --gl-side-width: 300px;
+  --gl-max-width: 1700px;
+}
+
+.game-layout-shell { width:100%; display:flex; flex-direction:column; gap:16px; padding:10px 20px 80px; box-sizing:border-box; max-width:var(--gl-max-width); margin:0 auto; position:relative; }
+.game-layout-shell .gl-header { padding:4px 0 0; }
+.game-layout-shell .gl-title { font-family:'Bangers',cursive; font-size:54px; letter-spacing:2px; color:#FFD700; text-shadow:-3px -3px 0 #000,3px -3px 0 #000,-3px 3px 0 #000,3px 3px 0 #000; margin:0; line-height:1; }
+.game-layout-shell .gl-main { display:grid; grid-template-columns: var(--gl-side-width) 1fr var(--gl-side-width); gap: var(--gl-gap); align-items:start; width:100%; }
+.game-layout-shell > .gl-main > .gl-left { display:flex; flex-direction:column; gap:14px; min-width:0; }
+.game-layout-shell > .gl-main > .gl-center { position:relative; min-height:640px; display:flex; flex-direction:column; }
+.game-layout-shell > .gl-main > .gl-right { display:flex; flex-direction:column; gap:14px; align-items:stretch; min-width:0; }
+.game-layout-shell .gl-center-content { flex:1; position:relative; }
+.game-layout-shell .gl-center-bottom { display:flex; flex-direction:row; gap:14px; flex-wrap:wrap; align-items:flex-start; padding-top:8px; }
+.game-layout-shell .gl-footer { position:fixed; left:0; right:0; bottom:0; height:64px; display:flex; align-items:center; justify-content:center; background:linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.65)); backdrop-filter:blur(4px); z-index:5000; padding:6px 20px; gap:20px; }
+.game-layout-shell .gl-footer > * { position:relative; }
+
+/* Allow components to opt-in to full width in side rails */
+.gl-left > *:not(.cmp-player-profile-cards),
+.gl-right > * { width:100%; }
+
+/* Dice tray initial anchor (still draggable) */
+.gl-right .cmp-dice-tray { position:relative; left:0; bottom:0; transform:none; margin-top:4px; order:3; }
+.gl-center-bottom .cmp-dice-tray { order:1; }
+.gl-center-bottom .cmp-action-menu { order:2; }
+.gl-center-bottom .cmp-action-menu { transition: margin .3s ease; }
+/* If either side panel expanded (heuristic: body has class panels-expanded-left/right added via JS later) */
+body.panels-expanded-left .gl-center-bottom .cmp-action-menu { margin-left: 40px; }
+body.panels-expanded-right .gl-center-bottom .cmp-action-menu { margin-right: 40px; }
+.gl-footer .cmp-toolbar { width:auto; }
+
+/* Shop ordering and stacking with effect panels */
+/* Ordering inside right rail (monsters & ancillary) */
+.gl-right .cmp-monsters-panel { order:1; }
+.gl-right .cmp-effect-queue { order:2; }
+.gl-right .cmp-effect-inspector { order:4; }
+
+/* Power cards (shop) now lives in left rail */
+.gl-left .cmp-card-shop { order:1; }
+
+@media (max-width: 1400px) {
+  :root { --gl-side-width: 260px; }
+  .game-layout-shell { grid-template-columns: var(--gl-side-width) 1fr var(--gl-side-width); }
+}
+
+@media (max-width: 1100px) {
+  .game-layout-shell .gl-main { grid-template-columns: 1fr; }
+  .game-layout-shell > .gl-main > .gl-left { order:2; flex-direction:row; flex-wrap:wrap; }
+  .game-layout-shell > .gl-main > .gl-right { order:3; }
+  .game-layout-shell > .gl-main > .gl-center { order:1; }
+  .game-layout-shell .gl-center-bottom { order:4; }
+}

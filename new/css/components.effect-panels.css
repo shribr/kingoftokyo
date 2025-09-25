@@ -1,0 +1,41 @@
+/* components.effect-panels.css
+ * Extracted from inline styles of effect-queue & effect-inspector components.
+ * Uses design tokens where available; introduces a few new custom properties scoped for refinement.
+ */
+:root {
+  --effect-panel-bg: #1e1e24;
+  --effect-panel-bg-alt: #18181c;
+  --effect-panel-border: #333;
+  --effect-panel-radius: 6px;
+  --effect-panel-font: 12px/1.4 system-ui, var(--font-family-body, Arial, sans-serif);
+  --effect-panel-max-width: 260px;
+}
+
+.cmp-effect-queue, .cmp-effect-inspector {
+  position: fixed;
+  background: var(--effect-panel-bg);
+  color: var(--color-text-primary, #fff);
+  font: var(--effect-panel-font);
+  border: 1px solid var(--effect-panel-border);
+  padding: 6px 8px;
+  border-radius: var(--effect-panel-radius);
+  max-width: var(--effect-panel-max-width);
+  z-index: var(--z-elevated, 150);
+  box-shadow: var(--shadow-ambient-sm, 0 4px 12px rgba(0,0,0,.3));
+}
+.cmp-effect-queue { top: 8px; right: 8px; }
+.cmp-effect-inspector { left: 8px; bottom: 8px; background: var(--effect-panel-bg-alt); }
+
+.cmp-effect-queue__title, .cmp-effect-inspector__title { font-weight: 700; margin: 0 0 4px; font-size: 13px; }
+.cmp-effect-queue__current { font-weight: 600; }
+.cmp-effect-queue__list, .cmp-effect-queue__history { margin:4px 0 0; padding:0; list-style:none; }
+.cmp-effect-queue__history { max-height:120px; overflow:auto; }
+.cmp-effect-queue__item--failed { opacity:.6; }
+
+.cmp-effect-inspector__aggregate { font-size:11px; color:#7fd65d; }
+.cmp-effect-inspector__list { margin-top:4px; font-size:11px; }
+
+/* Rerolls indicator styling */
+.cmp-dice-tray .tray-rerolls { font-size: 12px; font-weight:600; letter-spacing:.5px; }
+.cmp-dice-tray .tray-rerolls.low { color: var(--color-danger,#dc3545); }
+
