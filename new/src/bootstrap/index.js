@@ -93,20 +93,20 @@ if (typeof window !== 'undefined') {
     ]));
   });
   initCards(store, logger);
-  // Defer starting the game until the user enters from splash
-  const startIfReady = () => {
+  // Revised start logic: Do NOT auto-start when splash hides.
+  // Start only after setup screen has been opened at least once and then closed.
+  let prevSetupOpen = store.getState().ui?.setup?.open;
+  let setupWasOpened = false;
+  store.subscribe(() => {
     const st = store.getState();
-    if (st && st.ui && st.ui.splash && st.ui.splash.visible === false) {
+    const setupOpen = !!st.ui?.setup?.open;
+    if (setupOpen && !setupWasOpened) setupWasOpened = true;
+    // When setup transitions from open -> closed after having been opened, and splash is gone, start game.
+    if (!setupOpen && prevSetupOpen && setupWasOpened && st.ui?.splash?.visible === false) {
       turnService.startGameIfNeeded();
-      store._unsubscribeSplash && store._unsubscribeSplash();
-      store._unsubscribeSplash = null;
     }
-  };
-  store._unsubscribeSplash = store.subscribe(startIfReady);
-  // Also start if settings indicate no splash
-  if (store.getState().ui?.splash?.visible === false) {
-    turnService.startGameIfNeeded();
-  }
+    prevSetupOpen = setupOpen;
+  });
   // Load component config dynamically
   fetch('./components.config.json')
     .then(r => r.json())

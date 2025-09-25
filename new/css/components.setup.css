@@ -1,12 +1,16 @@
-/* Setup modal matching legacy Monster Selection UI */
-.cmp-setup.setup-modal { position: fixed; inset: 0; display:flex; justify-content:center; align-items:flex-start; padding-top:4vh; z-index: 650; 
-	background:
+/* Setup modal matching legacy Monster Selection UI w/ animated entry */
+.cmp-setup.setup-modal { position: fixed; inset: 0; display:flex; justify-content:center; align-items:flex-start; padding-top:4vh; z-index: 12000; 
+	background: 
 		radial-gradient(circle at 1px 1px, rgba(0,0,0,0.08) 1px, transparent 1px) 0 0/12px 12px,
 		radial-gradient(circle at 1px 1px, rgba(0,0,0,0.06) 1px, transparent 1px) 6px 6px/12px 12px,
 		#fbf6ea;
+    transition: opacity .45s ease, transform .45s ease; will-change: opacity, transform; opacity:1; transform: translateY(0) scale(1); visibility:visible; pointer-events:auto;
 }
-.cmp-setup.setup-modal.hidden { display:none; }
-.cmp-setup .setup-frame { background:transparent; border:none; box-shadow:none; padding:18px 22px 22px; width: min(96vw, 1200px); }
+.cmp-setup.setup-modal.hidden { opacity:0; transform: translateY(18px) scale(.96); visibility:hidden; pointer-events:none; }
+.cmp-setup .setup-frame { background:transparent; border:none; box-shadow:none; padding:18px 22px 22px; width: min(96vw, 1200px); display:flex; flex-direction:column; max-height:calc(100vh - 8vh); }
+
+/* Default text in setup to black for readability on light background */
+.cmp-setup { color:#000; }
 
 .cmp-setup .setup-title { font-family:'Bangers', cursive; font-size:56px; color:#FFD700; text-align:center; letter-spacing:2px; text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000; margin-bottom:18px; filter: drop-shadow(0 6px 0 #000); }
 
@@ -23,9 +27,17 @@
 .cmp-setup .dropdown-menu li { padding:8px 12px; cursor:pointer; font-weight:700; }
 .cmp-setup .dropdown-menu li:hover { background:#ffe7a6; }
 
-.cmp-setup .setup-body { display:grid; grid-template-columns: 1fr 320px; gap:28px; align-items:start; }
-.cmp-setup .cards-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:30px; padding:4px; }
-.cmp-setup [data-monster-card].is-unavailable { opacity:.5; filter: grayscale(100%); cursor:not-allowed; }
+.cmp-setup .setup-body { display:grid; grid-template-columns: 1fr 320px; gap:28px; align-items:start; flex:1; overflow:hidden; min-height:0; }
+.cmp-setup .cards-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:30px; padding:4px; overflow-y:auto; overscroll-behavior:contain; scrollbar-gutter: stable; }
+/* Scroll constraint so extra monsters do not push footer offscreen */
+.cmp-setup .cards-grid { max-height:100%; }
+.cmp-setup .setup-body > .cards-grid { /* allow grid area to shrink within allocated space */ min-height:0; }
+/* Custom scrollbar (webkit) */
+.cmp-setup .cards-grid::-webkit-scrollbar { width:10px; }
+.cmp-setup .cards-grid::-webkit-scrollbar-track { background:#e4dccd; border:2px solid #111; box-shadow:inset 2px 2px 0 #000; }
+.cmp-setup .cards-grid::-webkit-scrollbar-thumb { background:#c0b49f; border:2px solid #111; box-shadow:2px 2px 0 #000; }
+.cmp-setup .cards-grid::-webkit-scrollbar-thumb:hover { background:#b3a892; }
+.cmp-setup [data-monster-card].is-unavailable { opacity:.6; filter: grayscale(100%); cursor:not-allowed; }
 .cmp-setup [data-monster-card][draggable="true"] { cursor: grab; }
 .cmp-setup [data-monster-card][draggable="true"]:active { cursor: grabbing; }
 
@@ -38,7 +50,7 @@
 .cmp-setup .monster-card .polaroid::before { transform: translate(10px, 10px) rotate(2deg); }
 .cmp-setup .monster-card .polaroid::after { transform: translate(-10px, 14px) rotate(-4deg); }
 .cmp-setup .monster-card .photo { background:#fff; border:2px solid #111; padding:10px; }
-.cmp-setup .monster-card img { width:160px; max-width:100%; height:140px; object-fit:contain; image-rendering: -webkit-optimize-contrast; image-rendering: optimize-contrast; filter: grayscale(100%); opacity:.7; }
+.cmp-setup .monster-card img { width:160px; max-width:100%; height:140px; object-fit:contain; image-rendering: -webkit-optimize-contrast; image-rendering: optimize-contrast; filter:none; opacity:1; }
 .cmp-setup .monster-card:hover { transform: translateY(-2px); }
 .cmp-setup .monster-card.selected img { filter: none; opacity:1; }
 
@@ -56,13 +68,13 @@
 .cmp-setup .mini-photo { width:56px; height:56px; border:2px solid #111; background:#fff; display:flex; align-items:center; justify-content:center; }
 .cmp-setup .mini-photo img { width:100%; height:100%; object-fit:contain; }
 .cmp-setup .mini-name { font-weight:900; font-size:14px; }
-.cmp-setup .cpu-label { font-family:'Bangers', cursive; font-size:28px; font-weight:900; color:#ffffffcc; text-shadow: 0 1px 0 #a2c7ec; }
-.cmp-setup .cpu-sub { margin-top:-4px; font-weight:800; font-size:13px; color:#ffffffcc; }
+.cmp-setup .cpu-label { font-family:'Bangers', cursive; font-size:28px; font-weight:900; color:#000; text-shadow: none; }
+.cmp-setup .cpu-sub { margin-top:-4px; font-weight:800; font-size:13px; color:#000; }
 
 /* Footer */
-.cmp-setup .setup-footer { margin-top:18px; display:flex; align-items:center; justify-content:space-between; }
+.cmp-setup .setup-footer { margin-top:18px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
 .cmp-setup .reset-link { background:none; border:none; color:#2f506a; font-weight:900; cursor:pointer; text-decoration:none; display:flex; align-items:center; gap:6px; filter: drop-shadow(0 2px 0 #000); }
-.cmp-setup .start-btn { background:#bdbdbd; color:#fff; border:3px solid #111; box-shadow:8px 8px 0 #000; padding:14px 22px; font-weight:900; letter-spacing:1px; cursor:not-allowed; }
+.cmp-setup .start-btn { background:#bdbdbd; color:#000; border:3px solid #111; box-shadow:8px 8px 0 #000; padding:14px 22px; font-weight:900; letter-spacing:1px; cursor:not-allowed; }
 .cmp-setup .start-btn:not([disabled]) { background:#4a9f4a; cursor:pointer; }
 
 @media (max-width: 980px) {

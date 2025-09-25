@@ -10,7 +10,7 @@
 .cd-actions { display: flex; gap: .5rem; justify-content: flex-end; }
 .cd-actions .btn { cursor: pointer; font-weight: 700; padding: .5rem .75rem; border: 2px solid #111; box-shadow: 3px 3px 0 #111; background: #ffe; }
 .cd-actions .btn.primary { background: #ffd24d; }
-.cd-actions .btn.danger { background: #e54; color: #fff; }
+.cd-actions .btn.danger { background: #e54; color: #000; }
 .cd-actions .btn.disabled { background: #888; color: #ddd; cursor: not-allowed; }
 
 .player-cards-modal .pcm-frame { background: #f8f3e5; min-width: 620px; min-height: 320px; }

@@ -15,7 +15,10 @@
 <body>
     <div id="aria-live-phase" class="visually-hidden" aria-live="polite"></div>
     <div id="aria-live-ai" class="visually-hidden" aria-live="polite"></div>
-    <div id="game-container" role="application" aria-label="King of Tokyo game interface"></div>
+    <div id="game-container" class="show" role="application" aria-label="King of Tokyo game interface">
+        <!-- Mount root for dynamic components -->
+        <div id="app"></div>
+    </div>
     <script type="module" src="src/bootstrap/index.js"></script>
 </body>
 </html>

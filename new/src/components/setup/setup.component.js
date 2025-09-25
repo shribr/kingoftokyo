@@ -4,7 +4,7 @@ import { uiSetupClose, uiMonsterProfilesOpen } from '../../core/actions.js';
 
 export function build({ selector, dispatch, getState }) {
   const root = document.createElement('div');
-  root.className = selector.slice(1) + ' setup-modal hidden';
+  root.className = selector.slice(1) + ' setup-modal hidden'; // remains hidden until ui.setup.open flips true
   root.innerHTML = frame();
 
   const inst = { root, dispatch, getState, _local: { selected: new Set(), slots: [], playerCount: 4, _initialized: false } };
@@ -33,8 +33,9 @@ export function build({ selector, dispatch, getState }) {
       render(inst);
       return;
     }
-    // Reset selections
+    // Reset selections: clear all slots and selection, re-render
     if (t.closest('[data-action="reset"]')) {
+      inst._local.slots = new Array(inst._local.playerCount).fill(null);
       inst._local.selected.clear();
       render(inst);
       return;
@@ -145,16 +146,20 @@ export function update(ctx) {
   const st = ctx.fullState || ctx.state;
   const open = st?.ui?.setup?.open;
   const inst = ctx.inst || { root, _local: { selected: new Set(), slots: [], playerCount: 4, _initialized: false } };
-  if (!open) { root.classList.add('hidden'); return; }
+  if (typeof window !== 'undefined' && window.__KOT_NEW__) {
+    console.debug('[Setup.update] open=%s, splashVisible=%s', open, st?.ui?.splash?.visible, root.classList.contains('hidden') ? '(hidden class present)' : '(visible class)');
+  }
+  if (!open) {
+    root.classList.add('hidden');
+    inst._local._initialized = false;
+    return;
+  }
   root.classList.remove('hidden');
-  // On first open, preselect two defaults to mirror legacy: Cyber Bunny + Alienoid
+  // Initialize on open: no pre-assignments, empty slots, default to 4 players
   if (!inst._local._initialized) {
-    const byId = st?.monsters?.byId || {};
-    const defaults = ['bunny','alien'].filter(id => byId[id]);
-    inst._local.playerCount = Math.max(inst._local.playerCount, 2);
+    inst._local.playerCount = 4;
     inst._local.slots = new Array(inst._local.playerCount).fill(null);
-    defaults.forEach((id, i) => { if (i < inst._local.slots.length) inst._local.slots[i] = id; });
-    syncSelectedFromSlots(inst);
+    inst._local.selected = new Set();
     inst._local._initialized = true;
   }
   render(inst, st);

@@ -10,17 +10,12 @@ export function build({ selector, dispatch, getState }) {
   root.addEventListener('click', (e) => {
     if (e.target.id === 'enter-battle-btn' || e.target.closest('#enter-battle-btn')) {
       e.preventDefault();
-      dispatch(uiSetupOpen());
-      dispatch(uiSplashHide());
-      // Immediate visual feedback; do not wait for store update
-      root.classList.add('is-hidden');
+      beginHideSequence(dispatch, root);
       return;
     }
     const polaroid = e.target.closest('.polaroid');
     if (polaroid) {
-      dispatch(uiSetupOpen());
-      dispatch(uiSplashHide());
-      root.classList.add('is-hidden');
+      beginHideSequence(dispatch, root);
       return;
     }
   });
@@ -36,15 +31,16 @@ export function update(ctx) {
     root.classList.add('is-hidden');
   } else {
     root.classList.remove('is-hidden');
-    // Populate polaroids from monsters data (first 6)
-    // Match legacy order for splash polaroids: 1..6 = [Gigazaur, Cyber Bunny, Kraken, The King, Meka Dragon, Alienoid]
-    const desiredOrderIds = ['giga','bunny','kraken','king','dragon','alien'];
-    const byId = state.monsters?.byId || {};
-    let monsters = desiredOrderIds.map(id => byId[id]).filter(Boolean);
-    if (monsters.length < 6) {
-      // Fallback to existing order if not all present yet
-      monsters = selectMonsters(state).slice(0,6);
+    // Randomize 6 distinct monsters for splash (ignoring dark variants handled by config)
+    let monsters = selectMonsters(state).slice();
+    if (monsters.length > 6) {
+      // Fisher-Yates shuffle (partial if large)
+      for (let i = monsters.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [monsters[i], monsters[j]] = [monsters[j], monsters[i]];
+      }
     }
+    monsters = monsters.slice(0, 6);
     const left = root.querySelector('[data-polaroids-left]');
     const right = root.querySelector('[data-polaroids-right]');
     if (left && right) {
@@ -108,4 +104,30 @@ function hexToRgba(hex, alpha = 1) {
   const g = (bigint >> 8) & 255;
   const b = bigint & 255;
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function beginHideSequence(dispatch, root) {
+  // Prevent multiple triggers
+  if (root.classList.contains('is-hidden') || root.classList.contains('is-hiding')) return;
+  root.classList.add('is-hiding');
+  // Kick off store state change (will cause update -> .is-hidden eventually)
+  dispatch(uiSplashHide());
+  // Proactively queue setup open after fade duration to avoid missed transitionend edge cases
+  setTimeout(() => {
+    try { dispatch(uiSetupOpen()); } catch(e) { console.warn('Deferred setup open failed', e); }
+  }, 520); // slightly longer than CSS .5s transition
+  // Force reflow then apply is-hidden for fade
+  requestAnimationFrame(() => {
+    root.classList.add('is-hidden');
+    const onEnd = (e) => {
+      if (e.propertyName === 'opacity') {
+        root.removeEventListener('transitionend', onEnd);
+        // Secondary (original) open dispatch for normal path
+        try { dispatch(uiSetupOpen()); } catch(e2) { /* noop */ }
+        // Cleanup
+        root.classList.remove('is-hiding');
+      }
+    };
+    root.addEventListener('transitionend', onEnd);
+  });
 }

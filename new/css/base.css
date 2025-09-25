@@ -2,6 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Nunito:wght@400;600;700;800;900&family=Bangers&family=Kalam:wght@400;700&display=swap');
 
 * { margin:0; padding:0; box-sizing:border-box; }
+/* Default to white text given predominantly dark game surfaces; light UIs should override locally */
 body { font-family:'Nunito',sans-serif; background:#000; color:#fff; overflow-x:hidden; overflow-y:visible; height:100vh; }
 
 /* Text Shadow Utilities */
@@ -23,6 +24,7 @@ body { font-family:'Nunito',sans-serif; background:#000; color:#fff; overflow-x:
 
 :focus-visible { outline:2px solid #7fd65d; outline-offset:2px; }
 
+/* Headings default to white; light components can override locally */
 h1,h2,h3,h4,h5,h6 { font-family:'Bangers',cursive; color:#fff; }
 button { font-family:'Bangers',cursive; cursor:pointer; border:none; background:none; outline:none; }
 
