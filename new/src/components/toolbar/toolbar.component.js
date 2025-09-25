@@ -1,14 +1,7 @@
 /** toolbar.component.js
- * MODULAR REWRITE BRIDGE (Not a raw legacy copy)
- * LEGACY GLOBAL STYLE DEPENDENCY (FOR FUTURE LEGACY REMOVAL)
- * Uses legacy selector: .game-toolbar (layout, positioning, show/hide transitions) + shared .toolbar-btn styles if present in legacy CSS.
- * Original Implementation: Static markup + imperative wiring inside root `index.html` / `js/main.js` (queried via #game-toolbar).
- * This file reconstructs toolbar behavior as a self-contained component; it is not a verbatim legacy JS file.
- * Decommission / Migration Path:
- *   1. Extract toolbar visuals into css/components.toolbar.css (scoped to .cmp-toolbar root, define button spacing, z-index, transitions).
- *   2. Replace legacy .game-toolbar class with scoped root + data attributes.
- *   3. Remove reliance on legacy base button styles (introduce design tokens or shared button module) -> drop need for legacy CSS.
- *   4. After extraction, delete associated selectors from css/legacy/*.css.
+ * MIGRATED TOOLBAR COMPONENT (legacy .game-toolbar removed)
+ * Styling fully scoped in css/components.toolbar.css. Button visuals use local rules.
+ * Next: remove legacy .game-toolbar selectors from legacy CSS (if still present) after QA.
  */
 import { store } from '../../bootstrap/index.js';
 import { uiSettingsOpen, uiGameLogOpen } from '../../core/actions.js';

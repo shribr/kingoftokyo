@@ -161,7 +161,9 @@ export function update(ctx) {
     inst._local.slots = new Array(inst._local.playerCount).fill(null);
     inst._local.selected = new Set();
     inst._local._initialized = true;
+    inst._local.prevMonsterCount = 0;
   }
+  // Always render on update; internal logic will diff monster count for re-population.
   render(inst, st);
 }
 
@@ -194,6 +196,19 @@ function render(inst, fullState) {
   const root = inst.root;
   const st = fullState || inst.getState?.();
   const monsters = selectMonsters(st);
+  // Safety: re-render grid if monster count changed after initial mount (race with async config load)
+  const prevCount = inst._local.prevMonsterCount || 0;
+  if (monsters.length !== prevCount) {
+    inst._local.prevMonsterCount = monsters.length;
+  }
+  // Warn if monsters loaded but any image missing
+  if (monsters.length && monsters.some(m => !m.image)) {
+    // Only log once
+    if (!inst._local._warnedMissingImages) {
+      console.warn('[setup.component] Some monsters missing image paths:', monsters.filter(m => !m.image).map(m => m.id));
+      inst._local._warnedMissingImages = true;
+    }
+  }
   // Ensure slots reflect playerCount
   if (!Array.isArray(inst._local.slots) || inst._local.slots.length !== inst._local.playerCount) {
     const old = inst._local.slots || [];

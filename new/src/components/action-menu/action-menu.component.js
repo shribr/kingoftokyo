@@ -1,13 +1,7 @@
 /** action-menu.component.js
- * LEGACY GLOBAL STYLE DEPENDENCY (FOR FUTURE LEGACY REMOVAL)
- * Legacy selectors relied upon: .action-menu, .draggable, .btn (from legacy base + layout)
- * Sources: css/legacy/base.css (button theming) & css/legacy/layout.css (panel positioning/draggable affordance)
- * Interim Justification: Avoids regressions while extracting shared button tokens + positioning utilities.
- * Decommission Outline:
- *   1. Create css/components.action-menu.css with flex layout & spacing.
- *   2. Swap generic .btn classes for scoped variants or design-token driven utility classes.
- *   3. Remove added legacy hooks in build() => only keep namespaced root.
- *   4. Delete unused legacy .action-menu & related draggable style blocks once no other component depends.
+ * MIGRATED: Legacy classes (.action-menu, .draggable, .btn) replaced.
+ * Styles now sourced from css/components.action-menu.css + button tokens.
+ * Pending: prune unused legacy .action-menu and draggable selectors.
  */
 import { eventBus } from '../../core/eventBus.js';
 import { store } from '../../bootstrap/index.js';

@@ -26,18 +26,18 @@
     },
     "toolbar": {
       "newRootClass": "cmp-toolbar",
-      "status": "extracted",
-      "next": "Drop .game-toolbar legacy alias after QA"
+      "status": "migrated",
+      "next": "Prune .game-toolbar from legacy CSS"
     },
     "diceTray": {
       "newRootClass": "cmp-dice-tray",
-      "status": "extracted",
-      "next": "Remove .dice-area + .draggable once persisted positions validated"
+      "status": "migrated",
+      "next": "Prune .dice-area + generic .draggable styles (introduce [data-draggable] variant if still needed)"
     },
     "actionMenu": {
       "newRootClass": "cmp-action-menu",
-      "status": "extracted-buttons",
-      "next": "Remove .action-menu legacy class; audit button spacing"
+      "status": "migrated",
+      "next": "Prune .action-menu rules & CPU rolling states -> reimplement with .cmp-action-menu if needed"
     },
     "arena": {
       "newRootClass": "cmp-arena",

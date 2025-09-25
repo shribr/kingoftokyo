@@ -1,13 +1,7 @@
 /** dice-tray.component.js
- * LEGACY GLOBAL STYLE DEPENDENCY (FOR FUTURE LEGACY REMOVAL)
- * Uses legacy layout hooks: .dice-area, .draggable
- * Origin: css/legacy/layout.css (positioning, sizing, drag affordance, visual accents)
- * Rationale: Temporary retention so migrated rewrite renders correctly while styles are extracted.
- * Decommission Plan:
- *   1. Create component-scoped stylesheet (components.dice-tray.css) with required layout + animation rules.
- *   2. Replace external positioning reliance with design tokens (size, gap, z-index) & inline CSS vars.
- *   3. Remove legacy class additions below ('.dice-area', '.draggable') and update tests / snapshots.
- *   4. Delete associated selector blocks from css/legacy/layout.css once no other components depend on them.
+ * MIGRATED: Legacy structural classes (.dice-area, .draggable) removed.
+ * Source extraction complete -> visuals governed by css/components.dice-tray.css.
+ * Next: prune legacy .dice-area / draggable styling blocks after confirming no other components rely on them.
  */
 import { eventBus } from '../../core/eventBus.js';
 import { selectActivePlayer } from '../../core/selectors.js';
@@ -16,10 +10,7 @@ import { createPositioningService } from '../../services/positioningService.js';
 
 export function build({ selector, emit }) {
   const root = document.createElement('div');
-  // Bridge legacy layout expectations by adding original structural class names.
-  // This allows existing layout.css rules (which still target .dice-area & .draggable)
-  // to style/position the rewrite dice tray without waiting for full CSS migration.
-  root.className = `${selector.slice(1)} cmp-dice-tray`; // legacy .dice-area/.draggable removed
+  root.className = `${selector.slice(1)} cmp-dice-tray`;
   root.setAttribute('data-draggable','true');
   root.innerHTML = `<div class="tray-header"><button data-action="roll">Roll</button><span class="tray-dice-count" data-dice-count></span></div><div class="dice" data-dice></div>`;
   // Track previous diceSlots to animate expansions

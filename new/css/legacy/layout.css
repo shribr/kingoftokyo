@@ -81,15 +81,22 @@ body::before { content:''; position:fixed; top:0; left:0; width:100%; height:100
 .roll-button { background:linear-gradient(45deg,#FFD700,#FFA500); border:none; color:#000; padding:10px 20px; border-radius:8px; font-size:16px; font-weight:bold; cursor:pointer; box-shadow:0 4px 8px rgba(0,0,0,.3); transition:all .3s ease; }
 .roll-button:hover { background:linear-gradient(45deg,#FFA500,#FFD700); transform:translateY(-2px); box-shadow:0 6px 12px rgba(0,0,0,.4); }
 .roll-button:disabled { background:#666; color:#999; cursor:not-allowed; transform:none; box-shadow:none; }
+/* LEGACY ACTION MENU (DEPRECATED) */
 .action-menu.hidden-for-rolloff { display:none !important; }
 @keyframes pulseEmphasis { 0%,100%{transform:scale(1);}50%{transform:scale(1.1);} }
 
 /* Dice overlay */
+/* LEGACY DICE AREA (DEPRECATED) */
 .dice-area { position:fixed !important; bottom:110px; left:480px; right:460px; height:120px; z-index:4000; margin:0; opacity:1; }
+/* LEGACY DICE AREA (DEPRECATED) */
 .dice-area.hidden-until-game-start { display:none !important; }
+/* LEGACY ACTION MENU (DEPRECATED) */
 .action-menu { position:fixed !important; bottom:110px; right:50px; width:250px; z-index:4000; margin:0; opacity:1; display:none !important; }
+/* LEGACY ACTION MENU (DEPRECATED) */
 .action-menu.game-active { display:block !important; }
+/* LEGACY ACTION MENU (DEPRECATED) */
 .action-menu.cpu-rolling { filter:grayscale(1); transform:scale(.95); transition:filter .3s ease, transform .3s ease, opacity .3s ease; }
+/* LEGACY ACTION MENU (DEPRECATED) */
 .action-menu.cpu-rolling button { cursor:not-allowed !important; }
 
 .round-indicator-container { position:absolute; top:30px; left:480px; display:flex; align-items:center; gap:10px; z-index:3500; overflow:visible; }
@@ -104,9 +111,13 @@ body::before { content:''; position:fixed; top:0; left:0; width:100%; height:100
 .draggable { position:fixed; z-index:2000; border:2px solid #333; border-radius:8px; background:rgba(0,0,0,.9); -webkit-backdrop-filter:blur(5px); backdrop-filter:blur(5px); cursor:move; transition:box-shadow .2s ease; }
 .draggable:hover { box-shadow:0 0 15px rgba(255,255,255,.3); }
 .draggable.dragging { opacity:.8; transform:rotate(2deg); box-shadow:0 8px 25px rgba(0,0,0,.6); z-index:2100; }
+/* LEGACY DICE AREA (DEPRECATED) */
 .dice-area.draggable { padding:10px; }
+/* LEGACY DICE AREA (DEPRECATED) */
 .dice-area.draggable:not([style*="transform"]) { bottom:80px; left:40%; transform:translateX(-50%); }
+/* LEGACY ACTION MENU (DEPRECATED) */
 .action-menu.draggable { padding:10px; display:flex; gap:10px; flex-wrap:wrap; }
+/* LEGACY ACTION MENU (DEPRECATED) */
 .action-menu.draggable:not([style*="transform"]) { bottom:80px; left:65%; transform:translateX(-50%); }
 
 /* Bottom UI Table */
@@ -115,11 +126,14 @@ body::before { content:''; position:fixed; top:0; left:0; width:100%; height:100
 .notification-row { min-height:40px; padding:5px 0; justify-content:flex-start; padding-left:20px; }
 .cpu-action-notification { background:rgba(255,255,255,.7); color:#000; padding:8px 16px; border-radius:4px; font-weight:bold; text-align:center; max-width:60%; box-shadow:0 3px 10px rgba(0,0,0,.4); border:2px solid #000; font-family:'Comic Neue',cursive; pointer-events:auto; }
 .action-row { justify-content:space-between; padding:10px 20px; min-height:80px; }
+/* LEGACY ACTION ROW HOOKS (DEPRECATED) */
 .action-row .dice-area, .action-row .action-menu { pointer-events:auto; position:relative; }
 .toolbar-row { justify-content:center; padding:10px 0 15px 0; min-height:60px; }
 .toolbar-row .game-toolbar { pointer-events:auto; position:relative !important; transform:none !important; left:auto !important; bottom:auto !important; }
 
+/* LEGACY ACTION ROW (DEPRECATED) */
 @media (max-width:1200px){ .action-row { padding:10px 15px; } .action-row .dice-area, .action-row .action-menu { max-width:45%; } }
+/* LEGACY ACTION ROW (DEPRECATED) */
 @media (max-width:900px){ .action-row { flex-direction:column; gap:10px; padding:10px; } .action-row .dice-area, .action-row .action-menu { max-width:100%; width:100%; } }
 @media (max-width:768px){ .cards-area.collapsible-panel, .players-area.collapsible-panel { transform:translateX(-100%); } .players-area.collapsible-panel { transform:translateX(100%); } .action-row { padding:10px 5px; } }
 
@@ -261,6 +275,7 @@ body::before { content:''; position:fixed; top:0; left:0; width:100%; height:100
 .cmp-arena .round-indicator-container { position:absolute; top:-10px; right:-120px; }
 
 /* Action Menu & Toolbar (rewrite) */
+/* LEGACY HYBRID SELECTOR (DEPRECATED) */
 .cmp-action-menu.action-menu { position:fixed; bottom:140px; right:40px; display:flex; gap:8px; background:rgba(0,0,0,.85); padding:10px 14px; border:2px solid #333; border-radius:8px; box-shadow:0 4px 18px rgba(0,0,0,.6); }
 .cmp-action-menu.action-menu button { font-family:'Bangers',cursive; letter-spacing:1px; }
 .cmp-toolbar.game-toolbar { position:fixed; bottom:60px; left:50%; transform:translateX(-50%); display:flex; gap:10px; background:rgba(0,0,0,.85); padding:8px 14px; border:2px solid #333; border-radius:8px; box-shadow:0 4px 18px rgba(0,0,0,.6); }
