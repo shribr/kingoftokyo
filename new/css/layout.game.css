@@ -5,10 +5,9 @@
 :root {
   --gl-gap: 18px;
   --gl-side-width: 300px;
-  --gl-max-width: 1700px;
 }
 
-.game-layout-shell { width:100%; display:flex; flex-direction:column; gap:16px; padding:10px 20px 80px; box-sizing:border-box; max-width:var(--gl-max-width); margin:0 auto; position:relative; }
+.game-layout-shell { width:100%; display:flex; flex-direction:column; gap:16px; padding:10px 20px 80px; box-sizing:border-box; margin:0; position:relative; }
 .game-layout-shell .gl-header { padding:4px 0 0; }
 .game-layout-shell .gl-title { font-family:'Bangers',cursive; font-size:54px; letter-spacing:2px; color:#FFD700; text-shadow:-3px -3px 0 #000,3px -3px 0 #000,-3px 3px 0 #000,3px 3px 0 #000; margin:0; line-height:1; }
 .game-layout-shell .gl-main { display:grid; grid-template-columns: var(--gl-side-width) 1fr var(--gl-side-width); gap: var(--gl-gap); align-items:start; width:100%; }
