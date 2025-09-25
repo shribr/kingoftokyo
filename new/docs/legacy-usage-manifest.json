@@ -1,0 +1,53 @@
+{
+  "generated": true,
+  "description": "Tracks which components still rely on legacy global selectors so we can systematically retire them.",
+  "selectors": {
+    ".players-area": ["player-card-list"],
+    ".collapsible-panel": ["player-card-list","card-shop"],
+    ".monsters-panel": ["player-card-list"],
+    ".cards-area": ["card-shop"],
+    ".card-shop-panel": ["card-shop"],
+    ".action-menu": ["action-menu"],
+    ".game-toolbar": ["toolbar"],
+    ".dice-area": ["dice-tray"],
+    ".draggable": ["dice-tray","action-menu","player-card-list","card-shop"],
+    "--removed--.game-board": [],
+    "--removed--.tokyo-area": [],
+    "--removed--.tokyo-city": [],
+    "--removed--.tokyo-bay": []
+  },
+  "migration": {
+    "panelSystem": {
+      "newRootClass": "cmp-panel-root",
+      "dataAttributes": ["data-panel","data-collapsed","data-vertical-collapsed"],
+      "status": "in-progress",
+      "migratedComponents": ["player-card-list","card-shop","action-menu"],
+      "next": "Remove legacy collapse class dependency once visual parity confirmed"
+    },
+    "toolbar": {
+      "newRootClass": "cmp-toolbar",
+      "status": "extracted",
+      "next": "Drop .game-toolbar legacy alias after QA"
+    },
+    "diceTray": {
+      "newRootClass": "cmp-dice-tray",
+      "status": "extracted",
+      "next": "Remove .dice-area + .draggable once persisted positions validated"
+    },
+    "actionMenu": {
+      "newRootClass": "cmp-action-menu",
+      "status": "extracted-buttons",
+      "next": "Remove .action-menu legacy class; audit button spacing"
+    },
+    "arena": {
+      "newRootClass": "cmp-arena",
+      "status": "migrated",
+      "next": "Prune legacy selectors from legacy CSS; add active state styling parity checks"
+    },
+    "buttons": {
+      "newClasses": ["k-btn","k-btn--primary","k-btn--secondary","k-btn--warning","k-btn--small"],
+      "status": "adopted-core",
+      "next": "Create accessibility pass (focus states, ARIA labels where needed) and remove any left-over legacy .btn styles from legacy/base.css if unused"
+    }
+  }
+}

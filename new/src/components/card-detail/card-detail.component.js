@@ -64,15 +64,15 @@ function renderActions(card, detail, active, shopCards) {
   let leftBtn = '';
   if (inShop) {
     if (canPurchase) {
-      leftBtn = `<button data-action="purchase" class="btn primary">BUY ⚡${card.cost}</button>`;
+  leftBtn = `<button data-action="purchase" class="k-btn k-btn--primary">BUY ⚡${card.cost}</button>`;
     } else if (needResolve) {
-      leftBtn = `<button class="btn disabled" disabled>RESOLVE DICE FIRST</button>`;
+  leftBtn = `<button class="k-btn" disabled>RESOLVE DICE FIRST</button>`;
     } else if (insufficient) {
       const diff = card.cost - active.energy;
-      leftBtn = `<button class="btn disabled" disabled>NEED ${diff}⚡</button>`;
+  leftBtn = `<button class="k-btn" disabled>NEED ${diff}⚡</button>`;
     }
   }
-  const closeBtn = `<button data-action="close" class="btn danger">CLOSE</button>`;
+  const closeBtn = `<button data-action="close" class="k-btn k-btn--secondary">CLOSE</button>`;
   return `${leftBtn}${closeBtn}`;
 }
 

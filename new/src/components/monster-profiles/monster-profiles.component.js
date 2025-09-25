@@ -10,7 +10,7 @@ export function build({ selector }) {
   root.innerHTML = `<div class="mp-frame">
     <div class="mp-header">
   <h2><span class="mp-glyph" aria-hidden="true">👹</span> MONSTER PROFILES <span class="mp-glyph" aria-hidden="true">👹</span></h2>
-      <button data-action="close" class="close-btn-legacy" aria-label="Close monster profiles">✕</button>
+  <button data-action="close" class="mp-close-btn mp-close-btn--gradient" aria-label="Close monster profiles">✕</button>
     </div>
     <div class="monster-profiles-content">
       <p class="mp-subhead">Each monster's personality affects CPU behavior. Adjust traits then Save Changes or Reset.</p>
@@ -18,8 +18,8 @@ export function build({ selector }) {
         <div class="mp-grid" data-grid></div>
       </div>
       <div class="mp-actions" data-actions>
-        <button class="legacy-btn primary" data-action="save-profiles">Save Changes</button>
-        <button class="legacy-btn secondary" data-action="reset-profiles">Reset to Defaults</button>
+        <button class="mp-btn mp-btn-primary" data-action="save-profiles">Save Changes</button>
+        <button class="mp-btn mp-btn-secondary" data-action="reset-profiles">Reset to Defaults</button>
       </div>
     </div>
   </div>`;
@@ -72,7 +72,7 @@ export function update(root) {
   grid.innerHTML = monsters.map(m => `<div class="mp-card" data-monster-id="${m.id}">${renderEditableCard(m, root._pending)}</div>`).join('');
 }
 
-// Editable card (grid view) replicating legacy style with inline sliders
+// Editable card (grid view) using classic visual style with inline sliders
 function renderEditableCard(monster, pending) {
   const { id, name, image, description, personality = {} } = monster;
   const traits = [

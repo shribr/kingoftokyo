@@ -1,0 +1,49 @@
+/* components.dice-tray.css
+ * Extracted from legacy .dice-area + .draggable + related dice tray rules.
+ * Removal Target: Remove .dice-area usage from component once verified.
+ */
+:root {
+  --dice-tray-bg: rgba(0,0,0,0.85);
+  --dice-tray-border: 2px solid #333;
+  --dice-tray-radius: 10px;
+  --dice-size: 44px;
+  --dice-font-size: 22px;
+  --dice-gap: 8px;
+  --dice-tray-padding: 10px 16px;
+  --dice-kept-border: #FFD700;
+  --dice-extra-bg: linear-gradient(145deg,#313a55,#181d2b);
+  --dice-new-pulse: 0,255,255;
+  --dice-active-glow: rgba(255,215,0,.35);
+}
+
+.cmp-dice-tray {
+  position: fixed;
+  bottom: 140px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--dice-tray-bg);
+  padding: var(--dice-tray-padding);
+  border: var(--dice-tray-border);
+  border-radius: var(--dice-tray-radius);
+  box-shadow: 0 4px 14px rgba(0,0,0,.5);
+  display: inline-block;
+  z-index: 4000;
+  cursor: default;
+}
+.cmp-dice-tray[data-draggable="true"] { cursor: move; }
+.cmp-dice-tray.for-active-player { box-shadow:0 0 12px var(--dice-active-glow); }
+
+.cmp-dice-tray .tray-header { display:flex; align-items:center; gap:12px; margin-bottom:6px; }
+.cmp-dice-tray .tray-header button { font-family:'Bangers',cursive; letter-spacing:1px; }
+.cmp-dice-tray [data-dice] { display:flex; gap:var(--dice-gap); }
+.cmp-dice-tray .die { width:var(--dice-size); height:var(--dice-size); display:flex; align-items:center; justify-content:center; font-size:var(--dice-font-size); font-weight:bold; background:linear-gradient(145deg,#2d2d2d,#111); color:#fff; border:2px solid #555; border-radius:8px; cursor:pointer; transition:transform .25s cubic-bezier(.175,.885,.32,1.275), box-shadow .25s; position:relative; }
+.cmp-dice-tray .die.is-kept { border-color:var(--dice-kept-border); box-shadow:0 0 10px rgba(255,215,0,.6); }
+.cmp-dice-tray .die.extra-die { background:var(--dice-extra-bg); }
+.cmp-dice-tray .die.pending { opacity:.35; font-size:18px; }
+.cmp-dice-tray [data-dice].rolling .die { animation:dieRollFlash .6s ease; }
+@keyframes dieRollFlash { 0%{transform:scale(1) rotate(0deg);} 30%{transform:scale(1.25) rotate(90deg);} 60%{transform:scale(.9) rotate(180deg);} 100%{transform:scale(1) rotate(360deg);} }
+.cmp-dice-tray .die.new-die { animation:newDiePulse 1s ease; }
+@keyframes newDiePulse { 0%{box-shadow:0 0 0 rgba(var(--dice-new-pulse),0);} 50%{box-shadow:0 0 14px rgba(var(--dice-new-pulse),.8);} 100%{box-shadow:0 0 0 rgba(var(--dice-new-pulse),0);} }
+
+body.splash-visible .cmp-dice-tray { visibility:hidden; opacity:0; transition:opacity .3s ease; }
+body:not(.splash-visible) .cmp-dice-tray { visibility:visible; opacity:1; }

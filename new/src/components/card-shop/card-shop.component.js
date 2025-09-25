@@ -1,17 +1,45 @@
 /** card-shop.component.js
- * Renders current shop cards + flush button (2 energy) in rewrite path.
+ * Renders current shop cards + flush/peek actions.
+ * LEGACY GLOBAL STYLE DEPENDENCY (FOR FUTURE LEGACY REMOVAL)
+ * Relies on legacy selectors: .cards-area, .collapsible-panel, .card-shop-panel, .cards-collapsed, .shop-card, .btn
+ * Source: css/legacy/layout.css (panel shell, grid, collapse header) & css/legacy/base.css (button styles)
+ * Transition Plan:
+ *   1. Extract card shop visual rules to css/components.card-shop.css (card grid, footer actions, responsive wrap).
+ *   2. Introduce design tokens for spacing, border radius, color accents; remove coupling to legacy .cards-area.
+ *   3. Replace global .btn usage with scoped .k-button or utility composition.
+ *   4. Remove legacy class additions in build(); use data attributes & scoped root class only.
+ *   5. Delete related selectors from legacy CSS after all dependent components refactored.
  */
 import { store } from '../../bootstrap/index.js';
 import { selectShopCards, selectActivePlayer } from '../../core/selectors.js';
 import { uiCardDetailOpen } from '../../core/actions.js';
 import { purchaseCard, flushShop, peekTopCard } from '../../services/cardsService.js';
 import { logger } from '../../bootstrap/index.js';
+import { createPositioningService } from '../../services/positioningService.js';
 
 export function build({ selector }) {
   const root = document.createElement('div');
-  root.className = selector.slice(1) + ' card-shop-panel';
-  root.innerHTML = `<div class="shop-cards" data-cards></div>
-  <div class="shop-actions" data-actions></div>`;
+  // Add legacy class hooks (cards-area, collapsible-panel) for existing layout + transition period.
+  root.className = `${selector.slice(1)} cmp-panel-root`;
+  root.setAttribute('data-panel','card-shop');
+  root.innerHTML = `
+    <h3 class="panel-header" data-toggle>
+      <span class="header-text"><span class="toggle-arrow"><</span> Power Cards</span>
+    </h3>
+    <div class="panel-content">
+      <div class="shop-cards" data-cards></div>
+      <div class="shop-actions" data-actions></div>
+    </div>`;
+  root.addEventListener('click', (e) => {
+    if (e.target.closest('[data-toggle]')) {
+      const willCollapse = root.getAttribute('data-collapsed') !== 'true';
+      if (willCollapse) {
+        root.setAttribute('data-collapsed','true');
+      } else {
+        root.removeAttribute('data-collapsed');
+      }
+    }
+  });
 
   root.addEventListener('click', (e) => {
     const cardEl = e.target.closest('[data-card-id]');
@@ -30,6 +58,9 @@ export function build({ selector }) {
         if (active) peekTopCard(store, logger, active.id, 1);
     }
   });
+
+  // Draggable (persisted) positioning
+  try { createPositioningService(store).makeDraggable(root, 'cardShopPanel', { grid:4 }); } catch(_) {}
 
   return { root, update: () => update(root) };
 }
@@ -56,8 +87,8 @@ function renderCard(card, active, canBuyPhase) {
     </div>
     <div class="sc-effect">${formatCardText(card.effect)}</div>
     <div class="sc-actions">
-      <button data-action="detail" class="btn sm">DETAILS</button>
-      <button data-action="buy" class="btn sm ${canBuy ? 'primary' : 'disabled'}" ${canBuy? '' : 'disabled'}>BUY</button>
+  <button data-action="detail" class="k-btn k-btn--secondary k-btn--small">DETAILS</button>
+  <button data-action="buy" class="k-btn k-btn--primary k-btn--small" ${canBuy? '' : 'disabled'}>BUY</button>
     </div>
   </div>`;
 }
@@ -69,8 +100,8 @@ function renderActions(active, phase) {
   const canPeek = hasPeek && active.energy >= 1 && (phase === 'BUY' || phase === 'RESOLVE');
   return `<div class="shop-footer">
     <div class="shop-footer-row">
-      <button data-action="flush-shop" class="btn ${canFlush ? 'warning' : 'disabled'}" ${canFlush? '' : 'disabled'}>${flushLabel}</button>
-      <button data-action="peek-top" class="btn ${canPeek ? 'secondary' : 'disabled'}" ${canPeek? '' : 'disabled'}>PEEK (1⚡)</button>
+  <button data-action="flush-shop" class="k-btn k-btn--warning k-btn--small" ${canFlush? '' : 'disabled'}>${flushLabel}</button>
+  <button data-action="peek-top" class="k-btn k-btn--secondary k-btn--small" ${canPeek? '' : 'disabled'}>PEEK (1⚡)</button>
     </div>
   </div>`;
 }

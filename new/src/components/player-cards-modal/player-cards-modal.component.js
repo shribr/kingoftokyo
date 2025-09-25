@@ -9,7 +9,7 @@ export function build({ selector }) {
   root.innerHTML = `<div class="pcm-frame" data-frame>
     <div class="pcm-header">
       <h2 data-player-name></h2>
-      <button data-action="close" class="btn danger circle">×</button>
+  <button data-action="close" class="k-btn k-btn--warning k-btn--small">×</button>
     </div>
     <div class="pcm-body" data-body></div>
   </div>`;

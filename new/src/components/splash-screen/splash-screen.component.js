@@ -6,6 +6,8 @@ export function build({ selector, dispatch, getState }) {
   const root = document.createElement('div');
   root.className = selector.slice(1) + ' cmp-splash';
   root.innerHTML = splashMarkup();
+  // Mark body as splash-visible initially
+  document.body.classList.add('splash-visible');
 
   root.addEventListener('click', (e) => {
     if (e.target.id === 'enter-battle-btn' || e.target.closest('#enter-battle-btn')) {
@@ -29,8 +31,10 @@ export function update(ctx) {
   const visible = selectSplashVisible(state);
   if (!visible) {
     root.classList.add('is-hidden');
+    document.body.classList.remove('splash-visible');
   } else {
     root.classList.remove('is-hidden');
+    document.body.classList.add('splash-visible');
     // Randomize 6 distinct monsters for splash (ignoring dark variants handled by config)
     let monsters = selectMonsters(state).slice();
     if (monsters.length > 6) {

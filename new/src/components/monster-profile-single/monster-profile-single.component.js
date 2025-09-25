@@ -7,7 +7,7 @@ import { renderMonsterCard } from '../monster-profiles/shared.js';
 export function build({ selector }) {
   const root = document.createElement('div');
   root.className = selector.slice(1) + ' monster-profile-single-modal hidden';
-  root.innerHTML = `<div class="mps-frame"><button data-action="close" class="btn danger circle mps-close">×</button><div data-card></div><div class="mps-edit" data-edit></div></div>`;
+  root.innerHTML = `<div class="mps-frame"><button data-action="close" class="k-btn k-btn--warning k-btn--small mps-close">×</button><div data-card></div><div class="mps-edit" data-edit></div></div>`;
   root.addEventListener('click', (e) => {
     if (e.target.matches('[data-action="close"]')) store.dispatch(uiMonsterProfileClose());
   });

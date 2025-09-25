@@ -1,5 +1,47 @@
 [
   {
+    "name": "arena",
+    "version": "0.1.0",
+    "selector": ".cmp-arena",
+    "mountPoint": "#app",
+    "order": 2,
+    "enabled": true,
+    "stateKeys": ["meta"],
+    "build": "arena.build",
+    "update": "arena.update",
+    "initialState": {},
+    "assets": [],
+    "zIndex": 1
+  },
+  {
+    "name": "actionMenu",
+    "version": "0.1.0",
+    "selector": ".cmp-action-menu",
+    "mountPoint": "#app",
+    "order": 12,
+    "enabled": true,
+    "stateKeys": ["dice","phase"],
+    "build": "action-menu.build",
+    "update": "action-menu.update",
+    "initialState": {},
+    "assets": [],
+    "zIndex": 4000
+  },
+  {
+    "name": "toolbar",
+    "version": "0.1.0",
+    "selector": ".cmp-toolbar",
+    "mountPoint": "#app",
+    "order": 13,
+    "enabled": true,
+    "stateKeys": [],
+    "build": "toolbar.build",
+    "update": "toolbar.update",
+    "initialState": {},
+    "assets": [],
+    "zIndex": 4000
+  },
+  {
     "name": "setup",
     "version": "0.1.0",
     "selector": ".cmp-setup",

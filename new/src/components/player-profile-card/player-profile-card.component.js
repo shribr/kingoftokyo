@@ -1,9 +1,9 @@
 /** player-profile-card.component.js
- * Phase 6 Step 1–4: Player Profile Card component scaffold.
- * - Dual-class root: preserves legacy semantic (.player-dashboard) while introducing new tokens-based namespace (.cmp-player-profile-card)
- * - Pure build/update contract
- * - Owned cards miniature lane placeholder
- * - No external side-effects; relies only on selectors + store
+ * Player Profile Card component scaffold (rewrite track).
+ * - Uses single namespace class (.cmp-player-profile-card) – legacy .player-dashboard removed.
+ * - Pure build/update contract.
+ * - Owned cards miniature lane placeholder.
+ * - No external side-effects; relies only on selectors + store.
  */
 import { store } from '../../bootstrap/index.js';
 import { selectPlayerById, selectPlayerCards } from '../../core/selectors.js';
@@ -11,8 +11,8 @@ import { selectPlayerById, selectPlayerCards } from '../../core/selectors.js';
 /** Build a single player profile card root */
 export function build({ selector, playerId }) {
   const root = document.createElement('div');
-  // Dual class strategy: keep legacy hook (.player-dashboard) + new component namespace
-  root.className = `player-dashboard cmp-player-profile-card`; // NOTE: do not remove legacy class until deprecation phase
+  // Single class namespace (legacy .player-dashboard deprecated)
+  root.className = `cmp-player-profile-card`;
   root.setAttribute('data-player-id', playerId);
   root.innerHTML = baseTemplate();
   return { root, update: (props) => update(root, { ...props, playerId }), destroy: () => root.remove() };

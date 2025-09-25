@@ -1,0 +1,83 @@
+/* components.panel.css
+ * New panel system extracted from legacy .collapsible-panel, .players-area, .cards-area, header + collapse styles.
+ * Replaces legacy global panel styling. Scoped to .cmp-panel-root (applied dynamically) and utility data attributes.
+ */
+
+:root {
+  --panel-bg: rgba(24,24,30,0.78);
+  --panel-border: 1px solid rgba(255,255,255,0.15);
+  --panel-radius: 10px;
+  --panel-padding: 0.5rem 0.75rem 0.75rem;
+  --panel-header-height: 34px;
+  --panel-header-font-size: 0.9rem;
+  --panel-header-weight: 600;
+  --panel-header-bg: linear-gradient(90deg,#2f3542,#20242c);
+  --panel-gap: 0.5rem;
+  --panel-transition: 210ms cubic-bezier(.4,.0,.2,1);
+  --panel-accent: #ffcc33;
+}
+
+.cmp-panel-root {
+  position: absolute;
+  background: var(--panel-bg);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: var(--panel-border);
+  border-radius: var(--panel-radius);
+  padding: var(--panel-padding);
+  color: #f5f5f5;
+  font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Ubuntu,sans-serif;
+  box-shadow: 0 4px 14px -4px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.05) inset;
+  max-width: 320px;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--panel-gap);
+  transition: box-shadow var(--panel-transition), transform var(--panel-transition);
+}
+.cmp-panel-root[data-active="true"] { box-shadow: 0 0 0 1px var(--panel-accent), 0 6px 18px -6px rgba(0,0,0,0.55); }
+.cmp-panel-root.dragging { opacity: .92; cursor: grabbing; }
+
+.cmp-panel-root .panel-header { 
+  user-select: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: var(--panel-header-font-size);
+  font-weight: var(--panel-header-weight);
+  height: var(--panel-header-height);
+  line-height: var(--panel-header-height);
+  margin: -0.25rem -0.5rem 0.25rem;
+  padding: 0 .75rem;
+  background: var(--panel-header-bg);
+  border-radius: calc(var(--panel-radius) - 4px);
+  letter-spacing: .5px;
+}
+.cmp-panel-root .panel-header .toggle-arrow { display:inline-block; transform: translateY(-1px) rotate(0deg); transition: transform var(--panel-transition); }
+.cmp-panel-root[data-collapsed="true"] .panel-header .toggle-arrow { transform: translateY(-1px) rotate(-90deg); }
+
+.cmp-panel-root .panel-content { overflow: hidden; transition: max-height var(--panel-transition), opacity var(--panel-transition); max-height: 800px; }
+.cmp-panel-root[data-collapsed="true"] .panel-content { max-height: 0; opacity: 0; pointer-events: none; }
+
+/* Vertical collapsed header mode */
+.cmp-panel-root[data-vertical-collapsed="true"] { width: auto; min-width: 0; padding: .25rem; }
+.cmp-panel-root[data-vertical-collapsed="true"] .panel-header { writing-mode: vertical-rl; transform: rotate(180deg); justify-content: center; height: auto; line-height: 1; padding: .75rem .5rem; }
+.cmp-panel-root[data-vertical-collapsed="true"] .panel-header .toggle-arrow { transform: rotate(180deg); }
+
+/* Simple utility classes (optional) */
+.panel-scroll { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.panel-scroll::-webkit-scrollbar { width: 8px; }
+.panel-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.04); }
+.panel-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.25); border-radius: 6px; }
+.panel-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
+
+/* Shop/card specific overrides can layer on (temporary until card-shop extracted fully) */
+.cmp-panel-root[data-panel="card-shop"] .shop-card { background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.1); padding: .5rem .5rem .65rem; border-radius: 8px; display:flex; flex-direction:column; gap:.35rem; }
+.cmp-panel-root[data-panel="card-shop"] .shop-card .sc-header { display:flex; justify-content:space-between; font-weight:600; font-size:.8rem; letter-spacing:.5px; }
+.cmp-panel-root[data-panel="card-shop"] .shop-card .sc-effect { font-size:.72rem; line-height:1.15rem; opacity:.92; }
+.cmp-panel-root[data-panel="card-shop"] .shop-footer { margin-top:.5rem; display:flex; flex-direction:column; gap:.5rem; }
+
+/* Monsters list styling (temporary extraction) */
+.cmp-panel-root[data-panel="monsters"] .player-card { display:grid; grid-template-columns: repeat(4,auto) 1fr; gap:.4rem .75rem; align-items:center; font-size:.7rem; letter-spacing:.5px; background: rgba(255,255,255,0.04); padding:.4rem .55rem; border-radius:6px; }
+.cmp-panel-root[data-panel="monsters"] .player-card .tokyo { background:#ff3d3d; padding:.15rem .4rem; border-radius:12px; font-size:.55rem; letter-spacing:1px; }

@@ -1,3 +1,6 @@
+/* FOR FUTURE LEGACY REMOVAL: Full legacy snapshot of responsive.css */
+/* Duplicated from ../responsive.css. */
+
 /* === Transplanted Enhanced responsive.css === */
 /* Verbose copy of root responsive.css at time of transplant. Further edits only here. */
 
@@ -110,3 +113,4 @@ body, .btn, .card-text { font-size:var(--body-size); }
 @media (max-width:480px){ .collapsible-panel { display:none; } .panel-toggle-overlay { position:fixed; top:50%; transform:translateY(-50%); background:rgba(0,0,0,.8); color:#FFD700; padding:10px 5px; border-radius:5px; cursor:pointer; z-index:1000; font-size:12px; writing-mode:vertical-rl; text-orientation:mixed; } .panel-toggle-overlay.left { left:5px; } .panel-toggle-overlay.right { right:5px; } .panel-toggle-overlay.visible { display:block; } .collapsible-panel.force-show { display:block !important; position:fixed; top:0; bottom:0; z-index:1001; background:rgba(0,0,0,.95); overflow-y:auto; width:90vw; } .collapsible-panel.force-show.monsters-panel { left:0; } .collapsible-panel.force-show.cards-area { right:0; } }
 
 /* End transplanted responsive.css */
+

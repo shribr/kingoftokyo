@@ -1,0 +1,28 @@
+/* components.action-menu.css
+ * Extracted from legacy .action-menu + button cluster styling.
+ */
+:root {
+  --action-menu-bg: rgba(0,0,0,0.85);
+  --action-menu-border: 2px solid #333;
+  --action-menu-radius: 10px;
+  --action-menu-gap: 10px;
+  --action-menu-padding: 10px 14px;
+}
+
+.cmp-action-menu {
+  position:fixed;
+  bottom:140px;
+  right:40px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:var(--action-menu-gap);
+  background:var(--action-menu-bg);
+  padding:var(--action-menu-padding);
+  border:var(--action-menu-border);
+  border-radius:var(--action-menu-radius);
+  box-shadow:0 4px 18px rgba(0,0,0,.6);
+  z-index:4000;
+}
+.cmp-action-menu[data-draggable="true"] { cursor:move; }
+.cmp-action-menu.cpu-rolling { filter:grayscale(1); transform:scale(.95); transition:filter .3s ease, transform .3s ease, opacity .3s ease; }
+.cmp-action-menu.cpu-rolling button { cursor:not-allowed !important; }

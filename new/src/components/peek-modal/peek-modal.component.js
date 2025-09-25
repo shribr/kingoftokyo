@@ -12,7 +12,7 @@ export function build({ selector }) {
     <div class="peek-header">NEXT CARD</div>
     <div class="peek-name" data-name></div>
     <div class="peek-text" data-text></div>
-    <div class="peek-actions"><button data-action="close" class="btn sm">CLOSE</button></div>
+  <div class="peek-actions"><button data-action="close" class="k-btn k-btn--secondary k-btn--small">CLOSE</button></div>
   </div>`;
   root.addEventListener('click', (e) => {
     if (e.target.matches('[data-action="close"]')) {

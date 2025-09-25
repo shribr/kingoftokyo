@@ -12,7 +12,8 @@
 .mp-header { display:flex; justify-content:space-between; align-items:center; gap:1.2rem; margin-bottom:20px; padding-bottom:10px; border-bottom:3px solid #000; }
 .mp-header h2 { margin:0; font-family:'Bangers', cursive; font-size:3.1rem; letter-spacing:2px; color:#000; text-shadow:none; }
 .mp-emoji { font-size:2.4rem; line-height:1; }
-.mp-close-btn { background:#ff4d4d; border:3px solid #000; color:#000; font-weight:900; font-size:1.35rem; width:48px; height:48px; cursor:pointer; box-shadow:4px 4px 0 #000; display:flex; align-items:center; justify-content:center; font-family:'Bangers',cursive; }
+/* Standard close button (generic) retained, but monster profiles uses gradient variant below */
+.mp-close-btn { background:#ff4d4d; border:3px solid #000; color:#000; font-weight:900; font-size:1.35rem; width:48px; height:48px; cursor:pointer; box-shadow:4px 4px 0 #000; display:flex; align-items:center; justify-content:center; font-family:'Bangers',cursive; transition:transform .2s ease, box-shadow .2s ease; }
 .mp-close-btn:hover { transform:translateY(-3px); }
 .mp-subhead { font-family:'Bangers',cursive; font-size:1.05rem; font-weight:700; letter-spacing:1px; margin:.4rem 0 30px; text-align:center; color:#000; text-transform:uppercase; }
 .mp-glyph { font-size:2.1rem; line-height:1; display:inline-block; transform:translateY(4px); }
@@ -48,7 +49,8 @@
 .trait-slider-row input[type=range].trait-slider-shadow { box-shadow:2px 2px 0 #000, inset 0 2px 4px rgba(0,0,0,0.1); }
 .trait-slider-row input[type=range]::-webkit-slider-thumb { appearance:none; width:26px; height:26px; border:4px solid #fff; background:#000; box-shadow:0 0 0 2px #000, 2px 2px 0 #000; border-radius:50%; }
 .trait-slider-row input[type=range]::-moz-range-thumb { width:26px; height:26px; border:4px solid #fff; background:#000; box-shadow:0 0 0 2px #000, 2px 2px 0 #000; border-radius:50%; }
-.trait-slider-row input[type=range]:focus { outline:4px solid #000; outline-offset:2px; }
+/* Removed focus outline & extra ring per request */
+.trait-slider-row input[type=range]:focus { outline:none; }
 .trait-endpoints { display:flex; justify-content:space-between; font-size:.58rem; font-weight:800; margin-top:-1px; letter-spacing:.5px; font-family:'Nunito',sans-serif; text-transform:uppercase; }
 .trait-min, .trait-max { text-transform:uppercase; color:#111; font-family:'Nunito',sans-serif; }
 
@@ -80,12 +82,14 @@
 .mp-scroll { max-height:60vh; overflow-y:auto; overflow-x:visible; padding:8px 26px 0 8px; scrollbar-gutter:stable both-edges; }
 .profile-card { transform-origin:center top; }
 .mp-actions { display:flex; justify-content:center; gap:20px; margin-top:18px; }
-.mp-actions .legacy-btn { font-family:'Bangers',cursive; font-size:1rem; letter-spacing:1px; padding:10px 26px; border:3px solid #000; box-shadow:5px 5px 0 #000; cursor:pointer; background:#fff; font-weight:900; }
-.mp-actions .legacy-btn.primary { background:#4ad15e; }
-.mp-actions .legacy-btn.secondary { background:#ffd24a; }
-.mp-actions.dirty .legacy-btn.primary { animation:pulseDirty .9s ease-in-out infinite; }
+/* Unified button styles for monster profiles actions */
+.mp-actions .mp-btn { font-family:'Bangers',cursive; font-size:1rem; letter-spacing:1px; padding:10px 26px; border:3px solid #000; box-shadow:5px 5px 0 #000; cursor:pointer; background:#fff; font-weight:900; transition:transform .15s ease, box-shadow .15s ease; }
+.mp-actions .mp-btn:active { transform:translate(2px,2px); box-shadow:3px 3px 0 #000; }
+.mp-actions .mp-btn-primary { background:#4ad15e; }
+.mp-actions .mp-btn-secondary { background:#ffd24a; }
+.mp-actions.dirty .mp-btn-primary { animation:pulseDirty .9s ease-in-out infinite; }
 @keyframes pulseDirty { 0%{ filter:brightness(1);} 50%{ filter:brightness(1.25);} 100%{ filter:brightness(1);} }
 
-/* Unified legacy close button (match original modal style) */
-.close-btn-legacy { background:linear-gradient(135deg,#e74c3c 0%,#c0392b 100%); border:2px solid #000; border-radius:0; color:#fff; font-size:24px; font-weight:bold; padding:8px 12px; min-width:40px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:2px 2px 0 #000; transform:perspective(200px) rotateX(2deg); font-family:'Bangers',cursive; line-height:1; }
-.close-btn-legacy:hover { background:linear-gradient(135deg,#c0392b 0%, #a93226 100%); transform:perspective(200px) rotateX(1deg) translateY(-1px); box-shadow:3px 3px 0 #000; }
+/* Gradient variant for monster profiles close button */
+.mp-close-btn--gradient { background:linear-gradient(135deg,#e74c3c 0%,#c0392b 100%); border:2px solid #000; color:#fff; font-size:24px; font-weight:bold; padding:8px 12px; min-width:40px; box-shadow:2px 2px 0 #000; transform:perspective(200px) rotateX(2deg); line-height:1; }
+.mp-close-btn--gradient:hover { background:linear-gradient(135deg,#c0392b 0%, #a93226 100%); transform:perspective(200px) rotateX(1deg) translateY(-1px); box-shadow:3px 3px 0 #000; }

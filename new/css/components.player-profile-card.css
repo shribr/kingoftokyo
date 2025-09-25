@@ -1,10 +1,9 @@
 /* components.player-profile-card.css
- * Player Profile Card (Phase 6 Steps 2-4)
- * Parity-intent CSS scaffold using tokens. Not a redesign.
- * Dual-class root: .player-dashboard.cmp-player-profile-card
+ * Player Profile Card (rewrite)
+ * Parity-intent CSS scaffold using tokens. Legacy .player-dashboard removed.
  */
 
-.player-dashboard.cmp-player-profile-card {
+.cmp-player-profile-card {
   position: relative;
   box-sizing: border-box;
   display: flex;
@@ -21,7 +20,7 @@
   transition: box-shadow .25s var(--tok-ease-standard, ease), transform .25s var(--tok-ease-standard, ease);
 }
 
-.player-dashboard.cmp-player-profile-card.is-active {
+.cmp-player-profile-card.is-active {
   box-shadow: var(--tok-shadow-hard-2, 3px 3px 0 #000), var(--tok-shadow-elev-2, 0 6px 18px rgba(0,0,0,0.45));
   outline: 2px solid var(--tok-color-accent, #ffca28);
 }
@@ -48,7 +47,7 @@
 .cmp-player-profile-card .ppc-card-mini { background: rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.2); padding:2px 4px; font-size:0.55rem; border-radius:3px; max-width:60px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
 /* Hover / interaction baseline (parity-light) */
-.player-dashboard.cmp-player-profile-card:hover { transform: translateY(-2px); box-shadow: var(--tok-shadow-hard-2,3px 3px 0 #000), var(--tok-shadow-elev-2,0 6px 18px rgba(0,0,0,0.45)); }
+.cmp-player-profile-card:hover { transform: translateY(-2px); box-shadow: var(--tok-shadow-hard-2,3px 3px 0 #000), var(--tok-shadow-elev-2,0 6px 18px rgba(0,0,0,0.45)); }
 
 /* Placeholder avatar pattern (until sprite injection) */
 .cmp-player-profile-card .ppc-avatar::after { content:""; display:block; width:100%; height:100%; background: repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0 6px, transparent 6px 12px); }
