@@ -1,16 +1,21 @@
 /* Monster profiles modal & single profile scaffolding */
-.monster-profiles-modal, .monster-profile-single-modal { position: fixed; inset: 0; display: flex; justify-content: center; align-items: flex-start; padding-top: 4vh; z-index: 600; }
+.monster-profiles-modal, .monster-profile-single-modal { position: fixed; inset: 0; display: flex; justify-content: center; align-items: flex-start; padding-top: 4vh; z-index: 600; color:#111; }
 .monster-profiles-modal.hidden, .monster-profile-single-modal.hidden { display: none; }
-.mp-frame { background: #faf6ec; border: 4px solid #111; box-shadow: 8px 8px 0 #000; padding: 1.25rem 1.5rem; max-width: 1180px; width: 92%; }
+.mp-frame { background: #faf6ec; border: 4px solid #111; box-shadow: 8px 8px 0 #000; padding: 1.25rem 1.5rem; max-width: 1180px; width: 92%; color:#111; }
 .mp-header { display:flex; justify-content: space-between; align-items:center; margin-bottom: 1rem; }
+.mp-header h2 { margin:0; font-family:'Bangers', cursive; font-size:32px; color:#111; letter-spacing:1px; }
+.monster-profiles-modal button, .monster-profiles-modal a { color:inherit; }
 .mp-grid { display:grid; grid-template-columns: repeat(auto-fill,minmax(260px,1fr)); gap: 1rem; }
-.monster-profile-card { background:#fff; border:3px solid #111; box-shadow:5px 5px 0 #000; padding:.75rem .9rem 1rem; position:relative; display:flex; flex-direction:column; gap:.5rem; }
+.mp-grid .mp-card { color:#111; }
+.monster-profile-card { background:#fff; border:3px solid #111; box-shadow:5px 5px 0 #000; padding:.75rem .9rem 1rem; position:relative; display:flex; flex-direction:column; gap:.5rem; color:#111; }
 .monster-profile-card .mpc-header img { width:64px; height:64px; object-fit:contain; image-rendering:pixelated; }
-.mpc-name { font-weight:700; font-size:1.05rem; }
-.mpc-desc { font-size:.75rem; font-style:italic; opacity:.75; }
-.mpc-stat-row { display:grid; grid-template-columns:110px 1fr 34px; align-items:center; gap:.4rem; font-size:.7rem; }
+.mpc-name { font-weight:800; font-size:1.05rem; color:#000; text-shadow:0 1px 0 #f4e6ca; }
+.mpc-desc { font-size:.8rem; font-style:italic; opacity:.8; color:#222; }
+.mpc-stat-row { display:grid; grid-template-columns:110px 1fr 34px; align-items:center; gap:.4rem; font-size:.75rem; color:#111; }
+.mpc-stat-label { color:#111; font-weight:800; }
+.mpc-value { color:#111; font-weight:900; text-align:right; }
 .mpc-bar { height:8px; background:#eee; border:2px solid #111; position:relative; }
 .mpc-bar-fill { background:linear-gradient(90deg,#ff9248,#65d5ff); height:100%; }
-.mps-frame { background:#faf6ec; border:4px solid #111; box-shadow:6px 6px 0 #000; padding:1rem 1.25rem 1.25rem; max-width:360px; }
+.mps-frame { background:#faf6ec; border:4px solid #111; box-shadow:6px 6px 0 #000; padding:1rem 1.25rem 1.25rem; max-width:360px; color:#111; }
 .mps-frame .monster-profile-card { box-shadow:none; border:0; padding:0; }
 .mps-close { position:absolute; top:.5rem; right:.5rem; }
