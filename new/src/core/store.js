@@ -25,15 +25,20 @@ export function createStore(rootReducer, preloadedState) {
     if (dispatching) {
       throw new Error('Reducers may not dispatch actions.');
     }
+    let next;
     try {
       dispatching = true;
-      const next = rootReducer(state, action);
-      if (next !== state) {
-        state = next;
-        listeners.forEach(l => l(state, action));
-      }
+      next = rootReducer(state, action);
     } finally {
       dispatching = false;
+    }
+    if (next !== state) {
+      state = next;
+      // Snapshot listeners to avoid issues if a listener unsubscribes during iteration
+      const currentListeners = Array.from(listeners);
+      for (const l of currentListeners) {
+        try { l(state, action); } catch (e) { console.error('Listener error:', e); }
+      }
     }
     return action;
   }
@@ -49,7 +54,8 @@ export function combineReducers(reducers) {
     for (const key of keys) {
       const reducer = reducers[key];
       const previous = state[key];
-      const next = reducer(previous, action);
+      // Provide root state reference as third arg for cross-slice aware reducers
+      const next = reducer(previous, action, state);
       nextState[key] = next;
       if (next !== previous) hasChanged = true;
     }

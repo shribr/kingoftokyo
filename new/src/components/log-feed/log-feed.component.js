@@ -1,7 +1,7 @@
 /** log-feed.component.js
  * Renders a simple scrolling list of log entries.
  */
-import { store } from '../../../bootstrap/index.js';
+import { store } from '../../bootstrap/index.js';
 import { createPositioningService } from '../../services/positioningService.js';
 
 export function buildLogFeed(cfg) {

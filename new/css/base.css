@@ -1,5 +1,5 @@
 /* Enhanced Base CSS (migrated from root) */
-@import url('https://fonts.googleapis.com/css2?family=Creepster&family=Nunito:wght@400;600;700;800;900&family=Bangers&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Creepster&family=Nunito:wght@400;600;700;800;900&family=Bangers&family=Kalam:wght@400;700&display=swap');
 
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:'Nunito',sans-serif; background:#000; color:#fff; overflow-x:hidden; overflow-y:visible; height:100vh; }

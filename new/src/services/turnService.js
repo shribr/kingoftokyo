@@ -58,7 +58,7 @@ export function createTurnService(store, logger, rng = Math.random) {
     }
   }
 
-  function resolve() {
+  async function resolve() {
     logger.system('Phase: RESOLVE', { kind: 'phase' });
     store.dispatch(phaseChanged('RESOLVE'));
     resolveDice(store, logger);
@@ -68,7 +68,13 @@ export function createTurnService(store, logger, rng = Math.random) {
       store.dispatch(phaseChanged('GAME_OVER'));
       return;
     }
-    // Skip BUY for now – proceed to CLEANUP
+    // New: BUY phase window for shop interactions
+    logger.system('Phase: BUY', { kind: 'phase' });
+    store.dispatch(phaseChanged('BUY'));
+    // Provide a short pause for UI interactions; can be adjusted via settings later
+    const delay = Math.min(1500, Math.max(400, computeDelay(store.getState().settings) * 3));
+    await wait(delay);
+    // Proceed to CLEANUP
     logger.system('Phase: CLEANUP', { kind: 'phase' });
     store.dispatch(phaseChanged('CLEANUP'));
     cleanup();

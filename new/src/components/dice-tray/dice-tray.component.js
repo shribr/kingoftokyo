@@ -1,7 +1,5 @@
 /** dice-tray.component.js */
 import { eventBus } from '../../core/eventBus.js';
-import { diceRollStarted, diceRolled, diceToggleKeep } from '../../core/actions.js';
-import { rollDice } from '../../domain/dice.js';
 import { selectActivePlayer } from '../../core/selectors.js';
 import { store } from '../../bootstrap/index.js';
 import { createPositioningService } from '../../services/positioningService.js';
@@ -80,16 +78,4 @@ export function update(root, { state }) {
   }
 }
 
-// Bridge events to actions (will later sit in eventsToActions.js; temporary here until that file exists)
-eventBus.on('ui/dice/rollRequested', () => {
-  store.dispatch(diceRollStarted());
-  const st = store.getState();
-  const active = selectActivePlayer(st);
-  const diceSlots = active?.modifiers?.diceSlots || 6;
-  const faces = rollDice({ count: diceSlots, currentFaces: st.dice.faces });
-  store.dispatch(diceRolled(faces));
-});
-
-eventBus.on('ui/dice/keptToggled', ({ index }) => {
-  store.dispatch(diceToggleKeep(index));
-});
+// Event wiring centralized in src/ui/eventsToActions.js

@@ -1,5 +1,19 @@
 [
   {
+    "name": "setup",
+    "version": "0.1.0",
+    "selector": ".cmp-setup",
+    "mountPoint": "#app",
+    "order": 205,
+    "enabled": true,
+    "stateKeys": ["ui","monsters"],
+    "build": "setup.build",
+    "update": "setup.update",
+    "initialState": {},
+    "assets": [],
+    "zIndex": 65
+  },
+  {
     "name": "diceTray",
     "version": "0.1.0",
     "selector": ".cmp-dice-tray",

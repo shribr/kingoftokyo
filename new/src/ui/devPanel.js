@@ -23,7 +23,7 @@ export function mountDevPanel() {
       <button data-log-dice>Log Dice</button>
       <button data-log-effects>Log Effects</button>
     </div>`;
-  panel.querySelector('[data-reset-positions]').addEventListener('click', () => eventBus.emit('ui/positions/resetRequested'));
+  panel.querySelector('[data-reset-positions]').addEventListener('click', () => eventBus.emit('ui/positions/reset'));
   panel.querySelector('[data-log-positions]').addEventListener('click', () => {
     console.log('UI Positions', window.__KOT_NEW__.store.getState().ui.positions);
   });

@@ -74,7 +74,7 @@ export function resolveDice(store, logger) {
       store.dispatch(uiAttackPulse(damaged));
     }
   }
-  // 5. Tokyo entry/exit decisions (simplified – auto enter if empty and claws rolled; auto leave if damaged & <3 health)
+  // 5. Tokyo entry/exit decisions (yield prompts and takeover logic)
   const afterCombat = store.getState();
   const attacker = afterCombat.players.byId[activeId];
   const cityOcc = selectTokyoCityOccupant(afterCombat);
@@ -134,9 +134,7 @@ export function resolveDice(store, logger) {
     if (bayAllowed && bayOcc) addPrompt(bayOcc, 'bay');
     // Immediate takeover not performed yet; takeover attempted when decisions resolved.
   }
-  // Attempt takeover if no prompts created or already resolved
-  attemptTokyoTakeover(store, logger, activeId, playerCount, bayAllowed);
-  // Elimination cleanup: if a Tokyo occupant died during this resolution, clear their slot(s)
+  // Elimination cleanup: ensure defeated occupants are removed before final takeover
   const post = store.getState();
   const cityAfter = selectTokyoCityOccupant(post);
   const bayAfter = selectTokyoBayOccupant(post);
@@ -152,6 +150,8 @@ export function resolveDice(store, logger) {
       store.dispatch(playerLeftTokyo(bayAfter));
     }
   }
+  // Final takeover attempt after cleanup and any immediate yields
+  attemptTokyoTakeover(store, logger, activeId, playerCount, bayAllowed);
 }
 
 // Helper: if there are no pending undecided prompts and attacker not in Tokyo, fill open slots (city then bay)

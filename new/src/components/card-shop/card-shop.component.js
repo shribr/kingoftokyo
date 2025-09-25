@@ -39,7 +39,7 @@ export function update(root) {
   const cards = selectShopCards(state);
   const active = selectActivePlayer(state);
   const phase = state.phase;
-  const canBuyPhase = phase === 'RESOLVE';
+  const canBuyPhase = phase === 'BUY' || phase === 'RESOLVE';
   const listEl = root.querySelector('[data-cards]');
   listEl.innerHTML = cards.map(c => renderCard(c, active, canBuyPhase)).join('');
   const actionsEl = root.querySelector('[data-actions]');
@@ -63,10 +63,10 @@ function renderCard(card, active, canBuyPhase) {
 }
 
 function renderActions(active, phase) {
-  const canFlush = !!active && active.energy >= 2 && phase === 'RESOLVE';
+  const canFlush = !!active && active.energy >= 2 && (phase === 'BUY' || phase === 'RESOLVE');
   const flushLabel = 'FLUSH SHOP (2⚡)';
   const hasPeek = !!active && active.cards?.some(c => c.effect?.kind === 'peek');
-  const canPeek = hasPeek && active.energy >= 1 && phase === 'RESOLVE';
+  const canPeek = hasPeek && active.energy >= 1 && (phase === 'BUY' || phase === 'RESOLVE');
   return `<div class="shop-footer">
     <div class="shop-footer-row">
       <button data-action="flush-shop" class="btn ${canFlush ? 'warning' : 'disabled'}" ${canFlush? '' : 'disabled'}>${flushLabel}</button>

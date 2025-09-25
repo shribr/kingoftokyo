@@ -5,7 +5,7 @@ import { eventBus } from '../core/eventBus.js';
 import { diceReducer } from '../core/reducers/dice.reducer.js';
 import { playersReducer } from '../core/reducers/players.reducer.js';
 import { mountRoot } from '../ui/mountRoot.js';
-import '../ui/eventsToActions.js';
+import { bindUIEventBridges } from '../ui/eventsToActions.js';
 import { playerJoined, phaseChanged } from '../core/actions.js';
 import { phaseReducer } from '../core/reducers/phase.reducer.js';
 import { logReducer } from '../core/reducers/log.reducer.js';
@@ -25,7 +25,7 @@ import { metaReducer } from '../core/reducers/meta.reducer.js';
 import { createTurnService } from '../services/turnService.js';
 import { createEffectEngine } from '../services/effectEngine.js';
 import '../ui/devPanel.js';
-import '../ui/a11yOverlays.js';
+import { bindA11yOverlays } from '../ui/a11yOverlays.js';
 import { loadSettings, bindSettingsPersistence, loadLogCollapse } from '../services/settingsService.js';
 import { bindAIDecisionCapture } from '../services/aiDecisionService.js';
 
@@ -77,11 +77,13 @@ if (typeof window !== 'undefined') {
   loadLogCollapse(store);
   bindSettingsPersistence(store);
   bindAIDecisionCapture(store);
+  bindUIEventBridges(store);
+  bindA11yOverlays(store);
   // Demo data
   store.dispatch(playerJoined(createPlayer({ id: 'p1', name: 'Alpha', monsterId: 'king' })));
   store.dispatch(playerJoined(createPlayer({ id: 'p2', name: 'Beta', monsterId: 'alien' })));
   logger.system('Bootstrap complete. Players seeded.');
-  // Load monsters from root config.json (fallback minimal set).
+  // Load monsters from local new/config.json (fallback minimal set).
   fetch('./config.json').then(r => r.json()).then(cfg => {
     const monsters = Object.values(cfg.monsters || {}).map(m => ({ id: m.id, name: m.name, image: m.image, description: m.description, personality: m.personality || {}, color: m.color }));
     store.dispatch(monstersLoaded(monsters));
@@ -91,10 +93,22 @@ if (typeof window !== 'undefined') {
     ]));
   });
   initCards(store, logger);
-  // Start first turn lifecycle explicitly
-  turnService.startGameIfNeeded();
+  // Defer starting the game until the user enters from splash
+  const startIfReady = () => {
+    const st = store.getState();
+    if (st && st.ui && st.ui.splash && st.ui.splash.visible === false) {
+      turnService.startGameIfNeeded();
+      store._unsubscribeSplash && store._unsubscribeSplash();
+      store._unsubscribeSplash = null;
+    }
+  };
+  store._unsubscribeSplash = store.subscribe(startIfReady);
+  // Also start if settings indicate no splash
+  if (store.getState().ui?.splash?.visible === false) {
+    turnService.startGameIfNeeded();
+  }
   // Load component config dynamically
-  fetch('./new/components.config.json')
+  fetch('./components.config.json')
     .then(r => r.json())
-    .then(cfg => mountRoot(cfg));
+    .then(cfg => mountRoot(cfg, store));
 }

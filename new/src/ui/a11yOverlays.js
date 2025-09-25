@@ -1,7 +1,7 @@
 /** ui/a11yOverlays.js
  * Injects lightweight accessible overlays for peek modal & yield prompts.
+ * Bound to the store at runtime to avoid circular imports.
  */
-import { store, logger } from '../bootstrap/index.js';
 import { uiPeekHide, yieldPromptDecided, playerLeftTokyo } from '../core/actions.js';
 
 let peekEl = null;
@@ -9,7 +9,7 @@ let yieldContainer = null;
 let liveRegion = null;
 let lastAnnouncedLogId = 0;
 
-function ensurePeekEl() {
+function ensurePeekEl(store) {
   if (!peekEl) {
     peekEl = document.createElement('div');
     peekEl.id = 'peek-modal';
@@ -23,10 +23,10 @@ function ensurePeekEl() {
     inner.innerHTML = '<div id="peek-card-name" style="font-weight:bold"></div><button id="peek-close" style="margin-top:12px">Close</button>';
     peekEl.appendChild(inner);
     document.body.appendChild(peekEl);
-    inner.querySelector('#peek-close').addEventListener('click', () => store.dispatch(uiPeekHide()));
+  inner.querySelector('#peek-close').addEventListener('click', () => store.dispatch(uiPeekHide()));
     // Focus trap & ESC
     peekEl.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') { store.dispatch(uiPeekHide()); return; }
+  if (e.key === 'Escape') { store.dispatch(uiPeekHide()); return; }
       if (e.key === 'Tab') {
         const focusables = Array.from(peekEl.querySelectorAll('button, [href], [tabindex]:not([tabindex="-1"])'));
         if (!focusables.length) return;
@@ -40,9 +40,9 @@ function ensurePeekEl() {
   return peekEl;
 }
 
-function updatePeek(card) {
+function updatePeek(card, store) {
   if (card) {
-    const el = ensurePeekEl();
+    const el = ensurePeekEl(store);
     el.style.display = 'flex';
     el.querySelector('#peek-card-name').textContent = card.name;
     requestAnimationFrame(() => el.querySelector('div').focus());
@@ -73,7 +73,7 @@ function ensureLiveRegion() {
   return liveRegion;
 }
 
-function renderYieldPrompts(prompts, state) {
+function renderYieldPrompts(prompts, state, store) {
   const cont = ensureYieldContainer();
   // Remove resolved
   cont.innerHTML = '';
@@ -105,32 +105,37 @@ function renderYieldPrompts(prompts, state) {
 }
 
 let lastYieldRender = 0;
-store.subscribe((state, action) => {
-  // Peek overlay
-  const card = state.ui.peek.card;
-  updatePeek(card);
-  // Yield prompts (throttle re-render to ~5 fps)
-  const now = performance.now();
-  if (now - lastYieldRender > 200) {
-    renderYieldPrompts(state.yield.prompts, state);
-    lastYieldRender = now;
-  }
-  // Live region announcements from logs (announce new meaningful events)
-  ensureLiveRegion();
-  const log = state.log?.entries || state.log; // depending on slice shape
-  if (Array.isArray(log) && log.length) {
-    const latest = log[log.length - 1];
-    if (latest.id && latest.id !== lastAnnouncedLogId) {
-      if (['tokyo','damage','vp','energy','system'].includes(latest.kind)) {
-        liveRegion.textContent = latest.message;
-        lastAnnouncedLogId = latest.id;
+let boundStore = null;
+
+export function bindA11yOverlays(store) {
+  boundStore = store;
+  store.subscribe((state) => {
+    // Peek overlay
+    const card = state.ui.peek?.card || null;
+    updatePeek(card, store);
+    // Yield prompts (throttle re-render to ~5 fps)
+    const now = performance.now();
+    if (now - lastYieldRender > 200) {
+      const prompts = state.yield?.prompts || [];
+      renderYieldPrompts(prompts, state, store);
+      lastYieldRender = now;
+    }
+    // Live region announcements from logs (announce new meaningful events)
+    ensureLiveRegion();
+    const log = state.log?.entries || state.log; // depending on slice shape
+    if (Array.isArray(log) && log.length) {
+      const latest = log[log.length - 1];
+      if (latest.id && latest.id !== lastAnnouncedLogId) {
+        if (['tokyo','damage','vp','energy','system'].includes(latest.kind)) {
+          liveRegion.textContent = latest.message;
+          lastAnnouncedLogId = latest.id;
+        }
       }
     }
+  });
+  // Expose globally for debugging with bound store
+  if (typeof window !== 'undefined') {
+    window.__KOT_NEW__ = window.__KOT_NEW__ || {};
+    window.__KOT_NEW__.a11yOverlays = { updatePeek: (card) => updatePeek(card, store) };
   }
-});
-
-// Expose globally for debugging
-if (typeof window !== 'undefined') {
-  window.__KOT_NEW__ = window.__KOT_NEW__ || {};
-  window.__KOT_NEW__.a11yOverlays = { updatePeek };
 }

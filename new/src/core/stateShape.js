@@ -19,13 +19,26 @@
 export function createInitialState() {
   return {
     players: { order: [], byId: {} },
-    dice: { faces: [], rerollsRemaining: 0, phase: 'idle' },
-    tokyo: { occupantId: null },
+    dice: { faces: [], rerollsRemaining: 0, baseRerolls: 2, phase: 'idle' },
+    tokyo: { city: null, bay: null },
     cards: { deck: [], discard: [], shop: [] },
     phase: 'SETUP',
     log: { entries: [] },
-    ui: { modal: { open: false }, flags: { showProbabilities: false } },
+    ui: {
+      cardDetail: { cardId: null, source: null },
+      playerCards: { playerId: null },
+      positions: {},
+      monsterProfiles: { open: false },
+      singleMonster: { monsterId: null },
+      splash: { visible: true },
+      flags: { showProbabilities: false },
+      peek: { card: null },
+      attackPulse: { ts: 0, playerIds: [] }
+    },
+    settings: { cpuSpeed: 'normal' },
     ai: {},
-    meta: { seed: Date.now(), turn: 0, gameMode: 'classic' }
+    effectQueue: { queue: [], processing: null, history: [] },
+    monsters: { byId: {}, order: [] },
+    meta: { seed: Date.now(), turn: 0, activePlayerIndex: 0, round: 1, gameMode: 'classic' }
   };
 }

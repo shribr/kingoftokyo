@@ -11,6 +11,10 @@ export function update(ctx) {
   const { state } = ctx;
   const root = ctx.inst?.root || document.querySelector('.effect-queue-panel');
   if (!root) return;
+  // Hide while splash is visible or debug disabled
+  const splashVisible = state?.ui?.splash?.visible === true;
+  const debugOn = !!state?.settings?.showDebugPanels;
+  root.style.display = (splashVisible || !debugOn) ? 'none' : '';
   const currentEl = root.querySelector('.eq-current');
   const queueEl = root.querySelector('.eq-queue');
   const histEl = root.querySelector('.eq-history');

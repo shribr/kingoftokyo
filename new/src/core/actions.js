@@ -50,6 +50,9 @@ export const UI_MONSTER_PROFILE_OPEN = 'UI_MONSTER_PROFILE_OPEN';
 export const UI_MONSTER_PROFILE_CLOSE = 'UI_MONSTER_PROFILE_CLOSE';
 // Splash
 export const UI_SPLASH_HIDE = 'UI_SPLASH_HIDE';
+// Setup (Monster Selection)
+export const UI_SETUP_OPEN = 'UI_SETUP_OPEN';
+export const UI_SETUP_CLOSE = 'UI_SETUP_CLOSE';
 // Layout / Positioning
 export const UI_POSITION_SET = 'UI_POSITION_SET';
 export const UI_POSITIONS_RESET = 'UI_POSITIONS_RESET';
@@ -126,6 +129,9 @@ export const uiMonsterProfileOpen = (monsterId) => ({ type: UI_MONSTER_PROFILE_O
 export const uiMonsterProfileClose = () => ({ type: UI_MONSTER_PROFILE_CLOSE });
 // Splash
 export const uiSplashHide = () => ({ type: UI_SPLASH_HIDE });
+// Setup action creators
+export const uiSetupOpen = () => ({ type: UI_SETUP_OPEN });
+export const uiSetupClose = () => ({ type: UI_SETUP_CLOSE });
 // Positioning action creators
 export const uiPositionSet = (componentName, x, y) => ({ type: UI_POSITION_SET, payload: { componentName, x, y } });
 export const uiPositionsReset = () => ({ type: UI_POSITIONS_RESET });

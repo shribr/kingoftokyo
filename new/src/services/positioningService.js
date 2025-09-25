@@ -85,9 +85,15 @@ export function createPositioningService(store) {
     let stored;
     try { stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(_) { stored = null; }
     if (stored && typeof stored === 'object') {
+      const viewportW = typeof window !== 'undefined' ? window.innerWidth : 1024;
+      const viewportH = typeof window !== 'undefined' ? window.innerHeight : 768;
+      const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
       Object.entries(stored).forEach(([name, pos]) => {
         if (pos && typeof pos.x === 'number' && typeof pos.y === 'number') {
-          store.dispatch(uiPositionSet(name, pos.x, pos.y));
+          // Clamp to near-viewport; assume a minimal 120x120 footprint to avoid fully off-screen
+          const cx = clamp(pos.x, 0, Math.max(0, viewportW - 120));
+          const cy = clamp(pos.y, 0, Math.max(0, viewportH - 120));
+          store.dispatch(uiPositionSet(name, cx, cy));
         }
       });
     }

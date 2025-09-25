@@ -3,7 +3,8 @@ import { SETTINGS_LOADED, SETTINGS_UPDATED } from '../actions.js';
 const DEFAULT_SETTINGS = {
   cpuSpeed: 'normal', // slow | normal | fast
   showThoughtBubbles: true,
-  autoActivateMonsters: true
+  autoActivateMonsters: true,
+  showDebugPanels: false
 };
 
 export function settingsReducer(state = DEFAULT_SETTINGS, action) {

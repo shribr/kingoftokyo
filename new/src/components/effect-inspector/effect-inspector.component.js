@@ -15,6 +15,10 @@ export function update(ctx) {
   const { state } = ctx;
   const root = ctx.inst?.root || document.querySelector('.effect-inspector');
   if (!root) return;
+  // Hide while splash visible or debug disabled
+  const splashVisible = state?.ui?.splash?.visible === true;
+  const debugOn = !!state?.settings?.showDebugPanels;
+  root.style.display = (splashVisible || !debugOn) ? 'none' : '';
   const listEl = root.querySelector('.ei-list');
   const aggEl = root.querySelector('.ei-aggregate');
   listEl.innerHTML = '';
