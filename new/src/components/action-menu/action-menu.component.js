@@ -14,7 +14,9 @@ export function build({ selector }) {
   root.setAttribute('data-am-root','true');
   root.setAttribute('data-panel','action-menu');
   root.setAttribute('data-draggable','true');
-  root.setAttribute('data-layout','horizontal');
+  // Default layout now vertical (single column buttons); hybrid docking support
+  root.setAttribute('data-layout','vertical');
+  root.dataset.amDockState = 'docked'; // internal: docked | floating (for hybrid behavior)
   root.innerHTML = `
     <button data-action="roll" class="k-btn k-btn--primary">ROLL</button>
     <button data-action="keep" class="k-btn k-btn--secondary" disabled>KEEP</button>
@@ -38,9 +40,22 @@ export function build({ selector }) {
   try {
     const positioning = createPositioningService(store);
     positioning.hydrate();
-  // Do NOT pass bounds limiting left movement; allow full horizontal travel similar to dice tray.
     const applyBounds = () => ({ left:0, top:0, right: window.innerWidth, bottom: window.innerHeight });
     positioning.makeDraggable(root, 'actionMenu', { snapEdges: true, snapThreshold: 12, bounds: applyBounds() });
+    // Track drag to switch hybrid -> floating
+    let dragTransformStart = null;
+    root.addEventListener('pointerdown', () => { dragTransformStart = root.style.transform; }, { capture:true });
+    window.addEventListener('pointerup', () => {
+      if (dragTransformStart !== null) {
+        if (root.style.transform !== dragTransformStart) {
+          root._userMoved = true;
+          if ((store.getState().settings?.actionMenuMode || 'hybrid') === 'hybrid') {
+            root.dataset.amDockState = 'floating';
+          }
+        }
+        dragTransformStart = null;
+      }
+    });
     // Re-clamp on resize so it never drifts off-screen after viewport changes
     const clampIntoView = () => {
       const rect = root.getBoundingClientRect();
@@ -59,35 +74,27 @@ export function build({ selector }) {
       root.style.transform = `translate(${tx}px, ${ty}px)`;
     };
     window.addEventListener('resize', () => {
+      const mode = store.getState().settings?.actionMenuMode || 'hybrid';
+      if (mode === 'docked' || (mode === 'hybrid' && root.dataset.amDockState === 'docked')) {
+        reAnchorToDiceTray(root);
+      }
       clampIntoView();
+      ensureVisibleWithinViewport(root);
+      avoidMonsterPanelOverlap(root);
     });
     // If no persisted position yet, place next to dice tray by default
     const persist = !!store.getState().settings?.persistPositions;
     const hasSaved = persist && !!store.getState().ui.positions.actionMenu;
     if (!hasSaved) {
-      const GAP = 48; // separation from dice tray
-      const attemptPlace = () => {
-        const tray = document.querySelector('.cmp-dice-tray');
-        if (!tray) { if ((attemptPlace._tries = (attemptPlace._tries||0)+1) < 10) requestAnimationFrame(attemptPlace); return; }
-        try {
-          const trayRect = tray.getBoundingClientRect();
-          root.style.right = '';
-          // Align top edges
-          const desiredTop = trayRect.top;
-          const menuApproxH = 140;
-          const scrollY = window.scrollY || 0;
-          root.style.top = Math.max(10, desiredTop + scrollY) + 'px';
-          root.style.bottom = '';
-          const menuApproxW = 240;
-          const desiredLeft = trayRect.right + GAP;
-          const maxLeft = window.innerWidth - menuApproxW - 8;
-          root.style.left = Math.min(desiredLeft, maxLeft) + 'px';
-        } catch(_) {}
-      };
-      requestAnimationFrame(attemptPlace);
+      reAnchorToDiceTray(root, true);
+      // Re-anchor once more after dice tray possible auto-alignment (next frame / after event)
+      requestAnimationFrame(() => { if (!root._userMoved && root.dataset.amDockState === 'docked') reAnchorToDiceTray(root); });
+      const autoAlignHandler = () => { if (!root._userMoved && root.dataset.amDockState === 'docked') reAnchorToDiceTray(root); };
+      window.addEventListener('diceTrayAutoAligned', autoAlignHandler);
+      root._cleanupAutoAlign = () => window.removeEventListener('diceTrayAutoAligned', autoAlignHandler);
     }
   } catch(e) { /* non-fatal */ }
-  return { root, update: () => update(root) };
+  return { root, update: () => update(root), destroy: () => { root._cleanupAutoAlign && root._cleanupAutoAlign(); root.remove(); } };
 }
 
 // (legacy panels toggle removed)
@@ -107,33 +114,101 @@ export function update(root) {
   rollBtn.disabled = !canRoll;
   keepBtn.disabled = !(st.phase === 'ROLL' && hasAnyFaces);
   endBtn.disabled = st.phase === 'ROLL';
-  adaptiveLayout(root);
+  enforceVerticalLayout(root);
 }
 
 // ------------------------------
-// Adaptive layout: switch to vertical if horizontal width would overflow viewport
+// Enforce vertical layout (single column) regardless of viewport size
 let amResizeRO;
-function adaptiveLayout(root){
+function enforceVerticalLayout(root){
   if (!root) return;
   const apply = () => {
-    try {
-      const paddingX = 28; // approx left+right
-      const gap = 8;
-      const btns = [...root.querySelectorAll('button')];
-      const totalBtnWidth = btns.reduce((acc,b)=>acc + b.getBoundingClientRect().width,0);
-      const rowWidth = totalBtnWidth + gap*(btns.length-1) + paddingX;
-      const viewportW = window.innerWidth;
-      const shouldVertical = rowWidth > viewportW * 0.9; // near overflow
-      root.setAttribute('data-layout', shouldVertical ? 'vertical':'horizontal');
-    } catch(_) {}
+    root.setAttribute('data-layout','vertical');
+    // If menu extends beyond viewport bottom, cap its height and enable internal scroll
+    const rect = root.getBoundingClientRect();
+    const maxVisible = window.innerHeight - 40; // leave some margin
+    if (rect.height > maxVisible) {
+      root.style.maxHeight = maxVisible + 'px';
+      root.style.overflowY = 'auto';
+    } else {
+      root.style.maxHeight = '';
+      root.style.overflowY = '';
+    }
   };
-  // Initial
   apply();
-  // Resize observer (buttons may wrap due to font load)
   if (!amResizeRO) {
-    amResizeRO = new ResizeObserver(() => apply());
+    amResizeRO = new ResizeObserver(apply);
     amResizeRO.observe(document.documentElement);
     window.addEventListener('orientationchange', apply);
     window.addEventListener('resize', apply);
   }
+}
+
+// Ensure the menu never ends up fully below the fold after drastic vertical resize.
+function ensureVisibleWithinViewport(root) {
+  try {
+    const rect = root.getBoundingClientRect();
+    const vh = window.innerHeight;
+    // If bottom is above 0 (fine) or top within viewport we do nothing.
+    // If top is beyond viewport height (menu moved off-screen), reset to a safe anchor.
+    if (rect.top > vh - 40) {
+      // Anchor near bottom with small padding
+      const desiredTop = Math.max(10, vh - rect.height - 90); // leave room above footer (64px + margin)
+      root.style.top = desiredTop + 'px';
+      root.style.bottom = '';
+      // Clear transform-based translation if present
+      root.style.transform = 'translate(0,0)';
+    }
+    // If header overlap pushes it out of view (negative top beyond threshold), nudge down
+    if (rect.top < 0) {
+      const offset = Math.min(0, rect.top) * -1 + 10;
+      const currentTop = parseInt(root.style.top||'0',10) || 0;
+      root.style.top = (currentTop + offset) + 'px';
+    }
+  } catch(_) {}
+}
+
+// If overlapping (visually) with monsters panel on right side, nudge action menu left.
+function avoidMonsterPanelOverlap(root) {
+  try {
+    const monsters = document.querySelector('.cmp-monsters-panel');
+    if (!monsters) return;
+    const rRect = root.getBoundingClientRect();
+    const mRect = monsters.getBoundingClientRect();
+    const overlapX = rRect.left < mRect.right && rRect.right > mRect.left;
+    const overlapY = rRect.top < mRect.bottom && rRect.bottom > mRect.top;
+    if (overlapX && overlapY) {
+      // Compute new left position so its right edge sits 12px left of monsters panel
+      const shiftLeft = (mRect.left - 12) - rRect.width;
+      if (shiftLeft > 0) {
+        root.style.left = shiftLeft + 'px';
+        root.style.right = 'auto';
+        root.style.transform = 'translate(0,0)';
+      } else {
+        // fallback: place it below monsters panel
+        root.style.top = (mRect.bottom + 16 + window.scrollY) + 'px';
+        root.style.right = '50%';
+      }
+    }
+  } catch(_) {}
+}
+
+// Re-anchor near dice tray (used for docked mode and hybrid before user drag)
+function reAnchorToDiceTray(root, initial=false) {
+  // Preferred anchor: toolbar right edge. Fallback: dice tray.
+  const toolbar = document.querySelector('.cmp-toolbar');
+  const tray = document.querySelector('.cmp-dice-tray');
+  if (!toolbar && !tray) { if (initial && (reAnchorToDiceTray._tries = (reAnchorToDiceTray._tries||0)+1) < 12) requestAnimationFrame(() => reAnchorToDiceTray(root, true)); return; }
+  const mode = store.getState().settings?.actionMenuMode || 'hybrid';
+  if (root._userMoved && (mode === 'floating' || mode === 'hybrid')) return;
+  const anchorRect = (toolbar || tray).getBoundingClientRect();
+  const scrollY = window.scrollY || 0;
+  const GAP = 28;
+  root.style.right = '';
+  root.style.left = (anchorRect.right + GAP) + 'px';
+  // Align vertically with top of anchor if toolbar; if tray, keep previous logic
+  root.style.top = Math.max(10, (toolbar ? anchorRect.top : anchorRect.top) + scrollY) + 'px';
+  root.style.bottom = '';
+  root.style.transform = 'translate(0,0)';
+  if (mode === 'hybrid') root.dataset.amDockState = 'docked';
 }

@@ -336,6 +336,54 @@
       "zIndex": 130
     }
     ,{
+      "name": "instructionsModal",
+      "version": "0.1.0",
+      "selector": ".cmp-instructions-modal",
+      "mountPoint": "#app",
+      "order": 321,
+      "enabled": true,
+      "stateKeys": ["ui"],
+      "build": "instructions-modal.build",
+      "update": "instructions-modal.update",
+      "eventsOut": [],
+      "eventsIn": [],
+      "initialState": {},
+      "assets": [],
+      "zIndex": 130
+    }
+    ,{
+      "name": "confirmModal",
+      "version": "0.1.0",
+      "selector": ".cmp-confirm-modal",
+      "mountPoint": "#app",
+      "order": 322,
+      "enabled": true,
+      "stateKeys": ["ui"],
+      "build": "confirm-modal.build",
+      "update": "confirm-modal.update",
+      "eventsOut": [],
+      "eventsIn": [],
+      "initialState": {},
+      "assets": [],
+      "zIndex": 140
+    }
+    ,{
+      "name": "aboutModal",
+      "version": "0.1.0",
+      "selector": ".cmp-about-modal",
+      "mountPoint": "#app",
+      "order": 323,
+      "enabled": true,
+      "stateKeys": ["ui"],
+      "build": "about-modal.build",
+      "update": "about-modal.update",
+      "eventsOut": [],
+      "eventsIn": [],
+      "initialState": {},
+      "assets": [],
+      "zIndex": 140
+    }
+    ,{
       "name": "aiThoughtBubble",
       "version": "0.1.0",
       "selector": ".cmp-ai-thought-bubble",

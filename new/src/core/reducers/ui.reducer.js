@@ -1,4 +1,4 @@
-import { UI_CARD_DETAIL_OPEN, UI_CARD_DETAIL_CLOSE, UI_PLAYER_CARDS_OPEN, UI_PLAYER_CARDS_CLOSE, UI_MONSTER_PROFILES_OPEN, UI_MONSTER_PROFILES_CLOSE, UI_MONSTER_PROFILE_OPEN, UI_MONSTER_PROFILE_CLOSE, UI_SPLASH_HIDE, UI_POSITION_SET, UI_POSITIONS_RESET, UI_SETTINGS_OPEN, UI_SETTINGS_CLOSE, UI_AI_DECISION_OPEN, UI_AI_DECISION_CLOSE, UI_GAME_LOG_OPEN, UI_GAME_LOG_CLOSE, UI_GAME_LOG_COLLAPSE_STATE, UI_PEEK_SHOW, UI_PEEK_HIDE, UI_ATTACK_PULSE, UI_SETUP_OPEN, UI_SETUP_CLOSE } from '../actions.js';
+import { UI_CARD_DETAIL_OPEN, UI_CARD_DETAIL_CLOSE, UI_PLAYER_CARDS_OPEN, UI_PLAYER_CARDS_CLOSE, UI_MONSTER_PROFILES_OPEN, UI_MONSTER_PROFILES_CLOSE, UI_MONSTER_PROFILE_OPEN, UI_MONSTER_PROFILE_CLOSE, UI_SPLASH_HIDE, UI_POSITION_SET, UI_POSITIONS_RESET, UI_SETTINGS_OPEN, UI_SETTINGS_CLOSE, UI_AI_DECISION_OPEN, UI_AI_DECISION_CLOSE, UI_GAME_LOG_OPEN, UI_GAME_LOG_CLOSE, UI_GAME_LOG_COLLAPSE_STATE, UI_PEEK_SHOW, UI_PEEK_HIDE, UI_ATTACK_PULSE, UI_SETUP_OPEN, UI_SETUP_CLOSE, UI_INSTRUCTIONS_OPEN, UI_INSTRUCTIONS_CLOSE, UI_CONFIRM_OPEN, UI_CONFIRM_CLOSE, UI_ABOUT_OPEN, UI_ABOUT_CLOSE } from '../actions.js';
 
 const initial = {
   cardDetail: { cardId: null, source: null },
@@ -70,6 +70,15 @@ export function uiReducer(state = initial, action) {
       const kinds = partial.kinds ? partial.kinds : state.gameLog?.kinds;
       return { ...state, gameLog: { ...(state.gameLog||{}), kinds, collapse: { rounds: { ...existing.rounds, ...(partial.rounds||{}) }, turns: { ...existing.turns, ...(partial.turns||{}) } } } };
     }
+    case UI_INSTRUCTIONS_OPEN: return { ...state, instructions: { open: true } };
+    case UI_INSTRUCTIONS_CLOSE: return { ...state, instructions: { open: false } };
+    case UI_CONFIRM_OPEN: {
+      const { confirmId, message, confirmLabel, cancelLabel } = action.payload;
+      return { ...state, confirm: { open: true, confirmId, message, confirmLabel, cancelLabel } };
+    }
+    case UI_CONFIRM_CLOSE: return { ...state, confirm: { open: false } };
+    case UI_ABOUT_OPEN: return { ...state, about: { open: true } };
+    case UI_ABOUT_CLOSE: return { ...state, about: { open: false } };
     case UI_PEEK_SHOW: {
       return { ...state, peek: { card: action.payload.card } };
     }

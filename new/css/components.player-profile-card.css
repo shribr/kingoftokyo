@@ -79,6 +79,22 @@
 .cmp-monsters-panel:not(.is-stacked) .mp-player-cards { gap:14px; }
 .cmp-monsters-panel:not(.is-stacked) .mp-player-cards .cmp-player-profile-card { margin:0 !important; transform:none !important; }
 
+/* New layout modes (stacked | condensed | list) ----------------------------- */
+/* Stacked (existing) already handled via .is-stacked with strong overlap (-90px) */
+/* Condensed: lighter overlap & reduced rotation for better readability */
+.cmp-monsters-panel[data-card-layout="condensed"].is-stacked .mp-player-cards .cmp-player-profile-card:not(.is-active) + .cmp-player-profile-card:not(.is-active) { margin-top:-55px; }
+.cmp-monsters-panel[data-card-layout="condensed"].is-stacked .mp-player-cards .cmp-player-profile-card:nth-child(1):not(.is-active) { transform:perspective(800px) rotateX(.4deg) rotateY(-.15deg) rotateZ(-1.3deg); }
+.cmp-monsters-panel[data-card-layout="condensed"].is-stacked .mp-player-cards .cmp-player-profile-card:nth-child(2):not(.is-active) { transform:perspective(800px) rotateX(.6deg) rotateY(.2deg) rotateZ(1.4deg); margin-left:-4px; }
+.cmp-monsters-panel[data-card-layout="condensed"].is-stacked .mp-player-cards .cmp-player-profile-card:nth-child(3):not(.is-active) { transform:perspective(800px) rotateX(.5deg) rotateY(-.3deg) rotateZ(-1.2deg); margin-left:4px; }
+.cmp-monsters-panel[data-card-layout="condensed"].is-stacked .mp-player-cards .cmp-player-profile-card:nth-child(4):not(.is-active) { transform:perspective(800px) rotateX(.6deg) rotateY(.1deg) rotateZ(1.2deg); margin-left:-3px; }
+.cmp-monsters-panel[data-card-layout="condensed"].is-stacked .mp-player-cards .cmp-player-profile-card:nth-child(5):not(.is-active) { transform:perspective(800px) rotateX(.5deg) rotateY(-.2deg) rotateZ(-1.1deg); margin-left:3px; }
+.cmp-monsters-panel[data-card-layout="condensed"].is-stacked .mp-player-cards .cmp-player-profile-card:nth-child(6):not(.is-active) { transform:perspective(800px) rotateX(.7deg) rotateY(.3deg) rotateZ(1.1deg); margin-left:-2px; }
+
+/* List: explicit spacing & disable transforms */
+.cmp-monsters-panel[data-card-layout="list"] .mp-player-cards .cmp-player-profile-card { margin:0 0 18px !important; transform:none !important; position:relative; }
+.cmp-monsters-panel[data-card-layout="list"] .mp-player-cards .cmp-player-profile-card:last-child { margin-bottom:0 !important; }
+.cmp-monsters-panel[data-card-layout="list"] { --ppc-stack-mode:list; }
+
 /* Floating active card (relocated outside panel) */
 #active-player-card-slot { position:absolute; pointer-events:none; top:40%; left:50%; z-index:3500; transition: left .45s cubic-bezier(.25,.46,.45,.94), top .45s cubic-bezier(.25,.46,.45,.94); }
 #active-player-card-slot .cmp-player-profile-card { pointer-events:auto; }

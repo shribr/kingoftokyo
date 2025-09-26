@@ -12,12 +12,8 @@ export function build({ selector, emit }) {
   const root = document.createElement('div');
   root.className = `${selector.slice(1)} cmp-dice-tray`;
   root.setAttribute('data-draggable','true');
-  root.innerHTML = `<div class="tray-header">
-    <button data-action="roll" class="tray-roll-btn" aria-label="Roll Dice">Roll</button>
-    <span class="tray-dice-count" data-dice-count aria-label="Dice Count"></span>
-    <span class="tray-rerolls" data-rerolls aria-live="polite" aria-label="Rerolls Remaining"></span>
-  </div>
-  <div class="dice" data-dice></div>`;
+  // Tray frame + dice row (matching legacy visual reference)
+  root.innerHTML = `<div class="tray-frame"><div class="dice" data-dice aria-label="Dice Tray"></div></div>`;
   // Track previous diceSlots to animate expansions
   root._prevDiceSlots = 6;
 
@@ -26,12 +22,25 @@ export function build({ selector, emit }) {
   positioning.hydrate(); // ensure positions loaded (idempotent)
   positioning.makeDraggable(root, 'diceTray', { snapEdges: true, snapThreshold: 12 });
 
+  // If user has not manually moved tray (no stored position), align its left edge with arena's left edge.
+  function autoAlignIfNotUserMoved() {
+    const persisted = positioning.getPersistedPosition?.('diceTray');
+    if (persisted) return; // user customized position; don't override
+    const arena = document.querySelector('.cmp-arena');
+    if (!arena) return;
+    const aRect = arena.getBoundingClientRect();
+    // Place tray slightly below arena bottom or keep fixed bottom? We'll keep existing bottom offset, just align left
+    root.style.left = aRect.left + 'px';
+    root.style.transform = 'translateX(0)';
+    // Notify listeners (e.g., action menu) that tray alignment finalized for this frame.
+    window.dispatchEvent(new CustomEvent('diceTrayAutoAligned', { detail: { left: aRect.left } }));
+  }
+  // Align on next frame (after arena laid out) and on resize
+  requestAnimationFrame(autoAlignIfNotUserMoved);
+  window.addEventListener('resize', autoAlignIfNotUserMoved);
+  root._destroyExtras = () => window.removeEventListener('resize', autoAlignIfNotUserMoved);
+
   root.addEventListener('click', (e) => {
-    const btn = e.target.closest('button[data-action="roll"]');
-    if (btn) {
-      emit('ui/dice/rollRequested', {});
-      return;
-    }
     const dieEl = e.target.closest('[data-die-index]');
     if (dieEl) {
       const idx = Number(dieEl.getAttribute('data-die-index'));
@@ -39,20 +48,18 @@ export function build({ selector, emit }) {
     }
   });
 
-  return { root, update: (props) => update(root, props), destroy: () => root.remove() };
+  return { root, update: (props) => update(root, props), destroy: () => { root._destroyExtras && root._destroyExtras(); root.remove(); } };
 }
 
 export function update(root, { state }) {
   const diceContainer = root.querySelector('[data-dice]');
-  const countEl = root.querySelector('[data-dice-count]');
-  const rerollsEl = root.querySelector('[data-rerolls]');
   if (!diceContainer) return;
   const globalState = store.getState();
   const active = selectActivePlayer(globalState);
   const diceSlots = active?.modifiers?.diceSlots || 6;
   const faces = state.faces || [];
   // Active player highlight on root (used by CSS for subtle glow)
-  if (active) root.classList.add('for-active-player'); else root.classList.remove('for-active-player');
+  // Removed active-player visual highlighting for dice tray (no stylistic changes requested)
 
   const prevFaces = root._prevFaces || [];
   const facesChanged = faces.length && (faces.length !== prevFaces.length || faces.some((f,i) => !prevFaces[i] || prevFaces[i].value !== f.value || prevFaces[i].kept !== f.kept));
@@ -60,10 +67,13 @@ export function update(root, { state }) {
   const rendered = [];
   for (let i = 0; i < diceSlots; i++) {
     const face = faces[i];
+    const isExtra = i >= 6;
     if (face) {
-      rendered.push(`<span class="die ${face.kept ? 'is-kept' : ''} ${i >= 6 ? 'extra-die' : ''}" data-die-index="${i}" data-face="${face.value}">${symbolFor(face.value)}</span>`);
+      rendered.push(`<span class="die ${face.kept ? 'is-kept' : ''} ${isExtra ? 'extra-die' : ''}" data-die-index="${i}" data-face="${face.value}">${symbolFor(face.value)}</span>`);
     } else {
-      rendered.push(`<span class="die pending ${i >= 6 ? 'extra-die' : ''}" data-die-index="${i}">?</span>`);
+      // For extra dice (7th, 8th) show blank dashed slot (no '?')
+      const content = isExtra ? '' : '?';
+      rendered.push(`<span class="die pending ${isExtra ? 'extra-die' : ''}" data-die-index="${i}">${content}</span>`);
     }
   }
   diceContainer.innerHTML = rendered.join('');
@@ -84,25 +94,11 @@ export function update(root, { state }) {
         setTimeout(() => el.classList.remove('new-die'), 1200);
       }
     }
-    if (countEl) {
-      countEl.classList.add('bump');
-      setTimeout(() => countEl.classList.remove('bump'), 600);
-    }
+    // removed count bump visual
   }
   root._prevDiceSlots = diceSlots;
   root._prevFaces = faces.map(f => ({ value: f.value, kept: f.kept }));
-  if (countEl) {
-    if (diceSlots > 6) {
-      countEl.textContent = `${diceSlots} dice (+${diceSlots - 6})`;
-    } else {
-      countEl.textContent = `${diceSlots} dice`;
-    }
-  }
-  if (rerollsEl) {
-    const remaining = state.rerollsRemaining ?? 0;
-    rerollsEl.textContent = `Rerolls: ${remaining}`;
-    rerollsEl.classList.toggle('low', remaining === 0);
-  }
+  // Removed count & rerolls textual UI per request
 }
 
 function symbolFor(v) {

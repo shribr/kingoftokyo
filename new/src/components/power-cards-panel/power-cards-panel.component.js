@@ -33,15 +33,25 @@ function panelTemplate(shopFlag) {
 }
 
 function placeholderTemplate(){
-  return `<div class="pc-placeholder" data-pc-placeholder><p style="font:14px system-ui,sans-serif; margin:0; opacity:.8;">Power Cards content coming...</p></div>`;
+  return `<div class="pc-placeholder" data-pc-placeholder>
+    <div class="pc-empty-frame">
+      <h3>Power Cards</h3>
+      <p>No shop loaded yet.</p>
+      <p class="hint">Future: show available cards to buy, energy cost, and refresh button.</p>
+    </div>
+  </div>`;
 }
 
 function shopStubTemplate(){
-  return `<div class="pc-shop-grid" data-shop-grid>
-    <div class="pc-shop-row" data-row>
-      ${['A','B','C'].map(l=>`<div class=\"shop-card is-stub\" data-stub-card><header class=\"sc-header\"><span class=\"sc-name\">Card ${l}</span><span class=\"sc-cost\">3⚡</span></header><div class=\"sc-effect\">Temporary stub effect text for card ${l}.</div><div class=\"sc-actions\"><button class=\"k-btn k-btn--xs k-btn--secondary\" disabled>BUY</button></div></div>`).join('')}
+  return `<div class="pc-shop" data-shop-grid>
+    <div class="pc-shop-cards">
+      ${['A','B','C'].map(l=>`<div class=\"pc-card pc-card--stub\" data-stub-card>
+        <div class=\"pc-card__header\"><span class=\"pc-card__name\">Card ${l}</span><span class=\"pc-card__cost\">3⚡</span></div>
+        <div class=\"pc-card__body\">Stub effect text for card ${l}. Lorem ipsum short effect.</div>
+        <div class=\"pc-card__footer\"><button class=\"k-btn k-btn--xs k-btn--secondary\" disabled>BUY</button></div>
+      </div>`).join('')}
     </div>
-    <footer class="shop-footer" data-shop-footer><button class="k-btn k-btn--sm k-btn--tertiary" data-refresh disabled>REFRESH (stub)</button></footer>
+    <div class="pc-shop-actions"><button class="k-btn k-btn--sm k-btn--tertiary" data-refresh disabled>REFRESH (stub)</button></div>
   </div>`;
 }
 

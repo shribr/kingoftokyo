@@ -48,8 +48,12 @@ export function update(root, instances) {
   const state = store.getState();
   const order = selectPlayerOrder(state);
   const active = selectActivePlayer(state);
-  const stacked = state.settings?.stackedPlayerCards !== false; // default true
-  root.classList.toggle('is-stacked', stacked);
+  // Determine layout mode (stacked | condensed | list)
+  const mode = state.settings?.playerCardLayoutMode || (state.settings?.stackedPlayerCards === false ? 'list' : 'stacked');
+  root.dataset.cardLayout = mode;
+  const stacked = mode === 'stacked' || mode === 'condensed';
+  root.classList.toggle('is-stacked', stacked); // retain legacy selector support
+  root.removeAttribute('data-player-count');
   const container = root.querySelector('[data-player-cards]');
   if (!container) return;
   // Remove stale

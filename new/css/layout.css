@@ -113,7 +113,7 @@ body::before { content:''; position:fixed; top:0; left:0; width:100%; height:100
 .action-row { justify-content:space-between; padding:10px 20px; min-height:80px; }
 .action-row .dice-area, .action-row .action-menu { pointer-events:auto; position:relative; }
 .toolbar-row { justify-content:center; padding:10px 0 15px 0; min-height:60px; }
-.toolbar-row .game-toolbar { pointer-events:auto; position:relative !important; transform:none !important; left:auto !important; bottom:auto !important; }
+.toolbar-row .game-toolbar { pointer-events:auto; position:relative !important; transform:none !important; left:auto !important; bottom:auto !important; margin-bottom:40px; }
 
 @media (max-width:1200px){ .action-row { padding:10px 15px; } .action-row .dice-area, .action-row .action-menu { max-width:45%; } }
 @media (max-width:900px){ .action-row { flex-direction:column; gap:10px; padding:10px; } .action-row .dice-area, .action-row .action-menu { max-width:100%; width:100%; } }
@@ -265,20 +265,7 @@ body::before { content:''; position:fixed; top:0; left:0; width:100%; height:100
 .tokyo-occupant { display:flex; flex-direction:column; gap:2px; font-size:.75rem; background:rgba(0,0,0,.6); border:1px solid #444; padding:4px 6px; border-radius:4px; color:#eee; }
 .slot-empty { font-size:.7rem; color:#777; font-style:italic; }
 
-/* Dice tray parity refinements */
-.cmp-dice-tray.dice-area { background:rgba(0,0,0,.85); padding:10px 16px; border:2px solid #333; border-radius:8px; box-shadow:0 4px 14px rgba(0,0,0,.5); display:inline-block; }
-.cmp-dice-tray .tray-header { display:flex; align-items:center; gap:12px; margin-bottom:6px; }
-.cmp-dice-tray .tray-header button { font-family:'Bangers',cursive; letter-spacing:1px; }
-.cmp-dice-tray [data-dice] { display:flex; gap:8px; }
-.cmp-dice-tray .die { width:44px; height:44px; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:bold; background:linear-gradient(145deg,#2d2d2d,#111); color:#fff; border:2px solid #555; border-radius:8px; cursor:pointer; transition:transform .25s cubic-bezier(.175,.885,.32,1.275), box-shadow .25s; position:relative; }
-.cmp-dice-tray .die.is-kept { border-color:#FFD700; box-shadow:0 0 10px rgba(255,215,0,.6); }
-.cmp-dice-tray .die.extra-die { background:linear-gradient(145deg,#313a55,#181d2b); }
-.cmp-dice-tray .die.pending { opacity:.35; font-size:18px; }
-.cmp-dice-tray [data-dice].rolling .die { animation:dieRollFlash .6s ease; }
-@keyframes dieRollFlash { 0%{transform:scale(1) rotate(0deg);} 30%{transform:scale(1.25) rotate(90deg);} 60%{transform:scale(.9) rotate(180deg);} 100%{transform:scale(1) rotate(360deg);} }
-.cmp-dice-tray .die.new-die { animation:newDiePulse 1s ease; }
-@keyframes newDiePulse { 0%{box-shadow:0 0 0 rgba(0,255,255,0);} 50%{box-shadow:0 0 14px rgba(0,255,255,.8);} 100%{box-shadow:0 0 0 rgba(0,255,255,0);} }
-.cmp-dice-tray.for-active-player { box-shadow:0 0 12px rgba(255,215,0,.35); border-color:#555; }
+/* Removed obsolete legacy dice tray styles (now fully component-scoped) */
 
 /* Hide dice tray under splash (splash sets ui.splash.visible true) */
 body.splash-visible .cmp-dice-tray { visibility:hidden; opacity:0; transition:opacity .3s ease; }

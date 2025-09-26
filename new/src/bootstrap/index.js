@@ -138,8 +138,8 @@ if (typeof window !== 'undefined') {
 function seedRandomPlayers(store, monsters, logger) {
   try {
     if (!Array.isArray(monsters) || monsters.length === 0) return;
-    // We want 4 sample players in skipIntro mode.
-    const TARGET = 4;
+  // We want 6 sample players in skipIntro mode (full deck visibility request).
+  const TARGET = 6;
     const pool = monsters.slice();
     const pick = () => {
       if (pool.length) return pool.splice(Math.floor(Math.random()*pool.length),1)[0];

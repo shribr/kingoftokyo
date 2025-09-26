@@ -4,7 +4,7 @@
  * Next: remove legacy .game-toolbar selectors from legacy CSS (if still present) after QA.
  */
 import { store } from '../../bootstrap/index.js';
-import { uiSettingsOpen, uiGameLogOpen } from '../../core/actions.js';
+import { uiSettingsOpen, uiGameLogOpen, uiInstructionsOpen, settingsUpdated, uiConfirmOpen, uiAboutOpen } from '../../core/actions.js';
 import { createPositioningService } from '../../services/positioningService.js';
 
 export function build({ selector }) {
@@ -16,8 +16,8 @@ export function build({ selector }) {
   root.innerHTML = `
     ${iconBtn('settings', 'Settings', gearIcon())}
     ${iconBtn('log', 'Game Log', listIcon())}
-    ${iconBtn('sound', 'Toggle Sound', soundIcon())}
-    ${iconBtn('help', 'Help', helpIcon())}
+    ${iconBtn('sound', 'Toggle Sound (M)', soundIcon())}
+  ${iconBtn('help', 'Help / Instructions', helpIcon())}
     ${iconBtn('restart', 'Restart Game', restartIcon())}
     ${iconBtn('reset-positions', 'Reset Layout', layoutIcon())}
     ${iconBtn('about', 'About', infoIcon())}
@@ -26,21 +26,30 @@ export function build({ selector }) {
     const btn = e.target.closest('button[data-action]');
     if (!btn) return;
     const a = btn.getAttribute('data-action');
-    if (a === 'settings') {
-      store.dispatch(uiSettingsOpen());
-    } else if (a === 'log') {
-      store.dispatch(uiGameLogOpen());
-    } else if (a === 'reset-positions') {
-      window.dispatchEvent(new CustomEvent('ui.positions.reset.request'));
-    } else if (a === 'restart') {
+    switch(a) {
+      case 'settings':
+        store.dispatch(uiSettingsOpen()); break;
+      case 'log':
+        store.dispatch(uiGameLogOpen()); break; // proper component handles rendering
+      case 'reset-positions':
+        window.dispatchEvent(new CustomEvent('ui.positions.reset.request')); break;
+      case 'restart': {
+        // Open custom confirm modal; listen for acceptance externally
+        store.dispatch(uiConfirmOpen('restart-game', 'Restart the game and reload the page?\nUnsaved progress will be lost.', 'Restart', 'Cancel'));
+        break; }
+      case 'sound':
+        toggleSound(store, btn); break;
+      case 'help':
+        store.dispatch(uiInstructionsOpen()); break;
+      case 'about':
+        store.dispatch(uiAboutOpen());
+        break;
+    }
+  });
+  // Handle confirm accept events (restart)
+  window.addEventListener('ui.confirm.accepted', (e) => {
+    if (e.detail?.confirmId === 'restart-game') {
       window.location.reload();
-    } else if (a === 'sound') {
-      // Placeholder: toggle a global mute flag in settings (future implementation)
-      console.debug('sound toggle (placeholder)');
-    } else if (a === 'help') {
-      console.debug('help dialog (placeholder)');
-    } else if (a === 'about') {
-      console.debug('about dialog (placeholder)');
     }
   });
   window.addEventListener('ui.positions.reset.request', () => {
@@ -52,13 +61,43 @@ export function build({ selector }) {
     positioning.hydrate();
     positioning.makeDraggable(root, 'toolbar', { snapEdges: true, snapThreshold: 12 });
   } catch(e) { /* non-fatal */ }
-  return { root, update: () => {} };
+  // Keyboard shortcut for mute (M)
+  window.addEventListener('keydown', (e) => {
+    if (e.key.toLowerCase() === 'm' && !e.repeat) {
+      const b = root.querySelector('[data-action="sound"]');
+      if (b) toggleSound(store, b);
+    }
+  });
+  return { root, update: () => syncToolbarState(root) };
 }
 
 // -------- Icon Button Helper & Inline SVGs ---------
 function iconBtn(action, label, svg) {
   return `<button data-action="${action}" class="toolbar-btn" title="${label}" aria-label="${label}">${svg}<span class="vh">${label}</span></button>`;
 }
+
+function syncToolbarState(root) {
+  try {
+    const st = window.__KOT_NEW__?.store?.getState();
+    if (!st) return;
+    const muted = !!st.settings?.soundMuted;
+    const snd = root.querySelector('[data-action="sound"]');
+    if (snd) snd.classList.toggle('is-muted', muted);
+  } catch(_){ }
+}
+
+function toggleSound(store, btn) {
+  try {
+    const st = store.getState();
+    const muted = !st.settings?.soundMuted;
+    store.dispatch(settingsUpdated({ soundMuted: muted }));
+    btn.classList.toggle('is-muted', muted);
+    btn.setAttribute('aria-pressed', String(muted));
+    btn.title = muted ? 'Unmute (M)' : 'Mute (M)';
+  } catch(e) { console.warn('sound toggle failed', e); }
+}
+
+// Removed temporary light modal + ad-hoc log modal. Instructions now use dedicated component.
 
 function gearIcon() {
   return `<svg viewBox="0 0 24 24" class="ico" role="img" aria-hidden="true"><path fill="currentColor" d="M10.9 2h2.2l.6 2.4c.5.1 1 .3 1.5.6l2.2-1.1 1.6 1.6-1.1 2.2c.3.5.5 1 .6 1.5L22 11v2l-2.4.6c-.1.5-.3 1-.6 1.5l1.1 2.2-1.6 1.6-2.2-1.1c-.5.3-1 .5-1.5.6L13.1 22h-2.2l-.6-2.4c-.5-.1-1-.3-1.5-.6l-2.2 1.1-1.6-1.6 1.1-2.2c-.3-.5-.5-1-.6-1.5L2 13v-2l2.4-.6c.1-.5.3-1 .6-1.5L3.9 6.7 5.5 5l2.2 1.1c.5-.3 1-.5 1.5-.6L10.9 2Zm1.1 6a4 4 0 100 8 4 4 0 000-8Z"/></svg>`;

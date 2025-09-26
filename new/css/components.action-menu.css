@@ -14,10 +14,11 @@
 
 .cmp-action-menu {
   position:fixed;
-  bottom:150px;
-  right:48px;
+  top:110px; /* anchor near top so vertical stack uses available height */
+  right:48px; /* initial anchor; JS may adjust */
   display:flex;
-  flex-wrap:wrap;
+  flex-direction:column;
+  flex-wrap:nowrap;
   gap:var(--action-menu-gap);
   background:var(--action-menu-bg);
   padding:var(--action-menu-padding);
@@ -27,7 +28,10 @@
   z-index:4000;
   font-family:'Bangers',cursive;
   letter-spacing:.5px;
-  min-width:260px;
+  width:240px;
+  max-width:240px;
+  min-width:220px;
+  align-items:stretch;
 }
 .app-toolbar, .game-toolbar, [data-toolbar] { margin-bottom:12px; }
 .cmp-action-menu:before {
@@ -44,12 +48,11 @@
   box-shadow:2px 2px 0 #000;
   letter-spacing:1px;
 }
-.cmp-action-menu[data-layout="horizontal"] { flex-direction:row; align-items:flex-start; }
+.cmp-action-menu[data-layout="horizontal"] { flex-direction:row; flex-wrap:wrap; align-items:flex-start; }
 .cmp-action-menu[data-layout="horizontal"]:before { margin-bottom:6px; }
-.cmp-action-menu[data-layout="vertical"] { flex-direction:column; }
-.cmp-action-menu[data-layout="vertical"] button { width:100%; }
-.cmp-action-menu[data-layout="horizontal"] button { flex:1 1 auto; }
-.cmp-action-menu[data-layout="horizontal"] { row-gap:12px; column-gap:var(--action-menu-gap); }
+.cmp-action-menu[data-layout="vertical"] { flex-direction:column; flex-wrap:nowrap; width:240px; }
+.cmp-action-menu button { flex:0 0 auto; width:100%; max-width:none; }
+.cmp-action-menu { row-gap:12px; }
 .cmp-action-menu button {
   --btn-bg:#ffdd33;
   --btn-bg-alt:#44c8ff;

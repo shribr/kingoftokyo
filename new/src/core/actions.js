@@ -63,6 +63,12 @@ export const UI_AI_DECISION_CLOSE = 'UI_AI_DECISION_CLOSE';
 export const UI_GAME_LOG_OPEN = 'UI_GAME_LOG_OPEN';
 export const UI_GAME_LOG_CLOSE = 'UI_GAME_LOG_CLOSE';
 export const UI_GAME_LOG_COLLAPSE_STATE = 'UI_GAME_LOG_COLLAPSE_STATE';
+export const UI_INSTRUCTIONS_OPEN = 'UI_INSTRUCTIONS_OPEN';
+export const UI_INSTRUCTIONS_CLOSE = 'UI_INSTRUCTIONS_CLOSE';
+export const UI_CONFIRM_OPEN = 'UI_CONFIRM_OPEN';
+export const UI_CONFIRM_CLOSE = 'UI_CONFIRM_CLOSE';
+export const UI_ABOUT_OPEN = 'UI_ABOUT_OPEN';
+export const UI_ABOUT_CLOSE = 'UI_ABOUT_CLOSE';
 // Peek & attack visual indicators
 export const UI_PEEK_SHOW = 'UI_PEEK_SHOW';
 export const UI_PEEK_HIDE = 'UI_PEEK_HIDE';
@@ -143,6 +149,12 @@ export const uiAIDecisionClose = () => ({ type: UI_AI_DECISION_CLOSE });
 export const uiGameLogOpen = () => ({ type: UI_GAME_LOG_OPEN });
 export const uiGameLogClose = () => ({ type: UI_GAME_LOG_CLOSE });
 export const uiGameLogCollapseState = (partial) => ({ type: UI_GAME_LOG_COLLAPSE_STATE, payload: { partial } });
+export const uiInstructionsOpen = () => ({ type: UI_INSTRUCTIONS_OPEN });
+export const uiInstructionsClose = () => ({ type: UI_INSTRUCTIONS_CLOSE });
+export const uiConfirmOpen = (confirmId, message, confirmLabel = 'Confirm', cancelLabel = 'Cancel') => ({ type: UI_CONFIRM_OPEN, payload: { confirmId, message, confirmLabel, cancelLabel } });
+export const uiConfirmClose = () => ({ type: UI_CONFIRM_CLOSE });
+export const uiAboutOpen = () => ({ type: UI_ABOUT_OPEN });
+export const uiAboutClose = () => ({ type: UI_ABOUT_CLOSE });
 // Peek + attack visual creators
 export const uiPeekShow = (card) => ({ type: UI_PEEK_SHOW, payload: { card } });
 export const uiPeekHide = () => ({ type: UI_PEEK_HIDE });

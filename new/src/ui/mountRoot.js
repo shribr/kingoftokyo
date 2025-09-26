@@ -146,7 +146,7 @@ function ensureAppRoot() {
     const shell = document.createElement('div');
     shell.className = 'game-layout-shell';
     shell.innerHTML = `
-      <header class="gl-header"><h1 class="gl-title" data-game-title>King of Tokyo</h1></header>
+      <header class="gl-header"><h1 class="gl-title" data-game-title>King of Tokyo</h1><div class="ai-thinking-banner" data-ai-thinking hidden><span class="label">AI Thinking</span><span class="dots" aria-hidden="true"></span></div></header>
       <div class="gl-main">
         <div class="gl-left" data-gl-left></div>
         <div class="gl-center" data-gl-center>
@@ -159,6 +159,26 @@ function ensureAppRoot() {
     el.appendChild(shell);
   }
   return el;
+}
+
+// Simple API to toggle AI thinking indicator (can be called from AI decision pipeline)
+export function setAIThinking(isThinking) {
+  const banner = document.querySelector('[data-ai-thinking]');
+  if (!banner) return;
+  if (isThinking) {
+    if (banner.hasAttribute('hidden')) banner.removeAttribute('hidden');
+    // Ensure dot element has three phases (using ::before, ::after plus span)
+    if (!banner.querySelector('.dots span')) {
+      const span = document.createElement('span');
+      banner.querySelector('.dots')?.appendChild(span);
+    }
+    banner.classList.remove('out');
+  } else {
+    banner.classList.add('out');
+    banner.addEventListener('animationend', () => {
+      if (banner.classList.contains('out')) banner.setAttribute('hidden','');
+    }, { once:true });
+  }
 }
 
 async function resolveComponent(buildRef, updateRef) {

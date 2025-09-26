@@ -98,7 +98,13 @@
 .cmp-power-cards-panel.k-panel { background:linear-gradient(180deg,#30353a,#1d1f21); }
 
 /* Full-height side panels with scrolling */
-[data-gl-right] .cmp-monsters-panel { height: calc(100vh - 140px); overflow-y:auto; scrollbar-width:thin; }
+[data-gl-right] .cmp-monsters-panel {
+  /* Allow natural height unless it would exceed viewport; when too tall, scroll inside. */
+  max-height: calc(100vh - 140px);
+  height: auto; /* remove forced fixed height that was visually cutting off content when internal layout changed */
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
 [data-gl-right] .cmp-monsters-panel::-webkit-scrollbar { width:8px; }
 [data-gl-right] .cmp-monsters-panel::-webkit-scrollbar-thumb { background:#333; border-radius:4px; }
 

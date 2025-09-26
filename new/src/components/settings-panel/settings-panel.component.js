@@ -17,9 +17,12 @@ export function build({ selector }) {
         // If turning off, also clear stored localStorage key used by positioningService
         try { localStorage.removeItem('kot_new_ui_positions_v1'); } catch(_) {}
       }
-    } else if (e.target.matches('[data-setting="stackedPlayerCards"]')) {
-      const checked = e.target.checked;
-      store.dispatch(settingsUpdated({ stackedPlayerCards: checked }));
+    } else if (e.target.matches('[name="playerCardLayoutMode"]')) {
+      const val = e.target.value;
+      store.dispatch(settingsUpdated({ playerCardLayoutMode: val, stackedPlayerCards: (val === 'stacked') }));
+    } else if (e.target.matches('[name="actionMenuMode"]')) {
+      const val = e.target.value;
+      store.dispatch(settingsUpdated({ actionMenuMode: val }));
     }
   });
   sync(root);
@@ -34,11 +37,32 @@ function template() {
       Remember window positions between sessions
     </label>
     <p style="margin:8px 0 12px;font-size:12px;opacity:.75;font-family:system-ui,sans-serif;">When off (default), panels and menus reset to their default layout every reload.</p>
-    <label style="display:flex;align-items:center;gap:8px;font-family:system-ui,sans-serif;font-size:14px;">
-      <input type="checkbox" data-setting="stackedPlayerCards" checked />
-      Stacked player card layout
-    </label>
-    <p style="margin:8px 0 0;font-size:12px;opacity:.75;font-family:system-ui,sans-serif;">Uncheck for linear list of player profile cards.</p>
+    <fieldset style="border:1px solid #333;padding:8px 10px 10px;margin:0 0 10px;font-family:system-ui,sans-serif;">
+      <legend style="padding:0 6px;font-size:13px;letter-spacing:.5px;">Player Card Layout</legend>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:4px;">
+        <input type="radio" name="playerCardLayoutMode" value="stacked" /> Stacked (full overlap)
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:4px;">
+        <input type="radio" name="playerCardLayoutMode" value="condensed" /> Condensed (lighter overlap)
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;">
+        <input type="radio" name="playerCardLayoutMode" value="list" /> List (no overlap)
+      </label>
+      <p style="margin:6px 0 0;font-size:11px;opacity:.65;line-height:1.4;">Try different density modes. Stacked = dramatic tilt & tight pile. Condensed = readable mini stack. List = linear.</p>
+    </fieldset>
+    <fieldset style="border:1px solid #333;padding:8px 10px 10px;margin:0 0 14px;font-family:system-ui,sans-serif;">
+      <legend style="padding:0 6px;font-size:13px;letter-spacing:.5px;">Action Menu Placement</legend>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:4px;">
+        <input type="radio" name="actionMenuMode" value="hybrid" /> Hybrid (dock until dragged)
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:4px;">
+        <input type="radio" name="actionMenuMode" value="docked" /> Docked (always beside dice)
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;">
+        <input type="radio" name="actionMenuMode" value="floating" /> Floating (stay where placed)
+      </label>
+      <p style="margin:6px 0 0;font-size:11px;opacity:.65;line-height:1.4;">Hybrid (default): auto-docks near the dice tray on resize until you drag it, then it stops moving.</p>
+    </fieldset>
   </div>`;
 }
 
@@ -47,6 +71,9 @@ function sync(root) {
   const persist = !!st.settings?.persistPositions;
   const cb = root.querySelector('[data-setting="persistPositions"]');
   if (cb) cb.checked = persist;
-  const stacked = root.querySelector('[data-setting="stackedPlayerCards"]');
-  if (stacked) stacked.checked = st.settings?.stackedPlayerCards !== false;
+  const mode = st.settings?.playerCardLayoutMode || (st.settings?.stackedPlayerCards === false ? 'list' : 'stacked');
+  const radios = root.querySelectorAll('[name="playerCardLayoutMode"]');
+  radios.forEach(r => { r.checked = (r.value === mode); });
+  const amMode = st.settings?.actionMenuMode || 'hybrid';
+  root.querySelectorAll('[name="actionMenuMode"]').forEach(r => { r.checked = (r.value === amMode); });
 }

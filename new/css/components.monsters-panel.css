@@ -10,3 +10,11 @@
   .cmp-monsters-panel .mp-player-cards { flex-direction:row; flex-wrap:wrap; }
   .cmp-monsters-panel .cmp-player-profile-card { flex:1 1 220px; }
 }
+
+/* OVERRIDE: ensure no artificial max-height is imposed on the monsters panel.
+ * If a global panel system rule (e.g., .cmp-panel-root .panel-content { max-height:800px; }) leaks in via shared class names
+ * this guarantees the monsters panel can grow naturally and manage its own scrolling as needed.
+ */
+.cmp-monsters-panel { max-height:none !important; }
+.cmp-monsters-panel .mp-body, 
+.cmp-monsters-panel .mp-player-cards { max-height:none !important; overflow:visible; }

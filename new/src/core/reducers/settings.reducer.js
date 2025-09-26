@@ -6,7 +6,10 @@ const DEFAULT_SETTINGS = {
   autoActivateMonsters: true,
   showDebugPanels: false,
   persistPositions: false // new: whether draggable UI element positions persist between sessions
-  , stackedPlayerCards: true // new: overlap/rotation stack style for non-active player profile cards
+  , stackedPlayerCards: true // legacy boolean (backwards compat) for overlap/rotation stack style
+  , playerCardLayoutMode: 'stacked' // stacked | condensed | list (new enumerated replacement for stackedPlayerCards)
+  , soundMuted: false // global mute toggle
+  , actionMenuMode: 'hybrid' // hybrid | docked | floating (controls action menu auto-position behavior)
 };
 
 export function settingsReducer(state = DEFAULT_SETTINGS, action) {
