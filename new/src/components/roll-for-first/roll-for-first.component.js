@@ -12,7 +12,7 @@ export function build({ selector, dispatch, getState }) {
       maybeClearBlackout();
     }
     if (t.matches('[data-action="roll"]')) {
-      performRoll(dispatch, getState, root);
+      beginAnimatedRoll(dispatch, getState, root);
     }
     if (t.matches('[data-action="start"]')) {
       hide(root);
@@ -75,6 +75,38 @@ function performRoll(dispatch, getState, root) {
   } else {
     actions.innerHTML = '<button class="rff-btn rff-btn-primary" data-action="roll">RE-ROLL TIED</button>';
   }
+}
+
+function beginAnimatedRoll(dispatch, getState, root) {
+  const animWrap = root.querySelector('[data-anim-dice]');
+  const resultsEl = root.querySelector('[data-results]');
+  const actions = root.querySelector('[data-actions]');
+  if (!animWrap || !resultsEl || !actions) return performRoll(dispatch, getState, root);
+  // Reset state
+  resultsEl.innerHTML = '';
+  actions.innerHTML = '<button class="rff-btn rff-btn-primary" disabled>ROLLING...</button>';
+  animWrap.hidden = false;
+  // Randomize faces quickly to simulate rolling
+  const dice = Array.from(animWrap.querySelectorAll('.rff-die'));
+  const start = performance.now();
+  const duration = 1400; // ms
+  const shuffle = (now) => {
+    const elapsed = now - start;
+    const t = Math.min(1, elapsed / duration);
+    dice.forEach(d => {
+      const face = 1 + Math.floor(Math.random()*6);
+      d.setAttribute('data-face', face);
+    });
+    if (t < 1) {
+      animWrap._rffRaf = requestAnimationFrame(shuffle);
+    } else {
+      cancelAnimationFrame(animWrap._rffRaf);
+      animWrap.hidden = true;
+      performRoll(dispatch, getState, root);
+    }
+  };
+  if (animWrap._rffRaf) cancelAnimationFrame(animWrap._rffRaf);
+  animWrap._rffRaf = requestAnimationFrame(shuffle);
 }
 
 function show(root) { root.classList.remove('hidden'); }

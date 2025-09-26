@@ -4,7 +4,7 @@ const initial = {
   cardDetail: { cardId: null, source: null },
   playerCards: { playerId: null },
   positions: {},
-  monsterProfiles: { open: false },
+  monsterProfiles: { open: false, source: null },
   monsterSelection: { open: false },
   settings: { open: false },
   singleMonster: { monsterId: null },
@@ -31,10 +31,16 @@ export function uiReducer(state = initial, action) {
       return { ...state, playerCards: { playerId: null } };
     }
     case UI_MONSTER_PROFILES_OPEN: {
-      return { ...state, monsterProfiles: { open: true }, singleMonster: { monsterId: null } };
+      const source = action.payload?.source || null;
+      return { ...state, monsterProfiles: { open: true, source }, singleMonster: { monsterId: null } };
     }
     case UI_MONSTER_PROFILES_CLOSE: {
-      return { ...state, monsterProfiles: { open: false } };
+      const wasFromSelection = state.monsterProfiles?.source === 'selection';
+      // If opened from selection, restore selection modal on close (only if not already open)
+      if (wasFromSelection) {
+        return { ...state, monsterProfiles: { open: false, source: null }, monsterSelection: { open: true } };
+      }
+      return { ...state, monsterProfiles: { open: false, source: null } };
     }
     case UI_MONSTER_PROFILE_OPEN: {
       const { monsterId } = action.payload;

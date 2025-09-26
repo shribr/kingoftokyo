@@ -135,7 +135,8 @@ export const uiPlayerCardsOpen = (playerId) => ({ type: UI_PLAYER_CARDS_OPEN, pa
 export const uiPlayerCardsClose = () => ({ type: UI_PLAYER_CARDS_CLOSE });
 // Monster profile action creators
 export const monstersLoaded = (monsters) => ({ type: MONSTERS_LOADED, payload: { monsters } });
-export const uiMonsterProfilesOpen = () => ({ type: UI_MONSTER_PROFILES_OPEN });
+// Optional source allows us to know where profiles were opened from (e.g., 'selection')
+export const uiMonsterProfilesOpen = (source = null) => ({ type: UI_MONSTER_PROFILES_OPEN, payload: { source } });
 export const uiMonsterProfilesClose = () => ({ type: UI_MONSTER_PROFILES_CLOSE });
 export const uiMonsterProfileOpen = (monsterId) => ({ type: UI_MONSTER_PROFILE_OPEN, payload: { monsterId } });
 export const uiMonsterProfileClose = () => ({ type: UI_MONSTER_PROFILE_CLOSE });

@@ -37,7 +37,7 @@ export function build({ selector, dispatch, getState }) {
       return;
     }
     if (t.closest('[data-action="close"]')) { dispatch(uiMonsterSelectionClose()); return; }
-    if (t.closest('[data-action="profiles"]')) { dispatch(uiMonsterProfilesOpen()); dispatch(uiMonsterSelectionClose()); inst.root.classList.add('hidden'); return; }
+  if (t.closest('[data-action="profiles"]')) { dispatch(uiMonsterProfilesOpen('selection')); dispatch(uiMonsterSelectionClose()); return; }
     if (t.closest('[data-action="random"]')) { randomFill(inst); render(inst); return; }
     if (t.closest('[data-action="reset"]')) { inst._local.slots = new Array(inst._local.playerCount).fill(null); inst._local.selected.clear(); render(inst); return; }
     if (t.closest('[data-action="toggle-dropdown"]')) { root.querySelector('[data-dropdown]')?.classList.toggle('open'); return; }

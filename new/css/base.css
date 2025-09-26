@@ -1,5 +1,5 @@
 /* Enhanced Base CSS (migrated from root) */
-@import url('https://fonts.googleapis.com/css2?family=Creepster&family=Nunito:wght@400;600;700;800;900&family=Bangers&family=Kalam:wght@400;700&display=swap');
+/* Font imports moved to index.html for better preload + connection reuse */
 
 * { margin:0; padding:0; box-sizing:border-box; }
 /* Default to white text given predominantly dark game surfaces; light UIs should override locally */
@@ -25,10 +25,10 @@ body { font-family:'Nunito',sans-serif; background:#000; color:#fff; overflow-x:
 :focus-visible { outline:2px solid #7fd65d; outline-offset:2px; }
 
 /* Headings default to white; light components can override locally */
-h1,h2,h3,h4,h5,h6 { font-family:'Bangers',cursive; color:#fff; }
-button { font-family:'Bangers',cursive; cursor:pointer; border:none; background:none; outline:none; }
+h1,h2,h3,h4,h5,h6 { font-family: var(--font-family-brand,'Bangers','Creepster',cursive); color:#fff; }
+button { font-family: var(--font-family-brand,'Bangers',cursive); cursor:pointer; border:none; background:none; outline:none; }
 
-.btn-tokyo-base { font-family:'Bangers',cursive; font-size:1.44em; color:#fff; font-weight:bold; letter-spacing:2px; text-shadow:var(--ts-comic-heavy); white-space:nowrap; padding:9.6px 14.4px; background:#666; border:4px solid #000; border-radius:0; box-shadow:4px 4px 0 #000,6px 6px 20px rgba(0,0,0,.4); transform:perspective(400px) rotateX(2deg) rotateZ(-1.5deg) scale(1); transition:.2s ease; }
+.btn-tokyo-base { font-family: var(--font-family-brand,'Bangers',cursive); font-size:1.44em; color:#fff; font-weight:bold; letter-spacing:2px; text-shadow:var(--ts-comic-heavy); white-space:nowrap; padding:9.6px 14.4px; background:#666; border:4px solid #000; border-radius:0; box-shadow:4px 4px 0 #000,6px 6px 20px rgba(0,0,0,.4); transform:perspective(400px) rotateX(2deg) rotateZ(-1.5deg) scale(1); transition:.2s ease; }
 .btn-tokyo-base:hover { transform:perspective(400px) rotateX(2deg) rotateZ(-1.5deg) scale(1.05); box-shadow:6px 6px 0 #000,8px 8px 25px rgba(0,0,0,.5); }
 .btn-tokyo-base:active { transform:perspective(400px) rotateX(2deg) rotateZ(-1.5deg) scale(.98); box-shadow:2px 2px 0 #000,3px 3px 15px rgba(0,0,0,.3); }
 
@@ -49,7 +49,7 @@ button { font-family:'Bangers',cursive; cursor:pointer; border:none; background:
 
 body.dark-mode { background:#1a1a1a; color:#e0e0e0; }
 /* LEGACY ARENA SELECTOR (DEPRECATED) dark mode background retained until removal */
-body.dark-mode .game-board { background:#2d2d2d; }
+/* Removed legacy .game-board dark-mode styling (arena now scoped via .cmp-arena) */
 body.dark-mode .modal-content { background:#333; color:#e0e0e0; }
 body.dark-mode .power-card, body.dark-mode .player-card { background:#404040; border-color:#555; }
 body.dark-mode .dice { background:#404040; border-color:#666; }

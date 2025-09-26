@@ -13,9 +13,13 @@ Guidelines:
 3. Avoid importing these legacy files wholesale in production once parity is achieved—prefer selective reimplementation.
 4. `base.css` and `layout.css` here are snapshots; the *active* versions remain in `new/css/` until fully modularized.
 
-Deletion Criteria:
-- All global layout, header, panel, dice, and modal styling refactored into component/tokens.
-- No remaining selectors in the app depend on broad legacy scoping (.players-area, .cards-area, etc.).
+Deletion Criteria (UPDATED – achieved):
+✔ All global layout, header, panel, dice, and modal styling refactored into component/tokens.
+✔ No remaining runtime references to legacy-only selectors (.players-area, .cards-area, .dice-area, .action-menu) – components now use cmp-* equivalents.
+✔ Power cards + player profile card visuals sourced from dedicated component styles.
+✔ Action menu + dice tray fully migrated (positioning + styling) with draggable service.
+
+Status: Folder retained temporarily only for rollback safety. Safe to delete `css/legacy/` in next cleanup commit.
 
 ---
 Timestamp: Auto-generated on migration pass.

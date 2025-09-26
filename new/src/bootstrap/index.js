@@ -123,8 +123,9 @@ if (typeof window !== 'undefined') {
   initCards(store, logger);
   // Revised start logic: Do NOT auto-start when splash hides.
   // Start only after setup screen has been opened at least once and then closed.
-  let prevSetupOpen = store.getState().ui?.setup?.open;
-  let setupWasOpened = false;
+  // Monster selection gating (replaces legacy 'setup')
+  let prevSelectionOpen = store.getState().ui?.monsterSelection?.open;
+  let selectionWasOpened = false;
 
   // Dev convenience: skipping intro will auto-seed players (logic moved earlier).
 
@@ -132,7 +133,7 @@ if (typeof window !== 'undefined') {
     // Mark setup as having been opened (bypasses normal open->close detection) and hide splash immediately.
     const st = store.getState();
     if (st.settings?.autoStartInTest) {
-      setupWasOpened = true;
+      selectionWasOpened = true;
       store.dispatch(uiSplashHide());
   store.dispatch(uiMonsterSelectionClose());
       setTimeout(() => {
@@ -146,18 +147,18 @@ if (typeof window !== 'undefined') {
 
   store.subscribe(() => {
     const st = store.getState();
-    const setupOpen = !!st.ui?.setup?.open;
-    if (setupOpen && !setupWasOpened) setupWasOpened = true;
+    const selectionOpen = !!st.ui?.monsterSelection?.open;
+    if (selectionOpen && !selectionWasOpened) selectionWasOpened = true;
     const splashGone = st.ui?.splash?.visible === false;
     const rff = st.ui?.rollForFirst;
     // Debug traces for gating states
     if (typeof window !== 'undefined' && window.__KOT_DEBUG_RFF !== false) {
-      if (!setupOpen && prevSetupOpen) {
-        console.debug('[bootstrap] Setup just closed. setupWasOpened=%s splashGone=%s players=%d rff=%o phase=%s', setupWasOpened, splashGone, st.players.order.length, rff, st.phase);
+      if (!selectionOpen && prevSelectionOpen) {
+        console.debug('[bootstrap] Monster Selection just closed. selectionWasOpened=%s splashGone=%s players=%d rff=%o phase=%s', selectionWasOpened, splashGone, st.players.order.length, rff, st.phase);
       }
     }
-    // When setup transitions from open -> closed after having been opened, and splash is gone, open Roll For First (once) if players exist and not resolved
-    if (!setupOpen && prevSetupOpen && setupWasOpened && splashGone) {
+    // When selection transitions from open -> closed after having been opened, and splash is gone, open Roll For First (once) if players exist and not resolved
+    if (!selectionOpen && prevSelectionOpen && selectionWasOpened && splashGone) {
       if (st.players.order.length > 0 && !(rff && (rff.open || rff.resolved))) {
         store.dispatch(uiRollForFirstOpen());
         ensurePostSplashBlackout();
@@ -176,7 +177,7 @@ if (typeof window !== 'undefined') {
       const blk = document.querySelector('.post-splash-blackout');
       if (blk) { blk.classList.add('is-hidden'); setTimeout(()=>blk.remove(), 520); }
     }
-    prevSetupOpen = setupOpen;
+    prevSelectionOpen = selectionOpen;
   });
   // Lightweight animation tagging for profile cards (Tokyo entry & resource gains)
   let prevPlayers = store.getState().players.byId;
