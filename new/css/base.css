@@ -66,6 +66,9 @@ body.dark-mode .log-entry { background:rgba(255,255,255,.05)!important; color:#e
 @keyframes koFadeIn { from { opacity:0;} to { opacity:.9;} }
 body.dark-mode .cpu-rolling-indicator .dot { background:#f4e38a; }
 
+/* Early paint blackout fallback (ensures full cover before layout.css loads). */
+.post-splash-blackout { background:#000; }
+
 /* Cursor utilities */
 button, .btn, .toolbar-btn, .clickable, [role="button"], [onclick], input[type="button"], input[type="submit"], input[type="reset"], input[type="checkbox"], input[type="radio"], select, a, .monster-card, .die:not(.disabled), .power-card:not(.disabled), .dropdown-selected, .dropdown-option, .modal-header .close-btn, .close-btn, .settings-gear-icon, .tab-btn, .radio-option, .player-tile, .polaroid { cursor:pointer!important; }
 button:disabled, .btn:disabled, .die.disabled, .power-card.disabled, input:disabled { cursor:default!important; }
