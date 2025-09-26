@@ -6,23 +6,26 @@
 .k-panel__header { margin:0 0 8px; font-size:22px; color:#ffd400; text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; display:flex; align-items:center; justify-content:space-between; }
 .k-panel__body { font-family:system-ui,sans-serif; letter-spacing:0; }
 
-/* Shop specific overrides */
-.cmp-card-shop.k-panel { background:linear-gradient(180deg,#2e2e33,#1d1f22); }
-/* Power Cards panel now reuses mp-* header/title classes for parity */
-.cmp-card-shop .mp-header { font-size:24px; font-family:'Bangers',cursive; margin:0 0 10px; color:#ffd400; display:flex; align-items:center; justify-content:flex-end; }
-.cmp-card-shop .mp-title { display:inline-flex; align-items:center; gap:8px; margin:0; font-size:24px; color:#ffd400; white-space:nowrap; }
-.cmp-card-shop .mp-arrow { font-size:14px; line-height:1; }
+/* Removed legacy card-shop selectors */
 /* Arrow (no rotation; we use real directional glyphs) */
 /* Old toggle-arrow selectors removed (arrow now .mp-arrow) */
 /* Monsters panel arrow: add a bit more breathing room from the title; no trailing margin needed */
 .cmp-monsters-panel .mp-header .mp-arrow { font-size:14px; line-height:1; margin:0; }
-.cmp-card-shop[data-collapsed="true"] .panel-content { display:none; }
 
 /* Horizontal slide + header pivot (LEFT PANEL) */
 /* Generic side panel container */
 .cmp-side-panel { transition: transform .35s ease; position:relative; }
 .cmp-side-panel[data-side="left"][data-collapsed="true"] { transform: translateX(calc(-100% + 46px)); }
 .cmp-side-panel[data-side="right"][data-collapsed="true"] { transform: translateX(calc(100% - 46px)); }
+
+/* Ensure collapsed left panel actually reduces its own width so rotated title is not clipped */
+/* Left collapsed: enforce tab width so header/title are always within the visible 46px slice */
+.cmp-side-panel[data-side="left"][data-collapsed="true"] {
+  width:var(--collapsed-tab-width);
+  min-width:var(--collapsed-tab-width);
+  overflow:hidden; /* keep consistent with generic collapsed style */
+}
+
 .cmp-side-panel[data-collapsed="true"] { cursor:pointer; padding:0; background:transparent; border:0; box-shadow:none; overflow:hidden; }
 .cmp-side-panel .mp-header { position:relative; z-index:2; }
 .cmp-side-panel .mp-title { transition: transform .35s ease; cursor:pointer; white-space:nowrap; }
@@ -31,26 +34,44 @@
 [data-side="left"] .mp-title .mp-arrow { order:0; margin-right:8px; margin-left:0; }
 [data-side="right"] .mp-title .mp-arrow { margin-left:6px; }
 /* Pivot directions differ by side */
-.cmp-side-panel[data-side="left"][data-collapsed="true"] .mp-title {
-  /* Left panel rotates clockwise (90deg) so text reads top-to-bottom near left edge */
-  transform: rotate(90deg) translateX(30px);
-  transform-origin:right top;
-  margin-top:90px;
-  margin-right:25px;
+.cmp-side-panel { --collapsed-tab-width:46px; }
+/* Offset for top-aligned collapsed titles (shared by both panels) */
+.cmp-side-panel { --collapsed-title-top-offset:78px; }
+/* Collapsed state: turn header into a vertical rail filling panel height so we can center the rotated title
+ * Removes brittle pixel margins and uses flexbox centering instead. */
+.cmp-side-panel[data-collapsed="true"] { display:flex; }
+.cmp-side-panel[data-collapsed="true"] > .mp-header {
+  position:relative;
+  width:var(--collapsed-tab-width);
+  /* Fill remaining height of panel for large click target */
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column; /* ensures vertical centering before rotation */
+  margin:0; padding:4px 0; /* override earlier expanded header spacing */
+}
+.cmp-side-panel[data-collapsed="true"] > .mp-header .mp-title {
+  margin:0;
   display:inline-block;
   white-space:nowrap;
+  transform-origin:center; /* default; overridden per-side below */
 }
-.cmp-side-panel[data-side="right"][data-collapsed="true"] .mp-title {
-  /* Right panel rotates counter-clockwise ( -90deg ) */
-  transform: rotate(-90deg) translateX(-30px);
-  transform-origin:left;
-  margin-top:90px;
-  margin-left:25px;
-  display:inline-block;
-  white-space:nowrap;
+/* Left panel: same behavior as monsters (rotate -90deg). Minor nudge to keep centered in 46px rail */
+.cmp-side-panel[data-side="left"] > .mp-header .mp-title { transform-origin:top center; }
+.cmp-side-panel[data-side="left"][data-collapsed="true"] > .mp-header .mp-title { transform:rotate(-90deg) translateX(-4px); }
+.cmp-side-panel[data-side="right"][data-collapsed="true"] > .mp-header .mp-title { transform:rotate(-90deg); }
+/* Top alignment for both panels when collapsed (consistent vertical placement) */
+.cmp-side-panel[data-side="right"][data-collapsed="true"] > .mp-header {
+  justify-content:flex-start; padding-top:var(--collapsed-title-top-offset);
 }
-.cmp-side-panel[data-collapsed="true"] .mp-header { margin:0; padding:4px 4px 2px; width:46px; box-sizing:border-box; background:transparent; border:0; box-shadow:none; }
-.cmp-card-shop[data-collapsed="true"] .panel-content { display:none !important; }
+.cmp-side-panel[data-side="left"][data-collapsed="true"] > .mp-header { justify-content:flex-start; padding-top:var(--collapsed-title-top-offset); }
+/* Adjust transform-origin so rotation does not clip when top-aligned */
+.cmp-side-panel[data-side="right"][data-collapsed="true"] > .mp-header .mp-title { transform-origin:top center; }
+/* Maintain reduced motion handling only for left panel animations */
+@media (prefers-reduced-motion: reduce) { .cmp-side-panel[data-side="left"] > .mp-header .mp-title { transition:none !important; } }
+/* Remove arrow counter-rotation scaling increase; keep size but center horizontally after rotation */
+.cmp-side-panel[data-collapsed="true"] .mp-header { /* overrides moved above for collapsed rail */ box-shadow:none; background:transparent; border:0; width:var(--collapsed-tab-width); }
 
 /* Horizontal slide + header pivot (RIGHT PANEL) */
 /* (Removed panel-specific collapse block; now handled by .cmp-side-panel generic rules) */
@@ -59,7 +80,6 @@
 .cmp-side-panel .mp-header { padding:6px 8px; margin:-6px -8px 8px; cursor:pointer; }
 .cmp-monsters-panel > .mp-header { border-bottom:0 !important; padding-bottom:4px; }
 /* Remove bottom border for Power Cards side panel header as well */
-.cmp-card-shop > .mp-header { border-bottom:0 !important; padding-bottom:4px; }
 
 /* Keep body hidden when collapsed (already handled above but ensure consistency) */
 [data-collapsed="true"] > .k-panel__body { display:none; }
@@ -69,12 +89,15 @@
 .cmp-monsters-panel .mp-title { font-size:24px; }
 .cmp-monsters-panel .mp-player-cards { font-family:system-ui,sans-serif; }
 
+/* Power Cards panel overrides (restored after card-shop removal) */
+.cmp-power-cards-panel > .mp-header { border-bottom:0 !important; padding-bottom:4px; justify-content:flex-end; }
+.cmp-power-cards-panel .mp-title { font-size:24px; color:#ffd400; display:flex; flex-direction:row !important; align-items:center; gap:8px; }
+/* Restore larger arrow glyph size for Power Cards (avoid generic 14px shrink) */
+.cmp-power-cards-panel .mp-arrow { font-size:24px; }
+
 /* Full-height side panels with scrolling */
-[data-gl-left] .cmp-card-shop,
 [data-gl-right] .cmp-monsters-panel { height: calc(100vh - 140px); overflow-y:auto; scrollbar-width:thin; }
-[data-gl-left] .cmp-card-shop::-webkit-scrollbar,
 [data-gl-right] .cmp-monsters-panel::-webkit-scrollbar { width:8px; }
-[data-gl-left] .cmp-card-shop::-webkit-scrollbar-thumb,
 [data-gl-right] .cmp-monsters-panel::-webkit-scrollbar-thumb { background:#333; border-radius:4px; }
 
 /* Generic collapse handling */
@@ -82,16 +105,29 @@
 /* Collapsed panels always clickable */
 .cmp-side-panel[data-collapsed="true"] { cursor:pointer; }
 
-/* Keep arrow horizontal when titles rotate; side-specific counter-rotation */
-.cmp-side-panel[data-side="right"][data-collapsed="true"] .mp-title .mp-arrow {
-  display:inline-block;
-  transform: rotate(90deg) scale(1);
-  transform-origin:center;
-  font-size:24px;
-}
-.cmp-side-panel[data-side="left"][data-collapsed="true"] .mp-title .mp-arrow {
-  display:inline-block;
-  transform: rotate(-90deg) scale(1);
-  transform-origin:center;
-  font-size:24px;
-}
+/* Arrow orientation logic (glyph swapping only; no rotation) */
+.cmp-side-panel .mp-arrow { display:inline-block; font-size:14px; line-height:1; }
+
+/* (Old arrow rotation block replaced above with subtle 12deg tilt) */
+
+/* Rotation parity: both panels now share rotate(-90deg) collapsed behavior */
+
+/* Collapsed panels now both use top alignment (overrides earlier center rule) */
+.cmp-side-panel[data-side="left"][data-collapsed="true"] > .mp-header { align-items:flex-start; }
+.cmp-side-panel[data-side="left"][data-collapsed="true"] > .mp-header .mp-title { display:inline-block; font-size:22px; opacity:1; }
+.cmp-side-panel[data-side="left"] > .mp-header .mp-title { opacity:1; }
+
+/* Legacy mode: disable new animation for Power Cards to preserve historical look */
+/* (Removed legacy panels mode overrides) */
+
+/* ------------------------------------------------------------
+ * LEGACY MODE (testing): Reapply original fixed geometric rules
+ * Activate by setting <body data-legacy-panels="true"> (toggled via Action Menu button)
+ * Mirrors legacy/layout.css behavior:
+ *  - Collapsed width: 60px
+ *  - Power Cards (left): rotate(90deg) translateX(30px); margin-top:20px
+ *  - Monsters (right): rotate(-90deg) translateX(-30px); margin-top:20px
+ *  - transform-origin: center
+ * NOTE: Overrides Approach A math & independent rotation when enabled.
+ * ------------------------------------------------------------ */
+/* (Legacy geometry definitions removed) */

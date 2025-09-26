@@ -12,10 +12,15 @@ export function build({ selector }) {
   root.setAttribute('data-side','right');
   root.innerHTML = panelTemplate();
   const instances = new Map();
+  // Arrow logic: When expanded we want a glyph pointing toward the collapse direction (to the RIGHT edge -> ◄).
+  // When collapsed (tab at right edge) we want arrow pointing back into viewport (►) to indicate expand.
+  // Reverted arrow configuration (step back):
+  // Expanded: ► (points toward collapse direction -> right edge)
+  // Collapsed: ▲ (requested up arrow variant)
   initSidePanel(root, {
     side:'right',
     expandedArrow:'►',
-    collapsedArrow:'◄',
+    collapsedArrow:'▲',
     bodyClassExpanded:'panels-expanded-right'
   });
   return { root, update: () => update(root, instances), destroy: () => destroy(root, instances) };

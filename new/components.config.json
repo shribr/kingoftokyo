@@ -240,18 +240,18 @@
     "zIndex": 1200
   }
   ,{
-    "name": "cardShop",
+    "name": "powerCardsPanel",
     "version": "0.1.0",
-    "selector": ".cmp-card-shop",
+    "selector": ".cmp-power-cards-panel",
     "mountPoint": "#app",
     "order": 15,
     "enabled": true,
     "stateKeys": ["cards","players","phase"],
-    "build": "card-shop.build",
-    "update": "card-shop.update",
+    "build": "power-cards-panel.build",
+    "update": "power-cards-panel.update",
     "eventsOut": [],
     "eventsIn": [],
-    "initialState": {},
+    "initialState": { "featureFlagShopStub": true },
     "assets": [],
     "zIndex": 2
   }

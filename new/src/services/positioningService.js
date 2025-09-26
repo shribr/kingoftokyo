@@ -5,6 +5,7 @@
  *   ps.makeDraggable(element, componentName);
  */
 import { uiPositionSet, uiPositionsReset } from '../core/actions.js';
+import { store as bootstrapStore } from '../bootstrap/index.js';
 import { eventBus } from '../core/eventBus.js';
 
 const STORAGE_KEY = 'kot_new_ui_positions_v1';
@@ -18,33 +19,54 @@ export function createPositioningService(store) {
 
   // Subscribe once for persistence of entire positions object
   store.subscribe(() => {
-    const positions = store.getState().ui.positions;
+    const st = store.getState();
+    const allowPersist = !!st.settings?.persistPositions;
+    if (!allowPersist) return; // do nothing if persistence disabled
+    const positions = st.ui.positions;
     persistThrottled(positions);
   });
+
+  let zCounter = 6000; // elevated above base component z-indexes
 
   function makeDraggable(el, componentName, opts = {}) {
     el.style.touchAction = 'none';
     el.dataset.draggable = 'true';
     const saved = store.getState().ui.positions[componentName];
-    if (saved) applyTransform(el, saved.x, saved.y);
+    if (saved && store.getState().settings?.persistPositions) {
+      applyTransform(el, saved.x, saved.y);
+    }
 
     let pointerId = null;
     let origin = { x:0, y:0 };
     let start = { x:0, y:0 };
 
+    let dragging = false;
+    const activateDistance = typeof opts.activateDistance === 'number' ? opts.activateDistance : 4; // px threshold
+    const noDragSelector = opts.noDragSelector || '[data-nodrag],[data-action],button,input,textarea,select';
+
     function onPointerDown(e) {
-      if (pointerId !== null) return; // already dragging
+      if (pointerId !== null) return; // already tracking
+      if (e.target.closest(noDragSelector)) return; // interactive zone – let click happen
       pointerId = e.pointerId;
       el.setPointerCapture(pointerId);
-      const rect = el.getBoundingClientRect();
       start = currentTransform(el);
       origin = { x: e.clientX, y: e.clientY };
+      dragging = false; // not yet – wait for movement beyond threshold
       e.preventDefault();
     }
     function onPointerMove(e) {
       if (e.pointerId !== pointerId) return;
       const dx = e.clientX - origin.x;
       const dy = e.clientY - origin.y;
+      if (!dragging) {
+        if (Math.abs(dx) >= activateDistance || Math.abs(dy) >= activateDistance) {
+          dragging = true;
+          // Raise z-order once drag actually begins
+          try { el.style.zIndex = String(++zCounter); } catch(_) {}
+        } else {
+          return; // below threshold – allow potential click
+        }
+      }
       const nx = start.x + dx;
       const ny = start.y + dy;
       const bounded = applyBounds(nx, ny, el, opts.bounds);
@@ -54,8 +76,36 @@ export function createPositioningService(store) {
     }
     function onPointerUp(e) {
       if (e.pointerId !== pointerId) return;
-      pointerId = null;
       el.releasePointerCapture(e.pointerId);
+      pointerId = null;
+      if (!dragging) {
+        // Treat as click pass-through; nothing to do (we avoided preventing default)
+        return;
+      }
+      // Edge snapping logic after a completed drag
+      if (opts.snapEdges) {
+        try {
+          const threshold = typeof opts.snapThreshold === 'number' ? opts.snapThreshold : 12;
+          const rect = el.getBoundingClientRect();
+          const vpW = window.innerWidth;
+          const vpH = window.innerHeight;
+          const cur = currentTransform(el);
+          let tx = cur.x; let ty = cur.y; let snapped = false;
+          const leftDist = rect.left;
+          const topDist = rect.top;
+          const rightDist = vpW - rect.right;
+          const bottomDist = vpH - rect.bottom;
+          if (leftDist <= threshold) { tx = cur.x - leftDist; snapped = true; }
+          else if (rightDist <= threshold) { tx = cur.x + rightDist; snapped = true; }
+          if (topDist <= threshold) { ty = cur.y - topDist; snapped = true; }
+          else if (bottomDist <= threshold) { ty = cur.y + bottomDist; snapped = true; }
+          if (snapped) {
+            const bounded = applyBounds(tx, ty, el, opts.bounds);
+            applyTransform(el, bounded.x, bounded.y);
+            store.dispatch(uiPositionSet(componentName, bounded.x, bounded.y));
+          }
+        } catch(_) { /* ignore snapping errors */ }
+      }
     }
 
     el.addEventListener('pointerdown', onPointerDown);
@@ -66,7 +116,9 @@ export function createPositioningService(store) {
   function throttledPersist(name, x, y) {
     const now = performance.now();
     if (now - lastPersist > 120) { // ~8 fps throttle for store writes
-      store.dispatch(uiPositionSet(name, x, y));
+      if (store.getState().settings?.persistPositions) {
+        store.dispatch(uiPositionSet(name, x, y));
+      }
       lastPersist = now;
     }
   }
@@ -84,7 +136,7 @@ export function createPositioningService(store) {
     hydrationDone = true;
     let stored;
     try { stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(_) { stored = null; }
-    if (stored && typeof stored === 'object') {
+    if (stored && typeof stored === 'object' && store.getState().settings?.persistPositions) {
       const viewportW = typeof window !== 'undefined' ? window.innerWidth : 1024;
       const viewportH = typeof window !== 'undefined' ? window.innerHeight : 768;
       const clamp = (v, min, max) => Math.min(Math.max(v, min), max);

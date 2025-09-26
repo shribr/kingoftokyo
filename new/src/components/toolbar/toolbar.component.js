@@ -5,6 +5,7 @@
  */
 import { store } from '../../bootstrap/index.js';
 import { uiSettingsOpen, uiGameLogOpen } from '../../core/actions.js';
+import { createPositioningService } from '../../services/positioningService.js';
 
 export function build({ selector }) {
   const root = document.createElement('div');
@@ -46,6 +47,11 @@ export function build({ selector }) {
     // eventBus path already exists via eventsToActions using 'ui/positions/reset'
     import('../../core/eventBus.js').then(m => m.eventBus.emit('ui/positions/reset'));
   });
+  try {
+    const positioning = createPositioningService(store);
+    positioning.hydrate();
+    positioning.makeDraggable(root, 'toolbar', { snapEdges: true, snapThreshold: 12 });
+  } catch(e) { /* non-fatal */ }
   return { root, update: () => {} };
 }
 

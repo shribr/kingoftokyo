@@ -4,7 +4,8 @@ const DEFAULT_SETTINGS = {
   cpuSpeed: 'normal', // slow | normal | fast
   showThoughtBubbles: true,
   autoActivateMonsters: true,
-  showDebugPanels: false
+  showDebugPanels: false,
+  persistPositions: false // new: whether draggable UI element positions persist between sessions
 };
 
 export function settingsReducer(state = DEFAULT_SETTINGS, action) {

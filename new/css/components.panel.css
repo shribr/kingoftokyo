@@ -1,3 +1,4 @@
+/* (Removed legacy card-shop overrides – superseded by power cards panel) */
 /* components.panel.css
  * New panel system extracted from legacy .collapsible-panel, .players-area, .cards-area, header + collapse styles.
  * Replaces legacy global panel styling. Scoped to .cmp-panel-root (applied dynamically) and utility data attributes.

@@ -20,23 +20,29 @@ import { initSidePanel } from '../side-panel/side-panel.js';
 export function build({ selector }) {
   const root = document.createElement('div');
   // Add legacy class hooks (cards-area, collapsible-panel) for existing layout + transition period.
-  root.className = `${selector.slice(1)} cmp-card-shop cmp-monsters-panel cmp-side-panel k-panel`;
+  // Removed stray 'cmp-monsters-panel' class; this is the Power Cards panel only
+  root.className = `${selector.slice(1)} cmp-card-shop cmp-side-panel k-panel`;
   root.setAttribute('data-panel','card-shop');
   root.setAttribute('data-side','left');
   root.innerHTML = `
     <div class="mp-header k-panel__header" data-toggle role="button" aria-expanded="true" tabindex="0">
-      <h2 class="mp-title" data-toggle>Power Cards <span class="mp-arrow" data-arrow-dir data-toggle>◄</span></h2>
+      <h2 class="mp-title" data-toggle>Power Cards <span class="mp-arrow" data-arrow-dir data-toggle>►</span></h2>
     </div>
     <div class="mp-body k-panel__body panel-content" data-panel-body>
       <div class="shop-cards" data-cards></div>
       <div class="shop-actions" data-actions></div>
     </div>`;
+  // Re-enable generic collapse behavior (slide + 46px tab)
   initSidePanel(root, {
     side:'left',
-    expandedArrow:'◄',
-    collapsedArrow:'►',
+    // Expanded: ► (points toward collapse direction off-screen)
+    // Collapsed: ◄ (points into viewport to expand)
+    expandedArrow:'►',
+    collapsedArrow:'◄',
     bodyClassExpanded:'panels-expanded-left'
   });
+
+  // Removed independent rotation toggles; collapsed state now uses writing-mode vertical layout.
 
   root.addEventListener('click', (e) => {
     const cardEl = e.target.closest('[data-card-id]');
@@ -58,6 +64,7 @@ export function build({ selector }) {
 
   // Draggability removed for side panels to ensure clean click/collapse behavior
 
+  // (center relocation test removed – panel stays docked on left)
   return { root, update: () => update(root) };
 }
 

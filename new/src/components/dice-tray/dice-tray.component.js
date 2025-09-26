@@ -24,7 +24,7 @@ export function build({ selector, emit }) {
   // Make draggable & persistent
   const positioning = createPositioningService(store);
   positioning.hydrate(); // ensure positions loaded (idempotent)
-  positioning.makeDraggable(root, 'diceTray');
+  positioning.makeDraggable(root, 'diceTray', { snapEdges: true, snapThreshold: 12 });
 
   root.addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-action="roll"]');

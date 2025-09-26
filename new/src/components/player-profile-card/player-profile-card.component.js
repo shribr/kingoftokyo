@@ -6,7 +6,8 @@
  * - No external side-effects; relies only on selectors + store.
  */
 import { store } from '../../bootstrap/index.js';
-import { selectPlayerById, selectPlayerCards } from '../../core/selectors.js';
+import { selectPlayerById, selectPlayerCards, selectActivePlayer } from '../../core/selectors.js';
+import { createPositioningService } from '../../services/positioningService.js';
 
 /** Build a single player profile card root */
 export function build({ selector, playerId }) {
@@ -15,7 +16,22 @@ export function build({ selector, playerId }) {
   root.className = `cmp-player-profile-card`;
   root.setAttribute('data-player-id', playerId);
   root.innerHTML = baseTemplate();
-  return { root, update: (props) => update(root, { ...props, playerId }), destroy: () => root.remove() };
+  // Defer draggable assignment until update determines active player to avoid all cards being movable.
+  let draggableApplied = false;
+  function ensureDraggableIfActive() {
+    try {
+      const state = store.getState();
+      const active = selectActivePlayer(state);
+      if (active && active.id === playerId && !draggableApplied) {
+        const positioning = createPositioningService(store);
+        positioning.hydrate();
+        positioning.makeDraggable(root, `playerCard_${playerId}`, { snapEdges: true, snapThreshold: 12 });
+        draggableApplied = true;
+      }
+    } catch(_) {}
+  }
+  ensureDraggableIfActive();
+  return { root, update: (props) => { update(root, { ...props, playerId }); ensureDraggableIfActive(); }, destroy: () => root.remove() };
 }
 
 function baseTemplate() {
@@ -31,12 +47,16 @@ function baseTemplate() {
       </div>
     </div>
     <div class="ppc-stats" data-stats>
-      <div class="ppc-stat hp" data-hp><span class="label">HP</span><span class="value" data-hp-value></span></div>
-      <div class="ppc-stat energy" data-energy><span class="label">⚡</span><span class="value" data-energy-value></span></div>
-      <div class="ppc-stat vp" data-vp><span class="label">★</span><span class="value" data-vp-value></span></div>
+      <div class="ppc-stat hp" data-cards><span class="label">CARDS</span><span class="value" data-cards-count>0</span></div>
+      <div class="ppc-stat energy" data-energy><span class="label">ENERGY</span><span class="value" data-energy-value></span></div>
+      <div class="ppc-stat vp" data-vp><span class="label">POINTS</span><span class="value" data-vp-value></span></div>
     </div>
-    <div class="ppc-owned-cards" data-owned-cards>
-      <div class="ppc-owned-cards-label">Cards</div>
+    <div class="ppc-health-block" data-health-block>
+      <div class="ppc-health-label" data-health-label>HEALTH <span data-hp-value></span>/10</div>
+      <div class="ppc-health-bar" data-health-bar><div class="fill" data-health-fill></div></div>
+    </div>
+    <div class="ppc-owned-cards" data-owned-cards hidden>
+      <div class="ppc-owned-cards-label">OWNED</div>
       <div class="ppc-owned-cards-strip" data-cards-strip></div>
     </div>
   `;
@@ -51,7 +71,8 @@ export function update(root, { playerId }) {
 
   // Basic fields
   root.querySelector('[data-name]').textContent = player.name;
-  root.querySelector('[data-hp-value]').textContent = player.health;
+  const hpValEl = root.querySelector('[data-hp-value]');
+  if (hpValEl) hpValEl.textContent = player.health;
   root.querySelector('[data-energy-value]').textContent = player.energy;
   root.querySelector('[data-vp-value]').textContent = player.victoryPoints;
 
@@ -76,6 +97,16 @@ export function update(root, { playerId }) {
 
   // Owned cards miniature lane
   const cards = selectPlayerCards(state, playerId) || [];
+  const cardsCountEl = root.querySelector('[data-cards-count]');
+  if (cardsCountEl) cardsCountEl.textContent = cards.length;
+  // Health bar fill
+  const healthBar = root.querySelector('[data-health-bar]');
+  const healthFill = root.querySelector('[data-health-fill]');
+  if (healthBar && healthFill) {
+    const pct = (player.health / 10) * 100;
+    healthFill.style.width = pct + '%';
+    if (player.health <= 3) healthBar.setAttribute('data-low','true'); else healthBar.removeAttribute('data-low');
+  }
   const strip = root.querySelector('[data-cards-strip]');
-  strip.innerHTML = cards.map(c => `<span class="ppc-card-mini" title="${c.name}">${c.name.slice(0,8)}</span>`).join('');
+  if (strip) strip.innerHTML = cards.map(c => `<span class="ppc-card-mini" title="${c.name}">${c.name.slice(0,8)}</span>`).join('');
 }

@@ -27,6 +27,6 @@
 .gl-footer { justify-content:center; }
 
 /* Ensure panel headers have priority over toolbar (in case of overlap on small view heights) */
-.cmp-card-shop .panel-header, .cmp-monsters-panel .mp-header { z-index:4300; position:relative; }
+.cmp-monsters-panel .mp-header { z-index:4300; position:relative; }
 
 @media (max-width: 800px) { .cmp-toolbar { padding:10px 12px; --toolbar-btn-size:40px; } }

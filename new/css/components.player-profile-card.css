@@ -1,61 +1,46 @@
-/* components.player-profile-card.css
- * Player Profile Card (rewrite)
- * Parity-intent CSS scaffold using tokens. Legacy .player-dashboard removed.
- */
+/* components.player-profile-card.css (legacy parity version) */
 
-.cmp-player-profile-card {
-  position: relative;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: var(--tok-space-2, 6px);
-  padding: var(--tok-space-3, 10px) var(--tok-space-4, 14px);
-  background: var(--tok-color-panel, rgba(20,22,30,0.85));
-  border: 2px solid var(--tok-color-border-strong, #000);
-  border-radius: var(--tok-radius-md, 6px);
-  box-shadow: var(--tok-shadow-hard-1, 2px 2px 0 #000), var(--tok-shadow-elev-1, 0 4px 12px rgba(0,0,0,0.35));
-  color: var(--tok-color-text-primary, #fff);
-  font-family: var(--tok-font-stack, system-ui, sans-serif);
-  width: 220px; /* parity baseline - subject to future responsive pass */
-  transition: box-shadow .25s var(--tok-ease-standard, ease), transform .25s var(--tok-ease-standard, ease);
-}
-
-.cmp-player-profile-card.is-active {
-  box-shadow: var(--tok-shadow-hard-2, 3px 3px 0 #000), var(--tok-shadow-elev-2, 0 6px 18px rgba(0,0,0,0.45));
-  outline: 2px solid var(--tok-color-accent, #ffca28);
-}
+.cmp-player-profile-card { position:relative; width:260px; background:#2d3436; border:3px solid #000; border-radius:4px; padding:12px 14px 16px; font-family:'Bangers',cursive; letter-spacing:1px; color:#fff; box-shadow:4px 4px 0 #000,0 0 0 2px #222 inset; }
+.cmp-player-profile-card + .cmp-player-profile-card { margin-top:18px; }
+.cmp-player-profile-card.is-active { outline:3px solid #ffd400; outline-offset:3px; }
 
 /* Header */
-.cmp-player-profile-card .ppc-header { display:flex; align-items:center; gap: var(--tok-space-3,8px); }
-.cmp-player-profile-card .ppc-avatar { width:48px; height:48px; background: var(--tok-color-avatar-bg,#333); border:2px solid #000; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.08); border-radius:4px; }
-.cmp-player-profile-card .ppc-name { font-weight:600; letter-spacing:0.5px; font-size:0.95rem; }
-.cmp-player-profile-card .ppc-status-line { display:flex; gap: var(--tok-space-2,6px); font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; }
-.cmp-player-profile-card .ppc-tokyo-indicator { color: var(--tok-color-accent,#ffca28); font-weight:700; }
+.cmp-player-profile-card .ppc-header { display:flex; align-items:flex-start; margin:0 0 14px; }
+.cmp-player-profile-card .ppc-avatar { width:70px; height:70px; border:3px solid #000; border-radius:50%; background:#111 center/cover no-repeat; box-shadow:2px 2px 0 #000; margin-right:12px; }
+.cmp-player-profile-card .ppc-meta { flex:1; }
+.cmp-player-profile-card .ppc-name { font-size:30px; line-height:1; margin:0 0 6px; text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; }
+.cmp-player-profile-card .ppc-name small { font-size:14px; opacity:.65; margin-left:6px; letter-spacing:0; }
+.cmp-player-profile-card .ppc-status-line { display:flex; gap:8px; font-size:12px; align-items:center; }
+.cmp-player-profile-card .ppc-active-indicator { color:#ffd400; font-size:18px; }
+.cmp-player-profile-card .ppc-tokyo-indicator { display:none; }
+.cmp-player-profile-card .ppc-tokyo-indicator.is-in { display:inline-block; background:#0b435c; color:#fff; padding:4px 10px 5px; font-size:14px; border:3px solid #000; box-shadow:2px 2px 0 #000; letter-spacing:.5px; }
 
-/* Stats */
-.cmp-player-profile-card .ppc-stats { display:flex; gap: var(--tok-space-3,8px); flex-wrap:wrap; }
-.cmp-player-profile-card .ppc-stat { background: var(--tok-color-chip-bg, rgba(255,255,255,0.08)); padding:2px 6px; border:1px solid rgba(255,255,255,0.15); border-radius:4px; display:flex; gap:4px; align-items:center; font-size:0.72rem; font-weight:500; }
-.cmp-player-profile-card .ppc-stat .label { opacity:0.75; }
-.cmp-player-profile-card .ppc-stat.hp { color: var(--tok-color-hp,#ff5f5f); }
-.cmp-player-profile-card .ppc-stat.energy { color: var(--tok-color-energy,#7be2ff); }
-.cmp-player-profile-card .ppc-stat.vp { color: var(--tok-color-vp,#ffd54f); }
+/* Stats row */
+.cmp-player-profile-card .ppc-stats { display:flex; gap:10px; margin:0 0 12px; }
+.cmp-player-profile-card .ppc-stat { flex:1; background:#fafafa; color:#111; border:3px solid #000; text-align:center; padding:8px 4px 6px; box-shadow:2px 2px 0 #000; font-family:'Bangers',cursive; position:relative; }
+.cmp-player-profile-card .ppc-stat .label { display:block; font-size:12px; letter-spacing:.5px; color:#222; margin:0 0 2px; }
+.cmp-player-profile-card .ppc-stat .value { font-size:28px; color:#ffd400; text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000; line-height:1; }
 
-/* Owned Cards Strip */
-.cmp-player-profile-card .ppc-owned-cards { display:flex; flex-direction:column; gap:4px; margin-top:4px; }
-.cmp-player-profile-card .ppc-owned-cards-label { font-size:0.60rem; letter-spacing:1px; opacity:0.65; text-transform:uppercase; }
-.cmp-player-profile-card .ppc-owned-cards-strip { display:flex; gap:4px; flex-wrap:wrap; }
-.cmp-player-profile-card .ppc-card-mini { background: rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.2); padding:2px 4px; font-size:0.55rem; border-radius:3px; max-width:60px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+/* Owned cards lane */
+.cmp-player-profile-card .ppc-owned-cards { background:#1c2123; border:3px solid #000; padding:8px 8px 10px; box-shadow:2px 2px 0 #000; }
+.cmp-player-profile-card .ppc-owned-cards-label { font-size:14px; color:#ffd400; margin:0 0 4px; }
+.cmp-player-profile-card .ppc-owned-cards-strip { display:flex; gap:5px; flex-wrap:wrap; }
+.cmp-player-profile-card .ppc-card-mini { background:#333; color:#fff; font-size:12px; padding:3px 6px 4px; border:2px solid #000; border-radius:2px; max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; box-shadow:1px 1px 0 #000; }
 
-/* Hover / interaction baseline (parity-light) */
-.cmp-player-profile-card:hover { transform: translateY(-2px); box-shadow: var(--tok-shadow-hard-2,3px 3px 0 #000), var(--tok-shadow-elev-2,0 6px 18px rgba(0,0,0,0.45)); }
+/* Health block */
+.cmp-player-profile-card .ppc-health-block { background:#fff; border:3px solid #000; box-shadow:2px 2px 0 #000; padding:6px 10px 10px; margin-top:10px; }
+.cmp-player-profile-card .ppc-health-label { font-size:20px; color:#000; margin:0 0 6px; text-shadow:none; }
+.cmp-player-profile-card .ppc-health-bar { position:relative; background:#222; border:3px solid #000; height:20px; overflow:hidden; }
+.cmp-player-profile-card .ppc-health-bar .fill { position:absolute; left:0; top:0; bottom:0; width:0%; background:linear-gradient(90deg,#3ad65c,#129b37); transition:width .35s ease; }
+.cmp-player-profile-card .ppc-health-bar[data-low="true"] .fill { background:linear-gradient(90deg,#ff4d3d,#b30000); }
 
-/* Placeholder avatar pattern (until sprite injection) */
-.cmp-player-profile-card .ppc-avatar::after { content:""; display:block; width:100%; height:100%; background: repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0 6px, transparent 6px 12px); }
+/* Attack pulse animation */
+.cmp-player-profile-card.attack-pulse { animation:ppcPulse 2s ease; }
+@keyframes ppcPulse { 0%,100% { box-shadow:4px 4px 0 #000,0 0 0 2px #222 inset; } 50% { box-shadow:0 0 0 3px #ffd400,0 0 12px 4px #ffdb4d; } }
 
-/* Active indicator dot inherits color via outline for now */
-.cmp-player-profile-card .ppc-active-indicator { color: var(--tok-color-accent,#ffca28); }
+/* Hover effect minimal to preserve board readability */
+.cmp-player-profile-card:hover { transform:translateY(-2px); box-shadow:6px 6px 0 #000,0 0 0 2px #222 inset; }
 
-/* Manager wrapper */
-.cmp-player-profile-cards.layout-rail--players { display:flex; flex-direction:column; gap: var(--tok-space-4,14px); align-items:flex-start; }
-.cmp-player-profile-cards .ppc-cards-wrapper { display:flex; flex-direction:column; gap: var(--tok-space-4,14px); }
+/* Responsive downscale */
+@media (max-width:900px) { .cmp-player-profile-card { width:220px; padding:10px 12px 14px; } }
 

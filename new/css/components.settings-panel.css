@@ -1,0 +1,4 @@
+/* components.settings-panel.css */
+.cmp-settings-panel { position:fixed; top:16px; left:16px; width:300px; z-index:5000; background:rgba(0,0,0,0.8); border:2px solid #222; border-radius:8px; box-shadow:0 4px 16px rgba(0,0,0,.5); }
+.cmp-settings-panel .k-panel__header { margin:0 0 8px; font-size:20px; color:#ffd400; font-family:'Bangers',cursive; letter-spacing:1px; }
+.cmp-settings-panel .k-panel__body { padding:0 0 12px; }

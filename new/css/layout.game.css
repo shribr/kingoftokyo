@@ -39,8 +39,7 @@ body.panels-expanded-right .gl-center-bottom .cmp-action-menu { margin-right: 40
 .gl-right .cmp-effect-queue { order:2; }
 .gl-right .cmp-effect-inspector { order:4; }
 
-/* Power cards (shop) now lives in left rail */
-.gl-left .cmp-card-shop { order:1; }
+/* Power cards panel ordering now implicit (first inserted) */
 
 @media (max-width: 1400px) {
   :root { --gl-side-width: 260px; }

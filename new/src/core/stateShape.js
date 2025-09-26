@@ -28,6 +28,7 @@ export function createInitialState() {
       cardDetail: { cardId: null, source: null },
       playerCards: { playerId: null },
       positions: {},
+  // settings slice lives separately; positions persistence now gated by settings.persistPositions (default false)
       monsterProfiles: { open: false },
       singleMonster: { monsterId: null },
       splash: { visible: true },
