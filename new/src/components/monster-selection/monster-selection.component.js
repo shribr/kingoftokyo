@@ -16,7 +16,7 @@ export function build({ selector, dispatch, getState }) {
   root.innerHTML = frame();
   // Build confirmed; removed temporary debug log.
   console.debug('[monster-selection][build] initializing component');
-  const inst = { root, dispatch, getState, _local: { selected: new Set(), slots: [], playerCount: 4, _initialized: false } };
+  const inst = { root, dispatch, getState, _local: { selected: new Set(), slots: [], playerCount: 4, _initialized: false, page: 0, pageSize: 6 } };
 
   root.addEventListener('click', (e) => {
     const t = e.target;
@@ -40,7 +40,9 @@ export function build({ selector, dispatch, getState }) {
     }
     if (t.closest('[data-action="close"]')) { dispatch(uiMonsterSelectionClose()); return; }
   if (t.closest('[data-action="profiles"]')) { dispatch(uiMonsterProfilesOpen('selection')); dispatch(uiMonsterSelectionClose()); return; }
-    if (t.closest('[data-action="random"]')) { randomFill(inst); render(inst); return; }
+  if (t.closest('[data-action="random"]')) { randomFill(inst); render(inst); return; }
+  if (t.closest('[data-action="page-prev"]')) { if (inst._local.page > 0) { inst._local.page--; render(inst); } return; }
+  if (t.closest('[data-action="page-next"]')) { const stNow = getState(); const total = selectMonsters(stNow).length; const pages = Math.max(1, Math.ceil(total / inst._local.pageSize)); if (inst._local.page < pages - 1) { inst._local.page++; render(inst, stNow); } return; }
     if (t.closest('[data-action="reset"]')) { inst._local.slots = new Array(inst._local.playerCount).fill(null); inst._local.selected.clear(); render(inst); return; }
     if (t.closest('[data-action="toggle-dropdown"]')) { root.querySelector('[data-dropdown]')?.classList.toggle('open'); return; }
     if (t.closest('[data-player-count]')) {
@@ -138,9 +140,9 @@ export function update(ctx) {
 }
 
 function frame() {
-  return `\n    <div class="setup-frame" role="dialog" aria-modal="true" aria-label="Monster Selection">\n      <button type="button" class="setup-close" data-action="close" aria-label="Close">✕</button>\n      <div class="setup-title">MONSTER SELECTION</div>\n      <div class="setup-controls">\n        <button class="pill-btn" data-action="profiles">Monster Profiles</button>\n        <div class="player-count dropdown" data-dropdown>\n          <button class="pill-btn dropdown-toggle gold" data-action="toggle-dropdown"><span data-player-count-label>4 PLAYERS</span><span class="chev">▾</span></button>\n          <ul class="dropdown-menu">\n            ${[2,3,4,5,6].map(n => `<li data-player-count="${n}">${n} Players</li>`).join('')}\n          </ul>\n        </div>\n        <button class="pill-btn" data-action="random">Random Monster Selection</button>\n      </div>\n      <div class="setup-body">\n        <div class="cards-grid" data-setup-grid></div>\n        <div class="selection-sidebar" data-sidebar></div>\n      </div>\n      <div class="setup-footer">\n        <button class="reset-link" data-action="reset">⟲ Reset Monsters</button>\n        <button class="start-btn" data-action="start" disabled>ASSIGN 2 MORE MONSTERS</button>\n      </div>\n    </div>`;
+  // Pager positioned beneath grid inside cards-col (prevents layout jump vs. top placement)
+  return `\n    <div class="setup-frame" role="dialog" aria-modal="true" aria-label="Monster Selection">\n      <button type="button" class="setup-close" data-action="close" aria-label="Close">✕</button>\n      <div class="setup-title">MONSTER SELECTION</div>\n      <div class="setup-controls">\n        <button class="pill-btn" data-action="profiles">Monster Profiles</button>\n        <div class="player-count dropdown" data-dropdown>\n          <button class="pill-btn dropdown-toggle gold" data-action="toggle-dropdown"><span data-player-count-label>4 PLAYERS</span><span class="chev">▾</span></button>\n          <ul class="dropdown-menu">\n            ${[2,3,4,5,6].map(n => `<li data-player-count="${n}">${n} Players</li>`).join('')}\n          </ul>\n        </div>\n        <button class="pill-btn" data-action="random">Random Monster Selection</button>\n      </div>\n      <div class="setup-body">\n        <div class="cards-col">\n          <div class="cards-grid" data-setup-grid></div>\n          <div class="monster-pager" data-pager></div>\n        </div>\n        <div class="selection-sidebar" data-sidebar></div>\n      </div>\n      <div class="setup-footer">\n        <button class="reset-link" data-action="reset">⟲ Reset Monsters</button>\n        <button class="start-btn" data-action="start" disabled>ASSIGN 2 MORE MONSTERS</button>\n      </div>\n    </div>`;
 }
-
 function render(inst, fullState) {
   const root = inst.root; const st = fullState || inst.getState?.();
   const monsters = selectMonsters(st); const prevCount = inst._local.prevMonsterCount || 0;
@@ -157,12 +159,29 @@ function render(inst, fullState) {
   }
   const grid = root.querySelector('[data-setup-grid]');
   if (grid) {
-    grid.innerHTML = monsters.map(m => card(m, inst._local.selected.has(m.id))).join('');
+    const pageSize = inst._local.pageSize || 6;
+    const total = monsters.length;
+    const pages = Math.max(1, Math.ceil(total / pageSize));
+    if (inst._local.page >= pages) inst._local.page = pages - 1; // clamp if data shrank
+    const startIdx = inst._local.page * pageSize;
+    const slice = monsters.slice(startIdx, startIdx + pageSize);
+    grid.innerHTML = slice.map(m => card(m, inst._local.selected.has(m.id))).join('');
     grid.querySelectorAll('[data-monster-card]').forEach(el => {
       const id = el.getAttribute('data-id'); const selected = inst._local.selected.has(id);
       el.setAttribute('draggable', String(!selected));
       el.classList.toggle('is-unavailable', selected);
     });
+    const pagerEl = root.querySelector('[data-pager]');
+    if (pagerEl) {
+      if (total <= pageSize) {
+        pagerEl.innerHTML = '';
+      } else {
+        const current = inst._local.page + 1;
+        pagerEl.innerHTML = `<button class="pager-btn" data-action="page-prev" ${current===1?'disabled':''} aria-label="Previous Page">◀</button>
+          <span class="pager-status">Page ${current} / ${pages}</span>
+          <button class="pager-btn" data-action="page-next" ${current===pages?'disabled':''} aria-label="Next Page">▶</button>`;
+      }
+    }
   }
   const sidebar = root.querySelector('[data-sidebar]');
   if (sidebar) {

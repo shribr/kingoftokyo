@@ -185,7 +185,7 @@ function rollCurrentPlayer(dispatch, getState, root) {
   dice.forEach(d => { 
     d.classList.add('rolling'); 
     // Slight per-die animation duration variance for a more organic feel
-    const base = 0.52 + Math.random()*0.22; // 0.52s - 0.74s
+  const base = 0.68 + Math.random()*0.28; // slightly slower wobble 0.68s - 0.96s
     d.style.animationDuration = base.toFixed(2)+'s';
     displayRollingFace(d, randomFaceSymbol());
   });
@@ -193,7 +193,7 @@ function rollCurrentPlayer(dispatch, getState, root) {
   resultCell.textContent = '…';
   updateRollButtonState(root, stObj);
   if (row) row.classList.add('rolling-row');
-  const duration = 1000;
+  const duration = 1200; // slow overall rolling cycle slightly
   const start = performance.now();
   const raf = (now) => {
     const t = now - start;
@@ -241,14 +241,13 @@ function evaluateRound(dispatch, getState, root) {
   const commentary = root.querySelector('[data-commentary]');
   const max = Math.max(...rolls.map(r=>r.val));
   const top = rolls.filter(r=>r.val===max);
-  // Clear old winner classes
+  // Always clear old winner classes; only re-apply when the final single winner is known
   root.querySelectorAll('tr.winner').forEach(tr=>tr.classList.remove('winner'));
-  top.forEach(r => {
-    const row = root.querySelector(`tr[data-player-row="${r.id}"]`);
-    if (row) row.classList.add('winner');
-  });
   // actions container removed (buttons now in header)
   if (top.length === 1) {
+    // Final resolved winner: apply highlight styling now
+    const winnerRow = root.querySelector(`tr[data-player-row="${top[0].id}"]`);
+    if (winnerRow) winnerRow.classList.add('winner');
     const winnerId = top[0].id;
     const idx = st.players.order.indexOf(winnerId);
     if (idx >= 0) dispatch(metaActivePlayerSet(idx));

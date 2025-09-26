@@ -17,11 +17,13 @@
 		radial-gradient(circle at 1px 1px, rgba(0,0,0,0.06) 1px, transparent 1px) 6px 6px/12px 12px,
 		#fbf6ea;
 	border:4px solid #111; box-shadow: 14px 14px 0 #000, 0 0 0 2px #000 inset, 0 0 22px -4px rgba(0,0,0,.55);
-	border-radius:0; padding:24px 28px 40px; width: min(96vw, 1180px); display:flex; flex-direction:column; position:relative; overflow:visible; margin:0 auto; /* ensure horizontal centering */
+	border-radius:0; padding:24px 28px 40px; width: min(96vw, 1180px); display:flex; flex-direction:column; position:relative; overflow:hidden; margin:0 auto; /* ensure horizontal centering */
+	max-height:92vh; /* Constrain height so footer (Start Game) stays within viewport */
 }
-.cmp-monster-selection .setup-body { overflow:hidden; }
+/* Internal scroll region so only monster list / sidebar scrolls, footer stays accessible */
+.cmp-monster-selection .setup-body { flex:1; min-height:0; overflow-y:auto; overflow-x:hidden; padding-right:4px; }
 .cmp-monster-selection .cards-grid { max-height:100%; }
-.cmp-monster-selection .selection-sidebar { max-height:100%; overflow:auto; padding-right:4px; }
+.cmp-monster-selection .selection-sidebar { max-height:100%; /* allow main scroll container to handle vertical scrolling */ overflow:visible; padding-right:4px; }
 .cmp-monster-selection { color:#000; }
 .cmp-monster-selection .setup-title { font-family:'Bangers', cursive; font-size:52px; color:#FFD700; text-align:center; letter-spacing:2px; text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000; margin-bottom:12px; filter: drop-shadow(0 5px 0 #000); }
 .cmp-monster-selection .setup-controls { display:flex; gap:16px; align-items:center; justify-content:center; margin-bottom:18px; }
@@ -47,6 +49,14 @@
 .cmp-monster-selection .dropdown-menu li:hover { background:linear-gradient(90deg,#ffe9a8,#ffd76a); }
 .cmp-monster-selection .dropdown-menu li:active { background:linear-gradient(90deg,#ffc843,#ffad0a); }
 .cmp-monster-selection .setup-body { display:grid; grid-template-columns: 1fr 320px; gap:28px; align-items:start; flex:1; overflow:hidden; min-height:0; }
+.cmp-monster-selection .monster-pager { display:flex; align-items:center; justify-content:center; gap:14px; margin:0 0 12px; font-family:'Bangers',cursive; letter-spacing:1px; }
+.cmp-monster-selection .cards-col { display:flex; flex-direction:column; }
+.cmp-monster-selection .cards-col .monster-pager { margin-top:18px; margin-bottom:0; }
+.cmp-monster-selection .monster-pager .pager-btn { background:#fff4c2; border:3px solid #111; box-shadow:3px 3px 0 #000; padding:6px 14px 8px; cursor:pointer; font-family:'Bangers',cursive; font-size:18px; line-height:1; transition:transform .18s ease, box-shadow .18s ease, filter .25s ease; }
+.cmp-monster-selection .monster-pager .pager-btn:hover:not([disabled]) { transform:translate(-2px,-2px); box-shadow:5px 5px 0 #000; filter:brightness(1.05); }
+.cmp-monster-selection .monster-pager .pager-btn:active:not([disabled]) { transform:translate(0,0); box-shadow:2px 2px 0 #000; }
+.cmp-monster-selection .monster-pager .pager-btn[disabled] { opacity:.45; cursor:not-allowed; box-shadow:2px 2px 0 #000; }
+.cmp-monster-selection .monster-pager .pager-status { font-size:20px; color:#000; text-shadow: none; }
 
 /* When viewport is very short, shift alignment upward so top is visible */
 @media (max-height: 640px) {

@@ -173,8 +173,35 @@
 .ppc-fade-placeholder { position:fixed; background:linear-gradient(135deg,#2d3436,#1b1f20); border:3px solid #000; border-radius:4px; box-shadow:4px 4px 0 #000,0 0 0 2px #222 inset; pointer-events:none; z-index:2950; animation:ppcSlotFade .5s ease forwards; }
 @keyframes ppcSlotFade { from { opacity:1; transform:scale(1); } to { opacity:0; transform:scale(.92); } }
 
-/* CPU indicator styling */
-.cmp-player-profile-card .ppc-name .ppc-cpu { font-size:22px; line-height:1; font-weight:900; letter-spacing:1px; font-family:'Bangers',cursive; color:var(--ppc-accent-text,#ffd400); text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; margin-left:8px; position:relative; top:-2px; }
+/* CPU indicator styling (improved readability)
+ * Reuse monster name visual language: bold white with heavy black outline.
+ * Added a subtle translucent pill background & inner border for contrast on dark gradients.
+ * Scoped tightly to player profile card to avoid bleeding into other CPU labels.
+ */
+.cmp-player-profile-card .ppc-name .ppc-cpu {
+	display:inline-block;
+	font-size:20px;
+	line-height:1;
+	font-weight:900;
+	letter-spacing:1px;
+	font-family:'Bangers',cursive;
+	color:#fff;
+	text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000;
+	margin-left:8px;
+	position:relative;
+	top:-1px;
+	/* Transparent background & no border per request */
+	background:transparent;
+	border:none;
+	padding:0 4px; /* retain a touch of spacing so outline isn't cramped */
+}
+
+/* High-contrast mode or bright accent cards could optionally opt-in to a brighter CPU pill */
+.cmp-player-profile-card[data-bright-accent="true"] .ppc-name .ppc-cpu {
+	background:linear-gradient(135deg,rgba(255,212,0,.85),rgba(255,180,0,.85));
+	color:#000;
+	text-shadow:1px 1px 0 #fff; /* lighter outline when on bright pill */
+}
 
 /* Avatar with mapped image */
 .cmp-player-profile-card .ppc-avatar[data-avatar-src] { background-size:cover; background-position:center var(--ppc-avatar-pos-y); box-shadow:0 0 0 3px #000, 0 0 10px rgba(0,0,0,.6); }

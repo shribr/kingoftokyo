@@ -105,12 +105,49 @@ export function update(root) {
   const rollBtn = root.querySelector('[data-action="roll"]');
   const keepBtn = root.querySelector('[data-action="keep"]');
   const endBtn = root.querySelector('[data-action="end"]');
-  const dice = st.dice;
-  const hasAnyFaces = dice.faces && dice.faces.length > 0;
-  const canRoll = st.phase === 'ROLL' && dice.rollsUsed < (dice.allowedRerolls + 1 || 3);
-  rollBtn.disabled = !canRoll;
-  keepBtn.disabled = !(st.phase === 'ROLL' && hasAnyFaces);
-  endBtn.disabled = st.phase === 'ROLL';
+  const dice = st.dice || {};
+  const faces = dice.faces || [];
+  const hasAnyFaces = faces.length > 0;
+  // New dice state model: phase: 'idle' | 'rolling' | 'resolved' | 'sequence-complete'
+  // rerollsRemaining tracks how many rerolls still available (after first roll).
+  const isIdle = dice.phase === 'idle';
+  const canReroll = dice.phase === 'resolved' && dice.rerollsRemaining > 0;
+  const canInitialRoll = isIdle;
+  const canRoll = st.phase === 'ROLL' && (canInitialRoll || canReroll) && dice.phase !== 'rolling';
+  const order = st.players.order;
+  let active = null;
+  if (order.length) {
+    const activeId = order[st.meta.activePlayerIndex % order.length];
+    active = st.players.byId[activeId];
+  }
+  const isCPU = !!(active && (active.isCPU || active.isAi || active.type === 'ai'));
+
+  if (rollBtn) rollBtn.disabled = isCPU ? true : !canRoll;
+  if (keepBtn) keepBtn.disabled = isCPU ? true : !(st.phase === 'ROLL' && hasAnyFaces && dice.phase === 'resolved');
+  if (endBtn) endBtn.disabled = true; // always disabled during ROLL phase; for CPU we keep disabled anyway until human logic implemented
+
+  // CPU turn styling state
+  if (isCPU) root.classList.add('cpu-turn'); else root.classList.remove('cpu-turn');
+
+  // Auto-roll for CPU active player (first roll only) after roll-for-first resolution
+  try {
+    if (isCPU && st.phase === 'ROLL' && isIdle && !hasAnyFaces) {
+      if (root._lastCpuAutoRollIndex !== st.meta.activePlayerIndex) {
+        root._lastCpuAutoRollIndex = st.meta.activePlayerIndex;
+        setTimeout(() => {
+          // Flash cue on roll button (visual indicator CPU took action)
+          if (rollBtn) {
+            rollBtn.classList.add('cpu-flash');
+            setTimeout(()=> rollBtn && rollBtn.classList.remove('cpu-flash'), 1200);
+          }
+          eventBus.emit('ui/dice/rollRequested');
+        }, 350);
+      }
+    } else if (!isCPU) {
+      root._lastCpuAutoRollIndex = undefined;
+    }
+  } catch(_) {}
+
   enforceVerticalLayout(root);
 }
 

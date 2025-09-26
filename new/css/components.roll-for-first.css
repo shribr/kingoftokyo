@@ -6,12 +6,18 @@
 .cmp-roll-for-first.rff-modal .rff-title { text-align:center; font-size:3.1rem; margin:0 0 10px; letter-spacing:3px; color:#f1f1f1; text-shadow: -3px -3px 0 #000,3px -3px 0 #000,-3px 3px 0 #000,3px 3px 0 #000,6px 6px 12px rgba(0,0,0,.8); }
 .cmp-roll-for-first.rff-modal .rff-close { position:absolute; top:10px; right:10px; background:#181818; color:#bbb; border:1px solid #333; width:42px; height:42px; font-size:20px; cursor:pointer; font-family:'Bangers',cursive; display:flex; align-items:center; justify-content:center; box-shadow:2px 2px 0 #000; transition:background .18s ease; }
 .cmp-roll-for-first.rff-modal .rff-close:hover { background:#232323; }
-.cmp-roll-for-first.rff-modal .rff-broadcast { background:#111; border:1px solid #2a2a2a; padding:12px 18px 14px; margin:4px 0 18px; font-family:Arial,sans-serif; font-size:.9rem; line-height:1.35; letter-spacing:.4px; color:#d8d8d8; min-height:150px; display:flex; flex-direction:column; justify-content:center; gap:6px; box-shadow:0 0 0 1px #000 inset; position:relative; overflow:visible; }
+.cmp-roll-for-first.rff-modal .rff-broadcast { background:#111; border:1px solid #2a2a2a; padding:12px 18px 14px; margin:4px 0 18px; font-family:'Bangers',cursive; font-size:1.08rem; line-height:1.15; letter-spacing:1px; text-align:center; color:var(--color-brand-gold,#FFD700); min-height:90px; display:flex; flex-direction:column; justify-content:center; gap:6px; box-shadow:0 0 0 1px #000 inset; position:relative; overflow:visible; transition:min-height .35s ease, padding .35s ease, font-size .25s ease, color .25s ease; }
 @media (max-width: 800px) { .cmp-roll-for-first.rff-modal .rff-broadcast { min-height:130px; } }
 @media (max-width: 560px) { .cmp-roll-for-first.rff-modal .rff-broadcast { min-height:120px; } }
 
 /* Winner banner when moved into broadcast area */
-.cmp-roll-for-first.rff-modal .rff-broadcast .rff-winner-banner { margin-top:0; width:100%; align-self:stretch; }
+.cmp-roll-for-first.rff-modal .rff-broadcast .rff-winner-banner { margin-top:0; width:100%; align-self:stretch; animation:rff-broadcast-expand .55s ease forwards; }
+
+/* When winner banner exists, allow broadcast section to grow a bit more (handled by banner animation) */
+@keyframes rff-broadcast-expand { 0% { opacity:0; transform:translateY(8px) scale(.96); } 100% { opacity:1; transform:translateY(0) scale(1); } }
+
+/* Utility: once winner inserted, bump min-height via parent selector (JS already replaces inner HTML) */
+.cmp-roll-for-first.rff-modal .rff-broadcast:has(.rff-winner-banner) { min-height:150px; padding-top:16px; padding-bottom:20px; }
 .cmp-roll-for-first.rff-modal .rff-rolls { list-style:none; margin:0 0 14px; padding:0; display:grid; grid-template-columns:1fr 80px; row-gap:6px; column-gap:10px; font-family:Arial,sans-serif; }
 .cmp-roll-for-first.rff-modal .rff-rolls li { display:contents; }
 .cmp-roll-for-first.rff-modal .rff-mon { background:#181818; padding:6px 10px; border:1px solid #2d2d2d; border-radius:0; text-align:left; font-weight:600; color:#ddd; }
@@ -65,7 +71,7 @@
 .cmp-roll-for-first .rff-table .mini-die.f-claw .rff-face-claw { color:#fff; font-size:18px; filter:drop-shadow(0 0 4px rgba(255,0,0,.7)); }
 .cmp-roll-for-first .rff-table .mini-die.attack { border-color:#FF4444; background:linear-gradient(145deg,#ff6a6a,#ff3737); box-shadow:0 0 6px rgba(255,68,68,.6),2px 2px 4px rgba(0,0,0,.4); color:#fff; }
 .cmp-roll-for-first .rff-table .mini-die.f-num { color:#111; }
-.cmp-roll-for-first .rff-table .mini-die.rolling { animation:shake3D .6s cubic-bezier(0.68,-0.55,0.265,1.55) infinite; }
+.cmp-roll-for-first .rff-table .mini-die.rolling { animation:shake3D .75s cubic-bezier(0.68,-0.55,0.265,1.55) infinite; }
 .cmp-roll-for-first .rff-table tr.winner .mini-die { border-color:#FFD700; box-shadow:0 0 0 2px #000 inset,0 0 10px rgba(255,215,0,.7); background:linear-gradient(145deg,#ffe077,#ffcf33); }
 .cmp-roll-for-first .rff-table tr.winner td { background:#1d1a07; color:#f9e7a2; }
 .cmp-roll-for-first .rff-table tr.winner td.rff-result { font-weight:700; font-size:1.05rem; }
@@ -74,7 +80,8 @@
 .cmp-roll-for-first .rff-table tr.rolling-row td { background:#1d1d1d; }
 .cmp-roll-for-first .rff-table tr.rolling-row .rff-name { color:#fff; }
 .cmp-roll-for-first .rff-table tr.rolling-row .mini-die { filter:brightness(1.05); }
-.cmp-roll-for-first .rff-cpu-tag { font-size:.55rem; background:#444; color:#fff; padding:2px 4px; border-radius:3px; margin-left:6px; font-family:Arial,sans-serif; letter-spacing:.5px; font-weight:600; }
+.cmp-roll-for-first .rff-cpu-tag { position:relative; font-size:.55rem; padding:0 0 0 0; margin-left:6px; font-family:Arial,sans-serif; letter-spacing:.5px; font-weight:600; line-height:1; display:inline-block; }
+.cmp-roll-for-first .rff-cpu-tag:before { content:"CPU"; display:inline-block; padding:2px 5px 3px; background:linear-gradient(135deg,#303030,#181818); color:#ffdf3d; border:1px solid #000; box-shadow:0 0 0 1px #444 inset,2px 2px 0 #000; border-radius:4px; font-size:.55rem; letter-spacing:.6px; }
 .cmp-roll-for-first .rff-table tr:not(.winner) .mini-die[data-finalized='1'] { opacity:.9; }
 .cmp-roll-for-first .rff-table .rff-result { font-weight:600; }
 /* Hide dice placeholder until row rolls (dice not inserted until roll) */
