@@ -82,7 +82,7 @@
 /* Remove bottom border for Power Cards side panel header as well */
 
 /* Keep body hidden when collapsed (already handled above but ensure consistency) */
-[data-collapsed="true"] > .k-panel__body { display:none; }
+[data-collapsed="true"] > .k-panel__body { display:none !important; }
 
 /* Monsters panel overrides */
 .cmp-monsters-panel.k-panel { background:linear-gradient(180deg,#2b3035,#1b1d1f); }
@@ -109,7 +109,7 @@
 [data-gl-right] .cmp-monsters-panel::-webkit-scrollbar-thumb { background:#333; border-radius:4px; }
 
 /* Generic collapse handling */
-[data-collapsed="true"] > .k-panel__body { display:none; }
+[data-collapsed="true"] > .k-panel__body { display:none !important; }
 /* Collapsed panels always clickable */
 .cmp-side-panel[data-collapsed="true"] { cursor:pointer; }
 

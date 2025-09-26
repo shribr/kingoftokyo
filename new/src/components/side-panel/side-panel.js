@@ -29,7 +29,14 @@ export function initSidePanel(root, {
 
   function toggleCollapse() {
     const collapsing = root.getAttribute('data-collapsed') !== 'true';
-    if (collapsing) root.setAttribute('data-collapsed','true'); else root.removeAttribute('data-collapsed');
+    if (collapsing) {
+      // Lock current height so rotated header has vertical space after body is hidden
+      root.style.height = root.offsetHeight + 'px';
+      root.setAttribute('data-collapsed','true');
+    } else {
+      root.removeAttribute('data-collapsed');
+      root.style.height = '';
+    }
     setArrow();
     if (header) header.setAttribute('aria-expanded', collapsing ? 'false':'true');
     updateBodyState();
