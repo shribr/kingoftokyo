@@ -65,6 +65,9 @@ export const logger = createLogger(store);
 
 // Example diagnostic wiring
 if (typeof window !== 'undefined') {
+  // Global diagnostics for silent errors halting execution before gating dispatches
+  window.addEventListener('error', (e)=>{ try { console.error('[global-error]', e.message, e.filename, e.lineno+':'+e.colno); } catch(_) {} });
+  window.addEventListener('unhandledrejection', (e)=>{ try { console.error('[global-unhandled-rejection]', e.reason); } catch(_) {} });
   const turnService = createTurnService(store, logger);
   const effectEngine = createEffectEngine(store, logger);
   window.__KOT_NEW__ = { store, eventBus, logger, turnService, effectEngine };
@@ -135,7 +138,7 @@ if (typeof window !== 'undefined') {
     if (st.settings?.autoStartInTest) {
       selectionWasOpened = true;
       store.dispatch(uiSplashHide());
-  store.dispatch(uiMonsterSelectionClose());
+      store.dispatch(uiMonsterSelectionClose());
       setTimeout(() => {
         try { turnService.startGameIfNeeded(); } catch(e) { console.warn('Skip intro start failed', e); }
       }, 0);
@@ -147,7 +150,7 @@ if (typeof window !== 'undefined') {
 
   store.subscribe(() => {
     const st = store.getState();
-    const selectionOpen = !!st.ui?.monsterSelection?.open;
+  const selectionOpen = !!st.ui?.monsterSelection?.open;
     if (selectionOpen && !selectionWasOpened) selectionWasOpened = true;
     const splashGone = st.ui?.splash?.visible === false;
     const rff = st.ui?.rollForFirst;
@@ -160,16 +163,31 @@ if (typeof window !== 'undefined') {
     // When selection transitions from open -> closed after having been opened, and splash is gone, open Roll For First (once) if players exist and not resolved
     if (!selectionOpen && prevSelectionOpen && selectionWasOpened && splashGone) {
       if (st.players.order.length > 0 && !(rff && (rff.open || rff.resolved))) {
+        console.debug('[bootstrap] conditions met -> opening Roll For First (players=%d)', st.players.order.length);
         store.dispatch(uiRollForFirstOpen());
         ensurePostSplashBlackout();
       } else if (rff && rff.resolved) {
         // If already resolved (e.g., dev skip), then we can start game if still in SETUP
         if (st.phase === 'SETUP') turnService.startGameIfNeeded();
       }
+      // DIAGNOSTIC: force another open attempt next tick if still not open
+      setTimeout(()=>{
+        const cur = store.getState();
+        const rff2 = cur.ui?.rollForFirst;
+        if (!(rff2 && rff2.open) && cur.players.order.length) {
+          console.warn('[bootstrap][diag] rollForFirst still not open; forcing dispatch again');
+          store.dispatch(uiRollForFirstOpen());
+        }
+      }, 50);
     }
     // If roll-for-first just resolved (open false, resolved true) and phase still SETUP, start game.
     if (rff && rff.resolved && st.phase === 'SETUP') {
       turnService.startGameIfNeeded();
+    }
+    if (rff && rff.open) {
+      // Trace open state each tick for visibility debugging
+      const el = document.querySelector('.cmp-roll-for-first');
+      if (el) el.setAttribute('data-debug-rff','open');
     }
     // When phase leaves SETUP (i.e., game actually starts) mark body active and fade out blackout
     if (st.phase !== 'SETUP' && !document.body.classList.contains('game-active')) {
@@ -212,9 +230,40 @@ if (typeof window !== 'undefined') {
     prevPlayers = cur;
   });
   // Load component config dynamically
-  fetch('./components.config.json')
+  const cfgUrl = './components.config.json?ts=' + Date.now();
+  fetch(cfgUrl)
     .then(r => r.json())
-    .then(cfg => mountRoot(cfg, store));
+    .then(cfg => {
+      if (!Array.isArray(cfg) || !cfg.some(e=>e.name==='monsterSelection')) {
+        console.warn('[bootstrap] monsterSelection entry NOT found in components.config.json at runtime.');
+      }
+      return mountRoot(cfg, store).then(()=>cfg);
+    })
+    .then(cfg => {
+      // Fallback: if monsterSelection not mounted (no element present) but config had it, attempt manual dynamic mount
+      if (Array.isArray(cfg) && cfg.some(e=>e.name==='monsterSelection') && !document.querySelector('.cmp-monster-selection')) {
+        console.warn('[bootstrap] monsterSelection element missing after mountRoot; attempting manual fallback mount');
+        const entry = cfg.find(e=>e.name==='monsterSelection');
+        import('../components/monster-selection/monster-selection.component.js')
+          .then(mod => {
+            const build = mod.build;
+            if (typeof build !== 'function') { console.error('[bootstrap] Fallback build function not found for monster-selection'); return; }
+            const inst = build({ selector: entry.selector, initialState: entry.initialState||{}, dispatch: (a)=>store.dispatch(a), getState: ()=>store.getState(), emit: ()=>{} });
+            const mountPoint = document.querySelector('#app') || document.body;
+            mountPoint.appendChild(inst.root || inst);
+            // Trigger an initial update
+            try {
+              const full = store.getState();
+              const state = { ui: full.ui, monsters: full.monsters };
+              if (mod.update) mod.update({ inst, state, fullState: full });
+            } catch(e) { console.warn('[bootstrap] fallback update failed', e); }
+          })
+          .catch(e=>console.error('[bootstrap] Fallback import failed for monster-selection', e));
+      }
+    })
+    .catch(e => {
+      console.error('[bootstrap] Failed to load components.config.json', e);
+    });
 }
 
 function seedRandomPlayers(store, monsters, logger) {

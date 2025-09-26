@@ -121,7 +121,7 @@ function beginHideSequence(dispatch, root) {
   dispatch(uiSplashHide());
   // Proactively queue setup open after fade duration to avoid missed transitionend edge cases
   setTimeout(() => {
-  try { dispatch(uiMonsterSelectionOpen()); } catch(e) { console.warn('Deferred monster selection open failed', e); }
+  try { console.debug('[splash] setTimeout(520) -> uiMonsterSelectionOpen dispatch'); dispatch(uiMonsterSelectionOpen()); } catch(e) { console.warn('Deferred monster selection open failed', e); }
   }, 520); // slightly longer than CSS .5s transition
   // Force reflow then apply is-hidden for fade
   requestAnimationFrame(() => {
@@ -130,7 +130,7 @@ function beginHideSequence(dispatch, root) {
       if (e.propertyName === 'opacity') {
         root.removeEventListener('transitionend', onEnd);
         // Secondary (original) open dispatch for normal path
-  try { dispatch(uiMonsterSelectionOpen()); } catch(e2) { /* noop */ }
+  try { console.debug('[splash] transitionend -> uiMonsterSelectionOpen dispatch'); dispatch(uiMonsterSelectionOpen()); } catch(e2) { /* noop */ }
         // Cleanup
         root.classList.remove('is-hiding');
       }

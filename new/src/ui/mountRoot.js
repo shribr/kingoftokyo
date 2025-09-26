@@ -10,7 +10,12 @@ export async function mountRoot(configEntries, store) {
   const sorted = [...configEntries].sort((a,b) => a.order - b.order);
   for (const entry of sorted) {
     if (!entry.enabled) continue;
+  // (Diagnostics removed after resolving monsterSelection visibility issue)
     const modFns = await resolveComponent(entry.build, entry.update);
+    if (!modFns || typeof modFns.build !== 'function') {
+      console.error('[mountRoot] Failed to resolve build function for', entry.name, 'from refs', entry.build, entry.update, modFns);
+      continue;
+    }
     const inst = modFns.build({
       selector: entry.selector,
       initialState: entry.initialState,
@@ -18,6 +23,7 @@ export async function mountRoot(configEntries, store) {
       dispatch: (action) => store.dispatch(action),
       getState: () => store.getState()
     });
+  // (Build logging removed)
     // Determine mount region if mountPoint is generic #app
     let mountPoint;
     if (entry.mountPoint && entry.mountPoint !== '#app') {

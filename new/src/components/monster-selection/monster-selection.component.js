@@ -14,6 +14,7 @@ export function build({ selector, dispatch, getState }) {
   // Renamed: was 'setup-modal' during migration; now canonical 'monster-selection-modal'
   root.className = selector.slice(1) + ' monster-selection-modal hidden';
   root.innerHTML = frame();
+  // Build confirmed; removed temporary debug log.
   const inst = { root, dispatch, getState, _local: { selected: new Set(), slots: [], playerCount: 4, _initialized: false } };
 
   root.addEventListener('click', (e) => {
@@ -103,7 +104,9 @@ export function update(ctx) {
   const root = ctx.inst?.root || ctx.root || ctx; const st = ctx.fullState || ctx.state;
   const open = st?.ui?.monsterSelection?.open;
   const inst = ctx.inst || { root, _local: { selected: new Set(), slots: [], playerCount: 4, _initialized: false } };
-  if (!open) { root.classList.add('hidden'); inst._local._initialized = false; return; }
+  // Trimmed verbose debug; retain show/hide logs below.
+  if (!open) { if (!root.classList.contains('hidden')) console.debug('[monster-selection.update] hiding (open flag false)'); root.classList.add('hidden'); inst._local._initialized = false; return; }
+  if (root.classList.contains('hidden')) console.debug('[monster-selection.update] showing (open flag true)');
   root.classList.remove('hidden');
   if (!inst._local._initialized) {
     inst._local.playerCount = 4; inst._local.slots = new Array(inst._local.playerCount).fill(null);

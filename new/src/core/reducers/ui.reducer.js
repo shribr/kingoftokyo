@@ -53,9 +53,11 @@ export function uiReducer(state = initial, action) {
       return { ...state, splash: { visible: false } };
     }
     case UI_MONSTER_SELECTION_OPEN: {
+      if (typeof window !== 'undefined' && window.console) console.debug('[ui.reducer] MONSTER_SELECTION_OPEN');
       return { ...state, monsterSelection: { open: true } };
     }
     case UI_MONSTER_SELECTION_CLOSE: {
+      if (typeof window !== 'undefined' && window.console) console.debug('[ui.reducer] MONSTER_SELECTION_CLOSE');
       return { ...state, monsterSelection: { open: false } };
     }
     case UI_POSITION_SET: {
@@ -103,6 +105,9 @@ export function uiReducer(state = initial, action) {
       return { ...state, attackPulse: { playerIds, ts } };
     }
     default:
+      if (typeof window !== 'undefined' && window.__KOT_DEBUG_ALL) {
+        try { console.debug('[ui.reducer] passthrough action', action.type); } catch(_) {}
+      }
       return state;
   }
 }

@@ -1,11 +1,13 @@
 /* Monster Selection Modal Styles */
 /* Renamed from .setup-modal to .monster-selection-modal */
 .cmp-monster-selection.monster-selection-modal { 
-	position: fixed; inset: 0; display:flex; justify-content:center; align-items:flex-start; padding-top:6vh; z-index:12000;
+	position: fixed; inset: 0; display:flex; justify-content:center; align-items:flex-start; padding-top:6vh; z-index:15050; /* Above blackout (7000) & profiles (<=15020) */
 	background: rgba(0,0,0,.58); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
 	transition: opacity .40s ease, transform .45s ease; will-change: opacity, transform; opacity:1; transform: translateY(0) scale(1); visibility:visible; pointer-events:auto;
 }
 .cmp-monster-selection.monster-selection-modal.hidden { opacity:0; transform: translateY(24px) scale(.94); visibility:hidden; pointer-events:none; }
+/* DEBUG FORCE: ensure visibility even if ancestor sets visibility:hidden */
+/* Removed debug force-visibility override; mountPoint changed to body so ancestor gating no longer hides this modal */
 .cmp-monster-selection .setup-frame { 
 	background:
 		radial-gradient(circle at 1px 1px, rgba(0,0,0,0.08) 1px, transparent 1px) 0 0/12px 12px,
