@@ -49,8 +49,8 @@
     "order": 205,
     "enabled": true,
     "stateKeys": ["ui","monsters"],
-    "build": "monsterSelection.build",
-    "update": "monsterSelection.update",
+  "build": "monster-selection.build",
+  "update": "monster-selection.update",
     "initialState": {},
     "assets": [],
     "zIndex": 65
