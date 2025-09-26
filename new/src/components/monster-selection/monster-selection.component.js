@@ -1,4 +1,4 @@
-/** monster-selection.component.js (finalized name; previously setup -> monsterSelection transitional)
+/** monster-selection.component.js
  * Monster Selection Modal
  * Responsibilities:
  *  - Allow choosing N monsters (1 human + CPUs)
@@ -11,7 +11,8 @@ import { createPlayer } from '../../domain/player.js';
 
 export function build({ selector, dispatch, getState }) {
   const root = document.createElement('div');
-  root.className = selector.slice(1) + ' setup-modal hidden';
+  // Renamed: was 'setup-modal' during migration; now canonical 'monster-selection-modal'
+  root.className = selector.slice(1) + ' monster-selection-modal hidden';
   root.innerHTML = frame();
   const inst = { root, dispatch, getState, _local: { selected: new Set(), slots: [], playerCount: 4, _initialized: false } };
 

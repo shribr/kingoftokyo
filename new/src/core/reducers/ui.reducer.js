@@ -6,6 +6,7 @@ const initial = {
   positions: {},
   monsterProfiles: { open: false },
   monsterSelection: { open: false },
+  settings: { open: false },
   singleMonster: { monsterId: null },
   splash: { visible: true },
   flags: { showProbabilities: false },
@@ -58,7 +59,10 @@ export function uiReducer(state = initial, action) {
     case UI_POSITIONS_RESET: {
       return { ...state, positions: {} };
     }
-    case UI_SETTINGS_OPEN: return { ...state, settings: { open: true } };
+    case UI_SETTINGS_OPEN: {
+      if (typeof window !== 'undefined' && window.console) console.debug('[ui.reducer] Settings OPEN');
+      return { ...state, settings: { open: true } };
+    }
     case UI_SETTINGS_CLOSE: return { ...state, settings: { open: false } };
     case UI_AI_DECISION_OPEN: return { ...state, aiDecision: { open: true } };
     case UI_AI_DECISION_CLOSE: return { ...state, aiDecision: { open: false } };

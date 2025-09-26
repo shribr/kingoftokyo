@@ -209,21 +209,7 @@ async function resolveComponent(buildRef, updateRef) {
     if (!update) update = module[`update${pas(folderName)}`];
     return { build, update };
   };
-  try {
-    return await tryLoad(folder);
-  } catch (e) {
-    if (folder.includes('-')) {
-      const camel = folder.replace(/-([a-z])/g, (_,c)=>c.toUpperCase());
-      try {
-        console.warn(`[mountRoot] Retrying component load with camelCase folder '${camel}' for '${folder}'.`);
-        return await tryLoad(camel);
-      } catch (e2) {
-        console.error('[mountRoot] Component load failed for both original and camelCase:', folder, camel, e2);
-        throw e2;
-      }
-    }
-    throw e;
-  }
+  return await tryLoad(folder);
 }
 
 function sliceState(keys, fullState) {

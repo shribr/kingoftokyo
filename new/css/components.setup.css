@@ -117,6 +117,8 @@
 .cmp-setup .setup-close:active { transform:translateY(0) scale(.96); box-shadow:2px 2px 0 #000; }
 .cmp-setup .setup-close:focus-visible { outline:3px solid #666; outline-offset:3px; }
 
+/* Deprecated: all styles moved to components.monster-selection.css.
+   This file intentionally left blank and will be deleted in a future cleanup. */
 
 
 @media (max-width: 1180px) {
