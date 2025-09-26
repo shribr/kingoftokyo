@@ -196,18 +196,46 @@ if (typeof window !== 'undefined') {
       if (blk) { blk.classList.add('is-hidden'); setTimeout(()=>blk.remove(), 520); }
     }
     prevSelectionOpen = selectionOpen;
+
+    // Watchdog: if splash gone, open flag true, but DOM element either missing or still hidden after 300ms since splash hide, force display
+    if (!st.ui.splash.visible && selectionOpen) {
+      if (!document.querySelector('.monster-selection-modal')) {
+        // Attempt late manual mount only once
+        if (!window.__KOT_MS_FALLBACK) {
+          window.__KOT_MS_FALLBACK = true;
+          console.warn('[bootstrap][watchdog] monster selection element missing post-splash; forcing late mount');
+          import('../components/monster-selection/monster-selection.component.js').then(mod => {
+            try {
+              const entry = { selector: '.cmp-monster-selection' };
+              const inst = mod.build({ selector: entry.selector, dispatch: (a)=>store.dispatch(a), getState: ()=>store.getState() });
+              document.body.appendChild(inst.root || inst);
+              mod.update({ inst, fullState: store.getState(), state: { ui: store.getState().ui, monsters: store.getState().monsters } });
+            } catch(e) { console.error('[bootstrap][watchdog] late mount failed', e); }
+          }).catch(e=>console.error('[bootstrap][watchdog] late import failed', e));
+        }
+      } else {
+        const el = document.querySelector('.monster-selection-modal');
+        if (el.classList.contains('hidden')) {
+          console.warn('[bootstrap][watchdog] removing hidden class from monster selection');
+          el.classList.remove('hidden');
+          el.style.display='block';
+          el.style.visibility='visible';
+          el.style.opacity='1';
+        }
+      }
+    }
   });
   // Lightweight animation tagging for profile cards (Tokyo entry & resource gains)
   let prevPlayers = store.getState().players.byId;
   store.subscribe(()=>{
     const stNow = store.getState();
     const cur = stNow.players.byId;
-    for (const id in cur) {
-      const prev = prevPlayers[id];
+    Object.keys(cur).forEach(id => {
       const now = cur[id];
-      if (!now) continue;
+      const prev = prevPlayers[id];
+      if (!now) return;
       const cardEl = document.querySelector(`.cmp-player-profile-card[data-player-id="${id}"]`);
-      if (!cardEl) continue;
+      if (!cardEl) return;
       if (prev && !prev.inTokyo && now.inTokyo) {
         cardEl.setAttribute('data-entered-tokyo','1');
         setTimeout(()=>cardEl.removeAttribute('data-entered-tokyo'),1400);
@@ -226,7 +254,7 @@ if (typeof window !== 'undefined') {
           setTimeout(()=>cardEl.removeAttribute('data-health-gain'),1000);
         }
       }
-    }
+    });
     prevPlayers = cur;
   });
   // Load component config dynamically

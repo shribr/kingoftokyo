@@ -203,7 +203,13 @@ async function resolveComponent(buildRef, updateRef) {
   const [folder, buildName] = buildRef.split('.');
   const pas = (s) => s.split('-').map(p=>p.charAt(0).toUpperCase()+p.slice(1)).join('');
   const tryLoad = async (folderName) => {
-    const module = await import(`../components/${folderName}/${folderName}.component.js`);
+    let module;
+    try {
+      module = await import(`../components/${folderName}/${folderName}.component.js`);
+    } catch(e) {
+      console.error('[resolveComponent] dynamic import failed for', folderName, e);
+      throw e;
+    }
     let build = module.build || module.default?.build;
     if (!build && buildName) build = module[buildName];
     if (!build) build = module[`build${pas(folderName)}`];

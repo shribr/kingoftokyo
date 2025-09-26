@@ -53,12 +53,14 @@ export function uiReducer(state = initial, action) {
       return { ...state, splash: { visible: false } };
     }
     case UI_MONSTER_SELECTION_OPEN: {
-      if (typeof window !== 'undefined' && window.console) console.debug('[ui.reducer] MONSTER_SELECTION_OPEN');
-      return { ...state, monsterSelection: { open: true } };
+      const next = { ...state, monsterSelection: { open: true } };
+      if (typeof window !== 'undefined' && window.console) console.debug('[ui.reducer] MONSTER_SELECTION_OPEN ->', next.monsterSelection);
+      return next;
     }
     case UI_MONSTER_SELECTION_CLOSE: {
-      if (typeof window !== 'undefined' && window.console) console.debug('[ui.reducer] MONSTER_SELECTION_CLOSE');
-      return { ...state, monsterSelection: { open: false } };
+      const next = { ...state, monsterSelection: { open: false } };
+      if (typeof window !== 'undefined' && window.console) console.debug('[ui.reducer] MONSTER_SELECTION_CLOSE ->', next.monsterSelection);
+      return next;
     }
     case UI_POSITION_SET: {
       const { componentName, x, y } = action.payload;

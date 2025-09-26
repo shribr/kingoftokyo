@@ -1,24 +1,35 @@
 /* Roll For First Modal Styles */
-.cmp-roll-for-first.rff-modal { position:fixed; inset:0; display:flex; align-items:flex-start; justify-content:center; z-index:15100; /* Above blackout & monster selection */ pointer-events:none; padding-top:6vh; }
+.cmp-roll-for-first.rff-modal { position:fixed; inset:0; display:flex; align-items:flex-start; justify-content:center; padding-top:5vh; z-index:15100; /* Above blackout & monster selection */ pointer-events:none; }
 .cmp-roll-for-first.rff-modal.hidden { display:none; }
 .cmp-roll-for-first.rff-modal.hidden { display:none; }
-.cmp-roll-for-first.rff-modal .rff-frame { pointer-events:auto; background:#1c1c1c; border:2px solid #111; box-shadow:10px 10px 0 #000, 0 0 0 2px #000 inset, 0 18px 42px -14px rgba(0,0,0,.85); padding:30px 40px 66px; width:min(960px,94vw); max-height:88vh; overflow:auto; border-radius:0; font-family:'Bangers',cursive; color:#e4e4e4; position:relative; }
-.cmp-roll-for-first.rff-modal .rff-title { text-align:center; font-size:3.2rem; margin:0 0 6px; letter-spacing:3px; color:#f1f1f1; text-shadow: -3px -3px 0 #000,3px -3px 0 #000,-3px 3px 0 #000,3px 3px 0 #000,6px 6px 12px rgba(0,0,0,.8); }
+.cmp-roll-for-first.rff-modal .rff-frame { pointer-events:auto; background:#1c1c1c; border:2px solid #111; box-shadow:10px 10px 0 #000, 0 0 0 2px #000 inset, 0 18px 42px -14px rgba(0,0,0,.85); padding:30px 46px 78px; width:min(1040px,96vw); max-height:92vh; overflow:auto; border-radius:0; font-family:'Bangers',cursive; color:#e4e4e4; position:relative; scrollbar-gutter: stable; }
+.cmp-roll-for-first.rff-modal .rff-title { text-align:center; font-size:3.1rem; margin:0 0 10px; letter-spacing:3px; color:#f1f1f1; text-shadow: -3px -3px 0 #000,3px -3px 0 #000,-3px 3px 0 #000,3px 3px 0 #000,6px 6px 12px rgba(0,0,0,.8); }
 .cmp-roll-for-first.rff-modal .rff-close { position:absolute; top:10px; right:10px; background:#181818; color:#bbb; border:1px solid #333; width:42px; height:42px; font-size:20px; cursor:pointer; font-family:'Bangers',cursive; display:flex; align-items:center; justify-content:center; box-shadow:2px 2px 0 #000; transition:background .18s ease; }
 .cmp-roll-for-first.rff-modal .rff-close:hover { background:#232323; }
-.cmp-roll-for-first.rff-modal .rff-broadcast { background:#111; border:1px solid #2a2a2a; padding:10px 14px 12px; margin:4px 0 18px; font-family:Arial,sans-serif; font-size:.9rem; line-height:1.35; letter-spacing:.4px; color:#d8d8d8; min-height:48px; display:flex; align-items:center; box-shadow:0 0 0 1px #000 inset; }
+.cmp-roll-for-first.rff-modal .rff-broadcast { background:#111; border:1px solid #2a2a2a; padding:12px 18px 14px; margin:4px 0 18px; font-family:Arial,sans-serif; font-size:.9rem; line-height:1.35; letter-spacing:.4px; color:#d8d8d8; min-height:150px; display:flex; flex-direction:column; justify-content:center; gap:6px; box-shadow:0 0 0 1px #000 inset; position:relative; overflow:visible; }
+@media (max-width: 800px) { .cmp-roll-for-first.rff-modal .rff-broadcast { min-height:130px; } }
+@media (max-width: 560px) { .cmp-roll-for-first.rff-modal .rff-broadcast { min-height:120px; } }
+
+/* Winner banner when moved into broadcast area */
+.cmp-roll-for-first.rff-modal .rff-broadcast .rff-winner-banner { margin-top:0; width:100%; align-self:stretch; }
 .cmp-roll-for-first.rff-modal .rff-rolls { list-style:none; margin:0 0 14px; padding:0; display:grid; grid-template-columns:1fr 80px; row-gap:6px; column-gap:10px; font-family:Arial,sans-serif; }
 .cmp-roll-for-first.rff-modal .rff-rolls li { display:contents; }
 .cmp-roll-for-first.rff-modal .rff-mon { background:#181818; padding:6px 10px; border:1px solid #2d2d2d; border-radius:0; text-align:left; font-weight:600; color:#ddd; }
 .cmp-roll-for-first.rff-modal .rff-val { background:#222; padding:6px 0; border:1px solid #333; border-radius:0; text-align:center; font-weight:700; font-size:1.05rem; color:#e4e4e4; box-shadow:0 0 0 1px #000 inset; }
-.cmp-roll-for-first.rff-modal .rff-actions { display:flex; flex-direction:column; align-items:center; gap:10px; margin-top:18px; }
+/* Footer with persistent controls */
+.cmp-roll-for-first.rff-modal .rff-footer { position:sticky; bottom:0; display:flex; justify-content:center; gap:18px; padding:14px 10px 4px; background:linear-gradient(to top, rgba(28,28,28,.95), rgba(28,28,28,.6) 60%, rgba(28,28,28,0)); backdrop-filter:blur(2px); margin-top:14px; }
+.cmp-roll-for-first.rff-modal .rff-footer .rff-btn { box-shadow:3px 3px 0 #000; }
+.cmp-roll-for-first.rff-modal .rff-footer .rff-skip { align-self:center; }
+
+/* Reserve extra breathing room at bottom so winner banner + trophy never cut off */
+.cmp-roll-for-first.rff-modal .rff-frame:after { content:""; position:absolute; left:0; right:0; bottom:0; height:40px; pointer-events:none; background:linear-gradient(to bottom, rgba(28,28,28,0), rgba(28,28,28,0.85)); }
 .cmp-roll-for-first.rff-modal .rff-btn { font-family:'Bangers',cursive; letter-spacing:1px; font-size:1.25rem; padding:12px 32px 14px; border-radius:0; border:2px solid #333; background:#222; color:#e4e4e4; cursor:pointer; box-shadow:3px 3px 0 #000; position:relative; text-shadow:none; transition:background .18s ease, transform .15s ease; }
 .cmp-roll-for-first.rff-modal .rff-btn-primary { background:#2e2e2e; color:#eaeaea; border-color:#444; }
 .cmp-roll-for-first.rff-modal .rff-btn:hover { background:#303030; }
 .cmp-roll-for-first.rff-modal .rff-btn:active { transform:translateY(2px); box-shadow:1px 1px 0 #000; }
- .cmp-roll-for-first.rff-modal .rff-skip { font-family:Arial,sans-serif; font-size:.75rem; letter-spacing:.5px; text-transform:uppercase; color:#bbb; text-decoration:none; opacity:.8; transition:color .2s ease, opacity .2s ease; align-self:flex-end; margin-top:2px; }
+ .cmp-roll-for-first.rff-modal .rff-skip { font-family:Arial,sans-serif; font-size:.7rem; letter-spacing:.5px; text-transform:uppercase; color:#bbb; text-decoration:none; opacity:.85; transition:color .2s ease, opacity .2s ease; }
  .cmp-roll-for-first.rff-modal .rff-skip:hover { color:#fff; opacity:1; }
-@media (max-width:640px) { .cmp-roll-for-first.rff-modal .rff-frame { padding:22px 20px 30px; } .cmp-roll-for-first.rff-modal .rff-header h2 { font-size:1.8rem; } .cmp-roll-for-first.rff-modal .rff-btn { font-size:1.05rem; padding:8px 16px 10px; } }
+@media (max-width:640px) { .cmp-roll-for-first.rff-modal .rff-frame { padding:22px 20px 30px; } .cmp-roll-for-first.rff-modal .rff-title { font-size:2.2rem; } .cmp-roll-for-first.rff-modal .rff-btn { font-size:1.05rem; padding:8px 16px 10px; } .cmp-roll-for-first.rff-modal .rff-footer { gap:12px; padding:12px 6px 4px; } }
 
 /* Animated dice (legacy-inspired) */
 .cmp-roll-for-first .rff-anim-dice { display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 4px; }
@@ -86,10 +97,13 @@
 	letter-spacing:1px; 
 	position:relative; 
 	margin-top:4px; 
-	width:min(520px,100%);
+	width:min(640px,100%);
 	animation:rff-winner-pop .55s cubic-bezier(.65,-0.35,.35,1.4);
 	text-align:center;
 }
+
+/* Slightly larger max width overall but still stretch inside broadcast */
+
 .cmp-roll-for-first .rff-winner-banner:before { content:""; position:absolute; inset:0; pointer-events:none; background:radial-gradient(circle at 50% 40%,rgba(255,215,0,.35),rgba(255,215,0,0) 60%); mix-blend-mode:screen; opacity:.8; }
 .cmp-roll-for-first .rff-winner-icon { font-size:2.2rem; filter:drop-shadow(0 0 6px rgba(255,215,0,.8)); animation:rff-winner-icon-pulse 2.4s ease-in-out infinite; }
 .cmp-roll-for-first .rff-winner-text { font-size:1.9rem; color:#FFDF3D; text-shadow:0 0 8px rgba(255,215,0,.75), -2px -2px 0 #000, 2px 2px 0 #000; line-height:1.05; }

@@ -1,7 +1,5 @@
 /** roll-for-first.component.js */
 import { phaseChanged, metaActivePlayerSet, uiRollForFirstResolved } from '../../core/actions.js';
-import { store } from '../../bootstrap/index.js';
-import { componentsRegistry } from '../../core/componentsRegistry.js';
 
 export function build({ selector, dispatch, getState }) {
   const root = document.createElement('div');
@@ -44,10 +42,10 @@ function markup() {
     <div class="rff-broadcast" data-commentary>Welcome to the opening roll! Click Roll Dice when you're ready.</div>
     <div class="modal-body rff-body" data-body>
       <div class="rff-results" data-results></div>
-      <div class="rff-actions" data-actions>
-        <button class="rff-btn rff-btn-primary rff-roll-btn" data-action="roll">ROLL DICE</button>
-        <a href="#" class="rff-skip" data-action="skip-rff" aria-label="Skip rolling and auto decide first player">Skip & Assign</a>
-      </div>
+    </div>
+    <div class="rff-footer" data-rff-footer>
+      <button class="rff-btn rff-btn-primary rff-roll-btn" data-action="roll">ROLL DICE</button>
+      <a href="#" class="rff-skip" data-action="skip-rff" aria-label="Skip rolling and auto decide first player">Skip & Assign</a>
     </div>
   </div>`;
 }
@@ -249,7 +247,7 @@ function evaluateRound(dispatch, getState, root) {
     const row = root.querySelector(`tr[data-player-row="${r.id}"]`);
     if (row) row.classList.add('winner');
   });
-  const actions = root.querySelector('[data-actions]');
+  // actions container removed (buttons now in header)
   if (top.length === 1) {
     const winnerId = top[0].id;
     const idx = st.players.order.indexOf(winnerId);
@@ -258,13 +256,15 @@ function evaluateRound(dispatch, getState, root) {
     if (commentary) commentary.textContent = `${winnerName} wins the roll and will go first!`;
     const stObj2 = ensureStateObject(root, getState);
     stObj2.winnerDecided = true;
-    actions.innerHTML = '<div class="rff-winner-msg">Winner decided...</div>';
-    // Replace with enhanced banner for clearer visibility
-    actions.innerHTML = `<div class="rff-winner-banner" role="status" aria-live="polite">
+  // No actions container to clear; button will remain but disabled by sequence resolution
+    // Place winner banner in commentary area (broadcast) so vertical space was already reserved
+    if (commentary) {
+      commentary.innerHTML = `<div class="rff-winner-banner" role="status" aria-live="polite">
         <div class="rff-winner-icon">🏆</div>
         <div class="rff-winner-text">${winnerName.toUpperCase()}</div>
         <div class="rff-winner-sub">Will Take The First Turn</div>
       </div>`;
+    }
     scheduleAutoClose(dispatch, getState, root);
   } else {
     // Tie -> new subset

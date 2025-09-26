@@ -15,6 +15,7 @@ export function build({ selector, dispatch, getState }) {
   root.className = selector.slice(1) + ' monster-selection-modal hidden';
   root.innerHTML = frame();
   // Build confirmed; removed temporary debug log.
+  console.debug('[monster-selection][build] initializing component');
   const inst = { root, dispatch, getState, _local: { selected: new Set(), slots: [], playerCount: 4, _initialized: false } };
 
   root.addEventListener('click', (e) => {
@@ -105,6 +106,16 @@ export function update(ctx) {
   const open = st?.ui?.monsterSelection?.open;
   const inst = ctx.inst || { root, _local: { selected: new Set(), slots: [], playerCount: 4, _initialized: false } };
   // Trimmed verbose debug; retain show/hide logs below.
+  if (!st || !st.ui || !st.ui.monsterSelection) {
+    if (!root._warnedMissingSlice) {
+      console.warn('[monster-selection][update] state slice missing', st?.ui?.monsterSelection);
+      root._warnedMissingSlice = true;
+    }
+  } else {
+    root._warnedMissingSlice = false;
+  }
+  const openFlag = st?.ui?.monsterSelection?.open;
+  console.debug('[monster-selection][update] invoked. open=', openFlag, 'hasHiddenClass=', root.classList.contains('hidden'));
   if (!open) { if (!root.classList.contains('hidden')) console.debug('[monster-selection.update] hiding (open flag false)'); root.classList.add('hidden'); inst._local._initialized = false; return; }
   if (root.classList.contains('hidden')) console.debug('[monster-selection.update] showing (open flag true)');
   root.classList.remove('hidden');
@@ -112,7 +123,18 @@ export function update(ctx) {
     inst._local.playerCount = 4; inst._local.slots = new Array(inst._local.playerCount).fill(null);
     inst._local.selected = new Set(); inst._local._initialized = true; inst._local.prevMonsterCount = 0;
   }
-  render(inst, st);
+  // Watchdog: if state says open but element somehow still hidden via inline style or visibility, force show
+  if (openFlag) {
+    const cs = getComputedStyle(root);
+    if (cs.display === 'none' || cs.visibility === 'hidden' || cs.opacity === '0') {
+      console.warn('[monster-selection][watchdog] forcing visible (state open but computed style hidden)', { display: cs.display, visibility: cs.visibility, opacity: cs.opacity });
+      root.style.display = 'block';
+      root.style.visibility = 'visible';
+      root.style.opacity = '1';
+      root.classList.remove('hidden');
+    }
+  }
+  try { render(inst, st); } catch(e) { console.error('[monster-selection][render] failed', e); }
 }
 
 function frame() {
