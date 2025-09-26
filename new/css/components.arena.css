@@ -23,7 +23,7 @@
   --arena-gap: clamp(20px,4vw,60px);
   --arena-slot-height: 140px; /* slightly larger for bigger tiles */
   --arena-round-size: 60px;
-  --arena-round-color: #E6C200;
+  --arena-round-color: var(--accent-monsters,#ffcf33);
   --tokyo-city-rot: -4deg;
   --tokyo-bay-rot: 5deg;
   --tokyo-tile-scale: 1; /* base scale 1; responsive adjustments below */

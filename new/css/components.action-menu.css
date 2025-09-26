@@ -8,7 +8,7 @@
   --action-menu-radius: 6px;
   --action-menu-gap: 8px;
   --action-menu-padding: 12px 14px 14px;
-  --action-menu-title-color: #ffd400;
+  --action-menu-title-color: var(--accent-monsters,#ffcf33);
   --action-menu-shadow: 4px 4px 0 #000, 0 0 0 2px #222 inset;
 }
 
@@ -32,6 +32,9 @@
   max-width:240px;
   min-width:220px;
   align-items:stretch;
+  filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  backdrop-filter:none !important;
 }
 .app-toolbar, .game-toolbar, [data-toolbar] { margin-bottom:12px; }
 .cmp-action-menu:before {
@@ -39,7 +42,7 @@
   position:absolute;
   top:-18px;
   left:10px;
-  background:#ffd400;
+  background:var(--action-menu-title-color);
   color:#111;
   padding:2px 10px 4px;
   font-size:18px;

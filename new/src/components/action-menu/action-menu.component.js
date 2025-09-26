@@ -76,7 +76,7 @@ export function build({ selector }) {
     window.addEventListener('resize', () => {
       const mode = store.getState().settings?.actionMenuMode || 'hybrid';
       if (mode === 'docked' || (mode === 'hybrid' && root.dataset.amDockState === 'docked')) {
-        reAnchorToDiceTray(root);
+        anchorActionMenu(root);
       }
       clampIntoView();
       ensureVisibleWithinViewport(root);
@@ -86,15 +86,12 @@ export function build({ selector }) {
     const persist = !!store.getState().settings?.persistPositions;
     const hasSaved = persist && !!store.getState().ui.positions.actionMenu;
     if (!hasSaved) {
-      reAnchorToDiceTray(root, true);
-      // Re-anchor once more after dice tray possible auto-alignment (next frame / after event)
-      requestAnimationFrame(() => { if (!root._userMoved && root.dataset.amDockState === 'docked') reAnchorToDiceTray(root); });
-      const autoAlignHandler = () => { if (!root._userMoved && root.dataset.amDockState === 'docked') reAnchorToDiceTray(root); };
-      window.addEventListener('diceTrayAutoAligned', autoAlignHandler);
-      root._cleanupAutoAlign = () => window.removeEventListener('diceTrayAutoAligned', autoAlignHandler);
+      anchorActionMenu(root, true);
+      // Additional pass after layout settle
+      requestAnimationFrame(() => { if (!root._userMoved && root.dataset.amDockState === 'docked') anchorActionMenu(root); });
     }
   } catch(e) { /* non-fatal */ }
-  return { root, update: () => update(root), destroy: () => { root._cleanupAutoAlign && root._cleanupAutoAlign(); root.remove(); } };
+  return { root, update: () => update(root), destroy: () => { root.remove(); } };
 }
 
 // (legacy panels toggle removed)
@@ -194,20 +191,40 @@ function avoidMonsterPanelOverlap(root) {
 }
 
 // Re-anchor near dice tray (used for docked mode and hybrid before user drag)
-function reAnchorToDiceTray(root, initial=false) {
-  // Preferred anchor: toolbar right edge. Fallback: dice tray.
+function anchorActionMenu(root, initial=false) {
   const toolbar = document.querySelector('.cmp-toolbar');
-  const tray = document.querySelector('.cmp-dice-tray');
-  if (!toolbar && !tray) { if (initial && (reAnchorToDiceTray._tries = (reAnchorToDiceTray._tries||0)+1) < 12) requestAnimationFrame(() => reAnchorToDiceTray(root, true)); return; }
   const mode = store.getState().settings?.actionMenuMode || 'hybrid';
   if (root._userMoved && (mode === 'floating' || mode === 'hybrid')) return;
-  const anchorRect = (toolbar || tray).getBoundingClientRect();
+  if (!toolbar) {
+    // Fallback: top-right viewport anchor
+    if (initial && (anchorActionMenu._tries = (anchorActionMenu._tries||0)+1) < 12) {
+      requestAnimationFrame(() => anchorActionMenu(root, true));
+    }
+    root.style.left = (window.innerWidth - root.offsetWidth - 40) + 'px';
+    root.style.top = '100px';
+    root.style.transform = 'translate(0,0)';
+    if (mode === 'hybrid') root.dataset.amDockState = 'docked';
+    return;
+  }
+  const r = toolbar.getBoundingClientRect();
   const scrollY = window.scrollY || 0;
-  const GAP = 28;
+  const GAP = 32;
+  const desiredLeft = r.right + GAP;
+  const maxLeft = window.innerWidth - (root.offsetWidth || 240) - 12;
+  root.style.left = Math.min(desiredLeft, maxLeft) + 'px';
+  // Ensure we have a measured height; if zero (not yet laid out) schedule another frame.
+  const menuHeight = root.offsetHeight;
+  if (!menuHeight && (anchorActionMenu._heightTries = (anchorActionMenu._heightTries||0)+1) < 5) {
+    requestAnimationFrame(() => anchorActionMenu(root, initial));
+    return;
+  }
+  // Align menu bottom to toolbar top => top = toolbarTop - menuHeight
+  let top = r.top + scrollY - menuHeight;
+  const minTop = 10;
+  const maxTop = window.innerHeight - menuHeight - 10 + scrollY;
+  if (top < minTop) top = minTop; else if (top > maxTop) top = maxTop;
+  root.style.top = top + 'px';
   root.style.right = '';
-  root.style.left = (anchorRect.right + GAP) + 'px';
-  // Align vertically with top of anchor if toolbar; if tray, keep previous logic
-  root.style.top = Math.max(10, (toolbar ? anchorRect.top : anchorRect.top) + scrollY) + 'px';
   root.style.bottom = '';
   root.style.transform = 'translate(0,0)';
   if (mode === 'hybrid') root.dataset.amDockState = 'docked';

@@ -13,7 +13,10 @@ export function build({ selector, emit }) {
   root.className = `${selector.slice(1)} cmp-dice-tray`;
   root.setAttribute('data-draggable','true');
   // Tray frame + dice row (matching legacy visual reference)
-  root.innerHTML = `<div class="tray-frame"><div class="dice" data-dice aria-label="Dice Tray"></div></div>`;
+  root.innerHTML = `<div class="tray-frame" data-tray-frame>
+    <div class="tray-label" aria-hidden="true">DICE</div>
+    <div class="dice" data-dice aria-label="Dice Tray"></div>
+  </div>`;
   // Track previous diceSlots to animate expansions
   root._prevDiceSlots = 6;
 
@@ -29,9 +32,18 @@ export function build({ selector, emit }) {
     const arena = document.querySelector('.cmp-arena');
     if (!arena) return;
     const aRect = arena.getBoundingClientRect();
-    // Place tray slightly below arena bottom or keep fixed bottom? We'll keep existing bottom offset, just align left
-    root.style.left = aRect.left + 'px';
+    // Desired: default position directly below the arena. Keep previous left alignment with arena's left edge.
+    const GAP_Y = 24;
+    const GAP_X = 0; // maintain left edge alignment; adjust if we later add centering option
+    root.style.left = (aRect.left + GAP_X) + 'px';
     root.style.transform = 'translateX(0)';
+    // Clear any bottom anchoring and set top just below arena (clamped to viewport)
+    root.style.bottom = '';
+    let proposedTop = aRect.bottom + GAP_Y + (window.scrollY || 0);
+    const trayH = root.offsetHeight || 0;
+    const maxTop = (window.innerHeight - trayH - 16) + (window.scrollY || 0);
+    if (trayH && proposedTop > maxTop) proposedTop = Math.max(10, maxTop);
+    root.style.top = proposedTop + 'px';
     // Notify listeners (e.g., action menu) that tray alignment finalized for this frame.
     window.dispatchEvent(new CustomEvent('diceTrayAutoAligned', { detail: { left: aRect.left } }));
   }
