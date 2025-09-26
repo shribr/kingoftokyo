@@ -6,5 +6,6 @@
 .cmp-dice-tray [data-dice-count].bump { animation: bumpScale .5s ease; }
 @keyframes bumpScale { 0% { transform:scale(1); } 40% { transform:scale(1.25); } 100% { transform:scale(1); } }
 /* Placeholder styling */
-.cmp-dice-tray .die.pending { filter:grayscale(0.6); opacity:0.5; }
-.cmp-dice-tray .die.extra-die.pending { opacity:0.4; }
+/* Pending dice should no longer dim; retain subtle grayscale only if desired but keep opacity 1 */
+.cmp-dice-tray .die.pending { filter:grayscale(0.35); opacity:1; }
+.cmp-dice-tray .die.extra-die.pending { opacity:1; }

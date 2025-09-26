@@ -10,6 +10,7 @@ const DEFAULT_SETTINGS = {
   , playerCardLayoutMode: 'stacked' // stacked | condensed | list (new enumerated replacement for stackedPlayerCards)
   , soundMuted: false // global mute toggle
   , actionMenuMode: 'hybrid' // hybrid | docked | floating (controls action menu auto-position behavior)
+  , autoStartInTest: true // when skipintro=1 load + auto-start full random game; if false just load UI without starting
 };
 
 export function settingsReducer(state = DEFAULT_SETTINGS, action) {

@@ -19,6 +19,11 @@ export function build({ selector, dispatch, getState }) {
       dispatch(uiSetupClose());
       return;
     }
+    // Explicit close (X) button
+    if (t.closest('[data-action="close"]')) {
+      dispatch(uiSetupClose());
+      return;
+    }
     // Monster Profiles
     if (t.closest('[data-action="profiles"]')) {
       dispatch(uiMonsterProfilesOpen());
@@ -169,7 +174,8 @@ export function update(ctx) {
 
 function frame() {
   return `
-    <div class="setup-frame">
+    <div class="setup-frame" role="dialog" aria-modal="true" aria-label="Monster Selection">
+      <button type="button" class="setup-close" data-action="close" aria-label="Close">✕</button>
       <div class="setup-title">MONSTER SELECTION</div>
       <div class="setup-controls">
         <button class="pill-btn" data-action="profiles">Monster Profiles</button>

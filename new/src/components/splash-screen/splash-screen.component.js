@@ -8,6 +8,7 @@ export function build({ selector, dispatch, getState }) {
   root.innerHTML = splashMarkup();
   // Mark body as splash-visible initially
   document.body.classList.add('splash-visible');
+  ensureBlackout();
 
   root.addEventListener('click', (e) => {
     if (e.target.id === 'enter-battle-btn' || e.target.closest('#enter-battle-btn')) {
@@ -32,6 +33,8 @@ export function update(ctx) {
   if (!visible) {
     root.classList.add('is-hidden');
     document.body.classList.remove('splash-visible');
+    // Ensure blackout still present after splash hides (it may have been removed inadvertently)
+    ensureBlackout();
   } else {
     root.classList.remove('is-hidden');
     document.body.classList.add('splash-visible');
@@ -134,4 +137,12 @@ function beginHideSequence(dispatch, root) {
     };
     root.addEventListener('transitionend', onEnd);
   });
+}
+
+function ensureBlackout() {
+  if (!document.querySelector('.post-splash-blackout')) {
+    const div = document.createElement('div');
+    div.className = 'post-splash-blackout';
+    document.body.appendChild(div);
+  }
 }

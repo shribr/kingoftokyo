@@ -1,4 +1,4 @@
-import { NEXT_TURN, PLAYER_JOINED } from '../actions.js';
+import { NEXT_TURN, PLAYER_JOINED, META_ACTIVE_PLAYER_SET } from '../actions.js';
 
 // Forward-compat fields (dark edition scaffolding):
 // gameMode: 'classic' | 'dark'
@@ -17,6 +17,11 @@ export function metaReducer(state = initial, action, rootStateRef) {
       const nextIdx = (state.activePlayerIndex + 1) % order.length;
       const wrapped = nextIdx === 0; // completed a full cycle
       return { ...state, turn: state.turn + 1, activePlayerIndex: nextIdx, round: wrapped ? state.round + 1 : state.round };
+    }
+    case META_ACTIVE_PLAYER_SET: {
+      const idx = action.payload.index;
+      if (typeof idx !== 'number' || idx < 0) return state;
+      return { ...state, activePlayerIndex: idx };
     }
     default:
       return state;

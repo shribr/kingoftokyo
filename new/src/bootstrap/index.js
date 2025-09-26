@@ -6,7 +6,7 @@ import { diceReducer } from '../core/reducers/dice.reducer.js';
 import { playersReducer } from '../core/reducers/players.reducer.js';
 import { mountRoot } from '../ui/mountRoot.js';
 import { bindUIEventBridges } from '../ui/eventsToActions.js';
-import { playerJoined, phaseChanged, uiSplashHide, uiSetupClose, monstersLoaded } from '../core/actions.js';
+import { playerJoined, phaseChanged, uiSplashHide, uiSetupClose, monstersLoaded, uiRollForFirstOpen } from '../core/actions.js';
 import { phaseReducer } from '../core/reducers/phase.reducer.js';
 import { logReducer } from '../core/reducers/log.reducer.js';
 import { tokyoReducer } from '../core/reducers/tokyo.reducer.js';
@@ -90,7 +90,18 @@ if (typeof window !== 'undefined') {
   fetch('./config.json').then(r => r.json()).then(cfg => {
     const monsters = Object.values(cfg.monsters || {}).map(m => ({ id: m.id, name: m.name, image: m.image, description: m.description, personality: m.personality || {}, color: m.color }));
     store.dispatch(monstersLoaded(monsters));
-    if (skipIntro) seedRandomPlayers(store, monsters, logger);
+    if (skipIntro) {
+      const st = store.getState();
+      if (st.settings?.autoStartInTest) {
+        if (!st.players.order.length) {
+          seedRandomPlayers(store, monsters, logger);
+        }
+        const seeded = store.getState().players.order.length;
+        if (!seeded) console.warn('[bootstrap] skipIntro active but players failed to seed (monsters likely empty or images missing).');
+      } else {
+        logger.system('Skip intro detected but autoStartInTest=false: UI only mode. (No players will auto-seed)');
+      }
+    }
   }).catch(() => {
     const fallback = [
       { id: 'king', name: 'The King', image: '', description: 'A mighty ape', personality: { aggression: 5, strategy: 2, risk: 3, economic: 2 }, color: '#444' },
@@ -98,7 +109,16 @@ if (typeof window !== 'undefined') {
       { id: 'kraken', name: 'Kraken', image: '', description: 'Sea terror', personality: { aggression: 4, strategy: 3, risk: 3, economic: 2 }, color: '#2277aa' }
     ];
     store.dispatch(monstersLoaded(fallback));
-    if (skipIntro) seedRandomPlayers(store, fallback, logger);
+    if (skipIntro) {
+      const st = store.getState();
+      if (st.settings?.autoStartInTest) {
+        if (!st.players.order.length) seedRandomPlayers(store, fallback, logger);
+        const seeded = store.getState().players.order.length;
+        if (!seeded) console.warn('[bootstrap] skipIntro active (fallback) but players failed to seed.');
+      } else {
+        logger.system('Skip intro detected (fallback monsters) but autoStartInTest=false: UI only mode. (No players will auto-seed)');
+      }
+    }
   });
   initCards(store, logger);
   // Revised start logic: Do NOT auto-start when splash hides.
@@ -110,24 +130,85 @@ if (typeof window !== 'undefined') {
 
   if (skipIntro) {
     // Mark setup as having been opened (bypasses normal open->close detection) and hide splash immediately.
-    setupWasOpened = true;
-    store.dispatch(uiSplashHide());
-    store.dispatch(uiSetupClose());
-    // Defer start to next tick so reducers settle & cards initialize.
-    setTimeout(() => {
-      try { turnService.startGameIfNeeded(); } catch(e) { console.warn('Skip intro start failed', e); }
-    }, 0);
+    const st = store.getState();
+    if (st.settings?.autoStartInTest) {
+      setupWasOpened = true;
+      store.dispatch(uiSplashHide());
+      store.dispatch(uiSetupClose());
+      setTimeout(() => {
+        try { turnService.startGameIfNeeded(); } catch(e) { console.warn('Skip intro start failed', e); }
+      }, 0);
+    } else {
+      // Just hide splash and keep setup considered NOT opened so game won't auto start.
+      store.dispatch(uiSplashHide());
+    }
   }
 
   store.subscribe(() => {
     const st = store.getState();
     const setupOpen = !!st.ui?.setup?.open;
     if (setupOpen && !setupWasOpened) setupWasOpened = true;
-    // When setup transitions from open -> closed after having been opened, and splash is gone, start game.
-    if (!setupOpen && prevSetupOpen && setupWasOpened && st.ui?.splash?.visible === false) {
+    const splashGone = st.ui?.splash?.visible === false;
+    const rff = st.ui?.rollForFirst;
+    // Debug traces for gating states
+    if (typeof window !== 'undefined' && window.__KOT_DEBUG_RFF !== false) {
+      if (!setupOpen && prevSetupOpen) {
+        console.debug('[bootstrap] Setup just closed. setupWasOpened=%s splashGone=%s players=%d rff=%o phase=%s', setupWasOpened, splashGone, st.players.order.length, rff, st.phase);
+      }
+    }
+    // When setup transitions from open -> closed after having been opened, and splash is gone, open Roll For First (once) if players exist and not resolved
+    if (!setupOpen && prevSetupOpen && setupWasOpened && splashGone) {
+      if (st.players.order.length > 0 && !(rff && (rff.open || rff.resolved))) {
+        store.dispatch(uiRollForFirstOpen());
+        ensurePostSplashBlackout();
+      } else if (rff && rff.resolved) {
+        // If already resolved (e.g., dev skip), then we can start game if still in SETUP
+        if (st.phase === 'SETUP') turnService.startGameIfNeeded();
+      }
+    }
+    // If roll-for-first just resolved (open false, resolved true) and phase still SETUP, start game.
+    if (rff && rff.resolved && st.phase === 'SETUP') {
       turnService.startGameIfNeeded();
     }
+    // When phase leaves SETUP (i.e., game actually starts) mark body active and fade out blackout
+    if (st.phase !== 'SETUP' && !document.body.classList.contains('game-active')) {
+      document.body.classList.add('game-active');
+      const blk = document.querySelector('.post-splash-blackout');
+      if (blk) { blk.classList.add('is-hidden'); setTimeout(()=>blk.remove(), 520); }
+    }
     prevSetupOpen = setupOpen;
+  });
+  // Lightweight animation tagging for profile cards (Tokyo entry & resource gains)
+  let prevPlayers = store.getState().players.byId;
+  store.subscribe(()=>{
+    const stNow = store.getState();
+    const cur = stNow.players.byId;
+    for (const id in cur) {
+      const prev = prevPlayers[id];
+      const now = cur[id];
+      if (!now) continue;
+      const cardEl = document.querySelector(`.cmp-player-profile-card[data-player-id="${id}"]`);
+      if (!cardEl) continue;
+      if (prev && !prev.inTokyo && now.inTokyo) {
+        cardEl.setAttribute('data-entered-tokyo','1');
+        setTimeout(()=>cardEl.removeAttribute('data-entered-tokyo'),1400);
+      }
+      if (prev) {
+        if (now.vp > prev.vp) {
+          cardEl.setAttribute('data-vp-gain','1');
+          setTimeout(()=>cardEl.removeAttribute('data-vp-gain'),1000);
+        }
+        if (now.energy > prev.energy) {
+          cardEl.setAttribute('data-energy-gain','1');
+          setTimeout(()=>cardEl.removeAttribute('data-energy-gain'),1000);
+        }
+        if (now.health > prev.health) {
+          cardEl.setAttribute('data-health-gain','1');
+          setTimeout(()=>cardEl.removeAttribute('data-health-gain'),1000);
+        }
+      }
+    }
+    prevPlayers = cur;
   });
   // Load component config dynamically
   fetch('./components.config.json')
@@ -160,4 +241,11 @@ function seedRandomPlayers(store, monsters, logger) {
       store.dispatch(playerJoined(createPlayer({ id: 'p'+(idx+1), name: monId, monsterId: monId })));
     });
   }
+}
+
+function ensurePostSplashBlackout() {
+  if (document.querySelector('.post-splash-blackout')) return;
+  const div = document.createElement('div');
+  div.className = 'post-splash-blackout';
+  document.body.appendChild(div);
 }

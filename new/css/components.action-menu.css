@@ -76,7 +76,7 @@
   transition:transform .18s cubic-bezier(.25,.46,.45,.94), box-shadow .18s ease, filter .2s ease;
 }
 .cmp-action-menu button[data-action="keep"],
-.cmp-action-menu button[data-action="end"] { background:var(--btn-bg-alt); color:#06212c; }
+.cmp-action-menu button[data-action="end"] { background:var(--btn-bg-alt); color:#fff; text-shadow:-1px -1px 0 #06212c,1px -1px 0 #06212c,-1px 1px 0 #06212c,1px 1px 0 #06212c; }
 .cmp-action-menu button:disabled { background:var(--btn-bg-muted); color:#2a2a2a; text-shadow:none; box-shadow:2px 2px 0 #000,0 0 0 2px #222 inset; }
 .cmp-action-menu button:not(:disabled):hover { transform:translate(-2px,-3px); box-shadow:5px 5px 0 #000,0 0 0 2px #222 inset; filter:brightness(1.08); }
 .cmp-action-menu button:not(:disabled):active { transform:translate(0,0); box-shadow:2px 2px 0 #000,0 0 0 2px #222 inset; }

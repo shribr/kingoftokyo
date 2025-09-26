@@ -37,6 +37,8 @@ export const CARD_EFFECT_FAILED = 'CARD_EFFECT_FAILED';
 // Meta / Turn
 export const NEXT_TURN = 'NEXT_TURN';
 export const GAME_STATE_IMPORTED = 'GAME_STATE_IMPORTED';
+// Meta direct set (e.g., first player determination)
+export const META_ACTIVE_PLAYER_SET = 'META_ACTIVE_PLAYER_SET';
 // UI
 export const UI_CARD_DETAIL_OPEN = 'UI_CARD_DETAIL_OPEN';
 export const UI_CARD_DETAIL_CLOSE = 'UI_CARD_DETAIL_CLOSE';
@@ -69,6 +71,9 @@ export const UI_CONFIRM_OPEN = 'UI_CONFIRM_OPEN';
 export const UI_CONFIRM_CLOSE = 'UI_CONFIRM_CLOSE';
 export const UI_ABOUT_OPEN = 'UI_ABOUT_OPEN';
 export const UI_ABOUT_CLOSE = 'UI_ABOUT_CLOSE';
+export const UI_ROLL_FOR_FIRST_OPEN = 'UI_ROLL_FOR_FIRST_OPEN';
+export const UI_ROLL_FOR_FIRST_CLOSE = 'UI_ROLL_FOR_FIRST_CLOSE';
+export const UI_ROLL_FOR_FIRST_RESOLVED = 'UI_ROLL_FOR_FIRST_RESOLVED';
 // Peek & attack visual indicators
 export const UI_PEEK_SHOW = 'UI_PEEK_SHOW';
 export const UI_PEEK_HIDE = 'UI_PEEK_HIDE';
@@ -122,6 +127,7 @@ export const cardEffectFailed = (entryId, reason) => ({ type: CARD_EFFECT_FAILED
 // Turn / meta
 export const nextTurn = () => ({ type: NEXT_TURN });
 export const gameStateImported = (snapshot) => ({ type: GAME_STATE_IMPORTED, payload: { snapshot } });
+export const metaActivePlayerSet = (index) => ({ type: META_ACTIVE_PLAYER_SET, payload: { index } });
 // UI action creators
 export const uiCardDetailOpen = (cardId, source) => ({ type: UI_CARD_DETAIL_OPEN, payload: { cardId, source } });
 export const uiCardDetailClose = () => ({ type: UI_CARD_DETAIL_CLOSE });
@@ -155,6 +161,9 @@ export const uiConfirmOpen = (confirmId, message, confirmLabel = 'Confirm', canc
 export const uiConfirmClose = () => ({ type: UI_CONFIRM_CLOSE });
 export const uiAboutOpen = () => ({ type: UI_ABOUT_OPEN });
 export const uiAboutClose = () => ({ type: UI_ABOUT_CLOSE });
+export const uiRollForFirstOpen = () => ({ type: UI_ROLL_FOR_FIRST_OPEN });
+export const uiRollForFirstClose = () => ({ type: UI_ROLL_FOR_FIRST_CLOSE });
+export const uiRollForFirstResolved = () => ({ type: UI_ROLL_FOR_FIRST_RESOLVED });
 // Peek + attack visual creators
 export const uiPeekShow = (card) => ({ type: UI_PEEK_SHOW, payload: { card } });
 export const uiPeekHide = () => ({ type: UI_PEEK_HIDE });

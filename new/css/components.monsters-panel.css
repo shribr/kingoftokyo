@@ -5,6 +5,13 @@
 .cmp-monsters-panel .mp-body { display:flex; flex-direction:column; gap:14px; }
 .cmp-monsters-panel .mp-player-cards { display:flex; flex-direction:column; gap:12px; }
 .cmp-monsters-panel .cmp-player-profile-card { width:100%; }
+/* Empty state button style (matches power cards hint tone but ensures light gray color) */
+.cmp-monsters-panel .mp-no-players { background:transparent; border:0; padding:10px 6px 14px; text-align:center; width:100%; cursor:pointer; font-family:'Bangers',cursive; letter-spacing:1px; font-size:14px; color:#bbb; opacity:.88; text-shadow:none; }
+.cmp-monsters-panel .mp-no-players:hover { filter:brightness(1.15); }
+.cmp-monsters-panel .mp-no-players:focus { outline:2px solid #bbb; outline-offset:2px; }
+/* Accent highlight for the clickable word 'here' */
+.cmp-monsters-panel .mp-no-players .mp-link-accent { color:#ffcf33; text-decoration:underline; text-decoration-thickness:2px; text-underline-offset:3px; }
+.cmp-monsters-panel .mp-no-players:hover .mp-link-accent { filter:brightness(1.1); }
 
 @media (max-width:1100px) {
   .cmp-monsters-panel .mp-player-cards { flex-direction:row; flex-wrap:wrap; }

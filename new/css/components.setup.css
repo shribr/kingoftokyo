@@ -1,22 +1,35 @@
-/* Setup modal matching legacy Monster Selection UI w/ animated entry */
-.cmp-setup.setup-modal { position: fixed; inset: 0; display:flex; justify-content:center; align-items:flex-start; padding-top:4vh; z-index: 12000; 
-	background: 
+/* Setup selection presented as a true modal (centered panel + backdrop) */
+.cmp-setup.setup-modal { 
+	position: fixed; inset: 0; display:flex; justify-content:center; align-items:flex-start; padding-top:6vh; z-index:12000;
+	background: rgba(0,0,0,.58); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+	transition: opacity .40s ease, transform .45s ease; will-change: opacity, transform; opacity:1; transform: translateY(0) scale(1); visibility:visible; pointer-events:auto;
+}
+.cmp-setup.setup-modal.hidden { opacity:0; transform: translateY(24px) scale(.94); visibility:hidden; pointer-events:none; }
+/* Modal frame now holds the legacy playful paper pattern */
+.cmp-setup .setup-frame { 
+	background:
 		radial-gradient(circle at 1px 1px, rgba(0,0,0,0.08) 1px, transparent 1px) 0 0/12px 12px,
 		radial-gradient(circle at 1px 1px, rgba(0,0,0,0.06) 1px, transparent 1px) 6px 6px/12px 12px,
 		#fbf6ea;
-    transition: opacity .45s ease, transform .45s ease; will-change: opacity, transform; opacity:1; transform: translateY(0) scale(1); visibility:visible; pointer-events:auto;
+	border:4px solid #111; box-shadow: 14px 14px 0 #000, 0 0 0 4px #ffcc33 inset, 0 0 18px rgba(0,0,0,.4);
+	border-radius:18px; padding:24px 28px 28px; width: min(96vw, 1180px); display:flex; flex-direction:column; max-height:calc(100vh - 12vh); position:relative; overflow:hidden;
 }
-.cmp-setup.setup-modal.hidden { opacity:0; transform: translateY(18px) scale(.96); visibility:hidden; pointer-events:none; }
-.cmp-setup .setup-frame { background:transparent; border:none; box-shadow:none; padding:18px 22px 22px; width: min(96vw, 1200px); display:flex; flex-direction:column; max-height:calc(100vh - 8vh); }
+/* Allow internal scrolling without stretching modal off-screen */
+.cmp-setup .setup-body { overflow:hidden; }
+.cmp-setup .cards-grid { max-height:100%; }
+.cmp-setup .selection-sidebar { max-height:100%; overflow:auto; padding-right:4px; }
 
 /* Default text in setup to black for readability on light background */
 .cmp-setup { color:#000; }
 
-.cmp-setup .setup-title { font-family:'Bangers', cursive; font-size:56px; color:#FFD700; text-align:center; letter-spacing:2px; text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000; margin-bottom:18px; filter: drop-shadow(0 6px 0 #000); }
+.cmp-setup .setup-title { font-family:'Bangers', cursive; font-size:52px; color:#FFD700; text-align:center; letter-spacing:2px; text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000; margin-bottom:12px; filter: drop-shadow(0 5px 0 #000); }
 
 .cmp-setup .setup-controls { display:flex; gap:16px; align-items:center; justify-content:center; margin-bottom:18px; }
 .cmp-setup .pill-btn { background: linear-gradient(#ffffff, #efefef); border:3px solid #111; border-radius:999px; padding:10px 18px; font-weight:900; box-shadow:6px 6px 0 #000; cursor:pointer; letter-spacing:.5px; text-transform:uppercase; position:relative; transition:transform .18s ease, box-shadow .18s ease, filter .28s ease; }
-.cmp-setup .pill-btn.gold { background: linear-gradient(#ffd24a, #ffb400); }
+.cmp-setup .pill-btn.gold { background: linear-gradient(var(--color-brand-gold,#ffd700), #ffb400); }
+/* Harmonize neutral pill button to modal token tones */
+.cmp-setup .pill-btn { background: linear-gradient(#fafafa,#e3e3e3); color:#000; }
+.cmp-setup .pill-btn.gold { color:#000; }
 /* Unified interactive states for all primary buttons (pill + start) */
 .cmp-setup .pill-btn:hover,
 .cmp-setup .start-btn:not([disabled]):hover { transform: translateY(-2px); box-shadow:5px 5px 0 #000; filter:brightness(1.04) saturate(1.05); }
@@ -92,14 +105,28 @@
 .cmp-setup .cpu-sub { margin-top:-4px; font-weight:800; font-size:13px; color:#000; }
 
 /* Footer */
-.cmp-setup .setup-footer { margin-top:18px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+.cmp-setup .setup-footer { margin-top:16px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
 .cmp-setup .reset-link { background:none; border:none; color:#2f506a; font-weight:900; cursor:pointer; text-decoration:none; display:flex; align-items:center; gap:6px; filter: drop-shadow(0 2px 0 #000); }
 .cmp-setup .start-btn { background:#bdbdbd; color:#000; border:3px solid #111; box-shadow:8px 8px 0 #000; padding:14px 22px; font-weight:900; letter-spacing:1px; cursor:not-allowed; transition:transform .18s ease, box-shadow .18s ease, filter .28s ease; position:relative; }
 .cmp-setup .start-btn:not([disabled]) { background:#4a9f4a; cursor:pointer; }
 
+/* Close button (top-right) */
+/* Standardized red close button (shared visual with monster profiles) */
+.cmp-setup .setup-close { position:absolute; top:14px; right:14px; background:linear-gradient(135deg,#e74c3c 0%,#c0392b 100%); border:2px solid #000; color:#fff; width:48px; height:48px; font-size:26px; font-weight:700; line-height:1; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:3px 3px 0 #000; border-radius:6px; transition: transform .18s ease, box-shadow .18s ease, filter .25s ease; }
+.cmp-setup .setup-close:hover { transform:translateY(-2px); box-shadow:4px 4px 0 #000; filter:brightness(1.05); }
+.cmp-setup .setup-close:active { transform:translateY(0) scale(.96); box-shadow:2px 2px 0 #000; }
+.cmp-setup .setup-close:focus-visible { outline:3px solid #ffcc33; outline-offset:3px; }
 
 
+
+@media (max-width: 1180px) {
+	.cmp-setup .setup-frame { width:min(96vw,1080px); }
+}
 @media (max-width: 980px) {
+	.cmp-setup .setup-frame { padding:20px 22px 24px; }
 	.cmp-setup .setup-body { grid-template-columns: 1fr; }
 	.cmp-setup .selection-sidebar { align-items:center; }
+}
+@media (max-width: 640px) {
+	.cmp-setup .setup-title { font-size:44px; }
 }

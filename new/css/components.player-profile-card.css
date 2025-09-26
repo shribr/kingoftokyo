@@ -151,6 +151,14 @@
 	100% { transform:scale(1) translateZ(0); box-shadow:4px 4px 0 #000,0 0 0 2px #222 inset; }
 }
 .cmp-player-profile-card.is-active.turn-pulse { animation:ppcActivePulse 900ms cubic-bezier(.34,.11,.34,1.32); }
+/* Tokyo entry animation */
+.cmp-player-profile-card[data-entered-tokyo] { animation:tokyoEnter 1200ms ease; }
+@keyframes tokyoEnter { 0% { transform:scale(.85) rotate(-3deg); box-shadow:0 0 0 0 rgba(255,207,51,0); } 40% { transform:scale(1.08) rotate(1deg); box-shadow:0 0 0 6px rgba(255,207,51,.45); } 70% { transform:scale(.97) rotate(-1deg); box-shadow:0 0 0 3px rgba(255,207,51,.25); } 100% { transform:scale(1) rotate(0); box-shadow:4px 4px 0 #000,0 0 0 2px #222 inset; } }
+/* VP / Energy / Health gain pulses */
+.cmp-player-profile-card[data-vp-gain] .ppc-stat[data-kind="vp"],
+.cmp-player-profile-card[data-energy-gain] .ppc-stat[data-kind="energy"],
+.cmp-player-profile-card[data-health-gain] .ppc-health-block { animation:resourceGain 900ms ease; }
+@keyframes resourceGain { 0% { filter:brightness(1); transform:translateY(0); } 25% { filter:brightness(1.35); transform:translateY(-4px); } 55% { filter:brightness(1.15); transform:translateY(1px); } 100% { filter:brightness(1); transform:translateY(0); } }
 
 /* Subtle glow when docking into active slot */
 @keyframes ppcDockGlow {

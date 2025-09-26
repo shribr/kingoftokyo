@@ -1,5 +1,6 @@
 /** ui/mountRoot.js */
 import { eventBus } from '../core/eventBus.js';
+import { selectActivePlayer, selectEffectQueueState } from '../core/selectors.js';
 
 // Registry for built components
 const registry = new Map();
@@ -100,6 +101,17 @@ export async function mountRoot(configEntries, store) {
         callUpdate(inst, modFns, { state: slice }, state);
       }
     }
+    // AI thinking banner auto logic: show only if active player is AI and no effect currently processing but AI is in a pending decision window.
+    try {
+      const active = selectActivePlayer(state);
+      const eq = selectEffectQueueState(state);
+      // Heuristic: show when active AI player exists and queue not processing but phase indicates awaiting dice roll OR resolution choices.
+      const phase = state.phase?.name || state.phase;
+      const aiTurn = active && (active.isCPU || active.isAi || active.type === 'ai');
+      const busy = !!eq.processing || document.querySelector('.cmp-ai-decision-modal:not([hidden])');
+      const bannerShould = aiTurn && !busy && /roll|buy|resolve|start/i.test(phase || '');
+      setAIThinking(bannerShould);
+    } catch(_) {}
   });
 }
 

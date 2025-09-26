@@ -18,9 +18,9 @@
     "version": "0.1.0",
     "selector": ".cmp-action-menu",
     "mountPoint": "#app",
-    "order": 12,
+    "order": 90,
     "enabled": true,
-    "stateKeys": ["dice","phase"],
+    "stateKeys": ["dice","phase","players","cards","ui"],
     "build": "action-menu.build",
     "update": "action-menu.update",
     "initialState": {},
@@ -294,7 +294,7 @@
       "mountPoint": "#app",
       "order": 300,
       "enabled": true,
-      "stateKeys": ["ui"],
+      "stateKeys": ["ui","settings"],
       "build": "settings-modal.build",
       "update": "settings-modal.update",
       "eventsOut": [],
@@ -414,5 +414,21 @@
       "initialState": {},
       "assets": [],
       "zIndex": 55
+    }
+    ,{
+      "name": "rollForFirst",
+      "version": "0.1.0",
+      "selector": ".cmp-roll-for-first",
+      "mountPoint": "#app",
+      "order": 330,
+      "enabled": true,
+      "stateKeys": ["ui","players"],
+      "build": "roll-for-first.build",
+      "update": "roll-for-first.update",
+      "eventsOut": [],
+      "eventsIn": [],
+      "initialState": {},
+      "assets": [],
+      "zIndex": 7100
     }
 ]

@@ -3,6 +3,7 @@
  */
 import { store } from '../../bootstrap/index.js';
 import { selectPlayerOrder, selectActivePlayer } from '../../core/selectors.js';
+import { uiSetupOpen } from '../../core/actions.js';
 import { build as buildPlayerCard } from '../player-profile-card/player-profile-card.component.js';
 import { initSidePanel } from '../side-panel/side-panel.js';
 
@@ -56,6 +57,21 @@ export function update(root, instances) {
   root.removeAttribute('data-player-count');
   const container = root.querySelector('[data-player-cards]');
   if (!container) return;
+  // If no players yet, show lightweight placeholder (prevents panel looking broken for dev skipintro without seeding)
+  if (!order || order.length === 0) {
+    // Empty state (should not normally appear if auto seeding works) – clickable to open setup
+  container.innerHTML = '<button type="button" class="mp-no-players pc-hint" data-empty data-open-setup>No players selected. Click <span class="mp-link-accent">here</span> to select.</button>';
+    const btn = container.querySelector('[data-open-setup]');
+    if (btn) {
+      btn.addEventListener('click', () => {
+        try { store.dispatch(uiSetupOpen()); } catch(e) { console.warn('Failed to open setup from empty players state', e); }
+      });
+    }
+    // Clear any previous instances if they existed (edge dev case)
+    instances.forEach(inst => inst.root.remove());
+    instances.clear();
+    return;
+  }
   // Remove stale
   [...instances.keys()].forEach(id => { if (!order.includes(id)) { instances.get(id).root.remove(); instances.delete(id); } });
   // Ensure + order

@@ -5,7 +5,12 @@ const initial = { deck: [], discard: [], shop: [] };
 export function cardsReducer(state = initial, action) {
   switch (action.type) {
     case CARDS_DECK_BUILT: {
-      return { ...state, deck: action.payload.deck, discard: [], shop: [] };
+      // Initial build: state.deck empty -> reset discard & shop.
+      // Subsequent rebuild (used to update remaining deck after draws): preserve current shop & discard.
+      if (state.deck.length === 0 && state.shop.length === 0 && state.discard.length === 0) {
+        return { ...state, deck: action.payload.deck, discard: [], shop: [] };
+      }
+      return { ...state, deck: action.payload.deck };
     }
     case CARDS_SHOP_FILLED: {
       return { ...state, shop: action.payload.cards };

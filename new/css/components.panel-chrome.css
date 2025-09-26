@@ -15,6 +15,15 @@
 /* Horizontal slide + header pivot (LEFT PANEL) */
 /* Generic side panel container */
 .cmp-side-panel { transition: transform .35s ease; position:relative; }
+/* Reserve header vertical space so panels do not overlay the main game header unless viewport is too short */
+body:not([data-panels-force-overlay]) .cmp-side-panel { margin-top:72px; }
+/* Compute internal scrolling height subtracting header + footer spacing (approx). We only apply when expanded. */
+body:not([data-panels-force-overlay]) .cmp-side-panel:not([data-collapsed="true"]) { max-height: calc(100vh - 72px - 24px); overflow:auto; }
+/* If viewport height becomes very small (<600px), drop the guard to allow overlap (add a body flag via JS later if needed) */
+@media (max-height:600px) {
+  body:not([data-panels-force-overlay]) .cmp-side-panel { margin-top:56px; }
+  body:not([data-panels-force-overlay]) .cmp-side-panel:not([data-collapsed="true"]) { max-height: calc(100vh - 56px - 16px); }
+}
 .cmp-side-panel[data-side="left"][data-collapsed="true"] { transform: translateX(calc(-100% + 46px)); }
 .cmp-side-panel[data-side="right"][data-collapsed="true"] { transform: translateX(calc(100% - 46px)); }
 
@@ -95,7 +104,7 @@
 /* Restore larger arrow glyph size for Power Cards (avoid generic 14px shrink) */
 .cmp-power-cards-panel .mp-arrow { font-size:24px; }
 /* Lighten background similar to monsters panel for parity */
-.cmp-power-cards-panel.k-panel { background:linear-gradient(180deg,#30353a,#1d1f21); }
+.cmp-power-cards-panel.k-panel { background:linear-gradient(180deg,#30353a,#1d1f21); border-color:#222; box-shadow:2px 2px 0 #000,0 0 0 1px #222 inset; }
 
 /* Full-height side panels with scrolling */
 [data-gl-right] .cmp-monsters-panel {

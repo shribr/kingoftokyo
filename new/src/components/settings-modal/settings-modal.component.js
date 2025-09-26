@@ -22,6 +22,9 @@ export function build(ctx) {
            <div class="field">
              <label><input type="checkbox" name="autoActivateMonsters"> Auto Activate Monsters</label>
            </div>
+           <div class="field">
+             <label><input type="checkbox" name="autoStartInTest"> Auto Start In Test (skipintro)</label>
+           </div>
            <div class="actions">
              <button type="button" data-close>Close</button>
            </div>
@@ -35,17 +38,20 @@ export function build(ctx) {
     const partial = {
       cpuSpeed: fd.get('cpuSpeed'),
       showThoughtBubbles: form.querySelector('input[name="showThoughtBubbles"]').checked,
-      autoActivateMonsters: form.querySelector('input[name="autoActivateMonsters"]').checked
+      autoActivateMonsters: form.querySelector('input[name="autoActivateMonsters"]').checked,
+      autoStartInTest: form.querySelector('input[name="autoStartInTest"]').checked
     };
     window.__KOT_NEW__.store.dispatch(settingsUpdated(partial));
   });
   return { root, update: (p) => update(p) };
 }
 
-export function update({ state, root }) {
-  if (!root) return;
-  const open = state.ui.settings?.open;
-  root.style.display = open ? 'block' : 'none';
+export function update(ctx) {
+  const state = ctx.fullState || ctx.state || {};
+  const root = ctx.inst?.root || ctx.root || (ctx instanceof HTMLElement ? ctx : null);
+  if (!root || !root.querySelector) return; // defensive guard during early mount race
+  const open = state.ui?.settings?.open;
+  if (root.style) root.style.display = open ? 'block' : 'none';
   if (!open) return;
   const settings = state.settings;
   if (settings) {
@@ -53,7 +59,9 @@ export function update({ state, root }) {
     if (cpu && cpu.value !== settings.cpuSpeed) cpu.value = settings.cpuSpeed;
     const bubble = root.querySelector('input[name="showThoughtBubbles"]');
     if (bubble) bubble.checked = !!settings.showThoughtBubbles;
-    const auto = root.querySelector('input[name="autoActivateMonsters"]');
-    if (auto) auto.checked = !!settings.autoActivateMonsters;
+  const auto = root.querySelector('input[name="autoActivateMonsters"]');
+  if (auto) auto.checked = !!settings.autoActivateMonsters;
+  const autoStart = root.querySelector('input[name="autoStartInTest"]');
+  if (autoStart) autoStart.checked = !!settings.autoStartInTest;
   }
 }
