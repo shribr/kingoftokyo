@@ -3,7 +3,7 @@ import { phaseChanged, metaActivePlayerSet, uiRollForFirstResolved } from '../..
 
 export function build({ selector, dispatch, getState }) {
   const root = document.createElement('div');
-  root.className = selector.slice(1) + ' rff-modal hidden';
+  root.className = selector.slice(1) + ' rff-modal hidden'; // selector already .cmp-roll-for-first
   root.innerHTML = markup();
   root.addEventListener('click', (e) => {
     const t = e.target;

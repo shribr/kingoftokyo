@@ -1,6 +1,7 @@
 /** setup.component.js */
 import { selectMonsters } from '../../core/selectors.js';
-import { uiSetupClose, uiMonsterProfilesOpen } from '../../core/actions.js';
+import { uiSetupClose, uiMonsterProfilesOpen, playerJoined } from '../../core/actions.js';
+import { createPlayer } from '../../domain/player.js';
 
 export function build({ selector, dispatch, getState }) {
   const root = document.createElement('div');
@@ -16,6 +17,18 @@ export function build({ selector, dispatch, getState }) {
     if (t.matches('[data-action="start"]')) {
       const btn = t;
       if (btn.hasAttribute('disabled')) return;
+      // Create players from selected slots before closing
+      const st = getState();
+      const monsters = selectMonsters(st);
+      const chosen = inst._local.slots.filter(Boolean);
+      // Clear any existing players only if none exist yet (avoid duplicate starts)
+      if (!st.players.order.length) {
+        chosen.forEach((monsterId, idx) => {
+          const mon = monsters.find(m => m.id === monsterId);
+            const name = mon ? mon.name : `Player ${idx+1}`;
+            dispatch(playerJoined(createPlayer({ id: 'p'+(idx+1), name, monsterId })));
+        });
+      }
       dispatch(uiSetupClose());
       return;
     }

@@ -1,0 +1,19 @@
+/* Roll For First Modal Styles */
+.cmp-roll-for-first.rff-modal { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:7100; pointer-events:none; }
+.cmp-roll-for-first.rff-modal.hidden { display:none; }
+.cmp-roll-for-first.rff-modal .rff-frame { pointer-events:auto; background:linear-gradient(155deg,#1a1a1a,#101010 60%, #060606); border:2px solid #303030; box-shadow:0 0 0 3px #000, 0 0 28px rgba(0,0,0,.85), 0 0 60px rgba(0,0,0,.75); padding:28px 34px 36px; width: min(620px, 92vw); max-height:80vh; overflow:auto; border-radius:14px; font-family:'Bangers',cursive; color:#eee; position:relative; }
+.cmp-roll-for-first.rff-modal .rff-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
+.cmp-roll-for-first.rff-modal .rff-header h2 { font-size:2.2rem; letter-spacing:2px; margin:0; color:#FFD700; text-shadow:0 0 10px rgba(255,215,0,.45), 2px 2px 0 #000; }
+.cmp-roll-for-first.rff-modal .rff-close { background:linear-gradient(#550,#300); color:#fff; border:2px solid #aa0000; width:40px; height:40px; border-radius:50%; font-size:20px; cursor:pointer; font-family:'Bangers',cursive; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,.6); }
+.cmp-roll-for-first.rff-modal .rff-close:hover { filter:brightness(1.2); }
+.cmp-roll-for-first.rff-modal .rff-intro { font-family:Arial,sans-serif; font-size:0.95rem; letter-spacing:.5px; line-height:1.4; margin:0 0 16px; color:#ccc; }
+.cmp-roll-for-first.rff-modal .rff-rolls { list-style:none; margin:0 0 14px; padding:0; display:grid; grid-template-columns:1fr 80px; row-gap:6px; column-gap:10px; font-family:Arial,sans-serif; }
+.cmp-roll-for-first.rff-modal .rff-rolls li { display:contents; }
+.cmp-roll-for-first.rff-modal .rff-mon { background:#161616; padding:6px 10px; border:1px solid #333; border-radius:6px; text-align:left; font-weight:600; color:#eee; }
+.cmp-roll-for-first.rff-modal .rff-val { background:#222; padding:6px 0; border:1px solid #444; border-radius:6px; text-align:center; font-weight:700; font-size:1.05rem; color:#FFD700; box-shadow:0 0 0 1px #000 inset; }
+.cmp-roll-for-first.rff-modal .rff-actions { display:flex; justify-content:flex-end; gap:14px; }
+.cmp-roll-for-first.rff-modal .rff-btn { font-family:'Bangers',cursive; letter-spacing:1px; font-size:1.25rem; padding:10px 22px 12px; border-radius:10px; border:2px solid #333; background:linear-gradient(160deg,#444,#222); color:#fff; cursor:pointer; box-shadow:0 3px 10px rgba(0,0,0,.6); position:relative; }
+.cmp-roll-for-first.rff-modal .rff-btn-primary { background:linear-gradient(150deg,#0055aa,#002d66); border-color:#004b99; }
+.cmp-roll-for-first.rff-modal .rff-btn:hover { filter:brightness(1.15); }
+.cmp-roll-for-first.rff-modal .rff-btn:active { transform:translateY(2px); }
+@media (max-width:640px) { .cmp-roll-for-first.rff-modal .rff-frame { padding:22px 20px 30px; } .cmp-roll-for-first.rff-modal .rff-header h2 { font-size:1.8rem; } .cmp-roll-for-first.rff-modal .rff-btn { font-size:1.05rem; padding:8px 16px 10px; } }
