@@ -12,6 +12,7 @@ export function build({ selector }) {
   root.setAttribute('data-side','right');
   root.innerHTML = panelTemplate();
   const instances = new Map();
+  ensureActiveDock();
   // Arrow logic: When expanded we want a glyph pointing toward the collapse direction (to the RIGHT edge -> ◄).
   // When collapsed (tab at right edge) we want arrow pointing back into viewport (►) to indicate expand.
   // Reverted arrow configuration (step back):
@@ -70,24 +71,29 @@ export function update(root, instances) {
   if (active) {
     const activeInst = instances.get(active.id);
     if (activeInst && activeInst.root.parentElement === container) {
-      let slot = document.getElementById('active-player-card-slot');
-      if (!slot) {
-        slot = document.createElement('div');
-        slot.id = 'active-player-card-slot';
-        // Try to mount inside game container or body
-        const game = document.getElementById('game-container') || document.body;
-        game.appendChild(slot);
-      }
-      // Transition flag for fade/scale in
+      // Capture starting rect BEFORE moving DOM
+      const startRect = activeInst.root.getBoundingClientRect();
+      const slot = document.getElementById('active-player-card-slot') || ensureActiveDock();
+      // Create a transient fade placeholder at original location to smooth visual removal
+      try {
+        const ph = document.createElement('div');
+        ph.className = 'ppc-fade-placeholder';
+        ph.style.left = startRect.left + 'px';
+        ph.style.top = startRect.top + 'px';
+        ph.style.width = startRect.width + 'px';
+        ph.style.height = startRect.height + 'px';
+        document.body.appendChild(ph);
+        setTimeout(()=>ph.remove(), 520);
+      } catch(_){/* ignore */}
       activeInst.root.setAttribute('data-transitioning','');
       slot.innerHTML = '';
       slot.appendChild(activeInst.root);
       requestAnimationFrame(() => {
         positionActiveSlot(slot, activeInst.root, active);
-        requestAnimationFrame(() => {
-          activeInst.root.classList.add('in-place');
-          activeInst.root.removeAttribute('data-transitioning');
-        });
+        const endRect = activeInst.root.getBoundingClientRect();
+        // Hide real card until animation completes
+        activeInst.root.style.visibility = 'hidden';
+        smoothTravelToDock(activeInst.root, startRect, endRect);
       });
     }
   } else {
@@ -102,28 +108,87 @@ export function update(root, instances) {
 
 function positionActiveSlot(slot, cardEl, activePlayer) {
   try {
-    const candidates = [
-      document.querySelector(`[data-arena-player-id="${activePlayer.id}"]`),
-      document.querySelector(`[data-player-token="${activePlayer.id}"]`),
-      document.querySelector(`#player-token-${activePlayer.id}`),
-      document.querySelector('.cmp-arena [data-active-tile="true"]')
-    ].filter(Boolean);
-    let target = candidates[0];
-    if (!target) target = document.querySelector('.cmp-arena');
-    if (!target) { // viewport center fallback
-      const vw = window.innerWidth, vh = window.innerHeight;
-      const w = cardEl.offsetWidth || 260, h = cardEl.offsetHeight || 180;
-      slot.style.left = (vw/2 - w/2) + 'px';
-      slot.style.top = (vh/2 - h/2) + 'px';
+    // New docking target: absolute top-right corner inside arena.
+    const arena = document.querySelector('.cmp-arena');
+    if (!arena) return;
+    const arenaRect = arena.getBoundingClientRect();
+    const dockW = 200; const dockH = 140;
+    slot.setAttribute('data-mini','true');
+    // Use right/top offsets for simplicity and responsiveness.
+    slot.style.left = 'auto';
+    slot.style.right = '12px';
+    slot.style.top = '8px';
+    slot.style.bottom = 'auto';
+  } catch(_) {}
+}
+
+function ensureActiveDock() {
+  let dock = document.getElementById('active-player-card-slot');
+  if (dock) return dock;
+  dock = document.createElement('div');
+  dock.id = 'active-player-card-slot';
+  dock.setAttribute('data-active-card-dock','true');
+  // Place a dedicated docking zone overlayed near center-top of arena as fallback
+  const arena = document.querySelector('.cmp-arena') || document.getElementById('game-container') || document.body;
+  arena.appendChild(dock);
+  return dock;
+}
+
+let lastActiveCardId = null;
+function smoothTravelToDock(cardEl, startRect, endRect) {
+  try {
+    const pid = cardEl.getAttribute('data-player-id');
+    if (pid === lastActiveCardId) { cardEl.style.visibility=''; return; }
+    lastActiveCardId = pid;
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const targetScale = 0.74;
+    if (prefersReduced) {
+      cardEl.style.visibility='';
+      cardEl.removeAttribute('data-transitioning');
+      cardEl.classList.add('in-place');
+      requestAnimationFrame(()=> {
+        cardEl.classList.add('dock-glow');
+        setTimeout(()=>cardEl.classList.remove('dock-glow'), 900);
+      });
       return;
     }
-    const rect = target.getBoundingClientRect();
-    const w = cardEl.offsetWidth || 260;
-    const h = cardEl.offsetHeight || 180;
-    // Place slightly above tile center
-    const left = rect.left + rect.width/2 - w/2;
-    const top = rect.top - h - 12; // 12px gap above tile
-    slot.style.left = Math.max(8, Math.min(left, window.innerWidth - w - 8)) + 'px';
-    slot.style.top = Math.max(8, top) + 'px';
-  } catch(_) {}
+    const ghost = cardEl.cloneNode(true);
+    ghost.style.position='fixed';
+    ghost.style.left = startRect.left + 'px';
+    ghost.style.top = startRect.top + 'px';
+    ghost.style.margin='0';
+    ghost.style.zIndex='5000';
+    ghost.style.pointerEvents='none';
+    document.body.appendChild(ghost);
+    // Compute deltas
+    const dx = endRect.left - startRect.left + 8; // slight inset
+    const dy = endRect.top - startRect.top + 8;
+    // Midpoints for gentle arc (simulate depth by earlier scale change)
+    const mid1 = { x: dx*0.35, y: dy*0.15 };
+    const mid2 = { x: dx*0.70, y: dy*0.65 };
+    const kf = [
+      { offset:0,   transform:'translate(0px,0px) scale(1)', filter:'brightness(1)' },
+      { offset:.25, transform:`translate(${mid1.x}px, ${mid1.y}px) scale(.93)`, filter:'brightness(1.05)' },
+      { offset:.55, transform:`translate(${mid2.x}px, ${mid2.y}px) scale(.83)`, filter:'brightness(.98)' },
+      { offset:1,   transform:`translate(${dx}px, ${dy}px) scale(${targetScale})`, filter:'brightness(1)' }
+    ];
+    const travel = ghost.animate(kf, { duration:820, easing:'cubic-bezier(.42,.15,.21,1.03)', fill:'forwards' });
+    const finalize = () => {
+      try { ghost.remove(); } catch(_) {}
+      cardEl.style.visibility='';
+      cardEl.removeAttribute('data-transitioning');
+      cardEl.classList.add('in-place');
+      requestAnimationFrame(()=> {
+        cardEl.classList.add('dock-glow');
+        const settle = cardEl.animate([
+          { transform:`scale(${targetScale}) rotate(var(--tokyo-bay-rot))` },
+          { transform:`scale(${targetScale*1.035}) rotate(var(--tokyo-bay-rot))` },
+          { transform:`scale(${targetScale}) rotate(var(--tokyo-bay-rot))` }
+        ], { duration:420, easing:'ease-out' });
+        settle.onfinish = () => setTimeout(()=>cardEl.classList.remove('dock-glow'), 900);
+      });
+    };
+    travel.onfinish = finalize;
+    setTimeout(()=> { if (cardEl.style.visibility === 'hidden') finalize(); }, 1200);
+  } catch(_) { cardEl.style.visibility=''; cardEl.removeAttribute('data-transitioning'); cardEl.classList.add('in-place'); }
 }

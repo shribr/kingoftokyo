@@ -16,18 +16,17 @@ export function build({ selector }) {
   // Use only new namespace class; legacy .game-board removed
   root.className = selector.slice(1) + ' cmp-arena';
   root.innerHTML = `
+    <div data-round-indicator>
+      <div class="round-indicator-label" data-round-label>Round <span id="round-counter" data-round-counter>1</span></div>
+    </div>
     <div data-tokyo data-arena-section="tokyo">
-      <div data-bay data-arena-section="bay">
-        <h3>Tokyo Bay</h3>
-        <div class="monster-slot" data-bay-slot></div>
-      </div>
       <div data-city data-arena-section="city">
         <h3>Tokyo City</h3>
         <div class="monster-slot" data-city-slot></div>
       </div>
-      <div data-round-indicator>
-        <span class="round-label">Round</span>
-        <div class="round-indicator"><span id="round-counter" data-round-counter>1</span></div>
+      <div data-bay data-arena-section="bay">
+        <h3>Tokyo Bay</h3>
+        <div class="monster-slot" data-bay-slot></div>
       </div>
     </div>`;
   return { root, update: () => update(root) };
@@ -46,13 +45,38 @@ export function update(root) {
   const baySlot = root.querySelector('[data-bay-slot]');
   if (citySlot) citySlot.innerHTML = renderOccupant(tokyo.city, state);
   if (baySlot) baySlot.innerHTML = renderOccupant(tokyo.bay, state);
+
+  // Disable Bay if fewer than 5 players (standard rule) – mark attribute for styling
+  try {
+    const totalPlayers = state.players?.allIds?.length || 0;
+    const baySection = root.querySelector('[data-arena-section="bay"]');
+    if (baySection) {
+      if (totalPlayers < 5) {
+        baySection.setAttribute('data-disabled','true');
+      } else {
+        baySection.removeAttribute('data-disabled');
+      }
+    }
+  } catch(_) {}
+
+  // Highlight active occupancy on section elements
+  try {
+    const citySection = root.querySelector('[data-arena-section="city"]');
+    const baySection = root.querySelector('[data-arena-section="bay"]');
+    if (citySection) {
+      if (tokyo.city) citySection.setAttribute('data-active','true'); else citySection.removeAttribute('data-active');
+    }
+    if (baySection) {
+      if (tokyo.bay) baySection.setAttribute('data-active','true'); else baySection.removeAttribute('data-active');
+    }
+  } catch(_) {}
 }
 
 function renderOccupant(playerId, state) {
   if (!playerId) return '<div class="slot-empty">Empty</div>';
   const p = state.players.byId[playerId];
   if (!p) return '<div class="slot-empty">?</div>';
-  return `<div class="tokyo-occupant" data-player-id="${playerId}">
+  return `<div class="tokyo-occupant" data-player-id="${playerId}" data-active="true">
     <span class="name">${p.name}</span>
     <span class="hp">HP ${p.health}</span>
     <span class="vp">★ ${p.victoryPoints}</span>

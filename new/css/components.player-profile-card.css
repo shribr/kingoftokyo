@@ -49,6 +49,7 @@
  * Applies only within the monsters panel container. Active card floats clean.
  */
 .cmp-monsters-panel .mp-player-cards { position:relative; display:flex; flex-direction:column; }
+.cmp-monsters-panel.is-stacked .mp-player-cards { perspective:1400px; perspective-origin:50% 30%; }
 .cmp-monsters-panel.is-stacked .mp-player-cards .cmp-player-profile-card { transition:transform .45s cubic-bezier(.25,.46,.45,.94), margin .35s ease; }
 .cmp-monsters-panel.is-stacked .mp-player-cards .cmp-player-profile-card.is-active { position:relative; z-index:3100; transform:none !important; margin-top:0 !important; }
 /* Base style for non-active stacked cards */
@@ -81,11 +82,41 @@
 /* Floating active card (relocated outside panel) */
 #active-player-card-slot { position:absolute; pointer-events:none; top:40%; left:50%; z-index:3500; transition: left .45s cubic-bezier(.25,.46,.45,.94), top .45s cubic-bezier(.25,.46,.45,.94); }
 #active-player-card-slot .cmp-player-profile-card { pointer-events:auto; }
+#active-player-card-slot[data-active-card-dock] { min-width:260px; min-height:180px; }
+
+/* Mini active dock variation */
+#active-player-card-slot[data-mini="true"] { width:200px; min-width:200px; min-height:140px; }
+#active-player-card-slot[data-mini="true"]::before { display:none; }
+#active-player-card-slot[data-mini="true"] .cmp-player-profile-card { transform:scale(.74) rotate(var(--tokyo-bay-rot)); transform-origin:top left; }
+#active-player-card-slot[data-mini="true"] .cmp-player-profile-card.turn-pulse { animation:none; }
+/* Placeholder outline when empty */
+#active-player-card-slot[data-mini="true"]:empty {
+	border:2px dashed rgba(255,212,0,0.55);
+	border-radius:10px;
+	box-shadow:0 0 0 2px rgba(0,200,255,0.35), 0 0 12px -2px rgba(0,200,255,0.45);
+	background:repeating-linear-gradient(45deg, rgba(255,212,0,0.08) 0 10px, rgba(255,212,0,0) 10px 20px);
+}
+
+/* Dock pop animation (scale & slight upward float) applied when transitioning */
+.cmp-player-profile-card[data-transitioning] { transform-origin:center; }
 
 /* Non-active hover parity (legacy tilt/glow) */
-.cmp-monsters-panel .mp-player-cards .cmp-player-profile-card:not(.is-active):hover {
-	transform:perspective(800px) rotateX(1deg) rotateY(-1deg) rotateZ(0deg) translateY(-6px) scale(1.015);
-	box-shadow:6px 6px 0 #000,0 0 0 2px #222 inset,0 8px 22px rgba(0,0,0,.55);
+/* Base transform-origin so pivot looks like it lifts from the stack edge */
+.cmp-monsters-panel.is-stacked .mp-player-cards .cmp-player-profile-card:not(.is-active) { transform-origin:bottom center; }
+
+/* Pivot-out hover (stacked mode) – more dramatic legacy style */
+.cmp-monsters-panel.is-stacked .mp-player-cards .cmp-player-profile-card:not(.is-active):hover {
+	/* neutralize original slight random tilt on hover but keep a hint of personality */
+	transform:perspective(1000px) rotateX(-10deg) rotateY(0deg) rotateZ(0deg) translateY(-24px) scale(1.05);
+	box-shadow:8px 10px 0 #000,0 0 0 2px #222 inset,0 14px 28px rgba(0,0,0,.65);
+	z-index:3050;
+	margin-bottom:28px; /* create breathing room under the pivoted card */
+}
+
+/* Subtle lift hover when NOT stacked (linear layout) */
+.cmp-monsters-panel:not(.is-stacked) .mp-player-cards .cmp-player-profile-card:not(.is-active):hover {
+	transform:translateY(-6px) scale(1.02);
+	box-shadow:6px 6px 0 #000,0 0 0 2px #222 inset,0 8px 18px rgba(0,0,0,.45);
 	z-index:3050;
 }
 
@@ -95,6 +126,28 @@
 /* Transition when docking/undocking */
 .cmp-player-profile-card[data-transitioning] { opacity:.0; transform:scale(.9); transition:opacity .25s ease, transform .3s ease; }
 .cmp-player-profile-card[data-transitioning].in-place { opacity:1; transform:scale(1); }
+
+/* Active turn pulse animation */
+@keyframes ppcActivePulse {
+	0% { transform:scale(1) translateZ(0); box-shadow:4px 4px 0 #000,0 0 0 2px #222 inset; }
+	35% { transform:scale(1.065) translateZ(0); box-shadow:6px 6px 0 #000,0 0 0 3px #222 inset,0 0 18px rgba(255,212,0,.35); }
+	60% { transform:scale(1.03) translateZ(0); box-shadow:5px 5px 0 #000,0 0 0 2px #222 inset,0 0 12px rgba(255,212,0,.25); }
+	100% { transform:scale(1) translateZ(0); box-shadow:4px 4px 0 #000,0 0 0 2px #222 inset; }
+}
+.cmp-player-profile-card.is-active.turn-pulse { animation:ppcActivePulse 900ms cubic-bezier(.34,.11,.34,1.32); }
+
+/* Subtle glow when docking into active slot */
+@keyframes ppcDockGlow {
+  0% { box-shadow:4px 4px 0 #000,0 0 0 2px #222 inset,0 0 0 0 rgba(255,255,255,0); }
+  35% { box-shadow:4px 4px 0 #000,0 0 0 2px #222 inset,0 0 18px 6px rgba(255,255,255,.55); }
+  65% { box-shadow:4px 4px 0 #000,0 0 0 2px #222 inset,0 0 12px 3px rgba(255,255,255,.35); }
+  100% { box-shadow:4px 4px 0 #000,0 0 0 2px #222 inset,0 0 0 0 rgba(255,255,255,0); }
+}
+.cmp-player-profile-card.dock-glow { animation:ppcDockGlow 1000ms ease-out; }
+
+/* Temporary placeholder fade when active card leaves stack */
+.ppc-fade-placeholder { position:fixed; background:linear-gradient(135deg,#2d3436,#1b1f20); border:3px solid #000; border-radius:4px; box-shadow:4px 4px 0 #000,0 0 0 2px #222 inset; pointer-events:none; z-index:2950; animation:ppcSlotFade .5s ease forwards; }
+@keyframes ppcSlotFade { from { opacity:1; transform:scale(1); } to { opacity:0; transform:scale(.92); } }
 
 /* CPU indicator styling */
 .cmp-player-profile-card .ppc-name .ppc-cpu { font-size:16px; line-height:1; font-weight:600; letter-spacing:.5px; color:var(--ppc-accent-text,#ffd400); text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000; }
