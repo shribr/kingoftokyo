@@ -1,6 +1,6 @@
 /** splash-screen.component.js */
 import { selectSplashVisible, selectMonsters } from '../../core/selectors.js';
-import { uiSplashHide, uiSetupOpen } from '../../core/actions.js';
+import { uiSplashHide, uiMonsterSelectionOpen } from '../../core/actions.js';
 
 export function build({ selector, dispatch, getState }) {
   const root = document.createElement('div');
@@ -121,7 +121,7 @@ function beginHideSequence(dispatch, root) {
   dispatch(uiSplashHide());
   // Proactively queue setup open after fade duration to avoid missed transitionend edge cases
   setTimeout(() => {
-    try { dispatch(uiSetupOpen()); } catch(e) { console.warn('Deferred setup open failed', e); }
+  try { dispatch(uiMonsterSelectionOpen()); } catch(e) { console.warn('Deferred monster selection open failed', e); }
   }, 520); // slightly longer than CSS .5s transition
   // Force reflow then apply is-hidden for fade
   requestAnimationFrame(() => {
@@ -130,7 +130,7 @@ function beginHideSequence(dispatch, root) {
       if (e.propertyName === 'opacity') {
         root.removeEventListener('transitionend', onEnd);
         // Secondary (original) open dispatch for normal path
-        try { dispatch(uiSetupOpen()); } catch(e2) { /* noop */ }
+  try { dispatch(uiMonsterSelectionOpen()); } catch(e2) { /* noop */ }
         // Cleanup
         root.classList.remove('is-hiding');
       }

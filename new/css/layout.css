@@ -274,6 +274,8 @@ body:not(.splash-visible) .cmp-dice-tray { visibility:visible; opacity:1; }
 /* Completely hide game layout (not just opacity) until game-active class set (after player selection + first player decided) */
 body:not(.game-active) .game-layout-shell { visibility:hidden; opacity:0; pointer-events:none; }
 body.game-active .game-layout-shell { visibility:visible; opacity:1; transition: opacity .45s ease; }
+/* Also hide standalone player profile cards container until game active (if mounted early) */
+body:not(.game-active) .cmp-player-profile-cards { visibility:hidden !important; opacity:0 !important; }
 /* Keep legacy splash blur (redundant now but retained for transition aesthetics) */
 body.splash-visible .game-layout-shell > .gl-main,
 body.splash-visible .game-layout-shell > .gl-footer,

@@ -25,8 +25,11 @@ export function build({ selector, dispatch, getState }) {
       if (!st.players.order.length) {
         chosen.forEach((monsterId, idx) => {
           const mon = monsters.find(m => m.id === monsterId);
-            const name = mon ? mon.name : `Player ${idx+1}`;
-            dispatch(playerJoined(createPlayer({ id: 'p'+(idx+1), name, monsterId })));
+          const name = mon ? mon.name : `Player ${idx+1}`;
+          const isCPU = idx !== 0; // slot 0 = human
+          const player = createPlayer({ id: 'p'+(idx+1), name, monsterId });
+          if (isCPU) player.isCPU = true;
+          dispatch(playerJoined(player));
         });
       }
       dispatch(uiSetupClose());

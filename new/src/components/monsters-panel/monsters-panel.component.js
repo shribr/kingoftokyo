@@ -3,7 +3,7 @@
  */
 import { store } from '../../bootstrap/index.js';
 import { selectPlayerOrder, selectActivePlayer } from '../../core/selectors.js';
-import { uiSetupOpen } from '../../core/actions.js';
+import { uiMonsterSelectionOpen } from '../../core/actions.js';
 import { build as buildPlayerCard } from '../player-profile-card/player-profile-card.component.js';
 import { initSidePanel } from '../side-panel/side-panel.js';
 
@@ -64,7 +64,7 @@ export function update(root, instances) {
     const btn = container.querySelector('[data-open-setup]');
     if (btn) {
       btn.addEventListener('click', () => {
-        try { store.dispatch(uiSetupOpen()); } catch(e) { console.warn('Failed to open setup from empty players state', e); }
+  try { store.dispatch(uiMonsterSelectionOpen()); } catch(e) { console.warn('Failed to open monster selection from empty players state', e); }
       });
     }
     // Clear any previous instances if they existed (edge dev case)

@@ -195,20 +195,35 @@ export function setAIThinking(isThinking) {
 
 async function resolveComponent(buildRef, updateRef) {
   const [folder, buildName] = buildRef.split('.');
-  const module = await import(`../components/${folder}/${folder}.component.js`);
   const pas = (s) => s.split('-').map(p=>p.charAt(0).toUpperCase()+p.slice(1)).join('');
-  // Resolve build
-  let build = module.build || module.default?.build;
-  if (!build && buildName) build = module[buildName];
-  if (!build) build = module[`build${pas(folder)}`];
-  // Resolve update
-  let update = module.update || module.default?.update;
-  if (updateRef) {
-    const [, updateName] = updateRef.split('.');
-    if (updateName && module[updateName]) update = module[updateName];
+  const tryLoad = async (folderName) => {
+    const module = await import(`../components/${folderName}/${folderName}.component.js`);
+    let build = module.build || module.default?.build;
+    if (!build && buildName) build = module[buildName];
+    if (!build) build = module[`build${pas(folderName)}`];
+    let update = module.update || module.default?.update;
+    if (updateRef) {
+      const [, updateName] = updateRef.split('.');
+      if (updateName && module[updateName]) update = module[updateName];
+    }
+    if (!update) update = module[`update${pas(folderName)}`];
+    return { build, update };
+  };
+  try {
+    return await tryLoad(folder);
+  } catch (e) {
+    if (folder.includes('-')) {
+      const camel = folder.replace(/-([a-z])/g, (_,c)=>c.toUpperCase());
+      try {
+        console.warn(`[mountRoot] Retrying component load with camelCase folder '${camel}' for '${folder}'.`);
+        return await tryLoad(camel);
+      } catch (e2) {
+        console.error('[mountRoot] Component load failed for both original and camelCase:', folder, camel, e2);
+        throw e2;
+      }
+    }
+    throw e;
   }
-  if (!update) update = module[`update${pas(folder)}`];
-  return { build, update };
 }
 
 function sliceState(keys, fullState) {

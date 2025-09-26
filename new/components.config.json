@@ -42,15 +42,15 @@
     "zIndex": 4000
   },
   {
-    "name": "setup",
+    "name": "monsterSelection",
     "version": "0.1.0",
-    "selector": ".cmp-setup",
+    "selector": ".cmp-monster-selection",
     "mountPoint": "#app",
     "order": 205,
     "enabled": true,
     "stateKeys": ["ui","monsters"],
-    "build": "setup.build",
-    "update": "setup.update",
+    "build": "monsterSelection.build",
+    "update": "monsterSelection.update",
     "initialState": {},
     "assets": [],
     "zIndex": 65

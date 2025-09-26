@@ -11,8 +11,8 @@
 		radial-gradient(circle at 1px 1px, rgba(0,0,0,0.08) 1px, transparent 1px) 0 0/12px 12px,
 		radial-gradient(circle at 1px 1px, rgba(0,0,0,0.06) 1px, transparent 1px) 6px 6px/12px 12px,
 		#fbf6ea;
-	border:4px solid #111; box-shadow: 14px 14px 0 #000, 0 0 0 4px #ffcc33 inset, 0 0 18px rgba(0,0,0,.4);
-	border-radius:18px; padding:24px 28px 28px; width: min(96vw, 1180px); display:flex; flex-direction:column; max-height:calc(100vh - 12vh); position:relative; overflow:hidden;
+	border:4px solid #111; box-shadow: 14px 14px 0 #000, 0 0 0 2px #000 inset, 0 0 22px -4px rgba(0,0,0,.55);
+	border-radius:0; padding:24px 28px 28px; width: min(96vw, 1180px); display:flex; flex-direction:column; max-height:calc(100vh - 12vh); position:relative; overflow:hidden;
 }
 /* Allow internal scrolling without stretching modal off-screen */
 .cmp-setup .setup-body { overflow:hidden; }
@@ -36,12 +36,12 @@
 .cmp-setup .pill-btn:active,
 .cmp-setup .start-btn:not([disabled]):active { transform: translateY(0) scale(.97); box-shadow:4px 4px 0 #000; filter:brightness(.97); }
 .cmp-setup .pill-btn:focus-visible,
-.cmp-setup .start-btn:focus-visible { outline:3px solid #ffcc33; outline-offset:3px; }
+.cmp-setup .start-btn:focus-visible { outline:3px solid #666; outline-offset:3px; }
 .cmp-setup .dropdown { position:relative; }
 /* Legacy-inspired pill styling refinement */
-.cmp-setup .dropdown-toggle { position:relative; display:flex; align-items:center; gap:10px; min-width:210px; justify-content:center; font-family:'Bangers',cursive; font-size:22px; letter-spacing:1px; padding:14px 26px; border:4px solid #000; box-shadow:4px 4px 0 #000, 0 0 0 3px #ffcc33 inset; background:linear-gradient(180deg,#ffc21f 0%, #ff9500 55%, #ffae00 56%, #ffdf7a 100%); color:#000; transition:transform .18s ease, box-shadow .18s ease, filter .3s; }
+.cmp-setup .dropdown-toggle { position:relative; display:flex; align-items:center; gap:10px; min-width:210px; justify-content:center; font-family:'Bangers',cursive; font-size:22px; letter-spacing:1px; padding:14px 26px; border:4px solid #000; box-shadow:4px 4px 0 #000, 0 0 0 3px #222 inset; background:linear-gradient(180deg,#ffc21f 0%, #ff9500 55%, #ffae00 56%, #ffdf7a 100%); color:#000; transition:transform .18s ease, box-shadow .18s ease, filter .3s; }
 .cmp-setup .dropdown-toggle:hover { transform:translateY(-2px); filter:brightness(1.05) saturate(1.05); }
-.cmp-setup .dropdown.open .dropdown-toggle { transform:translateY(0) scale(.98); box-shadow:3px 3px 0 #000, 0 0 0 3px #ffcc33 inset; }
+.cmp-setup .dropdown.open .dropdown-toggle { transform:translateY(0) scale(.98); box-shadow:3px 3px 0 #000, 0 0 0 3px #222 inset; }
 .cmp-setup .dropdown .chev { font-weight:900; font-size:26px; line-height:1; display:inline-block; transition:transform .25s ease; text-shadow:none; }
 .cmp-setup .dropdown.open .dropdown-toggle .chev { transform:rotate(180deg); }
 
@@ -112,10 +112,10 @@
 
 /* Close button (top-right) */
 /* Standardized red close button (shared visual with monster profiles) */
-.cmp-setup .setup-close { position:absolute; top:14px; right:14px; background:linear-gradient(135deg,#e74c3c 0%,#c0392b 100%); border:2px solid #000; color:#fff; width:48px; height:48px; font-size:26px; font-weight:700; line-height:1; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:3px 3px 0 #000; border-radius:6px; transition: transform .18s ease, box-shadow .18s ease, filter .25s ease; }
+.cmp-setup .setup-close { position:absolute; top:14px; right:14px; background:linear-gradient(135deg,#e74c3c 0%,#c0392b 100%); border:2px solid #000; color:#fff; width:48px; height:48px; font-size:26px; font-weight:700; line-height:1; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:3px 3px 0 #000; border-radius:0; transition: transform .18s ease, box-shadow .18s ease, filter .25s ease; }
 .cmp-setup .setup-close:hover { transform:translateY(-2px); box-shadow:4px 4px 0 #000; filter:brightness(1.05); }
 .cmp-setup .setup-close:active { transform:translateY(0) scale(.96); box-shadow:2px 2px 0 #000; }
-.cmp-setup .setup-close:focus-visible { outline:3px solid #ffcc33; outline-offset:3px; }
+.cmp-setup .setup-close:focus-visible { outline:3px solid #666; outline-offset:3px; }
 
 
 
