@@ -1,7 +1,7 @@
 /* components.panel-chrome.css
  * Unified panel chrome styling (borders, header typography, layered comic shadow) for left/right side rails.
  */
-.k-panel { position:relative; background:rgba(0,0,0,0.55); border:3px solid #000; border-radius:4px; padding:8px 10px 12px; box-shadow:3px 3px 0 #000, 0 0 0 1px #222 inset; font-family:'Bangers',cursive; letter-spacing:1px; }
+.k-panel { position:relative; background:linear-gradient(180deg,rgba(0,0,0,0.32),rgba(0,0,0,0.50)); border:3px solid #000; border-radius:4px; padding:8px 10px 12px; box-shadow:3px 3px 0 #000, 0 0 0 1px #222 inset; font-family:'Bangers',cursive; letter-spacing:1px; }
 .k-panel + .k-panel { margin-top:14px; }
 .k-panel__header { margin:0 0 8px; font-size:22px; color:#ffd400; text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; display:flex; align-items:center; justify-content:space-between; }
 .k-panel__body { font-family:system-ui,sans-serif; letter-spacing:0; }
@@ -85,7 +85,7 @@
 [data-collapsed="true"] > .k-panel__body { display:none; }
 
 /* Monsters panel overrides */
-.cmp-monsters-panel.k-panel { background:linear-gradient(180deg,#1c1f22,#121315); }
+.cmp-monsters-panel.k-panel { background:linear-gradient(180deg,#2b3035,#1b1d1f); }
 .cmp-monsters-panel .mp-title { font-size:24px; }
 .cmp-monsters-panel .mp-player-cards { font-family:system-ui,sans-serif; }
 
@@ -94,6 +94,8 @@
 .cmp-power-cards-panel .mp-title { font-size:24px; color:#ffd400; display:flex; flex-direction:row !important; align-items:center; gap:8px; }
 /* Restore larger arrow glyph size for Power Cards (avoid generic 14px shrink) */
 .cmp-power-cards-panel .mp-arrow { font-size:24px; }
+/* Lighten background similar to monsters panel for parity */
+.cmp-power-cards-panel.k-panel { background:linear-gradient(180deg,#30353a,#1d1f21); }
 
 /* Full-height side panels with scrolling */
 [data-gl-right] .cmp-monsters-panel { height: calc(100vh - 140px); overflow-y:auto; scrollbar-width:thin; }

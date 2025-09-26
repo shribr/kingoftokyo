@@ -17,6 +17,9 @@ export function build({ selector }) {
         // If turning off, also clear stored localStorage key used by positioningService
         try { localStorage.removeItem('kot_new_ui_positions_v1'); } catch(_) {}
       }
+    } else if (e.target.matches('[data-setting="stackedPlayerCards"]')) {
+      const checked = e.target.checked;
+      store.dispatch(settingsUpdated({ stackedPlayerCards: checked }));
     }
   });
   sync(root);
@@ -30,7 +33,12 @@ function template() {
       <input type="checkbox" data-setting="persistPositions" />
       Remember window positions between sessions
     </label>
-    <p style="margin:8px 0 0;font-size:12px;opacity:.75;font-family:system-ui,sans-serif;">When off (default), panels and menus reset to their default layout every reload.</p>
+    <p style="margin:8px 0 12px;font-size:12px;opacity:.75;font-family:system-ui,sans-serif;">When off (default), panels and menus reset to their default layout every reload.</p>
+    <label style="display:flex;align-items:center;gap:8px;font-family:system-ui,sans-serif;font-size:14px;">
+      <input type="checkbox" data-setting="stackedPlayerCards" checked />
+      Stacked player card layout
+    </label>
+    <p style="margin:8px 0 0;font-size:12px;opacity:.75;font-family:system-ui,sans-serif;">Uncheck for linear list of player profile cards.</p>
   </div>`;
 }
 
@@ -39,4 +47,6 @@ function sync(root) {
   const persist = !!st.settings?.persistPositions;
   const cb = root.querySelector('[data-setting="persistPositions"]');
   if (cb) cb.checked = persist;
+  const stacked = root.querySelector('[data-setting="stackedPlayerCards"]');
+  if (stacked) stacked.checked = st.settings?.stackedPlayerCards !== false;
 }

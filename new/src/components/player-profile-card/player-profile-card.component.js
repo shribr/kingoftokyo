@@ -1,18 +1,18 @@
 /** player-profile-card.component.js
  * Player Profile Card component scaffold (rewrite track).
- * - Uses single namespace class (.cmp-player-profile-card) – legacy .player-dashboard removed.
+ * - Uses single namespace class (.cmp-player-profile-card) – legacy term 'player-dashboard' replaced.
  * - Pure build/update contract.
  * - Owned cards miniature lane placeholder.
  * - No external side-effects; relies only on selectors + store.
  */
 import { store } from '../../bootstrap/index.js';
-import { selectPlayerById, selectPlayerCards, selectActivePlayer } from '../../core/selectors.js';
+import { selectPlayerById, selectPlayerCards, selectActivePlayer, selectMonsterById } from '../../core/selectors.js';
 import { createPositioningService } from '../../services/positioningService.js';
 
 /** Build a single player profile card root */
 export function build({ selector, playerId }) {
   const root = document.createElement('div');
-  // Single class namespace (legacy .player-dashboard deprecated)
+  // Single class namespace (legacy term 'player-dashboard' deprecated)
   root.className = `cmp-player-profile-card`;
   root.setAttribute('data-player-id', playerId);
   root.innerHTML = baseTemplate();
@@ -68,9 +68,64 @@ export function update(root, { playerId }) {
   const state = store.getState();
   const player = selectPlayerById(state, playerId);
   if (!player) return;
+  // Monster color theming
+  try {
+    const monster = selectMonsterById(state, player.monsterId);
+    if (monster && monster.color) {
+      root.style.setProperty('--ppc-accent', monster.color);
+      // Derive readable accent text color
+      try {
+        const hex = monster.color.replace('#','');
+        if (hex.length === 3) {
+          const r = parseInt(hex[0]+hex[0],16), g = parseInt(hex[1]+hex[1],16), b = parseInt(hex[2]+hex[2],16);
+          setAccentText(r,g,b);
+        } else if (hex.length === 6) {
+          const r = parseInt(hex.slice(0,2),16), g = parseInt(hex.slice(2,4),16), b = parseInt(hex.slice(4,6),16);
+          setAccentText(r,g,b);
+        }
+        // Avatar image mapping (best effort based on monster name / provided image)
+        try {
+          const avatarEl = root.querySelector('[data-avatar]');
+          if (avatarEl) {
+            const baseName = (monster.imageBase || monster.name || '').toLowerCase().replace(/\s+/g,'_');
+            const candidates = [];
+            if (monster.image) candidates.push(monster.image);
+            if (baseName) {
+              candidates.push(`images/characters/${baseName}.png`);
+              candidates.push(`images/characters/king_of_tokyo_${baseName}.png`);
+            }
+            const chosen = candidates.find(Boolean);
+            if (chosen) {
+              avatarEl.style.backgroundImage = `url(${chosen})`;
+              avatarEl.dataset.avatarSrc = chosen;
+            }
+          }
+        } catch(_) {}
+      } catch(_) {}
+    }
+  } catch(_) {}
 
   // Basic fields
   root.querySelector('[data-name]').textContent = player.name;
+  // CPU indicator appended after name (idempotent)
+  try {
+    const nameEl = root.querySelector('[data-name]');
+    if (nameEl) {
+      const isCPU = player.isCPU || player.isAi || player.type === 'ai';
+      let cpuEl = nameEl.querySelector('.ppc-cpu');
+      if (isCPU) {
+        if (!cpuEl) {
+          cpuEl = document.createElement('span');
+          cpuEl.className = 'ppc-cpu';
+          cpuEl.textContent = ' (CPU)';
+          cpuEl.setAttribute('aria-label','Computer controlled player');
+          nameEl.appendChild(cpuEl);
+        }
+      } else if (cpuEl) {
+        cpuEl.remove();
+      }
+    }
+  } catch(_) {}
   const hpValEl = root.querySelector('[data-hp-value]');
   if (hpValEl) hpValEl.textContent = player.health;
   root.querySelector('[data-energy-value]').textContent = player.energy;
@@ -90,9 +145,11 @@ export function update(root, { playerId }) {
   if (player.status?.active) {
     root.classList.add('is-active');
     activeIndicator.textContent = '●';
+    root.setAttribute('data-active','true');
   } else {
     root.classList.remove('is-active');
     activeIndicator.textContent = '';
+    root.removeAttribute('data-active');
   }
 
   // Owned cards miniature lane
@@ -109,4 +166,17 @@ export function update(root, { playerId }) {
   }
   const strip = root.querySelector('[data-cards-strip]');
   if (strip) strip.innerHTML = cards.map(c => `<span class="ppc-card-mini" title="${c.name}">${c.name.slice(0,8)}</span>`).join('');
+}
+
+function setAccentText(r,g,b) {
+  // Perceived luminance (sRGB)
+  const lum = 0.2126*(r/255) + 0.7152*(g/255) + 0.0722*(b/255);
+  // If bright color, switch to darker value highlight; else keep yellow/gold
+  if (lum > .55) {
+    document.documentElement.style.setProperty('--ppc-accent-text', '#222');
+  } else if (lum < .18) {
+    document.documentElement.style.setProperty('--ppc-accent-text', '#ffe680');
+  } else {
+    document.documentElement.style.setProperty('--ppc-accent-text', '#ffd400');
+  }
 }

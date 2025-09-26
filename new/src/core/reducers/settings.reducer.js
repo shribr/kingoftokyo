@@ -6,6 +6,7 @@ const DEFAULT_SETTINGS = {
   autoActivateMonsters: true,
   showDebugPanels: false,
   persistPositions: false // new: whether draggable UI element positions persist between sessions
+  , stackedPlayerCards: true // new: overlap/rotation stack style for non-active player profile cards
 };
 
 export function settingsReducer(state = DEFAULT_SETTINGS, action) {

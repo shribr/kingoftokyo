@@ -1,12 +1,12 @@
 /* components.player-profile-card.css (legacy parity version) */
 
-.cmp-player-profile-card { position:relative; width:260px; background:#2d3436; border:3px solid #000; border-radius:4px; padding:12px 14px 16px; font-family:'Bangers',cursive; letter-spacing:1px; color:#fff; box-shadow:4px 4px 0 #000,0 0 0 2px #222 inset; }
+.cmp-player-profile-card { position:relative; width:260px; background:linear-gradient(135deg,var(--ppc-accent,#2d3436) 0%, #1b1f20 100%); border:3px solid #000; border-radius:4px; padding:12px 14px 16px; font-family:'Bangers',cursive; letter-spacing:1px; color:#fff; box-shadow:4px 4px 0 #000,0 0 0 2px #222 inset; /* Lower value = shift visible area UP to show more top of image */ --ppc-avatar-pos-y:18%; }
 .cmp-player-profile-card + .cmp-player-profile-card { margin-top:18px; }
 .cmp-player-profile-card.is-active { outline:3px solid #ffd400; outline-offset:3px; }
 
 /* Header */
 .cmp-player-profile-card .ppc-header { display:flex; align-items:flex-start; margin:0 0 14px; }
-.cmp-player-profile-card .ppc-avatar { width:70px; height:70px; border:3px solid #000; border-radius:50%; background:#111 center/cover no-repeat; box-shadow:2px 2px 0 #000; margin-right:12px; }
+.cmp-player-profile-card .ppc-avatar { width:58px; height:58px; border:3px solid #000; border-radius:50%; background:#fff center var(--ppc-avatar-pos-y)/cover no-repeat; box-shadow:2px 2px 0 #000; margin-right:10px; }
 .cmp-player-profile-card .ppc-meta { flex:1; }
 .cmp-player-profile-card .ppc-name { font-size:30px; line-height:1; margin:0 0 6px; text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; }
 .cmp-player-profile-card .ppc-name small { font-size:14px; opacity:.65; margin-left:6px; letter-spacing:0; }
@@ -19,7 +19,7 @@
 .cmp-player-profile-card .ppc-stats { display:flex; gap:10px; margin:0 0 12px; }
 .cmp-player-profile-card .ppc-stat { flex:1; background:#fafafa; color:#111; border:3px solid #000; text-align:center; padding:8px 4px 6px; box-shadow:2px 2px 0 #000; font-family:'Bangers',cursive; position:relative; }
 .cmp-player-profile-card .ppc-stat .label { display:block; font-size:12px; letter-spacing:.5px; color:#222; margin:0 0 2px; }
-.cmp-player-profile-card .ppc-stat .value { font-size:28px; color:#ffd400; text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000; line-height:1; }
+.cmp-player-profile-card .ppc-stat .value { font-size:28px; color:var(--ppc-accent-text,#ffd400); text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000; line-height:1; }
 
 /* Owned cards lane */
 .cmp-player-profile-card .ppc-owned-cards { background:#1c2123; border:3px solid #000; padding:8px 8px 10px; box-shadow:2px 2px 0 #000; }
@@ -43,4 +43,62 @@
 
 /* Responsive downscale */
 @media (max-width:900px) { .cmp-player-profile-card { width:220px; padding:10px 12px 14px; } }
+
+/* ------------------------------------------------------------------ */
+/* Legacy stack & rotation parity for non-active cards (visual haphazard pile)
+ * Applies only within the monsters panel container. Active card floats clean.
+ */
+.cmp-monsters-panel .mp-player-cards { position:relative; display:flex; flex-direction:column; }
+.cmp-monsters-panel.is-stacked .mp-player-cards .cmp-player-profile-card { transition:transform .45s cubic-bezier(.25,.46,.45,.94), margin .35s ease; }
+.cmp-monsters-panel.is-stacked .mp-player-cards .cmp-player-profile-card.is-active { position:relative; z-index:3100; transform:none !important; margin-top:0 !important; }
+/* Base style for non-active stacked cards */
+.cmp-monsters-panel.is-stacked .mp-player-cards .cmp-player-profile-card:not(.is-active) {
+	position:relative;
+	z-index:3000; /* below active */
+	transform:perspective(800px) rotateX(1deg) rotateY(-0.5deg) rotateZ(.25deg);
+	margin-bottom:0;
+}
+/* Overlap stack: pull subsequent cards upward */
+.cmp-monsters-panel.is-stacked .mp-player-cards .cmp-player-profile-card:not(.is-active) + .cmp-player-profile-card:not(.is-active) { margin-top:-90px; }
+
+/* Individual variance (mirrors legacy nth-child transforms) */
+.cmp-monsters-panel.is-stacked .mp-player-cards .cmp-player-profile-card:nth-child(1):not(.is-active) { transform:perspective(800px) rotateX(.8deg) rotateY(-.3deg) rotateZ(-2.2deg); }
+.cmp-monsters-panel.is-stacked .mp-player-cards .cmp-player-profile-card:nth-child(2):not(.is-active) { transform:perspective(800px) rotateX(1.2deg) rotateY(.4deg) rotateZ(2.6deg); margin-left:-6px; }
+.cmp-monsters-panel.is-stacked .mp-player-cards .cmp-player-profile-card:nth-child(3):not(.is-active) { transform:perspective(800px) rotateX(.9deg) rotateY(-.7deg) rotateZ(-2.1deg); margin-left:6px; }
+.cmp-monsters-panel.is-stacked .mp-player-cards .cmp-player-profile-card:nth-child(4):not(.is-active) { transform:perspective(800px) rotateX(1.1deg) rotateY(.2deg) rotateZ(2.4deg); margin-left:-5px; }
+.cmp-monsters-panel.is-stacked .mp-player-cards .cmp-player-profile-card:nth-child(5):not(.is-active) { transform:perspective(800px) rotateX(.7deg) rotateY(-.4deg) rotateZ(-2deg); margin-left:5px; }
+.cmp-monsters-panel.is-stacked .mp-player-cards .cmp-player-profile-card:nth-child(6):not(.is-active) { transform:perspective(800px) rotateX(1.3deg) rotateY(.6deg) rotateZ(2.3deg); margin-left:-4px; }
+
+/* Responsive: reduce overlap on narrow screens */
+@media (max-width:900px) {
+	.cmp-monsters-panel.is-stacked .mp-player-cards .cmp-player-profile-card:not(.is-active) + .cmp-player-profile-card:not(.is-active) { margin-top:-60px; }
+}
+
+/* Linear layout fallback when stacking disabled */
+.cmp-monsters-panel:not(.is-stacked) .mp-player-cards { gap:14px; }
+.cmp-monsters-panel:not(.is-stacked) .mp-player-cards .cmp-player-profile-card { margin:0 !important; transform:none !important; }
+
+/* Floating active card (relocated outside panel) */
+#active-player-card-slot { position:absolute; pointer-events:none; top:40%; left:50%; z-index:3500; transition: left .45s cubic-bezier(.25,.46,.45,.94), top .45s cubic-bezier(.25,.46,.45,.94); }
+#active-player-card-slot .cmp-player-profile-card { pointer-events:auto; }
+
+/* Non-active hover parity (legacy tilt/glow) */
+.cmp-monsters-panel .mp-player-cards .cmp-player-profile-card:not(.is-active):hover {
+	transform:perspective(800px) rotateX(1deg) rotateY(-1deg) rotateZ(0deg) translateY(-6px) scale(1.015);
+	box-shadow:6px 6px 0 #000,0 0 0 2px #222 inset,0 8px 22px rgba(0,0,0,.55);
+	z-index:3050;
+}
+
+/* Tokyo badge accent variant */
+.cmp-player-profile-card .ppc-tokyo-indicator.is-in { background:linear-gradient(135deg,var(--ppc-accent,#0b435c) 0%, #062733 100%); border-color:#000; }
+
+/* Transition when docking/undocking */
+.cmp-player-profile-card[data-transitioning] { opacity:.0; transform:scale(.9); transition:opacity .25s ease, transform .3s ease; }
+.cmp-player-profile-card[data-transitioning].in-place { opacity:1; transform:scale(1); }
+
+/* CPU indicator styling */
+.cmp-player-profile-card .ppc-name .ppc-cpu { font-size:16px; line-height:1; font-weight:600; letter-spacing:.5px; color:var(--ppc-accent-text,#ffd400); text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000; }
+
+/* Avatar with mapped image */
+.cmp-player-profile-card .ppc-avatar[data-avatar-src] { background-size:cover; background-position:center var(--ppc-avatar-pos-y); box-shadow:0 0 0 3px #000, 0 0 10px rgba(0,0,0,.6); }
 

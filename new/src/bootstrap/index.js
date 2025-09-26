@@ -78,11 +78,19 @@ if (typeof window !== 'undefined') {
   bindAIDecisionCapture(store);
   bindUIEventBridges(store);
   bindA11yOverlays(store);
-  // Load monsters first, then seed players with randomized monsters for testing.
+  // Determine skipIntro first so we know whether to auto-seed dev players.
+  const skipIntro = (() => {
+    try {
+      const w = window.location;
+      return w.hash.includes('skipintro') || w.search.includes('skipintro=1') || localStorage.getItem('KOT_SKIP_INTRO') === '1';
+    } catch(_) { return false; }
+  })();
+
+  // Load monsters first; only seed random players if skipIntro (dev convenience). Otherwise rely on actual setup selections.
   fetch('./config.json').then(r => r.json()).then(cfg => {
     const monsters = Object.values(cfg.monsters || {}).map(m => ({ id: m.id, name: m.name, image: m.image, description: m.description, personality: m.personality || {}, color: m.color }));
     store.dispatch(monstersLoaded(monsters));
-    seedRandomPlayers(store, monsters, logger);
+    if (skipIntro) seedRandomPlayers(store, monsters, logger);
   }).catch(() => {
     const fallback = [
       { id: 'king', name: 'The King', image: '', description: 'A mighty ape', personality: { aggression: 5, strategy: 2, risk: 3, economic: 2 }, color: '#444' },
@@ -90,7 +98,7 @@ if (typeof window !== 'undefined') {
       { id: 'kraken', name: 'Kraken', image: '', description: 'Sea terror', personality: { aggression: 4, strategy: 3, risk: 3, economic: 2 }, color: '#2277aa' }
     ];
     store.dispatch(monstersLoaded(fallback));
-    seedRandomPlayers(store, fallback, logger);
+    if (skipIntro) seedRandomPlayers(store, fallback, logger);
   });
   initCards(store, logger);
   // Revised start logic: Do NOT auto-start when splash hides.
@@ -98,17 +106,7 @@ if (typeof window !== 'undefined') {
   let prevSetupOpen = store.getState().ui?.setup?.open;
   let setupWasOpened = false;
 
-  // Dev convenience: allow skipping splash + monster selection to jump straight into a playable game.
-  // Activate via one of:
-  //  - URL hash: #skipintro
-  //  - URL query param: ?skipintro=1
-  //  - localStorage flag: localStorage.setItem('KOT_SKIP_INTRO','1')
-  const skipIntro = (() => {
-    try {
-      const w = window.location;
-      return w.hash.includes('skipintro') || w.search.includes('skipintro=1') || localStorage.getItem('KOT_SKIP_INTRO') === '1';
-    } catch(_) { return false; }
-  })();
+  // Dev convenience: skipping intro will auto-seed players (logic moved earlier).
 
   if (skipIntro) {
     // Mark setup as having been opened (bypasses normal open->close detection) and hide splash immediately.
@@ -140,17 +138,26 @@ if (typeof window !== 'undefined') {
 function seedRandomPlayers(store, monsters, logger) {
   try {
     if (!Array.isArray(monsters) || monsters.length === 0) return;
-    // Ensure distinct monsters for first two players; fallback to reuse if insufficient.
+    // We want 4 sample players in skipIntro mode.
+    const TARGET = 4;
     const pool = monsters.slice();
-    const pick = () => pool.splice(Math.floor(Math.random()*pool.length),1)[0] || monsters[Math.floor(Math.random()*monsters.length)];
-    const m1 = pick();
-    const m2 = pick();
-    store.dispatch(playerJoined(createPlayer({ id: 'p1', name: 'Alpha', monsterId: m1.id })));
-    store.dispatch(playerJoined(createPlayer({ id: 'p2', name: 'Beta', monsterId: m2.id })));
-    logger.system(`Players seeded with random monsters: ${m1.id}, ${m2.id}`);
+    const pick = () => {
+      if (pool.length) return pool.splice(Math.floor(Math.random()*pool.length),1)[0];
+      // If fewer than 4 monsters exist, allow reuse
+      return monsters[Math.floor(Math.random()*monsters.length)];
+    };
+    const picked = [];
+    for (let i=1;i<=TARGET;i++) {
+      const m = pick();
+      picked.push(m);
+      store.dispatch(playerJoined(createPlayer({ id: 'p'+i, name: m.name, monsterId: m.id })));
+    }
+    logger.system(`Players seeded (skipIntro) with monsters: ${picked.map(p=>p.id).join(', ')}`);
   } catch(e) {
-    logger.warn('Random player seeding failed, falling back to static king/alien', e);
-    store.dispatch(playerJoined(createPlayer({ id: 'p1', name: 'Alpha', monsterId: 'king' })));
-    store.dispatch(playerJoined(createPlayer({ id: 'p2', name: 'Beta', monsterId: 'alien' })));
+    logger.warn('Random player seeding failed, falling back to static set', e);
+    const fallback = ['king','alien','kraken','meka'];
+    fallback.forEach((monId, idx) => {
+      store.dispatch(playerJoined(createPlayer({ id: 'p'+(idx+1), name: monId, monsterId: monId })));
+    });
   }
 }
