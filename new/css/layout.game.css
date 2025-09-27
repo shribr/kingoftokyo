@@ -28,6 +28,8 @@
 .game-layout-shell .gl-header::before { left:0; transform:translateY(-50%); }
 .game-layout-shell .gl-header::after { right:0; transform:translateY(-50%) scaleX(-1); }
 .game-layout-shell .gl-title { font-family:'Bangers',cursive; font-size:54px; letter-spacing:2px; color:#FFD700; text-shadow:-3px -3px 0 #000,3px -3px 0 #000,-3px 3px 0 #000,3px 3px 0 #000; margin:0; line-height:1; }
+/* Compact active player indicator (header right) */
+/* removed header active-indicator block */
 .game-layout-shell .gl-main { display:grid; grid-template-columns: var(--gl-side-width) 1fr var(--gl-side-width); gap: var(--gl-gap); align-items:start; width:100%; /* header overlay handled per-column */ }
 .game-layout-shell > .gl-main > .gl-left { display:flex; flex-direction:column; gap:14px; min-width:0; position:relative; z-index:6600; margin-top:calc(var(--gl-header-height) * -1); padding-top:var(--gl-header-height); height:calc(98vh + var(--gl-header-height)); max-height:calc(98vh + var(--gl-header-height)); overflow:visible; }
 .game-layout-shell > .gl-main > .gl-center { position:relative; min-height:640px; display:flex; flex-direction:column; margin-top:var(--gl-header-height); }
@@ -68,9 +70,30 @@ body.panels-expanded-right .gl-center-bottom .cmp-action-menu { margin-right: 40
 
 @media (max-width: 1400px) {
   :root { --gl-side-width: 260px; }
-  .game-layout-shell { grid-template-columns: var(--gl-side-width) 1fr var(--gl-side-width); }
 }
 
+/* On mobile, show arena round badge near the header title (left) while keeping header free on desktop */
+@media (max-width: 760px), (pointer: coarse) {
+  .cmp-arena [data-round-indicator] { position: fixed; top: 10px; left: 10px; transform:none; z-index: 6605; }
+  /* Move AI banner to the far right on mobile */
+  .game-layout-shell .gl-header .ai-thinking-banner { left: auto; right: 10px; transform: translateY(-50%); }
+  /* Vertically align the header round counter label block center (ensured by top:50% translateY(-50%) above) */
+}
+
+/* When overlay is active, ensure the left/right containers don't consume space so center uses full width */
+body[data-panels-force-overlay] .game-layout-shell > .gl-main > .gl-left,
+body[data-panels-force-overlay] .game-layout-shell > .gl-main > .gl-right {
+  width: 0 !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+/* When panels are in overlay mode, let individual panels size to their content instead of stretching full width */
+body[data-panels-force-overlay] .game-layout-shell > .gl-main > .gl-left > *,
+body[data-panels-force-overlay] .game-layout-shell > .gl-main > .gl-right > * {
+  width: auto !important;
+  max-width: min(360px, calc(100vw - 20px));
+}
 @media (max-width: 1100px) {
   .game-layout-shell .gl-main { grid-template-columns: 1fr; }
   .game-layout-shell > .gl-main > .gl-left { order:2; flex-direction:row; flex-wrap:wrap; margin-top:0; padding-top:0; height:auto; max-height:none; }

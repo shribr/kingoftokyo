@@ -18,6 +18,7 @@ export function build({ selector }) {
   root.setAttribute('data-layout','vertical');
   root.dataset.amDockState = 'docked'; // internal: docked | floating (for hybrid behavior)
   root.innerHTML = `
+    <div class="am-label" aria-hidden="true">ACTIONS MENU</div>
     <button data-action="roll" class="k-btn k-btn--primary">ROLL</button>
     <button data-action="keep" class="k-btn k-btn--secondary" disabled>KEEP</button>
     <button data-action="end" class="k-btn k-btn--secondary" disabled>END TURN</button>`;
@@ -40,8 +41,15 @@ export function build({ selector }) {
   try {
     const positioning = createPositioningService(store);
     positioning.hydrate();
-    const applyBounds = () => ({ left:0, top:0, right: window.innerWidth, bottom: window.innerHeight });
-    positioning.makeDraggable(root, 'actionMenu', { snapEdges: true, snapThreshold: 12, bounds: applyBounds() });
+    // Disable dragging on touch/mobile (coarse pointer) or narrow viewports
+    const isTouch = matchMedia('(pointer: coarse)').matches || window.innerWidth <= 760;
+    if (isTouch) {
+      root.setAttribute('data-draggable','false');
+    }
+    if (root.getAttribute('data-draggable') !== 'false') {
+      const applyBounds = () => ({ left:0, top:0, right: window.innerWidth, bottom: window.innerHeight });
+      positioning.makeDraggable(root, 'actionMenu', { snapEdges: true, snapThreshold: 12, bounds: applyBounds() });
+    }
     // Track drag to switch hybrid -> floating
     let dragTransformStart = null;
     root.addEventListener('pointerdown', () => { dragTransformStart = root.style.transform; }, { capture:true });
@@ -105,6 +113,7 @@ export function update(root) {
   const rollBtn = root.querySelector('[data-action="roll"]');
   const keepBtn = root.querySelector('[data-action="keep"]');
   const endBtn = root.querySelector('[data-action="end"]');
+  // no collapse button in mobile; hamburger opens/closes via window event
   const dice = st.dice || {};
   const faces = dice.faces || [];
   const hasAnyFaces = faces.length > 0;
@@ -149,6 +158,61 @@ export function update(root) {
   } catch(_) {}
 
   enforceVerticalLayout(root);
+
+  // Mobile/touch: horizontal layout and hamburger toggle behavior
+  const isTouch = matchMedia('(pointer: coarse)').matches || window.innerWidth <= 760;
+  if (isTouch) {
+    root.setAttribute('data-layout','horizontal');
+    // Position as a top-left drawer; hidden by default until hamburger toggles
+    if (!root._hbWired) {
+      root._hbWired = true;
+      // Ensure backdrop element exists for outside-click close
+      let backdrop = document.querySelector('.action-menu-backdrop');
+      if (!backdrop) {
+        backdrop = document.createElement('div');
+        backdrop.className = 'action-menu-backdrop';
+        document.body.appendChild(backdrop);
+      }
+      const applyHidden = () => {
+        const open = !!root._hamburgerOpen;
+        root.toggleAttribute('data-hamburger-open', open);
+        if (backdrop) backdrop.toggleAttribute('data-show', open);
+      };
+    // Hamburger toggle: open/close and anchor relative to the Actions button
+  window.addEventListener('ui.actionMenu.hamburgerToggle', (e) => {
+        // Close settings/tools menu if open to ensure only one menu is visible
+        try { window.dispatchEvent(new CustomEvent('ui.settingsMenu.forceClose')); } catch(_){}
+        root._hamburgerOpen = !root._hamburgerOpen;
+        try {
+          const r = e?.detail?.anchorRect;
+          const bottom = 56 + 8; // sit above bottom-left Actions Menu button
+          root.style.bottom = bottom + 'px';
+          root.style.top = 'auto';
+          root.setAttribute('data-hamburger-corner','left');
+          root.style.left = '8px';
+          root.style.right = 'auto';
+          // Clear any transform-based drift from previous drags
+          root.style.transform = 'translate(0, 0)';
+          // Let CSS compute width; reset explicit width if any
+          root.style.width = '';
+        } catch(_){ }
+        applyHidden();
+      });
+      // Outside click via backdrop
+      backdrop.addEventListener('click', () => { if (root._hamburgerOpen) { root._hamburgerOpen = false; applyHidden(); } });
+  // Listen for forced close from counterpart menu
+  window.addEventListener('ui.actionMenu.forceClose', () => { if (root._hamburgerOpen) { root._hamburgerOpen = false; applyHidden(); } });
+      // ESC to close
+      window.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && root._hamburgerOpen) { root._hamburgerOpen = false; applyHidden(); } });
+      window.addEventListener('resize', () => { if (window.innerWidth > 760) { root._hamburgerOpen = false; applyHidden(); } });
+      applyHidden();
+    }
+  } else {
+    root.setAttribute('data-layout','vertical');
+    root.removeAttribute('data-collapsed');
+    root._hamburgerOpen = false;
+    root.removeAttribute('data-hamburger-open');
+  }
 }
 
 // ------------------------------

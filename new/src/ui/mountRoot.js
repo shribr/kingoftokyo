@@ -164,7 +164,7 @@ function ensureAppRoot() {
     const shell = document.createElement('div');
     shell.className = 'game-layout-shell';
     shell.innerHTML = `
-      <header class="gl-header"><h1 class="gl-title" data-game-title>King of Tokyo</h1><div class="ai-thinking-banner" data-ai-thinking hidden><span class="label">AI Thinking</span><span class="dots" aria-hidden="true"></span></div></header>
+  <header class="gl-header"><h1 class="gl-title" data-game-title>King of Tokyo</h1><div class="ai-thinking-banner" data-ai-thinking hidden><span class="label">AI Thinking</span><span class="dots" aria-hidden="true"></span></div></header>
       <div class="gl-main">
         <div class="gl-left" data-gl-left></div>
         <div class="gl-center" data-gl-center>

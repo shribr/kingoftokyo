@@ -3,8 +3,9 @@
   --toolbar-bg: linear-gradient(180deg,#5d3a13,#3b230a);
   --toolbar-btn-gradient: linear-gradient(180deg,#f7b449,#d47924 60%, #b45d12);
   --toolbar-btn-gradient-hover: linear-gradient(180deg,#ffc768,#e58a2d 60%, #c66818);
-  --toolbar-btn-border: #000;
-  --toolbar-btn-shadow: 3px 3px 0 #000, 0 0 0 2px #000 inset, 0 6px 14px -6px rgba(0,0,0,.65);
+  /* Avoid pure black outlines when buttons render black text */
+  --toolbar-btn-border: #333;
+  --toolbar-btn-shadow: 3px 3px 0 #333, 0 0 0 2px #222 inset, 0 6px 14px -6px rgba(0,0,0,.55);
   --toolbar-btn-size: 46px;
   --toolbar-gap: 10px;
   --toolbar-radius: 10px;
@@ -23,7 +24,7 @@ body:not(.game-active) .cmp-toolbar .toolbar-btn { opacity:.9; }
 .cmp-toolbar .toolbar-btn .ico { width:28px; height:28px; pointer-events:none; }
 .cmp-toolbar .toolbar-btn .vh { position:absolute; width:1px; height:1px; margin:-1px; border:0; padding:0; clip:rect(0 0 0 0); overflow:hidden; white-space:nowrap; }
 .cmp-toolbar .toolbar-btn:hover { background:var(--toolbar-btn-gradient-hover); transform:translateY(-2px); }
-.cmp-toolbar .toolbar-btn:active { transform:translateY(1px); box-shadow:2px 2px 0 #000, 0 0 0 2px #000 inset; }
+.cmp-toolbar .toolbar-btn:active { transform:translateY(1px); box-shadow:2px 2px 0 #333, 0 0 0 2px #222 inset; }
 .cmp-toolbar .toolbar-btn:focus-visible { outline:2px solid #fff; outline-offset:2px; }
 .cmp-toolbar .toolbar-btn.is-muted { background:linear-gradient(180deg,#777,#444); color:#eee; }
 .cmp-toolbar .toolbar-btn.is-muted:hover { background:linear-gradient(180deg,#888,#555); }
@@ -36,6 +37,25 @@ body:not(.game-active) .cmp-toolbar .toolbar-btn { opacity:.9; }
 
 @media (max-width: 800px) { .cmp-toolbar { padding:10px 12px; --toolbar-btn-size:40px; } }
 
+/* Default hidden hamburgers */
+.toolbar-hamburger { display:none; }
+/* Dice toggle hidden by default (desktop/tablet); enabled via mobile media query below */
+.dice-toggle-btn { display:none; }
+
+/* Mobile hamburger triggers for Actions (left) and Settings (right) */
+@media (max-width: 760px), (pointer: coarse) {
+  /* Hide the desktop toolbar entirely on mobile */
+  .cmp-toolbar { display: none !important; }
+  .toolbar-hamburger { position:fixed; bottom:8px; top:auto; z-index:6700; display:flex; align-items:center; gap:6px; padding:10px 12px; font-family:var(--toolbar-font); font-size:16px; letter-spacing:.5px; background:var(--toolbar-btn-gradient); border:3px solid var(--toolbar-btn-border); border-radius:12px; color:#000; box-shadow:var(--toolbar-btn-shadow); cursor:pointer; white-space:nowrap; }
+  .toolbar-hamburger .hb-ico { font-size:18px; line-height:1; }
+  .toolbar-hamburger--left { left:8px; }
+  .toolbar-hamburger--right { display:none !important; }
+
+  /* Compact dice toggle button just above the left hamburger */
+  .dice-toggle-btn { position:fixed; left:8px; bottom:56px; z-index:6701; width:44px; height:44px; display:flex; align-items:center; justify-content:center; border:3px solid var(--toolbar-btn-border); border-radius:12px; background:var(--Toolbar-btn-gradient, var(--toolbar-btn-gradient)); box-shadow:var(--toolbar-btn-shadow); color:#000; cursor:pointer; }
+  .dice-toggle-btn .ico { font-size:22px; line-height:1; }
+}
+
 /* Lightweight modal overlays triggered by toolbar (help/about) */
 .light-modal { position:fixed; inset:0; z-index:8100; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity .2s ease; }
 .light-modal.in { opacity:1; }
@@ -45,5 +65,5 @@ body:not(.game-active) .cmp-toolbar .toolbar-btn { opacity:.9; }
 .light-modal h2 { font-size:28px; margin:0; color:#ffd400; text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; }
 .light-modal .lm-body { font-size:14px; line-height:1.5; }
 .light-modal .lm-body ul { padding-left:18px; margin:6px 0 10px; }
-.light-modal button[data-close] { background:var(--toolbar-btn-gradient,#444); border:2px solid #000; color:#000; font-family:'Bangers',cursive; font-size:18px; width:38px; height:38px; border-radius:8px; cursor:pointer; box-shadow:3px 3px 0 #000; }
+.light-modal button[data-close] { background:var(--toolbar-btn-gradient,#444); border:2px solid #333; color:#000; font-family:'Bangers',cursive; font-size:18px; width:38px; height:38px; border-radius:8px; cursor:pointer; box-shadow:3px 3px 0 #333; }
 .light-modal button[data-close]:hover { background:var(--toolbar-btn-gradient-hover,#666); }

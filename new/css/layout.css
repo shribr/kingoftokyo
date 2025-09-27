@@ -58,10 +58,14 @@ body::before { content:''; position:fixed; top:0; left:0; width:100%; height:100
 .cards-area { position:fixed !important; left:15px; top:10px; bottom:45px; width:430px; z-index:6000; opacity:1; }
 .players-area { position:fixed !important; right:15px; top:20px; bottom:15px; width:420px; z-index:6000; overflow:visible; opacity:1; }
 
+/* In new layout overlay mode, hide legacy areas completely to avoid interaction and layout wrap */
+body[data-panels-force-overlay] .cards-area,
+body[data-panels-force-overlay] .players-area { display:none !important; }
+
 /* Roll-off Scoreboard */
 .rolloff-scoreboard-container { position:fixed; top:45%; left:50%; transform:translate(-50%, -50%); z-index:1000; background:rgba(0,0,0,.95); border:3px solid #FFD700; border-radius:15px; padding:35px; box-shadow:0 0 30px rgba(255,215,0,.5); max-width:1400px; width:auto; min-width:1000px; }
 .rolloff-title { text-align:center; color:#FFD700; font-size:36px; font-weight:bold; margin-bottom:25px; text-shadow:2px 2px 4px rgba(0,0,0,.8); }
-.rolloff-commentary { text-align:center; color:#000; font-size:22px; font-style:italic; margin-bottom:20px; min-height:30px; padding:12px; background:rgba(255,215,0,0.1); border-radius:8px; border:1px solid rgba(255,215,0,0.3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.rolloff-commentary { text-align:center; color:#000; font-size:22px; font-style:italic; margin-bottom:20px; min-height:30px; padding:12px; background:rgba(255,215,0,0.1); border-radius:8px; border:1px solid rgba(255,215,0,0.3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; box-shadow:none; }
 #rolloff-table { width:100%; border-collapse:collapse; margin-top:15px; table-layout:fixed; }
 #rolloff-table th { background:rgba(255,215,0,0.2); color:#FFD700; padding:16px 12px; text-align:center; font-size:20px; font-weight:bold; border:1px solid rgba(255,215,0,0.3); }
 #rolloff-table td { padding:20px 12px; border:1px solid rgba(255,255,255,0.2); text-align:center; font-size:18px; }
@@ -74,8 +78,8 @@ body::before { content:''; position:fixed; top:0; left:0; width:100%; height:100
 .mini-die.rolling { animation:shake3D .6s cubic-bezier(0.68,-0.55,0.265,1.55); }
 .rolloff-attack-count { color:#FFD700; font-size:24px; font-weight:bold; text-shadow:2px 2px 4px rgba(0,0,0,.8); }
 .rolloff-attack-count.highlight { color:#FF4444; animation:pulseEmphasis 1s ease-in-out; }
-.roll-button { background:linear-gradient(45deg,#FFD700,#FFA500); border:none; color:#000; padding:10px 20px; border-radius:8px; font-size:16px; font-weight:bold; cursor:pointer; box-shadow:0 4px 8px rgba(0,0,0,.3); transition:all .3s ease; }
-.roll-button:hover { background:linear-gradient(45deg,#FFA500,#FFD700); transform:translateY(-2px); box-shadow:0 6px 12px rgba(0,0,0,.4); }
+.roll-button { background:linear-gradient(45deg,#FFD700,#FFA500); border:none; color:#000; padding:10px 20px; border-radius:8px; font-size:16px; font-weight:bold; cursor:pointer; box-shadow:none; transition:all .3s ease; }
+.roll-button:hover { background:linear-gradient(45deg,#FFA500,#FFD700); transform:translateY(-2px); box-shadow:none; }
 .roll-button:disabled { background:#666; color:#999; cursor:not-allowed; transform:none; box-shadow:none; }
 .action-menu.hidden-for-rolloff { display:none !important; }
 @keyframes pulseEmphasis { 0%,100%{transform:scale(1);}50%{transform:scale(1.1);} }
@@ -109,7 +113,7 @@ body::before { content:''; position:fixed; top:0; left:0; width:100%; height:100
 .bottom-ui-table { position:fixed; bottom:0; left:0; right:0; display:flex; flex-direction:column; justify-content:flex-end; z-index:4000; pointer-events:none; }
 .ui-row { display:flex; justify-content:center; align-items:center; width:100%; pointer-events:none; }
 .notification-row { min-height:40px; padding:5px 0; justify-content:flex-start; padding-left:20px; }
-.cpu-action-notification { background:rgba(255,255,255,.7); color:#000; padding:8px 16px; border-radius:4px; font-weight:bold; text-align:center; max-width:60%; box-shadow:0 3px 10px rgba(0,0,0,.4); border:2px solid #000; font-family:'Comic Neue',cursive; pointer-events:auto; }
+.cpu-action-notification { background:rgba(255,255,255,.7); color:#000; padding:8px 16px; border-radius:4px; font-weight:bold; text-align:center; max-width:60%; box-shadow:none; border:2px solid #333; font-family:'Comic Neue',cursive; pointer-events:auto; }
 .action-row { justify-content:space-between; padding:10px 20px; min-height:80px; }
 .action-row .dice-area, .action-row .action-menu { pointer-events:auto; position:relative; }
 .toolbar-row { justify-content:center; padding:10px 0 15px 0; min-height:60px; }
@@ -123,8 +127,8 @@ body::before { content:''; position:fixed; top:0; left:0; width:100%; height:100
 .game-pause-overlay { position:fixed; top:0; left:0; right:0; bottom:90px; background-color:rgba(128,128,128,.6); display:flex; justify-content:center; align-items:center; z-index:7000; pointer-events:none; }
 .game-pause-overlay.hidden { display:none; }
 .game-pause-overlay:not(.hidden) { pointer-events:auto; }
-.pause-message { background-color:rgba(255,255,255,.95); color:#000; padding:30px 50px; border-radius:8px; font-size:32px; font-weight:bold; font-family:'Comic Neue',cursive; text-align:center; border:3px solid #000; box-shadow:0 8px 20px rgba(0,0,0,.5); }
-.game-container.game-paused::before { content:"⏸️ GAME PAUSED"; position:fixed; top:20px; left:50%; transform:translateX(-50%); background:rgba(255,140,0,.95); color:#000; padding:8px 16px; border-radius:4px; font-weight:bold; z-index:7100; box-shadow:0 2px 8px rgba(0,0,0,.3); border:2px solid #000; font-family:'Comic Neue',cursive; font-size:14px; pointer-events:none; }
+.pause-message { background-color:rgba(255,255,255,.95); color:#000; padding:30px 50px; border-radius:8px; font-size:32px; font-weight:bold; font-family:'Comic Neue',cursive; text-align:center; border:3px solid #333; box-shadow:none; }
+.game-container.game-paused::before { content:"⏸️ GAME PAUSED"; position:fixed; top:20px; left:50%; transform:translateX(-50%); background:rgba(255,140,0,.95); color:#000; padding:8px 16px; border-radius:4px; font-weight:bold; z-index:7100; box-shadow:none; border:2px solid #333; font-family:'Comic Neue',cursive; font-size:14px; pointer-events:none; }
 #pause-game-btn.paused { background-color:#4CAF50 !important; border-color:#45a049 !important; }
 #pause-game-btn.paused:hover { background-color:#45a049 !important; }
 

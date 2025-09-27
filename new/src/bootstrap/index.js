@@ -81,6 +81,24 @@ if (typeof window !== 'undefined') {
   bindAIDecisionCapture(store);
   bindUIEventBridges(store);
   bindA11yOverlays(store);
+  // Responsive: force side panels to overlay and auto-collapse on small screens/touch to avoid wrapping
+  try {
+    const applyOverlayMode = () => {
+      const isTouch = matchMedia('(pointer: coarse)').matches;
+      const narrow = window.innerWidth <= 1100; // matches CSS breakpoint
+      const enable = isTouch || narrow;
+      document.body.toggleAttribute('data-panels-force-overlay', enable);
+      // Auto-collapse both panels when enabling overlay; keep user state otherwise
+      const left = document.querySelector('.cmp-side-panel[data-side="left"]');
+      const right = document.querySelector('.cmp-side-panel[data-side="right"]');
+      if (enable) {
+        if (left && left.getAttribute('data-collapsed') !== 'true') left.setAttribute('data-collapsed','true');
+        if (right && right.getAttribute('data-collapsed') !== 'true') right.setAttribute('data-collapsed','true');
+      }
+    };
+    applyOverlayMode();
+    window.addEventListener('resize', applyOverlayMode);
+  } catch(_) {}
   // Determine skipIntro first so we know whether to auto-seed dev players.
   const skipIntro = (() => {
     try {

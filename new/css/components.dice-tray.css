@@ -4,7 +4,7 @@
  */
 :root {
   --dice-tray-bg: linear-gradient(135deg,#272b30 0%, #141618 80%);
-  --dice-tray-border: 4px solid #000;
+  --dice-tray-border: 4px solid #333;
   --dice-tray-inner-rim: 0 0 0 3px #222 inset, 0 0 0 6px #111 inset;
   --dice-tray-radius: 10px;
   --dice-size: 54px;
@@ -20,26 +20,28 @@
   --dice-tray-label-shadow: 3px 3px 0 #000,0 0 0 2px #222 inset;
 }
 
-.cmp-dice-tray { position:fixed; left:50%; transform:translateX(-50%); z-index:4000; }
-.cmp-dice-tray .tray-frame { position:relative; background:var(--dice-tray-bg); padding:var(--dice-tray-padding); border:var(--dice-tray-border); border-radius:var(--dice-tray-radius); box-shadow:10px 10px 0 #000, var(--dice-tray-inner-rim); overflow:visible; }
+.cmp-dice-tray { position:fixed; left:50%; transform:translateX(-50%); z-index:6600; }
+.cmp-dice-tray .tray-frame { position:relative; background:var(--dice-tray-bg); padding:var(--dice-tray-padding); border:var(--dice-tray-border); border-radius:var(--dice-tray-radius); box-shadow:10px 10px 0 #333, var(--dice-tray-inner-rim); overflow:visible; }
+/* Removed left white arrow handle per mobile simplification */
+.cmp-dice-tray .tray-collapse-handle { display:none !important; }
 .cmp-dice-tray .tray-frame:before { content:""; position:absolute; inset:3px; border-radius:calc(var(--dice-tray-radius) - 4px); background:radial-gradient(circle at 30% 25%,rgba(255,255,255,0.08),rgba(255,255,255,0) 60%); pointer-events:none; }
-.cmp-dice-tray .tray-label { position:absolute; top:-22px; left:18px; background:var(--dice-tray-label-bg); color:#111; font-family:'Bangers',cursive; letter-spacing:1px; padding:4px 16px 6px; font-size:20px; line-height:1; border:3px solid #000; box-shadow:var(--dice-tray-label-shadow); transform:skew(-6deg); }
+.cmp-dice-tray .tray-label { position:absolute; top:-22px; left:18px; background:var(--dice-tray-label-bg); color:#111; font-family:'Bangers',cursive; letter-spacing:1px; padding:4px 16px 6px; font-size:20px; line-height:1; border:3px solid #333; box-shadow:0 0 0 2px #222 inset; transform:skew(-6deg); }
 .cmp-dice-tray[data-draggable="true"] { cursor: move; }
 
 .cmp-dice-tray [data-dice] { display:flex; gap:var(--dice-gap); position:relative; }
 .cmp-dice-tray [data-dice]:before { content:""; position:absolute; inset:-14px -20px -14px -20px; background:linear-gradient(90deg,rgba(255,255,255,0.05),rgba(255,255,255,0)); pointer-events:none; border-radius:calc(var(--dice-tray-radius) - 2px); }
 .cmp-dice-tray .die { width:var(--dice-size); height:var(--dice-size); display:flex; align-items:center; justify-content:center; font-size:var(--dice-font-size); font-weight:bold; background:
   radial-gradient(circle at 24% 26%, var(--dice-halftone-dot) 0 10%, transparent 11%) 0 0/12px 12px,
-  #fff; color:#000; border:4px solid #000; border-radius:4px; cursor:pointer; transition:transform .28s cubic-bezier(.175,.885,.32,1.275), box-shadow .28s, filter .28s; position:relative; box-shadow:3px 3px 0 #000,0 0 0 2px #222 inset; }
+  #fff; color:#000; border:4px solid #333; border-radius:4px; cursor:pointer; transition:transform .28s cubic-bezier(.175,.885,.32,1.275), box-shadow .28s, filter .28s; position:relative; box-shadow:none; }
 .cmp-dice-tray .die:before { content:""; position:absolute; inset:3px; border-radius:2px; background:linear-gradient(140deg,rgba(255,255,255,.55),rgba(255,255,255,0) 60%); mix-blend-mode:overlay; pointer-events:none; opacity:.75; }
 /* Subtle glassy sheen pass on hover */
 .cmp-dice-tray .die:after { content:""; position:absolute; inset:0; background:linear-gradient(115deg, rgba(255,255,255,0) 40%, rgba(255,255,255,.28) 50%, rgba(255,255,255,0) 60%); mix-blend-mode:screen; pointer-events:none; transform:translateX(-140%) skewX(-8deg); opacity:0; transition:transform .9s cubic-bezier(.25,.46,.45,.94), opacity .4s ease; }
 .cmp-dice-tray .die:hover:after { transform:translateX(0) skewX(-8deg); opacity:.32; }
 .cmp-dice-tray .die:active:after { opacity:.15; transition-duration:.25s; }
-.cmp-dice-tray .die:hover { transform:translate(-4px,-4px) rotate(-2deg); box-shadow:6px 6px 0 #000,0 0 0 2px #222 inset; }
-.cmp-dice-tray .die:active { transform:translate(0,0) rotate(0); box-shadow:3px 3px 0 #000,0 0 0 2px #222 inset; }
-.cmp-dice-tray .die.is-kept { border-color:#ffd400; box-shadow:0 0 0 4px #000, 0 0 14px 2px rgba(255,215,0,.55),0 0 0 2px #222 inset; filter:brightness(1.1) saturate(1.05); }
-.cmp-dice-tray .die.is-kept:after { content:"KEPT"; position:absolute; bottom:-8px; left:50%; transform:translateX(-50%) scale(.85); background:#ffd400; color:#111; font-size:11px; padding:2px 6px 3px; border:2px solid #000; border-radius:20px; font-family:'Bangers',cursive; letter-spacing:.5px; box-shadow:2px 2px 0 #000; }
+.cmp-dice-tray .die:hover { transform:translate(-4px,-4px) rotate(-2deg); box-shadow:none; }
+.cmp-dice-tray .die:active { transform:translate(0,0) rotate(0); box-shadow:none; }
+.cmp-dice-tray .die.is-kept { border-color:#ffd400; box-shadow:0 0 14px 2px rgba(255,215,0,.55); filter:brightness(1.1) saturate(1.05); }
+.cmp-dice-tray .die.is-kept:after { content:"KEPT"; position:absolute; bottom:-8px; left:50%; transform:translateX(-50%) scale(.85); background:#ffd400; color:#111; font-size:11px; padding:2px 6px 3px; border:2px solid #333; border-radius:20px; font-family:'Bangers',cursive; letter-spacing:.5px; box-shadow:none; }
 .cmp-dice-tray .die.extra-die { background:var(--dice-extra-bg); color:#555; }
 .cmp-dice-tray .die.pending.extra-die { border:4px dashed #555; background:linear-gradient(155deg,#2c2c2c,#141414); box-shadow:none; }
 /* Ensure pending dice remain fully opaque (design request: always 100% opacity) */
@@ -60,5 +62,11 @@ body:not(.splash-visible) .cmp-dice-tray { visibility:visible; opacity:1; }
 @media (max-width:760px) {
   :root { --dice-size:42px; --dice-font-size:22px; --dice-gap:6px; --dice-tray-padding:14px 16px 16px; }
   .cmp-dice-tray .die:after { display:none; }
-  .cmp-dice-tray .tray-label { left:12px; }
+  /* Hide the DICE label on mobile for a cleaner compact UI */
+  .cmp-dice-tray .tray-label { display:none; }
+  /* Position tray above action menu bar on mobile */
+  .cmp-dice-tray { left:50% !important; right:auto; top:auto; bottom:74px; transform:translateX(-50%) !important; }
+  .cmp-dice-tray[data-draggable="true"] { cursor: default; }
+  /* Collapsed to left: fully slide off-screen (toggled via dice button) */
+  .cmp-dice-tray[data-collapsed="left"] { left:0 !important; right:auto !important; transform: translateX(-100%) !important; }
 }

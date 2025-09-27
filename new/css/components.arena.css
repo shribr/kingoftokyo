@@ -12,7 +12,7 @@
   box-shadow:0 0 20px rgba(0,0,0,.6) inset;
   padding:20px 0 40px;
 }
-.cmp-arena [data-tokyo] { position:absolute; top:80px; left:50%; transform:translateX(-50%); width:60%; min-height:300px; display:flex; gap:var(--arena-gap); justify-content:center; }
+.cmp-arena [data-tokyo] { position:absolute; top:80px; left:50%; transform:translateX(-56%); width:70%; min-height:300px; display:flex; gap:calc(var(--arena-gap) + 8px); justify-content:center; }
 /* Responsive variables (final block) */
 :root {
   --arena-bg: rgba(0,0,0,0.4);
@@ -30,7 +30,8 @@
   --tokyo-tile-width: clamp(220px, 18vw, 320px);
 }
 .cmp-arena [data-arena-section="bay"],
-.cmp-arena [data-arena-section="city"] { flex:0 1 var(--tokyo-tile-width); max-width:var(--tokyo-tile-width); background:var(--arena-panel-bg); border:2px solid #333; padding:14px 14px 16px; border-radius:8px; text-align:center; position:relative; transform-origin:center center; }
+.cmp-arena [data-arena-section="city"],
+.cmp-arena [data-arena-section="active"] { flex:0 1 var(--tokyo-tile-width); max-width:var(--tokyo-tile-width); background:var(--arena-panel-bg); border:2px solid #333; padding:14px 14px 16px; border-radius:8px; text-align:center; position:relative; transform-origin:center center; }
 .cmp-arena .monster-slot { height:var(--arena-slot-height); border:var(--arena-slot-border); border-radius:6px; margin-top:12px; display:flex; align-items:center; justify-content:center; }
 
 .cmp-arena [data-round-indicator] { position:absolute; top:6px; left:6px; display:flex; flex-direction:row; align-items:center; gap:8px; padding:4px 12px 6px; background:var(--arena-round-color); border:3px solid #000; border-radius:40px; box-shadow:3px 3px 0 #000,0 0 0 2px #222 inset; z-index:10; }
@@ -40,6 +41,17 @@
 .cmp-arena .slot-empty { font-size:.7rem; color:#777; font-style:italic; }
 .cmp-arena [data-arena-section="city"] { transform:rotate(var(--tokyo-city-rot)) scale(var(--tokyo-tile-scale)); }
 .cmp-arena [data-arena-section="bay"] { transform:rotate(var(--tokyo-bay-rot)) scale(var(--tokyo-tile-scale)); }
+.cmp-arena [data-arena-section="active"] { transform:rotate(0deg) scale(var(--tokyo-tile-scale)); opacity:1; }
+/* Active tile gets a neutral rotation var and a touch more width */
+.cmp-arena [data-arena-section="active"] { --tokyo-bay-rot: 0deg; flex:0 1 calc(var(--tokyo-tile-width) + 40px); max-width: calc(var(--tokyo-tile-width) + 40px); }
+
+/* Float the active player tile in the arena’s top-right corner with a bit of padding */
+.cmp-arena [data-arena-section="active"] { position:absolute; top:12px; right:12px; left:auto; bottom:auto; width:auto; }
+.cmp-arena [data-arena-section="active"] .monster-slot { position:relative; border:3px dashed rgba(255,212,0,.55); border-radius:10px; background:rgba(0,0,0,.35); min-width:220px; min-height:240px; padding:0; display:flex; align-items:center; justify-content:center; box-sizing:border-box; overflow:visible; }
+
+/* Make the docked card a bit smaller specifically when inside the active dock */
+.cmp-arena [data-arena-section="active"] [data-active-card-dock] .cmp-player-profile-card,
+[data-active-card-dock] .cmp-player-profile-card[data-in-active-dock="true"] { transform:scale(.74); transform-origin: top left; }
 
 /* Attribute-based highlight states */
 .cmp-arena [data-arena-section][data-active="true"] { box-shadow:0 0 0 2px var(--accent-glow, rgba(0,200,255,0.4)); }
@@ -59,3 +71,15 @@
 /* Occupant emphasis */
 .cmp-arena .monster-slot > * { transition:transform .3s ease, filter .3s ease; }
 .cmp-arena .monster-slot > *[data-active="true"] { transform:scale(1.05); filter:drop-shadow(0 0 6px rgba(0,200,255,0.6)); }
+/* Entry flourish when card docks into Tokyo */
+.cmp-arena [data-active-card-dock] .cmp-player-profile-card.in-place { animation:arenaDockSettle 420ms ease-out; transform-origin: top left; }
+@keyframes arenaDockSettle { 0% { transform: scale(.9); filter:brightness(1.05); } 60% { transform: scale(1.04); } 100% { transform: scale(1); filter:brightness(1); } }
+
+/* Mobile: stack City over Bay, remove rotation */
+@media (max-width: 760px), (pointer: coarse) {
+  .cmp-arena [data-tokyo] { position:relative; top:auto; left:auto; transform:none; width:100%; flex-direction:column; align-items:center; gap:16px; padding:10px 0; }
+  .cmp-arena { padding-bottom: 90px; }
+  .cmp-arena [data-arena-section="city"],
+  .cmp-arena [data-arena-section="bay"],
+  .cmp-arena [data-arena-section="active"] { transform:rotate(0deg) scale(1); width:min(520px, 92vw); max-width: min(520px, 92vw); }
+}

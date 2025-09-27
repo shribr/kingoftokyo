@@ -27,6 +27,22 @@ body:not([data-panels-force-overlay]) .cmp-side-panel:not([data-collapsed="true"
 .cmp-side-panel[data-side="left"][data-collapsed="true"] { transform: translateX(calc(-100% + 46px)); }
 .cmp-side-panel[data-side="right"][data-collapsed="true"] { transform: translateX(calc(100% - 46px)); }
 
+/* Mobile/overlay mode: when enabled, dock panels to screen edges and remove them from normal flow */
+body[data-panels-force-overlay] .cmp-side-panel {
+  position: fixed;
+  top: calc(var(--gl-header-height, 72px) + 8px);
+  bottom: 84px; /* leave room for footer toolbar */
+  z-index: 6200; /* below dice tray/action menu (~6500), above arena */
+  max-height: none;
+}
+body[data-panels-force-overlay] .cmp-side-panel[data-side="left"] { left: 10px; right: auto; }
+body[data-panels-force-overlay] .cmp-side-panel[data-side="right"] { right: 10px; left: auto; }
+body[data-panels-force-overlay] .cmp-side-panel:not([data-collapsed="true"]) { overflow:auto; }
+body[data-panels-force-overlay] .cmp-side-panel[data-collapsed="true"] { overflow:visible; }
+/* Ensure collapsed state still shows a tab within the viewport */
+body[data-panels-force-overlay] .cmp-side-panel[data-side="left"][data-collapsed="true"] { transform: translateX(calc(-100% + 46px)); }
+body[data-panels-force-overlay] .cmp-side-panel[data-side="right"][data-collapsed="true"] { transform: translateX(calc(100% - 46px)); }
+
 /* Ensure collapsed left panel actually reduces its own width so rotated title is not clipped */
 /* Left collapsed: enforce tab width so header/title are always within the visible 46px slice */
 .cmp-side-panel[data-side="left"][data-collapsed="true"] {
@@ -66,9 +82,10 @@ body:not([data-panels-force-overlay]) .cmp-side-panel:not([data-collapsed="true"
   white-space:nowrap;
   transform-origin:center; /* default; overridden per-side below */
 }
-/* Left panel: same behavior as monsters (rotate -90deg). Minor nudge to keep centered in 46px rail */
+/* Left panel (Power Cards): mirror Monsters panel but in reverse -> rotate +90deg when collapsed */
 .cmp-side-panel[data-side="left"] > .mp-header .mp-title { transform-origin:top center; }
-.cmp-side-panel[data-side="left"][data-collapsed="true"] > .mp-header .mp-title { transform:rotate(-90deg) translateX(-4px); }
+.cmp-side-panel[data-side="left"][data-collapsed="true"] > .mp-header .mp-title { transform:rotate(90deg) translateX(4px); }
+/* Right panel (Monsters): collapse rotates -90deg */
 .cmp-side-panel[data-side="right"][data-collapsed="true"] > .mp-header .mp-title { transform:rotate(-90deg); }
 /* Top alignment for both panels when collapsed (consistent vertical placement) */
 .cmp-side-panel[data-side="right"][data-collapsed="true"] > .mp-header {

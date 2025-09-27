@@ -93,3 +93,23 @@
 /* Gradient variant for monster profiles close button */
 .mp-close-btn--gradient { background:linear-gradient(135deg,#e74c3c 0%,#c0392b 100%); border:2px solid #000; color:#fff; font-size:24px; font-weight:bold; padding:8px 12px; min-width:40px; box-shadow:2px 2px 0 #000; transform:perspective(200px) rotateX(2deg); line-height:1; }
 .mp-close-btn--gradient:hover { background:linear-gradient(135deg,#c0392b 0%, #a93226 100%); transform:perspective(200px) rotateX(1deg) translateY(-1px); box-shadow:3px 3px 0 #000; }
+
+/* Mobile-first adaptations for profiles modal */
+@media (max-width: 720px) {
+  .monster-profiles-modal { align-items: stretch; padding: 0; }
+  .mp-frame { width: 100vw; max-width: 100vw; height: 100vh; max-height: 100vh; margin: 0; padding: 12px 10px 10px; box-shadow: 8px 8px 0 #000; }
+  .mp-header { position: sticky; top: 0; z-index: 5; background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.75) 60%, rgba(255,255,255,0)); margin-bottom: 8px; padding-bottom: 8px; }
+  .mp-header h2 { font-size: 1.9rem; }
+  .mp-subhead { margin: 0 0 8px; font-size: .95rem; }
+  .mp-scroll { max-height: unset; height: auto; overflow: visible; padding: 0 8px; }
+  .mp-grid { grid-template-columns: 1fr; gap: 14px; padding-right: 0; margin-right: 0; }
+  .profile-card { padding: .85rem .9rem 1rem; }
+  .pc-avatar { width: 78px; height: 78px; }
+  .pc-name { font-size: 1.5rem; }
+  .trait-header { font-size: .95rem; }
+  .trait-endpoints { font-size: .6rem; }
+  .mp-actions { position: sticky; bottom: 0; z-index: 5; background: linear-gradient(0deg, rgba(255,255,255,.98), rgba(255,255,255,.6) 60%, rgba(255,255,255,0)); padding: 10px 6px 8px; gap: 10px; }
+}
+@media (max-width: 480px) {
+  .mp-header h2 { font-size: 1.6rem; }
+}

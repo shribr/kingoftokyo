@@ -1,3 +1,12 @@
+/* Mobile: mini-only list in monsters panel */
+@media (max-width: 760px), (pointer: coarse) {
+  .cmp-monsters-panel .mp-player-cards { gap:10px; }
+  .cmp-monsters-panel .cmp-player-profile-card { width:220px; padding:10px 12px; }
+  .cmp-monsters-panel .cmp-player-profile-card .ppc-stats { display:none; }
+  .cmp-monsters-panel .cmp-player-profile-card .ppc-owned-cards { display:none !important; }
+  .cmp-monsters-panel .cmp-player-profile-card .ppc-health-block { margin-top:6px; }
+  .cmp-monsters-panel .cmp-player-profile-card:hover { transform:translateY(-3px); }
+}
 /* components.monsters-panel.css */
 .cmp-monsters-panel { background:rgba(15,15,22,0.7); border:2px solid #222; border-radius:8px; padding:10px 14px 16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 18px -4px rgba(0,0,0,.6); }
 .cmp-monsters-panel .mp-header { display:flex; align-items:center; justify-content:space-between; }

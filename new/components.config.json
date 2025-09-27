@@ -42,6 +42,20 @@
     "zIndex": 4000
   },
   {
+    "name": "settingsMenu",
+    "version": "0.1.0",
+    "selector": ".cmp-settings-menu",
+    "mountPoint": "#app",
+    "order": 14,
+    "enabled": true,
+    "stateKeys": ["ui"],
+    "build": "settings-menu.build",
+    "update": "settings-menu.update",
+    "initialState": {},
+    "assets": [],
+    "zIndex": 4001
+  },
+  {
     "name": "monsterSelection",
     "version": "0.1.0",
     "selector": ".cmp-monster-selection",

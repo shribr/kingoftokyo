@@ -16,7 +16,8 @@ export function build({ selector, dispatch, getState }) {
   root.innerHTML = frame();
   // Build confirmed; removed temporary debug log.
   console.debug('[monster-selection][build] initializing component');
-  const inst = { root, dispatch, getState, _local: { selected: new Set(), slots: [], playerCount: 4, _initialized: false, page: 0, pageSize: 6 } };
+  const isTouch = matchMedia('(pointer: coarse)').matches || window.innerWidth <= 760;
+  const inst = { root, dispatch, getState, _local: { selected: new Set(), slots: [], playerCount: 4, _initialized: false, page: 0, pageSize: isTouch ? 1 : 6 } };
 
   root.addEventListener('click', (e) => {
     const t = e.target;
@@ -39,7 +40,12 @@ export function build({ selector, dispatch, getState }) {
       return;
     }
     if (t.closest('[data-action="close"]')) { dispatch(uiMonsterSelectionClose()); return; }
-  if (t.closest('[data-action="profiles"]')) { dispatch(uiMonsterProfilesOpen('selection')); dispatch(uiMonsterSelectionClose()); return; }
+  if (t.closest('[data-action="profiles"]')) {
+    // Open Profiles first, then close Selection on next frame to avoid transient blank state
+    dispatch(uiMonsterProfilesOpen('selection'));
+    requestAnimationFrame(() => dispatch(uiMonsterSelectionClose()));
+    return;
+  }
   if (t.closest('[data-action="random"]')) { randomFill(inst); render(inst); return; }
   if (t.closest('[data-action="page-prev"]')) { if (inst._local.page > 0) { inst._local.page--; render(inst); } return; }
   if (t.closest('[data-action="page-next"]')) { const stNow = getState(); const total = selectMonsters(stNow).length; const pages = Math.max(1, Math.ceil(total / inst._local.pageSize)); if (inst._local.page < pages - 1) { inst._local.page++; render(inst, stNow); } return; }
@@ -141,7 +147,7 @@ export function update(ctx) {
 
 function frame() {
   // Pager positioned beneath grid inside cards-col (prevents layout jump vs. top placement)
-  return `\n    <div class="setup-frame" role="dialog" aria-modal="true" aria-label="Monster Selection">\n      <button type="button" class="setup-close" data-action="close" aria-label="Close">✕</button>\n      <div class="setup-title">MONSTER SELECTION</div>\n      <div class="setup-controls">\n        <button class="pill-btn" data-action="profiles">Monster Profiles</button>\n        <div class="player-count dropdown" data-dropdown>\n          <button class="pill-btn dropdown-toggle gold" data-action="toggle-dropdown"><span data-player-count-label>4 PLAYERS</span><span class="chev">▾</span></button>\n          <ul class="dropdown-menu">\n            ${[2,3,4,5,6].map(n => `<li data-player-count="${n}">${n} Players</li>`).join('')}\n          </ul>\n        </div>\n        <button class="pill-btn" data-action="random">Random Monster Selection</button>\n      </div>\n      <div class="setup-body">\n        <div class="cards-col">\n          <div class="cards-grid" data-setup-grid></div>\n          <div class="monster-pager" data-pager></div>\n        </div>\n        <div class="selection-sidebar" data-sidebar></div>\n      </div>\n      <div class="setup-footer">\n        <button class="reset-link" data-action="reset">⟲ Reset Monsters</button>\n        <button class="start-btn" data-action="start" disabled>ASSIGN 2 MORE MONSTERS</button>\n      </div>\n    </div>`;
+  return `\n    <div class="setup-frame" role="dialog" aria-modal="true" aria-label="Monster Selection">\n      <div class="setup-title">MONSTER SELECTION</div>\n      <div class="setup-controls">\n        <button class="pill-btn" data-action="profiles">Monster Profiles</button>\n        <div class="player-count dropdown" data-dropdown>\n          <button class="pill-btn dropdown-toggle gold" data-action="toggle-dropdown"><span data-player-count-label>4 PLAYERS</span><span class="chev">▾</span></button>\n          <ul class="dropdown-menu">\n            ${[2,3,4,5,6].map(n => `<li data-player-count="${n}">${n} Players</li>`).join('')}\n          </ul>\n        </div>\n        <button class="pill-btn" data-action="random">Random Monster Selection</button>\n      </div>\n      <div class="setup-body">\n        <div class="cards-col">\n          <div class="cards-grid" data-setup-grid></div>\n          <div class="monster-pager" data-pager></div>\n        </div>\n        <div class="selection-sidebar" data-sidebar></div>\n      </div>\n      <div class="setup-footer">\n        <button class="reset-link" data-action="reset">⟲ Reset Monsters</button>\n        <button class="start-btn" data-action="start" disabled>ASSIGN 2 MORE MONSTERS</button>\n      </div>\n    </div>`;
 }
 function render(inst, fullState) {
   const root = inst.root; const st = fullState || inst.getState?.();
@@ -159,7 +165,8 @@ function render(inst, fullState) {
   }
   const grid = root.querySelector('[data-setup-grid]');
   if (grid) {
-    const pageSize = inst._local.pageSize || 6;
+    // Re-evaluate mobile breakpoint for one-per-page on each render
+    const pageSize = (matchMedia('(pointer: coarse)').matches || window.innerWidth <= 760) ? 1 : (inst._local.pageSize || 6);
     const total = monsters.length;
     const pages = Math.max(1, Math.ceil(total / pageSize));
     if (inst._local.page >= pages) inst._local.page = pages - 1; // clamp if data shrank

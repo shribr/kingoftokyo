@@ -31,6 +31,7 @@
 .cmp-monster-selection { color:#000; }
 .cmp-monster-selection .setup-title { font-family:'Bangers', cursive; font-size:52px; color:#FFD700; text-align:center; letter-spacing:2px; text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000; margin-bottom:12px; filter: drop-shadow(0 5px 0 #000); }
 .cmp-monster-selection .setup-controls { display:flex; gap:16px; align-items:center; justify-content:center; margin-bottom:18px; }
+.cmp-monster-selection .setup-controls .player-count { justify-self:center; }
 .cmp-monster-selection .pill-btn { background: linear-gradient(#fafafa,#e3e3e3); border:3px solid #111; border-radius:999px; padding:10px 18px; font-weight:900; box-shadow:6px 6px 0 #000; cursor:pointer; letter-spacing:.5px; text-transform:uppercase; position:relative; transition:transform .18s ease, box-shadow .18s ease, filter .28s ease; color:#000; }
 .cmp-monster-selection .pill-btn.gold { background: linear-gradient(var(--color-brand-gold,#ffd700), #ffb400); color:#000; }
 .cmp-monster-selection .pill-btn:hover,
@@ -115,3 +116,35 @@
 @media (max-width: 1180px) { .cmp-monster-selection .setup-frame { width:min(96vw,1080px); } }
 @media (max-width: 980px) { .cmp-monster-selection .setup-frame { padding:20px 22px 24px; } .cmp-monster-selection .setup-body { grid-template-columns: 1fr; } .cmp-monster-selection .selection-sidebar { align-items:center; } }
 @media (max-width: 640px) { .cmp-monster-selection .setup-title { font-size:44px; } }
+
+/* Mobile-first adaptations */
+@media (max-width: 720px) {
+	.cmp-monster-selection.monster-selection-modal { align-items: flex-start; padding: 0; }
+	.cmp-monster-selection .setup-frame {
+		width: 100vw; height: 100vh; max-height: 100vh; margin: 0;
+		padding: 14px 12px 10px; border-width: 3px; box-shadow: 10px 10px 0 #000;
+		display: flex; flex-direction: column;
+	}
+	.cmp-monster-selection .setup-title { font-size: 36px; margin-bottom: 8px; }
+	/* Controls: dropdown first row, then two buttons side-by-side below */
+	.cmp-monster-selection .setup-controls { display: grid; grid-template-columns: 1fr 1fr; grid-template-areas: 'dropdown dropdown' 'profiles random'; gap: 10px; margin-bottom: 12px; justify-items:center; }
+	.cmp-monster-selection .setup-controls .player-count { grid-area: dropdown; }
+	.cmp-monster-selection .setup-controls [data-action="profiles"] { grid-area: profiles; }
+	.cmp-monster-selection .setup-controls [data-action="random"] { grid-area: random; }
+	.cmp-monster-selection .dropdown-toggle { min-width: unset; font-size: 18px; padding: 10px 16px; }
+	.cmp-monster-selection .setup-body { gap: 16px; }
+	.cmp-monster-selection .cards-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; padding: 2px; }
+	.cmp-monster-selection .monster-card img { width: 140px; height: 120px; }
+	.cmp-monster-selection .selection-sidebar { align-items: stretch; }
+	.cmp-monster-selection .mini-list { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+	.cmp-monster-selection .mini-card, .cmp-monster-selection .mini-card.vertical { width: auto; min-height: 150px; }
+	.cmp-monster-selection .setup-footer { position: sticky; bottom: 0; left: 0; right: 0; padding: 10px 6px 6px; gap: 10px; background: linear-gradient(to top, rgba(251,246,234,.98), rgba(251,246,234,.65) 55%, rgba(251,246,234,0)); flex-direction: column; align-items: center; justify-content: center; }
+	.cmp-monster-selection .reset-link { order: 2; }
+	.cmp-monster-selection .start-btn { order: 1; }
+}
+@media (max-width: 480px) {
+	.cmp-monster-selection .setup-controls { grid-template-columns: 1fr; grid-template-areas: 'dropdown' 'profiles' 'random'; }
+	.cmp-monster-selection .cards-grid { grid-template-columns: 1fr; }
+	.cmp-monster-selection .setup-title { font-size: 30px; }
+	.cmp-monster-selection .pill-btn { padding: 8px 14px; }
+}

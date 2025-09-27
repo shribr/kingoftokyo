@@ -14,7 +14,6 @@ export function build({ selector, emit }) {
   root.setAttribute('data-draggable','true');
   // Tray frame + dice row (matching legacy visual reference)
   root.innerHTML = `<div class="tray-frame" data-tray-frame>
-    <div class="tray-label" aria-hidden="true">DICE</div>
     <div class="dice" data-dice aria-label="Dice Tray"></div>
   </div>`;
   // Track previous diceSlots to animate expansions
@@ -23,7 +22,12 @@ export function build({ selector, emit }) {
   // Make draggable & persistent
   const positioning = createPositioningService(store);
   positioning.hydrate(); // ensure positions loaded (idempotent)
-  positioning.makeDraggable(root, 'diceTray', { snapEdges: true, snapThreshold: 12 });
+  const isTouch = matchMedia('(pointer: coarse)').matches || window.innerWidth <= 760;
+  if (!isTouch) {
+    positioning.makeDraggable(root, 'diceTray', { snapEdges: true, snapThreshold: 12 });
+  } else {
+    root.setAttribute('data-draggable','false');
+  }
 
   // If user has not manually moved tray (no stored position), align its left edge with arena's left edge.
   function autoAlignIfNotUserMoved() {
@@ -66,6 +70,7 @@ export function build({ selector, emit }) {
 export function update(root, { state }) {
   const diceContainer = root.querySelector('[data-dice]');
   if (!diceContainer) return;
+  const collapseBtn = root.querySelector('[data-collapse-toggle]');
   const globalState = store.getState();
   const active = selectActivePlayer(globalState);
   const diceSlots = active?.modifiers?.diceSlots || 6;
@@ -111,6 +116,16 @@ export function update(root, { state }) {
   root._prevDiceSlots = diceSlots;
   root._prevFaces = faces.map(f => ({ value: f.value, kept: f.kept }));
   // Removed count & rerolls textual UI per request
+
+  // Mobile/touch collapse behavior
+  const isTouch = matchMedia('(pointer: coarse)').matches || window.innerWidth <= 760;
+  if (isTouch && collapseBtn && !collapseBtn._wired) {
+    collapseBtn._wired = true;
+    collapseBtn.addEventListener('click', () => {
+      const cur = root.getAttribute('data-collapsed');
+      root.setAttribute('data-collapsed', cur === 'left' ? 'none' : 'left');
+    });
+  }
 }
 
 function symbolFor(v) {

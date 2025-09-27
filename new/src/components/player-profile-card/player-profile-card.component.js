@@ -16,6 +16,14 @@ export function build({ selector, playerId }) {
   root.className = `cmp-player-profile-card`;
   root.setAttribute('data-player-id', playerId);
   root.innerHTML = baseTemplate();
+  // Flip on tap (mobile): toggles between front (stats) and back (owned cards)
+  root.addEventListener('click', (e) => {
+    const isTouch = matchMedia('(max-width: 760px), (pointer: coarse)').matches;
+    if (!isTouch) return;
+    // Avoid flipping when clicking links/buttons in future
+    if (e.target.closest('button,a,[data-ignore-flip]')) return;
+    root.toggleAttribute('data-flipped');
+  });
   // Defer draggable assignment until update determines active player to avoid all cards being movable.
   let draggableApplied = false;
   function ensureDraggableIfActive() {
@@ -27,6 +35,13 @@ export function build({ selector, playerId }) {
         positioning.hydrate();
         positioning.makeDraggable(root, `playerCard_${playerId}`, { snapEdges: true, snapThreshold: 12 });
         draggableApplied = true;
+        root.setAttribute('data-draggable','true');
+      } else if (!active || active.id !== playerId) {
+        // Ensure non-active player cards are not draggable
+        root.setAttribute('data-draggable','false');
+        root.setAttribute('data-nodrag','true');
+        // Remove pointer handlers if they were attached
+        root.style.touchAction = '';
       }
     } catch(_) {}
   }

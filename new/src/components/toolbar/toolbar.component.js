@@ -22,6 +22,45 @@ export function build({ selector }) {
     ${iconBtn('reset-positions', 'Reset Layout', layoutIcon())}
     ${iconBtn('about', 'About', infoIcon())}
   `;
+  // Create mobile text buttons (bottom corners) for Actions and Tools
+  // These are always created but only visible under mobile CSS breakpoints.
+  try {
+    const actionsBtn = document.createElement('button');
+    actionsBtn.className = 'toolbar-hamburger toolbar-hamburger--left';
+    actionsBtn.setAttribute('type','button');
+  actionsBtn.setAttribute('aria-label','Open Actions Menu');
+  actionsBtn.textContent = 'Actions Menu';
+    actionsBtn.addEventListener('click', (ev) => {
+      const rect = actionsBtn.getBoundingClientRect();
+      window.dispatchEvent(new CustomEvent('ui.actionMenu.hamburgerToggle', { detail: { anchorRect: { top: rect.top, left: rect.left, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height } } }));
+    });
+    // Tools hamburger is not needed on mobile per latest request; keep element but hidden via CSS and do not append.
+    document.body.appendChild(actionsBtn);
+
+    // Add a small dice toggle button above the left hamburger to slide the dice tray in/out
+    const diceToggle = document.createElement('button');
+    diceToggle.className = 'dice-toggle-btn';
+    diceToggle.setAttribute('type','button');
+    diceToggle.setAttribute('aria-label','Toggle Dice Tray');
+    diceToggle.innerHTML = '<span class="ico">🎲</span>';
+    diceToggle.addEventListener('click', () => {
+      // Show dice tray on mobile and temporarily disable dragging on tray and action menu
+      try {
+        const tray = document.querySelector('.cmp-dice-tray');
+        if (tray) {
+          tray.removeAttribute('data-collapsed');
+          // Temporarily disable drag cursor/behavior visually
+          tray.setAttribute('data-draggable','false');
+          setTimeout(() => { tray.setAttribute('data-draggable','false'); }, 0);
+        }
+        const am = document.querySelector('.cmp-action-menu');
+        if (am) {
+          am.setAttribute('data-draggable','false');
+        }
+      } catch(_) {}
+    });
+    document.body.appendChild(diceToggle);
+  } catch(_) { /* non-fatal */ }
   root.addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-action]');
     if (!btn) return;

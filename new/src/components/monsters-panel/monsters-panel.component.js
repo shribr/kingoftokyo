@@ -87,13 +87,14 @@ export function update(root, instances) {
     }
     inst.update({ playerId: id });
   });
-  // Relocate active card outside panel (placeholder anchor) if present
-  if (active) {
+  // Relocate active card outside panel (placeholder anchor) if present (all viewports; scales via CSS)
+  const shouldDock = !!active;
+  if (shouldDock) {
     const activeInst = instances.get(active.id);
     if (activeInst && activeInst.root.parentElement === container) {
       // Capture starting rect BEFORE moving DOM
       const startRect = activeInst.root.getBoundingClientRect();
-      const slot = document.getElementById('active-player-card-slot') || ensureActiveDock();
+  const slot = ensureActiveDock();
       // Create a transient fade placeholder at original location to smooth visual removal
       try {
         const ph = document.createElement('div');
@@ -109,7 +110,7 @@ export function update(root, instances) {
       slot.innerHTML = '';
       slot.appendChild(activeInst.root);
       requestAnimationFrame(() => {
-        positionActiveSlot(slot, activeInst.root, active);
+  positionActiveSlot(slot, activeInst.root, active);
         const endRect = activeInst.root.getBoundingClientRect();
         // Hide real card until animation completes
         activeInst.root.style.visibility = 'hidden';
@@ -128,17 +129,48 @@ export function update(root, instances) {
 
 function positionActiveSlot(slot, cardEl, activePlayer) {
   try {
-    // New docking target: absolute top-right corner inside arena.
+    // Dock into the appropriate arena tile (city or bay) based on current occupants
     const arena = document.querySelector('.cmp-arena');
     if (!arena) return;
-    const arenaRect = arena.getBoundingClientRect();
-    const dockW = 200; const dockH = 140;
-    slot.setAttribute('data-mini','true');
-    // Use right/top offsets for simplicity and responsiveness.
+    const st = store.getState();
+  const isCity = st.tokyo?.city === activePlayer.id;
+  const isBay = st.tokyo?.bay === activePlayer.id;
+  // Always snap active player card to the dedicated Active Player tile to the right of Tokyo
+  const target = document.querySelector('[data-active-player-slot]') || document.querySelector('[data-city-slot]') || document.querySelector('[data-bay-slot]') || arena;
+    if (!target) return;
+    slot.removeAttribute('data-mini');
+    slot.style.position = 'relative';
     slot.style.left = 'auto';
-    slot.style.right = '12px';
-    slot.style.top = '8px';
+    slot.style.right = 'auto';
+    slot.style.top = 'auto';
     slot.style.bottom = 'auto';
+    // Ensure slot exists then append near the monster slot (overlay on top)
+    if (!slot.parentElement || slot.parentElement !== target.parentElement) {
+      target.parentElement.appendChild(slot);
+    }
+    // Position over the monster slot (relative to the section container)
+    slot.style.position = 'absolute';
+    const tRect = target.getBoundingClientRect();
+    const pRect = target.parentElement ? target.parentElement.getBoundingClientRect() : arena.getBoundingClientRect();
+    // If docking into the dedicated active player slot, center the card within the slot
+    if (target.hasAttribute('data-active-player-slot')) {
+      // Append slot directly into the dotted area and center it
+      target.appendChild(slot);
+      slot.style.position = 'absolute';
+      // Center relative to the slot itself
+      slot.style.left = '50%';
+      slot.style.top = '50%';
+      slot.style.transform = 'translate(-50%, -50%)';
+    } else {
+      const left = (tRect.left - pRect.left) + 6;
+      const top = (tRect.top - pRect.top) + 6;
+      slot.style.left = left + 'px';
+      slot.style.top = top + 'px';
+      slot.style.transform = '';
+    }
+    slot.style.zIndex = 6610;
+    // Mark card for active dock scale when placed here
+    try { if (cardEl) cardEl.setAttribute('data-in-active-dock','true'); } catch(_){ }
   } catch(_) {}
 }
 
@@ -148,9 +180,9 @@ function ensureActiveDock() {
   dock = document.createElement('div');
   dock.id = 'active-player-card-slot';
   dock.setAttribute('data-active-card-dock','true');
-  // Place a dedicated docking zone overlayed near center-top of arena as fallback
-  const arena = document.querySelector('.cmp-arena') || document.getElementById('game-container') || document.body;
-  arena.appendChild(dock);
+  // Attach to header active slot on mobile
+  const headerSlot = document.querySelector('[data-active-header]');
+  if (headerSlot) headerSlot.appendChild(dock); else (document.body.appendChild(dock));
   return dock;
 }
 

@@ -52,9 +52,17 @@ export function initSidePanel(root, {
   });
 
   // Initialize
-  if (header && !header.hasAttribute('aria-expanded')) header.setAttribute('aria-expanded','true');
+  const isMobile = typeof window !== 'undefined' && (window.matchMedia('(max-width: 760px), (pointer: coarse)').matches);
+  if (isMobile && !root.hasAttribute('data-initialized')) {
+    // Collapse by default on mobile
+    root.setAttribute('data-collapsed','true');
+    if (header) header.setAttribute('aria-expanded','false');
+  } else {
+    if (header && !header.hasAttribute('aria-expanded')) header.setAttribute('aria-expanded','true');
+  }
   setArrow();
   updateBodyState();
+  root.setAttribute('data-initialized','true');
 
   // Dev parity logging (guarded for browsers without process)
   if (typeof window !== 'undefined' && (window.__DEV__ === true)) {

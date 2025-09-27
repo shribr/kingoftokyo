@@ -28,7 +28,11 @@ export function build({ selector }) {
         <h3>Tokyo Bay</h3>
         <div class="monster-slot" data-bay-slot></div>
       </div>
-    </div>`;
+    </div>
+    <div data-active data-arena-section="active">
+      <div class="monster-slot" data-active-player-slot></div>
+    </div>
+  `;
   return { root, update: () => update(root) };
 }
 
