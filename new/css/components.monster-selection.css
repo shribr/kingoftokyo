@@ -18,10 +18,14 @@
 		#fbf6ea;
 	border:4px solid #111; box-shadow: 14px 14px 0 #000, 0 0 0 2px #000 inset, 0 0 22px -4px rgba(0,0,0,.55);
 	border-radius:0; padding:24px 28px 40px; width: min(96vw, 1180px); display:flex; flex-direction:column; position:relative; overflow:hidden; margin:0 auto; /* ensure horizontal centering */
-	max-height:92vh; /* Constrain height so footer (Start Game) stays within viewport */
+	/* Fix the frame height relative to the modal's vertical padding (4vh top + 6vh bottom) */
+	height: calc(100vh - 10vh);
+	max-height: calc(100vh - 10vh);
 }
 /* Internal scroll region so only monster list / sidebar scrolls, footer stays accessible */
-.cmp-monster-selection .setup-body { flex:1; min-height:0; overflow-y:auto; overflow-x:hidden; padding-right:4px; }
+.cmp-monster-selection .setup-body { flex:1 1 auto; min-height:0; overflow:hidden; padding-right:0; }
+.cmp-monster-selection .setup-body > .cards-col { /* fix vertical space so pager stays put */ height:100%; }
+.cmp-monster-selection .setup-body > .selection-sidebar { height:100%; overflow:auto; padding-right:4px; }
 .cmp-monster-selection .cards-grid { max-height:100%; }
 .cmp-monster-selection .selection-sidebar { max-height:100%; /* allow main scroll container to handle vertical scrolling */ overflow:visible; padding-right:4px; }
 .cmp-monster-selection { color:#000; }
@@ -50,7 +54,7 @@
 .cmp-monster-selection .dropdown-menu li:active { background:linear-gradient(90deg,#ffc843,#ffad0a); }
 .cmp-monster-selection .setup-body { display:grid; grid-template-columns: 1fr 320px; gap:28px; align-items:start; flex:1; overflow:hidden; min-height:0; }
 .cmp-monster-selection .monster-pager { display:flex; align-items:center; justify-content:center; gap:14px; margin:0 0 12px; font-family:'Bangers',cursive; letter-spacing:1px; }
-.cmp-monster-selection .cards-col { display:flex; flex-direction:column; }
+.cmp-monster-selection .cards-col { display:flex; flex-direction:column; flex:1; min-height:0; }
 .cmp-monster-selection .cards-col .monster-pager { margin-top:18px; margin-bottom:0; }
 .cmp-monster-selection .monster-pager .pager-btn { background:#fff4c2; border:3px solid #111; box-shadow:3px 3px 0 #000; padding:6px 14px 8px; cursor:pointer; font-family:'Bangers',cursive; font-size:18px; line-height:1; transition:transform .18s ease, box-shadow .18s ease, filter .25s ease; }
 .cmp-monster-selection .monster-pager .pager-btn:hover:not([disabled]) { transform:translate(-2px,-2px); box-shadow:5px 5px 0 #000; filter:brightness(1.05); }
@@ -62,7 +66,7 @@
 @media (max-height: 640px) {
 	.cmp-monster-selection.monster-selection-modal { align-items:flex-start; }
 }
-.cmp-monster-selection .cards-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:30px; padding:4px; overflow-y:auto; overscroll-behavior:contain; scrollbar-gutter: stable; }
+.cmp-monster-selection .cards-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:30px; padding:4px; overflow-y:auto; overscroll-behavior:contain; scrollbar-gutter: stable; flex:1; min-height:0; align-items:start; align-content:start; justify-content:start; }
 .cmp-monster-selection .cards-grid::-webkit-scrollbar { width:10px; }
 .cmp-monster-selection .cards-grid::-webkit-scrollbar-track { background:#e4dccd; border:2px solid #111; box-shadow:inset 2px 2px 0 #000; }
 .cmp-monster-selection .cards-grid::-webkit-scrollbar-thumb { background:#c0b49f; border:2px solid #111; box-shadow:2px 2px 0 #000; }
