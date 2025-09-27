@@ -29,6 +29,11 @@ export function build({ selector }) {
   root.addEventListener('click', (e) => {
     if (e.target.matches('[data-action="close"]')) {
       store.dispatch(uiMonsterProfilesClose());
+      // If selection is restored on close (from reducer), make sure it isn't demoted
+      requestAnimationFrame(() => {
+        const sel = document.querySelector('.cmp-monster-selection');
+        if (sel) sel.classList.remove('demoted');
+      });
     }
   });
   // Stage slider changes (no immediate dispatch)

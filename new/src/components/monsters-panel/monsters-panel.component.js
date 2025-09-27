@@ -2,7 +2,7 @@
  * Composite panel that nests player profile cards + future monster/power card views.
  */
 import { store } from '../../bootstrap/index.js';
-import { selectPlayerOrder, selectActivePlayer } from '../../core/selectors.js';
+import { selectPlayerOrder, selectActivePlayer, selectPlayerById, selectMonsterById } from '../../core/selectors.js';
 import { uiMonsterSelectionOpen } from '../../core/actions.js';
 import { build as buildPlayerCard } from '../player-profile-card/player-profile-card.component.js';
 import { initSidePanel } from '../side-panel/side-panel.js';
@@ -294,6 +294,25 @@ function smoothTravelToDock(cardEl, startRect, endRect) {
       setTimeout(()=>{
         cardEl.classList.add('dock-glow');
         setTimeout(()=>cardEl.classList.remove('dock-glow'), 900);
+          // Also show the brief start-of-turn toast in reduced motion mode
+          try {
+            const st = store.getState();
+            const player = selectPlayerById(st, pid);
+            const monster = player ? selectMonsterById(st, player.monsterId) : null;
+            const label = monster?.name || player?.name || 'Player';
+            const slotEl = cardEl.parentElement;
+            const targetRect = (slotEl?.parentElement || slotEl || cardEl).getBoundingClientRect();
+            const toast = document.createElement('div');
+            toast.className = 'active-start-toast';
+            toast.textContent = `${label} starts!`;
+            toast.style.left = (targetRect.left + (targetRect.width/2)) + 'px';
+            toast.style.top = (targetRect.bottom + 8) + 'px';
+            document.body.appendChild(toast);
+            requestAnimationFrame(()=>{
+              toast.classList.add('show');
+              setTimeout(()=>{ toast.classList.remove('show'); setTimeout(()=>{ try { toast.remove(); } catch(_) {} }, 300); }, 1400);
+            });
+          } catch(_) {}
       }, 180);
       return;
     }
@@ -346,6 +365,29 @@ function smoothTravelToDock(cardEl, startRect, endRect) {
         } else {
           setTimeout(()=>cardEl.classList.remove('dock-glow'), 900);
         }
+        // Brief start-of-turn toast under the active card
+        try {
+          const st = store.getState();
+          const player = selectPlayerById(st, pid);
+          const monster = player ? selectMonsterById(st, player.monsterId) : null;
+          const label = monster?.name || player?.name || 'Player';
+          const targetRect = (slotEl?.parentElement || slotEl || cardEl).getBoundingClientRect();
+          const toast = document.createElement('div');
+          toast.className = 'active-start-toast';
+          toast.textContent = `${label} starts!`;
+          // Position fixed so it ignores transforms; center under the dock area
+          toast.style.left = (targetRect.left + (targetRect.width/2)) + 'px';
+          toast.style.top = (targetRect.bottom + 8) + 'px';
+          document.body.appendChild(toast);
+          // Animate in, then out and remove
+          requestAnimationFrame(()=>{
+            toast.classList.add('show');
+            setTimeout(()=>{
+              toast.classList.remove('show');
+              setTimeout(()=>{ try { toast.remove(); } catch(_) {} }, 300);
+            }, 1400);
+          });
+        } catch(_) {}
       });
     };
     travel.onfinish = finalize;

@@ -43,7 +43,8 @@ export function build({ selector, dispatch, getState }) {
     if (t.closest('[data-action="profiles"]')) {
       // Hide global blackout before opening profiles to avoid double-dark overlay
       try { window.__KOT_BLACKOUT__?.hide(); } catch(_){}
-      // Open Profiles first, then close Selection on next frame to avoid transient blank state
+      // Demote selection overlay so profiles is visible immediately, then close selection on next frame
+      root.classList.add('demoted');
       dispatch(uiMonsterProfilesOpen('selection'));
       requestAnimationFrame(() => dispatch(uiMonsterSelectionClose()));
       return;
@@ -129,6 +130,8 @@ export function update(ctx) {
   if (!open) { if (!root.classList.contains('hidden')) console.debug('[monster-selection.update] hiding (open flag false)'); root.classList.add('hidden'); inst._local._initialized = false; return; }
   if (root.classList.contains('hidden')) console.debug('[monster-selection.update] showing (open flag true)');
   root.classList.remove('hidden');
+  // Ensure we are not demoted when (re)showing
+  root.classList.remove('demoted');
   // Hide global blackout when showing selection (selection has its own backdrop)
   try { window.__KOT_BLACKOUT__?.hide(); } catch(_){}
   if (!inst._local._initialized) {

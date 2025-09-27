@@ -75,3 +75,28 @@ button:disabled, .btn:disabled, .die.disabled, .power-card.disabled, input:disab
 
 /* Accessibility utilities */
 .visually-hidden { position:absolute!important; height:1px; width:1px; overflow:hidden; clip:rect(1px,1px,1px,1px); white-space:nowrap; border:0; padding:0; margin:0; }
+
+/* Transient toast below active player card on turn start */
+.active-start-toast {
+    position: fixed;
+    left: 0; top: 0; /* will be positioned inline via JS */
+    transform: translate(-50%, 6px);
+    background: #fffef8;
+    color: #000;
+    border: 3px solid #000;
+    border-radius: 22px;
+    padding: 6px 14px 7px;
+    font-family: 'Bangers', cursive;
+    font-size: 18px;
+    letter-spacing: 1px;
+    box-shadow: 4px 4px 0 #000, 0 0 0 2px #222 inset;
+    z-index: 9000;
+    opacity: 0;
+    transition: opacity .22s ease, transform .22s ease;
+    pointer-events: none;
+    white-space: nowrap;
+}
+.active-start-toast.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
