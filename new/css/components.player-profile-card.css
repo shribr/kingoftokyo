@@ -96,14 +96,16 @@
 .cmp-monsters-panel[data-card-layout="list"] { --ppc-stack-mode:list; }
 
 /* Floating active card (relocated outside panel) */
-#active-player-card-slot { position:absolute; pointer-events:none; top:40%; left:50%; z-index:3500; transition: left .45s cubic-bezier(.25,.46,.45,.94), top .45s cubic-bezier(.25,.46,.45,.94); margin:0; padding:0; transform:translate(0,0); }
-#active-player-card-slot .cmp-player-profile-card { pointer-events:auto; }
-#active-player-card-slot[data-active-card-dock] { min-width:260px; min-height:180px; }
+/* Active card slot: act as a centering container for the docked PPC */
+#active-player-card-slot { position:absolute; pointer-events:none; top:40%; left:50%; z-index:3500; transition: left .45s cubic-bezier(.25,.46,.45,.94), top .45s cubic-bezier(.25,.46,.45,.94); margin:0; padding:0; transform:translate(-50%, -50%); display:block; }
+#active-player-card-slot .cmp-player-profile-card { position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); transform-origin:center center; pointer-events:auto; }
+#active-player-card-slot[data-active-card-dock] { min-width:260px; min-height:180px; position:absolute; }
 
 /* Mini active dock variation */
+/* Mini dock dimensions and centering */
 #active-player-card-slot[data-mini="true"] { width:200px; min-width:200px; min-height:140px; }
 #active-player-card-slot[data-mini="true"]::before { display:none; }
-#active-player-card-slot[data-mini="true"] .cmp-player-profile-card { transform:scale(.74); transform-origin:top left; width:220px; }
+#active-player-card-slot[data-mini="true"] .cmp-player-profile-card { width:220px; transform:translate(-50%, -50%) scale(.82); transform-origin:center center; }
 #active-player-card-slot[data-mini="true"] .cmp-player-profile-card.turn-pulse { animation:none; }
 /* Placeholder outline when empty */
 #active-player-card-slot[data-mini="true"]:empty {
@@ -156,8 +158,8 @@
 @keyframes tokyoEnter { 0% { transform:scale(.85) rotate(-3deg); box-shadow:0 0 0 0 rgba(255,207,51,0); } 40% { transform:scale(1.08) rotate(1deg); box-shadow:0 0 0 6px rgba(255,207,51,.45); } 70% { transform:scale(.97) rotate(-1deg); box-shadow:0 0 0 3px rgba(255,207,51,.25); } 100% { transform:scale(1) rotate(0); box-shadow:4px 4px 0 #000,0 0 0 2px #222 inset; } }
 /* Non-active cards should not show move cursor */
 .cmp-player-profile-card[data-draggable="false"] { cursor:default; }
-/* When docked to arena, make it slightly smaller than panel version */
-[data-active-card-dock] .cmp-player-profile-card { transform:scale(.82); transform-origin: top left; }
+/* When docked to arena, the SLOT carries the scale; keep the card centered only. */
+[data-active-card-dock] .cmp-player-profile-card { transform:translate(-50%, -50%); transform-origin: center center; }
 /* VP / Energy / Health gain pulses */
 .cmp-player-profile-card[data-vp-gain] .ppc-stat[data-kind="vp"],
 .cmp-player-profile-card[data-energy-gain] .ppc-stat[data-kind="energy"],
@@ -210,47 +212,13 @@
 /* Avatar with mapped image */
 .cmp-player-profile-card .ppc-avatar[data-avatar-src] { background-size:cover; background-position:center var(--ppc-avatar-pos-y); box-shadow:0 0 0 3px #000, 0 0 10px rgba(0,0,0,.6); }
 
-/* Mobile flip interaction: front (stats) vs back (owned power cards) */
+/* Mobile flip capability stays available but without forcing square or name-only styles; the monsters panel CSS governs layout. */
 @media (max-width: 760px), (pointer: coarse) {
 	.cmp-player-profile-card { backface-visibility:hidden; transform-style:preserve-3d; }
-	.cmp-player-profile-card [data-owned-cards] { display:block !important; }
+	.cmp-player-profile-card [data-owned-cards] { display:block; }
 	.cmp-player-profile-card[data-flipped] .ppc-stats,
 	.cmp-player-profile-card[data-flipped] [data-health-block] { display:none; }
-	.cmp-player-profile-card:not([data-flipped]) [data-owned-cards] { display:none !important; }
-	.cmp-player-profile-card[data-flipped] [data-owned-cards] { display:block !important; }
-	/* Emphasize heart tile on front for quick glance */
-	.cmp-player-profile-card .ppc-health-block { margin-top:8px; }
-
-	/* Active player card should be square with profile pic and monster name, no tilt */
-	#active-player-card-slot[data-mini="true"] { width:140px; min-width:140px; min-height:140px; right:12px; top:8px; }
-	#active-player-card-slot[data-mini="true"] .cmp-player-profile-card { width:140px; padding:8px; transform:none; box-shadow:4px 4px 0 #000,0 0 0 2px #222 inset; }
-	#active-player-card-slot[data-mini="true"] .ppc-header { display:flex; align-items:center; gap:8px; margin:0; }
-	#active-player-card-slot[data-mini="true"] .ppc-avatar { width:56px; height:56px; border-radius:8px; margin:0; }
-	#active-player-card-slot[data-mini="true"] .ppc-name { font-size:18px; line-height:1.1; margin:0; text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000; }
-	#active-player-card-slot[data-mini="true"] .ppc-stats, 
-	#active-player-card-slot[data-mini="true"] [data-owned-cards],
-	#active-player-card-slot[data-mini="true"] .ppc-health-block, 
-	#active-player-card-slot[data-mini="true"] .ppc-meta small,
-	#active-player-card-slot[data-mini="true"] .ppc-status-line { display:none !important; }
-
-	/* Side-panel player cards: square, no tilt/rotation; stacked list of names that reveal full on hover */
-	.cmp-monsters-panel .mp-player-cards { gap:6px !important; }
-		.cmp-monsters-panel .cmp-player-profile-card { width:140px !important; height:140px !important; padding:8px !important; transform:none !important; margin:0 !important; overflow:hidden; }
-	.cmp-monsters-panel.is-stacked .mp-player-cards .cmp-player-profile-card:not(.is-active) + .cmp-player-profile-card:not(.is-active) { margin-top:0; }
-		.cmp-monsters-panel .cmp-player-profile-card .ppc-header { display:flex; align-items:center; gap:6px; margin:0; }
-		/* Names-only in stack: hide avatar until hover */
-		.cmp-monsters-panel .cmp-player-profile-card .ppc-avatar { display:none; }
-	.cmp-monsters-panel .cmp-player-profile-card .ppc-name { font-size:16px; line-height:1.1; margin:0; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; }
-	.cmp-monsters-panel .cmp-player-profile-card .ppc-stats,
-	.cmp-monsters-panel .cmp-player-profile-card [data-owned-cards],
-	.cmp-monsters-panel .cmp-player-profile-card .ppc-health-block { display:none; }
-	/* Reveal full card on hover (or focus) */
-		.cmp-monsters-panel .cmp-player-profile-card:hover,
-		.cmp-monsters-panel .cmp-player-profile-card:focus-within { width:220px !important; height:auto !important; padding:10px 12px !important; }
-		.cmp-monsters-panel .cmp-player-profile-card:hover .ppc-avatar { display:block; width:42px; height:42px; border-radius:8px; margin:0; }
-		.cmp-monsters-panel .cmp-player-profile-card:hover .ppc-stats,
-	.cmp-monsters-panel .cmp-player-profile-card:hover [data-owned-cards],
-	.cmp-monsters-panel .cmp-player-profile-card:hover .ppc-health-block { display:block; }
+	.cmp-player-profile-card:not([data-flipped]) [data-owned-cards] { display:none; }
 }
 
 /* Mini avatar-only cues when docked (keep header visible, compress body) */
@@ -260,4 +228,12 @@
 #active-player-card-slot[data-mini="true"] .cmp-player-profile-card .ppc-name { display:none; }
 #active-player-card-slot[data-mini="true"] .cmp-player-profile-card .ppc-meta { display:none; }
 #active-player-card-slot[data-mini="true"] .cmp-player-profile-card .ppc-avatar { width:58px; height:58px; }
+
+/* Prefer a neutral white arrival glow with ripple when docking into the active slot */
+#active-player-card-slot .cmp-player-profile-card.is-active.dock-glow { animation: ppcDockGlow 900ms ease-out !important; position:relative; }
+#active-player-card-slot .cmp-player-profile-card.is-active.dock-glow::after {
+	content:""; position:absolute; inset:-2px; border-radius:8px; pointer-events:none;
+	box-shadow:0 0 0 0 rgba(255,255,255,.6); animation:ppcRipple 1000ms ease-out forwards;
+}
+@keyframes ppcRipple { 0% { box-shadow:0 0 0 0 rgba(255,255,255,.6); opacity:1; } 45% { box-shadow:0 0 0 14px rgba(255,255,255,.25); opacity:.9; } 100% { box-shadow:0 0 0 26px rgba(255,255,255,0); opacity:0; } }
 

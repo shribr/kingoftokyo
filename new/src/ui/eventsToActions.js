@@ -7,6 +7,13 @@ import { createPositioningService } from '../services/positioningService.js';
 // Bind UI events to store actions after store is created to avoid circular imports
 export function bindUIEventBridges(store) {
   function handleRollRequested() {
+    // Defensive: ensure global blackout is hidden before rolling so UI never "disappears" on click
+    try {
+      window.__KOT_BLACKOUT__?.hide();
+      // Remove the blackout element outright as an extra safeguard
+      const blk = document.querySelector('.post-splash-blackout');
+      if (blk) blk.remove();
+    } catch(_) {}
     const diceState = store.getState().dice;
     const isFirstRoll = diceState.faces.length === 0 || diceState.phase === 'idle';
     store.dispatch(diceRollStarted());

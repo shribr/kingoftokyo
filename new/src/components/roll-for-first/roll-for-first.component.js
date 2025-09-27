@@ -11,6 +11,7 @@ export function build({ selector, dispatch, getState }) {
     if (t.matches('[data-action="close"]')) {
       hide(root);
       maybeClearBlackout();
+      try { window.__KOT_BLACKOUT__?.hide(); } catch(_) {}
     }
     if (t.matches('[data-action="roll"]')) {
       const stObj = ensureStateObject(root, getState);
@@ -360,6 +361,7 @@ function scheduleAutoClose(dispatch, getState, root) {
     const st = getState();
     if (st.phase === 'SETUP') dispatch(phaseChanged('ROLL'));
     hide(root);
+    try { window.__KOT_BLACKOUT__?.hide(); } catch(_) {}
     document.removeEventListener('mousedown', onDocClick, true);
     // Force action menu (and other panels) to refresh enabled/disabled state immediately
     try {

@@ -107,21 +107,17 @@ if (typeof window !== 'undefined') {
     } catch(_) { return false; }
   })();
 
-  // Load monsters first; only seed random players if skipIntro (dev convenience). Otherwise rely on actual setup selections.
+  // Load monsters first; if skipIntro, unconditionally auto-seed players and bypass selection/RFF.
   fetch('./config.json').then(r => r.json()).then(cfg => {
     const monsters = Object.values(cfg.monsters || {}).map(m => ({ id: m.id, name: m.name, image: m.image, description: m.description, personality: m.personality || {}, color: m.color }));
     store.dispatch(monstersLoaded(monsters));
     if (skipIntro) {
       const st = store.getState();
-      if (st.settings?.autoStartInTest) {
-        if (!st.players.order.length) {
-          seedRandomPlayers(store, monsters, logger);
-        }
-        const seeded = store.getState().players.order.length;
-        if (!seeded) console.warn('[bootstrap] skipIntro active but players failed to seed (monsters likely empty or images missing).');
-      } else {
-        logger.system('Skip intro detected but autoStartInTest=false: UI only mode. (No players will auto-seed)');
+      if (!st.players.order.length) {
+        seedRandomPlayers(store, monsters, logger);
       }
+      const seeded = store.getState().players.order.length;
+      if (!seeded) console.warn('[bootstrap] skipIntro active but players failed to seed (monsters likely empty or images missing).');
     }
   }).catch(() => {
     const fallback = [
@@ -132,13 +128,9 @@ if (typeof window !== 'undefined') {
     store.dispatch(monstersLoaded(fallback));
     if (skipIntro) {
       const st = store.getState();
-      if (st.settings?.autoStartInTest) {
-        if (!st.players.order.length) seedRandomPlayers(store, fallback, logger);
-        const seeded = store.getState().players.order.length;
-        if (!seeded) console.warn('[bootstrap] skipIntro active (fallback) but players failed to seed.');
-      } else {
-        logger.system('Skip intro detected (fallback monsters) but autoStartInTest=false: UI only mode. (No players will auto-seed)');
-      }
+      if (!st.players.order.length) seedRandomPlayers(store, fallback, logger);
+      const seeded = store.getState().players.order.length;
+      if (!seeded) console.warn('[bootstrap] skipIntro active (fallback) but players failed to seed.');
     }
   });
   initCards(store, logger);
@@ -151,19 +143,15 @@ if (typeof window !== 'undefined') {
   // Dev convenience: skipping intro will auto-seed players (logic moved earlier).
 
   if (skipIntro) {
-    // Mark setup as having been opened (bypasses normal open->close detection) and hide splash immediately.
-    const st = store.getState();
-    if (st.settings?.autoStartInTest) {
-      selectionWasOpened = true;
-      store.dispatch(uiSplashHide());
-      store.dispatch(uiMonsterSelectionClose());
-      setTimeout(() => {
-        try { turnService.startGameIfNeeded(); } catch(e) { console.warn('Skip intro start failed', e); }
-      }, 0);
-    } else {
-      // Just hide splash and keep setup considered NOT opened so game won't auto start.
-      store.dispatch(uiSplashHide());
-    }
+    // Hide splash and bypass selection/RFF entirely; start game ASAP.
+    selectionWasOpened = true;
+    store.dispatch(uiSplashHide());
+    store.dispatch(uiMonsterSelectionClose());
+    // Ensure blackout added then removed when phase transitions
+    ensurePostSplashBlackout();
+    setTimeout(() => {
+      try { turnService.startGameIfNeeded(); } catch(e) { console.warn('Skip intro start failed', e); }
+    }, 0);
   }
 
   store.subscribe(() => {
@@ -180,23 +168,29 @@ if (typeof window !== 'undefined') {
     }
     // When selection transitions from open -> closed after having been opened, and splash is gone, open Roll For First (once) if players exist and not resolved
     if (!selectionOpen && prevSelectionOpen && selectionWasOpened && splashGone) {
-      if (st.players.order.length > 0 && !(rff && (rff.open || rff.resolved))) {
-        console.debug('[bootstrap] conditions met -> opening Roll For First (players=%d)', st.players.order.length);
-        store.dispatch(uiRollForFirstOpen());
-        ensurePostSplashBlackout();
-      } else if (rff && rff.resolved) {
-        // If already resolved (e.g., dev skip), then we can start game if still in SETUP
+      const profilesOpen = !!st.ui?.monsterProfiles?.open;
+      if (skipIntro) {
+        // Direct start path: don't open RFF when skipping intro
         if (st.phase === 'SETUP') turnService.startGameIfNeeded();
-      }
-      // DIAGNOSTIC: force another open attempt next tick if still not open
-      setTimeout(()=>{
-        const cur = store.getState();
-        const rff2 = cur.ui?.rollForFirst;
-        if (!(rff2 && rff2.open) && cur.players.order.length) {
-          console.warn('[bootstrap][diag] rollForFirst still not open; forcing dispatch again');
+      } else {
+        if (!profilesOpen && st.players.order.length > 0 && !(rff && (rff.open || rff.resolved))) {
+          console.debug('[bootstrap] conditions met -> opening Roll For First (players=%d)', st.players.order.length);
           store.dispatch(uiRollForFirstOpen());
+          ensurePostSplashBlackout();
+        } else if (rff && rff.resolved) {
+          if (st.phase === 'SETUP') turnService.startGameIfNeeded();
         }
-      }, 50);
+        // DIAGNOSTIC: force another open attempt next tick if still not open
+        setTimeout(()=>{
+          const cur = store.getState();
+          const rff2 = cur.ui?.rollForFirst;
+          const profilesStillOpen = !!cur.ui?.monsterProfiles?.open;
+          if (!profilesStillOpen && !(rff2 && rff2.open) && cur.players.order.length) {
+            console.warn('[bootstrap][diag] rollForFirst still not open; forcing dispatch again');
+            store.dispatch(uiRollForFirstOpen());
+          }
+        }, 50);
+      }
     }
     // If roll-for-first just resolved (open false, resolved true) and phase still SETUP, start game.
     if (rff && rff.resolved && st.phase === 'SETUP') {
@@ -348,7 +342,9 @@ function seedRandomPlayers(store, monsters, logger) {
     for (let i=1;i<=TARGET;i++) {
       const m = pick();
       picked.push(m);
-      store.dispatch(playerJoined(createPlayer({ id: 'p'+i, name: m.name, monsterId: m.id })));
+      const p = createPlayer({ id: 'p'+i, name: m.name, monsterId: m.id });
+      if (i > 1) p.isCPU = true;
+      store.dispatch(playerJoined(p));
     }
     logger.system(`Players seeded (skipIntro) with monsters: ${picked.map(p=>p.id).join(', ')}`);
   } catch(e) {

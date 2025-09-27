@@ -26,10 +26,10 @@
 .cmp-power-cards-panel .pc-card[data-rarity="rare"] { --pc-card-accent:var(--pc-rare); }
 /* Deck stack indicator (after visible shop cards) */
 .cmp-power-cards-panel .pc-deck-stack { position:relative; width:100%; display:flex; align-items:center; justify-content:flex-start; gap:10px; min-height:54px; }
-.cmp-power-cards-panel .pc-deck-stack__top { position:relative; width:72px; height:48px; background:linear-gradient(135deg,#2d3436,#1b1f20); border:3px solid #000; border-radius:6px; box-shadow:3px 3px 0 #000,0 0 0 2px #222 inset; }
+.cmp-power-cards-panel .pc-deck-stack__top { position:relative; width:96px; height:64px; background:linear-gradient(135deg,#2d3436,#1b1f20); border:3px solid #000; border-radius:8px; box-shadow:3px 3px 0 #000,0 0 0 2px #222 inset; }
 .cmp-power-cards-panel .pc-deck-stack__top:before, .cmp-power-cards-panel .pc-deck-stack__top:after { content:""; position:absolute; inset:0; border-radius:inherit; background:linear-gradient(135deg,#323a3d,#202325); top:3px; left:3px; right:-3px; bottom:-3px; z-index:-1; box-shadow:3px 3px 0 #000; }
 .cmp-power-cards-panel .pc-deck-stack__top:after { top:6px; left:6px; right:-6px; bottom:-6px; opacity:.65; }
-.cmp-power-cards-panel .pc-deck-stack__count { font-family:'Bangers',cursive; font-size:20px; letter-spacing:1px; color:var(--pc-card-accent); text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; }
+.cmp-power-cards-panel .pc-deck-stack__count { font-family:'Bangers',cursive; font-size:24px; letter-spacing:1px; color:var(--pc-card-accent); text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; }
 .cmp-power-cards-panel .pc-deck-stack.is-empty .pc-deck-stack__top { filter:grayscale(.7) brightness(.6); }
 .cmp-power-cards-panel .pc-card[data-rarity="epic"] { --pc-card-accent:var(--pc-epic); }
 .cmp-power-cards-panel .pc-card[data-rarity="epic"] .pc-card__header { background:linear-gradient(135deg,#523056,#2a132d); }

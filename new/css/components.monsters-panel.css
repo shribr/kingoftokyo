@@ -1,11 +1,33 @@
-/* Mobile: mini-only list in monsters panel */
+/* Mobile: collapsed list of names that slide out on tap to reveal full card */
 @media (max-width: 760px), (pointer: coarse) {
-  .cmp-monsters-panel .mp-player-cards { gap:10px; }
-  .cmp-monsters-panel .cmp-player-profile-card { width:220px; padding:10px 12px; }
-  .cmp-monsters-panel .cmp-player-profile-card .ppc-stats { display:none; }
-  .cmp-monsters-panel .cmp-player-profile-card .ppc-owned-cards { display:none !important; }
-  .cmp-monsters-panel .cmp-player-profile-card .ppc-health-block { margin-top:6px; }
-  .cmp-monsters-panel .cmp-player-profile-card:hover { transform:translateY(-3px); }
+  .cmp-monsters-panel { padding:8px 10px 12px; position:relative; z-index:6200; }
+  .cmp-monsters-panel .mp-header { position:sticky; top:0; z-index:2; background:rgba(15,15,22,0.9); padding-bottom:6px; }
+  .cmp-monsters-panel .mp-player-cards { gap:8px; align-items:flex-start; flex-direction:column; flex-wrap:nowrap; position:relative; }
+  /* Collapsed row (name only), fixed-size to avoid stretching/wrapping */
+  .cmp-monsters-panel .cmp-player-profile-card {
+    width: 200px; min-width:200px; max-width:200px; padding:8px 10px; margin:0 !important;
+    overflow:hidden; transform:none !important; transition:transform .3s ease, box-shadow .25s ease, filter .2s ease;
+  }
+  .cmp-monsters-panel .cmp-player-profile-card .ppc-header { margin:0; align-items:center; gap:8px; }
+  .cmp-monsters-panel .cmp-player-profile-card .ppc-avatar { display:none !important; }
+  .cmp-monsters-panel .cmp-player-profile-card .ppc-name { font-size:18px; line-height:1.05; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin:0; }
+  .cmp-monsters-panel .cmp-player-profile-card .ppc-status-line { display:none !important; }
+  .cmp-monsters-panel .cmp-player-profile-card .ppc-stats,
+  .cmp-monsters-panel .cmp-player-profile-card .ppc-owned-cards,
+  .cmp-monsters-panel .cmp-player-profile-card .ppc-health-block { display:none !important; }
+  /* Hover/touch highlight */
+  .cmp-monsters-panel .cmp-player-profile-card:hover,
+  .cmp-monsters-panel .cmp-player-profile-card.is-highlighted { filter:brightness(1.1); box-shadow:6px 6px 0 #000,0 0 0 2px #222 inset; }
+
+  /* Expanded state: show full card, slide out to the left over the board */
+  .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] {
+    position:absolute; left:0; top:auto; transform:translateX(calc(-100% - 20px)); z-index:6600; width:260px; max-width:260px; padding:12px 14px 16px;
+  }
+  .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-avatar { display:block !important; }
+  .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-status-line { display:flex !important; }
+  .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-stats,
+  .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-owned-cards,
+  .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-health-block { display:block !important; }
 }
 /* components.monsters-panel.css */
 .cmp-monsters-panel { background:rgba(15,15,22,0.7); border:2px solid #222; border-radius:8px; padding:10px 14px 16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 18px -4px rgba(0,0,0,.6); }
@@ -13,7 +35,19 @@
 .cmp-monsters-panel .mp-title { font-family:'Bangers',cursive; font-size:32px; letter-spacing:1px; color:#ffcf33; text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; margin:0; --accent-monsters:#ffcf33; }
 .cmp-monsters-panel .mp-body { display:flex; flex-direction:column; gap:14px; }
 .cmp-monsters-panel .mp-player-cards { display:flex; flex-direction:column; gap:12px; }
-.cmp-monsters-panel .cmp-player-profile-card { width:100%; }
+@media (min-width: 761px) and (pointer: fine) {
+  .cmp-monsters-panel .cmp-player-profile-card { width:100%; }
+}
+/* Stacked layout improvements: keep the last card at least slightly exposed and easy to hover */
+.cmp-monsters-panel.is-stacked .mp-player-cards { position:relative; }
+.cmp-monsters-panel.is-stacked .mp-player-cards::after { content:""; display:block; height:110px; } /* spacer so the last overlapped card is reachable */
+.cmp-monsters-panel.is-stacked .mp-player-cards .cmp-player-profile-card:last-child:not(.is-active) { margin-bottom:22px; }
+/* Stronger pivot for the last card to lift further into view */
+.cmp-monsters-panel.is-stacked .mp-player-cards .cmp-player-profile-card:last-child:not(.is-active):hover {
+  transform:perspective(1000px) rotateX(-12deg) rotateY(0deg) rotateZ(0deg) translateY(-40px) scale(1.06);
+  margin-bottom:40px;
+  z-index:3060;
+}
 /* Empty state button style (matches power cards hint tone but ensures light gray color) */
 .cmp-monsters-panel .mp-no-players { background:transparent; border:0; padding:10px 6px 14px; text-align:center; width:100%; cursor:pointer; font-family:'Bangers',cursive; letter-spacing:1px; font-size:14px; color:#bbb; opacity:.88; text-shadow:none; }
 .cmp-monsters-panel .mp-no-players:hover { filter:brightness(1.15); }
@@ -34,3 +68,7 @@
 .cmp-monsters-panel { max-height:none !important; }
 .cmp-monsters-panel .mp-body, 
 .cmp-monsters-panel .mp-player-cards { max-height:none !important; overflow:visible; }
+
+/* Backdrop for mobile expanded card – taps close when clicking outside */
+.mp-mobile-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.25); z-index:6500; opacity:0; pointer-events:none; transition:opacity .2s ease; }
+.mp-mobile-backdrop.visible { opacity:1; pointer-events:auto; }

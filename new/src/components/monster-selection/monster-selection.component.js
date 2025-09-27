@@ -40,12 +40,14 @@ export function build({ selector, dispatch, getState }) {
       return;
     }
     if (t.closest('[data-action="close"]')) { dispatch(uiMonsterSelectionClose()); return; }
-  if (t.closest('[data-action="profiles"]')) {
-    // Open Profiles first, then close Selection on next frame to avoid transient blank state
-    dispatch(uiMonsterProfilesOpen('selection'));
-    requestAnimationFrame(() => dispatch(uiMonsterSelectionClose()));
-    return;
-  }
+    if (t.closest('[data-action="profiles"]')) {
+      // Hide global blackout before opening profiles to avoid double-dark overlay
+      try { window.__KOT_BLACKOUT__?.hide(); } catch(_){}
+      // Open Profiles first, then close Selection on next frame to avoid transient blank state
+      dispatch(uiMonsterProfilesOpen('selection'));
+      requestAnimationFrame(() => dispatch(uiMonsterSelectionClose()));
+      return;
+    }
   if (t.closest('[data-action="random"]')) { randomFill(inst); render(inst); return; }
   if (t.closest('[data-action="page-prev"]')) { if (inst._local.page > 0) { inst._local.page--; render(inst); } return; }
   if (t.closest('[data-action="page-next"]')) { const stNow = getState(); const total = selectMonsters(stNow).length; const pages = Math.max(1, Math.ceil(total / inst._local.pageSize)); if (inst._local.page < pages - 1) { inst._local.page++; render(inst, stNow); } return; }
@@ -127,6 +129,8 @@ export function update(ctx) {
   if (!open) { if (!root.classList.contains('hidden')) console.debug('[monster-selection.update] hiding (open flag false)'); root.classList.add('hidden'); inst._local._initialized = false; return; }
   if (root.classList.contains('hidden')) console.debug('[monster-selection.update] showing (open flag true)');
   root.classList.remove('hidden');
+  // Hide global blackout when showing selection (selection has its own backdrop)
+  try { window.__KOT_BLACKOUT__?.hide(); } catch(_){}
   if (!inst._local._initialized) {
     inst._local.playerCount = 4; inst._local.slots = new Array(inst._local.playerCount).fill(null);
     inst._local.selected = new Set(); inst._local._initialized = true; inst._local.prevMonsterCount = 0;
@@ -147,7 +151,7 @@ export function update(ctx) {
 
 function frame() {
   // Pager positioned beneath grid inside cards-col (prevents layout jump vs. top placement)
-  return `\n    <div class="setup-frame" role="dialog" aria-modal="true" aria-label="Monster Selection">\n      <div class="setup-title">MONSTER SELECTION</div>\n      <div class="setup-controls">\n        <button class="pill-btn" data-action="profiles">Monster Profiles</button>\n        <div class="player-count dropdown" data-dropdown>\n          <button class="pill-btn dropdown-toggle gold" data-action="toggle-dropdown"><span data-player-count-label>4 PLAYERS</span><span class="chev">▾</span></button>\n          <ul class="dropdown-menu">\n            ${[2,3,4,5,6].map(n => `<li data-player-count="${n}">${n} Players</li>`).join('')}\n          </ul>\n        </div>\n        <button class="pill-btn" data-action="random">Random Monster Selection</button>\n      </div>\n      <div class="setup-body">\n        <div class="cards-col">\n          <div class="cards-grid" data-setup-grid></div>\n          <div class="monster-pager" data-pager></div>\n        </div>\n        <div class="selection-sidebar" data-sidebar></div>\n      </div>\n      <div class="setup-footer">\n        <button class="reset-link" data-action="reset">⟲ Reset Monsters</button>\n        <button class="start-btn" data-action="start" disabled>ASSIGN 2 MORE MONSTERS</button>\n      </div>\n    </div>`;
+  return `\n    <div class="setup-frame" role="dialog" aria-modal="true" aria-label="Monster Selection">\n      <div class="setup-title">MONSTER SELECTION</div>\n      <div class="setup-controls">\n        <button class="pill-btn" data-action="profiles">Monster Profiles</button>\n        <div class="player-count dropdown" data-dropdown>\n          <button class="pill-btn dropdown-toggle gold" data-action="toggle-dropdown"><span data-player-count-label>4 PLAYERS</span><span class="chev">▾</span></button>\n          <ul class="dropdown-menu">\n            ${[2,3,4,5,6].map(n => `<li data-player-count="${n}">${n} Players</li>`).join('')}\n          </ul>\n        </div>\n        <button class="pill-btn" data-action="random">Random Monster Selection</button>\n      </div>\n      <div class="setup-body">\n        <div class="cards-col">\n          <div class="cards-grid" data-setup-grid></div>\n          <div class="monster-pager" data-pager></div>\n        </div>\n        <div class="selection-sidebar" data-sidebar></div>\n      </div>\n      <div class="setup-footer">\n        <div class="footer-actions">\n          <button class="reset-link" data-action="reset">⟲ Reset Monsters</button>\n          <button class="start-btn" data-action="start" disabled>ASSIGN 2 MORE MONSTERS</button>\n        </div>\n      </div>\n    </div>`;
 }
 function render(inst, fullState) {
   const root = inst.root; const st = fullState || inst.getState?.();
@@ -193,11 +197,13 @@ function render(inst, fullState) {
   const sidebar = root.querySelector('[data-sidebar]');
   if (sidebar) {
     const slotHTML = inst._local.slots.map((id,i)=>{
-      if (id) { const m = monsters.find(mm=>mm.id===id); return miniCard(m,i,i===0); }
-      if (i===0) return humanPlaceholderCard(i);
-      return cpuCard(i);
+      // If a monster is assigned, show its image on the tile; otherwise show placeholders
+      if (id) { const m = monsters.find(mm=>mm.id===id); return m ? miniCard(m, i, i===0) : (i===0 ? humanPlaceholderCard(i,false) : cpuCard(i,false)); }
+      if (i===0) return humanPlaceholderCard(i, false);
+      return cpuCard(i, false);
     }).join('');
     sidebar.innerHTML = `<div class="mini-list">${slotHTML}</div>`;
+    // Apply theme colors for filled slots subtly if needed
     inst._local.slots.forEach((id,i)=>{ if(!id) return; const m = monsters.find(mm=>mm.id===id); const el = sidebar.querySelector(`[data-slot-index="${i}"]`); if (el && m && m.color) el.style.setProperty('--mini-bg', m.color+'22'); });
   }
   const label = root.querySelector('[data-player-count-label]'); if (label) label.textContent = `${inst._local.playerCount} PLAYERS`;
@@ -209,9 +215,22 @@ function render(inst, fullState) {
   }
 }
 
-function card(m, selected) { const cls = selected ? 'monster-card selected' : 'monster-card empty'; return `<div class="${cls}" data-monster-card data-id="${m.id}">\n    <div class="stack">\n      <div class="polaroid">\n        <div class="photo"><img src="${m.image}" alt="${m.name}"></div>\n      </div>\n    </div>\n  </div>`; }
-function miniCard(m, slotIndex, isHumanSlot=false) { return `<div class="mini-card human vertical droppable" data-slot-index="${slotIndex}" data-has-monster draggable="true" data-human="${isHumanSlot}">\n    <div class="mini-photo"><img src="${m.image}" alt="${m.name}"></div>\n    <div class="mini-name">${m.name}</div>\n  </div>`; }
-function humanPlaceholderCard(slotIndex) { return `<div class="mini-card human-placeholder vertical droppable" data-slot-index="${slotIndex}">\n    <div class="mini-photo placeholder">?</div>\n    <div class="mini-name">HUMAN PLAYER</div>\n  </div>`; }
-function cpuCard(slotIndex) { return `<div class="mini-card cpu droppable" data-slot-index="${slotIndex}"><div class="cpu-label">CPU</div><div class="cpu-sub">CPU PLAYER</div></div>`; }
+function card(m, selected) {
+  const cls = selected ? 'monster-card selected' : 'monster-card';
+  const tileStyle = m.color ? ` style="--tile-bg: ${m.color}"` : '';
+  return `<div class="${cls}" data-monster-card data-id="${m.id}">\n    <div class="stack"${tileStyle}>\n      <div class="polaroid">\n        <div class="photo"><img src="${m.image}" alt="${m.name}"></div>\n      </div>\n    </div>\n    <div class=\"monster-name\">${m.name}</div>\n  </div>`;
+}
+function miniCard(m, slotIndex, isHumanSlot=false) {
+  // Render selected monster on the tile with image and name; supports drag to remove/swap
+  return `<div class="mini-card ${isHumanSlot?'human':'human'} vertical droppable" data-slot-index="${slotIndex}" data-has-monster draggable="true" data-human="${isHumanSlot}">\n    <div class="mini-photo"><img src="${m.image}" alt="${m.name}"></div>\n    <div class="mini-name">${m.name}</div>\n  </div>`;
+}
+function humanPlaceholderCard(slotIndex, hasMonster=false) {
+  // Always render a big centered question mark; indicate filled state via data-has-monster for removal
+  return `<div class="mini-card human-placeholder vertical droppable${hasMonster?' filled':''}" data-slot-index="${slotIndex}" ${hasMonster?'data-has-monster draggable="true"':''}>\n    <div class="mini-photo placeholder" aria-label="Human Player">?</div>\n  </div>`;
+}
+function cpuCard(slotIndex, hasMonster=false) {
+  // CPU tile: centered CPU label only; include data-has-monster when occupied for removal
+  return `<div class="mini-card cpu droppable${hasMonster?' filled':''}" data-slot-index="${slotIndex}" ${hasMonster?'data-has-monster draggable="true"':''}><div class="cpu-label" aria-label="CPU Player">CPU</div></div>`;
+}
 function randomFill(inst) { const st = inst.getState?.(); const mons = selectMonsters(st); const pool = mons.map(m=>m.id).filter(id=>!inst._local.selected.has(id)); while (inst._local.slots.some(s=>!s) && pool.length) { const i = Math.random()*pool.length|0; const id = pool.splice(i,1)[0]; const empty = inst._local.slots.findIndex(s=>!s); if (empty>=0) inst._local.slots[empty]=id; } syncSelectedFromSlots(inst); }
 function syncSelectedFromSlots(inst) { inst._local.selected = new Set((inst._local.slots||[]).filter(Boolean)); }

@@ -22,15 +22,15 @@ export function build({ selector }) {
     <div data-tokyo data-arena-section="tokyo">
       <div data-city data-arena-section="city">
         <h3>Tokyo City</h3>
-        <div class="monster-slot" data-city-slot></div>
+        <div class="city-slot" data-city-slot></div>
       </div>
       <div data-bay data-arena-section="bay">
         <h3>Tokyo Bay</h3>
-        <div class="monster-slot" data-bay-slot></div>
+        <div class="bay-slot" data-bay-slot></div>
       </div>
     </div>
     <div data-active data-arena-section="active">
-      <div class="monster-slot" data-active-player-slot></div>
+      <div class="active-player-slot" data-active-player-slot></div>
     </div>
   `;
   return { root, update: () => update(root) };
