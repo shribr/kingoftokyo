@@ -10,9 +10,9 @@ body, .btn, .card-text { font-size:var(--body-size); }
 /* Monster Selection Dialog Base Styles */
 #monster-profiles-modal { display:flex; align-items:center; justify-content:center; }
 #monster-profiles-modal .modal-content { width:90%; max-width:1200px; margin:20px auto; background:rgba(255,255,255,.95); border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,.15); }
-#monster-profiles-modal .monster-profiles-grid { display:grid; grid-template-columns:repeat(3,1fr) !important; gap:20px; padding:20px; width:100%; }
+#monster-profiles-modal .monster-profiles-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; padding:20px; width:100%; }
 #monster-profiles-modal .player-tiles { display:flex; flex-wrap:wrap; gap:15px; justify-content:center; margin-top:20px; }
-@media screen and (max-width:1056px){ #monster-profiles-modal .monster-profiles-grid { grid-template-columns:repeat(2,1fr) !important; } }
+@media screen and (max-width:1056px){ #monster-profiles-modal .monster-profiles-grid { grid-template-columns:repeat(2,1fr); } }
 
 #monster-profiles-modal .setup-header { display:grid; grid-template-columns:auto 1fr auto auto; align-items:center; gap:15px; padding:15px; }
 #monster-profiles-modal .monster-select { grid-column:2; }
@@ -23,7 +23,7 @@ body, .btn, .card-text { font-size:var(--body-size); }
 	#monster-profiles-modal .monster-select { width:100%; max-width:300px; }
 	#monster-profiles-modal .setup-buttons { display:flex; flex-direction:row; justify-content:center; gap:15px; width:100%; max-width:300px; }
 	#monster-profiles-modal .btn { flex:1; min-width:120px; margin:0; }
-	#monster-profiles-modal .monster-profiles-grid { grid-template-columns:repeat(2,1fr) !important; padding:15px; gap:15px; }
+	#monster-profiles-modal .monster-profiles-grid { grid-template-columns:repeat(2,1fr); padding:15px; gap:15px; }
 	#monster-profiles-modal .player-tiles { order:2; width:100%; padding:20px; margin-top:30px; border-top:3px solid #000; display:flex; flex-wrap:wrap; justify-content:center; gap:15px; }
 }
 .monster-profile { background-color:rgba(255,255,255,.9); border-radius:8px; padding:20px; text-align:center; transition:transform .2s ease; cursor:pointer; }
@@ -73,9 +73,9 @@ body, .btn, .card-text { font-size:var(--body-size); }
 	.monster-avatar { width:60px; height:60px; font-size:1.8em; }
 	.cards-container { grid-template-columns:1fr; max-height:250px; }
 	.modal-content { padding:clamp(15px,4vw,25px); width:98%; max-height:90vh; overflow-y:auto; }
-	.modal-content, .modal-content::before, .modal-content::after, #game-over-modal .modal-content, #decision-modal .modal-content, #game-log-modal .modal-content, #storage-mgmt-modal .modal-content, #settings-modal .modal-content, #instructions-modal .modal-content, #monster-profiles-modal .modal-content, .card-purchase-modal, .target-selection-modal, .decision-modal, .game-log-content, .storage-mgmt-content, .monster-profiles-content, .instructions-modal .modal-content { transform:none !important; perspective:none !important; }
-	.modal-content:hover, .modal-content:hover::before, .modal-content:hover::after { transform:none !important; }
-	.modal-content .btn, .modal-content .btn:hover, .modal-content .btn:active, .modal-content button, .modal-content button:hover, .modal-content button:active { transform:none !important; perspective:none !important; }
+	.modal-content, .modal-content::before, .modal-content::after, #game-over-modal .modal-content, #decision-modal .modal-content, #game-log-modal .modal-content, #storage-mgmt-modal .modal-content, #settings-modal .modal-content, #instructions-modal .modal-content, #monster-profiles-modal .modal-content, .card-purchase-modal, .target-selection-modal, .decision-modal, .game-log-content, .storage-mgmt-content, .monster-profiles-content, .instructions-modal .modal-content { transform:none; perspective:none; }
+	.modal-content:hover, .modal-content:hover::before, .modal-content:hover::after { transform:none; }
+	.modal-content .btn, .modal-content .btn:hover, .modal-content .btn:active, .modal-content button, .modal-content button:hover, .modal-content button:active { transform:none; perspective:none; }
 	#monster-profiles-modal .modal-content { width:100%; padding:0; max-height:100vh; margin:0; transform:none; box-shadow:none; text-align:center; border:none; background:rgba(255,255,255,.95); }
 	#monster-profiles-modal .modal-content h2 { position:sticky; top:0; background:transparent; padding:4px 0; margin:0; z-index:1; font-size:1.1rem; text-align:center; }
 	#monster-profiles-modal select, #monster-profiles-modal button { font-size:.875rem; padding:4px 8px; margin:2px auto; display:block; width:auto; min-width:120px; }
@@ -105,8 +105,8 @@ body, .btn, .card-text { font-size:var(--body-size); }
 	.instructions-modal .modal-content, .settings-modal .settings-content, .game-log-modal .modal-content { width:95%; max-height:85vh; margin:10px auto; padding:clamp(10px,3vw,20px); }
 }
 @media (hover:none){ .btn, .toolbar-btn, .monster-slot, .die, .card { cursor:pointer; -webkit-tap-highlight-color:transparent; touch-action:manipulation; } .btn:active, .toolbar-btn:active, .monster-slot:active, .die:active, .card:active { transform:scale(.95); } .btn, .toolbar-btn { min-height:44px; min-width:44px; padding:clamp(12px,3vw,20px); } .die { min-width:48px; min-height:48px; } }
-@media (max-width:1024px){ .collapsible-panel { max-width:300px; } .toggle-arrow { opacity:.8 !important; } .panel-header:hover .toggle-arrow { opacity:1 !important; } }
-@media (max-width:768px){ .collapsible-panel { width:60px; padding:10px 5px; } .collapsible-panel.collapsed .header-text { font-size:1.2em; } .collapsible-panel.collapsed.monsters-collapsed .header-text { transform:rotate(-90deg) translateX(-40px); margin-top:25px; } .collapsible-panel.collapsed.cards-collapsed .header-text { transform:rotate(90deg) translateX(40px); margin-top:25px; } .panel-content { width:0; height:0; opacity:0; overflow:hidden; } .collapsible-panel:not(.collapsed) .panel-content { width:auto; height:auto; opacity:1; overflow:visible; } .toggle-arrow { opacity:1 !important; } }
-@media (max-width:480px){ .collapsible-panel { display:none; } .panel-toggle-overlay { position:fixed; top:50%; transform:translateY(-50%); background:rgba(0,0,0,.8); color:#FFD700; padding:10px 5px; border-radius:5px; cursor:pointer; z-index:1000; font-size:12px; writing-mode:vertical-rl; text-orientation:mixed; } .panel-toggle-overlay.left { left:5px; } .panel-toggle-overlay.right { right:5px; } .panel-toggle-overlay.visible { display:block; } .collapsible-panel.force-show { display:block !important; position:fixed; top:0; bottom:0; z-index:1001; background:rgba(0,0,0,.95); overflow-y:auto; width:90vw; } .collapsible-panel.force-show.monsters-panel { left:0; } .collapsible-panel.force-show.cards-area { right:0; } }
+@media (max-width:1024px){ .collapsible-panel { max-width:300px; } .toggle-arrow { opacity:.8; } .panel-header:hover .toggle-arrow { opacity:1; } }
+@media (max-width:768px){ .collapsible-panel { width:60px; padding:10px 5px; } .collapsible-panel.collapsed .header-text { font-size:1.2em; } .collapsible-panel.collapsed.monsters-collapsed .header-text { transform:rotate(-90deg) translateX(-40px); margin-top:25px; } .collapsible-panel.collapsed.cards-collapsed .header-text { transform:rotate(90deg) translateX(40px); margin-top:25px; } .panel-content { width:0; height:0; opacity:0; overflow:hidden; } .collapsible-panel:not(.collapsed) .panel-content { width:auto; height:auto; opacity:1; overflow:visible; } .toggle-arrow { opacity:1; } }
+@media (max-width:480px){ .collapsible-panel { display:none; } .panel-toggle-overlay { position:fixed; top:50%; transform:translateY(-50%); background:rgba(0,0,0,.8); color:#FFD700; padding:10px 5px; border-radius:5px; cursor:pointer; z-index:1000; font-size:12px; writing-mode:vertical-rl; text-orientation:mixed; } .panel-toggle-overlay.left { left:5px; } .panel-toggle-overlay.right { right:5px; } .panel-toggle-overlay.visible { display:block; } .collapsible-panel.force-show { display:block !important; /* stylelint-disable-line declaration-no-important */ position:fixed; top:0; bottom:0; z-index:1001; background:rgba(0,0,0,.95); overflow-y:auto; width:90vw; } .collapsible-panel.force-show.monsters-panel { left:0; } .collapsible-panel.force-show.cards-area { right:0; } }
 
 /* End transplanted responsive.css */

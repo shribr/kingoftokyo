@@ -65,6 +65,8 @@ export function createTurnService(store, logger, rng = Math.random) {
     const winner = checkGameOver(store, logger);
     if (winner) {
       logger.system('Phase: GAME_OVER', { kind: 'phase' });
+      // Build some drama: wait 2s before transitioning to GAME_OVER
+      await wait(2000);
       store.dispatch(phaseChanged('GAME_OVER'));
       return;
     }
@@ -77,15 +79,17 @@ export function createTurnService(store, logger, rng = Math.random) {
     // Proceed to CLEANUP
     logger.system('Phase: CLEANUP', { kind: 'phase' });
     store.dispatch(phaseChanged('CLEANUP'));
-    cleanup();
+    await cleanup();
   }
 
-  function cleanup() {
+  async function cleanup() {
     // Reset dice slice will happen automatically when new ROLL phase starts
-    endTurn();
+    await endTurn();
   }
 
-  function endTurn() {
+  async function endTurn() {
+    // Pause briefly at the end of each player's turn to build drama
+    await wait(1000);
     store.dispatch(nextTurn());
     startTurn();
   }

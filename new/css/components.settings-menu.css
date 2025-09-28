@@ -19,7 +19,7 @@
 .cmp-settings-menu button:hover { filter:brightness(1.08); transform:translate(-2px,-3px); }
 
 @media (max-width: 760px), (pointer: coarse) {
-  .cmp-settings-menu { top:auto; right:8px; bottom:56px; width:max-content; max-width:calc(100vw - 16px); min-width:160px; display:none; transform:none !important; transition:none; }
+  .cmp-settings-menu { top:auto; right:8px; bottom:56px; width:max-content; max-width:calc(100vw - 16px); min-width:160px; display:none; transform:none; transition:none; }
   .cmp-settings-menu[data-hamburger-open] { display:flex; }
   .cmp-settings-menu[data-hamburger-corner="left"] { left:8px; right:auto; }
   .cmp-settings-menu button { width:auto; min-width:160px; }

@@ -125,20 +125,7 @@ function beginHideSequence(dispatch, root) {
   // Proactively queue setup open after fade duration to avoid missed transitionend edge cases
   const getStateSafe = root._getStateSafe || (()=>null);
     setTimeout(() => {
-  try {
-    console.debug('[splash] setTimeout(520) -> uiMonsterSelectionOpen dispatch');
-    dispatch(uiMonsterSelectionOpen());
-    // Additional safeguard: if not open after another 300ms, dispatch again
-    setTimeout(()=>{
-      try {
-        const st = getStateSafe();
-        if (st && !st.ui?.monsterSelection?.open) {
-          console.warn('[splash][safety] monsterSelection still not open after primary timeout, re-dispatching');
-          dispatch(uiMonsterSelectionOpen());
-        }
-      } catch(e3) { /* noop */ }
-    }, 300);
-  } catch(e) { console.warn('Deferred monster selection open failed', e); }
+  try { dispatch(uiMonsterSelectionOpen()); } catch(_) {}
   }, 520); // slightly longer than CSS .5s transition
   // Force reflow then apply is-hidden for fade
   requestAnimationFrame(() => {
@@ -147,15 +134,7 @@ function beginHideSequence(dispatch, root) {
       if (e.propertyName === 'opacity') {
         root.removeEventListener('transitionend', onEnd);
         // Secondary (original) open dispatch for normal path
-        try {
-          console.debug('[splash] transitionend -> uiMonsterSelectionOpen dispatch');
-          dispatch(uiMonsterSelectionOpen());
-          const st2 = getStateSafe();
-          if (st2 && !st2.ui?.monsterSelection?.open) {
-            console.warn('[splash][transitionend] monsterSelection open flag still false; forcing final dispatch');
-            dispatch(uiMonsterSelectionOpen());
-          }
-        } catch(e2) { /* noop */ }
+        try { dispatch(uiMonsterSelectionOpen()); } catch(_) {}
         // Cleanup
         root.classList.remove('is-hiding');
       }

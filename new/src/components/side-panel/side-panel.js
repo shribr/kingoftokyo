@@ -64,23 +64,7 @@ export function initSidePanel(root, {
   updateBodyState();
   root.setAttribute('data-initialized','true');
 
-  // Dev parity logging (guarded for browsers without process)
-  if (typeof window !== 'undefined' && (window.__DEV__ === true)) {
-    // Dev aid: compare classlists of all side panels to surface mismatches
-    try {
-      const panels = Array.from(document.querySelectorAll('.cmp-side-panel'));
-      if (panels.length > 1) {
-        const ref = panels[0].classList;
-        panels.slice(1).forEach(p => {
-          const missing = [...ref].filter(c => !p.classList.contains(c) && !['mp-body'].includes(c));
-          const extra = [...p.classList].filter(c => !ref.contains?.(c));
-          if (missing.length || extra.length) {
-            console.debug('[side-panel parity]', { panel: p.getAttribute('data-panel')||p.className, missing, extra });
-          }
-        });
-      }
-    } catch(_) { /* ignore */ }
-  }
+  // dev parity logging removed
 
   return { setArrow, updateBodyState };
 }

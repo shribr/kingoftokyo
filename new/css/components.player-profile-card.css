@@ -51,7 +51,7 @@
 .cmp-monsters-panel .mp-player-cards { position:relative; display:flex; flex-direction:column; }
 .cmp-monsters-panel.is-stacked .mp-player-cards { perspective:1400px; perspective-origin:50% 30%; }
 .cmp-monsters-panel.is-stacked .mp-player-cards .cmp-player-profile-card { transition:transform .45s cubic-bezier(.25,.46,.45,.94), margin .35s ease; }
-.cmp-monsters-panel.is-stacked .mp-player-cards .cmp-player-profile-card.is-active { position:relative; z-index:3100; transform:none !important; margin-top:0 !important; }
+.cmp-monsters-panel.is-stacked .mp-player-cards .cmp-player-profile-card.is-active { position:relative; z-index:3100; transform:none; margin-top:0; }
 /* Base style for non-active stacked cards */
 .cmp-monsters-panel.is-stacked .mp-player-cards .cmp-player-profile-card:not(.is-active) {
 	position:relative;
@@ -77,7 +77,7 @@
 
 /* Linear layout fallback when stacking disabled */
 .cmp-monsters-panel:not(.is-stacked) .mp-player-cards { gap:14px; }
-.cmp-monsters-panel:not(.is-stacked) .mp-player-cards .cmp-player-profile-card { margin:0 !important; transform:none !important; }
+.cmp-monsters-panel:not(.is-stacked) .mp-player-cards .cmp-player-profile-card { margin:0; transform:none; }
 
 /* New layout modes (stacked | condensed | list) ----------------------------- */
 /* Stacked (existing) already handled via .is-stacked with strong overlap (-90px) */
@@ -91,8 +91,8 @@
 .cmp-monsters-panel[data-card-layout="condensed"].is-stacked .mp-player-cards .cmp-player-profile-card:nth-child(6):not(.is-active) { transform:perspective(800px) rotateX(.7deg) rotateY(.3deg) rotateZ(1.1deg); margin-left:-2px; }
 
 /* List: explicit spacing & disable transforms */
-.cmp-monsters-panel[data-card-layout="list"] .mp-player-cards .cmp-player-profile-card { margin:0 0 18px !important; transform:none !important; position:relative; }
-.cmp-monsters-panel[data-card-layout="list"] .mp-player-cards .cmp-player-profile-card:last-child { margin-bottom:0 !important; }
+.cmp-monsters-panel[data-card-layout="list"] .mp-player-cards .cmp-player-profile-card { margin:0 0 18px; transform:none; position:relative; }
+.cmp-monsters-panel[data-card-layout="list"] .mp-player-cards .cmp-player-profile-card:last-child { margin-bottom:0; }
 .cmp-monsters-panel[data-card-layout="list"] { --ppc-stack-mode:list; }
 
 /* Floating active card (relocated outside panel) */
@@ -175,7 +175,7 @@
 }
 .cmp-player-profile-card.dock-glow { animation:ppcDockGlow 1000ms ease-out; }
 
-/* Temporary placeholder fade when active card leaves stack */
+/* Placeholder fade when active card leaves stack */
 .ppc-fade-placeholder { position:fixed; background:linear-gradient(135deg,#2d3436,#1b1f20); border:3px solid #000; border-radius:4px; box-shadow:4px 4px 0 #000,0 0 0 2px #222 inset; pointer-events:none; z-index:2950; animation:ppcSlotFade .5s ease forwards; }
 @keyframes ppcSlotFade { from { opacity:1; transform:scale(1); } to { opacity:0; transform:scale(.92); } }
 
@@ -223,14 +223,14 @@
 
 /* Mini avatar-only cues when docked (keep header visible, compress body) */
 #active-player-card-slot[data-mini="true"] .cmp-player-profile-card .ppc-stats { display:none; }
-#active-player-card-slot[data-mini="true"] .cmp-player-profile-card [data-owned-cards] { display:none !important; }
+#active-player-card-slot[data-mini="true"] .cmp-player-profile-card [data-owned-cards][data-owned-cards] { display:none; }
 #active-player-card-slot[data-mini="true"] .cmp-player-profile-card .ppc-health-block { display:none; }
 #active-player-card-slot[data-mini="true"] .cmp-player-profile-card .ppc-name { display:none; }
 #active-player-card-slot[data-mini="true"] .cmp-player-profile-card .ppc-meta { display:none; }
 #active-player-card-slot[data-mini="true"] .cmp-player-profile-card .ppc-avatar { width:58px; height:58px; }
 
 /* Prefer a neutral white arrival glow with ripple when docking into the active slot */
-#active-player-card-slot .cmp-player-profile-card.is-active.dock-glow { animation: ppcDockGlow 900ms ease-out !important; position:relative; }
+#active-player-card-slot .cmp-player-profile-card.is-active.dock-glow.cmp-player-profile-card { animation: ppcDockGlow 900ms ease-out; position:relative; }
 #active-player-card-slot .cmp-player-profile-card.is-active.dock-glow::after {
 	content:""; position:absolute; inset:-2px; border-radius:8px; pointer-events:none;
 	box-shadow:0 0 0 0 rgba(255,255,255,.6); animation:ppcRipple 1000ms ease-out forwards;

@@ -5,7 +5,7 @@ export function build({ selector, dispatch, getState }) {
   const root = document.createElement('div');
   root.className = selector.slice(1) + ' modal-shell rff-modal hidden';
   root.innerHTML = markup();
-  try { console.debug('[roll-for-first.build] built component'); } catch(_) {}
+  // built
   root.addEventListener('click', (e) => {
     const t = e.target;
     if (t.matches('[data-action="close"]')) {
@@ -56,7 +56,6 @@ export function update(ctx, root, dispatch, getState) {
   const rff = state.ui?.rollForFirst;
   const open = rff?.open;
   if (!open) { hide(root); return; }
-  if (open) { try { console.debug('[roll-for-first.update] open=true'); } catch(_) {} }
   show(root);
   ensureBlackout();
   const stObj = ensureStateObject(root, getState);
@@ -122,8 +121,8 @@ function startSequence(dispatch, getState, root, subset) {
   const firstName = st.players.byId[firstPlayerId]?.name || firstPlayerId;
   if (commentary) commentary.textContent = stObj.tieRound ? `Tie-break round ${stObj.tieRound}: ${ordered.length} monsters re-rolling. ${firstIsHuman ? firstName + ' rolls first.' : firstName + ' starts the tie-break.'}` : `Determining first player. ${firstIsHuman ? firstName + ' rolls first.' : firstName + ' starts.'}`;
   if (!firstIsHuman) {
-    // slight delay then start auto CPU roll
-    setTimeout(()=> rollCurrentPlayer(dispatch, getState, root), 350);
+    // Slightly longer delay so results breathe before first CPU starts
+    setTimeout(()=> rollCurrentPlayer(dispatch, getState, root), 1000);
   }
 }
 
@@ -172,8 +171,7 @@ function rollCurrentPlayer(dispatch, getState, root) {
     if (cell) {
       cell.innerHTML = `<div class="rff-dice-set" data-dice-set="${pid}">` + Array.from({length:6}).map((_,i)=>`<div class="mini-die" data-die-index="${i}" data-player-die="${pid}"></div>`).join('') + `</div>`;
       diceSet = root.querySelector(`.rff-dice-set[data-dice-set="${pid}"]`);
-      if (diceSet) diceSet.classList.add('initialized');
-      try { console.debug('[roll-for-first] created dice set for', pid); } catch(_) {}
+  if (diceSet) diceSet.classList.add('initialized');
     }
   }
   // Ensure existing (e.g. from earlier partial creation) is initialized
@@ -185,16 +183,15 @@ function rollCurrentPlayer(dispatch, getState, root) {
   // Begin rolling animation: add rolling class & show rapid face changes using symbols (never raw words)
   dice.forEach(d => { 
     d.classList.add('rolling'); 
-    // Slight per-die animation duration variance for a more organic feel
-  const base = 0.68 + Math.random()*0.28; // slightly slower wobble 0.68s - 0.96s
+    // Slightly longer wobble per die for a more deliberate reveal
+    const base = 0.85 + Math.random()*0.35; // ~0.85s - 1.20s
     d.style.animationDuration = base.toFixed(2)+'s';
     displayRollingFace(d, randomFaceSymbol());
   });
-  try { console.debug('[roll-for-first] rolling player', pid); } catch(_) {}
   resultCell.textContent = '…';
   updateRollButtonState(root, stObj);
   if (row) row.classList.add('rolling-row');
-  const duration = 1200; // slow overall rolling cycle slightly
+  const duration = 1800; // take a little longer to reveal results of each roll
   const start = performance.now();
   const raf = (now) => {
     const t = now - start;
@@ -224,7 +221,8 @@ function advanceSequence(dispatch, getState, root) {
     stObj.waitingForHuman = isHuman(st.players.byId[nextId]) && !stObj.rolls[nextId];
     updateRollButtonState(root, stObj);
     if (!stObj.waitingForHuman) {
-      setTimeout(()=> rollCurrentPlayer(dispatch, getState, root), 400);
+      // Add a full second pause between players to read the results
+      setTimeout(()=> rollCurrentPlayer(dispatch, getState, root), 1000);
     }
     return;
   }
@@ -264,12 +262,67 @@ function evaluateRound(dispatch, getState, root) {
         <div class="rff-winner-text">${winnerName.toUpperCase()}</div>
         <div class="rff-winner-sub">Will Take The First Turn</div>
       </div>`;
+      // Append a visible numeric countdown to game start (3 → 2 → 1 → 0 then start)
+      const cdWrap = document.createElement('div');
+      cdWrap.className = 'rff-countdown';
+      cdWrap.innerHTML = `Starting game in <span data-count>3</span>`;
+      commentary.appendChild(cdWrap);
+      try {
+        let n = 3;
+        const so = ensureStateObject(root, getState);
+        const tick = () => {
+          const span = cdWrap.querySelector('[data-count]');
+          if (span) span.textContent = String(n);
+          if (n <= 0) {
+            if (so._countdownTimer) { clearInterval(so._countdownTimer); so._countdownTimer = null; }
+            // On countdown end, finalize RFF and start the game immediately
+            finalizeAndStartGame(dispatch, getState, root);
+            return;
+          }
+          n -= 1;
+        };
+        // Prime UI immediately, then tick down each second
+        tick();
+        so._countdownTimer = setInterval(tick, 1000);
+      } catch(_) {}
     }
+    // Remove all non-winner rows from the table per request
+    try {
+      const tbody = root.querySelector('.rff-table tbody');
+      if (tbody) {
+        const winnerIdStr = String(winnerId);
+        tbody.querySelectorAll('tr[data-player-row]').forEach(tr => {
+          if (tr.getAttribute('data-player-row') !== winnerIdStr) {
+            tr.style.transition = 'opacity .25s ease, transform .25s ease';
+            tr.style.opacity = '0';
+            tr.style.transform = 'translateX(-8px)';
+            setTimeout(()=>{ try { tr.remove(); } catch(_) {} }, 260);
+          }
+        });
+      }
+    } catch(_) {}
+    // Defer closing to the countdown end; also set a gentle fallback just in case
     scheduleAutoClose(dispatch, getState, root);
   } else {
     // Tie -> new subset
     stObj.tieRound++;
     if (commentary) commentary.textContent = `Tie! ${top.map(t=> st.players.byId[t.id]?.name || t.id).join(', ')} re-roll.`;
+    // Remove eliminated (non-top) players from the table; keep only tied players
+    try {
+      const topIds = new Set(top.map(t => String(t.id)));
+      const tbody = root.querySelector('.rff-table tbody');
+      if (tbody) {
+        tbody.querySelectorAll('tr[data-player-row]').forEach(tr => {
+          const pid = tr.getAttribute('data-player-row');
+          if (!topIds.has(pid)) {
+            tr.style.transition = 'opacity .25s ease, transform .25s ease';
+            tr.style.opacity = '0';
+            tr.style.transform = 'translateX(-8px)';
+            setTimeout(()=>{ try { tr.remove(); } catch(_) {} }, 260);
+          }
+        });
+      }
+    } catch(_) {}
     // Reset only tied players' dice/result
     top.forEach(t => {
       const resultCell = root.querySelector(`.rff-result[data-result-for="${t.id}"]`);
@@ -278,8 +331,13 @@ function evaluateRound(dispatch, getState, root) {
       if (diceSet) diceSet.remove();
     });
     stObj.currentSubsetIds = top.map(t=>t.id);
-    stObj.sequenceStarted = true; // remain in sequence mode
-    startSequence(dispatch, getState, root, stObj.currentSubsetIds);
+    stObj.sequenceStarted = true; // remain in sequence mode; pause before next round
+    // Disable roll button during the tie pause to prevent accidental clicks
+    updateRollButtonState(root, stObj);
+    // Wait 3 seconds so the user can read the tie message before re-rolling
+    setTimeout(() => {
+      startSequence(dispatch, getState, root, stObj.currentSubsetIds);
+    }, 3000);
   }
 }
 
@@ -321,8 +379,7 @@ function maybeAutoDevRoll(dispatch, getState, root, rff, stObj) {
     startSequence(dispatch, getState, root, so.currentSubsetIds);
   }
   // Force rapid auto progression by hooking into advanceSequence logic (no delays)
-  const origAdvance = advanceSequence;
-  // Not overriding actual function to avoid complexity; rely on no waitingForHuman flags.
+  // No function overrides; rely on no waitingForHuman flags.
 }
 
 // === Dice Faces ===
@@ -355,23 +412,45 @@ function scheduleAutoClose(dispatch, getState, root) {
   if (stObj._closeScheduled) return;
   stObj._closeScheduled = true;
   const dismiss = () => {
-    if (stObj._closed) return;
-    stObj._closed = true;
-    dispatch(uiRollForFirstResolved());
-    const st = getState();
-    if (st.phase === 'SETUP') dispatch(phaseChanged('ROLL'));
-    hide(root);
-    try { window.__KOT_BLACKOUT__?.hide(); } catch(_) {}
+    finalizeAndStartGame(dispatch, getState, root);
     document.removeEventListener('mousedown', onDocClick, true);
-    // Force action menu (and other panels) to refresh enabled/disabled state immediately
-    try {
-      const am = document.querySelector('[data-am-root]');
-      if (am && am.__cmp && typeof am.__cmp.update === 'function') am.__cmp.update();
-    } catch(_) {}
   };
   const onDocClick = (e) => { if (!root.contains(e.target)) dismiss(); };
   document.addEventListener('mousedown', onDocClick, true);
+  // Save so we can remove it if countdown triggers finalize
+  stObj._onDocClick = onDocClick;
   setTimeout(dismiss, 3000);
+}
+
+// Ensures RFF is resolved, phase advances, modal hides, and blackout is removed
+function finalizeAndStartGame(dispatch, getState, root) {
+  const stObj = ensureStateObject(root, getState);
+  if (stObj._closed) return;
+  stObj._closed = true;
+  try { if (stObj._countdownTimer) { clearInterval(stObj._countdownTimer); stObj._countdownTimer = null; } } catch(_) {}
+  dispatch(uiRollForFirstResolved());
+  const st = getState();
+  if (st.phase === 'SETUP') dispatch(phaseChanged('ROLL'));
+  hide(root);
+  // Aggressive blackout cleanup: hide via controller and remove the node if still present
+  try { window.__KOT_BLACKOUT__?.hide(); } catch(_) {}
+  try {
+    const blk = document.querySelector('.post-splash-blackout');
+    if (blk) { blk.classList.add('is-hidden'); setTimeout(()=>{ try { blk.remove(); } catch(_){} }, 120); }
+  } catch(_) {}
+  // Remove any outside-click listener that may have been set by scheduleAutoClose
+  try {
+    const handler = stObj._onDocClick;
+    if (handler) {
+      document.removeEventListener('mousedown', handler, true);
+      stObj._onDocClick = null;
+    }
+  } catch(_) {}
+  // Force panels to refresh enabled state immediately
+  try {
+    const am = document.querySelector('[data-am-root]');
+    if (am && am.__cmp && typeof am.__cmp.update === 'function') am.__cmp.update();
+  } catch(_) {}
 }
 
 function deriveAvatarPath(name) {

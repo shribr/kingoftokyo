@@ -45,7 +45,7 @@
 .btn--sm { padding:6px 14px 7px; font-size:14px; box-shadow:4px 4px 0 #000; }
 .btn--lg { padding:16px 28px 18px; font-size:24px; }
 .btn--block { display:flex; width:100%; }
-.btn--ghost { background:transparent!important; box-shadow:none; border-style:dashed; }
+.btn--ghost { background:transparent; box-shadow:none; border-style:dashed; }
 
 /* Thematic variants */
 .btn--primary { background:linear-gradient(var(--btn-clr-primary-top), var(--btn-clr-primary-bottom)); color:var(--btn-text-dark); }

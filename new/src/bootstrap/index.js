@@ -134,9 +134,8 @@ if (typeof window !== 'undefined') {
     }
   });
   initCards(store, logger);
-  // Revised start logic: Do NOT auto-start when splash hides.
   // Start only after setup screen has been opened at least once and then closed.
-  // Monster selection gating (replaces legacy 'setup')
+  // Monster selection gating
   let prevSelectionOpen = store.getState().ui?.monsterSelection?.open;
   let selectionWasOpened = false;
 
@@ -160,12 +159,7 @@ if (typeof window !== 'undefined') {
     if (selectionOpen && !selectionWasOpened) selectionWasOpened = true;
     const splashGone = st.ui?.splash?.visible === false;
     const rff = st.ui?.rollForFirst;
-    // Debug traces for gating states
-    if (typeof window !== 'undefined' && window.__KOT_DEBUG_RFF !== false) {
-      if (!selectionOpen && prevSelectionOpen) {
-        console.debug('[bootstrap] Monster Selection just closed. selectionWasOpened=%s splashGone=%s players=%d rff=%o phase=%s', selectionWasOpened, splashGone, st.players.order.length, rff, st.phase);
-      }
-    }
+    // trace removed
     // When selection transitions from open -> closed after having been opened, and splash is gone, open Roll For First (once) if players exist and not resolved
     if (!selectionOpen && prevSelectionOpen && selectionWasOpened && splashGone) {
       const profilesOpen = !!st.ui?.monsterProfiles?.open;
@@ -174,22 +168,12 @@ if (typeof window !== 'undefined') {
         if (st.phase === 'SETUP') turnService.startGameIfNeeded();
       } else {
         if (!profilesOpen && st.players.order.length > 0 && !(rff && (rff.open || rff.resolved))) {
-          console.debug('[bootstrap] conditions met -> opening Roll For First (players=%d)', st.players.order.length);
           store.dispatch(uiRollForFirstOpen());
           ensurePostSplashBlackout();
         } else if (rff && rff.resolved) {
           if (st.phase === 'SETUP') turnService.startGameIfNeeded();
         }
-        // DIAGNOSTIC: force another open attempt next tick if still not open
-        setTimeout(()=>{
-          const cur = store.getState();
-          const rff2 = cur.ui?.rollForFirst;
-          const profilesStillOpen = !!cur.ui?.monsterProfiles?.open;
-          if (!profilesStillOpen && !(rff2 && rff2.open) && cur.players.order.length) {
-            console.warn('[bootstrap][diag] rollForFirst still not open; forcing dispatch again');
-            store.dispatch(uiRollForFirstOpen());
-          }
-        }, 50);
+        // removed diagnostic re-dispatch
       }
     }
     // If roll-for-first just resolved (open false, resolved true) and phase still SETUP, start game.
@@ -217,11 +201,7 @@ if (typeof window !== 'undefined') {
         }
       }
     } catch(_) {}
-    if (rff && rff.open) {
-      // Trace open state each tick for visibility debugging
-      const el = document.querySelector('.cmp-roll-for-first');
-      if (el) el.setAttribute('data-debug-rff','open');
-    }
+    // no per-tick tracing
     // When phase leaves SETUP (i.e., game actually starts) mark body active and fade out blackout
     if (st.phase !== 'SETUP' && !document.body.classList.contains('game-active')) {
       document.body.classList.add('game-active');
@@ -230,33 +210,7 @@ if (typeof window !== 'undefined') {
     }
     prevSelectionOpen = selectionOpen;
 
-    // Watchdog: if splash gone, open flag true, but DOM element either missing or still hidden after 300ms since splash hide, force display
-    if (!st.ui.splash.visible && selectionOpen) {
-      if (!document.querySelector('.monster-selection-modal')) {
-        // Attempt late manual mount only once
-        if (!window.__KOT_MS_FALLBACK) {
-          window.__KOT_MS_FALLBACK = true;
-          console.warn('[bootstrap][watchdog] monster selection element missing post-splash; forcing late mount');
-          import('../components/monster-selection/monster-selection.component.js').then(mod => {
-            try {
-              const entry = { selector: '.cmp-monster-selection' };
-              const inst = mod.build({ selector: entry.selector, dispatch: (a)=>store.dispatch(a), getState: ()=>store.getState() });
-              document.body.appendChild(inst.root || inst);
-              mod.update({ inst, fullState: store.getState(), state: { ui: store.getState().ui, monsters: store.getState().monsters } });
-            } catch(e) { console.error('[bootstrap][watchdog] late mount failed', e); }
-          }).catch(e=>console.error('[bootstrap][watchdog] late import failed', e));
-        }
-      } else {
-        const el = document.querySelector('.monster-selection-modal');
-        if (el.classList.contains('hidden')) {
-          console.warn('[bootstrap][watchdog] removing hidden class from monster selection');
-          el.classList.remove('hidden');
-          el.style.display='block';
-          el.style.visibility='visible';
-          el.style.opacity='1';
-        }
-      }
-    }
+    // removed selection visibility watchdog
   });
   // Lightweight animation tagging for profile cards (Tokyo entry & resource gains)
   let prevPlayers = store.getState().players.byId;
@@ -295,32 +249,11 @@ if (typeof window !== 'undefined') {
   fetch(cfgUrl)
     .then(r => r.json())
     .then(cfg => {
-      if (!Array.isArray(cfg) || !cfg.some(e=>e.name==='monsterSelection')) {
-        console.warn('[bootstrap] monsterSelection entry NOT found in components.config.json at runtime.');
-      }
+      // proceed even if selection entry missing
       return mountRoot(cfg, store).then(()=>cfg);
     })
     .then(cfg => {
-      // Fallback: if monsterSelection not mounted (no element present) but config had it, attempt manual dynamic mount
-      if (Array.isArray(cfg) && cfg.some(e=>e.name==='monsterSelection') && !document.querySelector('.cmp-monster-selection')) {
-        console.warn('[bootstrap] monsterSelection element missing after mountRoot; attempting manual fallback mount');
-        const entry = cfg.find(e=>e.name==='monsterSelection');
-        import('../components/monster-selection/monster-selection.component.js')
-          .then(mod => {
-            const build = mod.build;
-            if (typeof build !== 'function') { console.error('[bootstrap] Fallback build function not found for monster-selection'); return; }
-            const inst = build({ selector: entry.selector, initialState: entry.initialState||{}, dispatch: (a)=>store.dispatch(a), getState: ()=>store.getState(), emit: ()=>{} });
-            const mountPoint = document.querySelector('#app') || document.body;
-            mountPoint.appendChild(inst.root || inst);
-            // Trigger an initial update
-            try {
-              const full = store.getState();
-              const state = { ui: full.ui, monsters: full.monsters };
-              if (mod.update) mod.update({ inst, state, fullState: full });
-            } catch(e) { console.warn('[bootstrap] fallback update failed', e); }
-          })
-          .catch(e=>console.error('[bootstrap] Fallback import failed for monster-selection', e));
-      }
+      // no manual fallback mount for selection
     })
     .catch(e => {
       console.error('[bootstrap] Failed to load components.config.json', e);

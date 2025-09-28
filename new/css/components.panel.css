@@ -73,12 +73,12 @@
 .panel-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.25); border-radius: 6px; }
 .panel-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
 
-/* Shop/card specific overrides can layer on (temporary until card-shop extracted fully) */
+/* Shop/card specific overrides (kept until card-shop extracted fully) */
 .cmp-panel-root[data-panel="card-shop"] .shop-card { background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.1); padding: .5rem .5rem .65rem; border-radius: 8px; display:flex; flex-direction:column; gap:.35rem; }
 .cmp-panel-root[data-panel="card-shop"] .shop-card .sc-header { display:flex; justify-content:space-between; font-weight:600; font-size:.8rem; letter-spacing:.5px; }
 .cmp-panel-root[data-panel="card-shop"] .shop-card .sc-effect { font-size:.72rem; line-height:1.15rem; opacity:.92; }
 .cmp-panel-root[data-panel="card-shop"] .shop-footer { margin-top:.5rem; display:flex; flex-direction:column; gap:.5rem; }
 
-/* Monsters list styling (temporary extraction) */
+/* Monsters list styling (extracted subset) */
 .cmp-panel-root[data-panel="monsters"] .player-card { display:grid; grid-template-columns: repeat(4,auto) 1fr; gap:.4rem .75rem; align-items:center; font-size:.7rem; letter-spacing:.5px; background: rgba(255,255,255,0.04); padding:.4rem .55rem; border-radius:6px; }
 .cmp-panel-root[data-panel="monsters"] .player-card .tokyo { background:#ff3d3d; padding:.15rem .4rem; border-radius:12px; font-size:.55rem; letter-spacing:1px; }

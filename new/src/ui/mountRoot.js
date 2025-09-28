@@ -40,7 +40,7 @@ export async function mountRoot(configEntries, store) {
   // LEFT  = Power Cards panel ONLY per latest requirement.
       // RIGHT = Monsters / player profiles cluster + remaining ancillary panels.
       if (/arena/.test(n)) mountPoint = center;
-    else if (/powercard|power-cards|powercardspanel|power-cards-panel/.test(n)) { mountPoint = left; console.log('[mountRoot] mapped', entry.name, '-> LEFT (power cards heuristic)'); } // Power Cards panel on left
+  else if (/powercard|power-cards|powercardspanel|power-cards-panel/.test(n)) { mountPoint = left; } // Power Cards panel on left
       else if (/monsterspanel|monsterprofiles|monsterprofilesingle|playerprofile|playercards|player-card-list/.test(n)) mountPoint = right; // Monsters & player info on right
       else if (/dice/.test(n)) mountPoint = centerBottom; // dice lives center-bottom
       else if (/actionmenu/.test(n)) mountPoint = centerBottom; // action menu near dice

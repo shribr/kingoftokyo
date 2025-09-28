@@ -7,14 +7,12 @@
 	overflow:auto; width:100%; box-sizing:border-box;
 }
 .cmp-monster-selection.monster-selection-modal.demoted {
-  /* When opening Profiles, temporarily drop below profiles and remove backdrop to avoid a full-screen black state */
-  z-index: 15010; /* below profiles 15020 */
-  background: transparent;
-  backdrop-filter: none; -webkit-backdrop-filter: none;
+	/* Drop below profiles and remove backdrop to avoid a full-screen black state */
+	z-index: 15010; /* below profiles 15020 */
+	background: transparent;
+	backdrop-filter: none; -webkit-backdrop-filter: none;
 }
 .cmp-monster-selection.monster-selection-modal.hidden { opacity:0; transform: translateY(24px) scale(.94); visibility:hidden; pointer-events:none; }
-/* DEBUG FORCE: ensure visibility even if ancestor sets visibility:hidden */
-/* Removed debug force-visibility override; mountPoint changed to body so ancestor gating no longer hides this modal */
 
 
 .cmp-monster-selection .setup-frame { 

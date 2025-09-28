@@ -23,7 +23,7 @@
 .cmp-dice-tray { position:fixed; left:50%; transform:translateX(-50%); z-index:6600; }
 .cmp-dice-tray .tray-frame { position:relative; background:var(--dice-tray-bg); padding:var(--dice-tray-padding); border:var(--dice-tray-border); border-radius:var(--dice-tray-radius); box-shadow:10px 10px 0 #333, var(--dice-tray-inner-rim); overflow:visible; }
 /* Removed left white arrow handle per mobile simplification */
-.cmp-dice-tray .tray-collapse-handle { display:none !important; }
+.cmp-dice-tray .tray-collapse-handle.tray-collapse-handle { display:none; }
 .cmp-dice-tray .tray-frame:before { content:""; position:absolute; inset:3px; border-radius:calc(var(--dice-tray-radius) - 4px); background:radial-gradient(circle at 30% 25%,rgba(255,255,255,0.08),rgba(255,255,255,0) 60%); pointer-events:none; }
 .cmp-dice-tray .tray-label { position:absolute; top:-22px; left:18px; background:var(--dice-tray-label-bg); color:#111; font-family:'Bangers',cursive; letter-spacing:1px; padding:4px 16px 6px; font-size:20px; line-height:1; border:3px solid #333; box-shadow:0 0 0 2px #222 inset; transform:skew(-6deg); }
 .cmp-dice-tray[data-draggable="true"] { cursor: move; }
@@ -65,8 +65,8 @@ body:not(.splash-visible) .cmp-dice-tray { visibility:visible; opacity:1; }
   /* Hide the DICE label on mobile for a cleaner compact UI */
   .cmp-dice-tray .tray-label { display:none; }
   /* Position tray above action menu bar on mobile */
-  .cmp-dice-tray { left:50% !important; right:auto; top:auto; bottom:74px; transform:translateX(-50%) !important; }
+  .cmp-dice-tray { left:50%; right:auto; top:auto; bottom:74px; transform:translateX(-50%); }
   .cmp-dice-tray[data-draggable="true"] { cursor: default; }
   /* Collapsed to left: fully slide off-screen (toggled via dice button) */
-  .cmp-dice-tray[data-collapsed="left"] { left:0 !important; right:auto !important; transform: translateX(-100%) !important; }
+  .cmp-dice-tray[data-collapsed="left"] { left:0; right:auto; transform: translateX(-100%); }
 }

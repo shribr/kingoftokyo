@@ -6,7 +6,7 @@
 .k-panel__header { margin:0 0 8px; font-size:22px; color:#ffd400; text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; display:flex; align-items:center; justify-content:space-between; }
 .k-panel__body { font-family:system-ui,sans-serif; letter-spacing:0; }
 
-/* Removed legacy card-shop selectors */
+/* Legacy card-shop selectors were removed in prior cleanup */
 /* Arrow (no rotation; we use real directional glyphs) */
 /* Old toggle-arrow selectors removed (arrow now .mp-arrow) */
 /* Monsters panel arrow: add a bit more breathing room from the title; no trailing margin needed */
@@ -31,8 +31,8 @@ body:not([data-panels-force-overlay]) .cmp-side-panel:not([data-collapsed="true"
 body[data-panels-force-overlay] .cmp-side-panel {
   position: fixed;
   top: calc(var(--gl-header-height, 72px) + 8px);
-  bottom: 84px; /* leave room for footer toolbar */
-  z-index: 6200; /* below dice tray/action menu (~6500), above arena */
+  bottom: 84px; /* leaves room for footer toolbar */
+  z-index: 6200; /* layered below dice tray/action menu (~6500), above arena */
   max-height: none;
 }
 body[data-panels-force-overlay] .cmp-side-panel[data-side="left"] { left: 10px; right: auto; }
@@ -44,7 +44,7 @@ body[data-panels-force-overlay] .cmp-side-panel[data-side="left"][data-collapsed
 body[data-panels-force-overlay] .cmp-side-panel[data-side="right"][data-collapsed="true"] { transform: translateX(calc(100% - 46px)); }
 
 /* Ensure collapsed left panel actually reduces its own width so rotated title is not clipped */
-/* Left collapsed: enforce tab width so header/title are always within the visible 46px slice */
+/* Left collapsed: ensure tab width so header/title remain within the visible 46px slice */
 .cmp-side-panel[data-side="left"][data-collapsed="true"] {
   width:var(--collapsed-tab-width);
   min-width:var(--collapsed-tab-width);
@@ -95,7 +95,7 @@ body[data-panels-force-overlay] .cmp-side-panel[data-side="right"][data-collapse
 /* Adjust transform-origin so rotation does not clip when top-aligned */
 .cmp-side-panel[data-side="right"][data-collapsed="true"] > .mp-header .mp-title { transform-origin:top center; }
 /* Maintain reduced motion handling only for left panel animations */
-@media (prefers-reduced-motion: reduce) { .cmp-side-panel[data-side="left"] > .mp-header .mp-title { transition:none !important; } }
+@media (prefers-reduced-motion: reduce) { .cmp-side-panel[data-side="left"] > .mp-header .mp-title { transition:none; } }
 /* Remove arrow counter-rotation scaling increase; keep size but center horizontally after rotation */
 .cmp-side-panel[data-collapsed="true"] .mp-header { /* overrides moved above for collapsed rail */ box-shadow:none; background:transparent; border:0; width:var(--collapsed-tab-width); }
 
@@ -104,11 +104,11 @@ body[data-panels-force-overlay] .cmp-side-panel[data-side="right"][data-collapse
 
 /* Expand hit target for headers (unified) */
 .cmp-side-panel .mp-header { padding:6px 8px; margin:-6px -8px 8px; cursor:pointer; }
-.cmp-monsters-panel > .mp-header { border-bottom:0 !important; padding-bottom:4px; }
+.cmp-monsters-panel > .mp-header.mp-header { border-bottom:0; padding-bottom:4px; }
 /* Remove bottom border for Power Cards side panel header as well */
 
 /* Keep body hidden when collapsed (already handled above but ensure consistency) */
-[data-collapsed="true"] > .k-panel__body { display:none !important; }
+[data-collapsed="true"] > .k-panel__body { display:none; }
 
 /* Monsters panel overrides */
 .cmp-monsters-panel.k-panel { background:linear-gradient(180deg,#2b3035,#1b1d1f); }
@@ -116,8 +116,8 @@ body[data-panels-force-overlay] .cmp-side-panel[data-side="right"][data-collapse
 .cmp-monsters-panel .mp-player-cards { font-family:system-ui,sans-serif; }
 
 /* Power Cards panel overrides (restored after card-shop removal) */
-.cmp-power-cards-panel > .mp-header { border-bottom:0 !important; padding-bottom:4px; justify-content:flex-end; }
-.cmp-power-cards-panel .mp-title { font-size:24px; color:#ffd400; display:flex; flex-direction:row !important; align-items:center; gap:8px; }
+.cmp-power-cards-panel > .mp-header.mp-header { border-bottom:0; padding-bottom:4px; justify-content:flex-end; }
+.cmp-power-cards-panel .mp-title { font-size:24px; color:#ffd400; display:flex; flex-direction:row; align-items:center; gap:8px; }
 /* Restore larger arrow glyph size for Power Cards (avoid generic 14px shrink) */
 .cmp-power-cards-panel .mp-arrow { font-size:24px; }
 /* Lighten background similar to monsters panel for parity */
@@ -127,7 +127,7 @@ body[data-panels-force-overlay] .cmp-side-panel[data-side="right"][data-collapse
 [data-gl-right] .cmp-monsters-panel {
   /* Allow natural height unless it would exceed viewport; when too tall, scroll inside. */
   max-height: calc(100vh - 140px);
-  height: auto; /* remove forced fixed height that was visually cutting off content when internal layout changed */
+  height: auto; /* remove rigid fixed height that was visually cutting off content when internal layout changed */
   overflow-y: auto;
   scrollbar-width: thin;
 }
@@ -135,7 +135,7 @@ body[data-panels-force-overlay] .cmp-side-panel[data-side="right"][data-collapse
 [data-gl-right] .cmp-monsters-panel::-webkit-scrollbar-thumb { background:#333; border-radius:4px; }
 
 /* Generic collapse handling */
-[data-collapsed="true"] > .k-panel__body { display:none !important; }
+[data-collapsed="true"] > .k-panel__body { display:none; }
 /* Collapsed panels always clickable */
 .cmp-side-panel[data-collapsed="true"] { cursor:pointer; }
 

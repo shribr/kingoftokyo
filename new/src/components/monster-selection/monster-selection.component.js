@@ -14,8 +14,7 @@ export function build({ selector, dispatch, getState }) {
   // Renamed: was 'setup-modal' during migration; now canonical 'monster-selection-modal'
   root.className = selector.slice(1) + ' monster-selection-modal hidden';
   root.innerHTML = frame();
-  // Build confirmed; removed temporary debug log.
-  console.debug('[monster-selection][build] initializing component');
+  // Build confirmed
   const isTouch = matchMedia('(pointer: coarse)').matches || window.innerWidth <= 760;
   const inst = { root, dispatch, getState, _local: { selected: new Set(), slots: [], playerCount: 4, _initialized: false, page: 0, pageSize: isTouch ? 1 : 6 } };
 
@@ -116,19 +115,9 @@ export function update(ctx) {
   const root = ctx.inst?.root || ctx.root || ctx; const st = ctx.fullState || ctx.state;
   const open = st?.ui?.monsterSelection?.open;
   const inst = ctx.inst || { root, _local: { selected: new Set(), slots: [], playerCount: 4, _initialized: false } };
-  // Trimmed verbose debug; retain show/hide logs below.
-  if (!st || !st.ui || !st.ui.monsterSelection) {
-    if (!root._warnedMissingSlice) {
-      console.warn('[monster-selection][update] state slice missing', st?.ui?.monsterSelection);
-      root._warnedMissingSlice = true;
-    }
-  } else {
-    root._warnedMissingSlice = false;
-  }
-  const openFlag = st?.ui?.monsterSelection?.open;
-  console.debug('[monster-selection][update] invoked. open=', openFlag, 'hasHiddenClass=', root.classList.contains('hidden'));
-  if (!open) { if (!root.classList.contains('hidden')) console.debug('[monster-selection.update] hiding (open flag false)'); root.classList.add('hidden'); inst._local._initialized = false; return; }
-  if (root.classList.contains('hidden')) console.debug('[monster-selection.update] showing (open flag true)');
+  // Robust show/hide with no debug noise
+  if (!st || !st.ui || !st.ui.monsterSelection) { /* slice not ready yet */ }
+  if (!open) { root.classList.add('hidden'); inst._local._initialized = false; return; }
   root.classList.remove('hidden');
   // Ensure we are not demoted when (re)showing
   root.classList.remove('demoted');
@@ -137,17 +126,6 @@ export function update(ctx) {
   if (!inst._local._initialized) {
     inst._local.playerCount = 4; inst._local.slots = new Array(inst._local.playerCount).fill(null);
     inst._local.selected = new Set(); inst._local._initialized = true; inst._local.prevMonsterCount = 0;
-  }
-  // Watchdog: if state says open but element somehow still hidden via inline style or visibility, force show
-  if (openFlag) {
-    const cs = getComputedStyle(root);
-    if (cs.display === 'none' || cs.visibility === 'hidden' || cs.opacity === '0') {
-      console.warn('[monster-selection][watchdog] forcing visible (state open but computed style hidden)', { display: cs.display, visibility: cs.visibility, opacity: cs.opacity });
-      root.style.display = 'block';
-      root.style.visibility = 'visible';
-      root.style.opacity = '1';
-      root.classList.remove('hidden');
-    }
   }
   try { render(inst, st); } catch(e) { console.error('[monster-selection][render] failed', e); }
 }
@@ -160,12 +138,7 @@ function render(inst, fullState) {
   const root = inst.root; const st = fullState || inst.getState?.();
   const monsters = selectMonsters(st); const prevCount = inst._local.prevMonsterCount || 0;
   if (monsters.length !== prevCount) inst._local.prevMonsterCount = monsters.length;
-  if (monsters.length && monsters.some(m => !m.image)) {
-    if (!inst._local._warnedMissingImages) {
-      console.warn('[monster-selection.component] Some monsters missing image paths:', monsters.filter(m => !m.image).map(m => m.id));
-      inst._local._warnedMissingImages = true;
-    }
-  }
+  // Quietly tolerate missing images; UI displays placeholders via onerror handler.
   if (!Array.isArray(inst._local.slots) || inst._local.slots.length !== inst._local.playerCount) {
     const old = inst._local.slots || []; const next = new Array(inst._local.playerCount).fill(null);
     for (let i=0;i<next.length;i++) next[i] = old[i] || null; inst._local.slots = next; syncSelectedFromSlots(inst);

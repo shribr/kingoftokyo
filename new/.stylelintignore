@@ -1,0 +1,3 @@
+css/legacy/**
+**/node_modules/**
+**/dist/**

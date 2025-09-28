@@ -50,6 +50,20 @@
         <!-- Mount root for dynamic components -->
         <div id="app"></div>
     </div>
+            <script type="module">
+                import './src/utils/debug.js';
+                // Boot diagnostics: capture errors early
+                (function(){
+                    try {
+                        window.addEventListener('error', function(e){
+                            try { console.error('[boot][error]', e.message, e.filename, e.lineno+':'+e.colno); } catch(_) {}
+                        });
+                        window.addEventListener('unhandledrejection', function(e){
+                            try { console.error('[boot][unhandled]', e.reason); } catch(_) {}
+                        });
+                    } catch(_) {}
+                })();
+            </script>
     <script type="module" src="src/bootstrap/index.js"></script>
 </body>
 </html>

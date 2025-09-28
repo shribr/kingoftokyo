@@ -65,7 +65,6 @@ export function build({ selector }) {
     const btn = e.target.closest('button[data-action]');
     if (!btn) return;
     const a = btn.getAttribute('data-action');
-    if (window && window.console) console.debug('[toolbar] click', a);
     switch(a) {
       case 'settings':
         store.dispatch(uiSettingsOpen()); break;

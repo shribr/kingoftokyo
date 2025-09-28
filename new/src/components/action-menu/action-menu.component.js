@@ -27,6 +27,7 @@ export function build({ selector }) {
     if (!btn) return;
     const action = btn.getAttribute('data-action');
     const st = store.getState();
+    // Clean click handling without verbose diagnostics
     switch(action){
       case 'roll': eventBus.emit('ui/dice/rollRequested'); break;
       case 'keep': // finalize roll early -> move to RESOLVE

@@ -32,9 +32,9 @@
   max-width:260px;
   min-width:260px;
   align-items:stretch;
-  filter:none !important;
-  -webkit-backdrop-filter:none !important;
-  backdrop-filter:none !important;
+  filter:none;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
 }
 .app-toolbar, .game-toolbar, [data-toolbar] { margin-bottom:12px; }
 .cmp-action-menu .am-label { display:block; position:static; margin:0 0 8px 0; background:var(--action-menu-title-color); color:#111; padding:4px 12px 6px; font-size:18px; line-height:1; border:3px solid #000; box-shadow:2px 2px 0 #000; letter-spacing:1px; }
@@ -73,7 +73,6 @@
 .cmp-action-menu button:focus-visible { outline:3px solid #fff; outline-offset:2px; }
 .cmp-action-menu[data-draggable="true"] { cursor:move; }
 .cmp-action-menu.cpu-rolling { filter:grayscale(1); transform:scale(.95); transition:filter .3s ease, transform .3s ease, opacity .3s ease; }
-.cmp-action-menu.cpu-rolling button { cursor:not-allowed !important; }
 
 /* CPU turn: show buttons visually muted but preserve color identity */
 .cmp-action-menu.cpu-turn button { opacity:.55; filter:saturate(.6) brightness(.9); cursor:not-allowed; }
@@ -109,13 +108,13 @@
     width: max-content;
     max-width: calc(100vw - 16px);
     min-width: 160px;
-    flex-direction: column !important;
+  flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
     gap: 10px;
     /* Fully hidden by default on mobile; becomes visible only when opened */
     display: none;
-    transform: none !important;
+  transform: none;
     transition: none;
   }
   /* Hide label on mobile */

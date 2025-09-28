@@ -1,0 +1,38 @@
+{
+  "extends": [
+    "stylelint-config-standard"
+  ],
+  "rules": {
+    "no-descending-specificity": null,
+    "selector-class-pattern": null,
+    "property-no-vendor-prefix": null,
+    "value-no-vendor-prefix": null,
+    "declaration-no-important": [true, { "severity": "warning" }],
+    "comment-word-disallowed-list": [[
+      "TODO",
+      "FIXME",
+      "/(?:debug|temporary|temp|force)/i"
+    ], { "severity": "warning" }],
+    "declaration-block-single-line-max-declarations": null,
+    "color-function-notation": null,
+    "alpha-value-notation": null,
+    "media-feature-range-notation": null,
+    "font-family-name-quotes": null,
+    "keyframes-name-pattern": null,
+    "custom-property-empty-line-before": null,
+    "shorthand-property-no-redundant-values": null,
+    "declaration-block-no-redundant-longhand-properties": null,
+    "no-duplicate-selectors": null,
+    "rule-empty-line-before": null,
+    "comment-empty-line-before": null,
+    "at-rule-empty-line-before": null,
+    "value-keyword-case": null,
+    "color-hex-length": null,
+    "selector-not-notation": null,
+    "selector-pseudo-element-colon-notation": null,
+    "selector-attribute-quotes": null,
+    "length-zero-no-unit": null,
+    "custom-property-pattern": null,
+    "declaration-empty-line-before": null
+  }
+}
