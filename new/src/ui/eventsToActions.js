@@ -9,8 +9,16 @@ export function bindUIEventBridges(store) {
   function handleRollRequested() {
     // Minimal guard: ensure blackout not blocking UI
     try { window.__KOT_BLACKOUT__?.hide(); document.querySelector('.post-splash-blackout')?.remove(); } catch(_) {}
-    const diceState = store.getState().dice;
+    const stAll = store.getState();
+    // Only allow rolling during the ROLL phase
+    if (stAll.phase !== 'ROLL') return;
+    const diceState = stAll.dice;
     const isFirstRoll = diceState.faces.length === 0 || diceState.phase === 'idle';
+    // Enforce total of 3 rolls (first + 2 rerolls)
+    if (!isFirstRoll) {
+      // Only allow reroll when we are in resolved state and have rerolls remaining
+      if (!(diceState.phase === 'resolved' && diceState.rerollsRemaining > 0)) return;
+    }
     store.dispatch(diceRollStarted());
     // Determine dice count from active player's modifiers if available
     let count = 6;

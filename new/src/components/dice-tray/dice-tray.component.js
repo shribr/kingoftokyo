@@ -12,10 +12,12 @@ export function build({ selector, emit }) {
   const root = document.createElement('div');
   root.className = `${selector.slice(1)} cmp-dice-tray`;
   root.setAttribute('data-draggable','true');
-  // Tray frame + dice row (matching legacy visual reference)
-  root.innerHTML = `<div class="tray-frame" data-tray-frame>
-    <div class="dice" data-dice aria-label="Dice Tray"></div>
-  </div>`;
+  // Tray outer + inner frame + dice row (legacy-style white container around dark tray)
+  root.innerHTML = `<div class="tray-outer" data-tray-outer>
+      <div class="tray-frame" data-tray-frame>
+        <div class="dice" data-dice aria-label="Dice Tray"></div>
+      </div>
+    </div>`;
   // Track previous diceSlots to animate expansions
   root._prevDiceSlots = 6;
 
@@ -88,6 +90,7 @@ export function update(root, { state }) {
     const face = faces[i];
     const isExtra = i >= 6;
     if (face) {
+      // Add a subtle selection indicator (lift) via 'is-kept' without any yellow outline
       rendered.push(`<span class="die ${face.kept ? 'is-kept' : ''} ${isExtra ? 'extra-die' : ''}" data-die-index="${i}" data-face="${face.value}">${symbolFor(face.value)}</span>`);
     } else {
       // For extra dice (7th, 8th) show blank dashed slot (no '?')
@@ -132,10 +135,16 @@ export function update(root, { state }) {
 
 function symbolFor(v) {
   switch(v) {
-    case 4: return '❤️';
-    case 5: return '⚡';
-    case 6: return '⚔️';
-    default: return String(v ?? '?');
+    case 'heart': return '❤️';
+    case 'heal': return '❤️'; // synonym used by legacy/config
+    case 'energy': return '⚡';
+    case 'claw': return '⚔️';
+    case 'attack': return '⚔️'; // synonym used by legacy/config
+    case 'smash': return '⚔️'; // safety: map any smash nomenclature to attack icon
+    case '1': return '1';
+    case '2': return '2';
+    case '3': return '3';
+    default: return '?'; // never show raw words on the dice
   }
 }
 
