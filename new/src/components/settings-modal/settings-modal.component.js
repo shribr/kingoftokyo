@@ -51,7 +51,13 @@ export function update(ctx) {
   const root = ctx.inst?.root || ctx.root || (ctx instanceof HTMLElement ? ctx : null);
   if (!root || !root.querySelector) return; // defensive guard during early mount race
   const open = state.ui?.settings?.open;
-  if (root.style) root.style.display = open ? 'block' : 'none';
+  if (root.style) root.style.display = open ? 'flex' : 'none';
+  root.classList.toggle('is-open', !!open);
+  if (open) {
+    try { window.__KOT_BLACKOUT__?.hide(); } catch(_) {}
+    // Ensure modal-shell is above general overlays
+    try { root.style.zIndex = '12000'; } catch(_) {}
+  }
   if (!open) return;
   const settings = state.settings;
   if (settings) {

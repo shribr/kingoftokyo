@@ -1,4 +1,4 @@
-import { DICE_ROLL_STARTED, DICE_ROLLED, DICE_TOGGLE_KEEP, DICE_REROLL_USED, PHASE_CHANGED } from '../actions.js';
+import { DICE_ROLL_STARTED, DICE_ROLLED, DICE_TOGGLE_KEEP, DICE_REROLL_USED, PHASE_CHANGED, DICE_SET_ALL_KEPT } from '../actions.js';
 
 const initial = { faces: [], rerollsRemaining: 0, baseRerolls: 2, phase: 'idle' };
 
@@ -31,6 +31,14 @@ export function diceReducer(state = initial, action) {
       const faces = state.faces.map((f,i) => i === index ? { ...f, kept: !f.kept } : f);
       return { ...state, faces };
     }
+    case DICE_SET_ALL_KEPT: {
+      if (!Array.isArray(state.faces) || state.faces.length === 0) return state;
+      // Only allow set-all when dice are resolved (not rolling) to avoid race with animation
+      if (state.phase !== 'resolved') return state;
+      const kept = !!action.payload?.kept;
+      const faces = state.faces.map(f => ({ ...f, kept }));
+      return { ...state, faces };
+    }
     case DICE_REROLL_USED: {
       const remaining = Math.max(0, state.rerollsRemaining - 1);
       const sequenceComplete = remaining === 0 ? 'sequence-complete' : state.phase;
@@ -39,7 +47,9 @@ export function diceReducer(state = initial, action) {
     case PHASE_CHANGED: {
       // Reset dice state when returning to ROLL phase for a new turn
       if (action.payload.phase === 'ROLL') {
-        return { faces: [], rerollsRemaining: 0, phase: 'idle' };
+        // Preserve configuration like baseRerolls; only reset transient fields
+        const baseRerolls = (state && typeof state.baseRerolls === 'number') ? state.baseRerolls : 2;
+        return { faces: [], rerollsRemaining: 0, baseRerolls, phase: 'idle' };
       }
       return state;
     }

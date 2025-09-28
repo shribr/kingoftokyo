@@ -52,7 +52,7 @@ export function createPositioningService(store) {
       start = currentTransform(el);
       origin = { x: e.clientX, y: e.clientY };
       dragging = false; // not yet – wait for movement beyond threshold
-      e.preventDefault();
+      // Do NOT preventDefault here to preserve click events on interactive children
     }
     function onPointerMove(e) {
       if (e.pointerId !== pointerId) return;
@@ -63,6 +63,8 @@ export function createPositioningService(store) {
           dragging = true;
           // Raise z-order once drag actually begins
           try { el.style.zIndex = String(++zCounter); } catch(_) {}
+          // Once dragging starts, prevent default to avoid text selection/scroll conflicts
+          try { e.preventDefault(); } catch(_) {}
         } else {
           return; // below threshold – allow potential click
         }

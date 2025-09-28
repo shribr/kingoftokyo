@@ -66,7 +66,13 @@ export function build({ selector }) {
     const btn = e.target.closest('button[data-action]');
     if (!btn) return;
     const a = btn.getAttribute('data-action');
-    if (a === 'settings') { store.dispatch(uiSettingsOpen()); return; }
+    if (a === 'settings') {
+      try { window.__KOT_BLACKOUT__?.hide(); } catch(_) {}
+      // Close action menu if open to avoid overlay conflicts
+      try { window.dispatchEvent(new CustomEvent('ui.actionMenu.forceClose')); } catch(_){ }
+      store.dispatch(uiSettingsOpen());
+      return;
+    }
     if (a === 'log') { store.dispatch(uiGameLogOpen()); return; }
     if (a === 'sound') { toggleSound(store, btn); return; }
     if (a === 'help') { store.dispatch(uiInstructionsOpen()); return; }

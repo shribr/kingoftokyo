@@ -93,38 +93,44 @@ export function update(root, instances) {
   const shouldDock = !!active;
   if (shouldDock) {
     const activeInst = instances.get(active.id);
-    if (activeInst && activeInst.root.parentElement === container) {
-      // Capture starting rect BEFORE moving DOM
-      const startRect = activeInst.root.getBoundingClientRect();
-  const slot = ensureActiveDock();
-      // Strip any existing animations/decorations immediately upon becoming active
-      try {
-        activeInst.root.classList.remove('dock-glow','attack-pulse','turn-pulse','in-place');
-        activeInst.root.style.animation = 'none';
-        // force reflow to clear animations
-        void activeInst.root.offsetWidth;
-      } catch(_) {}
-      // Create a transient fade placeholder at original location to smooth visual removal
-      try {
-        const ph = document.createElement('div');
-        ph.className = 'ppc-fade-placeholder';
-        ph.style.left = startRect.left + 'px';
-        ph.style.top = startRect.top + 'px';
-        ph.style.width = startRect.width + 'px';
-        ph.style.height = startRect.height + 'px';
-        document.body.appendChild(ph);
-        setTimeout(()=>ph.remove(), 520);
-      } catch(_){/* ignore */}
-      activeInst.root.setAttribute('data-transitioning','');
-      slot.innerHTML = '';
-      slot.appendChild(activeInst.root);
-      requestAnimationFrame(() => {
-  positionActiveSlot(slot, activeInst.root, active);
-        const endRect = activeInst.root.getBoundingClientRect();
-        // Hide real card until animation completes
-        activeInst.root.style.visibility = 'hidden';
-        smoothTravelToDock(activeInst.root, startRect, endRect);
-      });
+    if (activeInst) {
+      const slot = ensureActiveDock();
+      // If the active card is still in the list container, move it into the slot with travel animation
+      if (activeInst.root.parentElement === container) {
+        // Capture starting rect BEFORE moving DOM
+        const startRect = activeInst.root.getBoundingClientRect();
+        // Strip any existing animations/decorations immediately upon becoming active
+        try {
+          activeInst.root.classList.remove('dock-glow','attack-pulse','turn-pulse','in-place');
+          activeInst.root.style.animation = 'none';
+          // force reflow to clear animations
+          void activeInst.root.offsetWidth;
+        } catch(_) {}
+        // Create a transient fade placeholder at original location to smooth visual removal
+        try {
+          const ph = document.createElement('div');
+          ph.className = 'ppc-fade-placeholder';
+          ph.style.left = startRect.left + 'px';
+          ph.style.top = startRect.top + 'px';
+          ph.style.width = startRect.width + 'px';
+          ph.style.height = startRect.height + 'px';
+          document.body.appendChild(ph);
+          setTimeout(()=>ph.remove(), 520);
+        } catch(_){/* ignore */}
+        activeInst.root.setAttribute('data-transitioning','');
+        slot.innerHTML = '';
+        slot.appendChild(activeInst.root);
+        requestAnimationFrame(() => {
+          positionActiveSlot(slot, activeInst.root, active);
+          const endRect = activeInst.root.getBoundingClientRect();
+          // Hide real card until animation completes
+          activeInst.root.style.visibility = 'hidden';
+          smoothTravelToDock(activeInst.root, startRect, endRect);
+        });
+      } else {
+        // Already docked: re-assert positioning each update to guard against layout changes (e.g., modals/backdrops)
+        try { positionActiveSlot(slot, activeInst.root, active); } catch(_) {}
+      }
     }
   } else {
     // If no active determined, ensure any floating card returns to panel

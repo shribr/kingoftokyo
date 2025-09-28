@@ -5,7 +5,7 @@
  */
 import { eventBus } from '../../core/eventBus.js';
 import { store } from '../../bootstrap/index.js';
-import { phaseChanged, nextTurn } from '../../core/actions.js';
+import { phaseChanged, nextTurn, diceSetAllKept } from '../../core/actions.js';
 import { createPositioningService } from '../../services/positioningService.js';
 
 export function build({ selector }) {
@@ -20,7 +20,7 @@ export function build({ selector }) {
   root.innerHTML = `
     <div class="am-label" aria-hidden="true">ACTIONS MENU</div>
     <button data-action="roll" class="k-btn k-btn--primary">ROLL</button>
-    <button data-action="keep" class="k-btn k-btn--secondary" disabled>KEEP</button>
+    <button data-action="keep" class="k-btn k-btn--secondary" disabled>KEEP ALL</button>
     <button data-action="end" class="k-btn k-btn--secondary" disabled>END TURN</button>`;
   root.addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-action]');
@@ -30,10 +30,19 @@ export function build({ selector }) {
     // Clean click handling without verbose diagnostics
     switch(action){
       case 'roll': eventBus.emit('ui/dice/rollRequested'); break;
-      case 'keep': // finalize roll early -> move to RESOLVE
-        if (st.phase === 'ROLL') store.dispatch(phaseChanged('RESOLVE')); break;
+      case 'keep': {
+        // Behavior: when in ROLL phase with resolved dice, mark all dice as kept (visual shift up)
+        if (st.phase === 'ROLL' && st.dice?.phase === 'resolved' && (st.dice.faces?.length||0) > 0) {
+          store.dispatch(diceSetAllKept(true));
+        }
+        break; }
       case 'end':
-        if (st.phase !== 'ROLL') { store.dispatch(nextTurn()); store.dispatch(phaseChanged('ROLL')); }
+        // End turn is only valid after ROLL phase is finished; here we allow human to end once they've selected keeps
+        if (st.phase === 'ROLL') {
+          store.dispatch(phaseChanged('RESOLVE'));
+        } else {
+          store.dispatch(nextTurn()); store.dispatch(phaseChanged('ROLL'));
+        }
         break; 
       // legacy panels toggle removed
     }
@@ -118,11 +127,13 @@ export function update(root) {
   const dice = st.dice || {};
   const faces = dice.faces || [];
   const hasAnyFaces = faces.length > 0;
+  const keptCount = faces.reduce((n,f)=> n + (f && f.kept ? 1 : 0), 0);
   // New dice state model: phase: 'idle' | 'rolling' | 'resolved' | 'sequence-complete'
   // rerollsRemaining tracks how many rerolls still available (after first roll).
   const isIdle = dice.phase === 'idle';
   const hasFirstRoll = !isIdle && (dice.faces?.length > 0);
-  const canReroll = dice.phase === 'resolved' && dice.rerollsRemaining > 0;
+  const anyUnkept = faces.some(f => f && !f.kept);
+  const canReroll = dice.phase === 'resolved' && dice.rerollsRemaining > 0 && anyUnkept;
   const canInitialRoll = isIdle;
   const canRoll = st.phase === 'ROLL' && (canInitialRoll || canReroll) && dice.phase !== 'rolling';
   const order = st.players.order;
@@ -138,8 +149,19 @@ export function update(root) {
     // Dynamic label: after first roll, change to RE-ROLL UNSELECTED
     rollBtn.textContent = hasFirstRoll ? 'RE-ROLL UNSELECTED' : 'ROLL';
   }
-  if (keepBtn) keepBtn.disabled = isCPU ? true : !(st.phase === 'ROLL' && hasAnyFaces && dice.phase === 'resolved');
-  if (endBtn) endBtn.disabled = true; // always disabled during ROLL phase; for CPU we keep disabled anyway until human logic implemented
+  if (keepBtn) {
+    const allKept = hasAnyFaces && faces.every(f => !!f.kept);
+    const canKeepAll = st.phase === 'ROLL' && hasAnyFaces && dice.phase === 'resolved' && !isCPU && !allKept;
+    keepBtn.disabled = !canKeepAll;
+    keepBtn.textContent = 'KEEP ALL';
+  }
+  if (endBtn) {
+    const canEnd = !isCPU && (
+      (st.phase === 'ROLL' && dice.phase === 'resolved' && (keptCount > 0 || (hasAnyFaces && dice.rerollsRemaining === 0))) ||
+      (st.phase !== 'ROLL')
+    );
+    endBtn.disabled = !canEnd;
+  }
 
   // CPU turn styling state
   if (isCPU) root.classList.add('cpu-turn'); else root.classList.remove('cpu-turn');

@@ -26,7 +26,8 @@ export function build({ selector, emit }) {
   positioning.hydrate(); // ensure positions loaded (idempotent)
   const isTouch = matchMedia('(pointer: coarse)').matches || window.innerWidth <= 760;
   if (!isTouch) {
-    positioning.makeDraggable(root, 'diceTray', { snapEdges: true, snapThreshold: 12 });
+    // Exclude dice items from drag gesture so clicks toggle keeps reliably
+    positioning.makeDraggable(root, 'diceTray', { snapEdges: true, snapThreshold: 12, noDragSelector: '[data-dice], [data-dice] *' });
   } else {
     root.setAttribute('data-draggable','false');
   }
