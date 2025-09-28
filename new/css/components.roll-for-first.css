@@ -2,7 +2,7 @@
 .cmp-roll-for-first.rff-modal { position:fixed; inset:0; display:flex; align-items:flex-start; justify-content:center; padding-top:5vh; z-index:15100; /* Above blackout & monster selection */ pointer-events:none; }
 .cmp-roll-for-first.rff-modal.hidden { display:none; }
 .cmp-roll-for-first.rff-modal.hidden { display:none; }
-.cmp-roll-for-first.rff-modal .rff-frame { pointer-events:auto; background:#1c1c1c; border:2px solid #111; box-shadow:10px 10px 0 #000, 0 0 0 2px #000 inset, 0 18px 42px -14px rgba(0,0,0,.85); padding:30px 46px 78px; width:min(1040px,96vw); max-height:92vh; overflow:auto; border-radius:0; font-family:'Bangers',cursive; color:#e4e4e4; position:relative; scrollbar-gutter: stable; }
+.cmp-roll-for-first.rff-modal .rff-frame { pointer-events:auto; background:#1c1c1c; border:2px solid #111; box-shadow:10px 10px 0 #000, 0 0 0 2px #000 inset, 0 18px 42px -14px rgba(0,0,0,.85); padding:30px 46px 78px; width:min(1040px,96vw); max-height:92vh; overflow:auto; border-radius:0; font-family:'Bangers',cursive; color:#e4e4e4; position:relative; }
 .cmp-roll-for-first.rff-modal .rff-title { text-align:center; font-size:3.1rem; margin:0 0 10px; letter-spacing:3px; color:#f1f1f1; text-shadow: -3px -3px 0 #000,3px -3px 0 #000,-3px 3px 0 #000,3px 3px 0 #000,6px 6px 12px rgba(0,0,0,.8); }
 .cmp-roll-for-first.rff-modal .rff-close { position:absolute; top:10px; right:10px; background:#181818; color:#bbb; border:1px solid #333; width:42px; height:42px; font-size:20px; cursor:pointer; font-family:'Bangers',cursive; display:flex; align-items:center; justify-content:center; box-shadow:2px 2px 0 #000; transition:background .18s ease; }
 .cmp-roll-for-first.rff-modal .rff-close:hover { background:#232323; }

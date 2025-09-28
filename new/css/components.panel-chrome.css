@@ -129,10 +129,18 @@ body[data-panels-force-overlay] .cmp-side-panel[data-side="right"][data-collapse
   max-height: calc(100vh - 140px);
   height: auto; /* remove rigid fixed height that was visually cutting off content when internal layout changed */
   overflow-y: auto;
-  scrollbar-width: thin;
+  /* Custom scrollbar for Firefox */
+  scrollbar-width: thin; /* For Firefox */
 }
+/* Custom scrollbar for WebKit browsers (Chrome, Safari, Edge) */
 [data-gl-right] .cmp-monsters-panel::-webkit-scrollbar { width:8px; }
 [data-gl-right] .cmp-monsters-panel::-webkit-scrollbar-thumb { background:#333; border-radius:4px; }
+[data-gl-right] .cmp-monsters-panel::-webkit-scrollbar-track { background:#222; border-radius:4px; }
+/* Fallback for browsers that do not support scrollbar-width */
+/* Removed unsupported scrollbar-color for better cross-browser compatibility */
+[data-gl-right] .cmp-monsters-panel::-webkit-scrollbar { width:8px; } /* For WebKit browsers */
+[data-gl-right] .cmp-monsters-panel::-webkit-scrollbar-thumb { background:#333; border-radius:4px; }
+[data-gl-right] .cmp-monsters-panel::-webkit-scrollbar-track { background:#222; border-radius:4px; }
 
 /* Generic collapse handling */
 [data-collapsed="true"] > .k-panel__body { display:none; }

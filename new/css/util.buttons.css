@@ -33,7 +33,7 @@
  }
 
 /* Base */
-.btn { position:relative; display:inline-flex; align-items:center; justify-content:center; gap:var(--btn-gap); font-family:var(--btn-font-family); font-weight:var(--btn-font-weight); letter-spacing:1px; text-transform:uppercase; border:3px solid #111; padding:10px 20px 11px; cursor:pointer; line-height:1; user-select:none; -webkit-user-select:none; transition:transform var(--btn-transition), box-shadow var(--btn-transition), filter .3s ease; box-shadow:var(--btn-shadow-base); font-size:18px; }
+.btn { position:relative; display:inline-flex; align-items:center; justify-content:center; gap:var(--btn-gap); font-family:var(--btn-font-family); font-weight:var(--btn-font-weight); letter-spacing:1px; text-transform:uppercase; border:3px solid #111; padding:10px 20px 11px; cursor:pointer; line-height:1; -webkit-user-select:none; user-select:none; transition:transform var(--btn-transition), box-shadow var(--btn-transition), filter .3s ease; box-shadow:var(--btn-shadow-base); font-size:18px; }
 .btn:focus-visible { outline:3px solid #111; box-shadow:var(--btn-shadow-base), var(--btn-focus-ring); }
 .btn:hover:not([disabled]) { transform:translateY(-2px); }
 .btn:active:not([disabled]) { transform:translateY(0) scale(.97); box-shadow:var(--btn-shadow-active); }

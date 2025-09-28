@@ -74,7 +74,9 @@ export function update(root, { state }) {
   const globalState = store.getState();
   const active = selectActivePlayer(globalState);
   const diceSlots = active?.modifiers?.diceSlots || 6;
-  const faces = state.faces || [];
+  // Accept both nested slice shape ({ dice: {...} }) and flat ({ faces, ... })
+  const diceState = (state && state.dice) ? state.dice : (state || {});
+  const faces = diceState.faces || [];
   // Active player highlight on root (used by CSS for subtle glow)
   // Removed active-player visual highlighting for dice tray (no stylistic changes requested)
 

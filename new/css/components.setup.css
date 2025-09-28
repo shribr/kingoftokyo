@@ -1,7 +1,7 @@
 /* Setup selection presented as a true modal (centered panel + backdrop) */
 .cmp-setup.setup-modal { 
 	position: fixed; inset: 0; display:flex; justify-content:center; align-items:flex-start; padding-top:6vh; z-index:12000;
-	background: rgba(0,0,0,.58); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+	background: rgba(0,0,0,.58); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
 	transition: opacity .40s ease, transform .45s ease; will-change: opacity, transform; opacity:1; transform: translateY(0) scale(1); visibility:visible; pointer-events:auto;
 }
 .cmp-setup.setup-modal.hidden { opacity:0; transform: translateY(24px) scale(.94); visibility:hidden; pointer-events:none; }
@@ -55,7 +55,7 @@
 .cmp-setup .dropdown-menu li:active { background:linear-gradient(90deg,#ffc843,#ffad0a); }
 
 .cmp-setup .setup-body { display:grid; grid-template-columns: 1fr 320px; gap:28px; align-items:start; flex:1; overflow:hidden; min-height:0; }
-.cmp-setup .cards-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:30px; padding:4px; overflow-y:auto; overscroll-behavior:contain; scrollbar-gutter: stable; }
+.cmp-setup .cards-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:30px; padding:4px; overflow-y:auto; overscroll-behavior:contain; }
 /* Scroll constraint so extra monsters do not push footer offscreen */
 .cmp-setup .cards-grid { max-height:100%; }
 .cmp-setup .setup-body > .cards-grid { /* allow grid area to shrink within allocated space */ min-height:0; }

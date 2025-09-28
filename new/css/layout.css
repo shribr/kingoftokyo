@@ -24,7 +24,7 @@
  */
 
 *::-webkit-scrollbar { display: none; }
-* { -ms-overflow-style: none; scrollbar-width: none; }
+* { -ms-overflow-style: none; }
 
 /* Hide game container initially */
 .game-container { display:none; min-height:100vh; background: linear-gradient(45deg, transparent 25%, rgba(255, 215, 0, 0.1) 25%, rgba(255, 215, 0, 0.1) 50%, transparent 50%, transparent 75%, rgba(255, 140, 0, 0.1) 75%),

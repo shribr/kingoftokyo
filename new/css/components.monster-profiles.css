@@ -79,7 +79,7 @@
 }
 
 /* Scroll + actions bar */
-.mp-scroll { max-height:60vh; overflow-y:auto; overflow-x:visible; padding:8px 26px 0 8px; scrollbar-gutter:stable both-edges; }
+.mp-scroll { max-height:60vh; overflow-y:auto; overflow-x:visible; padding:8px 26px 0 8px; }
 .profile-card { transform-origin:center top; }
 .mp-actions { display:flex; justify-content:center; gap:20px; margin-top:18px; }
 /* Unified button styles for monster profiles actions */
