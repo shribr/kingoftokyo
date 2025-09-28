@@ -90,11 +90,47 @@ export function update(root, instances) {
     inst.update({ playerId: id });
   });
   // Relocate active card outside panel (placeholder anchor) if present (all viewports; scales via CSS)
+  // Also: when active player changes, return the previous active card to the panel stack in-order
   const shouldDock = !!active;
   if (shouldDock) {
     const activeInst = instances.get(active.id);
     if (activeInst) {
       const slot = ensureActiveDock();
+      // If a different player's card currently occupies the slot, move it back to the stack before docking the new one
+      try {
+        const prev = slot.firstElementChild;
+        if (prev && prev !== activeInst.root) {
+          // Identify which player this card belongs to
+          const prevId = prev.getAttribute('data-player-id');
+          // Ensure any dock-only styles are cleared so it renders normally back in the stack
+          const cleanupFromDock = (el) => {
+            try {
+              el.style.visibility = '';
+              el.style.transition = '';
+              el.classList.remove('dock-glow','turn-pulse','attack-pulse','in-place');
+              el.removeAttribute('data-transitioning');
+              el.removeAttribute('data-in-active-dock');
+            } catch(_) {}
+          };
+          if (prevId && instances.has(prevId)) {
+            const prevInst = instances.get(prevId);
+            cleanupFromDock(prevInst.root);
+            // Insert the previous card back into the container at its canonical order position
+            const idx = order.indexOf(prevId);
+            if (idx >= 0) {
+              if (container.children[idx] !== prevInst.root) {
+                container.insertBefore(prevInst.root, container.children[idx] || null);
+              }
+            } else {
+              container.appendChild(prevInst.root);
+            }
+          } else {
+            // Fallback: append unknown node at end (should not happen)
+            cleanupFromDock(prev);
+            container.appendChild(prev);
+          }
+        }
+      } catch(_) {}
       // If the active card is still in the list container, move it into the slot with travel animation
       if (activeInst.root.parentElement === container) {
         // Capture starting rect BEFORE moving DOM
@@ -118,7 +154,8 @@ export function update(root, instances) {
           setTimeout(()=>ph.remove(), 520);
         } catch(_){/* ignore */}
         activeInst.root.setAttribute('data-transitioning','');
-        slot.innerHTML = '';
+  // Ensure slot is empty (previous occupant already returned to stack above)
+  slot.innerHTML = '';
         slot.appendChild(activeInst.root);
         requestAnimationFrame(() => {
           positionActiveSlot(slot, activeInst.root, active);
@@ -128,8 +165,19 @@ export function update(root, instances) {
           smoothTravelToDock(activeInst.root, startRect, endRect);
         });
       } else {
-        // Already docked: re-assert positioning each update to guard against layout changes (e.g., modals/backdrops)
-        try { positionActiveSlot(slot, activeInst.root, active); } catch(_) {}
+        // Already docked: only re-assert positioning when something material changed to avoid flicker
+        try {
+          const st = store.getState();
+          const isCity = st.tokyo?.city === active.id;
+          const isBay = st.tokyo?.bay === active.id;
+          const target = document.querySelector('[data-active-player-slot]') || document.querySelector('[data-city-slot]') || document.querySelector('[data-bay-slot]');
+          const tRect = target ? target.getBoundingClientRect() : null;
+          const sig = JSON.stringify({ a: active.id, c: !!isCity, b: !!isBay, w: tRect?.width|0, h: tRect?.height|0, vw: window.innerWidth, vh: window.innerHeight });
+          if (root._lastDockSig !== sig) {
+            positionActiveSlot(slot, activeInst.root, active);
+            root._lastDockSig = sig;
+          }
+        } catch(_) {}
       }
     }
   } else {
@@ -184,7 +232,7 @@ function wireMobileSlideBehavior(cardEl, panelRoot) {
         const openCard = panelRoot.querySelector('.cmp-player-profile-card[data-expanded="true"]');
         if (!openCard) return;
         if (!openCard.contains(ev.target)) closeAll();
-      });
+      }, { passive: true });
       // Backdrop close
       ensureBackdrop().addEventListener('click', closeAll);
       // Resize guard: when leaving mobile, ensure states reset
@@ -245,8 +293,11 @@ function positionActiveSlot(slot, cardEl, activePlayer) {
         const shadowAllowance = 10; // account for outer shadows/glow so the card never overflows
         const w = Math.ceil(baseW * s) + pad + Math.ceil(bl + br) + shadowAllowance;
         const h = Math.ceil(baseH * s) + pad + Math.ceil(bt + bb) + shadowAllowance;
-        target.style.width = w + 'px';
-        target.style.height = h + 'px';
+        // Only apply when values actually change to prevent layout thrash/flicker
+        const prevW = parseFloat(target.getAttribute('data-last-w') || '0');
+        const prevH = parseFloat(target.getAttribute('data-last-h') || '0');
+        if (Math.abs(w - prevW) > 0.5) { target.style.width = w + 'px'; target.setAttribute('data-last-w', String(w)); }
+        if (Math.abs(h - prevH) > 0.5) { target.style.height = h + 'px'; target.setAttribute('data-last-h', String(h)); }
         target.style.boxSizing = 'border-box';
         target.setAttribute('data-occupied','true');
       } catch(_) {}

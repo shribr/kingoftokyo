@@ -97,7 +97,7 @@
 
 /* Floating active card (relocated outside panel) */
 /* Active card slot: act as a centering container for the docked PPC */
-#active-player-card-slot { position:absolute; pointer-events:none; top:40%; left:50%; z-index:3500; transition: left .45s cubic-bezier(.25,.46,.45,.94), top .45s cubic-bezier(.25,.46,.45,.94); margin:0; padding:0; transform:translate(-50%, -50%); display:block; }
+#active-player-card-slot { position:absolute; pointer-events:none; top:40%; left:50%; z-index:6700; transition: left .45s cubic-bezier(.25,.46,.45,.94), top .45s cubic-bezier(.25,.46,.45,.94); margin:0; padding:0; transform:translate(-50%, -50%); display:block; }
 #active-player-card-slot .cmp-player-profile-card { position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); transform-origin:center center; pointer-events:auto; }
 #active-player-card-slot[data-active-card-dock] { min-width:260px; min-height:180px; position:absolute; }
 

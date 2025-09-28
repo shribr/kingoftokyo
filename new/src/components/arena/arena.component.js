@@ -10,6 +10,7 @@
  *   4. Purge matching selector blocks from css/legacy/*.css after no other references remain.
  */
 import { store } from '../../bootstrap/index.js';
+import { selectPlayerById } from '../../core/selectors.js';
 
 export function build({ selector }) {
   const root = document.createElement('div');
@@ -80,6 +81,17 @@ function renderOccupant(playerId, state) {
   if (!playerId) return '<div class="slot-empty">Empty</div>';
   const p = state.players.byId[playerId];
   if (!p) return '<div class="slot-empty">?</div>';
+  // Clone the player's actual profile card markup so visuals are identical; apply a "mini" wrapper for scale
+  try {
+    const liveCard = document.querySelector(`.cmp-player-profile-card[data-player-id="${playerId}"]`);
+    if (liveCard) {
+      const html = liveCard.outerHTML
+        .replace('class="cmp-player-profile-card"', 'class="cmp-player-profile-card cmp-player-profile-card--mini"')
+        .replace('data-in-active-dock="true"', '');
+      return `<div class="tokyo-occupant" data-player-id="${playerId}" data-active="true">${html}</div>`;
+    }
+  } catch(_) {}
+  // Fallback: minimal info if card not in DOM yet
   return `<div class="tokyo-occupant" data-player-id="${playerId}" data-active="true">
     <span class="name">${p.name}</span>
     <span class="hp">HP ${p.health}</span>

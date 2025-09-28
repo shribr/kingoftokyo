@@ -1,150 +1,172 @@
 /** power-cards-panel.component.js
- * Clone of monsters panel for baseline collapse/expand behavior.
- * Will later be specialized for Power Cards (shop display etc.).
+ * Clean implementation using exact same structure as monsters-panel.
+ * Left side panel showing available power cards for purchase.
  */
-import { initSidePanel } from '../side-panel/side-panel.js';
 import { store } from '../../bootstrap/index.js';
-import { purchaseCard, flushShop, refillShop } from '../../services/cardsService.js';
 import { selectActivePlayer } from '../../core/selectors.js';
+import { initSidePanel } from '../side-panel/side-panel.js';
+import { purchaseCard, flushShop } from '../../services/cardsService.js';
 import { logger } from '../../bootstrap/index.js';
 
-export function build({ selector, initialState }) {
+export function build({ selector }) {
   const root = document.createElement('div');
   root.className = selector.slice(1) + ' cmp-power-cards-panel cmp-side-panel k-panel';
   root.setAttribute('data-side','left');
-  root.setAttribute('data-panel','power-cards');
   root.innerHTML = panelTemplate();
+  
+  // Use exact same pattern as monsters panel but mirrored for left side
   initSidePanel(root, {
     side:'left',
-    // Updated mapping per request:
-    // Expanded: ◄ (arrow points toward off-screen collapse direction)
-    // Collapsed: ► (arrow points into viewport inviting expand)
-    expandedArrow:'◄',
-    collapsedArrow:'►',
+    expandedArrow:'◄',  // Points left (toward collapse direction)
+    collapsedArrow:'▲',  // Points up (toward expand direction)
     bodyClassExpanded:'panels-expanded-left'
   });
-  return { root, update: () => update(root) };
+  
+  return { root, update: () => update(root), destroy: () => destroy(root) };
 }
 
 function panelTemplate() {
   return `
   <div class="mp-header k-panel__header" data-toggle role="button" aria-expanded="true" tabindex="0">
-    <h2 class="mp-title" data-toggle><span class="mp-arrow" data-arrow-dir data-toggle>◄</span><span class="mp-label" data-title-text>Power Cards</span></h2>
+    <h2 class="mp-title" data-toggle><span class="mp-arrow" data-arrow-dir data-toggle>◄</span> Power Cards</h2>
   </div>
   <div class="mp-body k-panel__body" data-panel-body>
-    <div class="pc-shop" data-shop-root>
-      <div class="pc-shop-cards" data-shop-cards></div>
-    </div>
+    <div class="mp-player-cards" data-power-cards-content></div>
   </div>`;
 }
-function renderEffectSummary(card) {
+
+function destroy(root) {
+  root.remove();
+}
+export function update(root) {
+  const state = store.getState();
+  const shopCards = state.cards?.shop || [];
+  const deckCards = state.cards?.deck || [];
+  const activePlayer = selectActivePlayer(state);
+  const container = root.querySelector('[data-power-cards-content]');
+  
+  if (!container) return;
+  
+  // Show placeholder if no active player
+  if (!activePlayer) {
+    container.innerHTML = `
+      <div class="pc-empty-frame">
+        <h3>Power Card Shop</h3>
+        <p>Purchase power cards with energy to gain special abilities.</p>
+        <p class="hint">Start the game to access the shop.</p>
+      </div>
+    `;
+    return;
+  }
+  
+  // Show shop with cards
+  const energy = activePlayer.energy || 0;
+  const canFlush = energy >= 2;
+  const deckEmpty = deckCards.length === 0;
+  
+  const shopHTML = `
+    <div class="pc-shop">
+      <div class="pc-shop-header">
+        <div class="pc-energy">Energy: ${energy}⚡</div>
+        <button class="k-btn k-btn--sm k-btn--secondary" data-flush ${!canFlush ? 'disabled' : ''}>
+          Flush Shop (2⚡)
+        </button>
+      </div>
+      <div class="pc-shop-cards">
+        ${shopCards.map(card => renderPowerCard(card, energy)).join('')}
+        ${renderDeckCard(deckEmpty, deckCards.length)}
+      </div>
+    </div>
+  `;
+  
+  container.innerHTML = shopHTML;
+  
+  // Add event listeners
+  addShopEventListeners(container, activePlayer);
+}
+
+function renderPowerCard(card, playerEnergy) {
+  const canAfford = playerEnergy >= (card.cost || 0);
+  const rarity = getRarity(card);
+  
+  return `
+    <div class="pc-card" data-card-id="${card.id}" data-rarity="${rarity}">
+      <div class="pc-card-header">
+        <h4 class="pc-card-name">${card.name}</h4>
+        <div class="pc-card-cost">${card.cost}⚡</div>
+      </div>
+      <div class="pc-card-description">${getCardDescription(card)}</div>
+      <div class="pc-card-footer">
+        <button class="k-btn k-btn--xs k-btn--primary" 
+                data-buy data-card-id="${card.id}" 
+                ${!canAfford ? 'disabled' : ''}>
+          Buy
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function renderDeckCard(isEmpty, remaining) {
+  return `
+    <div class="pc-card pc-card--deck ${isEmpty ? 'is-empty' : ''}" data-deck-card>
+      <div class="pc-card-header">
+        <h4 class="pc-card-name">Deck</h4>
+        <div class="pc-card-count">${remaining}</div>
+      </div>
+      <div class="pc-card-description">
+        ${isEmpty ? 'No more cards' : `${remaining} cards remaining`}
+      </div>
+    </div>
+  `;
+}
+
+function getRarity(card) {
+  const cost = card.cost || 0;
+  if (cost >= 7) return 'epic';
+  if (cost >= 5) return 'rare';
+  return 'common';
+}
+
+function getCardDescription(card) {
   if (card.description) return card.description;
-  switch(card.effect?.kind) {
-    case 'vp_gain': return `Gain ${card.effect.value} VP`;
-    case 'energy_gain': return `Gain ${card.effect.value}⚡`;
-    case 'dice_slot': return `+${card.effect.value} die slot`;
-    case 'reroll_bonus': return `+${card.effect.value} reroll`;
-    case 'heal_all': return `All monsters heal ${card.effect.value}`;
-    case 'heal_self': return `Heal ${card.effect.value}`;
-    case 'energy_steal': return `Steal ${card.effect.value}⚡`;
-    case 'vp_steal': return `Steal ${card.effect.value} VP`;
-    case 'damage_all': return `Deal ${card.effect.value} damage to all`;
-    case 'damage_tokyo_only': return `Deal ${card.effect.value} to monsters in Tokyo`;
-    case 'damage_select': return `Deal ${card.effect.value} to up to ${card.effect.maxTargets}`;
-    case 'peek': return `You may pay 1⚡ to peek at the top card.`;
+  
+  const effect = card.effect;
+  if (!effect) return 'Special power card';
+  
+  switch(effect.kind) {
+    case 'vp_gain': return `Gain ${effect.value} Victory Points`;
+    case 'energy_gain': return `Gain ${effect.value} Energy`;
+    case 'dice_slot': return `Add ${effect.value} extra die`;
+    case 'reroll_bonus': return `+${effect.value} reroll per turn`;
+    case 'heal_all': return `All monsters heal ${effect.value} damage`;
+    case 'heal_self': return `Heal ${effect.value} damage`;
+    case 'energy_steal': return `Steal ${effect.value} energy from all players`;
+    case 'vp_steal': return `Steal ${effect.value} VP from all players`;
+    case 'damage_all': return `Deal ${effect.value} damage to all monsters`;
+    case 'damage_tokyo_only': return `Deal ${effect.value} damage to monsters in Tokyo`;
     default: return 'Special effect';
   }
 }
 
-function cardRarity(card) {
-  if (card.cost >= 7) return 'epic';
-  if (card.cost >= 5) return 'rare';
-  return 'common';
-}
-
-function renderShop(root) {
-  const state = store.getState();
-  const cards = state.cards.shop;
-  const active = selectActivePlayer(state);
-  const energy = active?.energy ?? 0;
-  const container = root.querySelector('[data-shop-cards]');
-  const flushBtn = root.querySelector('[data-flush]');
-  if (!container) return;
-  const deckCardHtml = `
-    <div class="pc-card pc-card--deck" data-deck-card>
-      <div class="pc-card__header pc-card__header--deck"><span class="pc-card__name">DECK</span></div>
-      <div class="pc-card__body pc-card__body--deck" aria-hidden="true"></div>
-    </div>`;
-  const flushHtml = `<button class="k-btn k-btn--sm k-btn--secondary pc-flush-after-deck" data-flush disabled>FLUSH (2⚡)</button>`;
-  const cardsHtml = cards.map(c => `
-    <div class="pc-card" data-card-id="${c.id}" data-rarity="${cardRarity(c)}" data-enter>
-      <div class="pc-card__header"><span class="pc-card__name">${c.name}</span><span class="pc-card__cost">${c.cost}⚡</span></div>
-      <div class="pc-card__body">${renderEffectSummary(c)}</div>
-      <div class="pc-card__footer"><button class="k-btn k-btn--xs k-btn--secondary" data-buy data-card-id="${c.id}" ${energy < c.cost ? 'disabled' : ''}>BUY</button></div>
-    </div>
-  `).join('');
-  // Place deck as a normal card in the grid, then the flush button immediately after deck
-  container.innerHTML = cardsHtml + deckCardHtml + flushHtml;
-  // Update flush disabled state
-  const containerFlushBtn = root.querySelector('[data-flush]');
-  if (containerFlushBtn) containerFlushBtn.disabled = energy < 2;
-  // Deck state (empty / can-peek) toggled on the card itself
-  const deckCard = container.querySelector('[data-deck-card]');
-  if (deckCard) {
-    const remaining = state.cards.deck.length;
-    const canPeek = !!active && active.cards?.some(c => c.effect?.kind === 'peek');
-    deckCard.classList.toggle('is-empty', remaining === 0);
-    deckCard.classList.toggle('can-peek', canPeek && remaining > 0);
-    deckCard.title = canPeek ? (remaining ? 'Click to Peek (cost 1⚡)' : 'Deck empty') : (remaining ? `${remaining} card(s) remaining` : 'Deck empty');
+function addShopEventListeners(container, activePlayer) {
+  // Buy card buttons
+  container.querySelectorAll('[data-buy]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const cardId = e.target.dataset.cardId;
+      if (cardId && activePlayer) {
+        purchaseCard(store, logger, activePlayer.id, cardId);
+      }
+    });
+  });
+  
+  // Flush shop button
+  const flushBtn = container.querySelector('[data-flush]');
+  if (flushBtn) {
+    flushBtn.addEventListener('click', () => {
+      if (activePlayer) {
+        flushShop(store, logger, activePlayer.id, 2);
+      }
+    });
   }
 }
-
-export function update(root){
-  renderShop(root);
-}
-
-// Event delegation for buy / flush / refill
-document.addEventListener('click', (e) => {
-  const panel = e.target.closest('.cmp-power-cards-panel');
-  if (!panel) return;
-  // Deck peek click
-  if (e.target.closest('[data-deck-card]')) {
-    const st = store.getState();
-    const active = selectActivePlayer(st);
-    if (active && active.cards?.some(c => c.effect?.kind === 'peek')) {
-      // Attempt peek (effect engine will validate cost)
-      try {
-        import('../../services/cardsService.js').then(m => {
-          const ok = m.peekTopCard(store, logger, active.id, 1);
-          if (!ok) {
-            // Flash denial animation
-            const dc = panel.querySelector('[data-deck-card]');
-            if (dc) { dc.classList.add('peek-denied'); setTimeout(()=>dc.classList.remove('peek-denied'), 600); }
-          } else {
-            const dc = panel.querySelector('[data-deck-card]');
-            if (dc) { dc.classList.add('peek-flip'); setTimeout(()=>dc.classList.remove('peek-flip'), 900); }
-          }
-        });
-      } catch(_) {}
-    }
-  }
-  const buyBtn = e.target.closest('[data-buy]');
-  if (buyBtn) {
-    const id = buyBtn.getAttribute('data-card-id');
-    const st = store.getState();
-    const active = selectActivePlayer(st);
-    if (active) {
-      purchaseCard(store, logger, active.id, id);
-      renderShop(panel);
-    }
-  }
-  if (e.target.matches('[data-flush]')) {
-    const st = store.getState();
-    const active = selectActivePlayer(st);
-    if (active) {
-      flushShop(store, logger, active.id, 2);
-      renderShop(panel);
-    }
-  }
-  // Refill removed
-});

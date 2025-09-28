@@ -63,8 +63,8 @@ function baseTemplate() {
     </div>
     <div class="ppc-stats" data-stats>
       <div class="ppc-stat hp" data-cards><span class="label">CARDS</span><span class="value" data-cards-count>0</span></div>
-      <div class="ppc-stat energy" data-energy><span class="label">ENERGY</span><span class="value" data-energy-value></span></div>
-      <div class="ppc-stat vp" data-vp><span class="label">POINTS</span><span class="value" data-vp-value></span></div>
+      <div class="ppc-stat energy" data-energy data-kind="energy"><span class="label">ENERGY</span><span class="value" data-energy-value></span></div>
+      <div class="ppc-stat vp" data-vp data-kind="vp"><span class="label">POINTS</span><span class="value" data-vp-value></span></div>
     </div>
     <div class="ppc-health-block" data-health-block>
       <div class="ppc-health-label" data-health-label>HEALTH <span data-hp-value></span>/10</div>
@@ -181,6 +181,32 @@ export function update(root, { playerId }) {
   }
   const strip = root.querySelector('[data-cards-strip]');
   if (strip) strip.innerHTML = cards.map(c => `<span class="ppc-card-mini" title="${c.name}">${c.name.slice(0,8)}</span>`).join('');
+
+  // Visual pulses on resource deltas (compare with previous snapshot)
+  try {
+    const prev = root._prevStats || { vp: player.victoryPoints, energy: player.energy, health: player.health, inTokyo: player.inTokyo };
+    // VP gain
+    if (player.victoryPoints > prev.vp) {
+      root.setAttribute('data-vp-gain','true');
+      setTimeout(() => { try { root.removeAttribute('data-vp-gain'); } catch(_){} }, 1000);
+    }
+    // Energy gain
+    if (player.energy > prev.energy) {
+      root.setAttribute('data-energy-gain','true');
+      setTimeout(() => { try { root.removeAttribute('data-energy-gain'); } catch(_){} }, 1000);
+    }
+    // Health gain (heals)
+    if (player.health > prev.health) {
+      root.setAttribute('data-health-gain','true');
+      setTimeout(() => { try { root.removeAttribute('data-health-gain'); } catch(_){} }, 1000);
+    }
+    // Tokyo entry flourish
+    if (!prev.inTokyo && player.inTokyo) {
+      root.setAttribute('data-entered-tokyo','true');
+      setTimeout(() => { try { root.removeAttribute('data-entered-tokyo'); } catch(_){} }, 1200);
+    }
+    root._prevStats = { vp: player.victoryPoints, energy: player.energy, health: player.health, inTokyo: player.inTokyo };
+  } catch(_) {}
 }
 
 function setAccentText(r,g,b) {

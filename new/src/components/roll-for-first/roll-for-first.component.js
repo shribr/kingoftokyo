@@ -416,7 +416,13 @@ function scheduleAutoClose(dispatch, getState, root) {
     finalizeAndStartGame(dispatch, getState, root);
     document.removeEventListener('mousedown', onDocClick, true);
   };
-  const onDocClick = (e) => { if (!root.contains(e.target)) dismiss(); };
+  // Defer dismissal to allow the original click (e.g., toolbar/settings) to complete without being disrupted
+  const onDocClick = (e) => {
+    if (!root.contains(e.target)) {
+      // Don't block default or propagation; schedule close next frame
+      requestAnimationFrame(dismiss);
+    }
+  };
   document.addEventListener('mousedown', onDocClick, true);
   // Save so we can remove it if countdown triggers finalize
   stObj._onDocClick = onDocClick;

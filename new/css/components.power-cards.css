@@ -1,9 +1,9 @@
 /* components.power-cards.css */
 .cmp-power-cards-panel { --pc-card-bg:linear-gradient(135deg,#2d3436 0%,#1b1f20 78%); --pc-card-border:2px solid #222; --pc-card-shadow:2px 2px 0 #000,0 0 0 1px #222 inset; --pc-card-radius:6px; --pc-card-accent:var(--accent-monsters,#ffcf33); --pc-card-text:#ececec; --pc-cost-bg:#111; --pc-rare:#5cc9ff; --pc-epic:#ff66f6; }
 .cmp-power-cards-panel .pc-placeholder { padding:8px 6px 14px; }
-.cmp-power-cards-panel .mp-header { display:flex; align-items:center; justify-content:flex-end; }
-/* Typography aligned with Monsters style but original size (24px) & right alignment preserved */
-.cmp-power-cards-panel .mp-title { font-family:'Bangers',cursive; font-size:24px; letter-spacing:1px; color:var(--pc-card-accent); text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; margin:0; }
+/* Let panel-chrome.css handle all header layout including collapse behavior */
+/* Typography styles only - don't interfere with transform/layout properties */
+.cmp-power-cards-panel .mp-title { font-family:'Bangers',cursive; font-size:24px; letter-spacing:1px; color:var(--pc-card-accent); text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; }
 .cmp-power-cards-panel .pc-empty-frame { border:var(--pc-card-border); background:var(--pc-card-bg); padding:18px 20px 22px; border-radius:var(--pc-card-radius); color:var(--pc-card-text); text-align:center; box-shadow:var(--pc-card-shadow); font-family:'Bangers',cursive; letter-spacing:.5px; }
 .cmp-power-cards-panel .pc-empty-frame h3 { font-size:26px; margin:0 0 10px; color:var(--pc-card-accent); text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; }
 .cmp-power-cards-panel .pc-empty-frame p { margin:6px 0; font-size:14px; line-height:1.35; font-family:'Comic Neue',cursive; letter-spacing:0; }

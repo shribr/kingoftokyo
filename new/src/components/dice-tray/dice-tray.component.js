@@ -7,6 +7,7 @@ import { eventBus } from '../../core/eventBus.js';
 import { selectActivePlayer } from '../../core/selectors.js';
 import { store } from '../../bootstrap/index.js';
 import { createPositioningService } from '../../services/positioningService.js';
+import { DICE_ANIM_MS } from '../../constants/uiTimings.js';
 
 export function build({ selector, emit }) {
   const root = document.createElement('div');
@@ -123,7 +124,7 @@ export function update(root, { state }) {
   }
   // Trigger rolling animation only when face values changed (a roll occurred), not on keep toggles
   if (valuesChanged) {
-    const DURATION = 650;
+    const DURATION = DICE_ANIM_MS;
     // Defer to next frame to ensure DOM paint before starting animation
     requestAnimationFrame(() => {
       for (let i = 0; i < diceSlots; i++) {

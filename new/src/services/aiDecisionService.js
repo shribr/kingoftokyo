@@ -5,12 +5,16 @@
 import { eventBus } from '../core/eventBus.js';
 import { tallyFaces, extractTriples, DIE_FACES } from '../domain/dice.js';
 import { selectActivePlayerId, selectTokyoOccupants } from '../core/selectors.js';
-import { diceToggleKeep } from '../core/actions.js';
+import { diceToggleKeep, DICE_ROLL_STARTED, DICE_ROLLED, DICE_REROLL_USED, PHASE_CHANGED } from '../core/actions.js';
 import { purchaseCard, flushShop } from './cardsService.js';
+import { DICE_ANIM_MS, AI_POST_ANIM_DELAY_MS } from '../constants/uiTimings.js';
 
 let latestTree = { rounds: [] };
 let lastRollNodeId = null;
 let nextNodeId = 1;
+// Dice/AI timing constants imported from centralized module
+let aiKeepTimer = null;
+let aiKeepGeneration = 0;
 // Future (dark edition): include wickness / corruption context nodes.
 // Example extended shape per roll:
 // { faces: '1,2,3', rationale: '...', score: '0.82', wicknessDelta: 1, poisonApplied: 0 }
@@ -21,17 +25,27 @@ export function getLastAIRollId() { return lastRollNodeId; }
 // Mock: on each dice roll started, push a synthetic node
 export function bindAIDecisionCapture(store) {
   store.subscribe((state, action) => {
-    if (action.type === 'DICE_ROLL_STARTED') {
+    if (action.type === DICE_ROLL_STARTED) {
+      cancelPendingAIKeep();
       captureRoll(state, '(pre-roll)', { stage: 'pre' });
     }
-    if (action.type === 'DICE_ROLLED') {
+    if (action.type === DICE_REROLL_USED) {
+      // Reroll initiated (human path order); cancel any pending keep from previous roll
+      cancelPendingAIKeep();
+    }
+    if (action.type === DICE_ROLLED) {
       const facesStr = state.dice.faces.map(f => f.value).join(',');
       captureRoll(state, facesStr, { stage: 'post' });
-      autoKeepHeuristic(store);
+      // Schedule AI keep after dice animation completes + 2s buffer (only for CPU turns)
+      scheduleAIAutoKeep(store);
     }
-    if (action.type === 'PHASE_CHANGED' && action.payload?.phase === 'CLEANUP') {
-      // Hook point for future evaluation of purchases before next turn
-      attemptAIPurchases(store);
+    if (action.type === PHASE_CHANGED) {
+      // Any phase change cancels pending keeps; we only keep during ROLL
+      if (action.payload?.phase !== 'ROLL') cancelPendingAIKeep();
+      if (action.payload?.phase === 'CLEANUP') {
+        // Hook point for future evaluation of purchases before next turn
+        attemptAIPurchases(store);
+      }
     }
   });
 }
@@ -127,6 +141,32 @@ function autoKeepHeuristic(store) {
     else if (die.value === 'energy' && player.energy < 6 && !lockedNumber) keep = true;
     if (keep && !die.kept) store.dispatch(diceToggleKeep(idx));
   });
+}
+
+function scheduleAIAutoKeep(store) {
+  cancelPendingAIKeep();
+  const gen = ++aiKeepGeneration;
+  aiKeepTimer = setTimeout(() => {
+    // If another roll started since scheduling, skip
+    if (gen !== aiKeepGeneration) return;
+    try {
+      const st = store.getState();
+      // Ensure we're still in CPU ROLL phase and dice are resolved
+      const activeId = selectActivePlayerId(st);
+      if (!activeId || st.phase !== 'ROLL' || st.dice.phase !== 'resolved') return;
+      const player = st.players.byId[activeId];
+      const isCpu = !!(player && (player.isCPU || player.isAi || player.isAI || player.type === 'ai'));
+      if (!isCpu) return;
+      autoKeepHeuristic(store);
+    } catch(_) { /* noop */ }
+  }, DICE_ANIM_MS + AI_POST_ANIM_DELAY_MS);
+}
+
+function cancelPendingAIKeep() {
+  if (aiKeepTimer) {
+    try { clearTimeout(aiKeepTimer); } catch(_) {}
+    aiKeepTimer = null;
+  }
 }
 
 // Yield heuristic suggestion (not auto-dispatched here yet): returns 'yield' | 'stay'

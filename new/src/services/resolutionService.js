@@ -1,5 +1,15 @@
 /** services/resolutionService.js
- * Handles resolving dice results at end of roll phase.
+ * Dice resolution rules at end of a player's roll phase.
+ * Applies official King of Tokyo turn-end effects in order:
+ *   1) Score numeric triples: base VP equal to the number (1/2/3), +1 VP per extra matching die
+ *   2) Gain energy per energy die
+ *   3) Heal per heart die if not in Tokyo
+ *   4) Resolve claws (attacks):
+ *      - Attacker outside Tokyo: damage current Tokyo City/Bay occupants
+ *      - Attacker inside Tokyo: damage all monsters outside any Tokyo slot
+ *   5) Yield/takeover: occupants decide whether to yield; if slot becomes empty, attacker takes Tokyo (City first, then Bay if allowed)
+ *   6) Start-of-turn VP is handled elsewhere (awardStartOfTurnTokyoVP)
+ * Also checks GAME OVER conditions after application of results (in the turn service).
  */
 import { tallyFaces, extractTriples } from '../domain/dice.js';
 import { applyPlayerDamage, healPlayerAction, playerGainEnergy, playerVPGained, playerEnteredTokyo, playerLeftTokyo, uiAttackPulse, tokyoOccupantSet, yieldPromptShown, yieldPromptDecided } from '../core/actions.js';

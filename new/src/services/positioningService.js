@@ -185,6 +185,15 @@ export function createPositioningService(store) {
   }
 
   singleton = { makeDraggable, hydrate, resetPositions };
+  // Non-breaking convenience for components needing to check stored positions
+  singleton.getPersistedPosition = function(name) {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      const obj = JSON.parse(raw);
+      return obj && obj[name] ? { x: obj[name].x, y: obj[name].y } : null;
+    } catch(_) { return null; }
+  };
   // Listen for global reset event
   eventBus.on('ui/positions/resetRequested', () => resetPositions());
   if (typeof window !== 'undefined') {

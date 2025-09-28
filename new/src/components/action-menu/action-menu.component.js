@@ -18,7 +18,7 @@ export function build({ selector }) {
   root.setAttribute('data-layout','vertical');
   root.dataset.amDockState = 'docked'; // internal: docked | floating (for hybrid behavior)
   root.innerHTML = `
-    <div class="am-label" aria-hidden="true">ACTIONS MENU</div>
+    <div class="am-label" aria-hidden="true">ACTIONS</div>
     <button data-action="roll" class="k-btn k-btn--primary">ROLL</button>
     <button data-action="keep" class="k-btn k-btn--secondary" disabled>KEEP ALL</button>
     <button data-action="end" class="k-btn k-btn--secondary" disabled>END TURN</button>`;
@@ -36,14 +36,25 @@ export function build({ selector }) {
           store.dispatch(diceSetAllKept(true));
         }
         break; }
-      case 'end':
-        // End turn is only valid after ROLL phase is finished; here we allow human to end once they've selected keeps
-        if (st.phase === 'ROLL') {
-          store.dispatch(phaseChanged('RESOLVE'));
+      case 'end': {
+        const phase = st.phase;
+        if (typeof window !== 'undefined' && window.__KOT_NEW__?.turnService) {
+          const ts = window.__KOT_NEW__.turnService;
+          if (!root._endTurnInFlight) {
+            root._endTurnInFlight = true;
+            let p;
+            if (phase === 'ROLL') p = ts.resolve();
+            else if (phase === 'BUY') p = ts.cleanup();
+            else if (phase === 'CLEANUP' || phase === 'RESOLVE') p = ts.endTurn();
+            else p = ts.endTurn();
+            Promise.resolve(p).finally(()=> { root._endTurnInFlight = false; });
+          }
         } else {
-          store.dispatch(nextTurn()); store.dispatch(phaseChanged('ROLL'));
+          // Fallback: advance minimally
+          if (phase === 'ROLL') store.dispatch(phaseChanged('RESOLVE'));
+          else { store.dispatch(nextTurn()); store.dispatch(phaseChanged('ROLL')); }
         }
-        break; 
+        break; }
       // legacy panels toggle removed
     }
   });

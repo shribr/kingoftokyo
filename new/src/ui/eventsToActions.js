@@ -43,9 +43,7 @@ export function bindUIEventBridges(store) {
 
   function maybeAdvancePhase() {
     const st = store.getState();
-    if (st.phase === 'ROLL' && st.dice.phase === 'sequence-complete') {
-      store.dispatch(phaseChanged('RESOLVE'));
-    }
+    // Do not auto-resolve; End Turn triggers full resolution. We still expose sequence-complete via dice slice for UI gating.
   }
 
   // Wire events

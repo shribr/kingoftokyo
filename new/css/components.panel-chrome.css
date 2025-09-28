@@ -83,8 +83,8 @@ body[data-panels-force-overlay] .cmp-side-panel[data-side="right"][data-collapse
   transform-origin:center; /* default; overridden per-side below */
 }
 /* Left panel (Power Cards): mirror Monsters panel but in reverse -> rotate +90deg when collapsed */
-.cmp-side-panel[data-side="left"] > .mp-header .mp-title { transform-origin:top center; }
-.cmp-side-panel[data-side="left"][data-collapsed="true"] > .mp-header .mp-title { transform:rotate(90deg) translateX(4px); }
+.cmp-side-panel[data-side="left"] > .mp-header .mp-title { transform-origin:left center; }
+.cmp-side-panel[data-side="left"][data-collapsed="true"] > .mp-header .mp-title { transform:rotate(90deg) translateX(-76px) translateY(-20px); }
 /* Right panel (Monsters): collapse rotates -90deg */
 .cmp-side-panel[data-side="right"][data-collapsed="true"] > .mp-header .mp-title { transform:rotate(-90deg); }
 /* Top alignment for both panels when collapsed (consistent vertical placement) */
