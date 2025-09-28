@@ -9,7 +9,7 @@
 }
 
 .game-layout-shell { width:100%; display:flex; flex-direction:column; gap:16px; padding:0 20px 0; box-sizing:border-box; margin:0; position:relative; }
-.game-layout-shell .gl-header { padding:14px 0 16px; display:flex; justify-content:center; align-items:center; position:absolute; top:0; left:0; right:0; height:var(--gl-header-height); z-index:6500; pointer-events:auto; background:rgba(0,0,0,.85); border:2px solid #333; border-left:0; border-right:0; box-shadow:0 4px 22px rgba(0,0,0,.65); backdrop-filter:blur(4px); }
+.game-layout-shell .gl-header { padding:14px 0 16px; display:flex; justify-content:center; align-items:center; position:absolute; top:0; left:0; right:0; height:var(--gl-header-height); z-index:6500; pointer-events:auto; background:rgba(0,0,0,.85); border:2px solid #333; border-left:0; border-right:0; box-shadow:0 4px 22px rgba(0,0,0,.65); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); }
 .game-layout-shell .gl-header .ai-thinking-banner { pointer-events:auto; display:flex; align-items:center; gap:10px; background:linear-gradient(135deg,#1f1f1f,#2c2c2c); border:2px solid #444; padding:6px 14px 6px 12px; border-radius:30px; font-family:'Bangers',cursive; letter-spacing:1px; color:#fff; font-size:18px; position:absolute; left:64%; top:50%; transform:translateY(-50%); box-shadow:0 0 0 2px #000,0 4px 12px -2px rgba(0,0,0,.65); opacity:0; animation:aiBannerIn .5s ease forwards; }
 .game-layout-shell .gl-header .ai-thinking-banner[data-hidden] { display:none; }
 .game-layout-shell .gl-header .ai-thinking-banner .label { text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; }
@@ -43,7 +43,7 @@
 .game-layout-shell > .gl-main > .gl-right { overflow:visible; }
 .game-layout-shell .gl-center-content { flex:1; position:relative; }
 .game-layout-shell .gl-center-bottom { display:flex; flex-direction:row; gap:14px; flex-wrap:wrap; align-items:flex-start; padding-top:8px; }
-.game-layout-shell .gl-footer { position:fixed; left:0; right:0; bottom:0; height:64px; display:flex; align-items:center; justify-content:center; background:linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.65)); backdrop-filter:blur(4px); z-index:5000; padding:6px 20px; gap:20px; }
+.game-layout-shell .gl-footer { position:fixed; left:0; right:0; bottom:0; height:64px; display:flex; align-items:center; justify-content:center; background:linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.65)); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); z-index:5000; padding:6px 20px; gap:20px; }
 .game-layout-shell .gl-footer > * { position:relative; }
 
 /* Allow components to opt-in to full width in side rails */

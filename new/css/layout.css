@@ -216,8 +216,8 @@ body[data-panels-force-overlay] .players-area { display:none; }
 /* End of transplanted layout.css */
 
 /* --- Panel fallback styles for rewrite components (candidate for removal after full migration) --- */
-.players-area.collapsible-panel, .cards-area.collapsible-panel { background:rgba(0,0,0,.85); border:2px solid #222; border-radius:4px; backdrop-filter:blur(4px); }
-.players-area.collapsible-panel .panel-header, .cards-area.collapsible-panel .panel-header { position:relative; user-select:none; }
+.players-area.collapsible-panel, .cards-area.collapsible-panel { background:rgba(0,0,0,.85); border:2px solid #222; border-radius:4px; -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); }
+.players-area.collapsible-panel .panel-header, .cards-area.collapsible-panel .panel-header { position:relative; -webkit-user-select:none; user-select:none; }
 .players-area.collapsible-panel .toggle-arrow, .cards-area.collapsible-panel .toggle-arrow { display:inline-block; transition:transform .25s ease; }
 .players-area.collapsible-panel.collapsed .toggle-arrow, .cards-area.collapsible-panel.collapsed .toggle-arrow { transform:rotate(-90deg); }
 .players-area .panel-header, .cards-area .panel-header { font-family:'Bangers',cursive; font-size:1.1rem; letter-spacing:1px; padding:8px 12px; margin:0; color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:space-between; }

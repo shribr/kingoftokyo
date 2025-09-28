@@ -40,6 +40,7 @@
 .cmp-panel-root.dragging { opacity: .92; cursor: grabbing; }
 
 .cmp-panel-root .panel-header { 
+  -webkit-user-select: none;
   user-select: none;
   cursor: pointer;
   display: flex;

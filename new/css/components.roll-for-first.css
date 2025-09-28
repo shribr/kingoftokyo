@@ -23,7 +23,7 @@
 .cmp-roll-for-first.rff-modal .rff-mon { background:#181818; padding:6px 10px; border:1px solid #2d2d2d; border-radius:0; text-align:left; font-weight:600; color:#ddd; }
 .cmp-roll-for-first.rff-modal .rff-val { background:#222; padding:6px 0; border:1px solid #333; border-radius:0; text-align:center; font-weight:700; font-size:1.05rem; color:#e4e4e4; box-shadow:0 0 0 1px #000 inset; }
 /* Footer with persistent controls */
-.cmp-roll-for-first.rff-modal .rff-footer { position:sticky; bottom:0; display:flex; justify-content:center; gap:18px; padding:14px 10px 4px; background:linear-gradient(to top, rgba(28,28,28,.95), rgba(28,28,28,.6) 60%, rgba(28,28,28,0)); backdrop-filter:blur(2px); margin-top:14px; }
+.cmp-roll-for-first.rff-modal .rff-footer { position:sticky; bottom:0; display:flex; justify-content:center; gap:18px; padding:14px 10px 4px; background:linear-gradient(to top, rgba(28,28,28,.95), rgba(28,28,28,.6) 60%, rgba(28,28,28,0)); -webkit-backdrop-filter:blur(2px); backdrop-filter:blur(2px); margin-top:14px; }
 .cmp-roll-for-first.rff-modal .rff-footer .rff-btn { box-shadow:3px 3px 0 #000; }
 .cmp-roll-for-first.rff-modal .rff-footer .rff-skip { align-self:center; }
 
