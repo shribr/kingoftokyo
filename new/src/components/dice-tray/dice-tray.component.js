@@ -62,6 +62,15 @@ export function build({ selector, emit }) {
     const dieEl = e.target.closest('[data-die-index]');
     if (dieEl) {
       const idx = Number(dieEl.getAttribute('data-die-index'));
+      // Only allow toggling keeps during ROLL phase when dice are resolved (not actively rolling)
+      try {
+        const st = store.getState();
+        const order = st.players.order || [];
+        const activeId = order.length ? order[st.meta.activePlayerIndex % order.length] : null;
+        const active = activeId ? st.players.byId[activeId] : null;
+        const isCpu = !!(active && (active.isCPU || active.isAi || active.isAI || active.type === 'ai'));
+        if (st.phase !== 'ROLL' || st.dice.phase !== 'resolved' || isCpu) return;
+      } catch(_) { /* fallback: allow if uncertain */ }
       emit('ui/dice/keptToggled', { index: idx });
     }
   });
@@ -83,32 +92,66 @@ export function update(root, { state }) {
   // Removed active-player visual highlighting for dice tray (no stylistic changes requested)
 
   const prevFaces = root._prevFaces || [];
-  const facesChanged = faces.length && (faces.length !== prevFaces.length || faces.some((f,i) => !prevFaces[i] || prevFaces[i].value !== f.value || prevFaces[i].kept !== f.kept));
-  // Build full list including placeholders for unrolled extra dice
-  const rendered = [];
-  for (let i = 0; i < diceSlots; i++) {
-    const face = faces[i];
-    const isExtra = i >= 6;
-    if (face) {
-      // Add a subtle selection indicator (lift) via 'is-kept' without any yellow outline
-      rendered.push(`<span class="die ${face.kept ? 'is-kept' : ''} ${isExtra ? 'extra-die' : ''}" data-die-index="${i}" data-face="${face.value}">${symbolFor(face.value)}</span>`);
-    } else {
-      // For extra dice (7th, 8th) show blank dashed slot (no '?')
-      const content = isExtra ? '' : '?';
-      rendered.push(`<span class="die pending ${isExtra ? 'extra-die' : ''}" data-die-index="${i}">${content}</span>`);
+  const valuesChanged = faces.length && (faces.length !== prevFaces.length || faces.some((f,i) => !prevFaces[i] || prevFaces[i].value !== f.value));
+  const keepsChanged = faces.length && prevFaces.length === faces.length && faces.some((f,i) => prevFaces[i] && prevFaces[i].kept !== f.kept);
+  const facesChanged = valuesChanged || keepsChanged;
+  // Only rebuild DOM when faces or slot count changed (prevents wiping rolling animation on unrelated state changes)
+  const needInitialRender = diceContainer.childElementCount === 0;
+  const prevSlots = root._prevDiceSlots || 6;
+  const shouldRebuild = needInitialRender || facesChanged || diceSlots !== prevSlots;
+  if (shouldRebuild) {
+    // Build full list including placeholders for unrolled extra dice
+    const rendered = [];
+    for (let i = 0; i < diceSlots; i++) {
+      const face = faces[i];
+      const isExtra = i >= 6;
+      if (face) {
+        // Only hide results when face values change from a roll (not when only kept flags change)
+        const hideResult = valuesChanged && !face.kept;
+        const content = hideResult ? '?' : symbolFor(face.value);
+        const extraCls = hideResult ? ' reveal-pending' : '';
+        // Add a subtle selection indicator (lift) via 'is-kept' without any yellow outline
+        rendered.push(`<span class="die ${face.kept ? 'is-kept' : ''} ${isExtra ? 'extra-die' : ''}${extraCls}" data-die-index="${i}" data-face="${face.value}">${content}</span>`);
+      } else {
+        // For extra dice (7th, 8th) show blank dashed slot (no '?')
+        const content = isExtra ? '' : '?';
+        rendered.push(`<span class="die pending ${isExtra ? 'extra-die' : ''}" data-die-index="${i}">${content}</span>`);
+      }
     }
+    diceContainer.innerHTML = rendered.join('');
   }
-  diceContainer.innerHTML = rendered.join('');
-  // Roll animation when faces changed (simple pulse)
-  if (facesChanged) {
-    diceContainer.classList.add('rolling');
-    setTimeout(() => diceContainer.classList.remove('rolling'), 650);
+  // Trigger rolling animation only when face values changed (a roll occurred), not on keep toggles
+  if (valuesChanged) {
+    const DURATION = 650;
+    // Defer to next frame to ensure DOM paint before starting animation
+    requestAnimationFrame(() => {
+      for (let i = 0; i < diceSlots; i++) {
+        const face = faces[i];
+        const dieEl = diceContainer.querySelector(`[data-die-index="${i}"]`);
+        if (!dieEl) continue;
+        if (face && !face.kept) {
+          dieEl.classList.remove('rolling'); // restart if previously applied
+          // Force reflow to reset animation state
+          void dieEl.offsetWidth; // eslint-disable-line no-unused-expressions
+          dieEl.classList.add('rolling');
+          // Ensure placeholder is visible during shake
+          dieEl.textContent = '?';
+          // Reveal final face after animation completes
+          setTimeout(() => {
+            dieEl.classList.remove('rolling');
+            dieEl.classList.remove('reveal-pending');
+            try { dieEl.textContent = symbolFor(face.value); } catch(_) {}
+          }, DURATION);
+        } else {
+          dieEl.classList.remove('rolling');
+        }
+      }
+    });
   }
   // Detect expansion
-  const prev = root._prevDiceSlots || 6;
-  if (diceSlots > prev) {
+  if (diceSlots > prevSlots) {
     // Mark new dice indices with animation class
-    for (let i = prev; i < diceSlots; i++) {
+    for (let i = prevSlots; i < diceSlots; i++) {
       const el = diceContainer.querySelector(`[data-die-index="${i}"]`);
       if (el) {
         el.classList.add('new-die');

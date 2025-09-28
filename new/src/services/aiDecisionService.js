@@ -104,6 +104,9 @@ function autoKeepHeuristic(store) {
   if (!activeId) return;
   const player = state.players.byId[activeId];
   if (!player || state.phase !== 'ROLL') return;
+  // Only auto-keep for AI/CPU players; never auto-toggle keeps for human turns
+  const isCpu = !!(player.isCPU || player.isAi || player.isAI || player.type === 'ai');
+  if (!isCpu) return;
   // Only act if there are rerolls remaining (skip final roll)
   if (state.dice.rerollsRemaining <= 0) return;
   const faces = state.dice.faces;

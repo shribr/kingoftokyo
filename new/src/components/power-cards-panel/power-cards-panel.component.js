@@ -34,10 +34,6 @@ function panelTemplate() {
   <div class="mp-body k-panel__body" data-panel-body>
     <div class="pc-shop" data-shop-root>
       <div class="pc-shop-cards" data-shop-cards></div>
-      <div class="pc-shop-actions">
-        <button class="k-btn k-btn--sm k-btn--secondary" data-flush disabled>FLUSH (2⚡)</button>
-      </div>
-      <div class="pc-hint" data-hint></div>
     </div>
   </div>`;
 }
@@ -72,38 +68,34 @@ function renderShop(root) {
   const active = selectActivePlayer(state);
   const energy = active?.energy ?? 0;
   const container = root.querySelector('[data-shop-cards]');
-  // Ensure deck placeholder exists (represents remaining draw pile) as card-sized element
-  let deckEl = root.querySelector('[data-deck-stack]');
-  if (!deckEl) {
-    deckEl = document.createElement('div');
-    deckEl.className = 'pc-deck-stack';
-    deckEl.setAttribute('data-deck-stack','');
-    deckEl.innerHTML = `
-      <div class="pc-card pc-card--deck" data-deck-card>
-        <div class="pc-card__header pc-card__header--deck"><span class="pc-card__name">DECK</span></div>
-        <div class="pc-card__body pc-card__body--deck" aria-hidden="true"></div>
-      </div>`;
-    container?.parentElement?.insertBefore(deckEl, container.nextSibling);
-  }
   const flushBtn = root.querySelector('[data-flush]');
-  const hint = root.querySelector('[data-hint]');
   if (!container) return;
-  container.innerHTML = cards.map(c => `
+  const deckCardHtml = `
+    <div class="pc-card pc-card--deck" data-deck-card>
+      <div class="pc-card__header pc-card__header--deck"><span class="pc-card__name">DECK</span></div>
+      <div class="pc-card__body pc-card__body--deck" aria-hidden="true"></div>
+    </div>`;
+  const flushHtml = `<button class="k-btn k-btn--sm k-btn--secondary pc-flush-after-deck" data-flush disabled>FLUSH (2⚡)</button>`;
+  const cardsHtml = cards.map(c => `
     <div class="pc-card" data-card-id="${c.id}" data-rarity="${cardRarity(c)}" data-enter>
       <div class="pc-card__header"><span class="pc-card__name">${c.name}</span><span class="pc-card__cost">${c.cost}⚡</span></div>
       <div class="pc-card__body">${renderEffectSummary(c)}</div>
       <div class="pc-card__footer"><button class="k-btn k-btn--xs k-btn--secondary" data-buy data-card-id="${c.id}" ${energy < c.cost ? 'disabled' : ''}>BUY</button></div>
     </div>
   `).join('');
-  if (flushBtn) flushBtn.disabled = energy < 2;
-  if (hint) hint.textContent = active ? `Active: ${active.name} (${energy}⚡)` : 'NO ACTIVE PLAYER';
-  // Refill button removed
-  if (deckEl) {
-    const remaining = state.cards.deck.length; // unused display; kept for potential future tooltip only
+  // Place deck as a normal card in the grid, then the flush button immediately after deck
+  container.innerHTML = cardsHtml + deckCardHtml + flushHtml;
+  // Update flush disabled state
+  const containerFlushBtn = root.querySelector('[data-flush]');
+  if (containerFlushBtn) containerFlushBtn.disabled = energy < 2;
+  // Deck state (empty / can-peek) toggled on the card itself
+  const deckCard = container.querySelector('[data-deck-card]');
+  if (deckCard) {
+    const remaining = state.cards.deck.length;
     const canPeek = !!active && active.cards?.some(c => c.effect?.kind === 'peek');
-    deckEl.classList.toggle('is-empty', remaining === 0);
-    deckEl.classList.toggle('can-peek', canPeek && remaining > 0);
-    deckEl.title = canPeek ? (remaining ? 'Click to Peek (cost 1⚡)' : 'Deck empty') : (remaining ? `${remaining} card(s) remaining` : 'Deck empty');
+    deckCard.classList.toggle('is-empty', remaining === 0);
+    deckCard.classList.toggle('can-peek', canPeek && remaining > 0);
+    deckCard.title = canPeek ? (remaining ? 'Click to Peek (cost 1⚡)' : 'Deck empty') : (remaining ? `${remaining} card(s) remaining` : 'Deck empty');
   }
 }
 

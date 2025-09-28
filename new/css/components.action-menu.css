@@ -37,7 +37,7 @@
   backdrop-filter:none;
 }
 .app-toolbar, .game-toolbar, [data-toolbar] { margin-bottom:12px; }
-.cmp-action-menu .am-label { display:block; position:static; margin:0 0 8px 0; background:var(--action-menu-title-color); color:#111; padding:4px 12px 6px; font-size:18px; line-height:1; border:3px solid #000; box-shadow:2px 2px 0 #000; letter-spacing:1px; }
+.cmp-action-menu .am-label { display:block; position:static; margin:0 0 8px 0; background:var(--action-menu-title-color); color:#111; padding:4px 12px 6px; font-size:18px; line-height:1; border:3px solid #000; box-shadow:2px 2px 0 #000; letter-spacing:1px; text-align:center; }
 .cmp-action-menu[data-layout="horizontal"] { flex-direction:row; flex-wrap:wrap; align-items:flex-start; }
 .cmp-action-menu[data-layout="horizontal"] .am-label { margin-bottom:6px; }
 .cmp-action-menu[data-layout="vertical"] { flex-direction:column; flex-wrap:nowrap; width:260px; }

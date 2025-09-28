@@ -121,6 +121,7 @@ export function update(root) {
   // New dice state model: phase: 'idle' | 'rolling' | 'resolved' | 'sequence-complete'
   // rerollsRemaining tracks how many rerolls still available (after first roll).
   const isIdle = dice.phase === 'idle';
+  const hasFirstRoll = !isIdle && (dice.faces?.length > 0);
   const canReroll = dice.phase === 'resolved' && dice.rerollsRemaining > 0;
   const canInitialRoll = isIdle;
   const canRoll = st.phase === 'ROLL' && (canInitialRoll || canReroll) && dice.phase !== 'rolling';
@@ -132,7 +133,11 @@ export function update(root) {
   }
   const isCPU = !!(active && (active.isCPU || active.isAi || active.type === 'ai'));
 
-  if (rollBtn) rollBtn.disabled = isCPU ? true : !canRoll;
+  if (rollBtn) {
+    rollBtn.disabled = isCPU ? true : !canRoll;
+    // Dynamic label: after first roll, change to RE-ROLL UNSELECTED
+    rollBtn.textContent = hasFirstRoll ? 'RE-ROLL UNSELECTED' : 'ROLL';
+  }
   if (keepBtn) keepBtn.disabled = isCPU ? true : !(st.phase === 'ROLL' && hasAnyFaces && dice.phase === 'resolved');
   if (endBtn) endBtn.disabled = true; // always disabled during ROLL phase; for CPU we keep disabled anyway until human logic implemented
 
