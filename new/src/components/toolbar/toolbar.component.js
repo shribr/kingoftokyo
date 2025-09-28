@@ -61,30 +61,20 @@ export function build({ selector }) {
     });
     document.body.appendChild(diceToggle);
   } catch(_) { /* non-fatal */ }
-  root.addEventListener('click', (e) => {
+  // Bind each button explicitly to ensure correct modal routing
+  const onClick = (e) => {
     const btn = e.target.closest('button[data-action]');
     if (!btn) return;
     const a = btn.getAttribute('data-action');
-    switch(a) {
-      case 'settings':
-        store.dispatch(uiSettingsOpen()); break;
-      case 'log':
-        store.dispatch(uiGameLogOpen()); break; // proper component handles rendering
-      case 'reset-positions':
-        window.dispatchEvent(new CustomEvent('ui.positions.reset.request')); break;
-      case 'restart': {
-        // Open custom confirm modal; listen for acceptance externally
-        store.dispatch(uiConfirmOpen('restart-game', 'Restart the game and reload the page?\nUnsaved progress will be lost.', 'Restart', 'Cancel'));
-        break; }
-      case 'sound':
-        toggleSound(store, btn); break;
-      case 'help':
-        store.dispatch(uiInstructionsOpen()); break;
-      case 'about':
-        store.dispatch(uiAboutOpen());
-        break;
-    }
-  });
+    if (a === 'settings') { store.dispatch(uiSettingsOpen()); return; }
+    if (a === 'log') { store.dispatch(uiGameLogOpen()); return; }
+    if (a === 'sound') { toggleSound(store, btn); return; }
+    if (a === 'help') { store.dispatch(uiInstructionsOpen()); return; }
+    if (a === 'restart') { store.dispatch(uiConfirmOpen('restart-game', 'Restart the game and reload the page?\nUnsaved progress will be lost.', 'Restart', 'Cancel')); return; }
+    if (a === 'reset-positions') { window.dispatchEvent(new CustomEvent('ui.positions.reset.request')); return; }
+    if (a === 'about') { store.dispatch(uiAboutOpen()); return; }
+  };
+  root.addEventListener('click', onClick);
   // Handle confirm accept events (restart)
   window.addEventListener('ui.confirm.accepted', (e) => {
     if (e.detail?.confirmId === 'restart-game') {

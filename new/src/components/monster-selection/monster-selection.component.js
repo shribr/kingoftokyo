@@ -194,8 +194,8 @@ function render(inst, fullState) {
 
 function card(m, selected) {
   const cls = selected ? 'monster-card selected' : 'monster-card';
-  const tileStyle = m.color ? ` style="--tile-bg: ${m.color}"` : '';
-  return `<div class="${cls}" data-monster-card data-id="${m.id}">\n    <div class="stack"${tileStyle}>\n      <div class="polaroid">\n        <div class="photo"><img src="${m.image}" alt="${m.name}"></div>\n      </div>\n    </div>\n    <div class=\"monster-name\">${m.name}</div>\n  </div>`;
+  // Force consistent white tile background by not overriding --tile-bg per card
+  return `<div class="${cls}" data-monster-card data-id="${m.id}">\n    <div class="stack">\n      <div class="polaroid">\n        <div class="photo"><img src="${m.image}" alt="${m.name}"></div>\n      </div>\n    </div>\n    <div class=\"monster-name\">${m.name}</div>\n  </div>`;
 }
 function miniCard(m, slotIndex, isHumanSlot=false) {
   // Render selected monster on the tile with image and name; supports drag to remove/swap

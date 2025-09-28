@@ -23,8 +23,8 @@
 
 /* Editable profile card */
 .profile-card { background:#fff; border:4px solid #000; box-shadow:5px 5px 0 #000; padding:1.05rem 1.15rem 1.2rem; position:relative; display:flex; flex-direction:column; gap:.8rem; font-family:'Nunito',sans-serif; z-index:1; cursor:pointer; transform:perspective(400px) rotateX(1deg) rotateZ(-0.5deg); transition:transform .3s ease, box-shadow .3s ease; will-change:transform; }
-/* Dedicated monster profile gradient card to avoid impacting other card components */
-.mp-gradient-card { background:linear-gradient(135deg,#FFFEF7 0%, #FFF8DC 50%, #F5F5DC 100%); }
+/* Dedicated monster profile card background: bright white (no gradient) */
+.mp-gradient-card { background:#ffffff; }
 /* Removed per-card random tilt to prevent twist jump on hover */
 .profile-card:hover { z-index:150; transform:perspective(400px) rotateX(1deg) rotateZ(-0.5deg) scale(1.02); }
 .profile-card:focus-visible { z-index:50; outline:3px solid #4ad15e; outline-offset:-4px; }
