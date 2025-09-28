@@ -36,8 +36,16 @@ export function update(ctx) {
   if (!visible) {
     root.classList.add('is-hidden');
     document.body.classList.remove('splash-visible');
-    // Ensure blackout still present after splash hides (it may have been removed inadvertently)
-    ensureBlackout();
+    // Only ensure blackout during SETUP while selection or roll-for-first is active
+    try {
+      const phase = state?.phase;
+      const selectionOpen = !!(state?.ui?.monsterSelection?.open || state?.ui?.monsterProfiles?.open);
+      const rff = state?.ui?.rollForFirst;
+      const rffActive = !!(rff && (rff.open || !rff.resolved));
+      if (phase === 'SETUP' && (selectionOpen || rffActive)) {
+        ensureBlackout();
+      }
+    } catch(_) { /* no-op */ }
   } else {
     root.classList.remove('is-hidden');
     document.body.classList.add('splash-visible');
@@ -144,6 +152,7 @@ function beginHideSequence(dispatch, root) {
 }
 
 function ensureBlackout() {
+  if (document.body.classList.contains('game-active')) return;
   if (!document.querySelector('.post-splash-blackout')) {
     const div = document.createElement('div');
     div.className = 'post-splash-blackout';

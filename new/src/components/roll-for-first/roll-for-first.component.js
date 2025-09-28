@@ -358,6 +358,7 @@ function show(root) { root.classList.remove('hidden'); root.style.pointerEvents 
 function hide(root) { root.classList.add('hidden'); }
 
 function ensureBlackout() {
+  if (document.body.classList.contains('game-active')) return;
   if (document.querySelector('.post-splash-blackout')) return;
   const div = document.createElement('div');
   div.className = 'post-splash-blackout';
@@ -438,6 +439,8 @@ function finalizeAndStartGame(dispatch, getState, root) {
     const blk = document.querySelector('.post-splash-blackout');
     if (blk) { blk.classList.add('is-hidden'); setTimeout(()=>{ try { blk.remove(); } catch(_){} }, 120); }
   } catch(_) {}
+  // Ensure body is marked active immediately to prevent any re-ensure paths from recreating blackout
+  try { document.body.classList.add('game-active'); } catch(_) {}
   // Remove any outside-click listener that may have been set by scheduleAutoClose
   try {
     const handler = stObj._onDocClick;

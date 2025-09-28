@@ -290,6 +290,8 @@ function seedRandomPlayers(store, monsters, logger) {
 }
 
 function ensurePostSplashBlackout() {
+  // Do not add blackout once the game is active
+  if (document.body.classList.contains('game-active')) return;
   if (document.querySelector('.post-splash-blackout')) return;
   const div = document.createElement('div');
   div.className = 'post-splash-blackout';
