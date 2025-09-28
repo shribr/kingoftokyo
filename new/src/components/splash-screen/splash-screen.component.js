@@ -39,7 +39,7 @@ export function update(ctx) {
     // Only ensure blackout during SETUP while selection or roll-for-first is active
     try {
       const phase = state?.phase;
-      const selectionOpen = !!(state?.ui?.monsterSelection?.open || state?.ui?.monsterProfiles?.open);
+      const selectionOpen = !!state?.ui?.monsterSelection?.open; // do not treat profiles as selection for blackout
       const rff = state?.ui?.rollForFirst;
       const rffActive = !!(rff && (rff.open || !rff.resolved));
       if (phase === 'SETUP' && (selectionOpen || rffActive)) {

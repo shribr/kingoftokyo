@@ -66,7 +66,9 @@ export function update(root) {
   const ui = selectUIMonsterProfiles(state);
   if (!ui.open) { root.classList.add('hidden'); return; }
   root.classList.remove('hidden');
-  try { window.__KOT_BLACKOUT__?.hide(); } catch(_){}
+  // Profiles is a self-contained modal with its own backdrop; ensure any global blackout is hidden and removed
+  try { window.__KOT_BLACKOUT__?.hide(); } catch(_) {}
+  try { document.querySelector('.post-splash-blackout')?.remove(); } catch(_) {}
   const monsters = selectMonsters(state);
   // capture baseline once per open session
   if (!root._baseline) {

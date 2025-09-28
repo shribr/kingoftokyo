@@ -42,6 +42,7 @@ export function build({ selector, dispatch, getState }) {
     if (t.closest('[data-action="profiles"]')) {
       // Hide global blackout before opening profiles to avoid double-dark overlay
       try { window.__KOT_BLACKOUT__?.hide(); } catch(_){}
+      try { document.querySelector('.post-splash-blackout')?.remove(); } catch(_) {}
       // Demote selection overlay so profiles is visible immediately, then close selection on next frame
       root.classList.add('demoted');
       dispatch(uiMonsterProfilesOpen('selection'));

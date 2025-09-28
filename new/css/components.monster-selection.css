@@ -11,6 +11,8 @@
 	z-index: 15010; /* below profiles 15020 */
 	background: transparent;
 	backdrop-filter: none; -webkit-backdrop-filter: none;
+  /* While demoted, do not intercept any mouse/touch events */
+  pointer-events: none;
 }
 .cmp-monster-selection.monster-selection-modal.hidden { opacity:0; transform: translateY(24px) scale(.94); visibility:hidden; pointer-events:none; }
 
@@ -37,7 +39,7 @@
 .cmp-monster-selection .setup-controls [data-action="profiles"] { grid-area: left; justify-self: start; }
 .cmp-monster-selection .setup-controls .player-count { grid-area: middle; justify-self:center; }
 .cmp-monster-selection .setup-controls [data-action="random"] { grid-area: right; justify-self: end; }
-.cmp-monster-selection { --control-h: 48px; --control-font: 20px; }
+.cmp-monster-selection { --control-h: 48px; --control-font: 20px; --tile-bg: #fff; }
 .cmp-monster-selection .setup-controls .player-count { justify-self:center; }
 .cmp-monster-selection .pill-btn { background: linear-gradient(#fafafa,#e3e3e3); border:3px solid #111; border-radius:0; padding:0 18px; height: var(--control-h); font-weight:900; box-shadow:6px 6px 0 #000; cursor:pointer; letter-spacing:.5px; text-transform:uppercase; position:relative; transition:transform .18s ease, box-shadow .18s ease, filter .28s ease; color:#000; font-size: var(--control-font); font-family:'Bangers',cursive; display:inline-flex; align-items:center; justify-content:center; }
 .cmp-monster-selection .pill-btn.gold { background: linear-gradient(var(--color-brand-gold,#ffd700), #ffb400); color:#000; }
