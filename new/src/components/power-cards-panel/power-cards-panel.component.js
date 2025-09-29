@@ -10,7 +10,8 @@ import { logger } from '../../bootstrap/index.js';
 
 export function build({ selector }) {
   const root = document.createElement('div');
-  root.className = selector.slice(1) + ' cmp-power-cards-panel cmp-side-panel k-panel';
+  root.id = 'power-cards-panel';
+  root.className = 'cmp-power-cards-panel cmp-side-panel k-panel';
   root.setAttribute('data-side','left');
   root.innerHTML = panelTemplate();
   

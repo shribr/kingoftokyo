@@ -84,10 +84,12 @@
 
 .power-cards-btn .arrow-left {
   left: 8px;
+  opacity: 0; /* Hidden by default (desktop) */
 }
 
 .power-cards-btn .arrow-right {
   right: 8px;
+  opacity: 1; /* Visible by default (desktop) */
 }
 
 .power-cards-btn .btn-text {

@@ -11,7 +11,8 @@ import { DICE_ANIM_MS } from '../../constants/uiTimings.js';
 
 export function build({ selector, emit }) {
   const root = document.createElement('div');
-  root.className = `${selector.slice(1)} cmp-dice-tray`;
+  root.id = 'dice-tray';
+  root.className = 'cmp-dice-tray';
   root.setAttribute('data-draggable','true');
   // Tray outer + inner frame + dice row (legacy-style white container around dark tray)
   root.innerHTML = `<div class="tray-outer" data-tray-outer>
@@ -19,8 +20,106 @@ export function build({ selector, emit }) {
         <div class="dice" data-dice aria-label="Dice Tray"></div>
       </div>
     </div>`;
+  
+
+  
   // Track previous diceSlots to animate expansions
   root._prevDiceSlots = 6;
+
+  // Add mobile dice toggle button - always check for mobile
+  const checkMobile = () => {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    const isMobileWidth = width <= 760;
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const isLandscapeMobile = (width <= 1024 && height <= 768 && isTouchDevice);
+    // Show mobile buttons when narrow OR touch device (matching CSS media query logic)
+    return isMobileWidth || isTouchDevice || (isLandscapeMobile && width < 900);
+  };
+  
+  const setupMobile = () => {
+    const isMobile = checkMobile();
+    
+    if (isMobile) {
+      // Set mobile positioning for dice tray
+      root.style.position = 'fixed';
+      root.style.bottom = '0';
+      root.style.left = '-80%';
+      root.style.top = 'auto';
+      root.style.transform = 'none';
+      root.style.transition = 'left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+      root.style.width = '100vw';
+      root.style.zIndex = '6600';
+      
+      // Remove any existing toggle button first
+      const existingBtn = document.getElementById('dice-toggle-btn');
+      if (existingBtn) existingBtn.remove();
+      
+      const toggleBtn = document.createElement('div');
+      toggleBtn.id = 'dice-toggle-btn';
+      toggleBtn.className = 'dice-toggle-btn';
+      toggleBtn.innerHTML = '🎲';
+      toggleBtn.setAttribute('aria-label', 'Toggle Dice Tray');
+      
+      // Set styles directly to ensure they apply
+      Object.assign(toggleBtn.style, {
+        position: 'fixed',
+        bottom: '20px',
+        left: '20px',
+        width: '50px',
+        height: '50px',
+        background: '#ffcf33',
+        border: '3px solid #333',
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '24px',
+        cursor: 'pointer',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+        zIndex: '6700',
+        transition: 'transform 0.2s ease'
+      });
+      
+      document.body.appendChild(toggleBtn);
+      
+      // Initialize the dice tray as collapsed (matching its visual position)
+      root.classList.remove('expanded');
+      
+      // Toggle functionality
+      toggleBtn.addEventListener('click', () => {
+        console.log('Dice toggle clicked!');
+        root.classList.toggle('expanded');
+        const isExpanded = root.classList.contains('expanded');
+        console.log('Dice tray expanded:', isExpanded);
+        
+        // Update dice tray position
+        root.style.left = isExpanded ? '0' : '-80%';
+        toggleBtn.style.transform = isExpanded ? 'scale(0.9)' : 'scale(1)';
+      });
+      
+      // Store reference for cleanup
+      root._toggleBtn = toggleBtn;
+
+    } else {
+      // Desktop: remove mobile button if it exists and reset positioning
+      const existingBtn = document.getElementById('dice-toggle-btn');
+      if (existingBtn) existingBtn.remove();
+      
+      // Reset mobile-specific styles
+      root.style.position = '';
+      root.style.bottom = '';
+      root.style.left = '';
+      root.style.width = '';
+      root.style.transition = '';
+      root.style.zIndex = '';
+      root.classList.remove('expanded');
+    }
+  };
+  
+  // Setup mobile immediately and on resize
+  setupMobile();
+  window.addEventListener('resize', setupMobile);
 
   // Make draggable & persistent
   const positioning = createPositioningService(store);
@@ -58,7 +157,10 @@ export function build({ selector, emit }) {
   // Align on next frame (after arena laid out) and on resize
   requestAnimationFrame(autoAlignIfNotUserMoved);
   window.addEventListener('resize', autoAlignIfNotUserMoved);
-  root._destroyExtras = () => window.removeEventListener('resize', autoAlignIfNotUserMoved);
+  root._destroyExtras = () => {
+    window.removeEventListener('resize', autoAlignIfNotUserMoved);
+    window.removeEventListener('resize', setupMobile);
+  };
 
   root.addEventListener('click', (e) => {
     const dieEl = e.target.closest('[data-die-index]');
@@ -77,7 +179,13 @@ export function build({ selector, emit }) {
     }
   });
 
-  return { root, update: (props) => update(root, props), destroy: () => { root._destroyExtras && root._destroyExtras(); root.remove(); } };
+  return { root, update: (props) => update(root, props), destroy: () => { 
+    root._destroyExtras && root._destroyExtras(); 
+    if (root._toggleBtn) {
+      root._toggleBtn.remove();
+    }
+    root.remove(); 
+  } };
 }
 
 export function update(root, { state }) {

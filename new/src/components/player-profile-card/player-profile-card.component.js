@@ -82,6 +82,46 @@ export function build({ selector, playerId }) {
     } catch(_) {}
   }
   ensureDraggableIfActive();
+
+  // Add ResizeObserver to monitor player profile card resizing
+  if (window.ResizeObserver) {
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        const isActive = entry.target.hasAttribute('data-in-active-dock');
+        const isActivePlayer = entry.target.closest('[data-active="true"]') || entry.target.hasAttribute('data-active');
+        
+        // Log for active player cards or any card in active dock
+        if (isActive || isActivePlayer) {
+          console.log('🎯 Player Profile Card Resize Detected:', {
+            playerId: playerId,
+            isInActiveDock: isActive,
+            isActivePlayer: isActivePlayer,
+            width: width,
+            height: height,
+            timestamp: new Date().toISOString(),
+            element: entry.target,
+            stackTrace: new Error().stack
+          });
+          
+          // Additional debugging info
+          console.log('📏 Card computed styles:', {
+            position: getComputedStyle(entry.target).position,
+            display: getComputedStyle(entry.target).display,
+            transform: getComputedStyle(entry.target).transform,
+            width: getComputedStyle(entry.target).width,
+            height: getComputedStyle(entry.target).height
+          });
+        }
+      }
+    });
+    
+    resizeObserver.observe(root);
+    
+    // Store observer for cleanup if needed
+    root._resizeObserver = resizeObserver;
+  }
+
   return { root, update: (props) => { update(root, { ...props, playerId }); ensureDraggableIfActive(); }, destroy: () => root.remove() };
 }
 

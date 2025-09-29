@@ -37,23 +37,13 @@ body:not(.game-active) .cmp-toolbar .toolbar-btn { opacity:.9; }
 
 @media (max-width: 800px) { .cmp-toolbar { padding:10px 12px; --toolbar-btn-size:40px; } }
 
-/* Default hidden hamburgers */
-.toolbar-hamburger { display:none; }
-/* Dice toggle hidden by default (desktop/tablet); enabled via mobile media query below */
-.dice-toggle-btn { display:none; }
-
-/* Mobile hamburger triggers for Actions (left) and Settings (right) */
+/* Mobile toolbar behavior */
 @media (max-width: 760px), (pointer: coarse) {
   /* Hide the desktop toolbar entirely on mobile */
   .cmp-toolbar { display: none; }
-  .toolbar-hamburger { position:fixed; bottom:8px; top:auto; z-index:6700; display:flex; align-items:center; gap:6px; padding:10px 12px; font-family:var(--toolbar-font); font-size:16px; letter-spacing:.5px; background:var(--toolbar-btn-gradient); border:3px solid var(--toolbar-btn-border); border-radius:12px; color:#000; box-shadow:var(--toolbar-btn-shadow); cursor:pointer; white-space:nowrap; }
-  .toolbar-hamburger .hb-ico { font-size:18px; line-height:1; }
-  .toolbar-hamburger--left { left:8px; }
-  .toolbar-hamburger--right { display:none; }
-
-  /* Compact dice toggle button just above the left hamburger */
-  .dice-toggle-btn { position:fixed; left:8px; bottom:56px; z-index:6701; width:44px; height:44px; display:flex; align-items:center; justify-content:center; border:3px solid var(--toolbar-btn-border); border-radius:12px; background:var(--Toolbar-btn-gradient, var(--toolbar-btn-gradient)); box-shadow:var(--toolbar-btn-shadow); color:#000; cursor:pointer; }
-  .dice-toggle-btn .ico { font-size:22px; line-height:1; }
+  /* Mobile buttons are now handled by their respective components:
+     - Action menu: circular button in action-menu.component.js
+     - Dice toggle: circular button in dice-tray.component.js */
 }
 
 /* Lightweight modal overlays triggered by toolbar (help/about) */

@@ -34,6 +34,38 @@ export function build({ selector }) {
       <div class="active-player-slot" data-active-player-slot></div>
     </div>
   `;
+
+  // Add ResizeObserver to monitor active player slot resizing
+  const activePlayerSlot = root.querySelector('[data-active-player-slot]');
+  if (activePlayerSlot && window.ResizeObserver) {
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        console.log('🔍 Active Player Card Resize Detected:', {
+          width: width,
+          height: height,
+          timestamp: new Date().toISOString(),
+          element: entry.target,
+          stackTrace: new Error().stack
+        });
+        
+        // Additional debugging info
+        console.log('📏 Element computed styles:', {
+          position: getComputedStyle(entry.target).position,
+          display: getComputedStyle(entry.target).display,
+          transform: getComputedStyle(entry.target).transform,
+          width: getComputedStyle(entry.target).width,
+          height: getComputedStyle(entry.target).height
+        });
+      }
+    });
+    
+    resizeObserver.observe(activePlayerSlot);
+    
+    // Store observer for cleanup if needed
+    root._resizeObserver = resizeObserver;
+  }
+
   return { root, update: () => update(root) };
 }
 

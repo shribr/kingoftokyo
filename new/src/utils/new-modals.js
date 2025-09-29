@@ -351,7 +351,7 @@ export function createSettingsModal() {
       updateThemePreview(themeValue);
       
       // Apply to actual panel too
-      const powerCardsPanel = document.querySelector('.cmp-power-cards-panel');
+      const powerCardsPanel = document.getElementById('power-cards-panel');
       if (powerCardsPanel) {
         if (themeValue !== 'original') {
           powerCardsPanel.setAttribute('data-theme', themeValue);

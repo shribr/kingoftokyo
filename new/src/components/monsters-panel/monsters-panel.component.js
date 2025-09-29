@@ -7,10 +7,11 @@ import { uiMonsterSelectionOpen } from '../../core/actions.js';
 import { build as buildPlayerCard } from '../player-profile-card/player-profile-card.component.js';
 import { initSidePanel } from '../side-panel/side-panel.js';
 
-export function build({ selector }) {
+export function build({ selector, emit }) {
   const root = document.createElement('div');
-  root.className = selector.slice(1) + ' cmp-monsters-panel cmp-side-panel k-panel';
-  root.setAttribute('data-side','right');
+  root.id = 'monsters-panel';
+  root.className = 'cmp-monsters-panel';
+  root.setAttribute('data-draggable','true');
   root.innerHTML = panelTemplate();
   const instances = new Map();
   ensureActiveDock();

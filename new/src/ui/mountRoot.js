@@ -176,13 +176,58 @@ function ensureAppRoot() {
       <footer class="gl-footer" data-gl-footer></footer>`;
     el.appendChild(shell);
   }
+  
+  // Add window resize listener to reposition AI banner when screen size changes
+  if (!window._aibannerResizeListenerAdded) {
+    window.addEventListener('resize', () => {
+      const banner = document.querySelector('[data-ai-thinking]');
+      if (banner && !banner.hasAttribute('hidden')) {
+        // Trigger repositioning check when window resizes
+        setAIThinking(true);
+      }
+    });
+    window._aibannerResizeListenerAdded = true;
+  }
+  
   return el;
 }
 
 // Simple API to toggle AI thinking indicator (can be called from AI decision pipeline)
 export function setAIThinking(isThinking) {
   const banner = document.querySelector('[data-ai-thinking]');
-  if (!banner) return;
+  if (!banner) {
+    console.log('❌ AI thinking banner not found');
+    return;
+  }
+  
+  // Check if should be in footer (width < 1100px or mobile touch)
+  const shouldBeInFooter = window.innerWidth < 1100 || matchMedia('(pointer: coarse)').matches;
+  const footer = document.querySelector('.gl-footer');
+  
+  console.log('🤖 AI thinking banner check:', {
+    isThinking,
+    shouldBeInFooter,
+    windowWidth: window.innerWidth,
+    isTouch: matchMedia('(pointer: coarse)').matches,
+    bannerParent: banner.parentElement?.className,
+    footerExists: !!footer
+  });
+  
+  if (shouldBeInFooter && footer && banner.parentElement?.classList.contains('gl-header')) {
+    // Move banner to footer area between mobile buttons
+    console.log('📍 Moving AI banner to footer');
+    footer.appendChild(banner);
+    banner.classList.add('footer-positioned');
+  } else if (!shouldBeInFooter && banner.parentElement === footer) {
+    // Move banner back to header for desktop
+    console.log('📍 Moving AI banner back to header');
+    const header = document.querySelector('.gl-header');
+    if (header) {
+      header.appendChild(banner);
+      banner.classList.remove('footer-positioned');
+    }
+  }
+  
   if (isThinking) {
     if (banner.hasAttribute('hidden')) banner.removeAttribute('hidden');
     // Ensure dot element has three phases (using ::before, ::after plus span)

@@ -73,10 +73,29 @@ body.panels-expanded-right .gl-center-bottom .cmp-action-menu { margin-right: 40
 }
 
 /* On mobile, show arena round badge near the header title (left) while keeping header free on desktop */
+/* Position AI banner in footer area when screen is narrow or touch device */
+@media (max-width: 1100px), (pointer: coarse) {
+  .ai-thinking-banner.footer-positioned { 
+    position: fixed !important; 
+    left: 50% !important; 
+    top: auto !important; 
+    bottom: 20px !important; 
+    right: auto !important;
+    transform: translateX(-50%) !important; 
+    z-index: 6700 !important; 
+    margin: 0 !important;
+    /* Ensure it breaks out of any parent constraints */
+    clip: unset !important;
+    overflow: visible !important;
+  }
+}
+
 @media (max-width: 760px), (pointer: coarse) {
   .cmp-arena [data-round-indicator] { position: fixed; top: 10px; left: 10px; transform:none; z-index: 6605; }
-  /* Move AI banner to the far right on mobile */
-  .game-layout-shell .gl-header .ai-thinking-banner { left: auto; right: 10px; transform: translateY(-50%); }
+  
+  /* Ensure header doesn't clip the AI banner */
+  .game-layout-shell .gl-header { overflow: visible !important; }
+  
   /* Vertically align the header round counter label block center (ensured by top:50% translateY(-50%) above) */
 }
 
@@ -94,6 +113,27 @@ body[data-panels-force-overlay] .game-layout-shell > .gl-main > .gl-right > * {
   width: auto;
   max-width: min(360px, calc(100vw - 20px));
 }
+/* Desktop layout - ensure proper restoration of side panel heights */
+@media (min-width: 1101px) {
+  .game-layout-shell > .gl-main > .gl-left { 
+    flex-direction: column; 
+    margin-top: calc(var(--gl-header-height) * -1); 
+    padding-top: var(--gl-header-height); 
+    height: calc(98vh + var(--gl-header-height)); 
+    max-height: calc(98vh + var(--gl-header-height)); 
+    order: initial;
+  }
+  .game-layout-shell > .gl-main > .gl-right { 
+    margin-top: calc(var(--gl-header-height) * -1); 
+    padding-top: var(--gl-header-height); 
+    height: calc(98vh + var(--gl-header-height)); 
+    max-height: calc(98vh + var(--gl-header-height)); 
+    order: initial;
+  }
+  .game-layout-shell > .gl-main > .gl-center { order: initial; }
+  .game-layout-shell .gl-center-bottom { order: initial; }
+}
+
 @media (max-width: 1100px) {
   .game-layout-shell .gl-main { grid-template-columns: 1fr; }
   .game-layout-shell > .gl-main > .gl-left { order:2; flex-direction:row; flex-wrap:wrap; margin-top:0; padding-top:0; height:auto; max-height:none; }

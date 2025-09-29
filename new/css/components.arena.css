@@ -147,7 +147,7 @@
   box-shadow:0 0 20px rgba(0,0,0,.6) inset;
   padding:20px 0 40px;
 }
-.cmp-arena [data-tokyo] { position:absolute; top:80px; left:50%; transform:translateX(-56%); width:70%; min-height:300px; display:flex; gap:calc(var(--arena-gap) + 8px); justify-content:center; }
+.cmp-arena [data-tokyo] { position:absolute; top:80px; left:50%; transform:translateX(-56%); width:70%; min-height:300px; display:flex; flex-wrap:nowrap; gap:calc(var(--arena-gap) + 8px); justify-content:center; }
 /* Responsive variables (final block) */
 :root {
   --arena-bg: rgba(0,0,0,0.4);
@@ -234,13 +234,13 @@
 /* Remove CSS-based settle animation; JS handles arrival glow and settle */
 .cmp-arena [data-active-card-dock] .cmp-player-profile-card.in-place { animation:none; }
 
-/* Mobile: stack City over Bay, remove rotation */
+/* Mobile: keep City and Bay side-by-side, remove rotation */
 @media (max-width: 760px), (pointer: coarse) {
-  .cmp-arena [data-tokyo] { position:relative; top:auto; left:auto; transform:none; width:100%; flex-direction:column; align-items:center; gap:16px; padding:10px 0; }
+  .cmp-arena [data-tokyo] { position:relative; top:auto; left:auto; transform:none; width:100%; flex-direction:row; flex-wrap:nowrap; justify-content:center; align-items:center; gap:16px; padding:10px 0; }
   .cmp-arena { padding-bottom: 90px; }
   .cmp-arena [data-arena-section="city"],
   .cmp-arena [data-arena-section="bay"],
-  .cmp-arena [data-arena-section="active"] { transform:rotate(0deg) scale(1); width:min(520px, 92vw); max-width: min(520px, 92vw); }
+  .cmp-arena [data-arena-section="active"] { transform:rotate(0deg) scale(1); }
   .cmp-arena [data-arena-section="active"] .active-player-slot { min-width:200px; }
   /* Remove any CSS transform targeting the dock on mobile; JS sets precise centering */
   #active-player-card-slot[data-active-card-dock] { transform: none; }

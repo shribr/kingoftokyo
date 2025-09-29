@@ -1,4 +1,8 @@
-/** action-menu.component.js
+/** actionexport function build({ selector, emit }) {
+  const root = document.createElement('div');
+  root.id = 'action-menu';
+  root.className = 'action-menu-button cmp-action-menu';
+  root.setAttribute('data-draggable','true');u.component.js
  * MIGRATED: Legacy classes (.action-menu, .draggable, .btn) replaced.
  * Styles now sourced from css/components.action-menu.css + button tokens.
  * Pending: prune unused legacy .action-menu and draggable selectors.
@@ -10,7 +14,8 @@ import { createPositioningService } from '../../services/positioningService.js';
 
 export function build({ selector }) {
   const root = document.createElement('div');
-  root.className = selector.slice(1) + ' cmp-action-menu cmp-panel-root';
+  root.id = 'action-menu';
+  root.className = 'cmp-action-menu cmp-panel-root';
   root.setAttribute('data-am-root','true');
   root.setAttribute('data-panel','action-menu');
   root.setAttribute('data-draggable','true');
@@ -19,20 +24,129 @@ export function build({ selector }) {
   root.dataset.amDockState = 'docked'; // internal: docked | floating (for hybrid behavior)
   root.innerHTML = `
     <div class="am-label" aria-hidden="true">ACTIONS</div>
-    <button data-action="roll" class="k-btn k-btn--primary">ROLL</button>
-    <button data-action="keep" class="k-btn k-btn--secondary" disabled>KEEP ALL</button>
+    <button id="roll-btn" data-action="roll" class="k-btn k-btn--primary">ROLL</button>
+    <button id="keep-btn" data-action="keep" class="k-btn k-btn--secondary" disabled>KEEP ALL</button>
     <div class="power-cards-menu-container">
-      <button data-action="power-cards" class="k-btn k-btn--secondary power-cards-btn">
+      <button id="power-cards-btn" data-action="power-cards" class="k-btn k-btn--secondary power-cards-btn">
         <span class="arrow-left">◀</span>
         <span class="btn-text">POWER CARDS</span>
         <span class="arrow-right">▶</span>
       </button>
       <div class="power-cards-submenu" data-submenu hidden>
-        <button data-action="show-my-cards" class="k-btn k-btn--xs">MY CARDS</button>
-        <button data-action="flush" class="k-btn k-btn--xs" disabled>FLUSH CARDS (2⚡)</button>
+        <button id="show-my-cards-btn" data-action="show-my-cards" class="k-btn k-btn--xs">MY CARDS</button>
+        <button id="flush-btn" data-action="flush" class="k-btn k-btn--xs" disabled>FLUSH CARDS (2⚡)</button>
       </div>
     </div>
-    <button data-action="end" class="k-btn k-btn--secondary" disabled>END TURN</button>`;
+    <button id="end-turn-btn" data-action="end" class="k-btn k-btn--secondary" disabled>END TURN</button>`;
+  // Add mobile setup
+  const checkMobile = () => {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    const isMobileWidth = width <= 760;
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const isLandscapeMobile = (width <= 1024 && height <= 768 && isTouchDevice);
+    // Show mobile buttons when narrow OR touch device (matching CSS media query logic)
+    return isMobileWidth || isTouchDevice || (isLandscapeMobile && width < 900);
+  };
+  
+  const setupMobile = () => {
+    const isMobile = checkMobile();
+    
+    if (isMobile) {
+      // Hide the main action menu initially in mobile
+      root.style.display = 'none';
+      
+      // Mark as mobile mode and disable dragging
+      root._wasMobile = true;
+      root.setAttribute('data-draggable', 'false');
+      
+      // Remove any existing mobile toggle button first
+      const existingBtn = document.getElementById('action-menu-mobile-btn');
+      if (existingBtn) existingBtn.remove();
+      
+      const mobileBtn = document.createElement('div');
+      mobileBtn.id = 'action-menu-mobile-btn';
+      mobileBtn.className = 'action-menu-mobile-btn';
+      mobileBtn.innerHTML = '☰'; // Hamburger menu icon
+      mobileBtn.setAttribute('aria-label', 'Toggle Action Menu');
+      
+      // Set styles directly to ensure they apply
+      Object.assign(mobileBtn.style, {
+        position: 'fixed',
+        bottom: '20px',
+        left: 'calc(100vw - 70px)',
+        width: '50px',
+        height: '50px',
+        background: 'linear-gradient(135deg, #ffcf33 0%, #ffb300 100%)',
+        border: '3px solid #333',
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '24px',
+        cursor: 'pointer',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+        zIndex: '1500',
+        transition: 'transform 0.2s ease'
+      });
+      
+      document.body.appendChild(mobileBtn);
+      
+      // Toggle functionality
+      mobileBtn.addEventListener('click', () => {
+        const isVisible = root.style.display !== 'none';
+        
+        if (isVisible) {
+          // Hide menu
+          root.style.display = 'none';
+          mobileBtn.style.transform = 'scale(1)';
+        } else {
+          // Show menu directly above the mobile button, right-aligned
+          root.style.display = 'flex';
+          root.style.position = 'fixed';
+          root.style.bottom = '80px'; // Above the mobile button (20px + 50px + 10px gap)
+          root.style.right = '20px'; // Right-align with button's right edge
+          root.style.left = 'auto';
+          root.style.transform = 'none';
+          root.style.zIndex = '7000'; // Higher than monsters panel (1400)
+          root.setAttribute('data-draggable', 'false'); // Disable dragging in mobile
+          mobileBtn.style.transform = 'scale(0.9)';
+        }
+      });
+      
+      // Store reference for cleanup
+      root._mobileBtn = mobileBtn;
+
+    } else {
+      // Desktop: show the menu normally, remove mobile button, reset position
+      root.style.display = '';
+      root.style.position = '';
+      root.style.bottom = '';
+      root.style.left = '';
+      root.style.right = '';
+      root.style.transform = '';
+      root.style.zIndex = '';
+      root.setAttribute('data-draggable', 'true');
+      
+      // Reset to default desktop position
+      root.style.top = '';
+      root.style.right = '';
+      
+      // Re-enable dragging by re-initializing positioning service if needed
+      if (root._positioning && root._wasMobile) {
+        root._positioning.makeDraggable(root, 'actionMenu', { snapEdges: true, snapThreshold: 12 });
+        root._wasMobile = false;
+      }
+      
+      const existingBtn = document.getElementById('action-menu-mobile-btn');
+      if (existingBtn) existingBtn.remove();
+    }
+  };
+  
+  // Setup mobile immediately and on resize
+  setupMobile();
+  window.addEventListener('resize', setupMobile);
+
   root.addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-action]');
     if (!btn) return;
@@ -56,10 +170,8 @@ export function build({ selector }) {
           if (isHidden) {
             submenu.removeAttribute('hidden');
             updateSubmenuPosition(root);
-            console.log('Showing submenu');
           } else {
             submenu.setAttribute('hidden', '');
-            console.log('Hiding submenu');
           }
         } else {
           console.error('Submenu not found');
@@ -111,11 +223,20 @@ export function build({ selector }) {
   // Restore draggability & persisted position
   try {
     const positioning = createPositioningService(store);
+    root._positioning = positioning; // Store reference for mobile/desktop transitions
     positioning.hydrate();
     // Disable dragging on touch/mobile (coarse pointer) or narrow viewports
     const isTouch = matchMedia('(pointer: coarse)').matches || window.innerWidth <= 760;
     if (isTouch) {
       root.setAttribute('data-draggable','false');
+      // Force mobile positioning for action menu
+      root.style.position = 'fixed';
+      root.style.bottom = '20px';
+      root.style.left = '80%';
+      root.style.top = 'auto';
+      root.style.right = 'auto';
+      root.style.transform = 'none';
+
     }
     if (root.getAttribute('data-draggable') !== 'false') {
       // Remove bounds to allow dragging anywhere, including over the toolbar
@@ -144,6 +265,19 @@ export function build({ selector }) {
     });
     // Re-clamp on resize so it never drifts off-screen after viewport changes
     const clampIntoView = () => {
+      // Check if mobile mode should be applied
+      const isMobileNow = matchMedia('(pointer: coarse)').matches || window.innerWidth <= 760;
+      if (isMobileNow) {
+        // Force mobile positioning
+        root.style.position = 'fixed';
+        root.style.bottom = '5%';
+        root.style.left = '80%';
+        root.style.top = 'auto';
+        root.style.right = 'auto';
+        root.style.transform = 'none';
+        return;
+      }
+      
       const rect = root.getBoundingClientRect();
       const maxLeft = window.innerWidth - rect.width - 4;
       const maxTop = window.innerHeight - rect.height - 4;
@@ -206,7 +340,14 @@ export function build({ selector }) {
     });
   }
   
-  return { root, update: () => update(root), destroy: () => { root.remove(); } };
+    return { root, update: (props) => update(root, props), destroy: () => {
+    root._destroyExtras && root._destroyExtras();
+    if (root._mobileBtn) {
+      root._mobileBtn.remove();
+    }
+    window.removeEventListener('resize', setupMobile);
+    root.remove();
+  } };
 }
 
 // (legacy panels toggle removed)
@@ -442,7 +583,7 @@ function ensureVisibleWithinViewport(root) {
 // If overlapping (visually) with monsters panel on right side, nudge action menu left.
 function avoidMonsterPanelOverlap(root) {
   try {
-    const monsters = document.querySelector('.cmp-monsters-panel');
+    const monsters = document.getElementById('monsters-panel');
     if (!monsters) return;
     const rRect = root.getBoundingClientRect();
     const mRect = monsters.getBoundingClientRect();
@@ -466,7 +607,7 @@ function avoidMonsterPanelOverlap(root) {
 
 // Re-anchor near dice tray (used for docked mode and hybrid before user drag)
 function anchorActionMenu(root, initial=false) {
-  const toolbar = document.querySelector('.cmp-toolbar');
+  const toolbar = document.getElementById('toolbar-menu');
   const mode = store.getState().settings?.actionMenuMode || 'hybrid';
   if (root._userMoved && (mode === 'floating' || mode === 'hybrid')) return;
   if (!toolbar) {

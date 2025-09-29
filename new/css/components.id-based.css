@@ -1,0 +1,46 @@
+/** components.id-based.css
+ * ID-based styles for major unique UI components
+ * These styles supplement component CSS files with ID-specific responsive behavior
+ */
+
+/* Mobile-specific ID overrides - show buttons when narrow OR touch device */
+@media (max-width: 760px), (pointer: coarse) {
+  #dice-tray {
+    /* Mobile dice tray positioning and animation */
+    transition: left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  
+  /* Show mobile buttons when screen is narrow or touch device */
+  #dice-toggle-btn,
+  #action-menu-mobile-btn {
+    display: flex !important;
+    visibility: visible !important;
+  }
+}
+
+/* Desktop-specific ID styles - hide buttons only when wide screen AND not touch */
+@media (min-width: 761px) and (pointer: fine) {
+  /* Hide mobile buttons completely in true desktop mode */
+  #dice-toggle-btn,
+  #action-menu-mobile-btn {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+  
+  /* Desktop: show right arrow, hide left arrow */
+  #power-cards-btn .arrow-left {
+    opacity: 0 !important;
+  }
+  
+  #power-cards-btn .arrow-right {
+    opacity: 1 !important;
+  }
+  
+  /* Ensure action menu shows normally in desktop */
+  #action-menu {
+    display: flex !important;
+    position: static !important;
+    transform: none !important;
+  }
+}
