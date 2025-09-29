@@ -216,13 +216,15 @@ function renderRollNode(roll){
   return `<div class="adt-roll ${open?'is-open':''} ${isPre?'is-pre':''} ${isHuman?'is-human':'is-ai'}" data-roll-id="${roll.id}">
     <div class="adt-roll-header" data-roll-toggle data-roll-id="${roll.id}">
       <span class="caret ${open?'open':''}"></span>
-      <span class="faces">${roll.faces}${isPre?'<span class="pre-label">(pre)</span>':''}</span>
+  <span class="faces">${renderMiniDiceFaces(roll.faces)}${isPre?'<span class="pre-label">(pre)</span>':''}</span>
       <span class="origin-badge ${isHuman?'human':'ai'}" title="${isHuman?'Human':'AI'} turn">${isHuman?'H':'AI'}</span>
       <span class="score-badge">${roll.score}</span>
       ${renderTagsInline(roll.tags)}
     </div>
     <div class="adt-roll-body" ${open?'':'style="display:none"'}>
       ${concise? '' : `<div class="rationale">${escapeHTML(roll.rationale || '—')}</div>`}
+      ${renderKeptMask(roll)}
+      ${!concise && roll.english ? `<div class="english-expl">${escapeHTML(roll.english)}</div>`:''}
       ${!concise && roll.hypotheticals && roll.hypotheticals.length ? renderHypotheticals(roll.hypotheticals) : ''}
     </div>
   </div>`;
@@ -231,6 +233,30 @@ function renderRollNode(roll){
 function renderTagsInline(tags){
   if (!tags || !tags.length) return '<span class="tags empty">—</span>';
   return `<span class=\"tags\">${tags.map(t=>`<span class=\"tag\" data-tag=\"${t}\">${t}</span>`).join('')}</span>`;
+}
+
+function renderKeptMask(roll){
+  if (!roll.keptMask || !roll.keptMask.length) return '';
+  const faces = roll.faces ? roll.faces.split(',') : [];
+  const items = faces.map((f,i)=>{
+    const kept = !!roll.keptMask[i];
+    const isNum = f==='1'||f==='2'||f==='3';
+    const symbol = FACE_SYMBOLS[f] || f;
+    return `<span class="keep-die ${kept?'is-kept':''} face-${f} ${isNum?'is-num':'is-icon'}" title="${kept?'Kept':'Reroll candidate'}">${symbol}</span>`;
+  }).join('');
+  return `<div class="kept-line"><span class="keep-label">Kept:</span> ${items}</div>`;
+}
+
+// Mini dice visuals: numbers -> black text in white circle; icons (claw/heart/energy) no background
+const FACE_SYMBOLS = { '1': '1','2':'2','3':'3','claw':'🗡️','heart':'♥','energy':'⚡' };
+function renderMiniDiceFaces(facesStr) {
+  if (!facesStr) return '';
+  const faces = facesStr.split(',');
+  return `<span class="mini-dice-seq">${faces.map(f => {
+    const isNum = f === '1' || f === '2' || f === '3';
+    const cls = `mini-die face-${f} ${isNum? 'is-num':'is-icon'}`;
+    return `<span class="${cls}">${FACE_SYMBOLS[f]||f}</span>`;
+  }).join('')}</span>`;
 }
 
 function renderHypotheticals(list){

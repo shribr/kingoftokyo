@@ -8,6 +8,7 @@ import { selectActivePlayerId, selectTokyoOccupants } from '../core/selectors.js
 import { diceToggleKeep, DICE_ROLL_STARTED, DICE_ROLLED, DICE_REROLL_USED, PHASE_CHANGED, DICE_ROLL_RESOLVED } from '../core/actions.js';
 import { purchaseCard, flushShop } from './cardsService.js';
 import { DICE_ANIM_MS, AI_POST_ANIM_DELAY_MS } from '../constants/uiTimings.js';
+import { logAppended } from '../core/actions.js';
 
 let latestTree = { rounds: [] };
 let lastRollNodeId = null;
@@ -65,6 +66,7 @@ function captureRoll(state, facesStr, extraMeta) {
   const player = activeId ? state.players.byId[activeId] : null;
   const isCpu = !!(player && (player.isCPU || player.isAi || player.isAI || player.type === 'ai'));
   const playerName = player?.name || player?.displayName || player?.id || activeId || 'Unknown';
+  const keptMask = Array.isArray(faces) ? faces.map(f => !!f.kept) : [];
   const node = {
     id: nextNodeId++,
     faces: facesStr,
@@ -75,17 +77,40 @@ function captureRoll(state, facesStr, extraMeta) {
     hypotheticals: generateHypotheticals(state, faces, activeId),
     playerId: activeId,
     playerName,
-    isCpu
+    isCpu,
+    keptMask,
+    english: analysis.english
   };
   turnNode.rolls.push(node);
   if (extraMeta?.stage === 'post') {
     lastRollNodeId = node.id;
   }
+  // Emit unified log entry (both AI and human) for parity & analysis
+  try {
+    const entry = {
+      id: node.id + 100000, // offset to avoid id collision with other log systems
+      ts: Date.now(),
+      round,
+      turn,
+      kind: 'dice',
+      playerId: activeId,
+      player: playerName,
+      isCpu,
+      stage: node.stage,
+      faces: faces.map(f => f.value),
+      keptPattern: faces.map(f => (f.kept? '1':'0')).join(''),
+      message: `${isCpu? 'CPU':'Player'} ${playerName} ${node.stage==='pre'?'prepped':'rolled'} [${faces.map(f=>f.value+(f.kept?'*':'')).join(',')}]`,
+    };
+    // Only append post stage to reduce noise unless verbose AI debugging wanted
+    if (node.stage !== 'pre') {
+      state._store?.dispatch ? state._store.dispatch(logAppended(entry)) : (window.__KOT_NEW__?.store?.dispatch && window.__KOT_NEW__.store.dispatch(logAppended(entry)));
+    }
+  } catch(_) {}
   eventBus.emit('ai/tree/updated', {});
 }
 
 function analyzeFaces(faces, state, activeId) {
-  if (!faces || !faces.length) return { score: 0, rationale: 'No dice yet', tags: [] };
+  if (!faces || !faces.length) return { score: 0, rationale: 'No dice yet', tags: [], english: 'No dice rolled yet.' };
   const t = tallyFaces(faces);
   const triples = extractTriples(t);
   let score = 0;
@@ -115,7 +140,18 @@ function analyzeFaces(faces, state, activeId) {
       if (t[num] === 2) { const pv = (Number(num) * 0.4); score += pv; parts.push(`Potential ${num}${pv.toFixed(2)}`); tags.push('potential'); }
     });
   }
-  return { score, rationale: parts.join(' | ') || 'Neutral roll', tags };
+  // Build simplified English explanation
+  const englishBits = [];
+  if (t.claw) englishBits.push(`${t.claw} claw${t.claw>1?'s':''} for attack pressure`);
+  if (t.energy) englishBits.push(`${t.energy} energy for future cards`);
+  if (t.heart && (state.players.byId[activeId]?.health ?? 10) < 6 && !state.players.byId[activeId]?.inTokyo) englishBits.push(`${t.heart} heart${t.heart>1?'s':''} to heal`);
+  if (triples.length) {
+    triples.forEach(tr => englishBits.push(`triple ${tr.number}${tr.count>3?` (plus ${tr.count-3} extra)`:''}`));
+  } else {
+    ['1','2','3'].forEach(num => { if (t[num] === 2) englishBits.push(`pair of ${num}s (chasing triple)`); });
+  }
+  const english = englishBits.length ? englishBits.join(', ') : 'Neutral mix of faces';
+  return { score, rationale: parts.join(' | ') || 'Neutral roll', tags, english };
 }
 
 // Decide which dice to keep after a roll (basic heuristic):
@@ -188,6 +224,27 @@ function scheduleAIAutoKeep(store) {
       autoKeepHeuristic(store);
     } catch(_) { /* noop */ }
   }, DICE_ANIM_MS + AI_POST_ANIM_DELAY_MS);
+}
+
+// Immediate safeguard: if AI timer race causes no keeps before reroll evaluation, invoke heuristic now.
+export function forceAIDiceKeepIfPending(store) {
+  try {
+    const st = store.getState();
+    if (st.phase !== 'ROLL') return false;
+    const activeId = selectActivePlayerId(st);
+    if (!activeId) return false;
+    const player = st.players.byId[activeId];
+    const isCpu = !!(player && (player.isCPU || player.isAi || player.isAI || player.type === 'ai'));
+    if (!isCpu) return false;
+    if (st.dice.phase !== 'resolved') return false;
+    const anyKept = (st.dice.faces||[]).some(f=> f.kept);
+    if (anyKept) return false; // heuristic already acted or nothing to keep intentionally
+    if (st.dice.rerollsRemaining > 0) {
+      autoKeepHeuristic(store);
+      return true;
+    }
+  } catch(_) {}
+  return false;
 }
 
 function cancelPendingAIKeep() {

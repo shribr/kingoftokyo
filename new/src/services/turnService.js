@@ -7,6 +7,7 @@
  *   resolve() -> applies dice effects, checks win, then enters BUY -> CLEANUP -> next turn
  */
 import { phaseChanged, nextTurn, diceRollStarted, diceRolled, diceRerollUsed, playerEnteredTokyo, tokyoOccupantSet, playerVPGained, uiVPFlash, diceRollResolved } from '../core/actions.js';
+import { forceAIDiceKeepIfPending } from './aiDecisionService.js';
 import { Phases } from '../core/phaseFSM.js';
 import { rollDice } from '../domain/dice.js';
 import { resolveDice, awardStartOfTurnTokyoVP, checkGameOver } from './resolutionService.js';
@@ -38,6 +39,37 @@ function waitUnlessPaused(store, ms) {
     };
     checkPause();
   });
+}
+
+// --- CPU WATCHDOG ----------------------------------------------------------
+// Helps prevent stalls where CPU never advances (e.g., missed heuristic, dice phase stuck).
+const cpuTurnWatchdogs = new Map(); // key: turnCycleId -> timer
+function scheduleCpuWatchdog(store, turnCycleId, label) {
+  if (cpuTurnWatchdogs.has(turnCycleId)) {
+    try { clearTimeout(cpuTurnWatchdogs.get(turnCycleId)); } catch(_) {}
+  }
+  const id = setTimeout(() => {
+    cpuTurnWatchdogs.delete(turnCycleId);
+    try {
+      const st = store.getState();
+      if (st.meta.turnCycleId !== turnCycleId) return; // different turn now
+      if (st.phase === 'ROLL') {
+        const dice = st.dice;
+        const facesStr = (dice.faces||[]).map(f=> f.value + (f.kept?'*':'')).join(',');
+        console.warn(`🛠 CPU Watchdog (${label}) firing: phase=ROLL dicePhase=${dice.phase} rerolls=${dice.rerollsRemaining} faces=[${facesStr}] -> forcing resolution.`);
+        // Force resolution path
+        try { store.dispatch(diceRollResolved()); } catch(_) {}
+        try { resolve(); } catch(err) { console.error('⚠️ CPU Watchdog resolve() error', err); }
+      }
+    } catch(err) { console.error('CPU Watchdog internal error', err); }
+  }, 5000); // 5s idle threshold
+  cpuTurnWatchdogs.set(turnCycleId, id);
+}
+function clearCpuWatchdog(turnCycleId) {
+  if (cpuTurnWatchdogs.has(turnCycleId)) {
+    try { clearTimeout(cpuTurnWatchdogs.get(turnCycleId)); } catch(_) {}
+    cpuTurnWatchdogs.delete(turnCycleId);
+  }
 }
 
 export function createTurnService(store, logger, rng = Math.random) {
@@ -98,7 +130,7 @@ export function createTurnService(store, logger, rng = Math.random) {
           waitUnlessPaused(store, CPU_TURN_START_MS).then(() => {
             const currentState = store.getState();
             // Double-check we're still in the right state and not paused
-            if (currentState.phase?.current === 'ROLL' && !currentState.game?.isPaused) {
+            if (currentState.phase === 'ROLL' && !currentState.game?.isPaused) {
               playCpuTurn(activeId);
             }
           });
@@ -235,11 +267,21 @@ export function createTurnService(store, logger, rng = Math.random) {
    * performs rerolls while there are unkept dice and rerolls remain, then resolves the dice.
    * Uses pacing based on settings.cpuSpeed.
    */
-  async function playCpuTurn() {
+  async function playCpuTurn(forcedActiveId = null) {
     // Initial roll
-    console.log('🤖 CPU Turn: Starting with initial roll');
-  const startingCycle = store.getState().meta.turnCycleId;
+    const _st0 = store.getState();
+    const activeOrder = _st0.players.order;
+    const activeIdx = _st0.meta.activePlayerIndex % (activeOrder.length || 1);
+    const activeId = forcedActiveId || activeOrder[activeIdx];
+    console.log('🤖 CPU Turn: Starting with initial roll for', activeId, 'phase=', _st0.phase, 'dicePhase=', _st0.dice.phase);
+    if (_st0.phase !== 'ROLL') {
+      console.warn('⚠️ Aborting CPU turn start: phase is not ROLL');
+      return;
+    }
+  const startingCycle = _st0.meta.turnCycleId;
+  scheduleCpuWatchdog(store, startingCycle, 'post-initial');
   await performRoll();
+  scheduleCpuWatchdog(store, startingCycle, 'after-initial-roll');
     
     // Safety counter to prevent infinite rerolls (max 3 total rolls: initial + 2 rerolls)
     let rollsCompleted = 1;
@@ -286,14 +328,20 @@ export function createTurnService(store, logger, rng = Math.random) {
       // Small extra pacing to allow AI keep scheduling to fire (dice-tray anim + post-anim delay)
       await waitUnlessPaused(store, DICE_ANIM_MS + AI_POST_ANIM_DELAY_MS);
       
-      const anyUnkept = (currentDice.faces || []).some(f => f && !f.kept);
-      console.log(`🤖 CPU Turn: Unkept dice found: ${anyUnkept}`);
+      // Attempt safeguard keep if heuristic timer hasn't fired yet
+      const forced = forceAIDiceKeepIfPending(store);
+      if (forced) {
+        console.log('🤖 CPU Turn: Forced keep heuristic applied to avoid empty reroll.');
+      }
+      const anyUnkept = (store.getState().dice.faces || []).some(f => f && !f.kept);
+      console.log(`🤖 CPU Turn: Unkept dice found: ${anyUnkept} (forcedKeep=${forced})`);
       
       // Only reroll if we have rerolls remaining AND there are unkept dice
       if (currentDice.rerollsRemaining > 0 && anyUnkept) {
         console.log(`🤖 CPU Turn: Performing reroll ${rollsCompleted + 1}`);
         await reroll();
         rollsCompleted++;
+        scheduleCpuWatchdog(store, startingCycle, `after-reroll-${rollsCompleted}`);
         continue;
       }
       
@@ -306,10 +354,20 @@ export function createTurnService(store, logger, rng = Math.random) {
     }
     // Resolve outcomes and advance the game
     console.log('🤖 CPU Turn: Starting resolution phase');
-    // Mark dice rolling fully resolved before moving phases (FSM event style)
     store.dispatch(diceRollResolved());
-    await resolve();
-    console.log('🤖 CPU Turn: Resolution complete');
+    const afterResolve = store.getState();
+    if (afterResolve.phase === 'ROLL') {
+      console.warn('⚠️ CPU Turn: Phase still ROLL after diceRollResolved dispatch (expected RESOLVE). Forcing phase change.');
+      store.dispatch(phaseChanged(Phases.RESOLVE));
+    }
+    clearCpuWatchdog(startingCycle);
+    try {
+      await resolve();
+      console.log('🤖 CPU Turn: Resolution complete');
+    } catch(err) {
+      console.error('🚨 CPU Turn: Error during resolve()', err);
+      try { store.dispatch(phaseChanged(Phases.BUY)); } catch(_) {}
+    }
   }
 
   return { startGameIfNeeded, startTurn, performRoll, reroll, resolve, cleanup, endTurn, playCpuTurn };
