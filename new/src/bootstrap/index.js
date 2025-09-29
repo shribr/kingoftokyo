@@ -6,6 +6,7 @@ import { diceReducer } from '../core/reducers/dice.reducer.js';
 import { playersReducer } from '../core/reducers/players.reducer.js';
 import { mountRoot } from '../ui/mountRoot.js';
 import { bindUIEventBridges } from '../ui/eventsToActions.js';
+import { bindUIEventAdapters } from '../ui/eventAdapters.js';
 import { playerJoined, phaseChanged, uiSplashHide, uiMonsterSelectionClose, monstersLoaded, uiRollForFirstOpen } from '../core/actions.js';
 import { phaseReducer } from '../core/reducers/phase.reducer.js';
 import { logReducer } from '../core/reducers/log.reducer.js';
@@ -90,6 +91,7 @@ if (typeof window !== 'undefined') {
   bindSettingsPersistence(store);
   bindAIDecisionCapture(store);
   bindUIEventBridges(store);
+  bindUIEventAdapters(store);
   bindA11yOverlays(store);
   
   // Initialize enhanced UI integration (unified modals, dialogs, themes)

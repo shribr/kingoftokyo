@@ -1,5 +1,6 @@
 /** roll-for-first.component.js */
 import { phaseChanged, metaActivePlayerSet, uiRollForFirstResolved } from '../../core/actions.js';
+import { eventBus } from '../../core/eventBus.js';
 
 export function build({ selector, dispatch, getState }) {
   const root = document.createElement('div');
@@ -348,7 +349,7 @@ function skipAndAssign(dispatch, getState, root) {
   const idx = Math.floor(Math.random()*order.length);
   dispatch(metaActivePlayerSet(idx));
   dispatch(uiRollForFirstResolved());
-  if (st.phase === 'SETUP') dispatch(phaseChanged('ROLL'));
+    if (st.phase === 'SETUP') eventBus.emit('ui/intent/gameStart');
   hide(root);
 }
 
@@ -437,7 +438,7 @@ function finalizeAndStartGame(dispatch, getState, root) {
   try { if (stObj._countdownTimer) { clearInterval(stObj._countdownTimer); stObj._countdownTimer = null; } } catch(_) {}
   dispatch(uiRollForFirstResolved());
   const st = getState();
-  if (st.phase === 'SETUP') dispatch(phaseChanged('ROLL'));
+    if (st.phase === 'SETUP') eventBus.emit('ui/intent/gameStart');
   hide(root);
   // Aggressive blackout cleanup: hide via controller and remove the node if still present
   try { window.__KOT_BLACKOUT__?.hide(); } catch(_) {}

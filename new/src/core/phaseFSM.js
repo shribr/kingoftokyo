@@ -46,6 +46,9 @@ export function assertTransition(current, next) {
 // Optional event-driven mapping (not fully used yet)
 export function nextForEvent(current, event) {
   switch (current) {
+    case Phases.SETUP:
+      if (event === 'GAME_START') return Phases.ROLL;
+      break;
     case Phases.ROLL:
       if (event === 'DICE_ROLL_RESOLVED') return Phases.RESOLVE;
       if (event === 'ROLL_COMPLETE') return Phases.RESOLVE; // alias event from turnService
@@ -70,6 +73,7 @@ export function nextForEvent(current, event) {
       break;
     case Phases.CLEANUP:
       if (event === 'TURN_READY') return Phases.ROLL;
+      if (event === 'TURN_START') return Phases.ROLL; // alias intent
       break;
     case Phases.GAME_OVER:
       // No outgoing transitions; allow alias event check for clarity

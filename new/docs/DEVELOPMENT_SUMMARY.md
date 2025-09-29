@@ -355,3 +355,61 @@ refactor(cardsService): modularize peek and flush flows
 ---
 
 End of update (September 24, 2025 Increment).
+
+---
+
+## Increment Update (September 29, 2025)
+
+### Scope of This Increment
+Focus on architectural foundations that will allow rapid port / reuse of advanced scenario + deterministic debugging work currently stabilized in the legacy path. This update documents: event intent pipeline design (planned for rewrite integration), forthcoming scenario system shape, and concrete next action items scoped strictly to `new/`.
+
+### Architectural Direction Alignment
+| Pillar | Legacy Implementation (Current) | Rewrite Target (Planned Adaptation) | Status |
+|--------|----------------------------------|--------------------------------------|--------|
+| Phase Transitions | Direct service + scattered UI triggers | Unified UI intent → adapter → phase event → FSM | Design finalized (implementation pending) |
+| Scenario Engine | Mature (assignments, params, seeding) | Modular slice + service injection for reproducible setup states | Interface spec drafted |
+| Deterministic Tools | Per-scenario seeded card grant | Global RNG facade (dice + cards + AI) | RNG abstraction spec queued |
+| Snapshot Persistence | Last scenario snapshot in localStorage | Generalized state serializer (pluggable filters) | Serializer strategy outlined |
+
+### Planned Rewrite Integrations (Derived from Legacy Enhancements)
+1. UI Intents Layer: Introduce `eventBus.emit('ui/intent/...')` endpoints for game start, finish roll, yield decision, buy window close, next turn start.
+2. Phase Event Service: Thin translation to FSM events (ensures test harness can inject events without DOM coupling).
+3. Scenario Slice (Prototype):
+  - Shape: `{ assignments: [], activeParams: {}, lastAppliedHash: null, schemaVersion: 1 }`
+  - Actions: `queueAssignment`, `applyAssignments`, `clearAssignments`.
+4. RNG Facade: `rng.js` exporting deterministic-seedable PRNG with pluggable algorithm (Mulberry32 baseline) + method mapping: `nextFloat()`, `shuffle(array)`, `int(max)`.
+5. Deterministic Mode Toggle: Settings slice flag `settings.debug.deterministicSeed` → seeds RNG at bootstrap + logs seed banner.
+6. Test Harness Expansion: Add adapter spec mirroring legacy test to validate `GAME_START` → `ROLL` mapping once FSM stub lands.
+
+### New Documentation Artifacts (To Be Added Next Increment)
+| Doc | Purpose | Location |
+|-----|---------|----------|
+| `EVENT_ARCHITECTURE.md` | Formal contract for intents → events → FSM flow | `new/docs/` |
+| `SCENARIO_SYSTEM_SPEC.md` | Data model + parameter schema + seeding rules | `new/docs/` |
+| `RNG_DESIGN.md` | Deterministic RNG abstraction + extension points | `new/docs/` |
+
+### Immediate Action Checklist (Rewrite Path Only)
+- [ ] Introduce `ui/intents.js` skeleton with exported emit helpers.
+- [ ] Create `services/phaseEventsService.js` placeholder referencing planned FSM.
+- [ ] Draft minimal `core/phaseFSM.js` (SETUP → ROLL → RESOLVE → BUY → CLEANUP cycle) without advanced branching.
+- [ ] Add test: `event_adapters.rewrite.spec.js` validating `GAME_START` progression.
+- [ ] Add `rng.js` with seed injection (no consumers yet).
+
+### Risk & Mitigation
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| Divergence grows between legacy & rewrite event semantics | Higher port friction later | Land intents + FSM skeleton early (this coming cycle) |
+| Scenario system port delayed | Reduced ability to fast-forward test states | Implement minimal stub that logs unimplemented apply operations |
+| Deterministic mode introduces hidden coupling | Non-reproducible fallback states | Centralize all randomness through facade; CI test asserts identical run hashes |
+
+### Metrics Goals for Next Increment
+| Metric | Target |
+|--------|--------|
+| Event-driven transition coverage | ≥ 60% of phase changes via intents in rewrite |
+| RNG centralization | 100% of dice rolls routed through facade |
+| Test additions | ≥ 2 new specs (event adapter + RNG determinism) |
+
+### Forward-Looking Notes
+Once intents & RNG land, scenario engine port becomes mostly a matter of mapping existing assignment + param schema logic, enabling rapid parity leaps without reintroducing coupling. The rewrite will then support deterministic integration tests to validate parity against legacy snapshots.
+
+End of update (September 29, 2025 Increment).

@@ -6,7 +6,10 @@ import { settingsReducer } from '../core/reducers/settings.reducer.js';
 import { diceReducer } from '../core/reducers/dice.reducer.js';
 import { playersReducer } from '../core/reducers/players.reducer.js';
 import { createLogger } from '../services/logger.js';
-import { playerJoined, phaseChanged, diceRollStarted, diceRolled } from '../core/actions.js';
+import { playerJoined, diceRollStarted, diceRolled } from '../core/actions.js';
+import { eventBus } from '../core/eventBus.js';
+import { createPhaseEventsService } from '../services/phaseEventsService.js';
+import { Phases } from '../core/phaseFSM.js';
 import { createPlayer } from '../domain/player.js';
 import { bindAIDecisionCapture, getAIDecisionTree } from '../services/aiDecisionService.js';
 
@@ -22,14 +25,18 @@ describe('logger semantic + AI decision heuristic', () => {
       dice: diceReducer,
       players: playersReducer
     });
-    const store = createStore(root, { phase: 'ROLL' });
+  const store = createStore(root, { phase: Phases.SETUP });
     const logger = createLogger(store);
+  // Inject phaseEventsService for adapter use
+  const svc = createPhaseEventsService(store, logger);
+  if (typeof window !== 'undefined') window.__KOT_NEW__ = { phaseEventsService: svc };
+  // Start game via intent
+  eventBus.emit('ui/intent/gameStart');
     bindAIDecisionCapture(store);
     // Seed players
     store.dispatch(playerJoined(createPlayer({ id: 'p1', name: 'Alpha', monsterId: 'king' })));
     store.dispatch(playerJoined(createPlayer({ id: 'p2', name: 'Beta', monsterId: 'alien' })));
-    logger.system('Phase: ROLL', { kind: 'phase' });
-    store.dispatch(phaseChanged('ROLL'));
+  logger.system('Phase: ROLL', { kind: 'phase' });
     // Simulate a roll lifecycle
     store.dispatch(diceRollStarted());
     store.dispatch(diceRolled([{ value:'claw', kept:false },{ value:'energy', kept:false },{ value:'1', kept:false }]));

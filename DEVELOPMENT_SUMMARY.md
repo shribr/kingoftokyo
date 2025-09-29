@@ -380,3 +380,86 @@ refactor(cardsService): modularize peek and flush flows
 ---
 
 End of update (September 24, 2025 Increment).
+
+---
+
+## Increment Update (September 29, 2025)
+
+### Highlights Added Since Previous Summary
+| Area | Added / Changed | Impact |
+|------|-----------------|--------|
+| Scenario System | Centralized Scenarios tab in unified settings modal; removed legacy side panel | Cleaner UX, single source of truth |
+| Scenario Targeting | New normalized assignment model `{ mode: HUMAN|CPUS|BOTH, cpuCount, scenarioIds, paramsByScenario }` replacing ad-hoc multi-target arrays | Simplifies application + extensibility |
+| Scenario Parameters | Per-scenario param schemas (VP targets, Energy minimums, Health, Seed, etc.) with dynamic parameter panel UI | Rapid state setup customization |
+| Deterministic Seeding | Seed parameter for POWER_LOADED scenario (Mulberry32 RNG) | Reproducible debug + test conditions |
+| Scenario Toast | Post-application banner (labels, not raw IDs) confirming applied scenarios | Immediate operator feedback |
+| Snapshot Persistence | Auto-persist latest scenario snapshot to `localStorage` (`KOT_LAST_SCENARIO_SNAPSHOT`) on unload | Enables iterative scenario loops |
+| Phase Event Layer | Introduced UI intent → adapter → phaseEventsService pipeline (GAME_START, ROLL_COMPLETE, TURN_START, BUY_WINDOW_CLOSED, YIELD_DECISION_MADE) | Decouples UI from direct phase mutations |
+| FSM Extensions | Added event handling for `GAME_START` (SETUP→ROLL) and alias `TURN_START` (CLEANUP→ROLL) | Explicit semantic transitions |
+| Component Refactors | Action Menu & Roll-For-First now emit UI intents instead of dispatching `phaseChanged` | Consistent transition semantics |
+| Test Updates | New `event_adapters.spec.js` + migrated existing specs to intent-based phase changes | Foundation for broader event-driven test coverage |
+
+### Scenario System – Current Shape
+Assignments are now minimal & explicit. Example persisted object:
+```json
+{
+  "mode": "BOTH",
+  "cpuCount": 3,
+  "scenarioIds": ["almostWin","burstResources"],
+  "paramsByScenario": {
+    "almostWin": { "vpTarget": 18 },
+    "burstResources": { "vpTarget": 15, "energyTarget": 12 }
+  }
+}
+```
+Legacy shapes (`target`, `targets`) are normalized at runtime (pending back-save migration for hygiene).
+
+### Event / Phase Architecture – Updated Flow
+1. UI component emits intent via `eventBus` (e.g., `ui/intent/finishRoll`).
+2. `ui/eventAdapters.js` maps intent → semantic phase event (ROLL_COMPLETE).
+3. `phaseEventsService.publish` consults FSM (`nextForEvent`) to derive next phase.
+4. Reducers update; logger records structured event.
+
+Benefits: testable, introspectable transitions; future instrumentation (timeline overlays) becomes trivial.
+
+### Determinism Roadmap
+Implemented: per-scenario seeded card distribution (POWER_LOADED).  
+Planned: global deterministic seed (dice + card shuffles + AI branching) via centralized RNG facade (`rng.ts/js`).
+
+### Revised Technical Debt & Opportunities (Delta Focus)
+| Item | Status | Planned Action |
+|------|--------|----------------|
+| Mixed direct `phaseChanged` in services | Still present in some service fallbacks | Replace with publish(eventName) wrappers (introduce missing event constants where needed) |
+| Scenario assignment normalization not persisted | Runtime-only | One-time migration pass on settings load + version flag |
+| Deterministic dice not yet implemented | Pending | Introduce `settings.debug.deterministicSeed` and wrap RNG |
+| CPU subset always first N | Non-random | Add optional random or seeded selection |
+| Lack of event timeline | Missing | Lightweight overlay (buffer last N events) for debugging deadlocks |
+| Limited test coverage for BUY_WAIT & YIELD paths | Partial | Add integration spec simulating full turn cycle with branching |
+
+### Updated Priority Roadmap (High → Medium)
+1. Full service migration to phase events (remove remaining raw `phaseChanged`).
+2. Global deterministic seed (dice + card RNG) for reproducible AI + scenario tests.
+3. Persist normalized scenario assignments & bump `scenarioSchemaVersion`.
+4. Random (optionally seeded) CPU subset selection when `cpuCount < total`.
+5. Add scenario parameter & seeded reproducibility tests.
+6. Integration test: 2 full turns via intents including YIELD_DECISION and BUY_WAIT branch.
+7. Phase event timeline overlay (dev tool).
+8. Snapshot diff utility (compare pre/post scenario application slices).
+9. Accessibility pass: toast `aria-live`, keyboard dismiss, parameter form labels improvement.
+
+### Quick Wins Already Enabled by Current Refactors
+- Deterministic RNG hook insertion (central spot now available in dice + scenario flows).
+- Scenario bundles (future) can reuse existing assignment shape verbatim.
+- Telemetry / analytics (phase event stream) easily attachable without touching UI components.
+
+### Suggested Near-Term Acceptance Targets
+| Target | Success Metric |
+|--------|----------------|
+| Event purity | 0 direct `phaseChanged` outside phaseEventsService & tests |
+| Deterministic mode | Two consecutive seeded runs produce identical dice + applied card sets |
+| Scenario hygiene | All persisted assignments have `mode` & `cpuCount` fields after load |
+| CPU selection variance | Distribution of selected CPUs uniform over 100 runs (no bias to order start) |
+| Param tests | All param-driven scenario tests green; clamp logic covered |
+
+---
+End of update (September 29, 2025 Increment).

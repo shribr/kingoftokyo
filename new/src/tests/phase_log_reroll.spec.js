@@ -2,16 +2,20 @@ import { createStore, combineReducers } from '../core/store.js';
 import { phaseReducer } from '../core/reducers/phase.reducer.js';
 import { logReducer } from '../core/reducers/log.reducer.js';
 import { diceReducer } from '../core/reducers/dice.reducer.js';
-import { phaseChanged, logAppended, diceRollStarted, diceRolled, diceRerollUsed } from '../core/actions.js';
+import { logAppended, diceRollStarted, diceRolled, diceRerollUsed } from '../core/actions.js';
+import { eventBus } from '../core/eventBus.js';
+import { createPhaseEventsService } from '../services/phaseEventsService.js';
+import { Phases } from '../core/phaseFSM.js';
 
 function assert(condition, msg){ if(!condition) throw new Error(msg); }
 
 export function testPhaseLogReroll() {
   const root = combineReducers({ phase: phaseReducer, log: logReducer, dice: diceReducer });
-  const store = createStore(root, { phase: 'SETUP', log: { entries: [] }, dice: { faces: [], rerollsRemaining: 0, phase: 'idle' } });
-
-  store.dispatch(phaseChanged('ROLL'));
-  assert(store.getState().phase === 'ROLL', 'Phase should change to ROLL');
+  const store = createStore(root, { phase: Phases.SETUP, log: { entries: [] }, dice: { faces: [], rerollsRemaining: 0, phase: 'idle' } });
+  const svc = createPhaseEventsService(store, { system:()=>{}, debug:()=>{} });
+  if (typeof window !== 'undefined') window.__KOT_NEW__ = { phaseEventsService: svc };
+  eventBus.emit('ui/intent/gameStart');
+  assert(store.getState().phase === Phases.ROLL, 'Phase should change to ROLL via intent');
 
   // Log append
   store.dispatch(logAppended({ id:1, ts:Date.now(), type:'info', message:'Test', meta:{} }));

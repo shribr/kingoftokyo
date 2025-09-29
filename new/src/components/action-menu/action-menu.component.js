@@ -1,15 +1,12 @@
-/** actionexport function build({ selector, emit }) {
-  const root = document.createElement('div');
-  root.id = 'action-menu';
-  root.className = 'action-menu-button cmp-action-menu';
-  root.setAttribute('data-draggable','true');u.component.js
+/**
+ * Action Menu Component
  * MIGRATED: Legacy classes (.action-menu, .draggable, .btn) replaced.
  * Styles now sourced from css/components.action-menu.css + button tokens.
  * Pending: prune unused legacy .action-menu and draggable selectors.
  */
 import { eventBus } from '../../core/eventBus.js';
 import { store } from '../../bootstrap/index.js';
-import { phaseChanged, nextTurn, diceSetAllKept } from '../../core/actions.js';
+import { nextTurn, diceSetAllKept } from '../../core/actions.js';
 import { createPositioningService } from '../../services/positioningService.js';
 
 export function build({ selector }) {
@@ -246,8 +243,13 @@ export function build({ selector }) {
           }
         } else {
           // Fallback: advance minimally
-          if (phase === 'ROLL') store.dispatch(phaseChanged('RESOLVE'));
-          else { store.dispatch(nextTurn()); store.dispatch(phaseChanged('ROLL')); }
+          if (phase === 'ROLL') {
+            eventBus.emit('ui/intent/finishRoll');
+          } else {
+            // For post-roll phases we still rely on turnService to drive transitions; nextTurn fallback only
+            store.dispatch(nextTurn());
+            eventBus.emit('ui/intent/gameStart');
+          }
         }
         break; }
       // legacy panels toggle removed
