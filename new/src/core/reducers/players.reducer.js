@@ -32,6 +32,7 @@ export function playersReducer(state = initial, action) {
       const existing = state.byId[playerId];
       if (!existing) return state;
       const updated = addEnergy(existing, amount);
+      console.log(`⚡ REDUCER: ${existing.name} gained ${amount} energy (${existing.energy} -> ${updated.energy})`);
       return { ...state, byId: { ...state.byId, [playerId]: updated } };
     }
     case PLAYER_SPENT_ENERGY: {
@@ -68,6 +69,7 @@ export function playersReducer(state = initial, action) {
       const existing = state.byId[playerId];
       if (!existing || !amount) return state;
       const updated = addVictoryPoints(existing, amount);
+      console.log(`🏆 REDUCER: ${existing.name} gained ${amount} VP (${existing.victoryPoints} -> ${updated.victoryPoints})`);
       return { ...state, byId: { ...state.byId, [playerId]: updated } };
     }
     default:

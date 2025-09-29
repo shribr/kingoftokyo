@@ -227,24 +227,26 @@ if (typeof window !== 'undefined') {
       if (!now) return;
       const cardEl = document.querySelector(`.cmp-player-profile-card[data-player-id="${id}"]`);
       if (!cardEl) return;
-      if (prev && !prev.inTokyo && now.inTokyo) {
-        cardEl.setAttribute('data-entered-tokyo','1');
-        setTimeout(()=>cardEl.removeAttribute('data-entered-tokyo'),1400);
-      }
-      if (prev) {
-        if (now.vp > prev.vp) {
-          cardEl.setAttribute('data-vp-gain','1');
-          setTimeout(()=>cardEl.removeAttribute('data-vp-gain'),1000);
-        }
-        if (now.energy > prev.energy) {
-          cardEl.setAttribute('data-energy-gain','1');
-          setTimeout(()=>cardEl.removeAttribute('data-energy-gain'),1000);
-        }
-        if (now.health > prev.health) {
-          cardEl.setAttribute('data-health-gain','1');
-          setTimeout(()=>cardEl.removeAttribute('data-health-gain'),1000);
-        }
-      }
+      // Tokyo animation handled by player-profile-card component itself
+      // if (prev && !prev.inTokyo && now.inTokyo) {
+      //   cardEl.setAttribute('data-entered-tokyo','1');
+      //   setTimeout(()=>cardEl.removeAttribute('data-entered-tokyo'),1400);
+      // }
+      // VP, energy, and health gain animations handled by player-profile-card component itself
+      // if (prev) {
+      //   if (now.vp > prev.vp) {
+      //     cardEl.setAttribute('data-vp-gain','1');
+      //     setTimeout(()=>cardEl.removeAttribute('data-vp-gain'),1000);
+      //   }
+      //   if (now.energy > prev.energy) {
+      //     cardEl.setAttribute('data-energy-gain','1');
+      //     setTimeout(()=>cardEl.removeAttribute('data-energy-gain'),1000);
+      //   }
+      //   if (now.health > prev.health) {
+      //     cardEl.setAttribute('data-health-gain','1');
+      //     setTimeout(()=>cardEl.removeAttribute('data-health-gain'),1000);
+      //   }
+      // }
     });
     prevPlayers = cur;
   });

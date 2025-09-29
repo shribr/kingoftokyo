@@ -122,7 +122,10 @@ function autoKeepHeuristic(store) {
   const isCpu = !!(player.isCPU || player.isAi || player.isAI || player.type === 'ai');
   if (!isCpu) return;
   // Only act if there are rerolls remaining (skip final roll)
-  if (state.dice.rerollsRemaining <= 0) return;
+  if (state.dice.rerollsRemaining <= 0) {
+    console.log('🤖 AI: Skipping dice selection - no rerolls remaining (final roll)');
+    return;
+  }
   const faces = state.dice.faces;
   const tally = tallyFaces(faces);
   const occupants = selectTokyoOccupants(state);

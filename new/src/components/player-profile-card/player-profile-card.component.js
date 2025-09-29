@@ -235,8 +235,50 @@ export function update(root, { playerId }) {
   } catch(_) {}
   const hpValEl = root.querySelector('[data-hp-value]');
   if (hpValEl) hpValEl.textContent = player.health;
-  root.querySelector('[data-energy-value]').textContent = player.energy;
-  root.querySelector('[data-vp-value]').textContent = player.victoryPoints;
+  
+  // Debug: Log stats updates
+  const energyEl = root.querySelector('[data-energy-value]');
+  const vpEl = root.querySelector('[data-vp-value]');
+  if (energyEl) {
+    const currentEnergy = energyEl.textContent;
+    if (currentEnergy !== String(player.energy)) {
+      console.log(`🔋 Energy Update for ${player.name} (${player.isCPU ? 'CPU' : 'Human'}): ${currentEnergy} -> ${player.energy}`);
+    }
+    energyEl.textContent = player.energy;
+  }
+  if (vpEl) {
+    const currentVP = vpEl.textContent;
+    if (currentVP !== String(player.victoryPoints)) {
+      console.log(`🏆 VP Update for ${player.name} (${player.isCPU ? 'CPU' : 'Human'}): ${currentVP} -> ${player.victoryPoints}`);
+    }
+    vpEl.textContent = player.victoryPoints;
+  }
+  
+  // Force update check for human players (first player might have timing issues)
+  const isHuman = !player.isCPU && !player.isAi && player.type !== 'ai';
+  if (isHuman) {
+    // IMMEDIATE: Force update regardless of current value for humans
+    console.log(`👤 Human player ${player.name} stat update - Energy: ${player.energy}, VP: ${player.victoryPoints}`);
+    if (energyEl) {
+      energyEl.textContent = player.energy;
+      energyEl.style.color = 'yellow'; // Visual flash
+      setTimeout(() => energyEl.style.color = '', 300);
+    }
+    if (vpEl) {
+      vpEl.textContent = player.victoryPoints;
+      vpEl.style.color = 'gold'; // Visual flash
+      setTimeout(() => vpEl.style.color = '', 300);
+    }
+    
+    // Multiple delayed updates to overcome any race conditions
+    [100, 300, 500].forEach(delay => {
+      setTimeout(() => {
+        if (energyEl) energyEl.textContent = player.energy;
+        if (vpEl) vpEl.textContent = player.victoryPoints;
+        console.log(`🔄 ${delay}ms update for ${player.name}: Energy ${player.energy}, VP ${player.victoryPoints}`);
+      }, delay);
+    });
+  }
 
   const tokyoEl = root.querySelector('[data-tokyo]');
   if (player.inTokyo) {

@@ -146,17 +146,39 @@ export function update(root, instances) {
   order.forEach((id, idx) => {
     let inst = instances.get(id);
     if (!inst) {
+      // Check if the card might be in the active dock before creating a new one
+      const activeDock = document.getElementById('active-player-card-slot');
+      const existingCard = activeDock?.querySelector(`[data-player-id="${id}"]`);
+      if (existingCard) {
+        // Card exists in active dock, don't create duplicate
+        return;
+      }
       inst = buildPlayerCard({ selector: '.cmp-player-profile-card', playerId: id });
       instances.set(id, inst);
       container.appendChild(inst.root);
       // Mobile expand/collapse interaction
       wireMobileSlideBehavior(inst.root, root);
     }
-    if (container.children[idx] !== inst.root) {
+    // Ensure the card is in the right position in the container (unless it's in active dock)
+    const isInActiveDock = inst.root.parentElement?.id === 'active-player-card-slot';
+    if (!isInActiveDock && container.children[idx] !== inst.root) {
       container.insertBefore(inst.root, container.children[idx] || null);
     }
     inst.update({ playerId: id });
   });
+  
+  // Debug: Log when stats should update
+  try {
+    const vpFlash = state.ui?.vpFlash;
+    const energyFlash = state.ui?.energyFlash;
+    if ((vpFlash && vpFlash.ts > (root._lastVPFlash || 0)) || 
+        (energyFlash && energyFlash.ts > (root._lastEnergyFlash || 0))) {
+      console.log('🔄 Monsters Panel: Stats updates detected', { vpFlash, energyFlash });
+      root._lastVPFlash = vpFlash?.ts || 0;
+      root._lastEnergyFlash = energyFlash?.ts || 0;
+    }
+  } catch(_) {}
+  
   // Relocate active card outside panel (placeholder anchor) if present (all viewports; scales via CSS)
   // Also: when active player changes, return the previous active card to the panel stack in-order
   const shouldDock = !!active;
@@ -183,6 +205,8 @@ export function update(root, instances) {
           if (prevId && instances.has(prevId)) {
             const prevInst = instances.get(prevId);
             cleanupFromDock(prevInst.root);
+            // Make sure the instance is properly tracked
+            instances.set(prevId, prevInst);
             // Insert the previous card back into the container at its canonical order position
             const idx = order.indexOf(prevId);
             if (idx >= 0) {
@@ -201,6 +225,7 @@ export function update(root, instances) {
       } catch(_) {}
       // If the active card is still in the list container, move it into the slot with travel animation
       if (activeInst.root.parentElement === container) {
+        console.log(`🎴 Moving ${active.name} card to active dock`);
         // Capture starting rect BEFORE moving DOM
         const startRect = activeInst.root.getBoundingClientRect();
         // Strip any existing animations/decorations immediately upon becoming active
@@ -226,12 +251,13 @@ export function update(root, instances) {
   slot.innerHTML = '';
         slot.appendChild(activeInst.root);
         requestAnimationFrame(() => {
-          positionActiveSlot(slot, activeInst.root, active);
-          const endRect = activeInst.root.getBoundingClientRect();
-          // Hide real card until animation completes
-          activeInst.root.style.visibility = 'hidden';
-          smoothTravelToDock(activeInst.root, startRect, endRect);
-        });
+            positionActiveSlot(slot, activeInst.root, active);
+            const endRect = activeInst.root.getBoundingClientRect();
+            // Hide real card until animation completes
+            activeInst.root.style.visibility = 'hidden';
+            smoothTravelToDock(activeInst.root, startRect, endRect);
+            console.log(`🎴 ${active.name} card animation started - will complete in ~500ms`);
+          });
       } else {
         // Already docked: only re-assert positioning when something material changed to avoid flicker
         try {
@@ -253,6 +279,20 @@ export function update(root, instances) {
     const slot = document.getElementById('active-player-card-slot');
     if (slot && slot.firstChild) {
       const card = slot.firstChild;
+      const playerId = card.getAttribute('data-player-id');
+      // Clean up dock-specific styling
+      try {
+        card.style.visibility = '';
+        card.style.transition = '';
+        card.classList.remove('dock-glow','turn-pulse','attack-pulse','in-place');
+        card.removeAttribute('data-transitioning');
+        card.removeAttribute('data-in-active-dock');
+      } catch(_) {}
+      // Ensure the instance is properly tracked
+      if (playerId && instances.has(playerId)) {
+        const inst = instances.get(playerId);
+        instances.set(playerId, inst);
+      }
       container.appendChild(card);
     }
   }
@@ -479,6 +519,8 @@ function smoothTravelToDock(cardEl, startRect, endRect) {
       cardEl.style.visibility='';
       cardEl.removeAttribute('data-transitioning');
       cardEl.classList.add('in-place');
+      const pid = cardEl.getAttribute('data-player-id');
+      console.log(`🎴 Card animation COMPLETED for player ${pid}`);
   cardEl.style.transition = prevTransition || '';
       // clear any inline animation disable so future animations work as expected
       try { cardEl.style.animation = ''; } catch(_) {}

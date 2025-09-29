@@ -9,7 +9,7 @@
 import { phaseChanged, nextTurn, diceRollStarted, diceRolled, diceRerollUsed } from '../core/actions.js';
 import { rollDice } from '../domain/dice.js';
 import { resolveDice, awardStartOfTurnTokyoVP, checkGameOver } from './resolutionService.js';
-import { DICE_ANIM_MS, AI_POST_ANIM_DELAY_MS } from '../constants/uiTimings.js';
+import { DICE_ANIM_MS, AI_POST_ANIM_DELAY_MS, CPU_TURN_START_MS, CPU_DECISION_DELAY_MS } from '../constants/uiTimings.js';
 
 function computeDelay(settings) {
   const speed = settings?.cpuSpeed || 'normal';
@@ -44,9 +44,14 @@ export function createTurnService(store, logger, rng = Math.random) {
         const activeId = order[st.meta.activePlayerIndex % order.length];
         const active = st.players.byId[activeId];
         const isCPU = !!(active && (active.isCPU || active.isAi || active.type === 'ai' || active.isAI));
+        console.log(`🎯 Starting turn for ${active?.name} (${isCPU ? 'CPU' : 'Human'}) - Index: ${st.meta.activePlayerIndex}`);
         if (isCPU) {
-          // Fire and forget; it will resolve the turn then advance
-          playCpuTurn().catch(e => logger.warn('CPU turn error', e));
+          // Add delay at start of CPU turn for clarity AND to allow card movement
+          console.log(`🤖 CPU turn will start in ${CPU_TURN_START_MS}ms...`);
+          setTimeout(() => {
+            console.log(`🤖 CPU turn starting now for ${active.name}`);
+            playCpuTurn().catch(e => logger.warn('CPU turn error', e));
+          }, CPU_TURN_START_MS);
         }
       }
     } catch(_) {}
@@ -54,14 +59,16 @@ export function createTurnService(store, logger, rng = Math.random) {
 
   async function performRoll() {
     // Dispatches DICE_ROLL_STARTED and then DICE_ROLLED with new faces
-    store.dispatch(diceRollStarted());
     const st = store.getState();
     const order = st.players.order;
+    let activeId = null;
     let diceSlots = 6;
     if (order.length) {
-      const activeId = order[st.meta.activePlayerIndex % order.length];
+      activeId = order[st.meta.activePlayerIndex % order.length];
       diceSlots = st.players.byId[activeId]?.modifiers?.diceSlots || 6;
     }
+    console.log(`🎲 Starting dice roll for ${st.players.byId[activeId]?.name || 'unknown'}`);
+    store.dispatch(diceRollStarted());
     const faces = rollDice({ currentFaces: st.dice.faces, count: diceSlots, rng });
     // Simulate AI pacing delay (human players later could bypass)
     const delay = computeDelay(store.getState().settings);
@@ -111,8 +118,17 @@ export function createTurnService(store, logger, rng = Math.random) {
 
   async function endTurn() {
     // Pause briefly at the end of each player's turn to build drama
-    await wait(1000);
+    // Longer pause for CPU turns to show completion clearly
+    const state = store.getState();
+    const order = state.players.order;
+    const activeId = order[state.meta.activePlayerIndex % order.length];
+    const active = state.players.byId[activeId];
+    const isCPU = !!(active && (active.isCPU || active.isAi || active.type === 'ai' || active.isAI));
+    const delay = isCPU ? 2000 : 1000; // 2s for CPU, 1s for human
+    await wait(delay);
     store.dispatch(nextTurn());
+    // CRITICAL: Wait for card to move to active dock before starting next turn
+    await wait(600); // Allow time for card animation to complete
     startTurn();
   }
 
@@ -123,25 +139,72 @@ export function createTurnService(store, logger, rng = Math.random) {
    */
   async function playCpuTurn() {
     // Initial roll
+    console.log('🤖 CPU Turn: Starting with initial roll');
     await performRoll();
-    // Rerolls loop
-    let guard = 0;
-    while (guard++ < 3) { // hard cap safety
+    
+    // Safety counter to prevent infinite rerolls (max 3 total rolls: initial + 2 rerolls)
+    let rollsCompleted = 1;
+    const MAX_TOTAL_ROLLS = 3;
+    
+    // Rerolls loop with proper limiting
+    while (rollsCompleted < MAX_TOTAL_ROLLS) {
       const st = store.getState();
       const dice = st.dice;
+      
+      console.log(`🤖 CPU Turn: Roll ${rollsCompleted} - Rerolls remaining: ${dice.rerollsRemaining}, Phase: ${dice.phase}`);
+      
       // Wait until dice animation + AI keep delay have passed before evaluating reroll
-      if (dice.phase !== 'resolved') { await wait(120); continue; }
-  // Small extra pacing to allow AI keep scheduling to fire (dice-tray anim + post-anim delay)
-  await wait(DICE_ANIM_MS + AI_POST_ANIM_DELAY_MS);
-      const anyUnkept = (dice.faces || []).some(f => f && !f.kept);
-      if (dice.rerollsRemaining > 0 && anyUnkept) {
+      if (dice.phase !== 'resolved') { 
+        await wait(120); 
+        // Add safety counter to prevent infinite loops
+        let waitCount = 0;
+        while (dice.phase !== 'resolved' && waitCount < 50) {
+          await wait(100);
+          waitCount++;
+          const newState = store.getState();
+          if (newState.dice.phase === 'resolved') break;
+        }
+        if (waitCount >= 50) {
+          console.warn('🚨 CPU Turn: Dice phase stuck, forcing resolution');
+          break;
+        }
+        continue; 
+      }
+      
+      // Check if we should reroll
+      const currentState = store.getState();
+      const currentDice = currentState.dice;
+      
+      if (currentDice.rerollsRemaining <= 0) {
+        console.log('🤖 CPU Turn: No rerolls remaining, ending roll phase');
+        break;
+      }
+      
+      // Small extra pacing to allow AI keep scheduling to fire (dice-tray anim + post-anim delay)
+      await wait(DICE_ANIM_MS + AI_POST_ANIM_DELAY_MS);
+      
+      const anyUnkept = (currentDice.faces || []).some(f => f && !f.kept);
+      console.log(`🤖 CPU Turn: Unkept dice found: ${anyUnkept}`);
+      
+      // Only reroll if we have rerolls remaining AND there are unkept dice
+      if (currentDice.rerollsRemaining > 0 && anyUnkept) {
+        console.log(`🤖 CPU Turn: Performing reroll ${rollsCompleted + 1}`);
         await reroll();
+        rollsCompleted++;
         continue;
       }
+      
+      console.log('🤖 CPU Turn: All dice kept or no rerolls left, ending roll phase');
       break;
     }
+    
+    if (rollsCompleted >= MAX_TOTAL_ROLLS) {
+      console.warn('🚨 CPU Turn: Hit max roll limit, forcing resolution');
+    }
     // Resolve outcomes and advance the game
+    console.log('🤖 CPU Turn: Starting resolution phase');
     await resolve();
+    console.log('🤖 CPU Turn: Resolution complete');
   }
 
   return { startGameIfNeeded, startTurn, performRoll, reroll, resolve, cleanup, endTurn, playCpuTurn };

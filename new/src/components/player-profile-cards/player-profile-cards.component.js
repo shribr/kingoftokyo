@@ -55,13 +55,13 @@ export function update(root, instances, positioning) {
     }
     inst.update({ playerId });
     // Attack pulse application
-    if (pulse.playerIds.includes(playerId)) {
+    if (pulse && pulse.playerIds && pulse.playerIds.includes(playerId)) {
       inst.root.classList.add('attack-pulse');
       // Remove after animation duration (~2s) to allow re-trigger
       setTimeout(() => inst.root.classList.remove('attack-pulse'), 2000);
     }
     // VP flash animation
-    if (vpFlash.playerId === playerId && vpFlash.ts > 0) {
+    if (vpFlash && vpFlash.playerId === playerId && vpFlash.ts > 0) {
       if (!inst._lastVPFlash || inst._lastVPFlash !== vpFlash.ts) {
         inst._lastVPFlash = vpFlash.ts;
         const vpStat = inst.root.querySelector('.ppc-stat.vp');
@@ -72,7 +72,7 @@ export function update(root, instances, positioning) {
       }
     }
     // Energy flash animation
-    if (energyFlash.playerId === playerId && energyFlash.ts > 0) {
+    if (energyFlash && energyFlash.playerId === playerId && energyFlash.ts > 0) {
       if (!inst._lastEnergyFlash || inst._lastEnergyFlash !== energyFlash.ts) {
         inst._lastEnergyFlash = energyFlash.ts;
         const energyStat = inst.root.querySelector('.ppc-stat.energy');
@@ -83,7 +83,7 @@ export function update(root, instances, positioning) {
       }
     }
     // Health flash animation
-    if (healthFlash.playerId === playerId && healthFlash.ts > 0) {
+    if (healthFlash && healthFlash.playerId === playerId && healthFlash.ts > 0) {
       if (!inst._lastHealthFlash || inst._lastHealthFlash !== healthFlash.ts) {
         inst._lastHealthFlash = healthFlash.ts;
         const healthBar = inst.root.querySelector('.ppc-health-bar');

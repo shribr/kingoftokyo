@@ -6,7 +6,7 @@
     "mountPoint": "#app",
     "order": 2,
     "enabled": true,
-    "stateKeys": ["meta"],
+    "stateKeys": ["meta", "players", "tokyo"],
     "build": "arena.build",
     "update": "arena.update",
     "initialState": {},
@@ -182,7 +182,7 @@
     "mountPoint": "#app",
     "order": 4,
     "enabled": true,
-    "stateKeys": ["players"],
+    "stateKeys": ["players", "ui", "meta", "tokyo"],
     "build": "monsters-panel.build",
     "update": "monsters-panel.update",
     "initialState": {},
@@ -291,8 +291,8 @@
     "selector": ".cmp-player-profile-cards",
     "mountPoint": "#app",
     "order": 6,
-      "enabled": false,
-    "stateKeys": ["players"],
+      "enabled": true,
+    "stateKeys": ["players", "ui"],
     "build": "player-profile-cards.build",
     "update": "player-profile-cards.update",
     "eventsOut": [],
@@ -332,6 +332,22 @@
       "initialState": {},
       "assets": [],
       "zIndex": 125
+    }
+    ,{
+      "name": "tokyoYieldModal",
+      "version": "0.1.0",
+      "selector": ".cmp-tokyo-yield-modal",
+      "mountPoint": "#app",
+      "order": 311,
+      "enabled": true,
+      "stateKeys": ["yield", "players"],
+      "build": "tokyo-yield-modal.build",
+      "update": "tokyo-yield-modal.update",
+      "eventsOut": [],
+      "eventsIn": [],
+      "initialState": {},
+      "assets": [],
+      "zIndex": 99999
     }
     ,{
       "name": "gameLogModal",

@@ -102,6 +102,7 @@ export function resolveDice(store, logger) {
     logger.system(`${activeId} enters Tokyo City!`, { kind:'tokyo', slot:'city' });
     store.dispatch(playerVPGained(activeId, 1, 'enterTokyo'));
     store.dispatch(uiVPFlash(activeId, 1));
+    logger.info(`${activeId} gains 1 VP for entering Tokyo`);
   } else if (anyOccupied && tally.claw > 0) {
     // Interactive yield: create prompt(s) for each occupant damaged & still alive
     const post = store.getState();
@@ -110,7 +111,8 @@ export function resolveDice(store, logger) {
       if (!pid) return;
       const p = post.players.byId[pid];
       if (!p || !p.status.alive) return;
-      const expiresAt = Date.now() + 5000; // 5s decision window (could be configurable)
+      console.log(`🏯 Creating yield prompt for ${p.name} (${p.isCPU ? 'CPU' : 'Human'}) in ${slot}`);
+      const expiresAt = Date.now() + 10000; // 10s decision window for humans
       store.dispatch(yieldPromptShown(pid, activeId, slot, expiresAt));
       logger.info(`${pid} prompted to yield Tokyo ${slot}`, { kind:'tokyo', slot, attacker: activeId });
       prompts.push({ defenderId: pid, slot });
@@ -198,13 +200,16 @@ export function awardStartOfTurnTokyoVP(store, logger) {
   const cityOcc = selectTokyoCityOccupant(state);
   const bayOcc = selectTokyoBayOccupant(state);
   const playerCount = state.players.order.length;
+  console.log(`🏙️ Tokyo VP Check: ${activeId} - City: ${cityOcc}, Bay: ${bayOcc}`);
   const bayAllowed = playerCount >= 5;
   // Official: City occupant gains 2 VP; Bay occupant (only in 5-6 player games) gains 1 VP at start of their turn if they remain.
   if (cityOcc === activeId) {
+    console.log(`🏆 Awarding 2 VP to ${activeId} for starting turn in Tokyo City`);
     store.dispatch(playerVPGained(activeId, 2, 'startTurnTokyoCity'));
     store.dispatch(uiVPFlash(activeId, 2));
     logger.info(`${activeId} gains 2 VP for starting turn in Tokyo City`);
   } else if (bayAllowed && bayOcc === activeId) {
+    console.log(`🏆 Awarding 1 VP to ${activeId} for starting turn in Tokyo Bay`);
     store.dispatch(playerVPGained(activeId, 1, 'startTurnTokyoBay'));
     store.dispatch(uiVPFlash(activeId, 1));
     logger.info(`${activeId} gains 1 VP for starting turn in Tokyo Bay`);
