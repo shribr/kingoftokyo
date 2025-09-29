@@ -98,6 +98,11 @@
   box-shadow: 3px 3px 0 #000;
 }
 
+/* Hide view toggle when panel is collapsed */
+.cmp-side-panel[data-collapsed="true"] .mp-view-toggle {
+  display: none;
+}
+
 .cmp-monsters-panel .mp-view-toggle .view-icon {
   position: absolute;
   transition: opacity 0.2s ease;

@@ -6,7 +6,8 @@
  * - No external side-effects; relies only on selectors + store.
  */
 import { store } from '../../bootstrap/index.js';
-import { selectPlayerById, selectPlayerCards, selectActivePlayer, selectMonsterById } from '../../core/selectors.js';
+import { selectPlayerById, selectActivePlayer, selectPlayerCards, selectMonsterById } from '../../core/selectors.js';
+import { uiPeekShow } from '../../core/actions.js';
 import { createPositioningService } from '../../services/positioningService.js';
 
 /** Build a single player profile card root */
@@ -18,6 +19,27 @@ export function build({ selector, playerId }) {
   root.innerHTML = baseTemplate();
   // Handle card interactions
   root.addEventListener('click', (e) => {
+    // Handle avatar click to show monster stats in peek modal
+    if (e.target.closest('[data-avatar]')) {
+      e.preventDefault();
+      e.stopPropagation();
+      const state = store.getState();
+      const player = selectPlayerById(state, playerId);
+      if (player && player.monsterId) {
+        const monster = selectMonsterById(state, player.monsterId);
+        if (monster) {
+          // Create a monster card object for the peek modal
+          const monsterCard = {
+            name: monster.name,
+            isMonster: true,
+            monster: monster
+          };
+          store.dispatch(uiPeekShow(monsterCard));
+        }
+      }
+      return;
+    }
+
     // Handle expand/collapse toggle in list view
     if (e.target.closest('[data-expand-toggle]')) {
       e.preventDefault();
@@ -66,7 +88,7 @@ export function build({ selector, playerId }) {
 function baseTemplate() {
   return `
     <div class="ppc-header">
-      <div class="ppc-avatar" data-avatar></div>
+            <div class="ppc-avatar" data-avatar data-ignore-flip title="View monster profile"></div>
       <div class="ppc-meta">
         <div class="ppc-name" data-name></div>
         <div class="ppc-status-line">
@@ -90,7 +112,7 @@ function baseTemplate() {
       <div class="ppc-health-bar" data-health-bar><div class="fill" data-health-fill></div></div>
     </div>
     <div class="ppc-owned-cards" data-owned-cards hidden>
-      <div class="ppc-owned-cards-label">OWNED</div>
+      <div class="ppc-owned-cards-label" data-owned-label>OWNED</div>
       <div class="ppc-owned-cards-strip" data-cards-strip></div>
     </div>
   `;
@@ -190,6 +212,13 @@ export function update(root, { playerId }) {
   const cards = selectPlayerCards(state, playerId) || [];
   const cardsCountEl = root.querySelector('[data-cards-count]');
   if (cardsCountEl) cardsCountEl.textContent = cards.length;
+  
+  // Hide OWNED label for human players
+  const ownedLabelEl = root.querySelector('[data-owned-label]');
+  if (ownedLabelEl) {
+    const isHuman = !(player.isCPU || player.isAi || player.type === 'ai');
+    ownedLabelEl.style.display = isHuman ? 'none' : 'block';
+  }
   // Health bar fill
   const healthBar = root.querySelector('[data-health-bar]');
   const healthFill = root.querySelector('[data-health-fill]');

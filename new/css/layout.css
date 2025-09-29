@@ -210,7 +210,7 @@ body[data-panels-force-overlay] .players-area { display:none; }
 #ai-log-content .ai-reasoning-text { color:#333; font-size:15px; line-height:1.4; margin:4px 0; }
 #ai-log-content .ai-metric-value { color:#333; font-weight:bold; font-size:15px; }
 @media (max-width:768px){ .ai-turn-header { flex-direction:column; align-items:flex-start; gap:10px; } .ai-turn-player-info { text-align:left; } .ai-turn-stats { flex-wrap:wrap; gap:10px; } .ai-roll-header { flex-direction:column; align-items:flex-start; gap:8px; } .improvement-item { flex-wrap:wrap; } .ai-confidence-meter { flex-wrap:wrap; } }
-.center-notification { position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:6600; background:rgba(255,255,255,.9); color:#333; padding:20px 30px; border-radius:8px; border:2px solid #333; font-size:18px; font-weight:normal; text-align:center; opacity:0; visibility:hidden; transition:all .3s ease; max-width:80%; word-wrap:break-word; }
+.center-notification { position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:6500; background:rgba(255,255,255,.9); color:#333; padding:20px 30px; border-radius:8px; border:2px solid #333; font-size:18px; font-weight:normal; text-align:center; opacity:0; visibility:hidden; transition:all .3s ease; max-width:80%; word-wrap:break-word; }
 .center-notification.visible { opacity:1; visibility:visible; }
 
 /* End of transplanted layout.css */

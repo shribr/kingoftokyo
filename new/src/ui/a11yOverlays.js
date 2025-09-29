@@ -20,7 +20,7 @@ function ensurePeekEl(store) {
     const inner = document.createElement('div');
     inner.style.cssText = 'background:#111;color:#fff;padding:16px;border-radius:8px;min-width:240px;max-width:320px;outline:0;';
     inner.tabIndex = -1;
-    inner.innerHTML = '<div id="peek-card-name" style="font-weight:bold"></div><button id="peek-close" style="margin-top:12px">Close</button>';
+    inner.innerHTML = '<button id="peek-close" style="margin-top:12px">Close</button>';
     peekEl.appendChild(inner);
     document.body.appendChild(peekEl);
   inner.querySelector('#peek-close').addEventListener('click', () => store.dispatch(uiPeekHide()));
@@ -41,12 +41,8 @@ function ensurePeekEl(store) {
 }
 
 function updatePeek(card, store) {
-  if (card) {
-    const el = ensurePeekEl(store);
-    el.style.display = 'flex';
-    el.querySelector('#peek-card-name').textContent = card.name;
-    requestAnimationFrame(() => el.querySelector('div').focus());
-  } else if (peekEl) {
+  // Disable a11y peek overlay since we have a proper peek modal component
+  if (peekEl) {
     peekEl.style.display = 'none';
   }
 }

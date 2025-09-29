@@ -1,12 +1,13 @@
 /* components.player-profile-card.css (legacy parity version) */
 
-.cmp-player-profile-card { position:relative; width:260px; background:linear-gradient(135deg,var(--ppc-accent,#2d3436) 0%, #1b1f20 100%); border:3px solid #000; border-radius:4px; padding:12px 14px 16px; font-family:'Bangers',cursive; letter-spacing:1px; color:#fff; box-shadow:4px 4px 0 #000,0 0 0 2px #222 inset; /* Lower value = shift visible area UP to show more top of image */ --ppc-avatar-pos-y:18%; }
+.cmp-player-profile-card { position:relative; width:260px; background:linear-gradient(135deg,var(--ppc-accent,#2d3436) 0%, #1b1f20 100%); border:3px solid #000; border-radius:4px; padding:12px 14px 16px; font-family:'Bangers',cursive; letter-spacing:1px; color:#fff; box-shadow:4px 4px 0 #000,0 0 0 2px #222 inset; /* Lower value = shift visible area UP to show more top of image */ --ppc-avatar-pos-y:18%; flex-shrink: 0; }
 .cmp-player-profile-card + .cmp-player-profile-card { margin-top:18px; }
 .cmp-player-profile-card.is-active { outline:3px solid #ffd400; outline-offset:3px; }
 
 /* Header */
 .cmp-player-profile-card .ppc-header { display:flex; align-items:flex-start; margin:0 0 14px; position:relative; }
-.cmp-player-profile-card .ppc-avatar { width:58px; height:58px; border:3px solid #000; border-radius:50%; background:#fff center var(--ppc-avatar-pos-y)/cover no-repeat; box-shadow:2px 2px 0 #000; margin-right:10px; }
+.cmp-player-profile-card .ppc-avatar { width:58px; height:58px; border:3px solid #000; border-radius:50%; background:#fff center var(--ppc-avatar-pos-y)/cover no-repeat; box-shadow:2px 2px 0 #000; margin-right:10px; cursor:pointer; transition:transform 0.2s ease, box-shadow 0.2s ease; }
+.cmp-player-profile-card .ppc-avatar:hover { transform:scale(1.05); box-shadow:3px 3px 0 #000, 0 0 0 2px #ffd400; }
 .cmp-player-profile-card .ppc-meta { flex:1; }
 
 /* Expand/collapse toggle for list view */

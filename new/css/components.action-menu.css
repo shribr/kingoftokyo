@@ -25,7 +25,7 @@
   border:var(--action-menu-border);
   border-radius:var(--action-menu-radius);
   box-shadow:var(--action-menu-shadow);
-  z-index:6650; /* above monsters/power cards panels (~6200) and at/above dice tray (6600) */
+  z-index:6000; /* below peek modal (7000) but above other panels */
   font-family:'Bangers',cursive;
   letter-spacing:.5px;
   width:260px; /* unify width */
@@ -291,6 +291,6 @@
 
 /* Invisible backdrop to allow outside-click closing on mobile when menu is open */
 @media (max-width: 760px), (pointer: coarse) {
-  .action-menu-backdrop { position: fixed; inset: 0; z-index: 6645; display:none; }
+  .action-menu-backdrop { position: fixed; inset: 0; z-index: 5995; display:none; }
   .action-menu-backdrop[data-show] { display:block; }
 }

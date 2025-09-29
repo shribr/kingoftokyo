@@ -241,7 +241,7 @@
   .cmp-arena [data-arena-section="city"],
   .cmp-arena [data-arena-section="bay"],
   .cmp-arena [data-arena-section="active"] { transform:rotate(0deg) scale(1); width:min(520px, 92vw); max-width: min(520px, 92vw); }
-  .cmp-arena [data-arena-section="active"] .active-player-slot { min-width:200px; min-height:160px; }
+  .cmp-arena [data-arena-section="active"] .active-player-slot { min-width:200px; }
   /* Remove any CSS transform targeting the dock on mobile; JS sets precise centering */
   #active-player-card-slot[data-active-card-dock] { transform: none; }
 }
