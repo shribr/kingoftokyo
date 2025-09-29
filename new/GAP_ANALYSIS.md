@@ -180,3 +180,57 @@ The new system shows **excellent architectural promise** but requires **signific
 The legacy system remains the **only fully playable version** and should be maintained until the new system reaches feature parity.
 
 **Realistic Timeline**: 3-6 months of focused development to reach 90% completion and production readiness.
+
+---
+
+## 📈 Parity Progress Delta (Addendum – September 29, 2025)
+This addendum updates the assessment since the December 30, 2024 snapshot.
+
+### Notable Improvements Achieved (Dec 2024 → Sept 2025)
+| Area | Prior State | Current State | Notes |
+|------|-------------|--------------|-------|
+| Tokyo Dual-Slot Logic | Absent | Implemented (City + Bay) | Includes start-of-turn VP differentiation |
+| Start-of-Turn VP Logic | Simplified | Correct City (2) / Bay (1) | Logging present; needs tests |
+| Shop Flush Mechanic | Missing | Implemented (2⚡) | Logging & tests pending |
+| Peek / Deck Intel | Missing | Added (Clairvoyance card) | Non-core enhancement; optional |
+| Dice Slot Expansion Rendering | Static | Dynamic + animation | Needs stacking tests |
+| Attack Visual Feedback | Basic shake | Added pulse overlay | Extend with batching metrics |
+| Yield Prompt Scaffold | Not started | Basic heuristic + timeout prompts | Requires unification & UX parity |
+| Effect Queue | Concept only | Scaffold (no processor UI) | Needs operationalization |
+| Pause / Resume | Legacy only | Added slice + overlay | Timing still bypasses FSM (planned) |
+
+### Recast Composite Parity
+Earlier internal doc overstated rewrite parity (~95%) by counting raw mechanic presence. Recomputed experiential parity ≈ 50% (see `RULES_PARITY.md`).
+
+### Outstanding High-Risk Gaps (Unchanged or Emerging)
+- No finite state machine → timing races.  
+- AI strategy shallow (no multi-turn EV, no personality differentials).  
+- Yield interaction clarity below legacy (mixed auto + timeout).  
+- Effect engine inert beyond simple immediate card effects.  
+- Persistence absent (cannot resume long games).  
+
+### Updated Critical Path (Next 4 Weeks)
+1. Phase FSM + `turnCycleId` concurrency guard.  
+2. Event-driven dice completion (`DICE_ROLL_RESOLVED`), remove CPU polling loop.  
+3. Unified yield modal + deterministic AI decision pipeline.  
+4. BUY_WAIT explicit phase; remove arbitrary delay.  
+5. Timing instrumentation & span logging (foundation for regression metrics).  
+6. Baseline persistence (serialize core slices; version header).  
+7. AI heuristic expansion (survival risk, VP race, resource economy, Tokyo risk).  
+
+### Success Metrics to Re-Evaluate After Above
+| Metric | Target | Current | Collection Method |
+|--------|--------|---------|-------------------|
+| CPU Turn Duration Consistency | σ/μ < 0.25 | ~0.55 (est) | Timing spans | 
+| Yield Decision Latency (AI) | < 300ms | 0–5100ms (timeout variance) | Prompt timestamps |
+| Phase Transition Violations | 0 per 100 turns | Not tracked | FSM asserts |
+| Stale Async Actions | 0 | Not tracked | turnCycleId invalidations |
+
+### Documentation Adjustment Policy
+All parity claim changes must include:  
+1. Mechanical diff summary  
+2. Experiential metrics snapshot  
+3. Open regression risks  
+
+---
+End of Addendum (Sept 29, 2025).

@@ -266,7 +266,7 @@ This King of Tokyo implementation represents a complete, polished digital board 
 
 ---
 
-## Rewrite Path (`/new`) Progress Summary (September 24, 2025 Increment)
+## Rewrite Path (`/new`) Progress Summary (Revised Sept 29, 2025)
 
 ### Objective
 Establish a maintainable, testable architecture with: pure domain modules, reducer-driven state, explicit services (turn, cards, resolution, effect engine), and declarative UI components registered via `components.config.json`, while preserving near-term visual & rules parity with the legacy implementation.
@@ -288,55 +288,30 @@ Establish a maintainable, testable architecture with: pure domain modules, reduc
 3. **Cards Service Expansion**: Added `peekTopCard` + refined `flushShop` semantics (discard old market to discard pile and rebuild shop deterministically).
 4. **Visual Layer**: Component-specific CSS modules introduced for peek modal & dice animation (progress toward style tokenization).
 
-### Updated Rule Parity Metrics (Rewrite Path)
-| Rule / Mechanic | Status | Notes |
-|------------------|--------|-------|
-| Core Dice Rolling (3 rerolls, keep toggling) | Implemented | Reroll bonus & extra dice slots supported via modifiers |
-| Attack Resolution (inside/outside Tokyo) | Implemented | Pulse + shake feedback; occupant logic simplified (auto-yield heuristic) |
-| Tokyo Entry / VP on Enter | Implemented | Basic yield heuristic; Tokyo Bay variant not yet differentiated |
-| Start-of-Turn Tokyo VP Award | Implemented (simplified) | Currently always +2 (needs city/bay distinction toggle) |
-| Numeric Triples Scoring | Implemented | Matches base VP awarding logic |
-| Energy Gain & Spend | Implemented | Integrated with shop, flush, peek costs |
-| Healing (cannot heal in Tokyo) | Implemented | Rule enforced in resolution service |
-| Elimination & Last Monster Standing | Implemented | Basic win check present |
-| 20 VP Victory Condition | Implemented | Immediate termination on detection |
-| Power Card Purchase (keep/discard) | Implemented | Keep recalculates modifiers; discard triggers immediate effect engine enqueue (subset kinds) |
-| Shop Refill (3 cards) | Implemented | Flush mechanic now present |
-| Shop Flush (2⚡) | Implemented | Newly added; parity achieved |
-| Peek / Deck Intel | Added (variant) | Not in base rules; optional enhancement card present |
-| Extra Dice Slot Card | Implemented | Renders & animates dynamically |
-| Reroll Bonus Card | Implemented | Adjusts reroll pool on sequence start |
-| Damage Feedback | Implemented | Shake (pre-existing) + new pulse layer |
-| Effect Queue UI | Pending | Engine internal; visualization not yet implemented |
-| Targeted Effects (choose player) | Pending | Placeholder for future interactive resolution |
-| Tokyo Bay Distinction | Pending | Needs dual-slot support & split VP logic |
-| Save/Load Persistence | Pending | Not yet ported to rewrite architecture |
+### Updated Parity Assessment (See `RULES_PARITY.md` & `GAME_FLOW_PARITY_AUDIT.md`)
+Earlier snapshot (Sept 24) overstated parity by focusing solely on mechanical presence. Revised multidimensional evaluation (mechanics + timing + AI + UX + persistence) places rewrite experiential parity at ≈ 50%.
 
-Parity Estimate (Rewrite Path): ~70% of core base game rules (excluding variants) now represented, with foundational scaffolds for the remaining 30%.
+Key mechanical improvements since initial rewrite phase:
+- Dual-slot Tokyo (City + Bay) logic and start-of-turn VP differentiation
+- Shop flush (2⚡) and peek (clairvoyance) card introduction
+- Dynamic dice slot expansion with animation
+- Attack pulse visual feedback
+- Pause / resume system
 
-#### Rule Coverage Methodology
-To remove ambiguity, percentages are calculated over the canonical base game rule set (not including Dark Edition / expansions / optional house variants):
+Outstanding experiential gaps:
+- No finite state machine for phases (timing fragility)
+- Mixed yield decision paths (heuristic + timeouts)
+- Simplistic AI heuristic (single-layer scoring, no multi-turn EV)
+- Effect queue scaffold not operational for complex chains
+- Persistence not yet implemented
 
-| Category | Base Game Elements Counted | Legacy Implemented | Rewrite Implemented | Notes |
-|----------|----------------------------|--------------------|---------------------|-------|
-| Dice Core Loop | Roll (up to 3), keep toggling, rerolls end | Yes | Yes | Reroll bonuses supported in rewrite |
-| Number Scoring | Triples scoring + extra symbols | Yes | Yes | Matching logic present |
-| Energy Economy | Gain (dice), spend (cards, flush) | Yes | Yes | Peek = optional enhancement (rewrite only) |
-| Healing Rules | Heal dice (not in Tokyo) | Yes | Yes | Constraint enforced |
-| Attack Resolution | Inside/outside Tokyo damage distribution | Yes | Yes | Rewrite uses simplified yield heuristic |
-| Tokyo Entry & Yield | Forced entry; optional yield on damage | Yes | Partial | Legacy prompts; rewrite auto-yields heuristically |
-| Tokyo VP Awards | Start-of-turn bonuses (City/Bay) | Yes | Partial | Rewrite awards flat +2 currently |
-| Victory Conditions | 20 VP / Last monster standing | Yes | Yes | Both paths terminate correctly |
-| Player Elimination | Health to 0 removed from play | Yes | Yes | Rewrite win check integrated |
-| Power Card System | Buy, keep, discard, effects variety | Yes | Partial | Rewrite has subset catalog & effect engine scaffold |
-| Market Management | Refill to 3, flush for 2⚡ | Yes | Yes | Flush newly added to rewrite |
-| Extra Dice / Reroll Mods | Modifier cards adjust dice/rerolls | Yes | Yes | Animation added in rewrite |
-| Effect Timing / Queue | Sequenced resolution for persistent & triggered effects | Yes | Scaffold | Legacy inline; rewrite queued architecture pending full UI |
-| Persistence | Save / Load full state | Yes | No | Not yet ported to rewrite |
-| AI Decisions | Full heuristic AI turns | Yes | Partial | Basic automated flow present, advanced portfolio heuristics legacy-only |
-| Accessibility | Labeled modals, focus management | Partial | Minimal | Needs parity migration |
+Remediation roadmap phases (summary):
+1. Flow parity: FSM, unified yield, BUY_WAIT phase, dice resolved events
+2. Strategic depth & persistence: AI heuristic layers, snapshot system, effect processor MVP
+3. UX & observability: timing spans overlay, rationale weighting, accessibility pass
+4. Advanced polish: complex card interactions, AI personalities, performance profiling
 
-Rewrite coverage percentage (~70%) is derived by weighting each category equally for now (15 covered categories: rewrite fully implemented in 10, partially in 4, missing 1 ⇒ (10 + 0.5*4) / 15 ≈ 0.70). Legacy path coverage (~95%) reflects only minor partial gaps (advanced accessibility & some optional variant nuances).
+Re-evaluation will occur after Phase Alpha completion (target mid-October 2025).
 
 ### Technical Debt / Open Tasks
 - Implement visual effect queue inspector & manual retry / abort controls.

@@ -66,3 +66,25 @@ Exit Criteria:
 ---
 Maintainer Notes:
 - Keep tasks checked off directly here, then summarize in migration plan when each Phase completes.
+
+---
+### Addendum (Sept 29, 2025 – Parity Audit Alignment)
+
+New Flow / Parity Tasks:
+- [ ] Introduce phase FSM assertions (build lightweight dev-only validator)
+- [ ] Add `DICE_ROLL_RESOLVED` event & remove CPU polling loop
+- [ ] Unified Yield Modal (replace heuristic/timeouts hybrid) with accessibility roles
+- [ ] BUY_WAIT phase visual state (timer or dismissal CTA)
+- [ ] Timing spans (rollPhase, resolvePhase, buyPhase, cleanupPhase) captured & logged
+- [ ] Dev Timing Overlay component (toggle via query param or keyboard)
+- [ ] AI decision rationale panel: show factor weight breakdown per last roll
+- [ ] Tokyo takeover sequence visual cues (highlight attacker, flashing empty slot)
+- [ ] Automatic screenshot harness states updated to include yield modal & buy phase
+- [ ] Accessibility: Add live region for phase announcements & yield prompts
+
+Metrics to Collect (post-implementation):
+- Mean & σ of ROLL phase duration (CPU vs Human)
+- Yield decision latency (AI)
+- Number of stale async actions (should remain 0)
+
+Review Trigger: Re-run visual parity audit after Phase Alpha completion (FSM + yield + timing overlay) and update baseline snapshots.
