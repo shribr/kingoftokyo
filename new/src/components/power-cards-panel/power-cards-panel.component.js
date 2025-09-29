@@ -95,9 +95,10 @@ function renderPowerCard(card, playerEnergy) {
     <div class="pc-card" data-card-id="${card.id}" data-rarity="${rarity}" ${isDarkEdition ? 'data-dark-edition="true"' : ''}>
       <div class="pc-card-header">
         <h4 class="pc-card-name">${card.name}${isDarkEdition ? ' ⚫' : ''}</h4>
-        <div class="pc-card-cost">${card.cost}⚡</div>
+        <div class="pc-card-cost pc-card-cost--header">${card.cost}⚡</div>
       </div>
       <div class="pc-card-description">${getCardDescription(card)}</div>
+      <div class="pc-card-cost pc-card-cost--footer">${card.cost}⚡</div>
       <div class="pc-card-footer">
         <button class="k-btn k-btn--xs k-btn--primary" 
                 data-buy data-card-id="${card.id}" 
@@ -112,6 +113,7 @@ function renderPowerCard(card, playerEnergy) {
 function renderDeckCard(isEmpty, remaining) {
   return `
     <div class="power-card-deck ${isEmpty ? 'is-empty' : ''}" data-deck-card>
+      <img src="images/king-of-tokyo-logo.png" alt="King of Tokyo" class="deck-logo">
       <span class="deck-label">DECK</span>
     </div>
   `;

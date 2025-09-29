@@ -19,6 +19,11 @@
 /* Cost positioned inline with name in header */
 .cmp-power-cards-panel .pc-card__cost { background:var(--pc-cost-bg); color:var(--pc-card-accent); padding:4px 10px 6px; border-radius:18px; font-size:15px; line-height:1; box-shadow:2px 2px 0 #000; font-family:'Bangers',cursive; letter-spacing:.5px; min-width:44px; text-align:center; margin-right:8px; flex-shrink:0; }
 .cmp-power-cards-panel .pc-card-cost { background:var(--pc-cost-bg); color:var(--pc-card-accent); padding:4px 10px 6px; border-radius:18px; font-size:15px; line-height:1; box-shadow:2px 2px 0 #000; font-family:'Bangers',cursive; letter-spacing:.5px; min-width:44px; text-align:center; margin-right:8px; flex-shrink:0; }
+
+/* Always show cost at bottom left corner */
+.cmp-power-cards-panel .pc-card-cost--header { display: none; }
+.cmp-power-cards-panel .pc-card-cost--footer { display: flex; position: absolute; bottom: 8px; left: 8px; margin: 0; z-index: 10; }
+.cmp-power-cards-panel .pc-card { position: relative; }
 /* Dark edition styling - uniform borders with standard cards */
 .cmp-power-cards-panel .pc-card[data-dark-edition="true"]:before { 
   background:radial-gradient(circle at 30% 22%,rgba(0,0,0,.18),rgba(0,0,0,0) 65%); 
@@ -46,6 +51,16 @@
   z-index: 3;
 }
 
+.cmp-power-cards-panel .deck-logo {
+  position: absolute;
+  width: 80px;
+  height: auto;
+  opacity: 0.8;
+  filter: drop-shadow(-2px -2px 0 #000) drop-shadow(2px -2px 0 #000) drop-shadow(-2px 2px 0 #000) drop-shadow(2px 2px 0 #000);
+  z-index: 2;
+  transform-origin: center center;
+}
+
 .cmp-power-cards-panel .deck-label {
   font-family: 'Bangers', cursive;
   font-size: 28px;
@@ -60,6 +75,12 @@
 
 /* Standard/Desktop view - positioned with rotation */
 @media (min-width: 769px) {
+  .cmp-power-cards-panel .deck-logo {
+    top: 55%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-90deg);
+  }
+  
   .cmp-power-cards-panel .deck-label {
     top: 55%;
     left: 15px;
@@ -69,8 +90,17 @@
 
 /* Mobile view - no positioning, horizontal text */
 @media (max-width: 768px) {
+  .cmp-power-cards-panel .deck-logo {
+    top: 55%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(0deg);
+    width: 70px;
+  }
+  
   .cmp-power-cards-panel .deck-label {
-    transform: rotate(0deg);
+    top: 20%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(0deg);
   }
 }
 
