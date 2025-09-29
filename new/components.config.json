@@ -291,7 +291,7 @@
     "selector": ".cmp-player-profile-cards",
     "mountPoint": "#app",
     "order": 6,
-      "enabled": true,
+      "enabled": false,
     "stateKeys": ["players", "ui"],
     "build": "player-profile-cards.build",
     "update": "player-profile-cards.update",
