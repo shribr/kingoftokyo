@@ -27,6 +27,7 @@ import '../ui/devPanel.js';
 import { bindA11yOverlays } from '../ui/a11yOverlays.js';
 import { loadSettings, bindSettingsPersistence, loadLogCollapse } from '../services/settingsService.js';
 import { bindAIDecisionCapture } from '../services/aiDecisionService.js';
+import { initializeEnhancedIntegration } from '../utils/enhanced-integration.js';
 
 // Placeholder reducers until implemented
 function placeholderReducer(state = {}, _action) { return state; }
@@ -81,6 +82,9 @@ if (typeof window !== 'undefined') {
   bindAIDecisionCapture(store);
   bindUIEventBridges(store);
   bindA11yOverlays(store);
+  
+  // Initialize enhanced UI integration (unified modals, dialogs, themes)
+  initializeEnhancedIntegration(store);
   // Responsive: force side panels to overlay and auto-collapse on small screens/touch to avoid wrapping
   try {
     const applyOverlayMode = () => {

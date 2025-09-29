@@ -47,6 +47,14 @@ export function update(root) {
   
   if (!container) return;
   
+  // Apply theme based on settings
+  const theme = state.settings?.powerCardTheme || 'original';
+  if (theme !== 'original') {
+    root.setAttribute('data-theme', theme);
+  } else {
+    root.removeAttribute('data-theme');
+  }
+  
   // Show placeholder if no active player
   if (!activePlayer) {
     container.innerHTML = `
@@ -59,19 +67,12 @@ export function update(root) {
     return;
   }
   
-  // Show shop with cards
+  // Show shop with cards (energy display removed, flush moved to action menu)
   const energy = activePlayer.energy || 0;
-  const canFlush = energy >= 2;
   const deckEmpty = deckCards.length === 0;
   
   const shopHTML = `
     <div class="pc-shop">
-      <div class="pc-shop-header">
-        <div class="pc-energy">Energy: ${energy}⚡</div>
-        <button class="k-btn k-btn--sm k-btn--secondary" data-flush ${!canFlush ? 'disabled' : ''}>
-          Flush Shop (2⚡)
-        </button>
-      </div>
       <div class="pc-shop-cards">
         ${shopCards.map(card => renderPowerCard(card, energy)).join('')}
         ${renderDeckCard(deckEmpty, deckCards.length)}
@@ -88,11 +89,12 @@ export function update(root) {
 function renderPowerCard(card, playerEnergy) {
   const canAfford = playerEnergy >= (card.cost || 0);
   const rarity = getRarity(card);
+  const isDarkEdition = card.darkEdition || false;
   
   return `
-    <div class="pc-card" data-card-id="${card.id}" data-rarity="${rarity}">
+    <div class="pc-card" data-card-id="${card.id}" data-rarity="${rarity}" ${isDarkEdition ? 'data-dark-edition="true"' : ''}>
       <div class="pc-card-header">
-        <h4 class="pc-card-name">${card.name}</h4>
+        <h4 class="pc-card-name">${card.name}${isDarkEdition ? ' ⚫' : ''}</h4>
         <div class="pc-card-cost">${card.cost}⚡</div>
       </div>
       <div class="pc-card-description">${getCardDescription(card)}</div>
@@ -109,14 +111,8 @@ function renderPowerCard(card, playerEnergy) {
 
 function renderDeckCard(isEmpty, remaining) {
   return `
-    <div class="pc-card pc-card--deck ${isEmpty ? 'is-empty' : ''}" data-deck-card>
-      <div class="pc-card-header">
-        <h4 class="pc-card-name">Deck</h4>
-        <div class="pc-card-count">${remaining}</div>
-      </div>
-      <div class="pc-card-description">
-        ${isEmpty ? 'No more cards' : `${remaining} cards remaining`}
-      </div>
+    <div class="power-card-deck ${isEmpty ? 'is-empty' : ''}" data-deck-card>
+      <span class="deck-label">DECK</span>
     </div>
   `;
 }
@@ -159,14 +155,5 @@ function addShopEventListeners(container, activePlayer) {
       }
     });
   });
-  
-  // Flush shop button
-  const flushBtn = container.querySelector('[data-flush]');
-  if (flushBtn) {
-    flushBtn.addEventListener('click', () => {
-      if (activePlayer) {
-        flushShop(store, logger, activePlayer.id, 2);
-      }
-    });
-  }
 }
+

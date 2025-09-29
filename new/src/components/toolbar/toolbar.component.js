@@ -7,7 +7,7 @@ import { store } from '../../bootstrap/index.js';
 import { uiSettingsOpen, uiGameLogOpen, uiInstructionsOpen, settingsUpdated, uiConfirmOpen, uiAboutOpen } from '../../core/actions.js';
 import { createPositioningService } from '../../services/positioningService.js';
 import { newModalSystem } from '../../utils/new-modal-system.js';
-import { createSettingsModal, createGameLogModal, createHelpModal } from '../../utils/new-modals.js';
+import { createSettingsModal, createGameLogModal, createHelpModal, createAIDecisionModal, createAboutModal } from '../../utils/new-modals.js';
 
 export function build({ selector }) {
   const root = document.createElement('div');
@@ -18,6 +18,7 @@ export function build({ selector }) {
   root.innerHTML = `
     ${iconBtn('settings', 'Settings', gearIcon())}
     ${iconBtn('log', 'Game Log', listIcon())}
+    ${iconBtn('ai-decision', 'AI Decision Tree', sparkleIcon())}
     ${iconBtn('sound', 'Toggle Sound (M)', soundIcon())}
   ${iconBtn('help', 'Help / Instructions', helpIcon())}
     ${iconBtn('restart', 'Restart Game', restartIcon())}
@@ -82,6 +83,11 @@ export function build({ selector }) {
       newModalSystem.showModal('gameLog');
       return; 
     }
+    if (a === 'ai-decision') {
+      createAIDecisionModal();
+      newModalSystem.showModal('aiDecision');
+      return;
+    }
     if (a === 'sound') { toggleSound(store, btn); return; }
     if (a === 'help') { 
       createHelpModal();
@@ -90,7 +96,11 @@ export function build({ selector }) {
     }
     if (a === 'restart') { store.dispatch(uiConfirmOpen('restart-game', 'Restart the game and reload the page?\nUnsaved progress will be lost.', 'Restart', 'Cancel')); return; }
     if (a === 'reset-positions') { window.dispatchEvent(new CustomEvent('ui.positions.reset.request')); return; }
-    if (a === 'about') { store.dispatch(uiAboutOpen()); return; }
+    if (a === 'about') { 
+      createAboutModal();
+      newModalSystem.showModal('about');
+      return; 
+    }
   };
   root.addEventListener('click', onClick);
   // DEBUG: Add event listener to detect if events are being blocked
@@ -167,6 +177,18 @@ function restartIcon() {
 }
 function layoutIcon() {
   return `<svg viewBox="0 0 24 24" class="ico" aria-hidden="true"><path fill="currentColor" d="M3 3h8v8H3V3Zm10 0h8v5h-8V3ZM3 13h8v8H3v-8Zm10-3h8v11h-8V10Z"/></svg>`;
+}
+function sparkleIcon() {
+  return `<svg viewBox="0 0 24 24" class="ico" aria-hidden="true">
+    <!-- Background rounded square -->
+    <rect x="2" y="2" width="20" height="20" rx="6" ry="6" fill="currentColor" opacity="0.1"/>
+    <!-- Large 4-pointed star -->
+    <path fill="currentColor" d="M16 6l1.2 2.8L20 10l-2.8 1.2L16 14l-1.2-2.8L12 10l2.8-1.2L16 6z"/>
+    <!-- Medium 4-pointed star -->
+    <path fill="currentColor" d="M8.5 8l0.8 1.8L11 10.5l-1.7 0.7L8.5 13l-0.8-1.8L6 10.5l1.7-0.7L8.5 8z"/>
+    <!-- Small 4-pointed star -->
+    <path fill="currentColor" d="M10 16l0.5 1.2L12 18l-1.5 0.8L10 20l-0.5-1.2L8 18l1.5-0.8L10 16z"/>
+  </svg>`;
 }
 function infoIcon() {
   return `<svg viewBox="0 0 24 24" class="ico" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 100 20 10 10 0 000-20Zm1 15h-2v-6h2v6Zm0-8h-2V7h2v2Z"/></svg>`;

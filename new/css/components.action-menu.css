@@ -36,10 +36,156 @@
   -webkit-backdrop-filter:none;
   backdrop-filter:none;
 }
+
+/* When draggable and has transform applied, allow free positioning */
+.cmp-action-menu[data-draggable="true"][style*="transform"] {
+  top: 0;
+  left: 0;
+  right: auto;
+  bottom: auto;
+}
 .app-toolbar, .game-toolbar, [data-toolbar] { margin-bottom:12px; }
 .cmp-action-menu .am-label { display:block; position:static; margin:0 0 8px 0; background:transparent; color:#fff; padding:2px 6px 4px; font-size:24px; line-height:1; border:none; box-shadow:none; letter-spacing:1.2px; text-align:center; text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; }
 .cmp-action-menu[data-layout="horizontal"] { flex-direction:row; flex-wrap:wrap; align-items:flex-start; }
 .cmp-action-menu[data-layout="horizontal"] .am-label { margin-bottom:6px; }
+
+/* Power Cards Menu Styles */
+.power-cards-menu-container {
+  position: relative;
+  width: 100%;
+}
+
+.power-cards-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  width: 100%;
+  background: linear-gradient(135deg, #2c5234, #1a3d20) !important;
+  border-color: #4a7c59 !important;
+}
+
+.power-cards-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #345a3b, #1f4524) !important;
+}
+
+.power-cards-btn .arrow-left,
+.power-cards-btn .arrow-right {
+  font-size: 14px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000;
+  transition: opacity 0.2s ease;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+  position: absolute;
+}
+
+.power-cards-btn .arrow-left {
+  left: 8px;
+}
+
+.power-cards-btn .arrow-right {
+  right: 8px;
+}
+
+.power-cards-btn .btn-text {
+  flex: 1;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.power-cards-submenu {
+  position: absolute;
+  top: 0;
+  z-index: 6700;
+  background: var(--action-menu-bg);
+  border: var(--action-menu-border);
+  border-radius: var(--action-menu-radius);
+  box-shadow: var(--action-menu-shadow);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 200px;
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+}
+
+.power-cards-submenu:not([hidden]) {
+  pointer-events: auto;
+}
+
+.power-cards-submenu:not([hidden]) {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.power-cards-submenu.submenu-left {
+  right: 100%;
+  margin-right: 8px;
+}
+
+.power-cards-submenu.submenu-right {
+  left: 100%;
+  margin-left: 8px;
+}
+
+.power-cards-submenu button {
+  white-space: nowrap;
+  font-size: 14px;
+  padding: 6px 12px;
+}
+
+/* Deck illumination on power cards button hover */
+.power-cards-btn:hover ~ .power-cards-submenu,
+.power-cards-btn:hover {
+  animation: deckIlluminate 0.3s ease-out;
+}
+
+@keyframes deckIlluminate {
+  0% { box-shadow: var(--action-menu-shadow); }
+  50% { box-shadow: var(--action-menu-shadow), 0 0 15px #4a7c59; }
+  100% { box-shadow: var(--action-menu-shadow); }
+}
+
+/* Trigger deck illumination in power cards panel */
+.power-cards-btn:hover {
+  --deck-illuminate: true;
+}
+
+/* All action menu buttons - consistent styling with power card font */
+.cmp-action-menu button {
+  font-family: 'Bangers', cursive !important;
+  font-size: 18px !important;
+  letter-spacing: 0.75px !important;
+  color: #fff !important;
+  text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000 !important;
+  min-height: 48px !important;
+  width: 100% !important;
+  padding: 8px 12px !important;
+  border: 2px solid #000 !important;
+  border-radius: 6px !important;
+  box-shadow: 2px 2px 0 #000, 0 0 0 2px #222 inset !important;
+  transition: all 0.2s ease !important;
+}
+
+/* End Turn Button - Red when enabled */
+.cmp-action-menu [data-action="end"]:not(:disabled) {
+  background: linear-gradient(145deg, #8b2c2c, #5c1a1a) !important;
+  border-color: #a64545 !important;
+  color: #fff !important;
+  text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000 !important;
+}
+
+.cmp-action-menu [data-action="end"]:not(:disabled):hover {
+  background: linear-gradient(145deg, #9d3333, #661f1f) !important;
+  color: #fff !important;
+}
 .cmp-action-menu[data-layout="vertical"] { flex-direction:column; flex-wrap:nowrap; width:260px; }
 .cmp-action-menu button { flex:0 0 auto; width:100%; max-width:100%; }
 .cmp-action-menu { row-gap:12px; }
@@ -65,7 +211,18 @@
   transition:transform .18s cubic-bezier(.25,.46,.45,.94), box-shadow .18s ease, filter .2s ease;
 }
 .cmp-action-menu button[data-action="keep"],
+.cmp-action-menu button[data-action="flush"],
 .cmp-action-menu button[data-action="end"] { background:var(--btn-bg-alt); color:#fff; text-shadow:-1px -1px 0 #06212c,1px -1px 0 #06212c,-1px 1px 0 #06212c,1px 1px 0 #06212c,0 0 5px rgba(0,0,0,.5); }
+/* Special styling for flush button */
+.cmp-action-menu button[data-action="flush"] { 
+  background:linear-gradient(135deg, #d4a017, #b8860b);
+  border: 2px solid #8b7355;
+  font-size: 16px;
+}
+.cmp-action-menu button[data-action="flush"]:not(:disabled):hover {
+  background:linear-gradient(135deg, #f4c430, #d4a017);
+  transform: translateY(-2px);
+}
 .cmp-action-menu button:disabled { background:var(--btn-bg-muted); color:#333; text-shadow:none; border:none; box-shadow:none; }
 /* Do not add shadows/borders on hover/active for black-text buttons */
 .cmp-action-menu button:not([data-action="keep"]):not([data-action="end"]):not(:disabled):hover { transform:translate(-2px,-3px); box-shadow:none; filter:brightness(1.08); }

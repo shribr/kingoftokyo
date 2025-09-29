@@ -1,0 +1,469 @@
+/**
+ * components.unified-modals.css
+ * Unified styling system for all toolbar modals
+ */
+
+/* Settings Tab System */
+.settings-tabs {
+  display: flex;
+  border-bottom: 2px solid #333;
+  margin-bottom: 20px;
+  background: #1a1a1a;
+  border-radius: 6px 6px 0 0;
+}
+
+.tab-button {
+  flex: 1;
+  background: none;
+  border: none;
+  color: #999;
+  padding: 12px 16px;
+  cursor: pointer;
+  font-family: 'Bangers', cursive;
+  font-size: 16px;
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.tab-button:hover {
+  color: #ccc;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tab-button.active {
+  color: #e4e4e4;
+  border-bottom-color: #6c5ce7;
+  background: rgba(108, 92, 231, 0.1);
+}
+
+.tab-button.active:after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 6px solid #6c5ce7;
+}
+
+.tab-content {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.tab-content:not(.active) {
+  display: none;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Modal Form Structure */
+.unified-modal-form {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 0;
+  margin: 0;
+}
+
+/* Section Headers */
+.section {
+  margin-bottom: 24px;
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ffd700;
+  margin: 0 0 16px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #444;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Form Fields */
+.field {
+  margin-bottom: 16px;
+}
+
+.field-label {
+  display: block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  opacity: 0.9;
+  color: #e4e4e4;
+}
+
+.field-input {
+  background: #fff;
+  border: 2px solid #000;
+  color: #000;
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  border-radius: 4px;
+  box-shadow: 2px 2px 0 #000;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.field-input:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 2px 2px 0 #4a90e2;
+}
+
+.field-help {
+  font-size: 0.75rem;
+  color: #999;
+  margin-top: 4px;
+  line-height: 1.4;
+  font-style: italic;
+}
+
+/* Checkbox Styling */
+.field-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.field-checkbox input[type="checkbox"] {
+  margin: 0;
+  width: 18px;
+  height: 18px;
+  accent-color: #4a90e2;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.checkbox-label {
+  color: #e4e4e4;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* Radio Button Groups */
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.radio-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 6px 0;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.radio-option:hover {
+  background-color: rgba(74, 144, 226, 0.1);
+}
+
+.radio-option input[type="radio"] {
+  margin: 0;
+  width: 16px;
+  height: 16px;
+  accent-color: #4a90e2;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.radio-option span {
+  color: #e4e4e4;
+  line-height: 1.4;
+}
+
+/* Modal Actions */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #444;
+}
+
+/* Unified Button System */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid;
+  box-shadow: 2px 2px 0;
+  font-family: inherit;
+}
+
+.btn:hover {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0;
+}
+
+.btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+.btn-primary {
+  background: #4a90e2;
+  color: white;
+  border-color: #357abd;
+  box-shadow: 2px 2px 0 #357abd;
+}
+
+.btn-primary:hover {
+  background: #357abd;
+  box-shadow: 1px 1px 0 #357abd;
+}
+
+.btn-secondary {
+  background: #2a2a2a;
+  color: #e4e4e4;
+  border-color: #444;
+  box-shadow: 2px 2px 0 #444;
+}
+
+.btn-secondary:hover {
+  background: #333;
+  box-shadow: 1px 1px 0 #444;
+}
+
+.btn-danger {
+  background: #e74c3c;
+  color: white;
+  border-color: #c0392b;
+  box-shadow: 2px 2px 0 #c0392b;
+}
+
+.btn-danger:hover {
+  background: #c0392b;
+  box-shadow: 1px 1px 0 #c0392b;
+}
+
+.btn-success {
+  background: #27ae60;
+  color: white;
+  border-color: #229954;
+  box-shadow: 2px 2px 0 #229954;
+}
+
+.btn-success:hover {
+  background: #229954;
+  box-shadow: 1px 1px 0 #229954;
+}
+
+/* Content Styling */
+.modal-content-scrollable {
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 16px;
+  background: #1a1a1a;
+  border-radius: 8px;
+  border: 1px solid #444;
+  margin-bottom: 16px;
+}
+
+.content-section {
+  margin-bottom: 20px;
+}
+
+.content-section:last-child {
+  margin-bottom: 0;
+}
+
+.content-section h4 {
+  color: #ffd700;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.content-section p {
+  color: #ccc;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin: 0 0 8px 0;
+}
+
+.content-section ul {
+  color: #ccc;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.content-section li {
+  margin-bottom: 4px;
+}
+
+/* Status Indicators */
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-indicator.success {
+  background: #27ae60;
+  color: white;
+}
+
+.status-indicator.warning {
+  background: #f39c12;
+  color: white;
+}
+
+.status-indicator.error {
+  background: #e74c3c;
+  color: white;
+}
+
+.status-indicator.info {
+  background: #4a90e2;
+  color: white;
+}
+
+/* Filter Controls */
+.filter-controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #2a2a2a;
+  border-radius: 6px;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filter-group label {
+  font-size: 0.75rem;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filter-group select,
+.filter-group input {
+  background: #444;
+  border: 1px solid #666;
+  color: #e4e4e4;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  border-radius: 3px;
+  min-width: 80px;
+}
+
+/* Advanced Settings Buttons */
+.btn.btn-warning {
+  background: linear-gradient(135deg, #f39c12, #e67e22) !important;
+  border-color: #d68910 !important;
+  color: white !important;
+}
+
+.btn.btn-warning:hover {
+  background: linear-gradient(135deg, #e67e22, #d35400) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(211, 84, 0, 0.3);
+}
+
+.btn.btn-danger {
+  background: linear-gradient(135deg, #e74c3c, #c0392b) !important;
+  border-color: #a93226 !important;
+  color: white !important;
+}
+
+.btn.btn-danger:hover {
+  background: linear-gradient(135deg, #c0392b, #922b21) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(146, 43, 33, 0.3);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Button groups */
+.field > div:has(.btn) {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Theme preview enhancements */
+.theme-preview-container {
+  padding: 20px !important;
+  background: #1a1a1a !important;
+  border-radius: 8px !important;
+  border: 1px solid #444 !important;
+  text-align: center !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-preview-container:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 30% 30%, rgba(108, 92, 231, 0.1), transparent 70%);
+  pointer-events: none;
+}
+
+.mini-power-card {
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s ease;
+}
+
+.mini-power-card:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}

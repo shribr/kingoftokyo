@@ -21,6 +21,17 @@ export function build({ selector }) {
     <div class="am-label" aria-hidden="true">ACTIONS</div>
     <button data-action="roll" class="k-btn k-btn--primary">ROLL</button>
     <button data-action="keep" class="k-btn k-btn--secondary" disabled>KEEP ALL</button>
+    <div class="power-cards-menu-container">
+      <button data-action="power-cards" class="k-btn k-btn--secondary power-cards-btn">
+        <span class="arrow-left">◀</span>
+        <span class="btn-text">POWER CARDS</span>
+        <span class="arrow-right">▶</span>
+      </button>
+      <div class="power-cards-submenu" data-submenu hidden>
+        <button data-action="show-my-cards" class="k-btn k-btn--xs">MY CARDS</button>
+        <button data-action="flush" class="k-btn k-btn--xs" disabled>FLUSH CARDS (2⚡)</button>
+      </div>
+    </div>
     <button data-action="end" class="k-btn k-btn--secondary" disabled>END TURN</button>`;
   root.addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-action]');
@@ -35,6 +46,45 @@ export function build({ selector }) {
         if (st.phase === 'ROLL' && st.dice?.phase === 'resolved' && (st.dice.faces?.length||0) > 0) {
           store.dispatch(diceSetAllKept(true));
         }
+        break; }
+      case 'power-cards': {
+        // Toggle submenu visibility
+        const submenu = root.querySelector('.power-cards-submenu');
+        if (submenu) {
+          const isHidden = submenu.hasAttribute('hidden');
+          console.log('Power cards clicked, submenu hidden:', isHidden);
+          if (isHidden) {
+            submenu.removeAttribute('hidden');
+            updateSubmenuPosition(root);
+            console.log('Showing submenu');
+          } else {
+            submenu.setAttribute('hidden', '');
+            console.log('Hiding submenu');
+          }
+        } else {
+          console.error('Submenu not found');
+        }
+        break; }
+      case 'show-my-cards': {
+        // Open modal showing player's power cards
+        eventBus.emit('ui/modal/showPlayerCards');
+        // Hide submenu after action
+        const submenu = root.querySelector('.power-cards-submenu');
+        submenu.setAttribute('hidden', '');
+        break; }
+      case 'flush': {
+        // Flush power cards shop for 2 energy
+        const active = st.players?.byId?.[st.players?.order?.[st.meta?.activePlayerIndex]] || null;
+        if (active && active.energy >= 2) {
+          import('../../services/cardsService.js').then(({ flushShop }) => {
+            import('../../bootstrap/index.js').then(({ logger }) => {
+              flushShop(store, logger, active.id, 2);
+            });
+          });
+        }
+        // Hide submenu after action
+        const submenu = root.querySelector('.power-cards-submenu');
+        submenu.setAttribute('hidden', '');
         break; }
       case 'end': {
         const phase = st.phase;
@@ -68,8 +118,8 @@ export function build({ selector }) {
       root.setAttribute('data-draggable','false');
     }
     if (root.getAttribute('data-draggable') !== 'false') {
-      const applyBounds = () => ({ left:0, top:0, right: window.innerWidth, bottom: window.innerHeight });
-      positioning.makeDraggable(root, 'actionMenu', { snapEdges: true, snapThreshold: 12, bounds: applyBounds() });
+      // Remove bounds to allow dragging anywhere, including over the toolbar
+      positioning.makeDraggable(root, 'actionMenu', { snapEdges: true, snapThreshold: 12 });
     }
     // Track drag to switch hybrid -> floating
     let dragTransformStart = null;
@@ -80,6 +130,13 @@ export function build({ selector }) {
           root._userMoved = true;
           if ((store.getState().settings?.actionMenuMode || 'hybrid') === 'hybrid') {
             root.dataset.amDockState = 'floating';
+          }
+          // Update arrow visibility after drag
+          updateArrowVisibility(root);
+          // Hide submenu if it was open during drag
+          const submenu = root.querySelector('.power-cards-submenu');
+          if (submenu && !submenu.hasAttribute('hidden')) {
+            submenu.setAttribute('hidden', '');
           }
         }
         dragTransformStart = null;
@@ -120,6 +177,35 @@ export function build({ selector }) {
       requestAnimationFrame(() => { if (!root._userMoved && root.dataset.amDockState === 'docked') anchorActionMenu(root); });
     }
   } catch(e) { /* non-fatal */ }
+  
+  // Add click outside handler for submenu
+  document.addEventListener('click', (e) => {
+    const submenu = root.querySelector('.power-cards-submenu');
+    if (submenu && !submenu.hasAttribute('hidden')) {
+      if (!root.contains(e.target)) {
+        submenu.setAttribute('hidden', '');
+      }
+    }
+  });
+  
+  // Add deck illumination on power cards button hover
+  const powerCardsBtn = root.querySelector('.power-cards-btn');
+  if (powerCardsBtn) {
+    powerCardsBtn.addEventListener('mouseenter', () => {
+      const deck = document.querySelector('.power-card-deck');
+      if (deck) {
+        deck.style.boxShadow = 'inset 0 0 20px rgba(0,0,0,0.3), 0 0 20px #4a7c59';
+      }
+    });
+    
+    powerCardsBtn.addEventListener('mouseleave', () => {
+      const deck = document.querySelector('.power-card-deck');
+      if (deck) {
+        deck.style.boxShadow = 'inset 0 0 20px rgba(0,0,0,0.3)';
+      }
+    });
+  }
+  
   return { root, update: () => update(root), destroy: () => { root.remove(); } };
 }
 
@@ -129,11 +215,52 @@ export function build({ selector }) {
 
 // (Removed global fallback & debug instrumentation – drag service now respects data-nodrag)
 
+function updateArrowVisibility(root) {
+  const rect = root.getBoundingClientRect();
+  const submenuWidth = 200;
+  const margin = 8;
+  const leftSpace = rect.left - margin;
+  const rightSpace = window.innerWidth - rect.right - margin;
+  
+  const leftArrow = root.querySelector('.arrow-left');
+  const rightArrow = root.querySelector('.arrow-right');
+  
+  if (leftArrow && rightArrow) {
+    // Show arrow pointing to the side where submenu will appear
+    const shouldShowLeft = leftSpace > rightSpace && leftSpace >= submenuWidth;
+    leftArrow.style.opacity = shouldShowLeft ? '1' : '0';
+    rightArrow.style.opacity = shouldShowLeft ? '0' : '1';
+  }
+}
+
+function updateSubmenuPosition(root) {
+  const submenu = root.querySelector('.power-cards-submenu');
+  const rect = root.getBoundingClientRect();
+  
+  if (submenu) {
+    // Calculate available space on both sides
+    const submenuWidth = 200; // min-width from CSS
+    const margin = 8; // margin from CSS
+    const leftSpace = rect.left - margin;
+    const rightSpace = window.innerWidth - rect.right - margin;
+    
+    // Choose side with more space, but prefer right if equal
+    const shouldShowLeft = leftSpace > rightSpace && leftSpace >= submenuWidth;
+    
+    submenu.classList.toggle('submenu-left', shouldShowLeft);
+    submenu.classList.toggle('submenu-right', !shouldShowLeft);
+  }
+}
+
 export function update(root) {
   const st = store.getState();
   const rollBtn = root.querySelector('[data-action="roll"]');
   const keepBtn = root.querySelector('[data-action="keep"]');
+  const powerCardsBtn = root.querySelector('[data-action="power-cards"]');
+  const flushBtn = root.querySelector('[data-action="flush"]');
   const endBtn = root.querySelector('[data-action="end"]');
+  // Update arrow visibility based on menu position
+  updateArrowVisibility(root);
   // no collapse button in mobile; hamburger opens/closes via window event
   const dice = st.dice || {};
   const faces = dice.faces || [];
@@ -165,6 +292,13 @@ export function update(root) {
     const canKeepAll = st.phase === 'ROLL' && hasAnyFaces && dice.phase === 'resolved' && !isCPU && !allKept;
     keepBtn.disabled = !canKeepAll;
     keepBtn.textContent = 'KEEP ALL';
+  }
+  if (flushBtn) {
+    // Enable flush button only after final roll (no rerolls remaining) and player has enough energy
+    const afterFinalRoll = st.phase === 'ROLL' && dice.phase === 'resolved' && dice.rerollsRemaining === 0;
+    const hasEnergy = active && active.energy >= 2;
+    const canFlush = !isCPU && afterFinalRoll && hasEnergy;
+    flushBtn.disabled = !canFlush;
   }
   if (endBtn) {
     const canEnd = !isCPU && (
