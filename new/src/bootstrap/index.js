@@ -32,7 +32,8 @@ import { bindAIDecisionCapture } from '../services/aiDecisionService.js';
 import { initializeEnhancedIntegration } from '../utils/enhanced-integration.js';
 import '../ui/metricsPanel.js';
 import '../ui/components/buyWaitStatus.js';
-import { applyScenarios } from '../services/scenarioService.js';
+import { applyScenarios, captureScenarioState } from '../services/scenarioService.js';
+import { getScenario } from '../scenarios/catalog.js';
 import { SCENARIO_APPLY_REQUEST } from '../core/actions.js';
 
 // Placeholder reducers until implemented
@@ -167,7 +168,9 @@ if (typeof window !== 'undefined') {
         const stNow = store.getState();
         const pre = stNow.settings?.scenarioConfig?.assignments;
         if (pre && pre.length) {
-          applyScenarios(store, { assignments: resolveScenarioDynamicTargets(store, pre) });
+          const appliedList = resolveScenarioDynamicTargets(store, pre);
+          applyScenarios(store, { assignments: appliedList });
+          showScenarioToast(appliedList);
         }
         // If this boot was triggered by the scenario generator, clear its transient flags so future reloads are clean
         try {
@@ -342,9 +345,56 @@ function resolveScenarioDynamicTargets(store, assignments) {
   const cpus = order.filter(pid => byId[pid].isCPU);
   const expanded = [];
   assignments.forEach(a => {
-    if (a.target === '__HUMAN__' && human) expanded.push({ playerId: human, scenarioIds: a.scenarioIds });
-    else if (a.target === '__CPUS__') cpus.forEach(id => expanded.push({ playerId: id, scenarioIds: a.scenarioIds }));
-    else if (byId[a.target]) expanded.push({ playerId: a.target, scenarioIds: a.scenarioIds });
+    // Support new shape: { mode, cpuCount, scenarioIds }
+    if (a.mode) {
+      const count = Math.min(a.cpuCount || 0, cpus.length);
+      if (a.mode === 'HUMAN' && human) expanded.push({ playerId: human, scenarioIds: a.scenarioIds, paramsByScenario: a.paramsByScenario });
+      else if (a.mode === 'CPUS') cpus.slice(0,count).forEach(id => expanded.push({ playerId: id, scenarioIds: a.scenarioIds, paramsByScenario: a.paramsByScenario }));
+      else if (a.mode === 'BOTH') {
+        if (human) expanded.push({ playerId: human, scenarioIds: a.scenarioIds, paramsByScenario: a.paramsByScenario });
+        cpus.slice(0,count).forEach(id => expanded.push({ playerId: id, scenarioIds: a.scenarioIds, paramsByScenario: a.paramsByScenario }));
+      }
+    } else if (a.target || a.targets) {
+      // Legacy fallback
+      if (a.target === '__HUMAN__' && human) expanded.push({ playerId: human, scenarioIds: a.scenarioIds });
+      else if (a.target === '__CPUS__') cpus.forEach(id => expanded.push({ playerId: id, scenarioIds: a.scenarioIds }));
+    }
   });
-  return expanded;
+  // Merge duplicates (playerId)
+  const map = new Map();
+  expanded.forEach(e => {
+    if (!map.has(e.playerId)) map.set(e.playerId, { playerId: e.playerId, scenarioIds: [], paramsByScenario: {} });
+    const slot = map.get(e.playerId);
+    e.scenarioIds.forEach(id => { if (!slot.scenarioIds.includes(id)) slot.scenarioIds.push(id); });
+    if (e.paramsByScenario) Object.assign(slot.paramsByScenario, e.paramsByScenario);
+  });
+  return [...map.values()];
 }
+
+function showScenarioToast(appliedList){
+  try {
+    if (!appliedList || !appliedList.length) return;
+    const div = document.createElement('div');
+    div.className = 'scenario-toast';
+    div.style.cssText = 'position:fixed;top:10px;left:50%;transform:translateX(-50%);background:#142a18;color:#cfe9d2;padding:8px 14px;font-size:12px;border:1px solid #265c34;border-radius:6px;z-index:9999;box-shadow:0 2px 6px rgba(0,0,0,.4);display:flex;align-items:center;gap:8px;';
+    const uniqueScenarios = new Set();
+    appliedList.forEach(a => (a.scenarioIds||[]).forEach(id => uniqueScenarios.add(id)));
+    const names = [...uniqueScenarios].map(id => { const s = getScenario(id); return s ? s.label : id; });
+    div.textContent = `Scenarios applied: ${names.join(', ')}`;
+    const close = document.createElement('button');
+    close.textContent = '×';
+    close.style.cssText = 'background:transparent;color:#cfe9d2;border:none;font-size:14px;cursor:pointer;';
+    close.onclick = ()=>div.remove();
+    div.appendChild(close);
+    document.body.appendChild(div);
+    setTimeout(()=>{ div.classList.add('fade'); div.style.transition='opacity .6s'; div.style.opacity='0'; setTimeout(()=>div.remove(), 700); }, 4000);
+  } catch(_) {}
+}
+
+// Persist last scenario snapshot for deeper test loops (optional)
+window.addEventListener('beforeunload', () => {
+  try {
+    const snap = captureScenarioState(store);
+    localStorage.setItem('KOT_LAST_SCENARIO_SNAPSHOT', JSON.stringify(snap));
+  } catch(_) {}
+});

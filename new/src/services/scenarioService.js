@@ -5,7 +5,7 @@ import { playerVPGained, playerGainEnergy, playerCardGained, applyPlayerDamage, 
 import { buildBaseCatalog } from '../domain/cards.js';
 
 export function applyScenarios(store, config) {
-  // config: { assignments: [{ playerId, scenarioIds: [], replace?:boolean }], mode?:'stack'|'replace' }
+  // config: { assignments: [{ playerId, scenarioIds: [], paramsByScenario?: { [id]: {..} }, replace?:boolean }], mode?:'stack'|'replace' }
   if (!config || !Array.isArray(config.assignments)) return;
   const catalog = buildBaseCatalog();
   const state = store.getState();
@@ -18,7 +18,8 @@ export function applyScenarios(store, config) {
       const sc = getScenario(scId);
       if (!sc) return;
       if (sc.global) globalScenarios.add(scId);
-      const patch = sc.apply(player, { catalog, store });
+      const params = (assign.paramsByScenario && assign.paramsByScenario[scId]) || undefined;
+      const patch = sc.apply(player, { catalog, store }, params);
       if (!patch) return;
       // Translate patch into actions; direct state mutation avoided.
       if (patch.victoryPoints != null) {
@@ -54,7 +55,8 @@ export function applyScenarios(store, config) {
       globalScenarios.forEach(scId => {
         const sc = getScenario(scId);
         if (!sc) return;
-        const patch = sc.apply(player, { catalog, store });
+        const params = collectParamsForPlayer(globalScenariosAssignments(config.assignments), scId, player.id);
+        const patch = sc.apply(player, { catalog, store }, params);
         if (!patch) return;
         if (patch.victoryPoints != null) {
           const delta = patch.victoryPoints - player.victoryPoints;
@@ -101,4 +103,18 @@ export function restoreScenarioState(store, snap) {
   try {
     store.dispatch({ type: 'GAME_STATE_IMPORTED', payload: { snapshot: { slices: { players: snap.players, meta: snap.meta, phase: snap.phase } } } });
   } catch(e) { console.warn('Scenario restore failed', e); }
+}
+
+// Helper to gather params for a global scenario (if provided in assignments) – merges first found.
+function collectParamsForPlayer(assignments, scId, _playerId){
+  for (const a of assignments) {
+    if (a.scenarioIds && a.scenarioIds.includes(scId)) {
+      if (a.paramsByScenario && a.paramsByScenario[scId]) return a.paramsByScenario[scId];
+    }
+  }
+  return undefined;
+}
+
+function globalScenariosAssignments(assignments){
+  return assignments || [];
 }

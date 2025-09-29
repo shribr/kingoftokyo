@@ -22,6 +22,7 @@ function template(){
       <span><strong>${s.label}</strong><br/><span style='opacity:.65;font-size:11px;'>${s.description}</span></span>
     </label>`).join('')}
   </div>
+  <div data-param-editor style='display:none;margin:-4px 0 10px;padding:8px 10px;background:#121212;border:1px solid #2c2c2c;border-radius:6px;font-size:11px;'></div>
   <div class='target-mode-wrapper' style='display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;margin:0 0 10px;padding:8px 10px;background:#141414;border:1px solid #2a2a2a;border-radius:6px;'>
     <label style='font-size:11px;display:flex;flex-direction:column;gap:4px;'>Target
       <select data-target-mode style='font-size:12px;padding:4px 6px;background:#1f1f1f;color:#ddd;border:1px solid #333;border-radius:4px;'>
@@ -64,6 +65,12 @@ function bind(root){
         cpuCountWrapper().style.display = 'flex';
       }
     }
+    if (e.target.matches('[data-scenario-id]')) {
+      updateParamEditor(root);
+    }
+    if (e.target.closest('[data-param-editor]')) {
+      // Live update of displayed values only; stored on Add Assignment
+    }
   });
 
   root.addEventListener('click', e => {
@@ -78,9 +85,26 @@ function bind(root){
       if (mode !== 'HUMAN') {
         cpuCount = parseInt(cpuCountSelect().value, 10) || 1;
       }
+      // Gather parameter values per scenario
+      const paramsByScenario = {};
+      selected.forEach(id => {
+        const sc = getScenario(id);
+        if (sc && sc.params) {
+          paramsByScenario[id] = {};
+          Object.keys(sc.params).forEach(pKey => {
+            const input = root.querySelector(`[data-param-input="${id}:${pKey}"]`);
+            if (input) {
+              const schema = sc.params[pKey];
+              let val = input.value;
+              if (schema.type === 'number') val = parseInt(val,10);
+              paramsByScenario[id][pKey] = val;
+            }
+          });
+        }
+      });
       const st = store.getState();
       const assignments = st.settings?.scenarioConfig?.assignments ? [...st.settings.scenarioConfig.assignments] : [];
-      assignments.push({ mode, cpuCount, scenarioIds: selected });
+      assignments.push({ mode, cpuCount, scenarioIds: selected, paramsByScenario });
       store.dispatch(scenarioConfigUpdated({ assignments }));
       sync(root);
     }
@@ -199,7 +223,13 @@ function renderSummary(assignments){
     parts.push(`<div style='margin-top:6px;'><div style='font-size:11px;color:#9ac;'>Targets: <code>${label}</code></div>`);
     scs.forEach(sc => {
       const bullets = (sc.bullets || []).map(b=>`<li>${b}</li>`).join('');
-      parts.push(`<div style='margin:4px 0 4px 6px;'><div style='font-weight:600;'>${sc.label}</div><div style='opacity:.7;font-size:10px;'>${sc.description}</div>${bullets?`<ul style='margin:4px 0 0 14px;padding:0 0 0 4px;'>${bullets}</ul>`:''}</div>`);
+      // Show param overrides if present
+      let paramLine = '';
+      if (a.paramsByScenario && a.paramsByScenario[sc.id]) {
+        const entries = Object.entries(a.paramsByScenario[sc.id]).map(([k,v])=>`${k}=${v}`).join(', ');
+        if (entries) paramLine = `<div style='opacity:.65;font-size:10px;'>Params: ${entries}</div>`;
+      }
+      parts.push(`<div style='margin:4px 0 4px 6px;'><div style='font-weight:600;'>${sc.label}</div><div style='opacity:.7;font-size:10px;'>${sc.description}</div>${paramLine}${bullets?`<ul style='margin:4px 0 0 14px;padding:0 0 0 4px;'>${bullets}</ul>`:''}</div>`);
     });
     parts.push('</div>');
   });
@@ -237,4 +267,26 @@ function describeAssignmentLabel(a){
   if (a.mode === 'CPUS') return `🤖 x${a.cpuCount || 0}`;
   if (a.mode === 'BOTH') return `👤 + 🤖 x${a.cpuCount || 0}`;
   return '?';
+}
+
+function updateParamEditor(root){
+  const editor = root.querySelector('[data-param-editor]');
+  const selected = [...root.querySelectorAll('[data-scenario-id]:checked')].map(cb=>cb.getAttribute('data-scenario-id'));
+  if (!selected.length) { editor.style.display='none'; editor.innerHTML=''; return; }
+  const blocks = [];
+  selected.forEach(id => {
+    const sc = getScenario(id);
+    if (!sc || !sc.params) return;
+    const paramInputs = Object.entries(sc.params).map(([key,schema])=>{
+      const baseAttrs = `data-param-input="${id}:${key}" name="${id}:${key}"`; 
+      if (schema.type === 'number') {
+        return `<label style='display:flex;flex-direction:column;gap:2px;'>${schema.label}<input type='number' ${baseAttrs} value='${schema.default}' min='${schema.min}' max='${schema.max}' step='${schema.step||1}' style='background:#1a1a1a;color:#ddd;border:1px solid #333;padding:2px 4px;font-size:11px;border-radius:4px;'/></label>`;
+      }
+      return '';
+    }).join('<div style="width:8px;"></div>');
+    if (paramInputs) blocks.push(`<div style='display:flex;flex-wrap:wrap;gap:10px;margin:4px 0 6px;padding:6px 8px;border:1px solid #252525;background:#181818;border-radius:4px;'><div style='font-weight:600;font-size:11px;width:100%;'>${sc.label}</div>${paramInputs}</div>`);
+  });
+  if (!blocks.length) { editor.style.display='none'; editor.innerHTML=''; return; }
+  editor.style.display='block';
+  editor.innerHTML = `<div style='font-weight:600;margin-bottom:4px;'>Parameters</div>${blocks.join('')}`;
 }
