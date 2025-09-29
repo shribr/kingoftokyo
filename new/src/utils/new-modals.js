@@ -901,109 +901,18 @@ export function createHelpModal() {
 
 export function createAIDecisionModal() {
   const content = document.createElement('div');
-  content.innerHTML = `
-    <div class="unified-modal-form">
-      <!-- AI Decision Tree Content -->
-      <div class="modal-content-scrollable" id="ai-tree-content">
-        <div style="text-align: center; color: #999; font-style: italic; padding: 40px;">
-          🤖 Waiting for AI decisions...<br>
-          <small>Play some turns with CPU players to see their decision-making process</small>
-        </div>
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button type="button" class="btn btn-primary refresh-btn">
-        <span>🔄</span> Refresh
-      </button>
-      <button type="button" class="btn btn-secondary close-btn">
-        <span>✕</span> Close
-      </button>
-    </div>
-  `;
-
-  // Load AI decision tree data and render it
-  const updateAITree = async () => {
+  content.className = 'ai-decision-tree-wrapper';
+  // Lazy import new component to avoid upfront cost
+  import('../components/ai-decision-tree/ai-decision-tree.component.js').then(mod => {
     try {
-      const { getAIDecisionTree } = await import('../services/aiDecisionService.js');
-      const tree = getAIDecisionTree();
-      const treeContainer = content.querySelector('#ai-tree-content');
-      if (treeContainer) {
-        treeContainer.innerHTML = renderAITree(tree);
-      }
-    } catch (error) {
-      console.warn('Error loading AI decision tree:', error);
-    }
-  };
-
-  // Refresh button
-  content.querySelector('.refresh-btn').addEventListener('click', () => {
-    updateAITree();
-  });
-
-  // Close button
-  content.querySelector('.close-btn').addEventListener('click', () => {
-    newModalSystem.closeModal('aiDecision');
-  });
-
-  // Initial load
-  updateAITree();
-
-  return newModalSystem.createModal('aiDecision', '✨ AI Decision Tree', content, { width: '600px' });
+      const { root } = mod.buildAIDecisionTree();
+      content.appendChild(root);
+    } catch(e){ console.warn('[aiDecisionModal] failed to init tree', e); }
+  }).catch(err=> console.warn('[aiDecisionModal] load error', err));
+  return newModalSystem.createModal('aiDecision', '✨ AI Decision Tree', content, { width: '820px' });
 }
 
-function renderAITree(tree) {
-  if (!tree.rounds.length) {
-    return '<div style="padding: 20px; text-align: center; color: #999; font-style: italic;">No AI decisions recorded yet.<br>Play some turns with CPU players to see their decision-making process.</div>';
-  }
-
-  return `
-    <div class="ai-rounds" style="max-height: 400px; overflow-y: auto; padding: 10px;">
-      ${tree.rounds.map(round => renderAIRound(round)).join('')}
-    </div>
-  `;
-}
-
-function renderAIRound(round) {
-  return `
-    <div class="ai-round" style="border: 1px solid #444; border-radius: 8px; margin-bottom: 16px; background: #1a1a1a;">
-      <div class="ai-round-header" style="background: #2a2a2a; padding: 10px 12px; border-radius: 8px 8px 0 0; font-weight: 600; color: #ffd700; border-bottom: 1px solid #444;">
-        🎯 Round ${round.round}
-      </div>
-      <div class="ai-round-content" style="padding: 12px;">
-        ${round.turns.map(turn => renderAITurn(turn)).join('')}
-      </div>
-    </div>
-  `;
-}
-
-function renderAITurn(turn) {
-  return `
-    <div class="ai-turn" style="border-left: 2px solid #4a90e2; padding-left: 12px; margin-bottom: 12px;">
-      <div class="ai-turn-header" style="font-weight: 600; color: #4a90e2; margin-bottom: 8px;">
-        ⚡ Turn ${turn.turn}
-      </div>
-      <div class="ai-turn-rolls">
-        ${turn.rolls.map(roll => renderAIRoll(roll)).join('')}
-      </div>
-    </div>
-  `;
-}
-
-function renderAIRoll(roll) {
-  return `
-    <div class="ai-roll" style="background: #2a2a2a; border-radius: 6px; padding: 10px; margin-bottom: 8px; border-left: 3px solid #ffd700;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-        <span class="faces" style="font-family: monospace; font-weight: 600; color: #e4e4e4;">🎲 ${roll.faces}</span>
-        <span class="score" style="background: #4a90e2; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">
-          Score: ${roll.score}
-        </span>
-      </div>
-      <div class="rationale" style="color: #ccc; font-size: 0.875rem; line-height: 1.4; font-style: italic;">
-        ${roll.rationale}
-      </div>
-    </div>
-  `;
-}
+// Legacy simple render helpers removed: replaced by dedicated component.
 
 export function createAboutModal() {
   const content = document.createElement('div');

@@ -7,10 +7,12 @@
 export const DICE_ANIM_MS = 600;
 
 // Additional delay requested after dice animation ends before AI selects keeps (more natural pacing)
-export const AI_POST_ANIM_DELAY_MS = 3000;
+// Reduced from 3000 to 600 to prevent sluggish AI pacing / reroll stalls
+export const AI_POST_ANIM_DELAY_MS = 600;
 
 // CPU turn start delay to clearly indicate new turn (must be > card animation time ~500ms)
 export const CPU_TURN_START_MS = 800;
 
 // CPU decision thinking time between rolls
-export const CPU_DECISION_DELAY_MS = 2500;
+// Reduced from 2500 to 900 to accelerate CPU multi-reroll loops
+export const CPU_DECISION_DELAY_MS = 900;

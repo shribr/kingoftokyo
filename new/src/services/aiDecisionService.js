@@ -61,6 +61,10 @@ function captureRoll(state, facesStr, extraMeta) {
   const faces = state.dice.faces;
   const analysis = analyzeFaces(faces, state, activeId);
   const turnNode = ensureRound(round).ensureTurn(turn);
+  // Player metadata (needed for AI-only filtering in UI)
+  const player = activeId ? state.players.byId[activeId] : null;
+  const isCpu = !!(player && (player.isCPU || player.isAi || player.isAI || player.type === 'ai'));
+  const playerName = player?.name || player?.displayName || player?.id || activeId || 'Unknown';
   const node = {
     id: nextNodeId++,
     faces: facesStr,
@@ -68,7 +72,10 @@ function captureRoll(state, facesStr, extraMeta) {
     score: analysis.score.toFixed(2),
     tags: analysis.tags,
     stage: extraMeta?.stage,
-    hypotheticals: generateHypotheticals(state, faces, activeId)
+    hypotheticals: generateHypotheticals(state, faces, activeId),
+    playerId: activeId,
+    playerName,
+    isCpu
   };
   turnNode.rolls.push(node);
   if (extraMeta?.stage === 'post') {
@@ -136,18 +143,32 @@ function autoKeepHeuristic(store) {
   const inTokyo = player.inTokyo;
   // Determine candidate numbers for potential triple (prefer highest numeric value producing VP)
   const candidateNumbers = ['3','2','1'].filter(n => tally[n] >= 2);
-  let lockedNumber = candidateNumbers.length ? candidateNumbers[0] : null;
-  // Iterate dice and decide keep flags
+  const lockedNumber = candidateNumbers.length ? candidateNumbers[0] : null; // string form
+  let keptAny = false;
   faces.forEach((die, idx) => {
     let keep = false;
-    if (lockedNumber && die.value === Number(lockedNumber)) keep = true;
-    else if (die.value === 'claw' || die.value === 0) { // 'claw' might be represented differently; adapt if needed
-      if (!inTokyo) keep = true; // attacking from outside
+    // Numbers are strings ('1','2','3') so compare string to string
+    if (lockedNumber && die.value === lockedNumber) keep = true;
+    // Claws: good early pressure if outside Tokyo OR if inside and have high HP to maintain pressure
+    else if (die.value === 'claw') {
+      if (!inTokyo || player.health > 6) keep = true;
     }
+    // Hearts: only if can heal (below 6) and not in Tokyo
     else if (die.value === 'heart' && !inTokyo && player.health < 6) keep = true;
+    // Energy: early economy (< 6 energy) unless already committing to a triple chase
     else if (die.value === 'energy' && player.energy < 6 && !lockedNumber) keep = true;
-    if (keep && !die.kept) store.dispatch(diceToggleKeep(idx));
+    if (keep && !die.kept) { store.dispatch(diceToggleKeep(idx)); keptAny = true; }
   });
+  // Fallback: if nothing was kept and rerolls remain, keep a single highest value number or a claw to avoid aimless rerolls
+  if (!keptAny && state.dice.rerollsRemaining > 0) {
+    let pickIndex = -1;
+    let priorityFaces = ['3','2','1','claw','energy','heart'];
+    for (const face of priorityFaces) {
+      const i = faces.findIndex(d => d.value === face && !d.kept);
+      if (i >= 0) { pickIndex = i; break; }
+    }
+    if (pickIndex >= 0) store.dispatch(diceToggleKeep(pickIndex));
+  }
 }
 
 function scheduleAIAutoKeep(store) {
