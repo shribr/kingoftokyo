@@ -79,6 +79,10 @@ export const UI_ROLL_FOR_FIRST_RESOLVED = 'UI_ROLL_FOR_FIRST_RESOLVED';
 export const UI_PEEK_SHOW = 'UI_PEEK_SHOW';
 export const UI_PEEK_HIDE = 'UI_PEEK_HIDE';
 export const UI_ATTACK_PULSE = 'UI_ATTACK_PULSE';
+// Visual feedback animations
+export const UI_VP_FLASH = 'UI_VP_FLASH';
+export const UI_ENERGY_FLASH = 'UI_ENERGY_FLASH';
+export const UI_HEALTH_FLASH = 'UI_HEALTH_FLASH';
 // Yield decision (Tokyo leave prompt)
 export const YIELD_PROMPT_SHOWN = 'YIELD_PROMPT_SHOWN';
 export const YIELD_PROMPT_DECIDED = 'YIELD_PROMPT_DECIDED';
@@ -171,6 +175,9 @@ export const uiRollForFirstResolved = () => ({ type: UI_ROLL_FOR_FIRST_RESOLVED 
 export const uiPeekShow = (card) => ({ type: UI_PEEK_SHOW, payload: { card } });
 export const uiPeekHide = () => ({ type: UI_PEEK_HIDE });
 export const uiAttackPulse = (playerIds, ts = Date.now()) => ({ type: UI_ATTACK_PULSE, payload: { playerIds, ts } });
+export const uiVPFlash = (playerId, amount, ts = Date.now()) => ({ type: UI_VP_FLASH, payload: { playerId, amount, ts } });
+export const uiEnergyFlash = (playerId, amount, ts = Date.now()) => ({ type: UI_ENERGY_FLASH, payload: { playerId, amount, ts } });
+export const uiHealthFlash = (playerId, amount, ts = Date.now()) => ({ type: UI_HEALTH_FLASH, payload: { playerId, amount, ts } });
 // Yield prompt actions
 export const yieldPromptShown = (defenderId, attackerId, slot, expiresAt) => ({ type: YIELD_PROMPT_SHOWN, payload: { defenderId, attackerId, slot, expiresAt } });
 export const yieldPromptDecided = (defenderId, attackerId, slot, decision) => ({ type: YIELD_PROMPT_DECIDED, payload: { defenderId, attackerId, slot, decision } });

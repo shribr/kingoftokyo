@@ -16,8 +16,22 @@ export function build({ selector, playerId }) {
   root.className = `cmp-player-profile-card`;
   root.setAttribute('data-player-id', playerId);
   root.innerHTML = baseTemplate();
-  // Flip on tap (mobile): toggles between front (stats) and back (owned cards)
+  // Handle card interactions
   root.addEventListener('click', (e) => {
+    // Handle expand/collapse toggle in list view
+    if (e.target.closest('[data-expand-toggle]')) {
+      e.preventDefault();
+      e.stopPropagation();
+      root.toggleAttribute('data-expanded');
+      const icon = root.querySelector('.ppc-expand-icon');
+      if (icon) {
+        // Rotate SVG arrow: down arrow (0deg) when collapsed, up arrow (180deg) when expanded
+        icon.style.transform = root.hasAttribute('data-expanded') ? 'rotate(180deg)' : 'rotate(0deg)';
+      }
+      return;
+    }
+
+    // Flip on tap (mobile): toggles between front (stats) and back (owned cards)
     const isTouch = matchMedia('(max-width: 760px), (pointer: coarse)').matches;
     if (!isTouch) return;
     // Avoid flipping when clicking links/buttons in future
@@ -60,6 +74,11 @@ function baseTemplate() {
           <span class="ppc-tokyo-indicator" data-tokyo></span>
         </div>
       </div>
+      <button class="ppc-expand-toggle" data-expand-toggle title="Show/Hide Details" aria-label="Toggle card details">
+        <svg class="ppc-expand-icon" width="16" height="10" viewBox="0 0 16 10" fill="none" xmlns="http://www.w3.org/2000/svg" style="transform: rotate(0deg);">
+          <path d="M2 2L8 8L14 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
     </div>
     <div class="ppc-stats" data-stats>
       <div class="ppc-stat hp" data-cards><span class="label">CARDS</span><span class="value" data-cards-count>0</span></div>

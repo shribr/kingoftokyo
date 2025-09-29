@@ -39,6 +39,9 @@ export const selectUIMonsterProfiles = (state) => state.ui.monsterProfiles;
 export const selectUISingleMonster = (state) => state.ui.singleMonster;
 export const selectUIPeek = (state) => state.ui.peek;
 export const selectUIAttackPulse = (state) => state.ui.attackPulse;
+export const selectUIVPFlash = (state) => state.ui.vpFlash;
+export const selectUIEnergyFlash = (state) => state.ui.energyFlash;
+export const selectUIHealthFlash = (state) => state.ui.healthFlash;
 // Monsters
 export const selectMonsters = (state) => state.monsters.order.map(id => state.monsters.byId[id]);
 export const selectMonsterById = (state, id) => state.monsters.byId[id];

@@ -5,9 +5,46 @@
 .cmp-player-profile-card.is-active { outline:3px solid #ffd400; outline-offset:3px; }
 
 /* Header */
-.cmp-player-profile-card .ppc-header { display:flex; align-items:flex-start; margin:0 0 14px; }
+.cmp-player-profile-card .ppc-header { display:flex; align-items:flex-start; margin:0 0 14px; position:relative; }
 .cmp-player-profile-card .ppc-avatar { width:58px; height:58px; border:3px solid #000; border-radius:50%; background:#fff center var(--ppc-avatar-pos-y)/cover no-repeat; box-shadow:2px 2px 0 #000; margin-right:10px; }
 .cmp-player-profile-card .ppc-meta { flex:1; }
+
+/* Expand/collapse toggle for list view */
+.cmp-player-profile-card .ppc-expand-toggle {
+  position: static; /* Use normal document flow */
+  display: none; /* Hidden by default, shown only in list view */
+  margin: 8px auto 0;
+  background: none;
+  border: none;
+  color: #fff;
+  width: auto;
+  height: auto;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  z-index: 10;
+  padding: 4px;
+  opacity: 0.8;
+}
+
+/* In list view, show the arrow and create a dedicated arrow container after header */
+.cmp-monsters-panel:not(.is-stacked):not(.is-tiled) .cmp-player-profile-card .ppc-expand-toggle {
+  display: block;
+}
+
+/* Reset header margin in list view since arrow now has its own space */
+.cmp-monsters-panel:not(.is-stacked):not(.is-tiled) .cmp-player-profile-card .ppc-header {
+  margin-bottom: 14px; /* Normal spacing */
+}
+
+.cmp-player-profile-card .ppc-expand-toggle:hover {
+  opacity: 1;
+}
+
+.cmp-player-profile-card .ppc-expand-icon {
+  display: block;
+  transition: transform 0.2s ease;
+  filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.5));
+}
 .cmp-player-profile-card .ppc-name { font-size:30px; line-height:1; margin:0 0 6px; text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; }
 .cmp-player-profile-card .ppc-name small { font-size:14px; opacity:.65; margin-left:6px; letter-spacing:0; }
 .cmp-player-profile-card .ppc-status-line { display:flex; gap:8px; font-size:12px; align-items:center; }
@@ -37,6 +74,18 @@
 /* Attack pulse animation */
 .cmp-player-profile-card.attack-pulse { animation:ppcPulse 2s ease; }
 @keyframes ppcPulse { 0%,100% { box-shadow:4px 4px 0 #000,0 0 0 2px #222 inset; } 50% { box-shadow:0 0 0 3px #ffd400,0 0 12px 4px #ffdb4d; } }
+
+/* VP flash animation */
+.cmp-player-profile-card .ppc-stat.vp.vp-flash { animation:vpFlash 1.5s ease; }
+@keyframes vpFlash { 0%,100% { box-shadow:2px 2px 0 #000; } 20%,40%,60%,80% { box-shadow:0 0 0 3px #ffd400,0 0 12px 4px #ffdb4d; transform:scale(1.1); } }
+
+/* Energy flash animation */
+.cmp-player-profile-card .ppc-stat.energy.energy-flash { animation:energyFlash 1.5s ease; }
+@keyframes energyFlash { 0%,100% { box-shadow:2px 2px 0 #000; } 20%,40%,60%,80% { box-shadow:0 0 0 3px #00ff41,0 0 12px 4px #00ff41; transform:scale(1.1); } }
+
+/* Health flash animation */
+.cmp-player-profile-card .ppc-health-bar.health-flash { animation:healthFlash 1.5s ease; }
+@keyframes healthFlash { 0%,100% { box-shadow:none; } 20%,40%,60%,80% { box-shadow:0 0 0 3px #3ad65c,0 0 12px 4px #3ad65c; transform:scale(1.02); } }
 
 /* Hover effect minimal to preserve board readability */
 .cmp-player-profile-card:hover { transform:translateY(-2px); box-shadow:6px 6px 0 #000,0 0 0 2px #222 inset; }
@@ -90,7 +139,34 @@
 .cmp-monsters-panel[data-card-layout="condensed"].is-stacked .mp-player-cards .cmp-player-profile-card:nth-child(5):not(.is-active) { transform:perspective(800px) rotateX(.5deg) rotateY(-.2deg) rotateZ(-1.1deg); margin-left:3px; }
 .cmp-monsters-panel[data-card-layout="condensed"].is-stacked .mp-player-cards .cmp-player-profile-card:nth-child(6):not(.is-active) { transform:perspective(800px) rotateX(.7deg) rotateY(.3deg) rotateZ(1.1deg); margin-left:-2px; }
 
-/* List: explicit spacing & disable transforms */
+/* List: show only header section (hide stats and health) */
+.cmp-monsters-panel:not(.is-stacked):not(.is-tiled) .mp-player-cards .cmp-player-profile-card { 
+  margin:0 0 8px; 
+  transform:none; 
+  position:relative;
+}
+.cmp-monsters-panel:not(.is-stacked):not(.is-tiled) .mp-player-cards .cmp-player-profile-card:last-child { margin-bottom:0; }
+
+/* Show expand toggle in list view */
+.cmp-monsters-panel:not(.is-stacked):not(.is-tiled) .cmp-player-profile-card .ppc-expand-toggle {
+  display: flex;
+}
+
+/* Hide stats and health sections in list view by default */
+.cmp-monsters-panel:not(.is-stacked):not(.is-tiled) .cmp-player-profile-card .ppc-stats,
+.cmp-monsters-panel:not(.is-stacked):not(.is-tiled) .cmp-player-profile-card .ppc-health-block,
+.cmp-monsters-panel:not(.is-stacked):not(.is-tiled) .cmp-player-profile-card .ppc-owned-cards {
+  display: none;
+}
+
+/* Show stats and health when expanded in list view */
+.cmp-monsters-panel:not(.is-stacked):not(.is-tiled) .cmp-player-profile-card[data-expanded] .ppc-stats,
+.cmp-monsters-panel:not(.is-stacked):not(.is-tiled) .cmp-player-profile-card[data-expanded] .ppc-health-block,
+.cmp-monsters-panel:not(.is-stacked):not(.is-tiled) .cmp-player-profile-card[data-expanded] .ppc-owned-cards {
+  display: block;
+}
+
+/* Legacy list layout compatibility */
 .cmp-monsters-panel[data-card-layout="list"] .mp-player-cards .cmp-player-profile-card { margin:0 0 18px; transform:none; position:relative; }
 .cmp-monsters-panel[data-card-layout="list"] .mp-player-cards .cmp-player-profile-card:last-child { margin-bottom:0; }
 .cmp-monsters-panel[data-card-layout="list"] { --ppc-stack-mode:list; }
@@ -99,6 +175,16 @@
 /* Active card slot: act as a centering container for the docked PPC */
 #active-player-card-slot { position:absolute; pointer-events:none; top:40%; left:50%; z-index:6700; transition: left .45s cubic-bezier(.25,.46,.45,.94), top .45s cubic-bezier(.25,.46,.45,.94); margin:0; padding:0; transform:translate(-50%, -50%); display:block; }
 #active-player-card-slot .cmp-player-profile-card { position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); transform-origin:center center; pointer-events:auto; }
+
+/* Mobile: keep active player card normal dimensions */
+@media (max-width: 760px), (pointer: coarse) {
+  #active-player-card-slot .cmp-player-profile-card {
+    width: 260px !important;
+    min-width: 260px !important;
+    max-width: 260px !important;
+    transform: translate(-50%, -50%) scale(0.85) !important;
+  }
+}
 #active-player-card-slot[data-active-card-dock] { min-width:260px; min-height:180px; position:absolute; }
 
 /* Mini active dock variation */

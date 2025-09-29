@@ -19,17 +19,13 @@
 /* Cost positioned inline with name in header */
 .cmp-power-cards-panel .pc-card__cost { background:var(--pc-cost-bg); color:var(--pc-card-accent); padding:4px 10px 6px; border-radius:18px; font-size:15px; line-height:1; box-shadow:2px 2px 0 #000; font-family:'Bangers',cursive; letter-spacing:.5px; min-width:44px; text-align:center; margin-right:8px; flex-shrink:0; }
 .cmp-power-cards-panel .pc-card-cost { background:var(--pc-cost-bg); color:var(--pc-card-accent); padding:4px 10px 6px; border-radius:18px; font-size:15px; line-height:1; box-shadow:2px 2px 0 #000; font-family:'Bangers',cursive; letter-spacing:.5px; min-width:44px; text-align:center; margin-right:8px; flex-shrink:0; }
-/* Dark edition styling */
-.cmp-power-cards-panel .pc-card[data-dark-edition="true"] { 
-  border-color:#8b008b; 
-  --pc-card-accent:#ff6b9d;
-}
+/* Dark edition styling - uniform borders with standard cards */
 .cmp-power-cards-panel .pc-card[data-dark-edition="true"]:before { 
-  background:radial-gradient(circle at 30% 22%,rgba(139,0,139,.18),rgba(139,0,139,0) 65%); 
+  background:radial-gradient(circle at 30% 22%,rgba(0,0,0,.18),rgba(0,0,0,0) 65%); 
 }
 .cmp-power-cards-panel .pc-card[data-dark-edition="true"] .pc-card__header {
-  background:linear-gradient(135deg,#4a1a4a,#2d0f2d);
-  border-color:#8b008b;
+  background:linear-gradient(135deg,#3b4245,#23272a);
+  /* Use same border as regular cards */
 }
 .cmp-power-cards-panel .pc-card--stub { opacity:.88; }
 .cmp-power-cards-panel .pc-card__header { display:flex; align-items:center; justify-content:flex-start; font-family:'Bangers',cursive; font-size:18px; letter-spacing:.75px; color:var(--pc-card-accent); margin:-4px -4px 2px; padding:4px 6px 6px; background:linear-gradient(135deg,#3b4245,#23272a); border:2px solid #000; border-radius:4px; box-shadow:2px 2px 0 #000,0 0 0 2px #222 inset; }

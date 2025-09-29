@@ -2,29 +2,67 @@
 @media (max-width: 760px), (pointer: coarse) {
   .cmp-monsters-panel { padding:8px 10px 12px; position:relative; z-index:6200; }
   .cmp-monsters-panel .mp-header { position:sticky; top:0; z-index:2; background:rgba(15,15,22,0.9); padding-bottom:6px; }
-  .cmp-monsters-panel .mp-player-cards { gap:8px; align-items:flex-start; flex-direction:column; flex-wrap:nowrap; position:relative; }
-  /* Collapsed row (name only), fixed-size to avoid stretching/wrapping */
+  .cmp-monsters-panel .mp-player-cards { gap:4px; align-items:flex-start; flex-direction:column; flex-wrap:nowrap; position:relative; }
+  
+  /* Collapsed row: profile pic + name with monster theme color */
   .cmp-monsters-panel .cmp-player-profile-card.cmp-player-profile-card {
-    width: 200px; min-width:200px; max-width:200px; padding:8px 10px; margin:0;
-    overflow:hidden; /* transform reset is intentional to match compact list layout */ transform:none; transition:transform .3s ease, box-shadow .25s ease, filter .2s ease;
+    width: 100%; min-width:200px; max-width:100%; padding:8px 12px; margin:0;
+    overflow:hidden; transform:none; transition:all .3s ease;
+    background: linear-gradient(135deg, var(--ppc-accent, #2d3436) 0%, rgba(27,31,32,0.9) 100%);
+    border: 2px solid var(--ppc-accent, #2d3436);
+    border-radius: 6px;
   }
-  .cmp-monsters-panel .cmp-player-profile-card .ppc-header { margin:0; align-items:center; gap:8px; }
-  /* Compact mode hides avatar until expanded */
-  .cmp-monsters-panel .cmp-player-profile-card .ppc-avatar.ppc-avatar { display:none; }
-  .cmp-monsters-panel .cmp-player-profile-card .ppc-name { font-size:18px; line-height:1.05; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin:0; }
+  
+  .cmp-monsters-panel .cmp-player-profile-card .ppc-header { 
+    margin:0; align-items:center; gap:12px; 
+    display: flex;
+    justify-content: flex-start;
+  }
+  
+  /* Show avatar in collapsed mode */
+  .cmp-monsters-panel .cmp-player-profile-card .ppc-avatar.ppc-avatar { 
+    display:block; 
+    width: 40px; 
+    height: 40px;
+    flex-shrink: 0;
+  }
+  
+  .cmp-monsters-panel .cmp-player-profile-card .ppc-name { 
+    font-size:18px; line-height:1.2; white-space:nowrap; overflow:hidden; 
+    text-overflow:ellipsis; margin:0; flex: 1;
+  }
+  
   .cmp-monsters-panel .cmp-player-profile-card .ppc-status-line.ppc-status-line { display:none; }
   .cmp-monsters-panel .cmp-player-profile-card .ppc-stats,
   .cmp-monsters-panel .cmp-player-profile-card .ppc-owned-cards,
   .cmp-monsters-panel .cmp-player-profile-card .ppc-health-block { display:none; }
+  
   /* Hover/touch highlight */
   .cmp-monsters-panel .cmp-player-profile-card:hover,
-  .cmp-monsters-panel .cmp-player-profile-card.is-highlighted { filter:brightness(1.1); box-shadow:6px 6px 0 #000,0 0 0 2px #222 inset; }
-
-  /* Expanded state: show full card, slide out to the left over the board */
-  .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] {
-    position:absolute; left:0; top:auto; transform:translateX(calc(-100% - 20px)); z-index:6600; width:260px; max-width:260px; padding:12px 14px 16px;
+  .cmp-monsters-panel .cmp-player-profile-card.is-highlighted { 
+    filter:brightness(1.1); 
+    transform: translateX(4px);
+    box-shadow:4px 4px 0 #000,0 0 0 2px rgba(255,255,255,0.1) inset; 
   }
-  .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-avatar { display:block; }
+
+  /* Expanded state: show full card, expand vertically in place */
+  .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] {
+    width: 100%; max-width: 100%; padding:12px;
+    transform: none;
+    z-index: 6600;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5), 0 0 0 3px var(--ppc-accent, #2d3436);
+  }
+  
+  .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-avatar { 
+    width: 58px; 
+    height: 58px;
+  }
+  
+  .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-header {
+    margin: 0 0 14px;
+    gap: 10px;
+  }
+  
   .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-status-line { display:flex; }
   .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-stats,
   .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-owned-cards,
@@ -34,11 +72,89 @@
 .cmp-monsters-panel { background:rgba(15,15,22,0.7); border:2px solid #222; border-radius:8px; padding:10px 14px 16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 18px -4px rgba(0,0,0,.6); }
 .cmp-monsters-panel .mp-header { display:flex; align-items:center; justify-content:space-between; }
 .cmp-monsters-panel .mp-title { font-family:'Bangers',cursive; font-size:32px; letter-spacing:1px; color:#ffcf33; text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; margin:0; --accent-monsters:#ffcf33; }
+
+/* View Toggle Button */
+.cmp-monsters-panel .mp-view-toggle {
+  background: linear-gradient(135deg, #2d3436, #1b1f20);
+  border: 2px solid #000;
+  border-radius: 4px;
+  padding: 6px 8px;
+  color: #ffcf33;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  min-width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 2px 2px 0 #000;
+}
+
+.cmp-monsters-panel .mp-view-toggle:hover {
+  background: linear-gradient(135deg, #3a3d3f, #22262a);
+  transform: translateY(-1px);
+  box-shadow: 3px 3px 0 #000;
+}
+
+.cmp-monsters-panel .mp-view-toggle .view-icon {
+  position: absolute;
+  transition: opacity 0.2s ease;
+}
+
+/* Default state (list view): show tiled icon */
+.cmp-monsters-panel .mp-view-toggle .tiled-icon {
+  opacity: 1;
+}
+
+.cmp-monsters-panel .mp-view-toggle .list-icon,
+.cmp-monsters-panel .mp-view-toggle .stack-icon {
+  opacity: 0;
+}
+
+/* Tiled state: show stack icon */
+.cmp-monsters-panel[data-view="tiled"] .mp-view-toggle .stack-icon {
+  opacity: 1;
+}
+
+.cmp-monsters-panel[data-view="tiled"] .mp-view-toggle .tiled-icon,
+.cmp-monsters-panel[data-view="tiled"] .mp-view-toggle .list-icon {
+  opacity: 0;
+}
+
+/* Stacked state: show list icon */
+.cmp-monsters-panel[data-view="stacked"] .mp-view-toggle .list-icon {
+  opacity: 1;
+}
+
+.cmp-monsters-panel[data-view="stacked"] .mp-view-toggle .tiled-icon,
+.cmp-monsters-panel[data-view="stacked"] .mp-view-toggle .stack-icon {
+  opacity: 0;
+}
 .cmp-monsters-panel .mp-body { display:flex; flex-direction:column; gap:14px; }
 .cmp-monsters-panel .mp-player-cards { display:flex; flex-direction:column; gap:12px; }
 @media (min-width: 761px) and (pointer: fine) {
   .cmp-monsters-panel .cmp-player-profile-card { width:100%; }
 }
+
+/* Tiled layout: full cards with no overlap, clean vertical stacking */
+.cmp-monsters-panel.is-tiled .mp-player-cards { 
+  gap: 16px; 
+}
+
+.cmp-monsters-panel.is-tiled .cmp-player-profile-card {
+  position: relative;
+  transform: none !important;
+  z-index: auto;
+  margin: 0 !important;
+}
+
+.cmp-monsters-panel.is-tiled .cmp-player-profile-card:hover {
+  transform: translateY(-4px) !important;
+  z-index: 10;
+}
+
 /* Stacked layout improvements: keep the last card at least slightly exposed and easy to hover */
 .cmp-monsters-panel.is-stacked .mp-player-cards { position:relative; }
 .cmp-monsters-panel.is-stacked .mp-player-cards::after { content:""; display:block; height:110px; } /* spacer so the last overlapped card is reachable */

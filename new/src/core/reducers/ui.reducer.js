@@ -1,4 +1,4 @@
-import { UI_CARD_DETAIL_OPEN, UI_CARD_DETAIL_CLOSE, UI_PLAYER_CARDS_OPEN, UI_PLAYER_CARDS_CLOSE, UI_MONSTER_PROFILES_OPEN, UI_MONSTER_PROFILES_CLOSE, UI_MONSTER_PROFILE_OPEN, UI_MONSTER_PROFILE_CLOSE, UI_SPLASH_HIDE, UI_POSITION_SET, UI_POSITIONS_RESET, UI_SETTINGS_OPEN, UI_SETTINGS_CLOSE, UI_AI_DECISION_OPEN, UI_AI_DECISION_CLOSE, UI_GAME_LOG_OPEN, UI_GAME_LOG_CLOSE, UI_GAME_LOG_COLLAPSE_STATE, UI_PEEK_SHOW, UI_PEEK_HIDE, UI_ATTACK_PULSE, UI_MONSTER_SELECTION_OPEN, UI_MONSTER_SELECTION_CLOSE, UI_INSTRUCTIONS_OPEN, UI_INSTRUCTIONS_CLOSE, UI_CONFIRM_OPEN, UI_CONFIRM_CLOSE, UI_ABOUT_OPEN, UI_ABOUT_CLOSE, UI_ROLL_FOR_FIRST_OPEN, UI_ROLL_FOR_FIRST_CLOSE, UI_ROLL_FOR_FIRST_RESOLVED } from '../actions.js';
+import { UI_CARD_DETAIL_OPEN, UI_CARD_DETAIL_CLOSE, UI_PLAYER_CARDS_OPEN, UI_PLAYER_CARDS_CLOSE, UI_MONSTER_PROFILES_OPEN, UI_MONSTER_PROFILES_CLOSE, UI_MONSTER_PROFILE_OPEN, UI_MONSTER_PROFILE_CLOSE, UI_SPLASH_HIDE, UI_POSITION_SET, UI_POSITIONS_RESET, UI_SETTINGS_OPEN, UI_SETTINGS_CLOSE, UI_AI_DECISION_OPEN, UI_AI_DECISION_CLOSE, UI_GAME_LOG_OPEN, UI_GAME_LOG_CLOSE, UI_GAME_LOG_COLLAPSE_STATE, UI_PEEK_SHOW, UI_PEEK_HIDE, UI_ATTACK_PULSE, UI_VP_FLASH, UI_ENERGY_FLASH, UI_HEALTH_FLASH, UI_MONSTER_SELECTION_OPEN, UI_MONSTER_SELECTION_CLOSE, UI_INSTRUCTIONS_OPEN, UI_INSTRUCTIONS_CLOSE, UI_CONFIRM_OPEN, UI_CONFIRM_CLOSE, UI_ABOUT_OPEN, UI_ABOUT_CLOSE, UI_ROLL_FOR_FIRST_OPEN, UI_ROLL_FOR_FIRST_CLOSE, UI_ROLL_FOR_FIRST_RESOLVED } from '../actions.js';
 
 const initial = {
   cardDetail: { cardId: null, source: null },
@@ -11,7 +11,10 @@ const initial = {
   splash: { visible: true },
   flags: { showProbabilities: false },
   peek: { card: null },
-  attackPulse: { ts: 0, playerIds: [] }
+  attackPulse: { ts: 0, playerIds: [] },
+  vpFlash: { ts: 0, playerId: null, amount: 0 },
+  energyFlash: { ts: 0, playerId: null, amount: 0 },
+  healthFlash: { ts: 0, playerId: null, amount: 0 }
 };
 
 export function uiReducer(state = initial, action) {
@@ -105,6 +108,18 @@ export function uiReducer(state = initial, action) {
     case UI_ATTACK_PULSE: {
       const { playerIds, ts } = action.payload;
       return { ...state, attackPulse: { playerIds, ts } };
+    }
+    case UI_VP_FLASH: {
+      const { playerId, amount, ts } = action.payload;
+      return { ...state, vpFlash: { playerId, amount, ts } };
+    }
+    case UI_ENERGY_FLASH: {
+      const { playerId, amount, ts } = action.payload;
+      return { ...state, energyFlash: { playerId, amount, ts } };
+    }
+    case UI_HEALTH_FLASH: {
+      const { playerId, amount, ts } = action.payload;
+      return { ...state, healthFlash: { playerId, amount, ts } };
     }
     default:
       if (typeof window !== 'undefined' && window.__KOT_DEBUG_ALL) {

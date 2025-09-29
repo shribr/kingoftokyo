@@ -12,7 +12,7 @@
  * Also checks GAME OVER conditions after application of results (in the turn service).
  */
 import { tallyFaces, extractTriples } from '../domain/dice.js';
-import { applyPlayerDamage, healPlayerAction, playerGainEnergy, playerVPGained, playerEnteredTokyo, playerLeftTokyo, uiAttackPulse, tokyoOccupantSet, yieldPromptShown, yieldPromptDecided } from '../core/actions.js';
+import { applyPlayerDamage, healPlayerAction, playerGainEnergy, playerVPGained, playerEnteredTokyo, playerLeftTokyo, uiAttackPulse, uiVPFlash, uiEnergyFlash, uiHealthFlash, tokyoOccupantSet, yieldPromptShown, yieldPromptDecided } from '../core/actions.js';
 import { evaluateYieldDecision } from './aiDecisionService.js';
 import { selectTokyoCityOccupant, selectTokyoBayOccupant } from '../core/selectors.js';
 import { selectActivePlayerId } from '../core/selectors.js';
@@ -32,12 +32,14 @@ export function resolveDice(store, logger) {
     const vp = base + Math.max(0, extras);
     if (vp > 0) {
       store.dispatch(playerVPGained(activeId, vp, 'triple'));
+      store.dispatch(uiVPFlash(activeId, vp));
       logger.info(`${activeId} gains ${vp} VP (triple ${t.number}${extras>0?` +${extras}`:''})`);
     }
   }
   // 2. Energy gain
   if (tally.energy > 0) {
     store.dispatch(playerGainEnergy(activeId, tally.energy));
+    store.dispatch(uiEnergyFlash(activeId, tally.energy));
     logger.info(`${activeId} gains ${tally.energy} energy`);
   }
   // 3. Healing (only if not in Tokyo)
@@ -45,6 +47,7 @@ export function resolveDice(store, logger) {
     const player = store.getState().players.byId[activeId];
     if (!player.inTokyo) {
       store.dispatch(healPlayerAction(activeId, tally.heart));
+      store.dispatch(uiHealthFlash(activeId, tally.heart));
       logger.info(`${activeId} heals ${tally.heart}`);
     }
   }
@@ -98,6 +101,7 @@ export function resolveDice(store, logger) {
     store.dispatch(tokyoOccupantSet(activeId, playerCount));
     logger.system(`${activeId} enters Tokyo City!`, { kind:'tokyo', slot:'city' });
     store.dispatch(playerVPGained(activeId, 1, 'enterTokyo'));
+    store.dispatch(uiVPFlash(activeId, 1));
   } else if (anyOccupied && tally.claw > 0) {
     // Interactive yield: create prompt(s) for each occupant damaged & still alive
     const post = store.getState();
@@ -177,11 +181,13 @@ function attemptTokyoTakeover(store, logger, attackerId, playerCount, bayAllowed
     store.dispatch(tokyoOccupantSet(attackerId, playerCount));
     logger.system(`${attackerId} enters Tokyo City (takeover)`, { kind:'tokyo', slot:'city' });
     store.dispatch(playerVPGained(attackerId, 1, 'enterTokyo'));
+    store.dispatch(uiVPFlash(attackerId, 1));
   } else if (bayAllowed && !bayOcc) {
     store.dispatch(playerEnteredTokyo(attackerId));
     store.dispatch(tokyoOccupantSet(attackerId, playerCount));
     logger.system(`${attackerId} enters Tokyo Bay (takeover)`, { kind:'tokyo', slot:'bay' });
     store.dispatch(playerVPGained(attackerId, 1, 'enterTokyo'));
+    store.dispatch(uiVPFlash(attackerId, 1));
   }
 }
 
@@ -196,9 +202,11 @@ export function awardStartOfTurnTokyoVP(store, logger) {
   // Official: City occupant gains 2 VP; Bay occupant (only in 5-6 player games) gains 1 VP at start of their turn if they remain.
   if (cityOcc === activeId) {
     store.dispatch(playerVPGained(activeId, 2, 'startTurnTokyoCity'));
+    store.dispatch(uiVPFlash(activeId, 2));
     logger.info(`${activeId} gains 2 VP for starting turn in Tokyo City`);
   } else if (bayAllowed && bayOcc === activeId) {
     store.dispatch(playerVPGained(activeId, 1, 'startTurnTokyoBay'));
+    store.dispatch(uiVPFlash(activeId, 1));
     logger.info(`${activeId} gains 1 VP for starting turn in Tokyo Bay`);
   }
 }

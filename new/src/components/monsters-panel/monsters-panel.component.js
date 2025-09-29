@@ -25,6 +25,54 @@ export function build({ selector }) {
     collapsedArrow:'▲',
     bodyClassExpanded:'panels-expanded-right'
   });
+  
+  // Set default view based on device type and handle responsive changes
+  function setDefaultView() {
+    const isMobile = matchMedia('(max-width: 760px), (pointer: coarse)').matches;
+    const currentView = root.getAttribute('data-view');
+    // Only set default if no view is currently set
+    if (!currentView) {
+      if (isMobile) {
+        root.setAttribute('data-view', 'list');
+        root.classList.remove('is-stacked', 'is-tiled');
+      } else {
+        root.setAttribute('data-view', 'stacked');
+        root.classList.add('is-stacked');
+        root.classList.remove('is-tiled');
+      }
+    }
+  }
+  
+  setDefaultView();
+  
+  // Listen for viewport changes
+  const mobileQuery = matchMedia('(max-width: 760px), (pointer: coarse)');
+  mobileQuery.addEventListener('change', setDefaultView);
+  
+  // Add view toggle event handler - cycles through list → tiled → stacked
+  const toggleBtn = root.querySelector('[data-view-toggle]');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const currentView = root.getAttribute('data-view') || 'list';
+      
+      // Cycle through: list → tiled → stacked → list
+      if (currentView === 'list') {
+        root.classList.remove('is-stacked');
+        root.classList.add('is-tiled');
+        root.setAttribute('data-view', 'tiled');
+      } else if (currentView === 'tiled') {
+        root.classList.remove('is-tiled');
+        root.classList.add('is-stacked');
+        root.setAttribute('data-view', 'stacked');
+      } else {
+        root.classList.remove('is-stacked');
+        root.setAttribute('data-view', 'list');
+      }
+    });
+  }
+  
   return { root, update: () => update(root, instances), destroy: () => destroy(root, instances) };
 }
 
@@ -32,6 +80,11 @@ function panelTemplate() {
   return `
   <div class="mp-header k-panel__header" data-toggle role="button" aria-expanded="true" tabindex="0">
     <h2 class="mp-title" data-toggle>Monsters <span class="mp-arrow" data-arrow-dir data-toggle>►</span></h2>
+    <button class="mp-view-toggle" data-view-toggle title="Toggle View Mode" aria-label="Toggle between list, tiled, and stacked view">
+      <span class="view-icon list-icon">☰</span>
+      <span class="view-icon tiled-icon">▦</span>
+      <span class="view-icon stack-icon">⊞</span>
+    </button>
   </div>
   <div class="mp-body k-panel__body" data-panel-body>
     <div class="mp-player-cards" data-player-cards></div>
