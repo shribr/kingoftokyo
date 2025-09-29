@@ -6,6 +6,8 @@
 import { store } from '../../bootstrap/index.js';
 import { uiSettingsOpen, uiGameLogOpen, uiInstructionsOpen, settingsUpdated, uiConfirmOpen, uiAboutOpen } from '../../core/actions.js';
 import { createPositioningService } from '../../services/positioningService.js';
+import { newModalSystem } from '../../utils/new-modal-system.js';
+import { createSettingsModal, createGameLogModal, createHelpModal } from '../../utils/new-modals.js';
 
 export function build({ selector }) {
   const root = document.createElement('div');
@@ -65,22 +67,36 @@ export function build({ selector }) {
   const onClick = (e) => {
     const btn = e.target.closest('button[data-action]');
     if (!btn) return;
+    console.log('[toolbar] Button clicked:', btn.getAttribute('data-action')); // DEBUG
     const a = btn.getAttribute('data-action');
     if (a === 'settings') {
       try { window.__KOT_BLACKOUT__?.hide(); } catch(_) {}
       // Close action menu if open to avoid overlay conflicts
       try { window.dispatchEvent(new CustomEvent('ui.actionMenu.forceClose')); } catch(_){ }
-      store.dispatch(uiSettingsOpen());
+      createSettingsModal();
+      newModalSystem.showModal('settings');
       return;
     }
-    if (a === 'log') { store.dispatch(uiGameLogOpen()); return; }
+    if (a === 'log') { 
+      createGameLogModal();
+      newModalSystem.showModal('gameLog');
+      return; 
+    }
     if (a === 'sound') { toggleSound(store, btn); return; }
-    if (a === 'help') { store.dispatch(uiInstructionsOpen()); return; }
+    if (a === 'help') { 
+      createHelpModal();
+      newModalSystem.showModal('help');
+      return; 
+    }
     if (a === 'restart') { store.dispatch(uiConfirmOpen('restart-game', 'Restart the game and reload the page?\nUnsaved progress will be lost.', 'Restart', 'Cancel')); return; }
     if (a === 'reset-positions') { window.dispatchEvent(new CustomEvent('ui.positions.reset.request')); return; }
     if (a === 'about') { store.dispatch(uiAboutOpen()); return; }
   };
   root.addEventListener('click', onClick);
+  // DEBUG: Add event listener to detect if events are being blocked
+  root.addEventListener('click', (e) => {
+    console.log('[toolbar] Click event:', e.target, 'defaultPrevented:', e.defaultPrevented);
+  }, true);
   // Handle confirm accept events (restart)
   window.addEventListener('ui.confirm.accepted', (e) => {
     if (e.detail?.confirmId === 'restart-game') {

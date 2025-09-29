@@ -203,7 +203,9 @@ function wireMobileSlideBehavior(cardEl, panelRoot) {
       return backdrop;
     };
     const closeAll = () => {
-      panelRoot.querySelectorAll('.cmp-player-profile-card[data-expanded="true"]').forEach(el => el.removeAttribute('data-expanded'));
+      const expandedCards = panelRoot.querySelectorAll('.cmp-player-profile-card[data-expanded="true"]');
+      if (expandedCards.length === 0) return; // No work needed if nothing is expanded
+      expandedCards.forEach(el => el.removeAttribute('data-expanded'));
       if (backdrop) backdrop.classList.remove('visible');
     };
   // Highlight on hover/touchstart
@@ -231,7 +233,9 @@ function wireMobileSlideBehavior(cardEl, panelRoot) {
         if (!isMobile()) return;
         const openCard = panelRoot.querySelector('.cmp-player-profile-card[data-expanded="true"]');
         if (!openCard) return;
-        if (!openCard.contains(ev.target)) closeAll();
+        if (!openCard.contains(ev.target) && !panelRoot.contains(ev.target)) {
+          closeAll();
+        }
       }, { passive: true });
       // Backdrop close
       ensureBackdrop().addEventListener('click', closeAll);
