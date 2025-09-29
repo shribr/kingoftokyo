@@ -16,6 +16,7 @@ import { monstersReducer } from '../core/reducers/monsters.reducer.js';
 import { effectQueueReducer } from '../core/reducers/effectQueue.reducer.js';
 import { yieldDecisionReducer } from '../core/reducers/yieldDecision.reducer.js';
 import { targetSelectionReducer } from '../core/reducers/targetSelection.reducer.js';
+import { gameReducer } from '../core/reducers/game.reducer.js';
 import { createPlayer } from '../domain/player.js';
 import { createLogger } from '../services/logger.js';
 import { initCards } from '../services/cardsService.js';
@@ -47,6 +48,7 @@ const baseReducer = combineReducers({
   , settings: settingsReducer
   , yield: yieldDecisionReducer
   , targetSelection: targetSelectionReducer
+  , game: gameReducer
 });
 
 function rootReducer(state, action) {

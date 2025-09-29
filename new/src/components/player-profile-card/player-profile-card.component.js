@@ -284,9 +284,11 @@ export function update(root, { playerId }) {
   if (player.inTokyo) {
     tokyoEl.textContent = 'TOKYO';
     tokyoEl.classList.add('is-in');
+    root.setAttribute('data-in-tokyo', 'true');
   } else {
     tokyoEl.textContent = '';
     tokyoEl.classList.remove('is-in');
+    root.removeAttribute('data-in-tokyo');
   }
 
   // Active indicator (placeholder: will style via .is-active later)

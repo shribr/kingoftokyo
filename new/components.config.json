@@ -461,4 +461,20 @@
       "assets": [],
       "zIndex": 7100
     }
+    ,{
+      "name": "pauseOverlay",
+      "version": "0.1.0",
+      "selector": ".cmp-pause-overlay",
+      "mountPoint": "#app",
+      "order": 500,
+      "enabled": true,
+      "stateKeys": ["game"],
+      "build": "pause-overlay.build",
+      "update": "pause-overlay.update",
+      "eventsOut": [],
+      "eventsIn": [],
+      "initialState": {},
+      "assets": [],
+      "zIndex": 99999
+    }
 ]

@@ -9,7 +9,7 @@
   --toolbar-btn-size: 46px;
   --toolbar-gap: 10px;
   --toolbar-radius: 10px;
-  --toolbar-z: 4200;
+  --toolbar-z: 5000;
   --toolbar-accent: #ffe066;
   --toolbar-font: 'Bangers', cursive;
 }
@@ -28,6 +28,19 @@ body:not(.game-active) .cmp-toolbar .toolbar-btn { opacity:.9; }
 .cmp-toolbar .toolbar-btn:focus-visible { outline:2px solid #fff; outline-offset:2px; }
 .cmp-toolbar .toolbar-btn.is-muted { background:linear-gradient(180deg,#777,#444); color:#eee; }
 .cmp-toolbar .toolbar-btn.is-muted:hover { background:linear-gradient(180deg,#888,#555); }
+.cmp-toolbar .toolbar-btn.is-paused { background:linear-gradient(180deg,#ff6b49,#d42924 60%, #b41912); color:#fff; animation:pulse-pause 2s infinite; }
+.cmp-toolbar .toolbar-btn.is-paused:hover { background:linear-gradient(180deg,#ff8a68,#e53a2d 60%, #c61818); }
+
+/* Ensure pause button is always accessible */
+.cmp-toolbar .toolbar-btn[data-action="pause"] {
+  z-index: 10000;
+  position: relative;
+}
+
+@keyframes pulse-pause {
+  0%, 100% { box-shadow:var(--toolbar-btn-shadow), 0 0 0 0 rgba(212, 41, 36, 0.3); }
+  50% { box-shadow:var(--toolbar-btn-shadow), 0 0 0 8px rgba(212, 41, 36, 0); }
+}
 
 /* Footer centering support */
 .gl-footer { justify-content:center; }

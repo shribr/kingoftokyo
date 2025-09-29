@@ -173,8 +173,18 @@ export function build({ selector }) {
   root.addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-action]');
     if (!btn) return;
-    const action = btn.getAttribute('data-action');
+    
     const st = store.getState();
+    // Check if game is paused - if so, prevent all actions except power-cards (which are informational)
+    if (st.game?.isPaused) {
+      const action = btn.getAttribute('data-action');
+      if (action !== 'power-cards' && action !== 'show-my-cards') {
+        console.log('🚫 Action blocked - game is paused');
+        return;
+      }
+    }
+    
+    const action = btn.getAttribute('data-action');
     // Clean click handling without verbose diagnostics
     switch(action){
       case 'roll': eventBus.emit('ui/dice/rollRequested'); break;
@@ -418,11 +428,17 @@ function updateSubmenuPosition(root) {
 
 export function update(root) {
   const st = store.getState();
+  const isPaused = !!st.game?.isPaused;
+  
   const rollBtn = root.querySelector('[data-action="roll"]');
   const keepBtn = root.querySelector('[data-action="keep"]');
   const powerCardsBtn = root.querySelector('[data-action="power-cards"]');
   const flushBtn = root.querySelector('[data-action="flush"]');
   const endBtn = root.querySelector('[data-action="end"]');
+  
+  // Add pause state visual indicator
+  root.classList.toggle('is-paused', isPaused);
+  
   // Update arrow visibility based on menu position
   updateArrowVisibility(root);
   // no collapse button in mobile; hamburger opens/closes via window event
@@ -498,14 +514,34 @@ export function update(root) {
     if (isCPU && st.phase === 'ROLL' && isIdle && !hasAnyFaces) {
       if (root._lastCpuAutoRollIndex !== st.meta.activePlayerIndex) {
         root._lastCpuAutoRollIndex = st.meta.activePlayerIndex;
-        setTimeout(() => {
-          // Flash cue on roll button (visual indicator CPU took action)
-          if (rollBtn) {
-            rollBtn.classList.add('cpu-flash');
-            setTimeout(()=> rollBtn && rollBtn.classList.remove('cpu-flash'), 1200);
+        
+        // Wait for active player card to finish moving into position before rolling
+        const waitForCardTransition = () => {
+          const activeCard = document.querySelector('.cmp-player-profile-card[data-in-active-dock="true"]');
+          if (activeCard) {
+            // Additional 1 second delay after card is in position
+            setTimeout(() => {
+              // Flash cue on roll button (visual indicator CPU took action)
+              if (rollBtn) {
+                rollBtn.classList.add('cpu-flash');
+                setTimeout(()=> rollBtn && rollBtn.classList.remove('cpu-flash'), 1200);
+              }
+              eventBus.emit('ui/dice/rollRequested');
+            }, 1000); // 1 second delay after card is positioned
+          } else {
+            // Fallback: no card found, use original timing
+            setTimeout(() => {
+              if (rollBtn) {
+                rollBtn.classList.add('cpu-flash');
+                setTimeout(()=> rollBtn && rollBtn.classList.remove('cpu-flash'), 1200);
+              }
+              eventBus.emit('ui/dice/rollRequested');
+            }, 350);
           }
-          eventBus.emit('ui/dice/rollRequested');
-        }, 350);
+        };
+        
+        // Small delay to let card positioning settle, then apply the additional wait
+        setTimeout(waitForCardTransition, 100);
       }
     } else if (!isCPU) {
       root._lastCpuAutoRollIndex = undefined;

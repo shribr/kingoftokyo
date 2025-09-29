@@ -12,6 +12,7 @@ export function build({ selector, emit }) {
     <div class="cd-cost" data-cost></div>
     <div class="cd-name" data-name></div>
     <div class="cd-text" data-text></div>
+    <div class="cd-combos" data-combos></div>
     <div class="cd-actions" data-actions></div>
   </div>`;
 
@@ -51,6 +52,7 @@ export function update(root) {
   root.querySelector('[data-cost]').innerHTML = costBadge(candidate.cost);
   root.querySelector('[data-name]').textContent = candidate.name.toUpperCase();
   root.querySelector('[data-text]').innerHTML = formatCardText(candidate.text || candidate.description || '');
+  root.querySelector('[data-combos]').innerHTML = renderCombos(candidate, state);
   const actionsEl = root.querySelector('[data-actions]');
   actionsEl.innerHTML = renderActions(candidate, detail, active, shopCards);
 }
@@ -85,4 +87,143 @@ function formatCardText(txt) {
     .replace(/VP/gi, '★')
     .replace(/victory points?/gi, '★')
     .replace(/energy/gi, '⚡');
+}
+
+function renderCombos(card, state) {
+  const combos = findCardCombos(card, state);
+  if (combos.length === 0) {
+    return '<div class="cd-combos-section"><h3>💡 COMBO TIPS</h3><p>No obvious combos found with available cards.</p></div>';
+  }
+  
+  const comboHtml = combos.map(combo => `
+    <div class="combo-suggestion">
+      <div class="combo-cards">
+        <span class="combo-primary">${card.name}</span>
+        <span class="combo-connector">+</span>
+        <span class="combo-secondary">${combo.card.name}</span>
+      </div>
+      <div class="combo-description">${combo.reason}</div>
+    </div>
+  `).join('');
+  
+  return `
+    <div class="cd-combos-section">
+      <h3>💡 COMBO SUGGESTIONS</h3>
+      ${comboHtml}
+    </div>
+  `;
+}
+
+function findCardCombos(targetCard, state) {
+  const combos = [];
+  const allCards = [...state.cards.deck, ...state.cards.discard];
+  const shopCards = state.cards?.shop || [];
+  const availableCards = [...allCards, ...shopCards];
+  
+  // Define combo patterns based on card effects and synergies
+  const comboPatterns = [
+    // Dice manipulation + Number combos
+    {
+      primary: ['plot-twist', 'shrink-ray'],
+      secondary: ['made-in-a-lab'],
+      reason: 'Use dice manipulation to complete 1-2-3 sequences for bonus VP!'
+    },
+    {
+      primary: ['made-in-a-lab'],
+      secondary: ['plot-twist', 'extra-head'],
+      reason: 'More dice and control = easier 1-2-3 sequences for double VP!'
+    },
+    
+    // Energy generation combos
+    {
+      primary: ['friend-of-children', 'herbivore'],
+      secondary: ['rapid-healing', 'regeneration'],
+      reason: 'Heart synergy: heal while gaining energy for powerful sustain!'
+    },
+    {
+      primary: ['nuclear-power-plant'],
+      secondary: ['fire-breathing', 'parasitic-tentacles'],
+      reason: 'Attack-focused build: energy from skulls fuels aggressive cards!'
+    },
+    
+    // Tokyo control combos
+    {
+      primary: ['background-dweller', 'skyscraper'],
+      secondary: ['dedicated-news-team', 'jets'],
+      reason: 'Tokyo domination: stay safe while maximizing VP gains!'
+    },
+    {
+      primary: ['jets'],
+      secondary: ['fire-breathing', 'acid-attack'],
+      reason: 'Hit-and-run tactics: attack hard then escape to safety!'
+    },
+    
+    // Health and survival
+    {
+      primary: ['even-bigger'],
+      secondary: ['regeneration', 'armor-plating'],
+      reason: 'Tank build: maximum health with consistent healing and protection!'
+    },
+    {
+      primary: ['we-re-only-making-it-stronger'],
+      secondary: ['rooting-for-the-underdog', 'rapid-healing'],
+      reason: 'Turn weakness into strength: gain energy from taking damage!'
+    },
+    
+    // Energy economy
+    {
+      primary: ['gas-refinery', 'corner-store'],
+      secondary: ['alien-metabolism', 'giant-brain'],
+      reason: 'Energy engine: consistent income for expensive card purchases!'
+    },
+    {
+      primary: ['solar-powered'],
+      secondary: ['camouflage', 'urbavore'],
+      reason: 'Outside Tokyo strategy: safe energy generation and VP farming!'
+    },
+    
+    // Dice quantity synergies
+    {
+      primary: ['extra-head'],
+      secondary: ['nuclear-power-plant', 'friend-of-children', 'herbivore'],
+      reason: 'More dice = more chances to trigger face-based effects!'
+    }
+  ];
+  
+  // Check if targetCard matches any combo pattern
+  for (const pattern of comboPatterns) {
+    const isPrimary = pattern.primary.includes(targetCard.id);
+    const isSecondary = pattern.secondary.includes(targetCard.id);
+    
+    if (isPrimary) {
+      // Look for secondary cards in available cards
+      for (const secondaryId of pattern.secondary) {
+        const secondaryCard = availableCards.find(c => c.id === secondaryId);
+        if (secondaryCard) {
+          combos.push({
+            card: secondaryCard,
+            reason: pattern.reason
+          });
+        }
+      }
+    } else if (isSecondary) {
+      // Look for primary cards in available cards
+      for (const primaryId of pattern.primary) {
+        const primaryCard = availableCards.find(c => c.id === primaryId);
+        if (primaryCard) {
+          combos.push({
+            card: primaryCard,
+            reason: pattern.reason
+          });
+        }
+      }
+    }
+  }
+  
+  // Remove duplicates
+  const uniqueCombos = combos.filter((combo, index, self) => 
+    index === self.findIndex(c => c.card.id === combo.card.id)
+  );
+  
+  return uniqueCombos.slice(0, 3); // Limit to top 3 suggestions
 }

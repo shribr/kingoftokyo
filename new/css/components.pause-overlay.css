@@ -1,0 +1,162 @@
+/** components.pause-overlay.css
+ * Full-screen pause overlay styling
+ */
+
+.cmp-pause-overlay.hidden {
+  display: none !important;
+}
+
+.cmp-pause-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cmp-pause-overlay .pause-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+}
+
+.cmp-pause-overlay .pause-panel {
+  position: relative;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+  border: 4px solid #666;
+  border-radius: 20px;
+  padding: 40px 60px;
+  text-align: center;
+  color: #fff;
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  max-width: 500px;
+  width: 90vw;
+}
+
+.cmp-pause-overlay .pause-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  animation: pulse-icon 2s infinite;
+  color: #ff6b49;
+}
+
+.cmp-pause-overlay .pause-icon svg {
+  display: block;
+  margin: 0 auto;
+}
+
+.cmp-pause-overlay h2 {
+  font-family: 'Bangers', cursive;
+  font-size: 2.5rem;
+  margin: 0 0 20px 0;
+  color: #ff6b49;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  letter-spacing: 2px;
+}
+
+.cmp-pause-overlay p {
+  font-size: 1.2rem;
+  margin: 0 0 30px 0;
+  color: #ccc;
+  font-weight: 500;
+}
+
+.cmp-pause-overlay .pause-actions {
+  margin: 30px 0;
+}
+
+.cmp-pause-overlay .pause-resume-btn {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 50%, #3d8b40 100%);
+  color: white;
+  border: 3px solid #fff;
+  border-radius: 15px;
+  padding: 15px 30px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 
+    0 6px 12px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.cmp-pause-overlay .pause-resume-btn:hover {
+  background: linear-gradient(135deg, #5cbf60 0%, #4CAF50 50%, #45a049 100%);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 16px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.cmp-pause-overlay .pause-resume-btn:active {
+  transform: translateY(0);
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.cmp-pause-overlay .btn-icon {
+  font-size: 1.1rem;
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+}
+
+.cmp-pause-overlay .pause-details {
+  font-size: 1rem;
+  color: #999;
+  padding-top: 20px;
+  border-top: 1px solid #444;
+}
+
+.cmp-pause-overlay .pause-timestamp {
+  font-family: 'Courier New', monospace;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  display: inline-block;
+}
+
+@keyframes pulse-icon {
+  0%, 100% { 
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% { 
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+/* Responsive design */
+@media (max-width: 600px) {
+  .cmp-pause-overlay .pause-panel {
+    padding: 30px 40px;
+  }
+  
+  .cmp-pause-overlay .pause-icon {
+    font-size: 3rem;
+  }
+  
+  .cmp-pause-overlay h2 {
+    font-size: 2rem;
+  }
+  
+  .cmp-pause-overlay p {
+    font-size: 1.1rem;
+  }
+  
+  .cmp-pause-overlay .pause-resume-btn {
+    font-size: 1.1rem;
+    padding: 12px 24px;
+  }
+}

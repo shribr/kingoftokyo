@@ -88,7 +88,7 @@ export function update(root) {
 
   // Disable Bay if fewer than 5 players (standard rule) – mark attribute for styling
   try {
-    const totalPlayers = state.players?.allIds?.length || 0;
+    const totalPlayers = state.players?.order?.length || 0;
     const baySection = root.querySelector('[data-arena-section="bay"]');
     if (baySection) {
       if (totalPlayers < 5) {
@@ -122,8 +122,36 @@ function renderOccupant(playerId, state) {
     if (liveCard) {
       const html = liveCard.outerHTML
         .replace('class="cmp-player-profile-card"', 'class="cmp-player-profile-card cmp-player-profile-card--mini"')
-        .replace('data-in-active-dock="true"', '');
-      return `<div class="tokyo-occupant" data-player-id="${playerId}" data-active="true">${html}</div>`;
+        .replace('data-in-active-dock="true"', '')
+        .replace(/data-player-id="[^"]*"/, `data-player-id="${playerId}" data-tokyo-clone="true"`);
+      
+      // Force update the clone with current player stats
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = html;
+      const cloneCard = tempDiv.querySelector('.cmp-player-profile-card');
+      
+      if (cloneCard) {
+        // Update stats in the clone
+        const energyEl = cloneCard.querySelector('[data-energy-value]');
+        const vpEl = cloneCard.querySelector('[data-vp-value]');
+        const hpEl = cloneCard.querySelector('[data-hp-value]');
+        const hpFill = cloneCard.querySelector('[data-health-fill]');
+        
+        if (energyEl) energyEl.textContent = p.energy;
+        if (vpEl) vpEl.textContent = p.victoryPoints;
+        if (hpEl) hpEl.textContent = p.health;
+        if (hpFill) hpFill.style.width = `${(p.health / 10) * 100}%`;
+        
+        // Ensure Tokyo status is shown
+        cloneCard.setAttribute('data-in-tokyo', 'true');
+        const tokyoEl = cloneCard.querySelector('[data-tokyo]');
+        if (tokyoEl) {
+          tokyoEl.textContent = 'TOKYO';
+          tokyoEl.classList.add('is-in');
+        }
+      }
+      
+      return `<div class="tokyo-occupant" data-player-id="${playerId}" data-active="true">${tempDiv.innerHTML}</div>`;
     }
   } catch(_) {}
   // Fallback: minimal info if card not in DOM yet

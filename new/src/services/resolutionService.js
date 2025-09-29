@@ -112,39 +112,50 @@ export function resolveDice(store, logger) {
       const p = post.players.byId[pid];
       if (!p || !p.status.alive) return;
       console.log(`🏯 Creating yield prompt for ${p.name} (${p.isCPU ? 'CPU' : 'Human'}) in ${slot}`);
-      const expiresAt = Date.now() + 10000; // 10s decision window for humans
-      store.dispatch(yieldPromptShown(pid, activeId, slot, expiresAt));
-      logger.info(`${pid} prompted to yield Tokyo ${slot}`, { kind:'tokyo', slot, attacker: activeId });
-      prompts.push({ defenderId: pid, slot });
-      // Auto decision fallback after expiry (simple: stay if above 3 health else yield)
-      setTimeout(() => {
-        const s = store.getState();
-        const stillPending = s.yield.prompts.find(pr => pr.defenderId === pid && pr.attackerId === activeId && pr.slot === slot && pr.decision == null);
-        if (stillPending) {
-          const curP = s.players.byId[pid];
-            // Use heuristic
-            const incomingDamage = tally.claw; // approximate recent damage amount
-            const autoDecision = evaluateYieldDecision(s, pid, incomingDamage, slot);
-            store.dispatch(yieldPromptDecided(pid, activeId, slot, autoDecision));
-            if (autoDecision === 'yield') {
-              store.dispatch(playerLeftTokyo(pid));
-              logger.system(`${pid} auto-yields Tokyo ${slot}`, { kind:'tokyo', slot });
-            }
-            attemptTokyoTakeover(store, logger, activeId, playerCount, bayAllowed);
-        }
-      }, 5100);
-        // Early AI auto decision: if defender is AI (heuristic placeholder), decide immediately if clear-cut
-        const sNow = store.getState();
-        const defender = sNow.players.byId[pid];
-        if (defender && defender.isAI) {
-          const immediate = evaluateYieldDecision(sNow, pid, tally.claw, slot);
-          if (immediate === 'yield' && defender.health - tally.claw <= 2) {
-            store.dispatch(yieldPromptDecided(pid, activeId, slot, 'yield'));
-            store.dispatch(playerLeftTokyo(pid));
-            logger.system(`${pid} AI-yields Tokyo ${slot} (immediate)`, { kind:'tokyo', slot });
-            attemptTokyoTakeover(store, logger, activeId, playerCount, bayAllowed);
+      
+      // Different handling for human vs CPU players
+      if (p.isCPU || p.isAI) {
+        // CPU/AI players get a 10 second timeout
+        const expiresAt = Date.now() + 10000;
+        store.dispatch(yieldPromptShown(pid, activeId, slot, expiresAt));
+        logger.info(`${pid} prompted to yield Tokyo ${slot}`, { kind:'tokyo', slot, attacker: activeId });
+        prompts.push({ defenderId: pid, slot });
+        // Auto decision fallback after expiry (simple: stay if above 3 health else yield)
+        setTimeout(() => {
+          const s = store.getState();
+          const stillPending = s.yield.prompts.find(pr => pr.defenderId === pid && pr.attackerId === activeId && pr.slot === slot && pr.decision == null);
+          if (stillPending) {
+            const curP = s.players.byId[pid];
+              // Use heuristic
+              const incomingDamage = tally.claw; // approximate recent damage amount
+              const autoDecision = evaluateYieldDecision(s, pid, incomingDamage, slot);
+              store.dispatch(yieldPromptDecided(pid, activeId, slot, autoDecision));
+              if (autoDecision === 'yield') {
+                store.dispatch(playerLeftTokyo(pid));
+                logger.system(`${pid} auto-yields Tokyo ${slot}`, { kind:'tokyo', slot });
+              }
+              attemptTokyoTakeover(store, logger, activeId, playerCount, bayAllowed);
           }
+        }, 5100);
+      } else {
+        // Human players get no timeout - they can take as long as they want
+        store.dispatch(yieldPromptShown(pid, activeId, slot, null));
+        logger.info(`${pid} prompted to yield Tokyo ${slot} (human - no timeout)`, { kind:'tokyo', slot, attacker: activeId });
+        prompts.push({ defenderId: pid, slot });
+      }
+      
+      // Early AI auto decision: if defender is AI (heuristic placeholder), decide immediately if clear-cut
+      const sNow = store.getState();
+      const defender = sNow.players.byId[pid];
+      if (defender && (defender.isCPU || defender.isAI)) {
+        const immediate = evaluateYieldDecision(sNow, pid, tally.claw, slot);
+        if (immediate === 'yield' && defender.health - tally.claw <= 2) {
+          store.dispatch(yieldPromptDecided(pid, activeId, slot, 'yield'));
+          store.dispatch(playerLeftTokyo(pid));
+          logger.system(`${pid} AI-yields Tokyo ${slot} (immediate)`, { kind:'tokyo', slot });
+          attemptTokyoTakeover(store, logger, activeId, playerCount, bayAllowed);
         }
+      }
     };
     if (cityOcc) addPrompt(cityOcc, 'city');
     if (bayAllowed && bayOcc) addPrompt(bayOcc, 'bay');

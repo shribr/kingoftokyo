@@ -242,6 +242,16 @@
 .cmp-action-menu.cpu-turn button:not(:disabled):hover,
 .cmp-action-menu.cpu-turn button:not(:disabled):active { transform:none; box-shadow:none; filter:saturate(.6) brightness(.9); }
 
+/* Paused game: show buttons even more muted than CPU turn */
+.cmp-action-menu.is-paused { opacity: 0.4; filter: grayscale(0.8) brightness(0.7); }
+.cmp-action-menu.is-paused button { cursor: not-allowed; }
+.cmp-action-menu.is-paused button:not([data-action="power-cards"]):not([data-action="show-my-cards"]):hover,
+.cmp-action-menu.is-paused button:not([data-action="power-cards"]):not([data-action="show-my-cards"]):active { 
+  transform: none; 
+  box-shadow: none; 
+  filter: none; 
+}
+
 /* Flash indicator when CPU performs an action */
 .cmp-action-menu button.cpu-flash { animation:cpu-flash-border 1.1s ease; }
 @keyframes cpu-flash-border { 0% { box-shadow:0 0 0 0 #fff; } 25% { box-shadow:0 0 8px 3px #fff; } 55% { box-shadow:0 0 10px 4px rgba(255,255,255,.85); } 100% { box-shadow:none; } }

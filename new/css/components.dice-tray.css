@@ -80,6 +80,13 @@
 .cmp-dice-tray .die.is-kept { transform: perspective(300px) rotateX(10deg) rotateY(-20deg) translateY(-15px) scale(1.08); }
 .cmp-dice-tray .die.extra-die { background:var(--dice-extra-bg); color:#555; }
 .cmp-dice-tray .die.pending.extra-die { border:4px dashed #555; background:linear-gradient(155deg,#2c2c2c,#141414); box-shadow:none; }
+.cmp-dice-tray .die.empty-compartment { 
+  border: 3px dashed #666; 
+  background: linear-gradient(155deg, #222, #111); 
+  opacity: 0.6; 
+  box-shadow: none;
+  pointer-events: none;
+}
 /* Ensure pending dice remain fully opaque (design request: always 100% opacity) */
 .cmp-dice-tray .die.pending { opacity:1; }
 .cmp-dice-tray .die.rolling { animation: koShakeSide 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55); border-color:#000; background: linear-gradient(135deg, #e0e0e0 0%, #f0f0f0 50%, #d0d0d0 100%); will-change: transform; pointer-events: none; }

@@ -212,7 +212,9 @@ export function update(root, { state }) {
   if (shouldRebuild) {
     // Build full list including placeholders for unrolled extra dice
     const rendered = [];
-    for (let i = 0; i < diceSlots; i++) {
+    // Always show 8 compartments like legacy (6 regular + 2 empty)
+    const totalSlots = 8;
+    for (let i = 0; i < totalSlots; i++) {
       const face = faces[i];
       const isExtra = i >= 6;
       if (face) {
@@ -223,9 +225,11 @@ export function update(root, { state }) {
         // Add a subtle selection indicator (lift) via 'is-kept' without any yellow outline
         rendered.push(`<span class="die ${face.kept ? 'is-kept' : ''} ${isExtra ? 'extra-die' : ''}${extraCls}" data-die-index="${i}" data-face="${face.value}">${content}</span>`);
       } else {
-        // For extra dice (7th, 8th) show blank dashed slot (no '?')
+        // For extra dice (7th, 8th) show empty compartments with dashed border
+        // For regular dice (1-6) show '?' when waiting for roll
         const content = isExtra ? '' : '?';
-        rendered.push(`<span class="die pending ${isExtra ? 'extra-die' : ''}" data-die-index="${i}">${content}</span>`);
+        const extraClass = isExtra ? 'extra-die empty-compartment' : '';
+        rendered.push(`<span class="die pending ${extraClass}" data-die-index="${i}">${content}</span>`);
       }
     }
     diceContainer.innerHTML = rendered.join('');
@@ -233,9 +237,10 @@ export function update(root, { state }) {
   // Trigger rolling animation only when face values changed (a roll occurred), not on keep toggles
   if (valuesChanged) {
     const DURATION = DICE_ANIM_MS;
+    const totalSlots = 8; // Always animate up to 8 slots like legacy
     // Defer to next frame to ensure DOM paint before starting animation
     requestAnimationFrame(() => {
-      for (let i = 0; i < diceSlots; i++) {
+      for (let i = 0; i < totalSlots; i++) {
         const face = faces[i];
         const dieEl = diceContainer.querySelector(`[data-die-index="${i}"]`);
         if (!dieEl) continue;

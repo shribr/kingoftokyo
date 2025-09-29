@@ -48,6 +48,12 @@
 }
 .cmp-player-profile-card .ppc-name { font-size:30px; line-height:1; margin:0 0 6px; text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; }
 .cmp-player-profile-card .ppc-name small { font-size:14px; opacity:.65; margin-left:6px; letter-spacing:0; }
+
+/* Tokyo status indicator */
+.cmp-player-profile-card .ppc-tokyo { font-size:12px; color:#ff6b35; font-weight:bold; text-shadow:1px 1px 0 #000; opacity:0; transition:opacity 0.3s ease; }
+.cmp-player-profile-card .ppc-tokyo.is-in { opacity:1; }
+.cmp-player-profile-card[data-in-tokyo="true"] { border-color:#ff6b35; box-shadow:4px 4px 0 #000,0 0 0 2px #ff6b35 inset, 0 0 12px rgba(255,107,53,0.4); }
+.cmp-player-profile-card[data-in-tokyo="true"] .ppc-avatar { border-color:#ff6b35; }
 .cmp-player-profile-card .ppc-status-line { display:flex; gap:8px; font-size:12px; align-items:center; }
 .cmp-player-profile-card .ppc-active-indicator { color:#ffd400; font-size:18px; }
 .cmp-player-profile-card .ppc-tokyo-indicator { display:none; }

@@ -93,6 +93,9 @@ export const SETTINGS_UPDATED = 'SETTINGS_UPDATED';
 export const TARGET_SELECTION_STARTED = 'TARGET_SELECTION_STARTED';
 export const TARGET_SELECTION_UPDATED = 'TARGET_SELECTION_UPDATED';
 export const TARGET_SELECTION_CONFIRMED = 'TARGET_SELECTION_CONFIRMED';
+// Game pause/resume system
+export const GAME_PAUSED = 'GAME_PAUSED';
+export const GAME_RESUMED = 'GAME_RESUMED';
 export const TARGET_SELECTION_CANCELLED = 'TARGET_SELECTION_CANCELLED';
 
 // Player action creators
@@ -189,3 +192,6 @@ export const targetSelectionStarted = (requestId, effect, min, max, eligibleIds)
 export const targetSelectionUpdated = (requestId, selectedIds) => ({ type: TARGET_SELECTION_UPDATED, payload: { requestId, selectedIds } });
 export const targetSelectionConfirmed = (requestId, selectedIds) => ({ type: TARGET_SELECTION_CONFIRMED, payload: { requestId, selectedIds } });
 export const targetSelectionCancelled = (requestId) => ({ type: TARGET_SELECTION_CANCELLED, payload: { requestId } });
+// Game pause/resume actions
+export const gamePaused = (pausedAt, context) => ({ type: GAME_PAUSED, payload: { pausedAt, context } });
+export const gameResumed = (resumedAt, totalPausedTime) => ({ type: GAME_RESUMED, payload: { resumedAt, totalPausedTime } });

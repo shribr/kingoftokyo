@@ -136,7 +136,38 @@
   transform-origin: center center;
 }
 .cmp-power-cards-panel .pc-card__name { text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; line-height:1.3; flex:1; padding-top:2px; display:flex; align-items:center; }
-.cmp-power-cards-panel .pc-card-name { text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; line-height:1.3; flex:1; padding-top:2px; padding-left:8px; display:flex; align-items:center; }
+.cmp-power-cards-panel .pc-card-name { text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; line-height:1.3; flex:1; padding-top:2px; padding-left:8px; display:flex; align-items:center; justify-content:space-between; }
+
+.cmp-power-cards-panel .pc-card-info-btn {
+  background: #fff;
+  border: 1px solid #000;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  color: #000;
+  margin-left: 6px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  font-family: 'Times New Roman', serif;
+}
+
+.cmp-power-cards-panel .pc-card-info-btn:hover {
+  background: #f0f0f0;
+  transform: scale(1.1);
+}
+
+.cmp-power-cards-panel .pc-card-info-btn .info-icon {
+  line-height: 1;
+  font-style: normal;
+  font-weight: bold;
+  text-align: center;
+}
 
 .cmp-power-cards-panel .pc-card__body { font-size:13px; line-height:1.35; color:var(--pc-card-text); flex:1; }
 .cmp-power-cards-panel .pc-card-description { font-size:13px; line-height:1.35; color:var(--pc-card-text); flex:1; }

@@ -95,7 +95,12 @@ function renderPowerCard(card, playerEnergy) {
   return `
     <div class="pc-card" data-card-id="${card.id}" data-rarity="${rarity}" ${isDarkEdition ? 'data-dark-edition="true"' : ''}>
       <div class="pc-card-header">
-        <h4 class="pc-card-name">${card.name}${isDarkEdition ? ' ⚫' : ''}</h4>
+        <h4 class="pc-card-name">
+          ${card.name}${isDarkEdition ? ' ⚫' : ''}
+          <button class="pc-card-info-btn" data-info data-card-id="${card.id}" title="View card details">
+            <span class="info-icon">i</span>
+          </button>
+        </h4>
         <div class="pc-card-cost pc-card-cost--header">${card.cost}⚡</div>
       </div>
       <div class="pc-card-description">${getCardDescription(card)}</div>
@@ -155,6 +160,22 @@ function addShopEventListeners(container, activePlayer) {
       const cardId = e.target.dataset.cardId;
       if (cardId && activePlayer) {
         purchaseCard(store, logger, activePlayer.id, cardId);
+      }
+    });
+  });
+
+  // Info buttons for card details
+  container.querySelectorAll('[data-info]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const cardId = e.target.closest('[data-info]').dataset.cardId;
+      if (cardId) {
+        const state = store.getState();
+        const card = [...(state.cards?.shop || []), ...(state.cards?.deck || [])].find(c => c.id === cardId);
+        if (card) {
+          store.dispatch({ type: 'UI_CARD_DETAIL_OPEN', payload: { card } });
+        }
       }
     });
   });

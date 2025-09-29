@@ -4,7 +4,7 @@
  * Next: remove legacy .game-toolbar selectors from legacy CSS (if still present) after QA.
  */
 import { store } from '../../bootstrap/index.js';
-import { uiSettingsOpen, uiGameLogOpen, uiInstructionsOpen, settingsUpdated, uiConfirmOpen, uiAboutOpen } from '../../core/actions.js';
+import { uiSettingsOpen, uiGameLogOpen, uiInstructionsOpen, settingsUpdated, uiConfirmOpen, uiAboutOpen, gamePaused, gameResumed } from '../../core/actions.js';
 import { createPositioningService } from '../../services/positioningService.js';
 import { newModalSystem } from '../../utils/new-modal-system.js';
 import { createSettingsModal, createGameLogModal, createHelpModal, createAIDecisionModal, createAboutModal } from '../../utils/new-modals.js';
@@ -20,6 +20,7 @@ export function build({ selector }) {
     ${iconBtn('settings', 'Settings', gearIcon())}
     ${iconBtn('log', 'Game Log', listIcon())}
     ${iconBtn('ai-decision', 'AI Decision Tree', sparkleIcon())}
+    ${iconBtn('pause', 'Pause Game', pauseIcon())}
     ${iconBtn('sound', 'Toggle Sound (M)', soundIcon())}
   ${iconBtn('help', 'Help / Instructions', helpIcon())}
     ${iconBtn('restart', 'Restart Game', restartIcon())}
@@ -52,6 +53,7 @@ export function build({ selector }) {
       return;
     }
     if (a === 'sound') { toggleSound(store, btn); return; }
+    if (a === 'pause') { togglePause(store, btn); return; }
     if (a === 'help') { 
       createHelpModal();
       newModalSystem.showModal('help');
@@ -105,8 +107,17 @@ function syncToolbarState(root) {
     const st = window.__KOT_NEW__?.store?.getState();
     if (!st) return;
     const muted = !!st.settings?.soundMuted;
+    const paused = !!st.game?.isPaused;
     const snd = root.querySelector('[data-action="sound"]');
     if (snd) snd.classList.toggle('is-muted', muted);
+    const pauseBtn = root.querySelector('[data-action="pause"]');
+    if (pauseBtn) {
+      pauseBtn.classList.toggle('is-paused', paused);
+      pauseBtn.innerHTML = paused ? 
+        `${playIcon()}<span class="vh">Resume Game</span>` : 
+        `${pauseIcon()}<span class="vh">Pause Game</span>`;
+      pauseBtn.title = paused ? 'Resume Game' : 'Pause Game';
+    }
   } catch(_){ }
 }
 
@@ -118,7 +129,32 @@ function toggleSound(store, btn) {
     btn.classList.toggle('is-muted', muted);
     btn.setAttribute('aria-pressed', String(muted));
     btn.title = muted ? 'Unmute (M)' : 'Mute (M)';
-  } catch(e) { console.warn('sound toggle failed', e); }
+  } catch(_) { }
+}
+
+function togglePause(store, btn) {
+  try {
+    const st = store.getState();
+    const currentlyPaused = !!st.game?.isPaused;
+    
+    if (currentlyPaused) {
+      // Resume game
+      const pausedAt = st.game.pausedAt;
+      const now = Date.now();
+      const pausedTime = now - pausedAt;
+      store.dispatch(gameResumed(now, pausedTime));
+      console.log(`🎮 Game resumed after ${Math.round(pausedTime / 1000)}s pause`);
+    } else {
+      // Pause game - capture current context
+      const context = {
+        phase: st.phase?.current,
+        activePlayer: st.players?.activeId,
+        diceState: st.dice?.phase
+      };
+      store.dispatch(gamePaused(Date.now(), context));
+      console.log('🎮 Game paused', context);
+    }
+  } catch(_) { }
 }
 
 // Removed temporary light modal + ad-hoc log modal. Instructions now use dedicated component.
@@ -155,4 +191,10 @@ function sparkleIcon() {
 }
 function infoIcon() {
   return `<svg viewBox="0 0 24 24" class="ico" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 100 20 10 10 0 000-20Zm1 15h-2v-6h2v6Zm0-8h-2V7h2v2Z"/></svg>`;
+}
+function pauseIcon() {
+  return `<svg viewBox="0 0 24 24" class="ico" aria-hidden="true"><path fill="currentColor" d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>`;
+}
+function playIcon() {
+  return `<svg viewBox="0 0 24 24" class="ico" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>`;
 }
