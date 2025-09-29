@@ -465,9 +465,13 @@ export function update(root) {
     flushBtn.disabled = !canFlush;
   }
   if (endBtn) {
-    const afterFinalRollCondition = st.phase === 'ROLL' && dice.phase === 'resolved' && (keptCount > 0 || (hasAnyFaces && dice.rerollsRemaining === 0));
+    // End turn should be enabled when:
+    // 1. After any roll when you have dice resolved or sequence-complete
+    // 2. When not in ROLL phase
+    const diceReadyToEnd = dice.phase === 'resolved' || dice.phase === 'sequence-complete';
+    const canEndAfterRoll = st.phase === 'ROLL' && diceReadyToEnd && hasAnyFaces;
     const notRollPhase = st.phase !== 'ROLL';
-    const canEnd = !isCPU && (afterFinalRollCondition || notRollPhase);
+    const canEnd = !isCPU && (canEndAfterRoll || notRollPhase);
     
     // Debug logging when end button should be enabled but isn't
     if (!canEnd && !isCPU) {
@@ -477,7 +481,7 @@ export function update(root) {
         keptCount,
         hasAnyFaces,
         rerollsRemaining: dice.rerollsRemaining,
-        afterFinalRollCondition,
+        canEndAfterRoll,
         notRollPhase,
         isCPU
       });
@@ -586,8 +590,12 @@ function enforceVerticalLayout(root){
   };
   apply();
   if (!amResizeRO) {
-    amResizeRO = new ResizeObserver(apply);
-    amResizeRO.observe(document.documentElement);
+    // DISABLED: ResizeObserver temporarily disabled for troubleshooting
+    // TODO: Re-enable when animation issues are resolved
+    // amResizeRO = new ResizeObserver(apply);
+    // amResizeRO.observe(document.documentElement);
+    
+    // Use fallback event listeners instead of ResizeObserver
     window.addEventListener('orientationchange', apply);
     window.addEventListener('resize', apply);
   }

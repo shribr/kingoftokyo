@@ -90,7 +90,9 @@ export function build({ selector, playerId }) {
   }
   ensureDraggableIfActive();
 
-  // Add ResizeObserver to monitor player profile card resizing
+  // DISABLED: ResizeObserver temporarily disabled for troubleshooting
+  // TODO: Re-enable when animation issues are resolved
+  /*
   if (window.ResizeObserver) {
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
@@ -129,6 +131,7 @@ export function build({ selector, playerId }) {
     // Store observer for cleanup if needed
     root._resizeObserver = resizeObserver;
   }
+  */
 
   return { root, update: (props) => { update(root, { ...props, playerId }); ensureDraggableIfActive(); }, destroy: () => root.remove() };
 }

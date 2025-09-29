@@ -35,7 +35,9 @@ export function build({ selector }) {
     </div>
   `;
 
-  // Add ResizeObserver to monitor active player slot resizing
+  // DISABLED: ResizeObserver temporarily disabled for troubleshooting
+  // TODO: Re-enable when animation issues are resolved
+  /*
   const activePlayerSlot = root.querySelector('[data-active-player-slot]');
   if (activePlayerSlot && window.ResizeObserver) {
     const resizeObserver = new ResizeObserver((entries) => {
@@ -65,6 +67,7 @@ export function build({ selector }) {
     // Store observer for cleanup if needed
     root._resizeObserver = resizeObserver;
   }
+  */
 
   return { root, update: () => update(root) };
 }

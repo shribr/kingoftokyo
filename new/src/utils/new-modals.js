@@ -679,13 +679,18 @@ export function createGameLogModal() {
   // Populate player filter options
   if (window.__KOT_NEW__?.store) {
     const state = window.__KOT_NEW__.store.getState();
-    const players = state.players || [];
+    const playersState = state.players || { order: [], byId: {} };
     const playerSelect = content.querySelector('select[name="playerFilter"]');
-    players.forEach(player => {
-      const option = document.createElement('option');
-      option.value = player.id;
-      option.textContent = player.name || `Player ${player.id}`;
-      playerSelect.appendChild(option);
+    
+    // Convert from new store structure: { order: [...], byId: {...} } to array of players
+    playersState.order.forEach(playerId => {
+      const player = playersState.byId[playerId];
+      if (player) {
+        const option = document.createElement('option');
+        option.value = player.id;
+        option.textContent = player.name || `Player ${player.id}`;
+        playerSelect.appendChild(option);
+      }
     });
   }
 
