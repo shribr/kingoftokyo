@@ -6,7 +6,8 @@
  *     - CPU: this service auto-plays the entire turn (roll -> rerolls -> resolve)
  *   resolve() -> applies dice effects, checks win, then enters BUY -> CLEANUP -> next turn
  */
-import { phaseChanged, nextTurn, diceRollStarted, diceRolled, diceRerollUsed, playerEnteredTokyo, tokyoOccupantSet, playerVPGained, uiVPFlash } from '../core/actions.js';
+import { phaseChanged, nextTurn, diceRollStarted, diceRolled, diceRerollUsed, playerEnteredTokyo, tokyoOccupantSet, playerVPGained, uiVPFlash, diceRollResolved } from '../core/actions.js';
+import { Phases } from '../core/phaseFSM.js';
 import { rollDice } from '../domain/dice.js';
 import { resolveDice, awardStartOfTurnTokyoVP, checkGameOver } from './resolutionService.js';
 import { selectTokyoCityOccupant, selectTokyoBayOccupant } from '../core/selectors.js';
@@ -40,10 +41,38 @@ function waitUnlessPaused(store, ms) {
 }
 
 export function createTurnService(store, logger, rng = Math.random) {
+  // Watch for completion of YIELD_DECISION phase (all prompts resolved) to advance to BUY automatically
+  store.subscribe((state, action) => {
+    try {
+      if (state.phase === Phases.YIELD_DECISION) {
+        const pending = state.yield?.prompts?.some(p => p.decision == null);
+        if (!pending) {
+          markPhaseEnd('YIELD_DECISION');
+          logger.system('Phase: BUY (yield decisions resolved)', { kind:'phase' });
+          const phaseEvents = typeof window !== 'undefined' ? window.__KOT_NEW__?.phaseEventsService : null;
+          if (phaseEvents) phaseEvents.publish('YIELD_DECISION_MADE'); else { store.dispatch(phaseChanged(Phases.BUY)); markPhaseStart('BUY'); }
+        }
+      }
+      // BUY_WAIT auto-advance: once effectQueue idle, proceed to CLEANUP
+      if (state.phase === Phases.BUY_WAIT) {
+        const q = state.effectQueue?.queue || [];
+        const anyProcessing = state.effectQueue?.processing;
+        const anyWaiting = q.some(e => e.status !== 'resolved' && e.status !== 'failed');
+        if (!anyProcessing && !anyWaiting) {
+          markPhaseEnd('BUY_WAIT');
+          logger.system('Phase: CLEANUP (post-purchase effects resolved)', { kind:'phase' });
+          const phaseEvents = typeof window !== 'undefined' ? window.__KOT_NEW__?.phaseEventsService : null;
+          if (phaseEvents) phaseEvents.publish('POST_PURCHASE_RESOLVED'); else { store.dispatch(phaseChanged(Phases.CLEANUP)); markPhaseStart('CLEANUP'); }
+            // immediately call cleanup since we bypassed resolve() path
+            cleanup();
+        }
+      }
+    } catch(_) {}
+  });
   function startGameIfNeeded() {
     const st = store.getState();
-    if (st.phase === 'SETUP') {
-      store.dispatch(phaseChanged('ROLL'));
+    if (st.phase === Phases.SETUP) {
+      store.dispatch(phaseChanged(Phases.ROLL)); // initial direct transition allowed
       startTurn();
     }
   }
@@ -51,8 +80,9 @@ export function createTurnService(store, logger, rng = Math.random) {
   function startTurn() {
     // Start-of-turn bonuses (Tokyo VP if occupying City at turn start)
     awardStartOfTurnTokyoVP(store, logger);
-    logger.system('Phase: ROLL', { kind: 'phase' });
-    store.dispatch(phaseChanged('ROLL'));
+  logger.system('Phase: ROLL', { kind: 'phase' });
+  store.dispatch(phaseChanged(Phases.ROLL)); // ROLL is explicit start-of-turn
+    markPhaseStart('ROLL');
     // If active player is CPU, run automated turn logic
     try {
       const st = store.getState();
@@ -108,8 +138,13 @@ export function createTurnService(store, logger, rng = Math.random) {
   }
 
   async function resolve() {
-    logger.system('Phase: RESOLVE', { kind: 'phase' });
-    store.dispatch(phaseChanged('RESOLVE'));
+  markPhaseEnd('ROLL');
+  logger.system('Phase: RESOLVE', { kind: 'phase' });
+  {
+    const phaseEvents = typeof window !== 'undefined' ? window.__KOT_NEW__?.phaseEventsService : null;
+    if (phaseEvents) phaseEvents.publish('ROLL_COMPLETE'); else store.dispatch(phaseChanged(Phases.RESOLVE));
+  }
+  markPhaseStart('RESOLVE');
     resolveDice(store, logger);
     
     // End-of-turn Tokyo entry: if Tokyo is empty after dice resolution, active player must enter
@@ -143,21 +178,33 @@ export function createTurnService(store, logger, rng = Math.random) {
     
     const winner = checkGameOver(store, logger);
     if (winner) {
+      markPhaseEnd('RESOLVE');
       logger.system('Phase: GAME_OVER', { kind: 'phase' });
       // Build some drama: wait 2s before transitioning to GAME_OVER
       await waitUnlessPaused(store, 2000);
-      store.dispatch(phaseChanged('GAME_OVER'));
+  const phaseEvents = typeof window !== 'undefined' ? window.__KOT_NEW__?.phaseEventsService : null;
+  if (phaseEvents) phaseEvents.publish('PLAYER_WON'); else store.dispatch(phaseChanged(Phases.GAME_OVER));
       return;
     }
     // New: BUY phase window for shop interactions
-    logger.system('Phase: BUY', { kind: 'phase' });
-    store.dispatch(phaseChanged('BUY'));
+    markPhaseEnd('RESOLVE');
+  logger.system('Phase: BUY', { kind: 'phase' });
+  {
+    const phaseEvents = typeof window !== 'undefined' ? window.__KOT_NEW__?.phaseEventsService : null;
+    if (phaseEvents) phaseEvents.publish('RESOLUTION_COMPLETE'); else store.dispatch(phaseChanged(Phases.BUY));
+  }
+    markPhaseStart('BUY');
     // Provide a short pause for UI interactions; can be adjusted via settings later
     const delay = Math.min(1500, Math.max(400, computeDelay(store.getState().settings) * 3));
     await waitUnlessPaused(store, delay);
     // Proceed to CLEANUP
-    logger.system('Phase: CLEANUP', { kind: 'phase' });
-    store.dispatch(phaseChanged('CLEANUP'));
+    markPhaseEnd('BUY');
+  logger.system('Phase: CLEANUP', { kind: 'phase' });
+  {
+    const phaseEvents = typeof window !== 'undefined' ? window.__KOT_NEW__?.phaseEventsService : null;
+    if (phaseEvents) phaseEvents.publish('BUY_COMPLETE'); else store.dispatch(phaseChanged(Phases.CLEANUP));
+  }
+    markPhaseStart('CLEANUP');
     await cleanup();
   }
 
@@ -176,6 +223,7 @@ export function createTurnService(store, logger, rng = Math.random) {
     const isCPU = !!(active && (active.isCPU || active.isAi || active.type === 'ai' || active.isAI));
     const delay = isCPU ? 2000 : 1000; // 2s for CPU, 1s for human
     await waitUnlessPaused(store, delay);
+    markPhaseEnd('CLEANUP');
     store.dispatch(nextTurn());
     // CRITICAL: Wait for card to move to active dock before starting next turn
     await waitUnlessPaused(store, 600); // Allow time for card animation to complete
@@ -190,7 +238,8 @@ export function createTurnService(store, logger, rng = Math.random) {
   async function playCpuTurn() {
     // Initial roll
     console.log('🤖 CPU Turn: Starting with initial roll');
-    await performRoll();
+  const startingCycle = store.getState().meta.turnCycleId;
+  await performRoll();
     
     // Safety counter to prevent infinite rerolls (max 3 total rolls: initial + 2 rerolls)
     let rollsCompleted = 1;
@@ -199,6 +248,10 @@ export function createTurnService(store, logger, rng = Math.random) {
     // Rerolls loop with proper limiting
     while (rollsCompleted < MAX_TOTAL_ROLLS) {
       const st = store.getState();
+      if (st.meta.turnCycleId !== startingCycle) {
+        console.warn('⛔ Aborting CPU reroll loop due to turnCycleId change (stale async)');
+        return;
+      }
       const dice = st.dice;
       
       console.log(`🤖 CPU Turn: Roll ${rollsCompleted} - Rerolls remaining: ${dice.rerollsRemaining}, Phase: ${dice.phase}`);
@@ -253,9 +306,27 @@ export function createTurnService(store, logger, rng = Math.random) {
     }
     // Resolve outcomes and advance the game
     console.log('🤖 CPU Turn: Starting resolution phase');
+    // Mark dice rolling fully resolved before moving phases (FSM event style)
+    store.dispatch(diceRollResolved());
     await resolve();
     console.log('🤖 CPU Turn: Resolution complete');
   }
 
   return { startGameIfNeeded, startTurn, performRoll, reroll, resolve, cleanup, endTurn, playCpuTurn };
+}
+
+// Simple in-memory instrumentation store (could later be moved to a metrics slice)
+const __phaseTimings = { active: null, spans: [] };
+function markPhaseStart(phase) {
+  __phaseTimings.active = { phase, start: performance.now() };
+}
+function markPhaseEnd(expectedPhase) {
+  if (!__phaseTimings.active) return;
+  if (__phaseTimings.active.phase !== expectedPhase) return; // avoid mismatched end
+  const end = performance.now();
+  const span = { phase: __phaseTimings.active.phase, start: __phaseTimings.active.start, end, dur: end - __phaseTimings.active.start };
+  __phaseTimings.spans.push(span);
+  if (__phaseTimings.spans.length > 25) __phaseTimings.spans.shift();
+  try { if (window?.__KOT_METRICS__) { window.__KOT_METRICS__.phaseSpans = [...__phaseTimings.spans]; } } catch(_) {}
+  __phaseTimings.active = null;
 }

@@ -22,6 +22,9 @@ export function createSettingsModal() {
       <button type="button" class="tab-button" data-tab="advanced" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s;">
         ⚙️ Advanced
       </button>
+      <button type="button" class="tab-button" data-tab="scenarios" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s;">
+        🧪 Scenarios
+      </button>
     </div>
 
     <form class="unified-modal-form">
@@ -241,6 +244,17 @@ export function createSettingsModal() {
           </div>
         </div>
       </div>
+
+      <!-- Scenarios Tab -->
+      <div class="tab-content" data-tab-content="scenarios" style="display:none;">
+        <div class="section" style="max-height:60vh;overflow:auto;">
+          <h3 class="section-title">🧪 Scenario Configuration</h3>
+          <p style="font-size:12px;opacity:.75;line-height:1.4;">Configure scenario assignments and either apply them to the live game or generate a fresh auto-seeded run.</p>
+          <div data-scenarios-host style="border:1px solid #222;background:#141414;padding:10px 12px;border-radius:6px;min-height:140px;position:relative;">
+            <div class="loading" style="font-size:11px;opacity:.6;">Loading scenario tools…</div>
+          </div>
+        </div>
+      </div>
     </form>
     <div class="modal-actions">
       <button type="button" class="btn btn-primary save-btn">
@@ -255,10 +269,29 @@ export function createSettingsModal() {
   // Handle tab switching
   const tabButtons = content.querySelectorAll('.tab-button');
   const tabContents = content.querySelectorAll('.tab-content');
+  const LS_LAST_TAB = 'KOT_SETTINGS_LAST_TAB';
+  let scenariosMounted = false;
+  function ensureScenariosMounted(){
+    if (scenariosMounted) return;
+    const host = content.querySelector('[data-scenarios-host]');
+    if (!host) return;
+    scenariosMounted = true;
+    import('../components/scenarios-tab/scenarios-tab.component.js').then(mod => {
+      const inst = mod.build({});
+      host.innerHTML = '';
+      host.appendChild(inst.root);
+      try { window.__KOT_NEW__?.store?.subscribe(()=>inst.update()); } catch(_) {}
+      // Widen modal for roomy layout
+      try { content.closest('.nm-modal').style.maxWidth = '1000px'; } catch(_) {}
+    }).catch(err => {
+      host.innerHTML = `<em style='color:#a55;'>Failed to load scenarios UI (${err?.message||'error'}).</em>`;
+    });
+  }
   
   tabButtons.forEach(button => {
     button.addEventListener('click', () => {
       const targetTab = button.getAttribute('data-tab');
+      try { localStorage.setItem(LS_LAST_TAB, targetTab); } catch(_) {}
       
       // Update button states
       tabButtons.forEach(btn => {
@@ -280,8 +313,18 @@ export function createSettingsModal() {
         targetContent.style.display = 'block';
         targetContent.classList.add('active');
       }
+      if (targetTab === 'scenarios') ensureScenariosMounted();
     });
   });
+
+  // Restore previously selected tab (if different from default 'gameplay')
+  try {
+    const last = localStorage.getItem(LS_LAST_TAB);
+    if (last && last !== 'gameplay') {
+      const btn = content.querySelector(`.tab-button[data-tab="${last}"]`);
+      if (btn) btn.click();
+    }
+  } catch(_) {}
 
   // Handle form changes
   const form = content.querySelector('.unified-modal-form');
@@ -570,7 +613,7 @@ export function createSettingsModal() {
     updateThemePreview(powerCardTheme);
   }
 
-  return newModalSystem.createModal('settings', '⚙️ Game Settings', content, { width: '500px' });
+  return newModalSystem.createModal('settings', '⚙️ Game Settings', content, { width: '900px' });
 }
 
 export function createGameLogModal() {

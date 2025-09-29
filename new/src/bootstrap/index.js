@@ -23,12 +23,17 @@ import { initCards } from '../services/cardsService.js';
 import { settingsReducer } from '../core/reducers/settings.reducer.js';
 import { metaReducer } from '../core/reducers/meta.reducer.js';
 import { createTurnService } from '../services/turnService.js';
+import { createPhaseEventsService } from '../services/phaseEventsService.js';
 import { createEffectEngine } from '../services/effectEngine.js';
 import '../ui/devPanel.js';
 import { bindA11yOverlays } from '../ui/a11yOverlays.js';
 import { loadSettings, bindSettingsPersistence, loadLogCollapse } from '../services/settingsService.js';
 import { bindAIDecisionCapture } from '../services/aiDecisionService.js';
 import { initializeEnhancedIntegration } from '../utils/enhanced-integration.js';
+import '../ui/metricsPanel.js';
+import '../ui/components/buyWaitStatus.js';
+import { applyScenarios } from '../services/scenarioService.js';
+import { SCENARIO_APPLY_REQUEST } from '../core/actions.js';
 
 // Placeholder reducers until implemented
 function placeholderReducer(state = {}, _action) { return state; }
@@ -73,7 +78,8 @@ if (typeof window !== 'undefined') {
   window.addEventListener('unhandledrejection', (e)=>{ try { console.error('[global-unhandled-rejection]', e.reason); } catch(_) {} });
   const turnService = createTurnService(store, logger);
   const effectEngine = createEffectEngine(store, logger);
-  window.__KOT_NEW__ = { store, eventBus, logger, turnService, effectEngine };
+  const phaseEventsService = createPhaseEventsService(store, logger);
+  window.__KOT_NEW__ = { store, eventBus, logger, turnService, effectEngine, phaseEventsService };
   // Provide logger reference for AI utilities lacking direct injection
   store._logger = logger;
   eventBus.emit('bootstrap/ready', {});
@@ -156,11 +162,33 @@ if (typeof window !== 'undefined') {
     ensurePostSplashBlackout();
     setTimeout(() => {
       try { turnService.startGameIfNeeded(); } catch(e) { console.warn('Skip intro start failed', e); }
+      try {
+        // If scenario config present, apply after game started
+        const stNow = store.getState();
+        const pre = stNow.settings?.scenarioConfig?.assignments;
+        if (pre && pre.length) {
+          applyScenarios(store, { assignments: resolveScenarioDynamicTargets(store, pre) });
+        }
+        // If this boot was triggered by the scenario generator, clear its transient flags so future reloads are clean
+        try {
+          if (localStorage.getItem('KOT_SCENARIO_GENERATOR') === '1') {
+            localStorage.removeItem('KOT_SCENARIO_GENERATOR');
+            // Remove skip intro only if it was not explicitly present in URL (so user param wins)
+            const w = window.location;
+            const explicit = w.hash.includes('skipintro') || w.search.includes('skipintro=1');
+            if (!explicit) localStorage.removeItem('KOT_SKIP_INTRO');
+          }
+        } catch(_) {}
+      } catch(e) { console.warn('Scenario pre-application failed', e); }
     }, 0);
   }
 
   store.subscribe(() => {
     const st = store.getState();
+    const lastAction = store.getLastAction?.();
+    if (lastAction && lastAction.type === SCENARIO_APPLY_REQUEST) {
+      try { applyScenarios(store, { assignments: lastAction.payload.assignments }); } catch(e) { console.warn('Scenario apply failed', e); }
+    }
   const selectionOpen = !!st.ui?.monsterSelection?.open;
     if (selectionOpen && !selectionWasOpened) selectionWasOpened = true;
     const splashGone = st.ui?.splash?.visible === false;
@@ -304,4 +332,19 @@ function ensurePostSplashBlackout() {
   const div = document.createElement('div');
   div.className = 'post-splash-blackout';
   document.body.appendChild(div);
+}
+
+function resolveScenarioDynamicTargets(store, assignments) {
+  const st = store.getState();
+  const order = st.players.order;
+  const byId = st.players.byId;
+  const human = order.find(pid => !byId[pid].isCPU);
+  const cpus = order.filter(pid => byId[pid].isCPU);
+  const expanded = [];
+  assignments.forEach(a => {
+    if (a.target === '__HUMAN__' && human) expanded.push({ playerId: human, scenarioIds: a.scenarioIds });
+    else if (a.target === '__CPUS__') cpus.forEach(id => expanded.push({ playerId: id, scenarioIds: a.scenarioIds }));
+    else if (byId[a.target]) expanded.push({ playerId: a.target, scenarioIds: a.scenarioIds });
+  });
+  return expanded;
 }

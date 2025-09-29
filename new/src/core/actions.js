@@ -17,6 +17,7 @@ export const DICE_ROLLED = 'DICE_ROLLED';
 export const DICE_TOGGLE_KEEP = 'DICE_TOGGLE_KEEP';
 export const DICE_REROLL_USED = 'DICE_REROLL_USED';
 export const DICE_SET_ALL_KEPT = 'DICE_SET_ALL_KEPT';
+export const DICE_ROLL_RESOLVED = 'DICE_ROLL_RESOLVED';
 
 export const PHASE_CHANGED = 'PHASE_CHANGED';
 export const LOG_APPENDED = 'LOG_APPENDED';
@@ -89,6 +90,8 @@ export const YIELD_PROMPT_DECIDED = 'YIELD_PROMPT_DECIDED';
 // Settings (new slice)
 export const SETTINGS_LOADED = 'SETTINGS_LOADED';
 export const SETTINGS_UPDATED = 'SETTINGS_UPDATED';
+export const SCENARIO_CONFIG_UPDATED = 'SCENARIO_CONFIG_UPDATED';
+export const SCENARIO_APPLY_REQUEST = 'SCENARIO_APPLY_REQUEST';
 // Target selection (multi-target effects)
 export const TARGET_SELECTION_STARTED = 'TARGET_SELECTION_STARTED';
 export const TARGET_SELECTION_UPDATED = 'TARGET_SELECTION_UPDATED';
@@ -115,6 +118,7 @@ export const diceRolled = (faces) => ({ type: DICE_ROLLED, payload: { faces } })
 export const diceToggleKeep = (index) => ({ type: DICE_TOGGLE_KEEP, payload: { index } });
 export const diceRerollUsed = () => ({ type: DICE_REROLL_USED });
 export const diceSetAllKept = (kept = true) => ({ type: DICE_SET_ALL_KEPT, payload: { kept } });
+export const diceRollResolved = () => ({ type: DICE_ROLL_RESOLVED });
 
 // Phase and log actions
 export const phaseChanged = (phase) => ({ type: PHASE_CHANGED, payload: { phase } });
@@ -187,6 +191,8 @@ export const yieldPromptDecided = (defenderId, attackerId, slot, decision) => ({
 // Settings actions
 export const settingsLoaded = (settings) => ({ type: SETTINGS_LOADED, payload: { settings } });
 export const settingsUpdated = (partial) => ({ type: SETTINGS_UPDATED, payload: { partial } });
+export const scenarioConfigUpdated = (partial) => ({ type: SCENARIO_CONFIG_UPDATED, payload: { partial } });
+export const scenarioApplyRequest = (assignments) => ({ type: SCENARIO_APPLY_REQUEST, payload: { assignments } });
 // Target selection actions
 export const targetSelectionStarted = (requestId, effect, min, max, eligibleIds) => ({ type: TARGET_SELECTION_STARTED, payload: { requestId, effect, min, max, eligibleIds } });
 export const targetSelectionUpdated = (requestId, selectedIds) => ({ type: TARGET_SELECTION_UPDATED, payload: { requestId, selectedIds } });

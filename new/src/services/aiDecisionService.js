@@ -5,7 +5,7 @@
 import { eventBus } from '../core/eventBus.js';
 import { tallyFaces, extractTriples, DIE_FACES } from '../domain/dice.js';
 import { selectActivePlayerId, selectTokyoOccupants } from '../core/selectors.js';
-import { diceToggleKeep, DICE_ROLL_STARTED, DICE_ROLLED, DICE_REROLL_USED, PHASE_CHANGED } from '../core/actions.js';
+import { diceToggleKeep, DICE_ROLL_STARTED, DICE_ROLLED, DICE_REROLL_USED, PHASE_CHANGED, DICE_ROLL_RESOLVED } from '../core/actions.js';
 import { purchaseCard, flushShop } from './cardsService.js';
 import { DICE_ANIM_MS, AI_POST_ANIM_DELAY_MS } from '../constants/uiTimings.js';
 
@@ -38,6 +38,10 @@ export function bindAIDecisionCapture(store) {
       captureRoll(state, facesStr, { stage: 'post' });
       // Schedule AI keep after dice animation completes + 2s buffer (only for CPU turns)
       scheduleAIAutoKeep(store);
+    }
+    if (action.type === DICE_ROLL_RESOLVED) {
+      // Early forced resolution terminates any scheduled keep
+      cancelPendingAIKeep();
     }
     if (action.type === PHASE_CHANGED) {
       // Any phase change cancels pending keeps; we only keep during ROLL

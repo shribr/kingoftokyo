@@ -12,10 +12,11 @@
  * Also checks GAME OVER conditions after application of results (in the turn service).
  */
 import { tallyFaces, extractTriples } from '../domain/dice.js';
-import { applyPlayerDamage, healPlayerAction, playerGainEnergy, playerVPGained, playerEnteredTokyo, playerLeftTokyo, uiAttackPulse, uiVPFlash, uiEnergyFlash, uiHealthFlash, tokyoOccupantSet, yieldPromptShown, yieldPromptDecided } from '../core/actions.js';
+import { applyPlayerDamage, healPlayerAction, playerGainEnergy, playerVPGained, playerEnteredTokyo, playerLeftTokyo, uiAttackPulse, uiVPFlash, uiEnergyFlash, uiHealthFlash, tokyoOccupantSet, yieldPromptShown, yieldPromptDecided, phaseChanged } from '../core/actions.js';
 import { evaluateYieldDecision } from './aiDecisionService.js';
 import { selectTokyoCityOccupant, selectTokyoBayOccupant } from '../core/selectors.js';
 import { selectActivePlayerId } from '../core/selectors.js';
+import { Phases } from '../core/phaseFSM.js';
 
 export function resolveDice(store, logger) {
   const state = store.getState();
@@ -95,6 +96,7 @@ export function resolveDice(store, logger) {
   const anyOccupied = !!cityOcc || !!bayOcc;
   const playerCount = afterCombat.players.order.length;
   const bayAllowed = playerCount >= 5;
+  let yieldPromptsCreated = false;
   if (!anyOccupied && tally.claw > 0 && !attacker.inTokyo) {
     // Enter city first (only city when empty)
     store.dispatch(playerEnteredTokyo(activeId));
@@ -114,6 +116,7 @@ export function resolveDice(store, logger) {
       console.log(`🏯 Creating yield prompt for ${p.name} (${p.isCPU ? 'CPU' : 'Human'}) in ${slot}`);
       
       // Different handling for human vs CPU players
+      const damage = tally.claw;
       if (p.isCPU || p.isAI) {
         // CPU/AI players get a 10 second timeout
         const expiresAt = Date.now() + 10000;
@@ -157,8 +160,9 @@ export function resolveDice(store, logger) {
         }
       }
     };
-    if (cityOcc) addPrompt(cityOcc, 'city');
-    if (bayAllowed && bayOcc) addPrompt(bayOcc, 'bay');
+  if (cityOcc) addPrompt(cityOcc, 'city');
+  if (bayAllowed && bayOcc) addPrompt(bayOcc, 'bay');
+    yieldPromptsCreated = true;
     // Immediate takeover not performed yet; takeover attempted when decisions resolved.
   }
   // Elimination cleanup: ensure defeated occupants are removed before final takeover
@@ -179,6 +183,18 @@ export function resolveDice(store, logger) {
   }
   // Final takeover attempt after cleanup and any immediate yields
   attemptTokyoTakeover(store, logger, activeId, playerCount, bayAllowed);
+
+  // If any yield prompts were created for humans or AI awaiting timeout, move into YIELD_DECISION phase; else remain in RESOLVE completion path.
+  if (yieldPromptsCreated) {
+    const st2 = store.getState();
+    const pendingAny = st2.yield.prompts.some(p => p.decision == null);
+    if (pendingAny) {
+  const phaseEvents = typeof window !== 'undefined' ? window.__KOT_NEW__?.phaseEventsService : null;
+  if (phaseEvents) phaseEvents.publish('NEEDS_YIELD_DECISION'); else store.dispatch(phaseChanged(Phases.YIELD_DECISION));
+      logger.system('Phase: YIELD_DECISION', { kind:'phase' });
+      try { if (window?.__KOT_METRICS__) { /* placeholder if needed */ } } catch(_) {}
+    }
+  }
 }
 
 // Helper: if there are no pending undecided prompts and attacker not in Tokyo, fill open slots (city then bay)

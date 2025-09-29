@@ -1,7 +1,7 @@
 /** settingsService.js
  * Handles persistence of user-adjustable settings to localStorage.
  */
-import { settingsLoaded, uiGameLogCollapseState } from '../core/actions.js';
+import { settingsLoaded, uiGameLogCollapseState, SCENARIO_CONFIG_UPDATED } from '../core/actions.js';
 
 const LS_KEY = 'kot_new_settings_v1';
 const LS_LOG_COLLAPSE = 'kot_new_logCollapse_v1';
@@ -29,7 +29,7 @@ export function persistSettings(store) {
 export function bindSettingsPersistence(store) {
   // Persist on every SETTINGS_UPDATED (cheap - small object)
   store.subscribe((_state, action) => {
-    if (action && action.type === 'SETTINGS_UPDATED') {
+    if (action && (action.type === 'SETTINGS_UPDATED' || action.type === SCENARIO_CONFIG_UPDATED)) {
       persistSettings(store);
     }
     if (action && action.type === 'UI_GAME_LOG_COLLAPSE_STATE') {

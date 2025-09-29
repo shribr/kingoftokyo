@@ -1,4 +1,5 @@
 import { PHASE_CHANGED } from '../actions.js';
+import { assertTransition } from '../phaseFSM.js';
 
 // Enumerate known phases for potential future validation; not strictly enforced yet.
 export const KNOWN_PHASES = [
@@ -16,8 +17,9 @@ export function phaseReducer(state = initial, action) {
   switch (action.type) {
     case PHASE_CHANGED: {
       const { phase } = action.payload;
-      // Simple acceptance; could validate with KNOWN_PHASES.includes(phase)
-      return phase || state;
+      if (!phase) return state;
+      if (!assertTransition(state, phase)) return state; // reject invalid
+      return phase;
     }
     default:
       return state;

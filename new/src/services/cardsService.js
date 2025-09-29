@@ -2,7 +2,8 @@
  * Orchestrates deck build & initial / refill shop.
  */
 import { buildBaseCatalog, buildDeck, draw } from '../domain/cards.js';
-import { cardsDeckBuilt, cardsShopFilled, cardPurchased, playerSpendEnergy, playerCardGained, cardDiscarded, cardShopFlushed, uiPeekShow, uiPeekHide } from '../core/actions.js';
+import { cardsDeckBuilt, cardsShopFilled, cardPurchased, playerSpendEnergy, playerCardGained, cardDiscarded, cardShopFlushed, uiPeekShow, uiPeekHide, phaseChanged } from '../core/actions.js';
+import { Phases } from '../core/phaseFSM.js';
 import { createEffectEngine } from './effectEngine.js';
 
 export function initCards(store, logger, rng = Math.random, opts = {}) {
@@ -48,20 +49,34 @@ export function purchaseCard(store, logger, playerId, cardId) {
   store.dispatch(playerSpendEnergy(playerId, card.cost));
   store.dispatch(cardPurchased(playerId, card));
   const effectEngine = typeof window !== 'undefined' ? window.__KOT_NEW__?.effectEngine : null;
+  let followUp = false;
   if (card.type === 'discard') {
     // move card straight to discard pile & enqueue effect
     store.dispatch(cardDiscarded(card));
     logger.system(`${playerId} purchased & discarded ${card.name}`);
-    if (effectEngine) effectEngine.enqueueImmediate(card, playerId);
+    if (effectEngine) { effectEngine.enqueueImmediate(card, playerId); followUp = true; }
   } else {
     store.dispatch(playerCardGained(playerId, card));
     logger.system(`${playerId} purchased ${card.name} (keep)`);
     // Optionally enqueue immediate keep effects that are instantaneous
-    if (effectEngine && ['vp_gain','energy_gain'].includes(card.effect?.kind)) {
+    if (effectEngine && ['vp_gain','energy_gain','heal_self','damage_all','vp_steal','energy_steal'].includes(card.effect?.kind)) {
       effectEngine.enqueueImmediate(card, playerId);
+      followUp = true;
     }
   }
   refillShop(store, logger);
+
+  // If any effect was enqueued, move to BUY_WAIT (if currently in BUY) so processing can complete before CLEANUP
+  try {
+    if (followUp) {
+      const st2 = store.getState();
+      if (st2.phase === Phases.BUY) {
+        logger.system('Phase: BUY_WAIT (post-purchase effect processing)', { kind:'phase' });
+        const phaseEvents = typeof window !== 'undefined' ? window.__KOT_NEW__?.phaseEventsService : null;
+        if (phaseEvents) phaseEvents.publish('PURCHASE_WITH_FOLLOWUP'); else store.dispatch(phaseChanged(Phases.BUY_WAIT));
+      }
+    }
+  } catch(_) {}
   return true;
 }
 

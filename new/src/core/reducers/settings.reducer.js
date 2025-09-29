@@ -1,4 +1,4 @@
-import { SETTINGS_LOADED, SETTINGS_UPDATED } from '../actions.js';
+import { SETTINGS_LOADED, SETTINGS_UPDATED, SCENARIO_CONFIG_UPDATED } from '../actions.js';
 
 const DEFAULT_SETTINGS = {
   cpuSpeed: 'normal', // slow | normal | fast
@@ -11,6 +11,7 @@ const DEFAULT_SETTINGS = {
   , soundMuted: false // global mute toggle
   , actionMenuMode: 'hybrid' // hybrid | docked | floating (controls action menu auto-position behavior)
   , autoStartInTest: true // when skipintro=1 load + auto-start full random game; if false just load UI without starting
+  , scenarioConfig: { assignments: [] } // scenario test harness configuration
 };
 
 export function settingsReducer(state = DEFAULT_SETTINGS, action) {
@@ -20,6 +21,10 @@ export function settingsReducer(state = DEFAULT_SETTINGS, action) {
     }
     case SETTINGS_UPDATED: {
       return { ...state, ...action.payload.partial };
+    }
+    case SCENARIO_CONFIG_UPDATED: {
+      const cur = state.scenarioConfig || { assignments: [] };
+      return { ...state, scenarioConfig: { ...cur, ...action.payload.partial } };
     }
     default:
       return state;

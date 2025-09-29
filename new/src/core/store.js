@@ -10,6 +10,7 @@ export function createStore(rootReducer, preloadedState) {
   let state = preloadedState === undefined ? rootReducer(undefined, { type: INIT }) : preloadedState;
   const listeners = new Set();
   let dispatching = false;
+  let lastAction = { type: INIT };
 
   function getState() { return state; }
 
@@ -34,6 +35,7 @@ export function createStore(rootReducer, preloadedState) {
     }
     if (next !== state) {
       state = next;
+      lastAction = action;
       // Snapshot listeners to avoid issues if a listener unsubscribes during iteration
       const currentListeners = Array.from(listeners);
       for (const l of currentListeners) {
@@ -43,7 +45,9 @@ export function createStore(rootReducer, preloadedState) {
     return action;
   }
 
-  return { getState, subscribe, dispatch };
+  function getLastAction() { return lastAction; }
+
+  return { getState, subscribe, dispatch, getLastAction };
 }
 
 export function combineReducers(reducers) {

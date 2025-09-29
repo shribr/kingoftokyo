@@ -20,6 +20,7 @@ export function build({ selector }) {
     ${iconBtn('settings', 'Settings', gearIcon())}
     ${iconBtn('log', 'Game Log', listIcon())}
     ${iconBtn('ai-decision', 'AI Decision Tree', sparkleIcon())}
+    ${iconBtn('scenarios', 'Scenarios', beakerIcon())}
     ${iconBtn('pause', 'Pause Game', pauseIcon())}
     ${iconBtn('sound', 'Toggle Sound (M)', soundIcon())}
   ${iconBtn('help', 'Help / Instructions', helpIcon())}
@@ -40,6 +41,28 @@ export function build({ selector }) {
       try { window.dispatchEvent(new CustomEvent('ui.actionMenu.forceClose')); } catch(_){ }
       createSettingsModal();
       newModalSystem.showModal('settings');
+      return;
+    }
+    if (a === 'scenarios') {
+      try { window.__KOT_BLACKOUT__?.hide(); } catch(_) {}
+      try { window.dispatchEvent(new CustomEvent('ui.actionMenu.forceClose')); } catch(_){ }
+      // Persist desired tab first so createSettingsModal restoration picks it up
+      try { localStorage.setItem('KOT_SETTINGS_LAST_TAB','scenarios'); } catch(_) {}
+      createSettingsModal();
+      newModalSystem.showModal('settings');
+      // Fallback: explicit click after render frames (two attempts in case of async mount)
+      let attempts = 0;
+      const tryActivate = () => {
+        attempts++;
+        try {
+          const tabBtn = document.querySelector('.nm-modal .tab-button[data-tab="scenarios"]');
+          if (tabBtn && !tabBtn.classList.contains('active')) {
+            tabBtn.click();
+          }
+        } catch(_) {}
+        if (attempts < 3) setTimeout(tryActivate, 40 * attempts);
+      };
+      setTimeout(tryActivate, 20);
       return;
     }
     if (a === 'log') { 
@@ -197,4 +220,7 @@ function pauseIcon() {
 }
 function playIcon() {
   return `<svg viewBox="0 0 24 24" class="ico" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>`;
+}
+function beakerIcon() {
+  return `<svg viewBox="0 0 24 24" class="ico" aria-hidden="true"><path fill="currentColor" d="M6 2h12v2h-1v5.59l3.36 6.72A3 3 0 0117.64 20H6.36a3 3 0 01-2.72-3.69L7 9.59V4H6V2zm3 2v6.41l-3.14 6.28a1 1 0 00.9 1.31h11.28a1 1 0 00.9-1.31L15 10.41V4H9zm1.5 9a1.5 1.5 0 013 0c0 .83-.67 1.5-1.5 1.5S10.5 13.83 10.5 13z"/></svg>`;
 }

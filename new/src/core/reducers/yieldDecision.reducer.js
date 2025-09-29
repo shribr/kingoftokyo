@@ -6,12 +6,12 @@ const initial = { prompts: [] };
 export function yieldDecisionReducer(state = initial, action) {
   switch (action.type) {
     case YIELD_PROMPT_SHOWN: {
-      const { defenderId, attackerId, slot, expiresAt } = action.payload;
+      const { defenderId, attackerId, slot, expiresAt, damage } = action.payload;
       // Avoid duplicate prompt for same defender in same resolution window.
       if (state.prompts.some(p => p.defenderId === defenderId && p.attackerId === attackerId && p.slot === slot && p.decision == null)) {
         return state;
       }
-      return { ...state, prompts: [...state.prompts, { defenderId, attackerId, slot, expiresAt, decision: null }] };
+      return { ...state, prompts: [...state.prompts, { defenderId, attackerId, slot, expiresAt, damage, decision: null }] };
     }
     case YIELD_PROMPT_DECIDED: {
       const { defenderId, attackerId, slot, decision } = action.payload;
