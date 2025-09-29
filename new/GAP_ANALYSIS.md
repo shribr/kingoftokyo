@@ -200,7 +200,7 @@ This addendum updates the assessment since the December 30, 2024 snapshot.
 | Pause / Resume | Legacy only | Added slice + overlay | Timing still bypasses FSM (planned) |
 
 ### Recast Composite Parity
-Earlier internal doc overstated rewrite parity (~95%) by counting raw mechanic presence. Recomputed experiential parity ≈ 50% (see `RULES_PARITY.md`).
+Earlier internal doc overstated rewrite parity (~95%) by counting raw mechanic presence. Recomputed experiential parity ≈ 50% (see `RULES_PARITY.md`, `docs/GAME_FLOW_PARITY_AUDIT.md`, and revised `docs/DEVELOPMENT_SUMMARY.md`).
 
 ### Outstanding High-Risk Gaps (Unchanged or Emerging)
 - No finite state machine → timing races.  
