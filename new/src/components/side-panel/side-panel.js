@@ -23,6 +23,8 @@ export function initSidePanel(root, {
   function updateBodyState() {
     if (bodyClassExpanded) {
       const expanded = root.getAttribute('data-collapsed') !== 'true';
+      const wasAlreadySet = document.body.classList.contains(bodyClassExpanded) === expanded;
+      if (wasAlreadySet) return; // Don't toggle if already in correct state
       document.body.classList.toggle(bodyClassExpanded, expanded);
     }
   }

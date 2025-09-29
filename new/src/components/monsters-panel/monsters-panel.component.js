@@ -49,6 +49,20 @@ export function update(root, instances) {
   const state = store.getState();
   const order = selectPlayerOrder(state);
   const active = selectActivePlayer(state);
+  
+  // Cache expensive operations - only recalculate when relevant state changes
+  const layoutCacheKey = JSON.stringify({
+    activeId: active?.id,
+    tokyoCity: state.tokyo?.city,
+    tokyoBay: state.tokyo?.bay,
+    orderLength: order.length
+  });
+  
+  if (root._lastLayoutCacheKey === layoutCacheKey && root._hasInitialLayout) {
+    // Skip expensive layout recalculations if nothing relevant changed
+    return;
+  }
+  root._lastLayoutCacheKey = layoutCacheKey;
   // Determine layout mode (stacked | condensed | list)
   const mode = state.settings?.playerCardLayoutMode || (state.settings?.stackedPlayerCards === false ? 'list' : 'stacked');
   root.dataset.cardLayout = mode;
@@ -188,6 +202,9 @@ export function update(root, instances) {
       container.appendChild(card);
     }
   }
+  
+  // Mark that initial layout is complete
+  root._hasInitialLayout = true;
 }
 
 function wireMobileSlideBehavior(cardEl, panelRoot) {
