@@ -49,6 +49,9 @@ export function build({ selector }) {
     return isMobileWidth || isTouchDevice || (isLandscapeMobile && width < 900);
   };
   
+  // Add game-active class to make action menu visible (required by legacy CSS)
+  root.classList.add('game-active');
+  
   const setupMobile = () => {
     const isMobile = checkMobile();
     
@@ -119,7 +122,7 @@ export function build({ selector }) {
 
     } else {
       // Desktop: show the menu normally, remove mobile button, reset position
-      root.style.display = '';
+      root.style.display = 'flex'; // Show on desktop
       root.style.position = '';
       root.style.bottom = '';
       root.style.left = '';
@@ -132,8 +135,12 @@ export function build({ selector }) {
       root.style.top = '';
       root.style.right = '';
       
-      // Re-enable dragging by re-initializing positioning service if needed
-      if (root._positioning && root._wasMobile) {
+      // Initialize or re-enable dragging positioning service
+      if (!root._positioning) {
+        // First time desktop setup - initialize positioning service
+        root._positioning = createPositioningService(store);
+      }
+      if (root._positioning) {
         root._positioning.makeDraggable(root, 'actionMenu', { snapEdges: true, snapThreshold: 12 });
         root._wasMobile = false;
       }
@@ -146,6 +153,22 @@ export function build({ selector }) {
   // Setup mobile immediately and on resize
   setupMobile();
   window.addEventListener('resize', setupMobile);
+  
+  // Ensure proper positioning for desktop after initial render
+  setTimeout(() => {
+    const width = window.innerWidth;
+    if (width > 760) {
+      // For desktop, ensure proper positioning
+      const mode = store.getState().settings?.actionMenuMode || 'hybrid';
+      if (mode === 'docked' || (mode === 'hybrid' && root.dataset.amDockState === 'docked')) {
+        anchorActionMenu(root, true); // true = initial positioning
+      }
+      ensureVisibleWithinViewport(root);
+      avoidMonsterPanelOverlap(root);
+    }
+  }, 100);
+  
+
 
   root.addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-action]');
@@ -442,10 +465,24 @@ export function update(root) {
     flushBtn.disabled = !canFlush;
   }
   if (endBtn) {
-    const canEnd = !isCPU && (
-      (st.phase === 'ROLL' && dice.phase === 'resolved' && (keptCount > 0 || (hasAnyFaces && dice.rerollsRemaining === 0))) ||
-      (st.phase !== 'ROLL')
-    );
+    const afterFinalRollCondition = st.phase === 'ROLL' && dice.phase === 'resolved' && (keptCount > 0 || (hasAnyFaces && dice.rerollsRemaining === 0));
+    const notRollPhase = st.phase !== 'ROLL';
+    const canEnd = !isCPU && (afterFinalRollCondition || notRollPhase);
+    
+    // Debug logging when end button should be enabled but isn't
+    if (!canEnd && !isCPU) {
+      console.log('🚫 End Turn Disabled - Debug Info:', {
+        phase: st.phase,
+        dicePhase: dice.phase,
+        keptCount,
+        hasAnyFaces,
+        rerollsRemaining: dice.rerollsRemaining,
+        afterFinalRollCondition,
+        notRollPhase,
+        isCPU
+      });
+    }
+    
     endBtn.disabled = !canEnd;
   }
 

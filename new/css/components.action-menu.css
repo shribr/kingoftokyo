@@ -258,7 +258,7 @@
 .cmp-action-menu button[data-action="end"]:not(:disabled):active { box-shadow:2px 2px 0 #000,0 0 0 2px #222 inset; }
 
 /* --- Mobile/touch layout: menu is fully hidden until opened (no slide animation) --- */
-@media (max-width: 760px), (pointer: coarse) {
+@media (max-width: 760px) {
   /* Mobile: anchor from bottom corners and expand upward, consistent width and full-width buttons */
   .cmp-action-menu {
     position: fixed;
@@ -292,7 +292,7 @@
 }
 
 /* Invisible backdrop to allow outside-click closing on mobile when menu is open */
-@media (max-width: 760px), (pointer: coarse) {
+@media (max-width: 760px) {
   .action-menu-backdrop { position: fixed; inset: 0; z-index: 5995; display:none; }
   .action-menu-backdrop[data-show] { display:block; }
 }

@@ -1,6 +1,13 @@
 /** player-profile-card.component.js
- * Player Profile Card component scaffold (rewrite track).
- * - Uses single namespace class (.cmp-player-profile-card) – legacy term 'player-dashboard' replaced.
+ * Player Profile Card component scaffold (rewrite track).          console.log('🃏 PLAYER CARD Resize Detected:');
+          console.log('  📍 Source: Player Profile Card Component');
+          console.log('  👤 Player ID:', playerId);
+          console.log('  🎯 In Active Dock:', isActive);
+          console.log('  ⭐ Is Active Player:', isActivePlayer);
+          console.log('  📐 Dimensions:', { width, height });
+          console.log('  ⏰ Time:', new Date().toISOString());
+          console.log('  🎯 Element:', entry.target);
+          console.log('  📊 Stack trace:', new Error().stack); single namespace class (.cmp-player-profile-card) – legacy term 'player-dashboard' replaced.
  * - Pure build/update contract.
  * - Owned cards miniature lane placeholder.
  * - No external side-effects; relies only on selectors + store.
@@ -93,24 +100,25 @@ export function build({ selector, playerId }) {
         
         // Log for active player cards or any card in active dock
         if (isActive || isActivePlayer) {
-          console.log('🎯 Player Profile Card Resize Detected:', {
-            playerId: playerId,
-            isInActiveDock: isActive,
-            isActivePlayer: isActivePlayer,
-            width: width,
-            height: height,
-            timestamp: new Date().toISOString(),
-            element: entry.target,
-            stackTrace: new Error().stack
-          });
+          console.log('� PLAYER CARD Resize Detected:');
+          console.log('  📍 Source: Player Profile Card Component');
+          console.log('  👤 Player ID:', playerId);
+          console.log('  🎯 In Active Dock:', isActive);
+          console.log('  ⭐ Is Active Player:', isActivePlayer);
+          console.log('  📐 Dimensions:', { width, height });
+          console.log('  ⏰ Time:', new Date().toISOString());
+          console.log('  🎯 Element:', entry.target);
+          console.log('  📊 Stack trace:');
+          console.trace('Player card resize triggered from:');
           
           // Additional debugging info
-          console.log('📏 Card computed styles:', {
-            position: getComputedStyle(entry.target).position,
-            display: getComputedStyle(entry.target).display,
-            transform: getComputedStyle(entry.target).transform,
-            width: getComputedStyle(entry.target).width,
-            height: getComputedStyle(entry.target).height
+          const styles = getComputedStyle(entry.target);
+          console.log('  🎨 Computed styles:', {
+            position: styles.position,
+            display: styles.display,
+            transform: styles.transform,
+            width: styles.width,
+            height: styles.height
           });
         }
       }

@@ -30,6 +30,13 @@ body, .btn, .card-text { font-size:var(--body-size); }
 .monster-profile:hover { transform:translateY(-5px); box-shadow:0 5px 15px rgba(0,0,0,.2); }
 
 @media (max-width:1200px){ .game-header h1 { letter-spacing:2px; text-shadow:var(--ts-comic-mid); } .dice-container { gap:12px; } .die { width:65px; height:65px; font-size:1.6em; } }
+/* Desktop: ensure action menu is visible on larger screens */
+@media (min-width: 761px) {
+  #action-menu {
+    display: flex !important;
+  }
+}
+
 @media (max-width:760px){
 	#game-container { padding:clamp(10px,3vw,15px); width:100%; max-width:100%; margin:0 auto; }
 	

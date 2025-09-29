@@ -41,21 +41,21 @@ export function build({ selector }) {
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const { width, height } = entry.contentRect;
-        console.log('🔍 Active Player Card Resize Detected:', {
-          width: width,
-          height: height,
-          timestamp: new Date().toISOString(),
-          element: entry.target,
-          stackTrace: new Error().stack
-        });
+        console.log('🏟️ ARENA SLOT Resize Detected:');
+        console.log('  📍 Source: Active Player Slot Container');
+        console.log('  📐 Dimensions:', { width, height });
+        console.log('  ⏰ Time:', new Date().toISOString());
+        console.log('  🎯 Element:', entry.target);
+        console.log('  📊 Stack trace:', new Error().stack);
         
         // Additional debugging info
-        console.log('📏 Element computed styles:', {
-          position: getComputedStyle(entry.target).position,
-          display: getComputedStyle(entry.target).display,
-          transform: getComputedStyle(entry.target).transform,
-          width: getComputedStyle(entry.target).width,
-          height: getComputedStyle(entry.target).height
+        const styles = getComputedStyle(entry.target);
+        console.log('  🎨 Computed styles:', {
+          position: styles.position,
+          display: styles.display,
+          transform: styles.transform,
+          width: styles.width,
+          height: styles.height
         });
       }
     });
