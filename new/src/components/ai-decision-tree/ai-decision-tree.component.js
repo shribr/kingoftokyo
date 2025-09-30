@@ -432,17 +432,31 @@ function getLegacyDiceSymbol(face) {
   return symbols[face] || face;
 }
 
+// Helper to render a dice icon in goal text
+function renderDiceInGoal(face) {
+  const faceClass = ['1','2','3'].includes(face) ? `face-${face}` : `face-${face}`;
+  const display = ({'attack':'🗡️','claw':'🗡️','energy':'⚡','heart':'❤'}[face]) || face;
+  return `<span class="adt-std-die ${faceClass}" data-face="${face}">${display}</span>`;
+}
+
 function determineGoal(roll, faces, keptMask) {
   // Prefer goal injected by service
   if (roll.goal && roll.goal.face) {
     const face = String(roll.goal.face);
     const count = (roll.goal.countAtSel || 0);
     if (['1','2','3'].includes(face)) {
-      if (count >=3) return face + ' SET';
+      const diceIcon = renderDiceInGoal(face);
+      if (count >=3) return diceIcon + ' Set';
       const needed = 3 - count;
-      return `${face} X${needed} MORE`;
+      return `${diceIcon} x${needed} More`;
     }
-    return face.toUpperCase();
+    // Return face names with proper casing
+    const faceMap = {
+      'claw': 'Attack',
+      'energy': 'Energy',
+      'heart': 'Heal'
+    };
+    return faceMap[face.toLowerCase()] || face;
   }
   const keptFaces = faces.filter((face, index) => keptMask[index]);
   const counts = keptFaces.reduce((acc, face) => { acc[face] = (acc[face] || 0) + 1; return acc; }, {});
@@ -451,13 +465,14 @@ function determineGoal(roll, faces, keptMask) {
   for (const num of ['3', '2', '1']) {
     if (counts[num] >= 2) {
       const needed = 3 - counts[num];
-      return needed === 1 ? `${num} X3 MORE` : `${num} X${needed} MORE`;
+      const diceIcon = renderDiceInGoal(num);
+      return needed === 1 ? `${diceIcon} x3 More` : `${diceIcon} x${needed} More`;
     }
   }
   
-  if (counts.claw >= 2) return 'ATTACK';
-  if (counts.energy >= 2) return 'ENERGY';
-  if (counts.heart >= 2) return 'HEAL';
+  if (counts.claw >= 2) return 'Attack';
+  if (counts.energy >= 2) return 'Energy';
+  if (counts.heart >= 2) return 'Heal';
   
   return 'TBD';
 }

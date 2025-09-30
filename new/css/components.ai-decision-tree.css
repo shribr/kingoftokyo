@@ -568,7 +568,8 @@
 .cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-round-header {
     cursor: pointer;
     padding: 10px 16px;
-    font-weight: 700;
+    font-family: 'Bangers', cursive;
+    font-weight: 400;
     background: linear-gradient(90deg, #e9f1f7, #dde7ef);
     border-bottom: 1px solid rgba(0,0,0,0.05);
     display: flex;
@@ -612,7 +613,8 @@
     cursor: pointer;
     padding: 8px 18px;
     background: linear-gradient(90deg, #fbfdff, #f0f6fa);
-    font-weight: 600;
+    font-family: 'Bangers', cursive;
+    font-weight: 400;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -854,5 +856,5 @@
 }
 
 .cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-turn-chain .adt-std-die {
-    margin-right: 3px;
+    margin-right: 6px;
 }
