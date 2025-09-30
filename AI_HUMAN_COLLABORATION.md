@@ -1058,6 +1058,9 @@ Focused on the Power Card Detail experience: introduced a dedicated modal with a
 2. Removing deprecated feature branches (Dark Edition) reduces cognitive load and styling contingencies.
 3. Modal contexts often invalidate positional assumptions (absolute elements) — design for context-agnostic layout or provide scoped overrides.
 
+### AI Model Attribution
+During this day’s work, an LLM-based coding assistant (GitHub Copilot Chat – GPT-4 class backend) generated the modal refactor plan, identified missing scoping ancestry, and drafted the Dark Edition removal steps. Human direction constrained scope ("only the name + close button") and validated visual intent. All code proposals were reviewed by the human before persistence. Attribution note: exact underlying model variant may rotate; functionality consistent with GPT-4-tier reasoning.
+
 ## Next Validation Needed
 - Cross-browser spacing check (Safari line-height quirks possible with header typography).
 - Confirm no remaining Dark Edition assets referenced in preload routines.
@@ -1103,6 +1106,9 @@ Addressed a persistent visual artifact: a tall green vertical rectangle occupyin
 2. Vertical stretching often traces back to container-imposed height rather than the child component.
 3. Layered legacy + new CSS can silently reintroduce deprecated visuals if specificity remains unbalanced.
 
+### AI Model Attribution
+Tokyo occupant diagnostic narrative, clone flow tracing, and CSS isolation strategy recommendations were produced by the same GPT-4 tier Copilot assistant. Human feedback (“artifact still present”) triggered second-pass CSS specificity adjustments. Model proposed minimal additive rules instead of broad refactors to reduce regression risk. Attribution subject to platform model routing.
+
 ## Follow-Up Checklist
 - [ ] Validate artifact removal in live environment.
 - [ ] Audit for stray `.tokyo-occupant` definitions in legacy stylesheets & retire duplicates.
@@ -1141,6 +1147,9 @@ Planned (not yet implemented) components:
 ## Collaboration Insights (Period)
 - Strategic pause for documentation increased alignment and reduced risk of context loss entering more complex AI implementation phase.
 - Incremental CSS isolation steps serve as a template for future logic encapsulation (prefer wrapper + scoped rules over broad selectors refactors mid-cycle).
+
+### AI Model Attribution
+Consolidated period summaries, risk table structuring, and forward-looking heuristic module framing were AI-drafted (Copilot GPT-4 class) based on prior logged actions. Human oversight verified accuracy of dates and pruned speculative implementation details not yet approved. Planned AI features section intentionally marked as preparatory (not implemented) per human governance. Model attribution accuracy caveat: underlying provider may transparently upgrade model weights; behavior aligned with GPT-4 reasoning depth.
 
 ## Risks & Mitigations
 | Risk | Impact | Mitigation |
