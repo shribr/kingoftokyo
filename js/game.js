@@ -1329,8 +1329,8 @@ class KingOfTokyoGame {
             return;
         }
 
-        // Stay in resolving phase - turn can be ended when ready
-        window.UI && window.UI._debug && window.UI._debug('Dice effects resolved, ready to end turn');
+    // Stay in resolving phase - turn can be ended when ready
+    window.UI && window.UI._debug && window.UI._debug('Dice effects resolved, ready to end turn');
 
         if (window.UI && window.UI.debugMode) {
             window.UI._debug('🧮 Dice Resolution Summary', {
@@ -1352,7 +1352,7 @@ class KingOfTokyoGame {
             // Attempt UI consistency verification if UI present
             this.verifyStatsConsistency(player);
         }
-        this.triggerEvent('turnPhaseChanged', { phase: 'resolving' });
+    this.triggerEvent('turnPhaseChanged', { phase: 'resolving' });
         
         // Trigger UI update to reflect stat changes
         this.triggerEvent('statsUpdated', { player });

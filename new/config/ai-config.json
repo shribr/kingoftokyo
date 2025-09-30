@@ -1,0 +1,245 @@
+{
+  "timing": {
+    "speeds": {
+      "fast": {
+        "turnStart": 800,
+        "diceAnimation": 1500,
+        "decisionThinking": 1500,
+        "endTurn": 800,
+        "nextRoll": 600,
+        "thoughtBubbleMultiplier": 0.6,
+        "description": "Fast CPU - quick decisions and actions"
+      },
+      "medium": {
+        "turnStart": 1500,
+        "diceAnimation": 2000,
+        "decisionThinking": 3000,
+        "endTurn": 1500,
+        "nextRoll": 1000,
+        "thoughtBubbleMultiplier": 1.0,
+        "description": "Medium CPU - balanced timing for readability"
+      },
+      "slow": {
+        "turnStart": 2500,
+        "diceAnimation": 3000,
+        "decisionThinking": 4500,
+        "endTurn": 2500,
+        "nextRoll": 1800,
+        "thoughtBubbleMultiplier": 1.5,
+        "description": "Slow CPU - deliberate timing for strategy observation"
+      }
+    }
+  },
+  "diceEvaluation": {
+    "attack": {
+      "baseValue": 3,
+      "situationalMultiplier": 2.0,
+      "description": "Attack dice - damage other players"
+    },
+    "energy": {
+      "baseValue": 2,
+      "situationalMultiplier": 1.5,
+      "description": "Energy dice - buy power cards"
+    },
+    "heal": {
+      "baseValue": 2,
+      "situationalMultiplier": 3.0,
+      "description": "Heal dice - restore health (not in Tokyo)"
+    },
+    "victoryPoints": {
+      "baseValue": 4,
+      "situationalMultiplier": 1.2,
+      "description": "Victory point dice (1,2,3) - win condition"
+    },
+    "setCollection": {
+      "priorities": {
+        "threeOfAKind": {
+          "1": { "points": 1, "baseValue": 15, "description": "Three 1s = 1 VP" },
+          "2": { "points": 2, "baseValue": 18, "description": "Three 2s = 2 VP" },
+          "3": { "points": 3, "baseValue": 22, "description": "Three 3s = 3 VP" }
+        },
+        "pairValue": {
+          "1": { "potentialPoints": 1, "keepValue": 8, "description": "Pair of 1s - potential for 1 VP" },
+          "2": { "potentialPoints": 2, "keepValue": 12, "description": "Pair of 2s - potential for 2 VP" },
+          "3": { "potentialPoints": 3, "keepValue": 16, "description": "Pair of 3s - potential for 3 VP" }
+        },
+        "singleValue": {
+          "description": "Single numbers have minimal value unless going for set",
+          "1": { "baseValue": 1 },
+          "2": { "baseValue": 1 },
+          "3": { "baseValue": 1 }
+        }
+      },
+      "contextualLogic": {
+        "nearWin": {
+          "description": "When close to winning (15+ VP), prioritize sets that can secure victory",
+          "vpThreshold": 15,
+          "behavior": {
+            "prioritizeCompletingSets": true,
+            "riskTolerance": "personality-dependent",
+            "fallbackToSafety": "if health critical"
+          }
+        },
+        "criticalHealth": {
+          "description": "When health is critically low, balance risk vs safety",
+          "healthThreshold": 3,
+          "behavior": {
+            "lowRisk": "prioritize hearts over risky VP attempts",
+            "mediumRisk": "attempt VP on first roll, pivot to hearts if unsuccessful",
+            "highRisk": "commit to VP attempt regardless of health"
+          }
+        },
+        "progressiveRisk": {
+          "description": "Risk assessment changes based on roll number",
+          "firstRoll": {
+            "riskTolerance": "high",
+            "description": "More willing to gamble on first roll"
+          },
+          "secondRoll": {
+            "riskTolerance": "medium", 
+            "description": "Moderate risk - evaluate partial progress"
+          },
+          "thirdRoll": {
+            "riskTolerance": "low",
+            "description": "Conservative - take what you can get"
+          }
+        }
+      }
+    }
+  },
+  "advancedPersonaLogic": {
+    "overrideScenarios": {
+      "timidForcedAttack": {
+        "description": "Timid monsters must attack when enemy threatens to win",
+        "conditions": {
+          "personalityAggression": "<=2",
+          "enemyVictoryPoints": ">=18",
+          "canPreventWin": true
+        },
+        "behavior": {
+          "overridePersonality": true,
+          "forcedAction": "attack",
+          "reasoning": "Survival trumps natural timidity - must prevent enemy victory"
+        }
+      },
+      "strategicPowerCardRoute": {
+        "description": "Strategic monsters prefer power card combinations for victory",
+        "conditions": {
+          "personalityStrategy": ">=4",
+          "hasComplementaryCards": true,
+          "energy": ">=6"
+        },
+        "behavior": {
+          "prioritizeEnergy": true,
+          "planCardCombinations": true,
+          "reasoning": "Building synergistic card engine for victory"
+        }
+      },
+      "desperateWinAttempt": {
+        "description": "When behind and time running out, take big risks",
+        "conditions": {
+          "victoryPointsDeficit": ">=8",
+          "leadingPlayerVP": ">=16"
+        },
+        "behavior": {
+          "maxRisk": true,
+          "ignoreHealth": true,
+          "reasoning": "Desperate times require desperate measures"
+        }
+      }
+    },
+    "threatAssessment": {
+      "criticalThreats": {
+        "immediateWinThreat": {
+          "vpThreshold": 18,
+          "priority": "CRITICAL",
+          "response": "Must attack or prevent victory this turn"
+        },
+        "nearWinThreat": {
+          "vpThreshold": 15,
+          "priority": "HIGH",
+          "response": "Consider aggressive action to slow down leader"
+        },
+        "energyAdvantage": {
+          "energyDifference": 8,
+          "priority": "MEDIUM",
+          "response": "Monitor for power card combinations"
+        }
+      }
+    },
+    "gamePhaseLogic": {
+      "earlyGame": {
+        "description": "Rounds 1-3: Establish position and build resources",
+        "focusPriority": ["victoryPoints", "energy", "attack", "heal"],
+        "riskTolerance": "high"
+      },
+      "midGame": {
+        "description": "Rounds 4-6: Pursue victory strategies while managing threats",
+        "focusPriority": ["victoryPoints", "attack", "energy", "heal"],
+        "riskTolerance": "medium"
+      },
+      "endGame": {
+        "description": "Round 7+: Focus on winning or preventing others from winning",
+        "focusPriority": ["attack", "victoryPoints", "energy", "heal"],
+        "riskTolerance": "low"
+      }
+    }
+  },
+  "monsterSpecificAdjustments": {
+    "gigazaur": {
+      "personality": { "aggression": 4, "strategy": 2, "risk": 3 },
+      "specialRules": {
+        "description": "Ancient predator - tends to be territorial and aggressive but not overly strategic"
+      }
+    },
+    "cyberbunny": {
+      "personality": { "aggression": 2, "strategy": 5, "risk": 2 },
+      "specialRules": {
+        "description": "Advanced AI - excellent strategic planning and logical decision-making"
+      }
+    },
+    "kraken": {
+      "personality": { "aggression": 3, "strategy": 4, "risk": 4 },
+      "specialRules": {
+        "description": "Patient hunter - good strategy with willingness to take calculated risks"
+      }
+    },
+    "kinghull": {
+      "personality": { "aggression": 5, "strategy": 2, "risk": 3 },
+      "specialRules": {
+        "description": "Alpha predator - maximum aggression with direct approach"
+      }
+    },
+    "megalodon": {
+      "personality": { "aggression": 4, "strategy": 3, "risk": 5 },
+      "specialRules": {
+        "description": "Mechanical dragon - fearless and willing to take maximum risks"
+      }
+    },
+    "alienoid": {
+      "personality": { "aggression": 2, "strategy": 5, "risk": 4 },
+      "specialRules": {
+        "description": "Alien intelligence - prefers observation and strategic analysis over direct conflict"
+      }
+    }
+  },
+  "difficultyLevels": {
+    "easy": {
+      "decisionAccuracy": 0.6,
+      "mistakeProbability": 0.3,
+      "description": "AI makes some suboptimal decisions"
+    },
+    "medium": {
+      "decisionAccuracy": 0.8,
+      "mistakeProbability": 0.15,
+      "description": "AI makes mostly good decisions with occasional mistakes"
+    },
+    "hard": {
+      "decisionAccuracy": 0.95,
+      "mistakeProbability": 0.05,
+      "description": "AI makes near-optimal decisions consistently"
+    }
+  },
+  "version": "1.0.0",
+  "description": "AI Decision Engine Configuration for King of Tokyo CPU players"
+}

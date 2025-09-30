@@ -10,8 +10,8 @@ export const DICE_ANIM_MS = 600;
 // Reduced from 3000 to 600 to prevent sluggish AI pacing / reroll stalls
 export const AI_POST_ANIM_DELAY_MS = 600;
 
-// CPU turn start delay to clearly indicate new turn (must be > card animation time ~500ms)
-export const CPU_TURN_START_MS = 800;
+// CPU turn start delay to clearly indicate new turn (must be > card animation time ~1650ms)
+export const CPU_TURN_START_MS = 1800;
 
 // CPU decision thinking time between rolls
 // Reduced from 2500 to 900 to accelerate CPU multi-reroll loops

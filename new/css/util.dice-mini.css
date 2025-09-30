@@ -1,0 +1,38 @@
+/* util.dice-mini.css
+ * Shared compact / modal / analysis dice styling.
+ * Unifies: AI decision tree dice (.ai-logic-die), roll-off mini dice (.mini-die), and generic utility (.k-die-mini).
+ */
+.k-die-mini, .ai-logic-die, .mini-die {
+  width:35px;
+  height:35px;
+  border:2px solid #333;
+  border-radius:6px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:16px;
+  font-weight:bold;
+  font-family:'Nunito', sans-serif;
+  background:linear-gradient(145deg,#f0f0f0,#d0d0d0);
+  color:#333;
+  box-shadow:2px 2px 4px rgba(0,0,0,.3);
+  flex-shrink:0;
+  position:relative;
+  transition:transform .18s ease, box-shadow .25s ease, filter .25s ease;
+}
+.k-die-mini:hover, .ai-logic-die:hover, .mini-die:hover { transform:translateY(-3px); box-shadow:0 6px 12px rgba(0,0,0,.35); }
+.k-die-mini:active, .ai-logic-die:active, .mini-die:active { transform:translateY(-1px); }
+
+/* Variants */
+.k-die-mini.attack, .ai-logic-die.attack, .mini-die.attack { border-color:#FF4444; background:linear-gradient(145deg,#FF6666,#FF4444); color:#fff; box-shadow:0 0 8px rgba(255,68,68,.6); }
+.k-die-mini.energy, .ai-logic-die.energy, .mini-die.energy { border-color:#B8860B; background:linear-gradient(145deg,#DAA520,#B8860B); color:#222; box-shadow:0 0 8px rgba(184,134,11,.55); }
+.k-die-mini.heal, .ai-logic-die.heal, .mini-die.heal { border-color:#4CAF50; background:linear-gradient(145deg,#81C784,#4CAF50); color:#fff; box-shadow:0 0 8px rgba(76,175,80,.55); }
+.k-die-mini.vp, .ai-logic-die.vp, .mini-die.vp { border-color:#9C27B0; background:linear-gradient(145deg,#BA68C8,#9C27B0); color:#fff; box-shadow:0 0 8px rgba(156,39,176,.55); }
+.k-die-mini.selected, .ai-logic-die.selected, .mini-die.selected { border-color:#2196F3; background:linear-gradient(145deg,#64B5F6,#2196F3); color:#fff; box-shadow:0 0 10px rgba(33,150,243,.65); }
+
+/* Compact focus state */
+.k-die-mini:focus-visible, .ai-logic-die:focus-visible, .mini-die:focus-visible { outline:none; box-shadow:0 0 0 2px #fff, 0 0 0 4px #111; }
+@media (prefers-reduced-motion: reduce) {
+  .k-die-mini, .ai-logic-die, .mini-die { transition:none; }
+  .k-die-mini:hover, .ai-logic-die:hover, .mini-die:hover { transform:none; }
+}

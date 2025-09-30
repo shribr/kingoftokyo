@@ -902,13 +902,26 @@ export function createHelpModal() {
 export function createAIDecisionModal() {
   const content = document.createElement('div');
   content.className = 'ai-decision-tree-wrapper';
+  content.innerHTML = '<div style="padding: 20px; text-align: center; color: #ccc;">Loading AI Decision Tree...</div>';
+  
   // Lazy import new component to avoid upfront cost
   import('../components/ai-decision-tree/ai-decision-tree.component.js').then(mod => {
     try {
-      const { root } = mod.buildAIDecisionTree();
+      const { root, dispose } = mod.buildAIDecisionTree();
+      content.innerHTML = ''; // Clear loading message
       content.appendChild(root);
-    } catch(e){ console.warn('[aiDecisionModal] failed to init tree', e); }
-  }).catch(err=> console.warn('[aiDecisionModal] load error', err));
+      
+      // Store dispose method for cleanup
+      content._treeDispose = dispose;
+    } catch(e){ 
+      console.error('[aiDecisionModal] failed to init tree', e); 
+      content.innerHTML = `<div style="padding: 20px; color: #ff6b6b;">Error loading AI Decision Tree: ${e.message}</div>`;
+    }
+  }).catch(err=> {
+    console.error('[aiDecisionModal] load error', err);
+    content.innerHTML = `<div style="padding: 20px; color: #ff6b6b;">Failed to load AI Decision Tree module: ${err.message}</div>`;
+  });
+  
   return newModalSystem.createModal('aiDecision', '✨ AI Decision Tree', content, { width: '820px' });
 }
 

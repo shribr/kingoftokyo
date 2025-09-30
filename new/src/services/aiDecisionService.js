@@ -9,6 +9,10 @@ import { diceToggleKeep, DICE_ROLL_STARTED, DICE_ROLLED, DICE_REROLL_USED, PHASE
 import { purchaseCard, flushShop } from './cardsService.js';
 import { DICE_ANIM_MS, AI_POST_ANIM_DELAY_MS } from '../constants/uiTimings.js';
 import { logAppended } from '../core/actions.js';
+import { getAIConfig } from '../config/aiConfigLoader.js';
+import { AIDecisionEngine } from '../ai/engine/AIDecisionEngine.js';
+
+const enhancedEngine = new AIDecisionEngine();
 
 let latestTree = { rounds: [] };
 let lastRollNodeId = null;
@@ -20,7 +24,9 @@ let aiKeepGeneration = 0;
 // Example extended shape per roll:
 // { faces: '1,2,3', rationale: '...', score: '0.82', wicknessDelta: 1, poisonApplied: 0 }
 
-export function getAIDecisionTree() { return latestTree; }
+export function getAIDecisionTree() { 
+  return latestTree; 
+}
 export function getLastAIRollId() { return lastRollNodeId; }
 
 // Mock: on each dice roll started, push a synthetic node
@@ -67,6 +73,12 @@ function captureRoll(state, facesStr, extraMeta) {
   const isCpu = !!(player && (player.isCPU || player.isAi || player.isAI || player.type === 'ai'));
   const playerName = player?.name || player?.displayName || player?.id || activeId || 'Unknown';
   const keptMask = Array.isArray(faces) ? faces.map(f => !!f.kept) : [];
+  let keptWhy = null;
+  if (extraMeta?.stage === 'post' && keptMask.some(Boolean)) {
+    try {
+      keptWhy = deriveKeptWhy(faces, keptMask, state, player, analysis._tallyCache);
+    } catch(_) {}
+  }
   const node = {
     id: nextNodeId++,
     faces: facesStr,
@@ -79,8 +91,59 @@ function captureRoll(state, facesStr, extraMeta) {
     playerName,
     isCpu,
     keptMask,
-    english: analysis.english
+    english: analysis.english,
+    keptWhy
   };
+  // --- Enhanced engine enrichment (post-roll actual dice states) ---
+  if (extraMeta?.stage === 'post') {
+    try {
+      const existingPost = turnNode.rolls.filter(r=> r.stage === 'post');
+      node.rollNumber = existingPost.length + 1;
+      node.keptIndices = faces.map((f,i)=> f.kept? i : null).filter(v=> v!==null);
+
+      // Prepare game state summary for engine
+      const gameState = {
+        players: state.players.order.map(id => {
+          const p = state.players.byId[id];
+          return {
+            id: p.id,
+            victoryPoints: p.victoryPoints,
+            health: p.health,
+            maxHealth: p.maxHealth || 10,
+            isInTokyo: !!p.inTokyo,
+            isEliminated: !p.status?.alive,
+            energy: p.energy || 0,
+            powerCards: p.powerCards || []
+          };
+        }),
+        availablePowerCards: (state.cards?.shop || []).map(c => ({ id:c.id, name:c.name, cost:c.cost, effects:c.effect? [c.effect]: (c.effects||[]) }))
+      };
+      const diceFacesCanon = faces.map(f => {
+        if (f.value === '1') return 'one';
+        if (f.value === '2') return 'two';
+        if (f.value === '3') return 'three';
+        return f.value; // attack, energy, heart
+      });
+      const decision = enhancedEngine.makeRollDecision(diceFacesCanon, state.dice.rerollsRemaining, { ...player, monster: player.monster || {}, gameState }, gameState);
+      if (decision) {
+        node.action = decision.action === 'endRoll' ? 'keep' : decision.action; // normalize
+        node.confidence = decision.confidence;
+        if (decision.goal) {
+          const faceMap = { one:'1', two:'2', three:'3' };
+            node.goal = { ...decision.goal, face: faceMap[decision.goal.face] || decision.goal.face };
+        }
+        node.improvementChance = decision.improvementChance;
+        node.evBreakdown = decision.evBreakdown;
+        node.branch = decision.branchAnalysis?.best || null;
+        node.projection = decision.projection || null;
+        node.mindset = deriveMindset(decision);
+        node.justification = decision.reason;
+        node.thoughtProcess = enhancedEngine.explain(decision);
+      }
+    } catch(e) {
+      console.warn('[aiDecisionService] enhanced engine enrichment failed', e);
+    }
+  }
   turnNode.rolls.push(node);
   if (extraMeta?.stage === 'post') {
     lastRollNodeId = node.id;
@@ -116,30 +179,48 @@ function analyzeFaces(faces, state, activeId) {
   let score = 0;
   const parts = [];
   const tags = [];
+  
+  // Use simple fallback values for now - config loading can be added later properly
+  const attackValue = 3;
+  const energyValue = 2;
+  const healValue = 2;
+  
   // Offensive weight: claws * opponentsAlive
   const opponents = state.players.order.filter(id => id !== activeId && state.players.byId[id].status.alive).length;
-  const clawValue = t.claw * (1 + opponents * 0.2);
+  const clawValue = t.claw * (attackValue / 3) * (1 + opponents * 0.2);
   if (clawValue > 0) { score += clawValue; parts.push(`Claw pressure ${clawValue.toFixed(2)}`); tags.push('claw'); }
+  
   // Energy economy
-  if (t.energy) { const ev = t.energy * 0.8; score += ev; parts.push(`Energy ${ev.toFixed(2)}`); tags.push('energy'); }
+  if (t.energy) { 
+    const ev = t.energy * (energyValue / 2.5);
+    score += ev; parts.push(`Energy ${ev.toFixed(2)}`); tags.push('energy'); 
+  }
+  
   // Healing (only if below 6 health and not in Tokyo)
   const player = activeId ? state.players.byId[activeId] : null;
   if (player && !player.inTokyo && player.health < 6 && t.heart) {
-    const hv = t.heart * (player.health < 4 ? 1.2 : 0.6);
+    const hv = t.heart * (healValue / 2) * (player.health < 4 ? 1.2 : 0.6);
     score += hv; parts.push(`Heal ${hv.toFixed(2)}`); tags.push('heal');
   }
-  // Triples potential
+  
+  // Triples potential - use simple values
   if (triples.length) {
     for (const trip of triples) {
-      const tv = (trip.number + (trip.count - 3)) * 1.1;
+      const baseValue = trip.number * 5; // Simple fallback calculation
+      const tv = (baseValue / 10) + (trip.count - 3) * 1.1;
       score += tv; parts.push(`Triple ${trip.number}=${tv.toFixed(2)}`); tags.push('triple');
     }
   } else {
     // Potential future triple: any number showing 2 copies counts small value
     ['1','2','3'].forEach(num => {
-      if (t[num] === 2) { const pv = (Number(num) * 0.4); score += pv; parts.push(`Potential ${num}${pv.toFixed(2)}`); tags.push('potential'); }
+      if (t[num] === 2) { 
+        const keepValue = Number(num) * 4; // Simple fallback
+        const pv = keepValue / 10;
+        score += pv; parts.push(`Potential ${num}${pv.toFixed(2)}`); tags.push('potential'); 
+      }
     });
   }
+  
   // Build simplified English explanation
   const englishBits = [];
   if (t.claw) englishBits.push(`${t.claw} claw${t.claw>1?'s':''} for attack pressure`);
@@ -151,7 +232,32 @@ function analyzeFaces(faces, state, activeId) {
     ['1','2','3'].forEach(num => { if (t[num] === 2) englishBits.push(`pair of ${num}s (chasing triple)`); });
   }
   const english = englishBits.length ? englishBits.join(', ') : 'Neutral mix of faces';
-  return { score, rationale: parts.join(' | ') || 'Neutral roll', tags, english };
+  return { score, rationale: parts.join(' | ') || 'Neutral roll', tags, english, _tallyCache: t };
+}
+
+function deriveKeptWhy(faces, keptMask, state, player, tally) {
+  try {
+    const keptFaces = faces.filter((f,i)=> keptMask[i]).map(f=>f.value);
+    if (!keptFaces.length) return null;
+    const counts = keptFaces.reduce((a,v)=>{ a[v]=(a[v]||0)+1; return a; },{});
+    // Priority reasoning
+    if (['1','2','3'].some(n => counts[n] && counts[n] >= 2)) {
+      const best = ['3','2','1'].find(n => counts[n] && counts[n] >= 2);
+      if (best) return `Chasing triple ${best}s (${counts[best]} kept)`;
+    }
+    if (counts.claw) {
+      const opponents = state.players.order.filter(id => id !== player.id && state.players.byId[id].status.alive).length;
+      return `Pressuring opponents with ${counts.claw} claw${counts.claw>1?'s':''}${player.inTokyo? ' while holding Tokyo':''}${opponents?` (${opponents} targets)`:''}`;
+    }
+    if (counts.heart && player.health < 6 && !player.inTokyo) {
+      return `Securing ${counts.heart} heart${counts.heart>1?'s':''} to heal (HP ${player.health})`;
+    }
+    if (counts.energy) {
+      return `Building economy: ${counts.energy} energy (total ${player.energy})`;
+    }
+    // Fallback: first kept face list
+    return `Retaining mix: ${keptFaces.join(', ')}`;
+  } catch(_) { return null; }
 }
 
 // Decide which dice to keep after a roll (basic heuristic):
@@ -367,4 +473,16 @@ function ensureTurn(roundNode, t) {
     roundNode.turns.push(turnNode);
   }
   return turnNode;
+}
+
+function deriveMindset(decision){
+  try {
+    const parts=[];
+    if (decision.goal) parts.push('goal-focus');
+    if (decision.improvementChance > 0.5) parts.push('optimistic');
+    if (decision.action === 'reroll') parts.push('exploratory');
+    if (decision.action === 'keep' || decision.action === 'endRoll') parts.push('value-lock');
+    if (decision.branchAnalysis?.best && decision.branchAnalysis.best.tag !== 'baseline') parts.push('branch-evaluated');
+    return parts.join(' | ');
+  } catch{ return 'standard'; }
 }

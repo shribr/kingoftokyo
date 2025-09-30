@@ -73,8 +73,7 @@ body[data-panels-force-overlay] .players-area { display:none; }
 .rolloff-monster-pic { width:50px; height:50px; border-radius:50%; margin-right:15px; border:2px solid #FFD700; }
 .rolloff-player-name { color:#000; font-weight:bold; font-size:20px; flex:1; }
 .rolloff-dice-display { display:flex; gap:6px; justify-content:center; align-items:center; min-height:50px; max-height:50px; flex-wrap:wrap; width:240px; overflow:hidden; }
-.mini-die { width:35px; height:35px; border:2px solid #333; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:bold; background:linear-gradient(145deg, #f0f0f0, #d0d0d0); box-shadow:2px 2px 4px rgba(0,0,0,.3); color:#333; flex-shrink:0; }
-.mini-die.attack { border-color:#FF4444; background:linear-gradient(145deg,#FF6666,#FF4444); color:#fff; box-shadow:0 0 8px rgba(255,68,68,.6); }
+/* .mini-die base + attack now provided by util.dice-mini.css; rolling animation retained below */
 .mini-die.rolling { animation:shake3D .6s cubic-bezier(0.68,-0.55,0.265,1.55); }
 .rolloff-attack-count { color:#FFD700; font-size:24px; font-weight:bold; text-shadow:2px 2px 4px rgba(0,0,0,.8); }
 .rolloff-attack-count.highlight { color:#FF4444; animation:pulseEmphasis 1s ease-in-out; }

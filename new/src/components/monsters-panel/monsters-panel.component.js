@@ -250,14 +250,17 @@ export function update(root, instances) {
   // Ensure slot is empty (previous occupant already returned to stack above)
   slot.innerHTML = '';
         slot.appendChild(activeInst.root);
+        // Immediately position (no hidden gap) to avoid flicker
         requestAnimationFrame(() => {
-            positionActiveSlot(slot, activeInst.root, active);
-            const endRect = activeInst.root.getBoundingClientRect();
-            // Hide real card until animation completes
-            activeInst.root.style.visibility = 'hidden';
-            smoothTravelToDock(activeInst.root, startRect, endRect);
-            console.log(`🎴 ${active.name} card animation started - will complete in ~500ms`);
-          });
+          positionActiveSlot(slot, activeInst.root, active);
+          // Small arrival glow; remove transitioning flag quickly
+          try {
+            activeInst.root.removeAttribute('data-transitioning');
+            activeInst.root.classList.add('in-place','dock-glow');
+            setTimeout(()=>activeInst.root.classList.remove('dock-glow'), 900);
+          } catch(_) {}
+          console.log(`🎴 ${active.name} card docked (instant, no travel animation)`);
+        });
       } else {
         // Already docked: only re-assert positioning when something material changed to avoid flicker
         try {
@@ -442,129 +445,4 @@ function ensureActiveDock() {
 }
 
 let lastActiveCardId = null;
-function smoothTravelToDock(cardEl, startRect, endRect) {
-  try {
-    const pid = cardEl.getAttribute('data-player-id');
-    if (pid === lastActiveCardId) { cardEl.style.visibility=''; return; }
-    lastActiveCardId = pid;
-  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    // Read CSS variable --active-scale to keep JS animation scale in sync with CSS across breakpoints
-    let targetScale = 0.74;
-    try {
-      const slot = document.getElementById('active-player-card-slot');
-      if (slot) {
-        const cs = getComputedStyle(slot);
-        const v = parseFloat(cs.getPropertyValue('--active-scale'));
-        if (!Number.isNaN(v) && v > 0) targetScale = v;
-      }
-    } catch(_) {}
-    if (prefersReduced) {
-      cardEl.style.visibility='';
-      cardEl.removeAttribute('data-transitioning');
-      cardEl.classList.add('in-place');
-      // Minimal delay so glow reads as "on arrival" even without motion
-      setTimeout(()=>{
-        cardEl.classList.add('dock-glow');
-        setTimeout(()=>cardEl.classList.remove('dock-glow'), 900);
-          // Also show the brief start-of-turn toast in reduced motion mode
-          try {
-            const st = store.getState();
-            const player = selectPlayerById(st, pid);
-            const monster = player ? selectMonsterById(st, player.monsterId) : null;
-            const label = monster?.name || player?.name || 'Player';
-            const slotEl = cardEl.parentElement;
-            const targetRect = (slotEl?.parentElement || slotEl || cardEl).getBoundingClientRect();
-            const toast = document.createElement('div');
-            toast.className = 'active-start-toast';
-            toast.textContent = `${label} starts!`;
-            toast.style.left = (targetRect.left + (targetRect.width/2)) + 'px';
-            toast.style.top = (targetRect.bottom + 8) + 'px';
-            document.body.appendChild(toast);
-            requestAnimationFrame(()=>{
-              toast.classList.add('show');
-              setTimeout(()=>{ toast.classList.remove('show'); setTimeout(()=>{ try { toast.remove(); } catch(_) {} }, 300); }, 1400);
-            });
-          } catch(_) {}
-      }, 180);
-      return;
-    }
-    // Remove any transitions to prevent pre-move flickers
-    const prevTransition = cardEl.style.transition;
-    cardEl.style.transition = 'none';
-    const ghost = cardEl.cloneNode(true);
-    ghost.style.position='fixed';
-    ghost.style.left = startRect.left + 'px';
-    ghost.style.top = startRect.top + 'px';
-    ghost.style.margin='0';
-    ghost.style.zIndex='5000';
-    ghost.style.pointerEvents='none';
-  ghost.style.transformOrigin = 'top left';
-    ghost.style.animation = 'none';
-    document.body.appendChild(ghost);
-    // Compute deltas
-  const dx = (endRect.left - startRect.left);
-  const dy = (endRect.top - startRect.top);
-    // Midpoints for gentle arc (simulate depth by earlier scale change)
-    const mid1 = { x: dx*0.35, y: dy*0.15 };
-    const mid2 = { x: dx*0.70, y: dy*0.65 };
-    const kf = [
-      { offset:0,   transform:'translate(0px,0px) scale(1)', filter:'brightness(1)' },
-      { offset:.25, transform:`translate(${mid1.x}px, ${mid1.y}px) scale(.93)`, filter:'brightness(1.05)' },
-      { offset:.55, transform:`translate(${mid2.x}px, ${mid2.y}px) scale(.83)`, filter:'brightness(.98)' },
-      { offset:1,   transform:`translate(${dx}px, ${dy}px) scale(${targetScale})`, filter:'brightness(1)' }
-    ];
-    const travel = ghost.animate(kf, { duration:1650, easing:'cubic-bezier(.22,.61,.36,1)', fill:'forwards' });
-    const finalize = () => {
-      try { ghost.remove(); } catch(_) {}
-      cardEl.style.visibility='';
-      cardEl.removeAttribute('data-transitioning');
-      cardEl.classList.add('in-place');
-      const pid = cardEl.getAttribute('data-player-id');
-      console.log(`🎴 Card animation COMPLETED for player ${pid}`);
-  cardEl.style.transition = prevTransition || '';
-      // clear any inline animation disable so future animations work as expected
-      try { cardEl.style.animation = ''; } catch(_) {}
-      requestAnimationFrame(()=> {
-        // Arrival glow (brief white outline) once the card is in place
-        cardEl.classList.add('dock-glow');
-        // Subtle settle scale on the SLOT so we don't override the card's centering transform
-        const slotEl = cardEl.parentElement;
-        if (slotEl) {
-          const settle = slotEl.animate([
-            { transform:`translate(-50%, -50%) scale(${targetScale})` },
-            { transform:`translate(-50%, -50%) scale(${(targetScale*1.06).toFixed(3)})` },
-            { transform:`translate(-50%, -50%) scale(${targetScale})` }
-          ], { duration:620, easing:'cubic-bezier(.22,.61,.36,1)' });
-          settle.onfinish = () => setTimeout(()=>cardEl.classList.remove('dock-glow'), 900);
-        } else {
-          setTimeout(()=>cardEl.classList.remove('dock-glow'), 900);
-        }
-        // Brief start-of-turn toast under the active card
-        try {
-          const st = store.getState();
-          const player = selectPlayerById(st, pid);
-          const monster = player ? selectMonsterById(st, player.monsterId) : null;
-          const label = monster?.name || player?.name || 'Player';
-          const targetRect = (slotEl?.parentElement || slotEl || cardEl).getBoundingClientRect();
-          const toast = document.createElement('div');
-          toast.className = 'active-start-toast';
-          toast.textContent = `${label} starts!`;
-          // Position fixed so it ignores transforms; center under the dock area
-          toast.style.left = (targetRect.left + (targetRect.width/2)) + 'px';
-          toast.style.top = (targetRect.bottom + 8) + 'px';
-          document.body.appendChild(toast);
-          // Animate in, then out and remove
-          requestAnimationFrame(()=>{
-            toast.classList.add('show');
-            setTimeout(()=>{
-              toast.classList.remove('show');
-              setTimeout(()=>{ try { toast.remove(); } catch(_) {} }, 300);
-            }, 1400);
-          });
-        } catch(_) {}
-      });
-    };
-    travel.onfinish = finalize;
-    setTimeout(()=> { if (cardEl.style.visibility === 'hidden') finalize(); }, 1900);
-  } catch(_) { cardEl.style.visibility=''; cardEl.removeAttribute('data-transitioning'); cardEl.classList.add('in-place'); }
-}
+// smoothTravelToDock removed to eliminate flicker caused by visibility hiding; instant docking now used.

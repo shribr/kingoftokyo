@@ -46,6 +46,7 @@
 .cmp-ai-decision-tree input[type=text] { background:#101317; border:1px solid var(--adt-border); color:var(--adt-text); padding:4px 6px; border-radius:var(--adt-radius-sm); font-size:12px; min-width:170px; }
 .cmp-ai-decision-tree input[type=text]:focus { outline:2px solid var(--adt-accent); outline-offset:1px; }
 .cmp-ai-decision-tree input[type=checkbox] { accent-color: var(--adt-accent); }
+.cmp-ai-decision-tree label { font-size:12px; display:inline-flex; align-items:center; gap:4px; cursor:pointer; }
 
 /* Summary */
 .cmp-ai-decision-tree .adt-summary { display:flex; gap:18px; font-size:12px; color:var(--adt-text-dim); padding:2px 6px 0; flex-wrap:wrap; }
@@ -110,6 +111,8 @@
 .cmp-ai-decision-tree .adt-roll-header .origin-badge { background:#2e353c; color:#fff; padding:2px 6px; border-radius:8px; font-size:10px; font-weight:600; letter-spacing:0.5px; }
 .cmp-ai-decision-tree .adt-roll.is-human .origin-badge { background:#ff7d4d; color:#1d120c; }
 .cmp-ai-decision-tree .adt-roll.is-ai .origin-badge { background:var(--adt-accent); color:#08121d; }
+.cmp-ai-decision-tree .adt-roll-header .why-badge { background:#272f37; color:#d8e2ec; padding:2px 8px; border-radius:14px; font-size:10px; line-height:1.2; max-width:190px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; border:1px solid #34404a; }
+.cmp-ai-decision-tree .adt-roll-header .why-badge:hover { background:#313b44; }
 .cmp-ai-decision-tree .adt-roll-body { padding:6px 10px 10px; font-size:12px; color:var(--adt-text-dim); line-height:1.45; }
 .cmp-ai-decision-tree .adt-roll-body .rationale { margin-bottom:6px; white-space:pre-wrap; }
 .cmp-ai-decision-tree .adt-roll-body .english-expl { margin:4px 0 8px; font-size:11px; color:#d0d6dc; font-style:italic; }
@@ -144,10 +147,712 @@
 .cmp-ai-decision-tree .hypo-item { background:#161b20; border:1px solid #2b333b; padding:4px 4px 5px; font-size:11px; text-align:center; border-radius:var(--adt-radius-sm); line-height:1.1; color:var(--adt-text-dim); }
 .cmp-ai-decision-tree .hypo-item code { display:block; font-size:11px; color:var(--adt-accent-alt); margin-bottom:2px; font-family:var(--adt-mono); }
 
-/* Responsive */
+/* ============================================================
+   STANDARD VIEW (Legacy White Background Theme)
+   ============================================================ */
+
+/* Container overrides for standard view - scoped to tree scroll container only */
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] {
+  background: #fff;
+  border: 2px solid #dee2e6;
+  color: #333;
+}
+
+/* Note: Toolbar, buttons, and root styling remain modern/dark regardless of view */
+
+/* Player action header */
+.cmp-ai-decision-tree .standard-player-action-header {
+  background: #f8f9fa;
+  border: 2px solid #d4af37;
+  border-radius: 8px 8px 0 0;
+  padding: 12px 16px;
+  font-weight: 900;
+  font-size: 14px;
+  text-align: center;
+  color: #2c1810;
+  letter-spacing: 1px;
+  margin-bottom: 0;
+  font-family: 'Bangers', cursive;
+}
+
+.cmp-ai-decision-tree .standard-roll-container {
+  background: #fff;
+  border: 2px solid #d4af37;
+  border-top: none;
+  margin-bottom: 16px;
+}
+
+.cmp-ai-decision-tree .standard-roll-header-with-dice {
+  background: #f8f9fa;
+  padding: 10px 14px;
+  border-bottom: 1px solid #dee2e6;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.cmp-ai-decision-tree .standard-player-label {
+  font-weight: 700;
+  font-size: 13px;
+  color: #495057;
+  margin-right: 8px;
+  font-family: 'Bangers', cursive;
+  letter-spacing: 0.5px;
+}
+
+.cmp-ai-decision-tree .standard-inline-die { 
+  width: 35px;
+  height: 35px;
+  border: 2px solid #333;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  background: linear-gradient(145deg, #f0f0f0, #d0d0d0);
+  color: #333;
+  margin-right: 4px;
+  padding: 0;
+  box-shadow: 2px 2px 4px rgba(0,0,0,.3);
+}
+
+.cmp-ai-decision-tree .standard-inline-die.kept { 
+  border-color: #FFD700;
+  background: linear-gradient(145deg, #fff, #f8f8f8);
+  box-shadow: 0 0 0 2px #FFD700, 2px 2px 4px rgba(0,0,0,.3);
+}
+
+.cmp-ai-decision-tree .standard-inline-die.unkept { 
+  opacity: 0.85;
+}
+
+.cmp-ai-decision-tree .standard-dice-count {
+  font-size: 12px;
+  color: #6c757d;
+  margin-left: 8px;
+  font-weight: 600;
+}
+
+/* Decision detail section */
+.cmp-ai-decision-tree .standard-decision-detail { 
+  background: #fff;
+  padding: 14px 16px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.cmp-ai-decision-tree .standard-detail-header { 
+  font-weight: 700;
+  color: #495057;
+  margin-bottom: 10px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: 'Bangers', cursive;
+}
+
+.cmp-ai-decision-tree .standard-detail-row { 
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.cmp-ai-decision-tree .standard-label { 
+  font-weight: 600;
+  color: #6c757d;
+  margin-right: 10px;
+  min-width: 140px;
+  font-family: 'Nunito', sans-serif;
+}
+
+.cmp-ai-decision-tree .standard-goal-badge { 
+  background: #17a2b8;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.cmp-ai-decision-tree .standard-decision-badge { 
+  background: #000;
+  color: #ffd84d;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  font-style: italic;
+  letter-spacing: 0.5px;
+}
+
+.cmp-ai-decision-tree .standard-confidence-badge { 
+  background: #ffc107;
+  color: #000;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cmp-ai-decision-tree .standard-kept-die { 
+  width: 28px;
+  height: 28px;
+  border: 2px solid #333;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 5px;
+  background: linear-gradient(145deg, #f0f0f0, #d0d0d0);
+  color: #333;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 2px 2px 4px rgba(0,0,0,.3);
+}
+
+.cmp-ai-decision-tree .standard-justification { 
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 10px 12px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #495057;
+  line-height: 1.5;
+  font-family: 'Nunito', sans-serif;
+}
+
+/* Roll odds section */
+.cmp-ai-decision-tree .standard-roll-odds { 
+  background: #e9ecef;
+  padding: 14px 16px;
+  border-top: 1px solid #dee2e6;
+}
+
+.cmp-ai-decision-tree .standard-odds-header { 
+  font-weight: 700;
+  color: #495057;
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-family: 'Bangers', cursive;
+  letter-spacing: 0.5px;
+}
+
+.cmp-ai-decision-tree .standard-odds-subtitle { 
+  font-weight: 400;
+  color: #6c757d;
+  font-size: 11px;
+  font-family: 'Nunito', sans-serif;
+}
+
+.cmp-ai-decision-tree .standard-odds-row { 
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.cmp-ai-decision-tree .standard-odds-label { 
+  font-size: 12px;
+  font-weight: 600;
+  color: #495057;
+  min-width: 80px;
+}
+
+.cmp-ai-decision-tree .standard-odds-bar { 
+  flex: 1;
+  height: 20px;
+  background: #dee2e6;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid #ced4da;
+}
+
+.cmp-ai-decision-tree .standard-odds-fill { 
+  height: 100%;
+  background: linear-gradient(90deg, #28a745, #20c997);
+  border-radius: 10px;
+  transition: width 0.3s ease;
+}
+
+.cmp-ai-decision-tree .standard-odds-percent { 
+  font-size: 12px;
+  font-weight: 700;
+  color: #495057;
+  min-width: 45px;
+  text-align: right;
+}
+
+.cmp-ai-decision-tree .standard-considerations { 
+  font-size: 12px;
+  color: #6c757d;
+  line-height: 1.5;
+  margin-top: 8px;
+  font-family: 'Nunito', sans-serif;
+}
+
+/* Round/turn wrappers */
+.cmp-ai-decision-tree .standard-round { 
+  margin-bottom: 16px;
+  background: #fff;
+  border: 2px solid #d4af37;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.cmp-ai-decision-tree .standard-round-header { 
+  background: linear-gradient(135deg, #d4af37, #f4e68a);
+  color: #2c1810;
+  font-weight: 900;
+  font-size: 15px;
+  padding: 10px 14px;
+  text-align: center;
+  letter-spacing: 1px;
+  font-family: 'Bangers', cursive;
+}
+
+/* Responsive adjustments for legacy view */
+@media (max-width:820px){
+  .cmp-ai-decision-tree .standard-dice-row { flex-wrap:wrap; }
+  .cmp-ai-decision-tree .standard-turn-header { flex-wrap:wrap; }
+  .cmp-ai-decision-tree .standard-detail-row { flex-direction:column; align-items:flex-start; }
+  .cmp-ai-decision-tree .standard-label { min-width:auto; margin-bottom:4px; }
+}
+
+/* Modern view responsive */
 @media (max-width:820px){
   .cmp-ai-decision-tree { max-height:60vh; }
   .cmp-ai-decision-tree .adt-toolbar { flex-direction:column; align-items:stretch; }
   .cmp-ai-decision-tree .adt-left-tools, .cmp-ai-decision-tree .adt-right-tools { flex-wrap:wrap; }
   .cmp-ai-decision-tree input[type=text]{ width:100%; min-width:0; }
+}
+
+/* ============================================================
+   STANDARD VIEW - LEGACY STRUCTURE CLASSES
+   (Used by standard view with white background theme)
+   All classes renamed from ai-flow-* to adt-std-* for consistency
+   ============================================================ */
+
+/* Mini Dice in Logic Flow */
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-die {
+    width: 24px;
+    height: 24px;
+    border-radius: 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    background: #ffffff;
+    color: #111;
+    border: 1px solid #d0d7de;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.06);
+    position: relative;
+    vertical-align: middle;
+    overflow: hidden;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-die.attack {
+    background: #ffe4d5;
+    border-color: #ffb491;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-die.kept {
+    outline: 2px solid #25a244;
+    box-shadow: 0 0 0 2px rgba(37,162,68,0.35);
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-die.face-heart {
+    color: #d01212;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-die.face-claw {
+    color: #ff897d;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-die.face-energy {
+    color: #ffce00;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-die.face-unknown {
+    background: #eee;
+    color: #666;
+    font-size: 12px;
+    border-style: dashed;
+}
+
+/* Decision Pills */
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-decision-pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+    background: #1f262c;
+    color: #ffde72;
+    border: 1px solid #2e3a44;
+}
+
+/* Confidence Pills */
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-confidence-pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-confidence-pill.high {
+    background: #1d6f2d;
+    color: #fff;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-confidence-pill.med {
+    background: #b38600;
+    color: #fff;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-confidence-pill.low {
+    background: #8b1e1e;
+    color: #fff;
+}
+
+/* Structured Lines */
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-line {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 2px 0;
+    font-size: 13px;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-line-label {
+    font-weight: 700;
+    min-width: 95px;
+    display: inline-block;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-line-value.kept {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+/* Empty state */
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-empty {
+    opacity: .7;
+    font-style: italic;
+    padding: 10px 4px;
+}
+
+/* Round Structure */
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-round {
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 6px;
+    margin: 0 0 10px;
+    background: linear-gradient(180deg, #ffffff 0%, #f4f8fb 100%);
+    box-shadow: 0 1px 2px rgba(0,0,0,.06);
+    color: #000;
+    border-color: #ccd6de;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-round.collapsed .adt-std-round-body {
+    display: none;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-round-header {
+    cursor: pointer;
+    padding: 10px 16px;
+    font-weight: 700;
+    background: linear-gradient(90deg, #e9f1f7, #dde7ef);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-round-header:hover {
+    filter: brightness(0.97);
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-round-meta {
+    font-weight: 400;
+    font-size: 11px;
+    opacity: .75;
+}
+
+/* Disclosure triangles */
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-round-header::before {
+    content: '\25B6';
+    display: inline-block;
+    transform: rotate(90deg);
+    margin-right: 6px;
+    font-size: 10px;
+    opacity: .7;
+    transition: transform .18s ease;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-round.collapsed > .adt-std-round-header::before {
+    transform: rotate(0deg);
+}
+
+/* Turn Structure */
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-turn {
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-turn-header {
+    cursor: pointer;
+    padding: 8px 18px;
+    background: linear-gradient(90deg, #fbfdff, #f0f6fa);
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+    gap: 10px;
+    border-left: 4px solid #b7ccdc;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-turn-header:hover {
+    filter: brightness(0.96);
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-turn.collapsed .adt-std-turn-body {
+    display: none;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-turn-meta {
+    font-size: 11px;
+    opacity: .65;
+    margin-left: 6px;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-turn-body {
+    padding: 8px 18px 14px;
+    background: #ffffff;
+    font-size: 14px;
+    line-height: 1.45;
+    color: #000;
+    border-left: 4px solid #d2e1ec;
+    font-family: Arial, var(--ui-font, system-ui, sans-serif);
+    font-style: italic;
+}
+
+/* Disclosure triangles for turns */
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-turn-header::before {
+    content: '\25B6';
+    display: inline-block;
+    transform: rotate(90deg);
+    margin-right: 6px;
+    font-size: 10px;
+    opacity: .7;
+    transition: transform .18s ease;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-turn.collapsed > .adt-std-turn-header::before {
+    transform: rotate(0deg);
+}
+
+/* Turn Chain Narrative */
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-turn-chain {
+    margin-top: 12px;
+    font-size: 11px;
+    line-height: 1.4;
+    background: #eef2f6;
+    border: 1px solid #d0d7de;
+    padding: 8px 10px;
+    border-radius: 6px;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-turn-chain .mini-die {
+    transform: scale(.75);
+    margin: 0 1px;
+}
+
+/* Roll Cards */
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-roll {
+    border: 1px solid rgba(0,0,0,0.07);
+    background: linear-gradient(180deg, #ffffff 0%, #f6f9fc 100%);
+    border-radius: 8px;
+    padding: 10px 14px 12px;
+    margin: 10px 0;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border-left: 4px solid #c9dae8;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-roll:hover {
+    border-color: #6ea6ff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-roll-header {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    opacity: .95;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-roll-number {
+    font-weight: 600;
+}
+
+/* Dice Display */
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-dice-row {
+    display: flex;
+    margin-top: 4px;
+    margin-bottom: 8px;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-dice {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* Metrics Row */
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-metrics-row {
+    display: flex;
+    gap: 14px;
+    padding: 4px 18px 2px;
+    font-size: 11px;
+    opacity: .8;
+}
+
+/* Sections */
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-section {
+    border: 1px solid #e3e7eb;
+    background: #f7f9fb;
+    padding: 8px 10px;
+    border-radius: 6px;
+    line-height: 1.4;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-sec-h {
+    font-family: 'Bangers', cursive;
+    font-weight: 400;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    margin-bottom: 6px;
+    opacity: .85;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-just-text {
+    margin: 4px 0 0 0;
+    font-style: normal;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-line.just-label {
+    margin-top: 4px;
+}
+
+/* Probability Chart */
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-prob-chart {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-width: 520px;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-prob-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-prob-label {
+    width: 90px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    opacity: .85;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-prob-bar-wrap {
+    flex: 1;
+    height: 14px;
+    border-radius: 5px;
+    background: #e4e9f1;
+    position: relative;
+    overflow: hidden;
+    max-width: 360px;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-prob-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: linear-gradient(90deg, #4f8df7, #1b62d1);
+    box-shadow: 0 0 0 1px rgba(0,0,0,.15) inset;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-prob-val {
+    width: 36px;
+    text-align: right;
+    font-size: 10px;
+    font-weight: 600;
+    opacity: .85;
+}
+
+/* Focus States (Accessibility) */
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-round-header:focus-visible,
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-turn-header:focus-visible {
+    outline: 3px solid #ffcc33;
+    outline-offset: 2px;
+}
+
+/* Opening Intent (personality-based turn introduction) */
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-opening-intent {
+    font-size: 12px;
+    line-height: 1.35;
+    background: linear-gradient(90deg, rgba(255,255,255,0.65), rgba(255,255,255,0));
+    padding: 6px 10px;
+    border-left: 3px solid #d4c14f;
+    border-radius: 4px;
+    font-style: italic;
+    color: #333;
+    margin: 0 8px 8px 8px;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-opening-intent .adt-std-die {
+    transform: scale(.9);
+    margin-right: 2px;
+    position: relative;
+    top: 2px;
+}
+
+/* Turn Chain Narrative (roll sequence summary) */
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-turn-chain {
+    background: #eef4f8;
+    border: 1px solid #cfd8df;
+    border-radius: 4px;
+    padding: 8px 10px;
+    margin-top: 8px;
+    font-size: 12px;
+    line-height: 1.4;
+    font-weight: 400;
+}
+
+.cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-turn-chain .adt-std-die {
+    margin-right: 3px;
 }

@@ -1,0 +1,64 @@
+{
+  "motivational": [
+    "Stay focused...",
+    "Every roll counts...",
+    "We can turn this around!",
+    "Small edges add up..."
+  ],
+  "analyzing": [
+    "Cross-referencing outcomes...",
+    "Pattern matching dice...",
+    "Calculating probabilities...",
+    "Evaluating options...",
+    "Assessing risk vs reward..."
+  ],
+  "aggressive": [
+    "Dominate the skyline!",
+    "Show them real power!",
+    "Time to strike!",
+    "No mercy!"
+  ],
+  "strategic": [
+    "Building card synergies...",
+    "Planning ahead...",
+    "Setting up combinations...",
+    "Thinking long-term..."
+  ],
+  "defensive": [
+    "Playing it safe...",
+    "Protecting our position...",
+    "Minimizing risks...",
+    "Staying alive is priority..."
+  ],
+  "openingIntent": {
+    "heal": [
+      "{playerName} needs recovery and is fishing for hearts {icons:heal:5}",
+      "{playerName} eyes survival first—healing would stabilize {icons:heal:4}",
+      "{playerName} is vulnerable; hearts now, risks later {icons:heal:3}"
+    ],
+    "attack": [
+      "{playerName} wants to pressure the table with claws {icons:attack:4}",
+      "{playerName} is building offensive tempo {icons:attack:3}",
+      "{playerName} leans aggressive—damage creates leverage {icons:attack:3}"
+    ],
+    "attackWeakOpponent": [
+      "{playerName} smells weakness in {opponent} and wants a finishing claw {icons:attack:5}",
+      "{playerName} is poised to punish wounded {opponent} {icons:attack:4}"
+    ],
+    "energy": [
+      "{playerName} is charging toward a power card {icons:energy:5}",
+      "{playerName} wants ⚡ now to unlock upgrades",
+      "{playerName} prioritizes energy economy this turn {icons:energy:4}"
+    ],
+    "points": [
+      "{playerName} is lining up early scoring via triples {icons:points:3}",
+      "{playerName} angles for VP acceleration—set math matters {icons:points:2}",
+      "{playerName} weighs set potential over immediate damage"
+    ],
+    "explore": [
+      "{playerName} is evaluating flexible lines before committing",
+      "{playerName} keeps options open this opening roll",
+      "{playerName} scouts probability contours this turn"
+    ]
+  }
+}
