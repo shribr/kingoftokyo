@@ -31,6 +31,9 @@ export function bindTokyoEntryAnimation(store, logger = console) {
   const prefersReducedMotion = (()=>{
     try { return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(_) { return false; }
   })();
+  function animationsDisabled() {
+    try { return document.body.hasAttribute('data-disable-animations'); } catch(_) { return false; }
+  }
 
   store.subscribe((state) => {
     try {
@@ -79,13 +82,13 @@ export function bindTokyoEntryAnimation(store, logger = console) {
       const activeCard = activeCardSlot.querySelector(`.cmp-player-profile-card[data-player-id="${playerId}"]`);
       // If player's card not currently in active slot, skip (maybe already moved)
       if (!activeCard) { done && done(); return; }
-      const monstersPanel = document.querySelector('.cmp-monsters-panel .mp-player-cards');
-      if (!monstersPanel) { done && done(); return; }
+  const targetSlot = document.querySelector(slot === 'city' ? '[data-city-slot]' : '[data-bay-slot]');
+  if (!targetSlot) { done && done(); return; }
       // Target Tokyo visual anchor (fallback: tokyo city element else arena center)
       const tokyoAnchor = document.querySelector(slot === 'city' ? '[data-tokyo-city-anchor]' : '[data-tokyo-bay-anchor]') || document.querySelector('.cmp-arena') || document.body;
       const startRect = activeCard.getBoundingClientRect();
       const endRect = tokyoAnchor.getBoundingClientRect();
-      // Clone card for flight animation
+  // Clone card for flight animation
       const clone = activeCard.cloneNode(true);
       clone.removeAttribute('data-in-active-dock');
       clone.classList.add('tokyo-flight-clone');
@@ -100,13 +103,24 @@ export function bindTokyoEntryAnimation(store, logger = console) {
         zIndex: 5000
       });
       document.body.appendChild(clone);
-      // Hide original active card (will be re-docked back into panel)
+      // Hide original active card (it will be relocated to the Tokyo slot after animation)
       activeCard.setAttribute('data-flight-hidden','true');
+      // Proactively clear the active dock so next active player (if turn advances quickly) can mount without waiting for animation end.
+      try {
+        if (activeCardSlot.firstChild === activeCard) {
+          // Leave placeholder to prevent layout shift (optional minimal stub)
+          const ph = document.createElement('div');
+          ph.style.width = activeCard.style.width || activeCard.getBoundingClientRect().width + 'px';
+          ph.style.height = activeCard.style.height || activeCard.getBoundingClientRect().height + 'px';
+          ph.style.pointerEvents = 'none';
+          activeCardSlot.replaceChild(ph, activeCard);
+        }
+      } catch(_) {}
       requestAnimationFrame(() => {
         const dx = (endRect.left + (endRect.width/2)) - (startRect.left + startRect.width/2);
         const dy = (endRect.top + (endRect.height/2)) - (startRect.top + startRect.height/2);
         clone.setAttribute('data-phase','landing');
-        if (prefersReducedMotion) {
+        if (prefersReducedMotion || animationsDisabled()) {
           clone.style.transitionDuration = '120ms';
           clone.style.transform = `translate(${dx}px, ${dy}px) scale(1)`;
         } else {
@@ -119,15 +133,24 @@ export function bindTokyoEntryAnimation(store, logger = console) {
         // Remove clone, restore original card but relocate to monsters panel list (visual return of active slot card)
         try { clone.remove(); } catch(_) {}
         try {
-          monstersPanel.appendChild(activeCard);
+          targetSlot.innerHTML = '';
+          targetSlot.appendChild(activeCard);
           activeCard.removeAttribute('data-flight-hidden');
           activeCard.classList.remove('is-active');
           activeCard.removeAttribute('data-in-active-dock');
           activeCard.setAttribute('data-in-tokyo','true');
+          activeCard.setAttribute('data-live-in-tokyo-slot', slot);
           activeCard.dataset.tokyoAnimatedAt = Date.now();
           // Card entry glow effect
-            activeCard.setAttribute('data-entry-glow','true');
-            setTimeout(()=>{ try { activeCard.removeAttribute('data-entry-glow'); } catch(_){} }, 950);
+          activeCard.setAttribute('data-entry-glow','true');
+          setTimeout(()=>{ try { activeCard.removeAttribute('data-entry-glow'); } catch(_){} }, 950);
+          // Particle burst
+          if (!prefersReducedMotion && !animationsDisabled()) {
+            spawnParticles(activeCard, 10);
+            activeCard.classList.add('tokyo-settle');
+            setTimeout(()=>activeCard.classList.remove('tokyo-settle'), 900);
+          }
+          announceTokyoEntry(playerId, slot);
         } catch(_) {}
         done && done();
       }, doneDelay);
@@ -139,10 +162,10 @@ export function bindTokyoEntryAnimation(store, logger = console) {
 
   function animateTokyoExit(playerId, slot, done) {
     try {
-      const tokyoCard = document.querySelector(`.cmp-player-profile-card[data-player-id="${playerId}"][data-in-tokyo="true"]`);
+  const tokyoCard = document.querySelector(`.cmp-player-profile-card[data-player-id="${playerId}"][data-live-in-tokyo-slot]`);
       if (!tokyoCard) { done && done(); return; }
-      const monstersPanel = document.querySelector('.cmp-monsters-panel .mp-player-cards');
-      if (!monstersPanel) { done && done(); return; }
+  const monstersPanel = document.querySelector('.cmp-monsters-panel .mp-player-cards');
+  if (!monstersPanel) { done && done(); return; }
       // Destination: active slot or panel area center
       const activeSlot = document.getElementById('active-player-card-slot');
       const destAnchor = activeSlot || monstersPanel;
@@ -166,7 +189,7 @@ export function bindTokyoEntryAnimation(store, logger = console) {
         const dx = (endRect.left + (endRect.width/2)) - (startRect.left + startRect.width/2);
         const dy = (endRect.top + (endRect.height/2)) - (startRect.top + startRect.height/2);
         clone.setAttribute('data-phase','landing');
-        if (prefersReducedMotion) {
+        if (prefersReducedMotion || animationsDisabled()) {
           clone.style.transitionDuration = '120ms';
           clone.style.transform = `translate(${dx}px, ${dy}px) scale(1)`;
           clone.style.opacity = '0';
@@ -180,7 +203,15 @@ export function bindTokyoEntryAnimation(store, logger = console) {
         try { clone.remove(); } catch(_) {}
         try {
           tokyoCard.removeAttribute('data-flight-hidden');
+          const slotAttr = tokyoCard.getAttribute('data-live-in-tokyo-slot');
           tokyoCard.removeAttribute('data-in-tokyo');
+          tokyoCard.removeAttribute('data-live-in-tokyo-slot');
+          // Allow arena update cycle to repopulate placeholder clone next frame
+          const slotEl = document.querySelector(slotAttr === 'city' ? '[data-city-slot]' : '[data-bay-slot]');
+          if (slotEl && !slotEl.contains(tokyoCard)) {
+            // slot will be re-rendered; ensure it's empty so renderOccupant can run
+            slotEl.innerHTML = '';
+          }
           monstersPanel.appendChild(tokyoCard);
           tokyoCard.dataset.tokyoExitAnimatedAt = Date.now();
         } catch(_) {}
@@ -206,6 +237,44 @@ export function bindTokyoEntryAnimation(store, logger = console) {
       if (!anchorEl || !anchorEl.setAttribute) return;
       anchorEl.setAttribute('data-glow','true');
       setTimeout(()=>{ try { anchorEl.removeAttribute('data-glow'); } catch(_){} }, 1500);
+    } catch(_) {}
+  }
+
+  function spawnParticles(cardEl, count) {
+    try {
+      const rect = cardEl.getBoundingClientRect();
+      for (let i=0;i<count;i++) {
+        const p = document.createElement('span');
+        p.className = 'tokyo-entry-particle';
+        const size = 6 + Math.random()*10;
+        p.style.left = (rect.left + rect.width/2) + 'px';
+        p.style.top = (rect.top + rect.height/2) + 'px';
+        p.style.width = size + 'px';
+        p.style.height = size + 'px';
+        p.style.margin = '-3px 0 0 -3px';
+        document.body.appendChild(p);
+        requestAnimationFrame(()=>{
+          const angle = Math.random()*Math.PI*2;
+            const dist = 40 + Math.random()*60;
+            const dx = Math.cos(angle)*dist;
+            const dy = Math.sin(angle)*dist;
+            p.style.opacity='1';
+            p.style.transform = `translate(${dx}px, ${dy}px) scale(1)`;
+        });
+        setTimeout(()=>{ try { p.style.opacity='0'; } catch(_){} }, 520);
+        setTimeout(()=>{ try { p.remove(); } catch(_){} }, 900);
+      }
+    } catch(_) {}
+  }
+
+  function announceTokyoEntry(playerId, slot) {
+    try {
+      const region = document.getElementById('aria-live-phase');
+      if (!region) return;
+      const st = store.getState();
+      const p = st.players?.byId?.[playerId];
+      const name = p?.name || 'Player';
+      region.textContent = `${name} entered Tokyo ${slot === 'city' ? 'City' : 'Bay'}`;
     } catch(_) {}
   }
 }

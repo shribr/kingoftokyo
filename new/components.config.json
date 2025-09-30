@@ -291,7 +291,7 @@
     "selector": ".cmp-player-profile-cards",
     "mountPoint": "#app",
     "order": 6,
-      "enabled": false,
+      "enabled": true,
     "stateKeys": ["players", "ui"],
     "build": "player-profile-cards.build",
     "update": "player-profile-cards.update",
@@ -380,6 +380,22 @@
       "initialState": {},
       "assets": [],
       "zIndex": 130
+    }
+    ,{
+      "name": "playerCardsModal",
+      "version": "0.1.0",
+      "selector": ".cmp-player-cards-modal",
+      "mountPoint": "#app",
+      "order": 322,
+      "enabled": true,
+      "stateKeys": ["ui","players"],
+      "build": "player-cards-modal.build",
+      "update": "player-cards-modal.update",
+      "eventsOut": [],
+      "eventsIn": [],
+      "initialState": {},
+      "assets": [],
+      "zIndex": 135
     }
     ,{
       "name": "confirmModal",

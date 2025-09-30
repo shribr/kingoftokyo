@@ -126,7 +126,7 @@ if (typeof window !== 'undefined') {
   })();
 
   // Load monsters first; if skipIntro, unconditionally auto-seed players and bypass selection/RFF.
-  fetch('./config.json').then(r => r.json()).then(cfg => {
+  fetch('./config/config.json').then(r => r.json()).then(cfg => {
     const monsters = Object.values(cfg.monsters || {}).map(m => ({ id: m.id, name: m.name, image: m.image, description: m.description, personality: m.personality || {}, color: m.color }));
     store.dispatch(monstersLoaded(monsters));
     if (skipIntro) {
@@ -289,7 +289,7 @@ if (typeof window !== 'undefined') {
     prevPlayers = cur;
   });
   // Load component config dynamically
-  const cfgUrl = './components.config.json?ts=' + Date.now();
+  const cfgUrl = './config/components.config.json?ts=' + Date.now();
   fetch(cfgUrl)
     .then(r => r.json())
     .then(cfg => {

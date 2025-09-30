@@ -31,6 +31,15 @@ export function bindSettingsPersistence(store) {
   store.subscribe((_state, action) => {
     if (action && (action.type === 'SETTINGS_UPDATED' || action.type === SCENARIO_CONFIG_UPDATED)) {
       persistSettings(store);
+      // Update global animation suppression attribute
+      try {
+        const disable = !!store.getState().settings?.disableAnimations;
+        if (disable) {
+          if (!document.body.hasAttribute('data-disable-animations')) document.body.setAttribute('data-disable-animations','');
+        } else {
+          if (document.body.hasAttribute('data-disable-animations')) document.body.removeAttribute('data-disable-animations');
+        }
+      } catch(_) {}
     }
     if (action && action.type === 'UI_GAME_LOG_COLLAPSE_STATE') {
       try {

@@ -75,7 +75,12 @@ function bind(root){
 
   root.addEventListener('click', e => {
     if (e.target.matches('[data-clear]')) {
+      // Uncheck all scenario selection boxes
       root.querySelectorAll('[data-scenario-id]').forEach(cb => cb.checked = false);
+      // Clear configured assignments in settings
+      try { store.dispatch(scenarioConfigUpdated({ assignments: [] })); } catch(_) {}
+      // Refresh applied list UI
+      sync(root);
     }
     if (e.target.matches('[data-apply-selected]')) {
       const selected = [...root.querySelectorAll('[data-scenario-id]:checked')].map(cb=>cb.getAttribute('data-scenario-id'));

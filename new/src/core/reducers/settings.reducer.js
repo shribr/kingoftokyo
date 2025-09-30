@@ -12,6 +12,7 @@ const DEFAULT_SETTINGS = {
   , actionMenuMode: 'hybrid' // hybrid | docked | floating (controls action menu auto-position behavior)
   , autoStartInTest: true // when skipintro=1 load + auto-start full random game; if false just load UI without starting
   , scenarioConfig: { assignments: [] } // scenario test harness configuration
+  , disableAnimations: false // global UI animation suppression (non-critical FX)
 };
 
 export function settingsReducer(state = DEFAULT_SETTINGS, action) {

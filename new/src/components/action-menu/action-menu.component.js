@@ -497,28 +497,24 @@ export function update(root) {
     flushBtn.disabled = !canFlush;
   }
   if (endBtn) {
-    // End turn should be enabled when:
-    // 1. After any roll when you have dice resolved or sequence-complete
-    // 2. When not in ROLL phase
-    const diceReadyToEnd = dice.phase === 'resolved' || dice.phase === 'sequence-complete';
-    const canEndAfterRoll = st.phase === 'ROLL' && diceReadyToEnd && hasAnyFaces;
-    const notRollPhase = st.phase !== 'ROLL';
-    const canEnd = !isCPU && (canEndAfterRoll || notRollPhase);
-    
-    // Debug logging when end button should be enabled but isn't
+    // New gating: During ROLL, End Turn allowed only if dice results already accepted OR rerolls exhausted (sequence complete)
+    const isRollPhase = st.phase === 'ROLL';
+    const diceReady = dice.phase === 'resolved' || dice.phase === 'sequence-complete';
+    const finalRollExhausted = dice.rerollsRemaining === 0 && diceReady; // auto-accept path may already have fired
+    const acceptedOrExhausted = accepted || finalRollExhausted;
+    const canEndDuringRoll = isRollPhase && diceReady && acceptedOrExhausted;
+    const canEnd = !isCPU && (canEndDuringRoll || !isRollPhase);
     if (!canEnd && !isCPU) {
-      console.log('🚫 End Turn Disabled - Debug Info:', {
+      console.log('🚫 End Turn Disabled - Debug Info (enhanced gating):', {
         phase: st.phase,
         dicePhase: dice.phase,
-        keptCount,
-        hasAnyFaces,
+        accepted,
+        finalRollExhausted,
         rerollsRemaining: dice.rerollsRemaining,
-        canEndAfterRoll,
-        notRollPhase,
-        isCPU
+        diceReady,
+        isRollPhase
       });
     }
-    
     endBtn.disabled = !canEnd;
   }
 

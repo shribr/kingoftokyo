@@ -317,7 +317,13 @@ export function update(root, { playerId }) {
   // Owned cards miniature lane
   const cards = selectPlayerCards(state, playerId) || [];
   const cardsCountEl = root.querySelector('[data-cards-count]');
-  if (cardsCountEl) cardsCountEl.textContent = cards.length;
+  if (cardsCountEl) {
+    const prevCount = parseInt(cardsCountEl.textContent||'0',10);
+    cardsCountEl.textContent = cards.length;
+    if (cards.length > prevCount) {
+      announceA11y(`${player.name} acquired a power card. Now owns ${cards.length}.`);
+    }
+  }
   
   // Hide OWNED label for human players
   const ownedLabelEl = root.querySelector('[data-owned-label]');
@@ -374,4 +380,18 @@ function setAccentText(r,g,b) {
   } else {
     document.documentElement.style.setProperty('--ppc-accent-text', '#ffd400');
   }
+}
+
+function announceA11y(message) {
+  try {
+    let live = document.querySelector('[data-live-region]');
+    if (!live) {
+      live = document.createElement('div');
+      live.setAttribute('data-live-region','');
+      live.setAttribute('aria-live','polite');
+      live.className = 'sr-only';
+      document.body.appendChild(live);
+    }
+    live.textContent = message;
+  } catch(_) {}
 }

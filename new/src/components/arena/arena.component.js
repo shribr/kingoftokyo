@@ -85,8 +85,14 @@ export function update(root) {
   const { tokyo } = state;
   const citySlot = root.querySelector('[data-city-slot]');
   const baySlot = root.querySelector('[data-bay-slot]');
-  if (citySlot) citySlot.innerHTML = renderOccupant(tokyo.city, state);
-  if (baySlot) baySlot.innerHTML = renderOccupant(tokyo.bay, state);
+  if (citySlot) {
+    const existingLive = citySlot.querySelector('.cmp-player-profile-card[data-live-in-tokyo-slot="city"]');
+    if (!existingLive) citySlot.innerHTML = renderOccupant(tokyo.city, state);
+  }
+  if (baySlot) {
+    const existingLive = baySlot.querySelector('.cmp-player-profile-card[data-live-in-tokyo-slot="bay"]');
+    if (!existingLive) baySlot.innerHTML = renderOccupant(tokyo.bay, state);
+  }
 
   // Disable Bay if fewer than 5 players (standard rule) – mark attribute for styling
   try {
@@ -143,6 +149,9 @@ function renderOccupant(playerId, state) {
         if (vpEl) vpEl.textContent = p.victoryPoints;
         if (hpEl) hpEl.textContent = p.health;
         if (hpFill) hpFill.style.width = `${(p.health / 10) * 100}%`;
+  // Card count (owned power cards)
+  const cardsCountEl = cloneCard.querySelector('[data-cards-count]');
+  if (cardsCountEl) cardsCountEl.textContent = (p.cards?.length||0);
         
         // Ensure Tokyo status is shown
         cloneCard.setAttribute('data-in-tokyo', 'true');

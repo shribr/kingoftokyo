@@ -1,6 +1,8 @@
 /** ui/eventsToActions.js */
 import { eventBus } from '../core/eventBus.js';
 import { diceRollStarted, diceRolled, diceToggleKeep, diceRerollUsed, diceRollCompleted, phaseChanged, uiPositionsReset } from '../core/actions.js';
+import { uiPlayerCardsOpen } from '../core/actions.js';
+import { selectActivePlayerId } from '../core/selectors.js';
 import { rollDice } from '../domain/dice.js';
 import { createPositioningService } from '../services/positioningService.js';
 
@@ -51,6 +53,16 @@ export function bindUIEventBridges(store) {
   // Wire events
   eventBus.on('ui/dice/rollRequested', handleRollRequested);
   eventBus.on('ui/dice/keptToggled', handleKeptToggled);
+  // Open player cards modal (mini owned-cards view)
+  eventBus.on('ui/modal/showPlayerCards', () => {
+    try {
+      const st = store.getState();
+      const activeId = selectActivePlayerId(st);
+      if (activeId) {
+        store.dispatch(uiPlayerCardsOpen(activeId));
+      }
+    } catch(_) {}
+  });
   // Subscribe to store to detect dice sequence completion for phase advancement
   store.subscribe(maybeAdvancePhase);
   // Handle UI reset positions event (emitted by dev or future control)

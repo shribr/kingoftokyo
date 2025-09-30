@@ -30,6 +30,9 @@ export function build(ctx) {
            <div class="field">
              <label><input type="checkbox" name="autoStartInTest"> Auto Start In Test (skipintro)</label>
            </div>
+           <div class="field">
+             <label><input type="checkbox" name="disableAnimations"> Disable Non-Essential Animations</label>
+           </div>
            <div class="actions">
              <button type="button" data-close>Close</button>
            </div>
@@ -49,7 +52,8 @@ export function build(ctx) {
       cpuSpeed: fd.get('cpuSpeed'),
       showThoughtBubbles: form.querySelector('input[name="showThoughtBubbles"]').checked,
       autoActivateMonsters: form.querySelector('input[name="autoActivateMonsters"]').checked,
-      autoStartInTest: form.querySelector('input[name="autoStartInTest"]').checked
+      autoStartInTest: form.querySelector('input[name="autoStartInTest"]').checked,
+      disableAnimations: form.querySelector('input[name="disableAnimations"]').checked
     };
     window.__KOT_NEW__.store.dispatch(settingsUpdated(partial));
   });
@@ -80,6 +84,8 @@ export function update(ctx) {
   if (auto) auto.checked = !!settings.autoActivateMonsters;
   const autoStart = root.querySelector('input[name="autoStartInTest"]');
   if (autoStart) autoStart.checked = !!settings.autoStartInTest;
+  const disAnim = root.querySelector('input[name="disableAnimations"]');
+  if (disAnim) disAnim.checked = !!settings.disableAnimations;
   }
 }
 

@@ -52,3 +52,31 @@
   80% { opacity:.6; filter:blur(1px) brightness(1); }
   100% { opacity:0; filter:blur(2px) brightness(.9); }
 }
+
+/* Subtle settle / bounce effect when a card finishes flying into Tokyo */
+.cmp-player-profile-card.tokyo-settle {
+  animation: kot-tokyo-settle 720ms cubic-bezier(.25,.9,.35,1.4);
+}
+@keyframes kot-tokyo-settle {
+  0% { transform: translateY(-6px) scale(.9); filter: brightness(1.05); }
+  35% { transform: translateY(2px) scale(1.03); filter: brightness(1.12); }
+  55% { transform: translateY(-2px) scale(.97); filter: brightness(.96); }
+  75% { transform: translateY(1px) scale(1.01); filter: brightness(1.02); }
+  100% { transform: translateY(0) scale(1); filter: brightness(1); }
+}
+
+/* Tokyo entry particles (extracted from inline styles for consistency & theming) */
+.tokyo-entry-particle {
+  position: fixed;
+  background: radial-gradient(circle, #ffe878, #ff9d30 60%, rgba(0,0,0,0) 75%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 4999;
+  opacity: 0;
+  transform: translate(0,0) scale(.4);
+  will-change: transform, opacity;
+  transition: transform 700ms cubic-bezier(.25,.6,.3,1), opacity 700ms ease;
+}
+body[data-disable-animations] .tokyo-entry-particle {
+  transition-duration: 120ms;
+}
