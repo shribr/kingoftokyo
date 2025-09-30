@@ -124,6 +124,37 @@ function bind(root){
       assignments.push({ mode, cpuCount, scenarioIds: selected, paramsByScenario });
       store.dispatch(scenarioConfigUpdated({ assignments }));
       sync(root);
+      // Real-time application: if game already started (phase != SETUP), apply immediately
+      try {
+        const stNow = store.getState();
+        if (stNow.phase && stNow.phase !== 'SETUP') {
+          // Expand dynamic targets same as launchScenarioApplication logic but inline to avoid duplicate apply UI step
+          const order = stNow.players.order; const byId = stNow.players.byId;
+          const humanId = order.find(pid => !byId[pid].isCPU);
+          const cpuIds = order.filter(pid => byId[pid].isCPU);
+          const expanded = [];
+          const rawAssignments = stNow.settings?.scenarioConfig?.assignments || [];
+          rawAssignments.map(a => normalizeAssignment(a, { humanId, cpuIds })).forEach(a => {
+            const chosenCpuIds = cpuIds.slice(0, Math.min(a.cpuCount || 0, cpuIds.length));
+            if (a.mode === 'HUMAN' && humanId) expanded.push({ playerId: humanId, scenarioIds: a.scenarioIds, paramsByScenario: a.paramsByScenario });
+            else if (a.mode === 'CPUS') chosenCpuIds.forEach(id => expanded.push({ playerId: id, scenarioIds: a.scenarioIds, paramsByScenario: a.paramsByScenario }));
+            else if (a.mode === 'BOTH') {
+              if (humanId) expanded.push({ playerId: humanId, scenarioIds: a.scenarioIds, paramsByScenario: a.paramsByScenario });
+              chosenCpuIds.forEach(id => expanded.push({ playerId: id, scenarioIds: a.scenarioIds, paramsByScenario: a.paramsByScenario }));
+            }
+          });
+          // Merge duplicates per player including params
+          const mergedMap = new Map();
+          expanded.forEach(entry => {
+            if (!mergedMap.has(entry.playerId)) mergedMap.set(entry.playerId, { playerId: entry.playerId, scenarioIds: [], paramsByScenario: {} });
+            const slot = mergedMap.get(entry.playerId);
+            entry.scenarioIds.forEach(id => { if (!slot.scenarioIds.includes(id)) slot.scenarioIds.push(id); });
+            if (entry.paramsByScenario) Object.assign(slot.paramsByScenario, entry.paramsByScenario);
+          });
+          const finalList = [...mergedMap.values()];
+          store.dispatch(scenarioApplyRequest(finalList));
+        }
+      } catch(e) { console.warn('Real-time scenario apply failed', e); }
       // Update disables after adding
       applyScenarioUniquenessDisables(root);
     }

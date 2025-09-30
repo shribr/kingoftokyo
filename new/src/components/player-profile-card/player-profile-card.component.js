@@ -14,6 +14,7 @@
  */
 import { store } from '../../bootstrap/index.js';
 import { selectPlayerById, selectActivePlayer, selectPlayerCards, selectMonsterById } from '../../core/selectors.js';
+import { uiCardDetailOpen } from '../../core/actions.js';
 import { uiPeekShow } from '../../core/actions.js';
 import { createPositioningService } from '../../services/positioningService.js';
 
@@ -26,6 +27,17 @@ export function build({ selector, playerId }) {
   root.innerHTML = baseTemplate();
   // Handle card interactions
   root.addEventListener('click', (e) => {
+    // Owned card mini click -> open card detail modal (new unified path)
+    const mini = e.target.closest('.ppc-card-mini[data-card-id]');
+    if (mini) {
+      const cid = mini.getAttribute('data-card-id');
+      if (cid) {
+        try { store.dispatch(uiCardDetailOpen(cid, 'owned')); } catch(_) {}
+      }
+      e.stopPropagation();
+      e.preventDefault();
+      return;
+    }
     // Handle avatar click to show monster stats in peek modal
     if (e.target.closest('[data-avatar]')) {
       e.preventDefault();
@@ -340,7 +352,7 @@ export function update(root, { playerId }) {
     if (player.health <= 3) healthBar.setAttribute('data-low','true'); else healthBar.removeAttribute('data-low');
   }
   const strip = root.querySelector('[data-cards-strip]');
-  if (strip) strip.innerHTML = cards.map(c => `<span class="ppc-card-mini" title="${c.name}">${c.name.slice(0,8)}</span>`).join('');
+  if (strip) strip.innerHTML = cards.map(c => `<span class="ppc-card-mini" data-card-id="${c.id}" title="${c.name}">${c.name.slice(0,8)}</span>`).join('');
 
   // Visual pulses on resource deltas (compare with previous snapshot)
   try {

@@ -31,7 +31,7 @@ export function build({ selector }) {
         <span class="arrow-right">▶</span>
       </button>
       <div class="power-cards-submenu" data-submenu hidden>
-        <button id="show-my-cards-btn" data-action="show-my-cards" class="k-btn k-btn--xs">MY CARDS</button>
+  <button id="show-my-cards-btn" data-action="show-my-cards" class="k-btn k-btn--xs">MY CARDS<span class="my-cards-count" data-my-cards-count></span></button>
         <button id="flush-btn" data-action="flush" class="k-btn k-btn--xs" disabled>FLUSH CARDS (2⚡)</button>
       </div>
     </div>
@@ -469,6 +469,14 @@ export function update(root) {
     const activeId = order[st.meta.activePlayerIndex % order.length];
     active = st.players.byId[activeId];
   }
+  // Update My Cards button count
+  try {
+    const countEl = root.querySelector('[data-my-cards-count]');
+    if (countEl) {
+      const c = active?.cards?.length || 0;
+      countEl.textContent = c ? ` (${c})` : '';
+    }
+  } catch(_) {}
   const isCPU = !!(active && (active.isCPU || active.isAi || active.type === 'ai'));
 
   const accepted = !!dice.accepted;

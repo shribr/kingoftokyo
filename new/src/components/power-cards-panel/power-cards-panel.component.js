@@ -7,6 +7,7 @@ import { selectActivePlayer } from '../../core/selectors.js';
 import { initSidePanel } from '../side-panel/side-panel.js';
 import { purchaseCard, flushShop } from '../../services/cardsService.js';
 import { logger } from '../../bootstrap/index.js';
+import { generatePowerCard } from '../power-cards/power-card-generator.js';
 
 export function build({ selector }) {
   const root = document.createElement('div');
@@ -88,32 +89,7 @@ export function update(root) {
 }
 
 function renderPowerCard(card, playerEnergy) {
-  const canAfford = playerEnergy >= (card.cost || 0);
-  const rarity = getRarity(card);
-  const isDarkEdition = card.darkEdition || false;
-  
-  return `
-    <div class="pc-card" data-card-id="${card.id}" data-rarity="${rarity}" ${isDarkEdition ? 'data-dark-edition="true"' : ''}>
-      <div class="pc-card-header">
-        <h4 class="pc-card-name">
-          ${card.name}${isDarkEdition ? ' ⚫' : ''}
-          <button class="pc-card-info-btn" data-info data-card-id="${card.id}" title="View card details">
-            <span class="info-icon">i</span>
-          </button>
-        </h4>
-        <div class="pc-card-cost pc-card-cost--header">${card.cost}⚡</div>
-      </div>
-      <div class="pc-card-description">${getCardDescription(card)}</div>
-      <div class="pc-card-cost pc-card-cost--footer">${card.cost}⚡</div>
-      <div class="pc-card-footer">
-        <button class="k-btn k-btn--xs k-btn--primary" 
-                data-buy data-card-id="${card.id}" 
-                ${!canAfford ? 'disabled' : ''}>
-          Buy
-        </button>
-      </div>
-    </div>
-  `;
+  return generatePowerCard(card, { playerEnergy, showBuy: true, showFooter: true, infoButton: true });
 }
 
 function renderDeckCard(isEmpty, remaining) {
@@ -125,33 +101,7 @@ function renderDeckCard(isEmpty, remaining) {
   `;
 }
 
-function getRarity(card) {
-  const cost = card.cost || 0;
-  if (cost >= 7) return 'epic';
-  if (cost >= 5) return 'rare';
-  return 'common';
-}
-
-function getCardDescription(card) {
-  if (card.description) return card.description;
-  
-  const effect = card.effect;
-  if (!effect) return 'Special power card';
-  
-  switch(effect.kind) {
-    case 'vp_gain': return `Gain ${effect.value} Victory Points`;
-    case 'energy_gain': return `Gain ${effect.value} Energy`;
-    case 'dice_slot': return `Add ${effect.value} extra die`;
-    case 'reroll_bonus': return `+${effect.value} reroll per turn`;
-    case 'heal_all': return `All monsters heal ${effect.value} damage`;
-    case 'heal_self': return `Heal ${effect.value} damage`;
-    case 'energy_steal': return `Steal ${effect.value} energy from all players`;
-    case 'vp_steal': return `Steal ${effect.value} VP from all players`;
-    case 'damage_all': return `Deal ${effect.value} damage to all monsters`;
-    case 'damage_tokyo_only': return `Deal ${effect.value} damage to monsters in Tokyo`;
-    default: return 'Special effect';
-  }
-}
+// getRarity and getCardDescription now handled in generator
 
 function addShopEventListeners(container, activePlayer) {
   // Buy card buttons
@@ -174,7 +124,9 @@ function addShopEventListeners(container, activePlayer) {
         const state = store.getState();
         const card = [...(state.cards?.shop || []), ...(state.cards?.deck || [])].find(c => c.id === cardId);
         if (card) {
-          store.dispatch({ type: 'UI_CARD_DETAIL_OPEN', payload: { card } });
+          // FIX: Previously dispatched the whole card as { card } which the reducer ignored (expects { cardId, source }).
+          // This resulted in ui.cardDetail.cardId remaining null so the modal never opened.
+          store.dispatch({ type: 'UI_CARD_DETAIL_OPEN', payload: { cardId: card.id, source: 'shop' } });
         }
       }
     });

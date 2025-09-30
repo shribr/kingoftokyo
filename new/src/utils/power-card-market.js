@@ -3,8 +3,9 @@
  * Enhanced power card buying interface with unified theming
  */
 
-import { unifiedDialogs } from './unified-dialogs.js';
 import { newModalSystem } from './new-modal-system.js';
+import { store } from '../bootstrap/index.js';
+import { uiCardDetailOpen } from '../core/actions.js';
 
 export function createPowerCardMarket() {
   const content = document.createElement('div');
@@ -109,24 +110,7 @@ export function createPowerCardMarket() {
       if (!card) return;
       
       cardEl.addEventListener('click', () => {
-        const canBuy = activePlayer && activePlayer.energy >= (card.cost || 0);
-        unifiedDialogs.showCardDetailDialog({
-          card,
-          context: 'market',
-          canBuy,
-          callback: async (action, selectedCard) => {
-            if (action === 'buy' && canBuy) {
-              // Dispatch buy action
-              try {
-                const cardsService = await import('../services/cardsService.js');
-                cardsService.purchaseCard(activePlayer.id, selectedCard.id);
-                updateMarketDisplay();
-              } catch (e) {
-                console.error('Failed to purchase card:', e);
-              }
-            }
-          }
-        });
+        try { store.dispatch(uiCardDetailOpen(card.id, 'shop')); } catch(e) { console.warn('Failed to open card detail from market', e); }
       });
     });
   };

@@ -2,19 +2,45 @@
 import { store } from '../../bootstrap/index.js';
 import { selectUICardDetail, selectShopCards, selectActivePlayer, selectCardsState } from '../../core/selectors.js';
 import { uiCardDetailClose } from '../../core/actions.js';
+import { getCardInsight } from '../../utils/card-insights.js';
 import { purchaseCard } from '../../services/cardsService.js';
 import { logger } from '../../bootstrap/index.js';
+import { generatePowerCard } from '../power-cards/power-card-generator.js';
 
 export function build({ selector, emit }) {
   const root = document.createElement('div');
   root.className = selector.slice(1) + ' card-detail-modal hidden';
+  root.setAttribute('role','dialog');
+  root.setAttribute('aria-modal','true');
+  root.setAttribute('aria-hidden','true');
+  root.setAttribute('aria-labelledby','card-detail-title');
   root.innerHTML = `<div class="card-detail-frame" data-frame>
-    <div class="cd-cost" data-cost></div>
-    <div class="cd-name" data-name></div>
-    <div class="cd-text" data-text></div>
-    <div class="cd-combos" data-combos></div>
-    <div class="cd-actions" data-actions></div>
-  </div>`;
+      <div class="cd-header">
+        <h2 class="cd-title" id="card-detail-title" data-name></h2>
+        <button class="cd-close" data-action="close" aria-label="Close card details">✕</button>
+      </div>
+  <div class="cd-card-wrapper" data-card-wrapper></div>
+      <div class="cd-body">
+        <div class="cd-section cd-strategy" data-strategy-wrapper>
+          <h3 class="cd-section-title">STRATEGY</h3>
+          <div class="cd-strategy-text" data-strategy></div>
+        </div>
+        <div class="cd-section cd-synergies" data-synergies-wrapper>
+          <h3 class="cd-section-title">SYNERGIES</h3>
+          <div class="cd-synergies" data-synergies></div>
+        </div>
+        <div class="cd-combos" data-combos>
+          <!-- Combos header now outside dynamic text suggestions -->
+          <div class="cd-combos-header" data-combos-header><h3 class="cd-section-title">💡 COMBO TIPS</h3></div>
+          <div class="cd-combos-body" data-combos-body></div>
+        </div>
+        <div class="cd-section cd-examples" data-examples-wrapper>
+          <h3 class="cd-section-title">EXAMPLES</h3>
+          <div class="cd-examples" data-examples></div>
+        </div>
+      </div>
+      <div class="cd-actions" data-actions></div>
+    </div>`;
 
   root.addEventListener('click', (e) => {
     if (e.target.matches('[data-action="close"]')) {
@@ -29,6 +55,14 @@ export function build({ selector, emit }) {
     }
   });
 
+  // ESC key support when modal is open
+  document.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Escape') {
+      const detail = selectUICardDetail(store.getState());
+      if (detail.cardId) store.dispatch(uiCardDetailClose());
+    }
+  });
+
   return { root, update: (props) => update(root, props), destroy: () => root.remove() };
 }
 
@@ -37,9 +71,11 @@ export function update(root) {
   const detail = selectUICardDetail(state);
   if (!detail.cardId) {
     root.classList.add('hidden');
+    root.setAttribute('aria-hidden','true');
     return;
   }
   root.classList.remove('hidden');
+  root.setAttribute('aria-hidden','false');
   const shopCards = selectShopCards(state);
   const active = selectActivePlayer(state);
   const allDeckCards = [...shopCards, ...state.cards.discard, ...state.cards.deck];
@@ -49,37 +85,79 @@ export function update(root) {
     store.dispatch(uiCardDetailClose());
     return;
   }
-  root.querySelector('[data-cost]').innerHTML = costBadge(candidate.cost);
-  root.querySelector('[data-name]').textContent = candidate.name.toUpperCase();
-  root.querySelector('[data-text]').innerHTML = formatCardText(candidate.text || candidate.description || '');
-  root.querySelector('[data-combos]').innerHTML = renderCombos(candidate, state);
+  root.querySelector('[data-name]').textContent = candidate.name;
+
+  // Inject full power card (no buy button, keep footer for symmetry)
+  const cardWrapper = root.querySelector('[data-card-wrapper]');
+  if (cardWrapper && (!cardWrapper.firstChild || cardWrapper.getAttribute('data-card-id') !== candidate.id)) {
+    cardWrapper.innerHTML = generatePowerCard(candidate, { playerEnergy: 0, showBuy: false, showFooter: true, infoButton: false });
+    cardWrapper.setAttribute('data-card-id', candidate.id);
+  }
+
+  const insight = getCardInsight(candidate);
+
+  // Strategy
+  const stratWrapper = root.querySelector('[data-strategy-wrapper]');
+  const stratEl = root.querySelector('[data-strategy]');
+  if (insight.strategy) {
+    stratWrapper.classList.remove('hidden');
+    stratEl.textContent = insight.strategy;
+  } else {
+    stratWrapper.classList.add('hidden');
+    stratEl.textContent = '';
+  }
+
+  // Synergies
+  const synWrapper = root.querySelector('[data-synergies-wrapper]');
+  const synEl = root.querySelector('[data-synergies]');
+  if (insight.synergies && insight.synergies.length) {
+    synWrapper.classList.remove('hidden');
+    synEl.innerHTML = insight.synergies.map(s => `<div class="cd-synergy"><strong>${candidate.name}</strong> + <em>${cardNameFromId(s.with, state)}</em>: ${s.reason}</div>`).join('');
+  } else {
+    synWrapper.classList.add('hidden');
+    synEl.innerHTML = '';
+  }
+
+  // Examples
+  const exWrapper = root.querySelector('[data-examples-wrapper]');
+  const exEl = root.querySelector('[data-examples]');
+  if (insight.examples && insight.examples.length) {
+    exWrapper.classList.remove('hidden');
+    exEl.innerHTML = '<ul>' + insight.examples.map(ex => `<li>${ex}</li>`).join('') + '</ul>';
+  } else {
+    exWrapper.classList.add('hidden');
+    exEl.innerHTML = '';
+  }
+
+  // Combos
+  // Render combo suggestions (header is static; body is dynamic)
+  renderCombos(root, candidate, state);
   const actionsEl = root.querySelector('[data-actions]');
   actionsEl.innerHTML = renderActions(candidate, detail, active, shopCards);
+}
+
+function cardNameFromId(id, state) {
+  if (!id) return 'Unknown';
+  const set = [...state.cards.deck, ...state.cards.discard, ...(state.cards.shop||[])];
+  const found = set.find(c => c.id === id);
+  return found ? found.name : id;
 }
 
 function renderActions(card, detail, active, shopCards) {
   const phase = store.getState().phase;
   const inShop = !!shopCards.find(c => c.id === card.id) && detail.source === 'shop';
   const canPurchase = inShop && phase === 'RESOLVE' && active && active.energy >= card.cost;
-  const needResolve = inShop && phase !== 'RESOLVE';
   const insufficient = inShop && phase === 'RESOLVE' && active && active.energy < card.cost;
-  let leftBtn = '';
-  if (inShop) {
-    if (canPurchase) {
-  leftBtn = `<button data-action="purchase" class="k-btn k-btn--primary">BUY ⚡${card.cost}</button>`;
-    } else if (needResolve) {
-  leftBtn = `<button class="k-btn" disabled>RESOLVE DICE FIRST</button>`;
-    } else if (insufficient) {
-      const diff = card.cost - active.energy;
-  leftBtn = `<button class="k-btn" disabled>NEED ${diff}⚡</button>`;
-    }
+  if (!inShop) return '';
+  if (canPurchase) {
+    return `<button data-action="purchase" class="k-btn k-btn--primary">BUY ⚡${card.cost}</button>`;
   }
-  const closeBtn = `<button data-action="close" class="k-btn k-btn--secondary">CLOSE</button>`;
-  return `${leftBtn}${closeBtn}`;
-}
-
-function costBadge(cost) {
-  return `<div class="cost-badge">⚡ ${cost}</div>`;
+  if (insufficient) {
+    const diff = card.cost - active.energy;
+    return `<button class="k-btn" disabled>NEED ${diff}⚡</button>`;
+  }
+  // If not RESOLVE phase, suppress button entirely (no RESOLVE DICE FIRST message per new spec)
+  return '';
 }
 
 function formatCardText(txt) {
@@ -89,29 +167,26 @@ function formatCardText(txt) {
     .replace(/energy/gi, '⚡');
 }
 
-function renderCombos(card, state) {
-  const combos = findCardCombos(card, state);
-  if (combos.length === 0) {
-    return '<div class="cd-combos-section"><h3>💡 COMBO TIPS</h3><p>No obvious combos found with available cards.</p></div>';
-  }
-  
-  const comboHtml = combos.map(combo => `
-    <div class="combo-suggestion">
-      <div class="combo-cards">
-        <span class="combo-primary">${card.name}</span>
-        <span class="combo-connector">+</span>
-        <span class="combo-secondary">${combo.card.name}</span>
-      </div>
-      <div class="combo-description">${combo.reason}</div>
-    </div>
-  `).join('');
-  
-  return `
-    <div class="cd-combos-section">
-      <h3>💡 COMBO SUGGESTIONS</h3>
-      ${comboHtml}
-    </div>
-  `;
+function renderCombos(root, card, state) {
+  try {
+    const body = root.querySelector('[data-combos-body]');
+    if (!body) return;
+    const combos = findCardCombos(card, state);
+    if (combos.length === 0) {
+      body.innerHTML = '<p class="cd-combos-empty">No obvious combos found with available cards.</p>';
+      return;
+    }
+    const comboHtml = combos.map(combo => `
+      <div class="combo-suggestion">
+        <div class="combo-cards">
+          <span class="combo-primary">${card.name}</span>
+          <span class="combo-connector">+</span>
+          <span class="combo-secondary">${combo.card.name}</span>
+        </div>
+        <div class="combo-description">${combo.reason}</div>
+      </div>`).join('');
+    body.innerHTML = comboHtml;
+  } catch(_) {}
 }
 
 function findCardCombos(targetCard, state) {
@@ -120,75 +195,18 @@ function findCardCombos(targetCard, state) {
   const shopCards = state.cards?.shop || [];
   const availableCards = [...allCards, ...shopCards];
   
-  // Define combo patterns based on card effects and synergies
-  const comboPatterns = [
-    // Dice manipulation + Number combos
-    {
-      primary: ['plot-twist', 'shrink-ray'],
-      secondary: ['made-in-a-lab'],
-      reason: 'Use dice manipulation to complete 1-2-3 sequences for bonus VP!'
-    },
-    {
-      primary: ['made-in-a-lab'],
-      secondary: ['plot-twist', 'extra-head'],
-      reason: 'More dice and control = easier 1-2-3 sequences for double VP!'
-    },
-    
-    // Energy generation combos
-    {
-      primary: ['friend-of-children', 'herbivore'],
-      secondary: ['rapid-healing', 'regeneration'],
-      reason: 'Heart synergy: heal while gaining energy for powerful sustain!'
-    },
-    {
-      primary: ['nuclear-power-plant'],
-      secondary: ['fire-breathing', 'parasitic-tentacles'],
-      reason: 'Attack-focused build: energy from skulls fuels aggressive cards!'
-    },
-    
-    // Tokyo control combos
-    {
-      primary: ['background-dweller', 'skyscraper'],
-      secondary: ['dedicated-news-team', 'jets'],
-      reason: 'Tokyo domination: stay safe while maximizing VP gains!'
-    },
-    {
-      primary: ['jets'],
-      secondary: ['fire-breathing', 'acid-attack'],
-      reason: 'Hit-and-run tactics: attack hard then escape to safety!'
-    },
-    
-    // Health and survival
-    {
-      primary: ['even-bigger'],
-      secondary: ['regeneration', 'armor-plating'],
-      reason: 'Tank build: maximum health with consistent healing and protection!'
-    },
-    {
-      primary: ['we-re-only-making-it-stronger'],
-      secondary: ['rooting-for-the-underdog', 'rapid-healing'],
-      reason: 'Turn weakness into strength: gain energy from taking damage!'
-    },
-    
-    // Energy economy
-    {
-      primary: ['gas-refinery', 'corner-store'],
-      secondary: ['alien-metabolism', 'giant-brain'],
-      reason: 'Energy engine: consistent income for expensive card purchases!'
-    },
-    {
-      primary: ['solar-powered'],
-      secondary: ['camouflage', 'urbavore'],
-      reason: 'Outside Tokyo strategy: safe energy generation and VP farming!'
-    },
-    
-    // Dice quantity synergies
-    {
-      primary: ['extra-head'],
-      secondary: ['nuclear-power-plant', 'friend-of-children', 'herbivore'],
-      reason: 'More dice = more chances to trigger face-based effects!'
+  // Load combo patterns from components.config.json (entry with name cardCombosConfig)
+  let comboPatterns = [];
+  try {
+    const cfg = (window && window.componentsConfig) ? window.componentsConfig : [];
+    const dataEntry = Array.isArray(cfg) ? cfg.find(c => c.name === 'cardCombosConfig') : null;
+    if (dataEntry && Array.isArray(dataEntry.comboPatterns)) {
+      comboPatterns = dataEntry.comboPatterns;
     }
-  ];
+  } catch (e) {
+    // silent fallback
+  }
+  if (!comboPatterns.length) return [];
   
   // Check if targetCard matches any combo pattern
   for (const pattern of comboPatterns) {

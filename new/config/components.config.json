@@ -102,6 +102,24 @@
 		"zIndex": 50
 	},
 	{
+		"name": "cardCombosConfig",
+		"version": "0.1.0",
+		"kind": "data",
+		"comboPatterns": [
+			{ "primary": ["plot-twist", "shrink-ray"], "secondary": ["made-in-a-lab"], "reason": "Use dice manipulation to complete 1-2-3 sequences for bonus VP!" },
+			{ "primary": ["made-in-a-lab"], "secondary": ["plot-twist", "extra-head"], "reason": "More dice and control = easier 1-2-3 sequences for double VP!" },
+			{ "primary": ["friend-of-children", "herbivore"], "secondary": ["rapid-healing", "regeneration"], "reason": "Heart synergy: heal while gaining energy for powerful sustain!" },
+			{ "primary": ["nuclear-power-plant"], "secondary": ["fire-breathing", "parasitic-tentacles"], "reason": "Attack-focused build: energy from skulls fuels aggressive cards!" },
+			{ "primary": ["background-dweller", "skyscraper"], "secondary": ["dedicated-news-team", "jets"], "reason": "Tokyo domination: stay safe while maximizing VP gains!" },
+			{ "primary": ["jets"], "secondary": ["fire-breathing", "acid-attack"], "reason": "Hit-and-run tactics: attack hard then escape to safety!" },
+			{ "primary": ["even-bigger"], "secondary": ["regeneration", "armor-plating"], "reason": "Tank build: maximum health with consistent healing and protection!" },
+			{ "primary": ["we-re-only-making-it-stronger"], "secondary": ["rooting-for-the-underdog", "rapid-healing"], "reason": "Turn weakness into strength: gain energy from taking damage!" },
+			{ "primary": ["gas-refinery", "corner-store"], "secondary": ["alien-metabolism", "giant-brain"], "reason": "Energy engine: consistent income for expensive card purchases!" },
+			{ "primary": ["solar-powered"], "secondary": ["camouflage", "urbavore"], "reason": "Outside Tokyo strategy: safe energy generation and VP farming!" },
+			{ "primary": ["extra-head"], "secondary": ["nuclear-power-plant", "friend-of-children", "herbivore"], "reason": "More dice = more chances to trigger face-based effects!" }
+		]
+	},
+	{
 		"name": "playerCardsModal",
 		"version": "0.1.0",
 		"selector": ".cmp-player-cards-modal",
@@ -291,7 +309,7 @@
 		"selector": ".cmp-player-profile-cards",
 		"mountPoint": "#app",
 		"order": 6,
-		"enabled": true,
+		"enabled": false,
 		"stateKeys": ["players", "ui"],
 		"build": "player-profile-cards.build",
 		"update": "player-profile-cards.update",

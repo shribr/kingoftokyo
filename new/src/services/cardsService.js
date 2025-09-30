@@ -7,17 +7,15 @@ import { Phases } from '../core/phaseFSM.js';
 import { createEffectEngine } from './effectEngine.js';
 
 export function initCards(store, logger, rng = Math.random, opts = {}) {
-  const catalog = buildBaseCatalog();
+  let catalog = buildBaseCatalog();
   // Backwards compatibility: if any persisted state or tests referenced old 'energy-hoard' id
   // we can alias it here (will be removed once data reset is guaranteed)
   catalog.forEach(c => { if (c.id === 'energy-hoard') c.id = 'energy-hoarder'; });
-  // Dark Edition forward‑compatibility: filter / augment deck based on future mode flag
-  // opts.darkEdition === true will eventually:
-  //  - include dark-only cards (marked with card.dark === true)
-  //  - possibly exclude some base set cards
-  //  - inject progression / Wickness scale related event cards
-  // For now: no-op; placeholder logic below.
-  const activeCatalog = opts.darkEdition ? catalog /* future: catalog.filter(c => !c.excludeInDark) */ : catalog;
+  // Dark Edition forward‑compatibility:
+  // If darkEdition flag NOT set, strip all darkEdition cards entirely.
+  if (!opts.darkEdition) {
+    catalog = catalog.filter(c => !c.darkEdition);
+  }
   const deck = buildDeck(catalog, rng);
   store.dispatch(cardsDeckBuilt(deck));
   refillShop(store, logger);

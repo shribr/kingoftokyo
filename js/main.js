@@ -2601,25 +2601,33 @@ class KingOfTokyoUI {
         if (!card) return;
 
         // Create detailed card modal HTML
-        const modalHtml = `
-            <div class="power-card-detail-modal" id="power-card-detail-modal">
-                <div class="power-card-detail-content">
-                    <div class="power-card-detail-header">
-                        <h2 class="power-card-detail-title">${card.name}</h2>
-                        <button class="power-cards-close-btn">&times;</button>
-                    </div>
-                    <div class="power-card-detail-body">
-                        <div class="power-card-detail-cost">Energy Cost: ⚡${card.cost}</div>
-                        <div class="power-card-detail-type">Type: ${card.type.toUpperCase()}</div>
-                        <div class="power-card-detail-description">${card.description}</div>
-                        <div class="power-card-detail-owner">Owned by: ${player.monster.name}</div>
-                    </div>
-                    <div class="power-card-detail-footer">
-                        <button class="back-to-wallet-btn">← Back to Power Cards</button>
-                    </div>
-                </div>
-            </div>
-        `;
+                const darkBadge = card.darkEdition ? '<span class="pc-dark-badge" title="Dark Edition">D</span>' : '';
+                const cardBlock = `
+                    <div class="pc-card pc-card--detail" data-rarity="${card.cost>=7?'epic':card.cost>=5?'rare':'common'}" ${card.darkEdition?'data-dark-edition="true"':''}>
+                        <div class="pc-card-header">
+                            <h4 class="pc-card-name">${card.name} ${darkBadge}</h4>
+                            <div class="pc-card-cost pc-card-cost--header">${card.cost}⚡</div>
+                        </div>
+                        <div class="pc-card-description">${card.description}</div>
+                        <div class="pc-card-cost pc-card-cost--footer">${card.cost}⚡</div>
+                        <div class="pc-card-footer"><span class="pc-card-type">${card.type.toUpperCase()}</span></div>
+                    </div>`;
+                const modalHtml = `
+                        <div class="power-card-detail-modal" id="power-card-detail-modal">
+                            <div class="power-card-detail-content">
+                                <div class="power-card-detail-min-header">
+                                    <h2 class="power-card-detail-title">${card.name}</h2>
+                                    <button class="power-cards-close-btn" aria-label="Close">✕</button>
+                                </div>
+                                <div class="power-card-detail-card-wrapper">${cardBlock}</div>
+                                <div class="power-card-detail-meta">
+                                    <div class="power-card-detail-owner">Owned by: ${player.monster.name}</div>
+                                </div>
+                                <div class="power-card-detail-footer">
+                                    <button class="back-to-wallet-btn">← Back</button>
+                                </div>
+                            </div>
+                        </div>`;
 
         // Add modal to page and set up event handling using UIUtilities
         document.body.insertAdjacentHTML('beforeend', modalHtml);
