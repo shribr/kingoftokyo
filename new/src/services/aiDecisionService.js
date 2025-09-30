@@ -291,6 +291,14 @@ function autoKeepHeuristic(store) {
     const faces = state.dice.faces.map(f => f.value);
     const rollsRemaining = state.dice.rerollsRemaining;
     
+    console.log('🤖 AI: Calling decision engine with:', {
+      faces,
+      rollsRemaining,
+      playerHealth: player.health,
+      playerVP: player.victoryPoints || player.vp || 0,
+      playerEnergy: player.energy || 0
+    });
+    
     // Build gameState object for AI engine
     const gameState = {
       players: Object.values(state.players.byId).map(p => ({
@@ -304,11 +312,25 @@ function autoKeepHeuristic(store) {
         isEliminated: !p.status?.alive,
         powerCards: p.cards || [],
         isCPU: p.isCPU || p.isAI || p.isAi || false
-      }))
+      })),
+      availablePowerCards: state.cards?.shop || []
+    };
+    
+    // Create proper player object for AI engine (needs monster and powerCards properties)
+    const aiPlayer = {
+      id: player.id,
+      name: player.name || player.displayName || player.id,
+      health: player.health,
+      maxHealth: player.maxHealth || 10,
+      victoryPoints: player.victoryPoints || player.vp || 0,
+      energy: player.energy || 0,
+      isInTokyo: player.inTokyo || false,
+      powerCards: player.cards || [],
+      monster: player.monster || { personality: { aggression: 3, risk: 3, strategy: 3 } }
     };
     
     // Get AI decision
-    const decision = enhancedEngine.makeRollDecision(faces, rollsRemaining, player, gameState);
+    const decision = enhancedEngine.makeRollDecision(faces, rollsRemaining, aiPlayer, gameState);
     
     console.log('🤖 AI Decision:', {
       action: decision.action,

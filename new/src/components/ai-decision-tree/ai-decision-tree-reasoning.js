@@ -32,6 +32,25 @@ function renderMiniDiceHTML(faces, keptIndices = []) {
 }
 
 /**
+ * renderSingleMiniDie - Creates a single inline mini die
+ * Returns HTML string for a single die face
+ */
+function renderSingleMiniDie(face) {
+  const mapWord = f => {
+    const l = (''+f).toLowerCase();
+    if (l==='one') return '1'; if (l==='two') return '2'; if (l==='three') return '3';
+    if (l==='heal' || l==='heart') return 'heart';
+    if (l==='claw' || l==='attack') return 'attack';
+    return f;
+  };
+  
+  const norm = mapWord(face);
+  const display = ({'attack':'🗡️','energy':'⚡','heart':'❤'}[norm]) || (''+norm).toUpperCase();
+  
+  return `<span class="adt-std-die face-${norm}" data-face="${norm}" style="display:inline-flex; margin:0 2px;">${display}</span>`;
+}
+
+/**
  * generateConversationalDiceAnalysis - Creates friendly dice analysis text
  * Explains what the current roll means in plain language
  */
@@ -100,12 +119,12 @@ export function generatePersonalityBasedReasoning(personality, health, vp, energ
     counts[face] = (counts[face] || 0) + 1;
   });
 
-  // Get icons from config with fallbacks
-  const healIcon = gameConfig?.diceSystem?.faces?.heal?.symbol || '❤️';
-  const attackIcon = gameConfig?.diceSystem?.faces?.attack?.symbol || '⚔️';
-  const oneIcon = gameConfig?.diceSystem?.faces?.[1]?.symbol || '1️⃣';
-  const twoIcon = gameConfig?.diceSystem?.faces?.[2]?.symbol || '2️⃣';
-  const threeIcon = gameConfig?.diceSystem?.faces?.[3]?.symbol || '3️⃣';
+  // Create mini dice for inline display
+  const healDie = renderSingleMiniDie('heart');
+  const attackDie = renderSingleMiniDie('attack');
+  const oneDie = renderSingleMiniDie('1');
+  const twoDie = renderSingleMiniDie('2');
+  const threeDie = renderSingleMiniDie('3');
 
   let reasoning = '';
   
@@ -114,16 +133,16 @@ export function generatePersonalityBasedReasoning(personality, health, vp, energ
     
     if (health <= 5) {
       reasoning += `<p>With only ${health} health remaining, the AI is being extra cautious. `;
-      if (counts['heal']) {
-        reasoning += `It values the ${counts['heal']} ${healIcon} heart dice highly for healing.`;
+      if (counts['heal'] || counts['heart']) {
+        reasoning += `It values the ${counts['heal'] || counts['heart']} ${healDie} heart dice highly for healing.`;
       } else {
-        reasoning += `It's looking for ${healIcon} heart dice to heal up before taking more risks.`;
+        reasoning += `It's looking for ${healDie} heart dice to heal up before taking more risks.`;
       }
       reasoning += `</p>`;
     }
     
-    if (counts['attack'] && decision.action === 'reroll') {
-      reasoning += `<p>Even with ${counts['attack']} ${attackIcon} attack dice, the AI chose to reroll because it doesn't want to risk entering Tokyo with low health.</p>`;
+    if ((counts['attack'] || counts['claw']) && decision.action === 'reroll') {
+      reasoning += `<p>Even with ${counts['attack'] || counts['claw']} ${attackDie} attack dice, the AI chose to reroll because it doesn't want to risk entering Tokyo with low health.</p>`;
     }
     
   } else if (personality === 'aggressive') {
@@ -133,8 +152,8 @@ export function generatePersonalityBasedReasoning(personality, health, vp, energ
       reasoning += `<p>With ${vp} victory points, the AI is pushing hard for a quick win. Every point counts now!</p>`;
     }
     
-    if (counts['attack']) {
-      reasoning += `<p>The ${counts['attack']} ${attackIcon} attack dice are valuable for forcing other players out of Tokyo and potentially dealing massive damage.</p>`;
+    if (counts['attack'] || counts['claw']) {
+      reasoning += `<p>The ${counts['attack'] || counts['claw']} ${attackDie} attack dice are valuable for forcing other players out of Tokyo and potentially dealing massive damage.</p>`;
     }
     
   } else if (personality === 'risk-taking') {
@@ -154,7 +173,7 @@ export function generatePersonalityBasedReasoning(personality, health, vp, energ
   
   if (bestNumbers.length > 0) {
     const best = bestNumbers[0];
-    const diceIcon = best.num === '1' ? oneIcon : best.num === '2' ? twoIcon : threeIcon;
+    const diceIcon = best.num === '1' ? oneDie : best.num === '2' ? twoDie : threeDie;
     reasoning += `<p>The AI has ${best.count} ${diceIcon} dice. `;
     if (best.count >= 3) {
       const points = best.num === '1' ? 1 : parseInt(best.num);

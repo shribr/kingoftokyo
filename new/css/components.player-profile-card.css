@@ -57,7 +57,21 @@
 .cmp-player-profile-card .ppc-status-line { display:flex; gap:8px; font-size:12px; align-items:center; }
 .cmp-player-profile-card .ppc-active-indicator { color:#ffd400; font-size:18px; }
 .cmp-player-profile-card .ppc-tokyo-indicator { display:none; }
-.cmp-player-profile-card .ppc-tokyo-indicator.is-in { display:inline-block; background:#0b435c; color:#fff; padding:4px 10px 5px; font-size:14px; border:3px solid #000; box-shadow:2px 2px 0 #000; letter-spacing:.5px; }
+.cmp-player-profile-card .ppc-tokyo-indicator.is-in { 
+  display:inline-block; 
+  background:#0b435c; 
+  color:#fff; 
+  padding:4px 10px 5px; 
+  font-size:clamp(10px, 2.5vw, 14px); 
+  border:3px solid #000; 
+  box-shadow:2px 2px 0 #000; 
+  letter-spacing:.5px; 
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  box-sizing: border-box;
+}
 
 /* Stats row */
 .cmp-player-profile-card .ppc-stats { display:flex; gap:10px; margin:0 0 12px; }
@@ -240,7 +254,15 @@
 }
 
 /* Tokyo badge accent variant */
-.cmp-player-profile-card .ppc-tokyo-indicator.is-in { background:linear-gradient(135deg,var(--ppc-accent,#0b435c) 0%, #062733 100%); border-color:#000; }
+.cmp-player-profile-card .ppc-tokyo-indicator.is-in { 
+  background:linear-gradient(135deg,var(--ppc-accent,#0b435c) 0%, #062733 100%); 
+  border-color:#000; 
+  font-size:clamp(10px, 2.5vw, 14px);
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 /* Transition when docking/undocking */
 .cmp-player-profile-card[data-transitioning] { opacity:.0; transform:scale(.9); transition:opacity .25s ease, transform .3s ease; }

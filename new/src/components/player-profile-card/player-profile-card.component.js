@@ -282,7 +282,18 @@ export function update(root, { playerId }) {
 
   const tokyoEl = root.querySelector('[data-tokyo]');
   if (player.inTokyo) {
-    tokyoEl.textContent = 'TOKYO';
+    // Determine which Tokyo slot: City or Bay
+    const cityOccupant = state.tokyo?.city;
+    const bayOccupant = state.tokyo?.bay;
+    let tokyoLabel = 'IN TOKYO';
+    
+    if (cityOccupant === playerId) {
+      tokyoLabel = 'IN TOKYO CITY';
+    } else if (bayOccupant === playerId) {
+      tokyoLabel = 'IN TOKYO BAY';
+    }
+    
+    tokyoEl.textContent = tokyoLabel;
     tokyoEl.classList.add('is-in');
     root.setAttribute('data-in-tokyo', 'true');
   } else {
