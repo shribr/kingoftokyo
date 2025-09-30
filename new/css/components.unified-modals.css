@@ -105,22 +105,42 @@
 }
 
 .field-input {
-  background: #fff;
-  border: 2px solid #000;
-  color: #000;
+  background: #1a1a1a;
+  border: 2px solid #ffd700;
+  color: #e4e4e4;
   padding: 8px 12px;
   font-size: 0.875rem;
   border-radius: 4px;
-  box-shadow: 2px 2px 0 #000;
+  box-shadow: 2px 2px 0 rgba(255, 215, 0, 0.3);
   width: 100%;
   box-sizing: border-box;
-  font-family: inherit;
+  font-family: 'Nunito', sans-serif;
+  transition: all 0.2s ease;
+}
+
+/* Special styling for select dropdowns */
+select.field-input {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23ffd700' d='M0 0l6 8 6-8z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px 8px;
+  padding-right: 36px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+select.field-input:hover {
+  border-color: #ffed4e;
+  box-shadow: 2px 2px 0 rgba(255, 237, 78, 0.5), 0 0 8px rgba(255, 215, 0, 0.3);
 }
 
 .field-input:focus {
   outline: none;
-  border-color: #4a90e2;
-  box-shadow: 2px 2px 0 #4a90e2;
+  border-color: #ffed4e;
+  box-shadow: 2px 2px 0 rgba(255, 237, 78, 0.5), 0 0 12px rgba(255, 215, 0, 0.5);
 }
 
 .field-help {

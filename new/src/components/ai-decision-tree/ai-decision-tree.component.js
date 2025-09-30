@@ -12,6 +12,7 @@
 import { eventBus } from '../../core/eventBus.js';
 import { getAIDecisionTree } from '../../services/aiDecisionService.js';
 import { getAIConfig, getMonsterConfig } from '../../config/aiConfigLoader.js';
+import { attachReasoningHandlers } from './ai-decision-tree-reasoning.js';
 
 // Local ephemeral state (not in global store to avoid noise)
 const localState = {
@@ -221,6 +222,7 @@ function renderStandardRoll(roll, rollNumber, totalRolls, turn) {
   // Dice row - use legacy structure with data attributes for client-side rendering
   content += `<div class="adt-std-dice-row">`;
   content += `<div class="adt-std-dice" data-dice='${JSON.stringify(faces)}' data-kept='${JSON.stringify(keptIndices)}'></div>`;
+  content += `<span class="adt-reasoning-link" style="font-size: 11px; color: #aaa; margin-left: 8px; cursor: pointer; text-decoration: underline;">(AI Reasoning)</span>`;
   content += `</div>`;
   
   // Decision detail section (structured lines)
@@ -341,6 +343,10 @@ function bindStandardHandlers(container, root) {
       if (turn) turn.classList.toggle('collapsed');
     });
   });
+  
+  // Attach interactive reasoning handlers (makes rolls clickable)
+  const gameConfig = getAIConfig();
+  attachReasoningHandlers(container, gameConfig);
   
   // Render dice client-side (legacy pattern)
   container.querySelectorAll('.adt-std-dice[data-dice]')?.forEach(dc => {

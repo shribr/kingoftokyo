@@ -43,8 +43,15 @@ export function bindAIDecisionCapture(store) {
     if (action.type === DICE_ROLLED) {
       const facesStr = state.dice.faces.map(f => f.value).join(',');
       captureRoll(state, facesStr, { stage: 'post' });
-      // Schedule AI keep after dice animation completes + 2s buffer (only for CPU turns)
-      scheduleAIAutoKeep(store);
+      
+      // CRITICAL: Only schedule AI dice selection if there are rerolls remaining
+      // Don't select dice AFTER the final roll - selection must happen BEFORE the final roll
+      if (state.dice.rerollsRemaining > 0) {
+        // Schedule AI keep after dice animation completes + 2s buffer (only for CPU turns)
+        scheduleAIAutoKeep(store);
+      } else {
+        console.log('🤖 AI: Skipping dice selection schedule - no rerolls remaining (final roll complete)');
+      }
     }
     if (action.type === DICE_ROLL_RESOLVED) {
       // Early forced resolution terminates any scheduled keep
@@ -260,56 +267,100 @@ function deriveKeptWhy(faces, keptMask, state, player, tally) {
   } catch(_) { return null; }
 }
 
-// Decide which dice to keep after a roll (basic heuristic):
-// 1. Keep triples in progress (any number with 2+ copies if no better set already locked)
-// 2. Keep claws if not in Tokyo OR if in Tokyo and aiming for VP defense (still keep some)
-// 3. Keep hearts only if healing is valuable (below 6 HP and not in Tokyo)
-// 4. Keep energy if player has < 6 energy and no immediate lethal setup
+// Decide which dice to keep after a roll using the full AI decision engine
 function autoKeepHeuristic(store) {
   const state = store.getState();
   const activeId = selectActivePlayerId(state);
   if (!activeId) return;
   const player = state.players.byId[activeId];
   if (!player || state.phase !== 'ROLL') return;
+  
   // Only auto-keep for AI/CPU players; never auto-toggle keeps for human turns
   const isCpu = !!(player.isCPU || player.isAi || player.isAI || player.type === 'ai');
   if (!isCpu) return;
-  // Only act if there are rerolls remaining (skip final roll)
+  
+  // Safety check: Don't select dice if no rerolls remaining (final roll already happened)
+  // This should never be reached due to schedule guard, but defensive check
   if (state.dice.rerollsRemaining <= 0) {
-    console.log('🤖 AI: Skipping dice selection - no rerolls remaining (final roll)');
+    console.log('🤖 AI: autoKeepHeuristic called with no rerolls remaining - skipping (defensive guard)');
     return;
   }
+  
+  try {
+    // Use the full AI decision engine (same as legacy)
+    const faces = state.dice.faces.map(f => f.value);
+    const rollsRemaining = state.dice.rerollsRemaining;
+    
+    // Build gameState object for AI engine
+    const gameState = {
+      players: Object.values(state.players.byId).map(p => ({
+        id: p.id,
+        name: p.name || p.displayName || p.id,
+        health: p.health,
+        maxHealth: p.maxHealth || 10,
+        victoryPoints: p.victoryPoints || p.vp || 0,
+        energy: p.energy || 0,
+        isInTokyo: p.inTokyo || false,
+        isEliminated: !p.status?.alive,
+        powerCards: p.cards || [],
+        isCPU: p.isCPU || p.isAI || p.isAi || false
+      }))
+    };
+    
+    // Get AI decision
+    const decision = enhancedEngine.makeRollDecision(faces, rollsRemaining, player, gameState);
+    
+    console.log('🤖 AI Decision:', {
+      action: decision.action,
+      keepIndices: decision.keepDice,
+      reason: decision.reason,
+      confidence: decision.confidence
+    });
+    
+    // Apply the keep decision from AI engine
+    if (decision.keepDice && Array.isArray(decision.keepDice)) {
+      decision.keepDice.forEach(idx => {
+        if (idx >= 0 && idx < state.dice.faces.length) {
+          const die = state.dice.faces[idx];
+          if (!die.kept) {
+            store.dispatch(diceToggleKeep(idx));
+          }
+        }
+      });
+    }
+  } catch (err) {
+    console.error('🤖 AI: Error in autoKeepHeuristic, using fallback:', err);
+    // Fallback to simple logic if AI engine fails
+    simpleFallbackKeep(store, state);
+  }
+}
+
+// Simple fallback dice selection if AI engine fails
+function simpleFallbackKeep(store, state) {
   const faces = state.dice.faces;
   const tally = tallyFaces(faces);
-  const occupants = selectTokyoOccupants(state);
-  const inTokyo = player.inTokyo;
-  // Determine candidate numbers for potential triple (prefer highest numeric value producing VP)
-  const candidateNumbers = ['3','2','1'].filter(n => tally[n] >= 2);
-  const lockedNumber = candidateNumbers.length ? candidateNumbers[0] : null; // string form
-  let keptAny = false;
-  faces.forEach((die, idx) => {
-    let keep = false;
-    // Numbers are strings ('1','2','3') so compare string to string
-    if (lockedNumber && die.value === lockedNumber) keep = true;
-    // Claws: good early pressure if outside Tokyo OR if inside and have high HP to maintain pressure
-    else if (die.value === 'claw') {
-      if (!inTokyo || player.health > 6) keep = true;
-    }
-    // Hearts: only if can heal (below 6) and not in Tokyo
-    else if (die.value === 'heart' && !inTokyo && player.health < 6) keep = true;
-    // Energy: early economy (< 6 energy) unless already committing to a triple chase
-    else if (die.value === 'energy' && player.energy < 6 && !lockedNumber) keep = true;
-    if (keep && !die.kept) { store.dispatch(diceToggleKeep(idx)); keptAny = true; }
-  });
-  // Fallback: if nothing was kept and rerolls remain, keep a single highest value number or a claw to avoid aimless rerolls
-  if (!keptAny && state.dice.rerollsRemaining > 0) {
-    let pickIndex = -1;
-    let priorityFaces = ['3','2','1','claw','energy','heart'];
-    for (const face of priorityFaces) {
-      const i = faces.findIndex(d => d.value === face && !d.kept);
-      if (i >= 0) { pickIndex = i; break; }
-    }
-    if (pickIndex >= 0) store.dispatch(diceToggleKeep(pickIndex));
+  
+  // Keep any triples already formed (3 or more of same number)
+  const candidateNumbers = ['3','2','1'].filter(n => tally[n] >= 3);
+  if (candidateNumbers.length > 0) {
+    const lockedNumber = candidateNumbers[0];
+    faces.forEach((die, idx) => {
+      if (die.value === lockedNumber && !die.kept) {
+        store.dispatch(diceToggleKeep(idx));
+      }
+    });
+    return;
+  }
+  
+  // Keep pairs of highest number
+  const pairNumbers = ['3','2','1'].filter(n => tally[n] >= 2);
+  if (pairNumbers.length > 0) {
+    const lockedNumber = pairNumbers[0];
+    faces.forEach((die, idx) => {
+      if (die.value === lockedNumber && !die.kept) {
+        store.dispatch(diceToggleKeep(idx));
+      }
+    });
   }
 }
 

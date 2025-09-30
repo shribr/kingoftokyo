@@ -13,6 +13,7 @@ import { rollDice } from '../domain/dice.js';
 import { resolveDice, awardStartOfTurnTokyoVP, checkGameOver } from './resolutionService.js';
 import { selectTokyoCityOccupant, selectTokyoBayOccupant } from '../core/selectors.js';
 import { DICE_ANIM_MS, AI_POST_ANIM_DELAY_MS, CPU_TURN_START_MS, CPU_DECISION_DELAY_MS } from '../constants/uiTimings.js';
+import { eventBus } from '../core/eventBus.js';
 
 function computeDelay(settings) {
   const speed = settings?.cpuSpeed || 'normal';
@@ -178,6 +179,13 @@ export function createTurnService(store, logger, rng = Math.random) {
   }
   markPhaseStart('RESOLVE');
     resolveDice(store, logger);
+    
+    // Critical: Wait briefly for Redux state to update with dice results (energy, VP, health)
+    // This ensures the player can afford power cards with newly gained energy before BUY phase
+    await waitUnlessPaused(store, 200);
+    
+    // Refresh card affordability after dice resolution
+    eventBus.emit('ui/cards/refreshAffordability');
     
     // End-of-turn Tokyo entry: if Tokyo is empty after dice resolution, active player must enter
     const postResolution = store.getState();

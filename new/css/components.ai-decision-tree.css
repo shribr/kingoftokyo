@@ -715,8 +715,10 @@
 /* Dice Display */
 .cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-dice-row {
     display: flex;
+    align-items: center;
     margin-top: 4px;
     margin-bottom: 8px;
+    gap: 8px;
 }
 
 .cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-dice {
@@ -857,4 +859,114 @@
 
 .cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-turn-chain .adt-std-die {
     margin-right: 6px;
+}
+
+/* ========================================
+ * INTERACTIVE REASONING MODAL STYLES
+ * ======================================== */
+
+/* AI Reasoning link */
+.adt-reasoning-link {
+    font-size: 11px;
+    color: #aaa;
+    cursor: pointer;
+    text-decoration: underline;
+    transition: color 0.2s ease;
+    user-select: none;
+}
+
+.adt-reasoning-link:hover {
+    color: #ffd700;
+}
+
+/* Detailed reasoning modal content */
+.detailed-reasoning-content {
+    font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: #e0e0e0;
+    line-height: 1.6;
+    padding: 12px;
+}
+
+.reasoning-header {
+    font-family: 'Bangers', cursive;
+    font-size: 1.5em;
+    color: #ffd700;
+    margin-bottom: 16px;
+    text-align: center;
+    letter-spacing: 1px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.reasoning-situation,
+.reasoning-logic,
+.reasoning-summary {
+    background: rgba(255, 255, 255, 0.05);
+    border-left: 3px solid #ffd700;
+    padding: 12px;
+    margin-bottom: 12px;
+    border-radius: 4px;
+}
+
+.reasoning-situation h3,
+.reasoning-logic h3,
+.reasoning-summary h3 {
+    font-family: 'Bangers', cursive;
+    color: #ffd700;
+    font-size: 1.2em;
+    margin-top: 0;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+}
+
+.reasoning-situation p,
+.reasoning-logic p,
+.reasoning-summary p {
+    margin: 8px 0;
+    font-size: 0.95em;
+}
+
+.reasoning-logic ul {
+    margin: 8px 0;
+    padding-left: 24px;
+}
+
+.reasoning-logic li {
+    margin: 6px 0;
+    font-size: 0.95em;
+}
+
+.reasoning-summary {
+    border-left-color: #4caf50;
+    background: rgba(76, 175, 80, 0.1);
+}
+
+.reasoning-summary h3 {
+    color: #4caf50;
+}
+
+/* Dice display in reasoning modal */
+.reasoning-dice-display {
+    display: flex;
+    gap: 6px;
+    margin: 8px 0;
+    flex-wrap: wrap;
+}
+
+.reasoning-dice-display .adt-std-die {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.reasoning-dice-display .adt-std-die.kept {
+    border-color: #ffd700;
+    background: rgba(255, 215, 0, 0.15);
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
 }

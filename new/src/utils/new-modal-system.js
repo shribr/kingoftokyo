@@ -99,7 +99,10 @@ class NewModalSystem {
       transition: background 0.18s ease, transform 80ms cubic-bezier(0.34,1.56,0.64,1);
     `;
     closeButton.innerHTML = '×';
-    closeButton.addEventListener('click', () => this.closeModal(id));
+    closeButton.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent closing parent modals
+      this.closeModal(id);
+    });
     closeButton.addEventListener('mouseenter', () => {
       closeButton.style.transform = 'translateY(-2px)';
     });
@@ -134,14 +137,27 @@ class NewModalSystem {
     const modal = this.modals.get(id);
     if (!modal) return;
 
-    // Close current modal if any
-    this.closeCurrentModal();
+    // Store previous modal if opening a nested modal
+    const previousModal = this.currentModal;
 
-    // Clear overlay and add new modal
-    this.overlay.innerHTML = '';
+    // Clear overlay and add new modal (don't close if it's a nested modal)
+    if (!previousModal || previousModal === id) {
+      this.overlay.innerHTML = '';
+    }
+    
+    // Hide previous modal but keep it in memory
+    if (previousModal && previousModal !== id) {
+      const prevModalEl = this.modals.get(previousModal);
+      if (prevModalEl) {
+        prevModalEl.style.display = 'none';
+      }
+    }
+    
     this.overlay.appendChild(modal);
     this.overlay.style.display = 'flex';
+    modal.style.display = 'flex';
     this.currentModal = id;
+    this.previousModal = previousModal;
 
     // Focus management
     const firstFocusable = modal.querySelector('button, input, select, textarea, [tabindex]:not([tabindex="-1"])');
@@ -154,16 +170,36 @@ class NewModalSystem {
 
   closeModal(id) {
     if (this.currentModal === id) {
-      this.closeCurrentModal();
+      const currentModalEl = this.modals.get(this.currentModal);
+      if (currentModalEl) {
+        currentModalEl.style.display = 'none';
+        currentModalEl.remove();
+      }
+      
+      // Restore previous modal if it exists
+      if (this.previousModal && this.previousModal !== id) {
+        const prevModalEl = this.modals.get(this.previousModal);
+        if (prevModalEl) {
+          prevModalEl.style.display = 'flex';
+          this.currentModal = this.previousModal;
+          this.previousModal = null;
+          console.log(`[NEW-MODAL] Closed modal: ${id}, restored: ${this.currentModal}`);
+          return;
+        }
+      }
+      
+      // No previous modal, close overlay entirely
+      this.overlay.style.display = 'none';
+      this.overlay.innerHTML = '';
+      this.currentModal = null;
+      this.previousModal = null;
+      console.log(`[NEW-MODAL] Closed modal: ${id}`);
     }
   }
 
   closeCurrentModal() {
     if (this.currentModal) {
-      console.log(`[NEW-MODAL] Closed modal: ${this.currentModal}`);
-      this.overlay.style.display = 'none';
-      this.overlay.innerHTML = '';
-      this.currentModal = null;
+      this.closeModal(this.currentModal);
     }
   }
 
