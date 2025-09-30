@@ -2,7 +2,7 @@ import { createStore, combineReducers } from '../core/store.js';
 import { phaseReducer } from '../core/reducers/phase.reducer.js';
 import { logReducer } from '../core/reducers/log.reducer.js';
 import { diceReducer } from '../core/reducers/dice.reducer.js';
-import { logAppended, diceRollStarted, diceRolled, diceRerollUsed } from '../core/actions.js';
+import { logAppended, diceRollStarted, diceRolled, diceRerollUsed, diceRollCompleted, diceRollResolved } from '../core/actions.js';
 import { eventBus } from '../core/eventBus.js';
 import { createPhaseEventsService } from '../services/phaseEventsService.js';
 import { Phases } from '../core/phaseFSM.js';
@@ -27,20 +27,28 @@ export function testPhaseLogReroll() {
   let diceState = store.getState().dice;
   assert(diceState.rerollsRemaining === 2, 'First roll should initialize rerollsRemaining to 2');
 
-  // Use a reroll
+  // Use a reroll (simulate actual action order: spend reroll -> roll -> resolve)
+  store.dispatch(diceRerollUsed());
   store.dispatch(diceRollStarted());
   store.dispatch(diceRolled([{ face:'2', kept:false }]));
-  store.dispatch(diceRerollUsed());
+  store.dispatch(diceRollCompleted());
   diceState = store.getState().dice;
   assert(diceState.rerollsRemaining === 1, 'After one reroll remaining should be 1');
+  assert(diceState.phase === 'resolved', 'Dice should be resolved after reroll animation completes');
 
   // Final reroll
+  store.dispatch(diceRerollUsed());
   store.dispatch(diceRollStarted());
   store.dispatch(diceRolled([{ face:'3', kept:false }]));
-  store.dispatch(diceRerollUsed());
+  store.dispatch(diceRollCompleted());
   diceState = store.getState().dice;
   assert(diceState.rerollsRemaining === 0, 'After final reroll remaining should be 0');
-  assert(diceState.phase === 'sequence-complete', 'Dice phase should mark sequence complete');
+  assert(diceState.phase === 'resolved', 'Final roll should leave dice resolved until resolution');
+
+  // Mark sequence resolved to mirror end-turn flow
+  store.dispatch(diceRollResolved());
+  diceState = store.getState().dice;
+  assert(diceState.phase === 'sequence-complete', 'Dice phase should mark sequence complete once resolved');
 
   return 'phase_log_reroll tests passed';
 }

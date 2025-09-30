@@ -6,7 +6,8 @@
  *     - CPU: this service auto-plays the entire turn (roll -> rerolls -> resolve)
  *   resolve() -> applies dice effects, checks win, then enters BUY -> CLEANUP -> next turn
  */
-import { phaseChanged, nextTurn, diceRollStarted, diceRolled, diceRerollUsed, playerEnteredTokyo, tokyoOccupantSet, playerVPGained, uiVPFlash, diceRollResolved } from '../core/actions.js';
+import { phaseChanged, nextTurn, diceRollStarted, diceRolled, diceRerollUsed, playerEnteredTokyo, tokyoOccupantSet, playerVPGained, uiVPFlash, diceRollResolved, diceRollCompleted, diceResultsAccepted } from '../core/actions.js';
+import { createCpuTurnController } from './cpuTurnController.js';
 import { forceAIDiceKeepIfPending } from './aiDecisionService.js';
 import { Phases } from '../core/phaseFSM.js';
 import { rollDice } from '../domain/dice.js';
@@ -77,6 +78,14 @@ export function createTurnService(store, logger, rng = Math.random) {
   // Watch for completion of YIELD_DECISION phase (all prompts resolved) to advance to BUY automatically
   store.subscribe((state, action) => {
     try {
+      // Auto-accept dice results after final roll (sequence complete) if not already accepted
+      if (state.phase === Phases.ROLL && (state.dice.phase === 'resolved' || state.dice.phase === 'sequence-complete')) {
+        const d = state.dice;
+        if (!d.accepted && d.rerollsRemaining === 0) {
+          // Apply effects silently so player can buy cards
+          try { acceptDiceResults(); } catch(e) { /* non-fatal */ }
+        }
+      }
       if (state.phase === Phases.YIELD_DECISION) {
         const pending = state.yield?.prompts?.some(p => p.decision == null);
         if (!pending) {
@@ -168,17 +177,27 @@ export function createTurnService(store, logger, rng = Math.random) {
     if (after.dice.rerollsRemaining === 0) {
       // sequence complete will trigger resolve externally or via explicit call
     }
+    // Decrement reroll count exactly once per completed reroll (faces now resolved)
+    store.dispatch(diceRollCompleted());
   }
 
   async function resolve() {
-  markPhaseEnd('ROLL');
-  logger.system('Phase: RESOLVE', { kind: 'phase' });
-  {
-    const phaseEvents = typeof window !== 'undefined' ? window.__KOT_NEW__?.phaseEventsService : null;
-    if (phaseEvents) phaseEvents.publish('ROLL_COMPLETE'); else store.dispatch(phaseChanged(Phases.RESOLVE));
-  }
-  markPhaseStart('RESOLVE');
-    resolveDice(store, logger);
+    markPhaseEnd('ROLL');
+    logger.system('Phase: RESOLVE', { kind: 'phase' });
+    {
+      const phaseEvents = typeof window !== 'undefined' ? window.__KOT_NEW__?.phaseEventsService : null;
+      if (phaseEvents) phaseEvents.publish('ROLL_COMPLETE'); else store.dispatch(phaseChanged(Phases.RESOLVE));
+    }
+    markPhaseStart('RESOLVE');
+    // If dice already accepted (effects applied), skip duplicate resolution
+    try {
+      const pre = store.getState();
+      if (!pre.dice?.accepted) {
+        resolveDice(store, logger);
+      } else {
+        logger.debug && logger.debug('[turnService] Skipping resolveDice (already accepted)');
+      }
+    } catch(_) { resolveDice(store, logger); }
     
     // Critical: Wait briefly for Redux state to update with dice results (energy, VP, health)
     // This ensures the player can afford power cards with newly gained energy before BUY phase
@@ -276,6 +295,16 @@ export function createTurnService(store, logger, rng = Math.random) {
    * Uses pacing based on settings.cpuSpeed.
    */
   async function playCpuTurn(forcedActiveId = null) {
+    // Feature toggle: if settings indicate controller mode, use new state machine and return.
+    try {
+      const st0 = store.getState();
+      const enableController = st0.settings?.cpuTurnMode === 'controller';
+      if (enableController) {
+        const controller = createCpuTurnController(store, enhancedEngineProxy(), store._logger || console, {});
+        controller.start();
+        return; // controller handles resolution -> resolveDice via diceRollResolved dispatch; resolve path continues via subscription
+      }
+    } catch(_) {}
     // Initial roll
     const _st0 = store.getState();
     const activeOrder = _st0.players.order;
@@ -378,7 +407,24 @@ export function createTurnService(store, logger, rng = Math.random) {
     }
   }
 
-  return { startGameIfNeeded, startTurn, performRoll, reroll, resolve, cleanup, endTurn, playCpuTurn };
+  // New: Accept dice results (apply effects without advancing out of ROLL phase yet)
+  async function acceptDiceResults(){
+    const st = store.getState();
+    if (st.phase !== 'ROLL') return; // only relevant during roll phase
+    if (!st.dice || (st.dice.phase !== 'resolved' && st.dice.phase !== 'sequence-complete')) return;
+    if (st.dice.accepted) return; // idempotent
+    resolveDice(store, logger); // apply effects silently
+    store.dispatch(diceResultsAccepted());
+    eventBus.emit('ui/cards/refreshAffordability');
+  }
+
+  return { startGameIfNeeded, startTurn, performRoll, reroll, resolve, cleanup, endTurn, playCpuTurn, acceptDiceResults };
+}
+
+// Lightweight proxy fetch for enhanced engine from aiDecisionService scope (non-breaking placeholder)
+function enhancedEngineProxy(){
+  try { return (typeof window !== 'undefined' && window.__KOT_NEW__?.enhancedEngine) || (globalThis.enhancedEngine) || { makeRollDecision(){ return { action:'endRoll', keepDice:[], confidence:0.2, reason:'engine missing'}; } }; }
+  catch(_) { return { makeRollDecision(){ return { action:'endRoll', keepDice:[], confidence:0.2, reason:'engine error'}; } }; }
 }
 
 // Simple in-memory instrumentation store (could later be moved to a metrics slice)

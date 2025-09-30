@@ -78,7 +78,65 @@ This document provides a comprehensive technical chronicle of the King of Tokyo 
 
 ---
 ### Day 13: September 24, 2025 - Phase 10 Completion (Transparency, Projection, Accessibility)
+#### Post Day 13 Enhancement (Sept 30, 2025): Accept Dice Results Action
+Implemented an optional mid-roll flow allowing players to apply dice effects (energy gain, healing, VP from triples, claw damage) prior to formally ending the roll phase. This enables purchasing power cards with newly gained energy before advancing the turn.
+
+Technical Details:
+- Added `DICE_RESULTS_ACCEPTED` action & `diceResultsAccepted()` creator.
+- Extended `diceReducer` with `accepted` flag (idempotent; resets on new turn).
+- Added `acceptDiceResults()` method to `turnService` invoking `resolveDice(store, logger)` without advancing global phase.
+- Inserted new button in action menu: `ACCEPT DICE RESULTS` (disabled for CPU, enabled when dice are resolved and not yet accepted).
+- UI logic disables Roll / Keep All after acceptance and updates button label to `DICE ACCEPTED`.
+- Ensures phase progression remains player-driven—player still presses End Turn to transition to RESOLVE/BUY sequence.
+- Refreshed card affordability post-accept via `ui/cards/refreshAffordability` event.
+
+Safeguards & Idempotency:
+- Multiple clicks on Accept are ignored (flag guards second invocation).
+- Rerolls prohibited after acceptance (roll button disabled condition updated).
+- Does not mutate phase; existing end-turn path (resolve -> buy) remains compatible.
+
+Follow-Up Considerations:
+- Potential UI highlight or toast confirming effects applied.
+- Possible automatic phase hint (e.g., glow on End Turn) once accepted.
+- Audit interaction with yield prompts (currently unchanged; accept is pre-phase-change only).
+
+##### Refinement (Sept 30, 2025 - Later)
+- Added enable gating to Accept button: requires at least one kept die; disabled on final roll (auto-accept triggers internally).
+- Auto-apply dice effects immediately when rerolls reach zero (no manual Accept needed).
+- Prevent double application in `resolve()` if already accepted.
+- Removed dev overlay label "Phase Timings" per UI clarity request (panel content now minimal).
+
 **Context**: Final sweep to complete all remaining Phase 10 objectives: portfolio-aware scoring, multi-roll projection, richer transparency UI, and baseline accessibility instrumentation.
+
+###### Visual Enhancement (Sept 30, 2025 - Later) - Tokyo Entry Animation
+Added a non-blocking visual Tokyo entry animation in the enhanced UI (`new/` code path). When a player first occupies Tokyo City or Bay after dice acceptance / resolution, their active profile card now:
+1. Clones itself into a floating element positioned over the active slot
+2. Animates (translate + scale) toward the Tokyo City or Bay anchor (or arena fallback)
+3. Fades slightly while traveling (750ms flight)
+4. Restores the original card into the monsters panel with `data-in-tokyo="true"`
+
+Technical Implementation:
+- New service: `new/src/services/tokyoEntryAnimationService.js` bound during bootstrap.
+- Detects occupant changes by diffing `tokyo.cityOccupant` / `tokyo.bayOccupant` against previous values.
+- Guards overlapping animations with `animating` flag; exits silently on errors (degrades gracefully for tests / SSR).
+- Phase gating: only animates during early post-resolution phases (`RESOLVE`, `BUY`, `YIELD_DECISION`) to avoid mid-turn confusion.
+- Uses clone node (fixed positioning) to prevent layout jitter in original containers.
+- Applies attributes for future styling or analytics: `data-in-tokyo`, `data-tokyo-animated-at`.
+
+Future Extension Targets:
+- Exit animation (reverse flight back out of Tokyo).
+- Prefers-reduced-motion compliance (skip or shorten animation).
+- CSS class-based styling (current version inlines primary transition—scheduled for refactor to shared stylesheet with damage highlight effects).
+
+###### Addendum (Sept 30, 2025 - Enhancements Implemented)
+- Added dedicated anchor elements in arena markup: `<span data-tokyo-city-anchor>` and `<span data-tokyo-bay-anchor>` for precise flight targeting.
+- Implemented prefers-reduced-motion support (short 120ms translation, no scale compression) for both entry and exit flights.
+- Added exit animation (Tokyo departure) mirroring entry path; card returns to panel with timestamp attribute.
+- Introduced damage highlight pulse on health loss via `data-damage-flash` and keyframes `kot-damage-pulse`.
+- Created `components.player-animations.css` consolidating flight transitions, damage pulse, anchor glow, and entry glow overlay.
+- Added anchor glow burst on entry and card radial glow overlay (`data-entry-glow`).
+- Implemented lightweight animation queue (FIFO) so simultaneous Tokyo entry/exit events serialize without visual overlap.
+
 
 #### Portfolio-Aware Dice Scoring
 **File Modified**: `js/ai-decisions.js`  

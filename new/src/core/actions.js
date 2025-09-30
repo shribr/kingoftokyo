@@ -18,6 +18,8 @@ export const DICE_TOGGLE_KEEP = 'DICE_TOGGLE_KEEP';
 export const DICE_REROLL_USED = 'DICE_REROLL_USED';
 export const DICE_SET_ALL_KEPT = 'DICE_SET_ALL_KEPT';
 export const DICE_ROLL_RESOLVED = 'DICE_ROLL_RESOLVED';
+export const DICE_ROLL_COMPLETED = 'DICE_ROLL_COMPLETED';
+export const DICE_RESULTS_ACCEPTED = 'DICE_RESULTS_ACCEPTED';
 
 export const PHASE_CHANGED = 'PHASE_CHANGED';
 export const LOG_APPENDED = 'LOG_APPENDED';
@@ -119,6 +121,8 @@ export const diceToggleKeep = (index) => ({ type: DICE_TOGGLE_KEEP, payload: { i
 export const diceRerollUsed = () => ({ type: DICE_REROLL_USED });
 export const diceSetAllKept = (kept = true) => ({ type: DICE_SET_ALL_KEPT, payload: { kept } });
 export const diceRollResolved = () => ({ type: DICE_ROLL_RESOLVED });
+export const diceRollCompleted = () => ({ type: DICE_ROLL_COMPLETED });
+export const diceResultsAccepted = () => ({ type: DICE_RESULTS_ACCEPTED });
 
 // Phase and log actions
 export const phaseChanged = (phase) => ({ type: PHASE_CHANGED, payload: { phase } });

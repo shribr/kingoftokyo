@@ -23,10 +23,12 @@ export function build({ selector }) {
     <div data-tokyo data-arena-section="tokyo">
       <div data-city data-arena-section="city">
         <h3>Tokyo City</h3>
+        <span class="tokyo-anchor" data-tokyo-city-anchor aria-hidden="true"></span>
         <div class="city-slot" data-city-slot></div>
       </div>
       <div data-bay data-arena-section="bay">
         <h3>Tokyo Bay</h3>
+        <span class="tokyo-anchor" data-tokyo-bay-anchor aria-hidden="true"></span>
         <div class="bay-slot" data-bay-slot></div>
       </div>
     </div>

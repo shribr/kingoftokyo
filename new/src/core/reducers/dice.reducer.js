@@ -1,12 +1,12 @@
-import { DICE_ROLL_STARTED, DICE_ROLLED, DICE_TOGGLE_KEEP, DICE_REROLL_USED, PHASE_CHANGED, DICE_SET_ALL_KEPT, DICE_ROLL_RESOLVED } from '../actions.js';
+import { DICE_ROLL_STARTED, DICE_ROLLED, DICE_TOGGLE_KEEP, DICE_REROLL_USED, PHASE_CHANGED, DICE_SET_ALL_KEPT, DICE_ROLL_RESOLVED, DICE_ROLL_COMPLETED, DICE_RESULTS_ACCEPTED } from '../actions.js';
 
-const initial = { faces: [], rerollsRemaining: 0, baseRerolls: 2, phase: 'idle' };
+const initial = { faces: [], rerollsRemaining: 0, baseRerolls: 2, phase: 'idle', accepted: false };
 
 export function diceReducer(state = initial, action) {
   switch (action.type) {
     case DICE_ROLL_STARTED: {
       // If starting new sequence, compute rerollsRemaining from active player's modifiers (base + bonus)
-      const starting = state.phase === 'idle' || state.phase === 'sequence-complete';
+      const starting = state.phase === 'idle';
       if (!starting) return { ...state, phase: 'rolling' };
       // Active player modifiers are injected externally (middleware pattern absent). We'll read off a global for now.
       let bonus = 0;
@@ -20,8 +20,8 @@ export function diceReducer(state = initial, action) {
             }
         }
       } catch (_) {}
-      const rerollsRemaining = state.baseRerolls + bonus;
-      return { ...state, phase: 'rolling', rerollsRemaining };
+  const rerollsRemaining = state.baseRerolls + bonus;
+  return { ...state, phase: 'rolling', rerollsRemaining, accepted: false };
     }
     case DICE_ROLLED:
       return { ...state, faces: action.payload.faces, phase: 'resolved' };
@@ -40,9 +40,14 @@ export function diceReducer(state = initial, action) {
       return { ...state, faces };
     }
     case DICE_REROLL_USED: {
+      // Deprecated direct decrement path kept for safety; no state change (handled by DICE_ROLL_COMPLETED)
+      return state;
+    }
+    case DICE_ROLL_COMPLETED: {
+      // When a non-initial roll finishes (faces resolved), decrement rerollsRemaining
+      if (state.phase !== 'resolved') return state; // only process once dice resolved
       const remaining = Math.max(0, state.rerollsRemaining - 1);
-      const sequenceComplete = remaining === 0 ? 'sequence-complete' : state.phase;
-      return { ...state, rerollsRemaining: remaining, phase: sequenceComplete };
+      return { ...state, rerollsRemaining: remaining };
     }
     case DICE_ROLL_RESOLVED: {
       // Force mark sequence complete if currently in resolved state but rerolls remain (e.g., player ended early)
@@ -51,12 +56,18 @@ export function diceReducer(state = initial, action) {
       }
       return state;
     }
+    case DICE_RESULTS_ACCEPTED: {
+      // Only valid while in resolved or sequence-complete
+      if (state.phase !== 'resolved' && state.phase !== 'sequence-complete') return state;
+      if (state.accepted) return state; // idempotent
+      return { ...state, accepted: true };
+    }
     case PHASE_CHANGED: {
       // Reset dice state when returning to ROLL phase for a new turn
       if (action.payload.phase === 'ROLL') {
         // Preserve configuration like baseRerolls; only reset transient fields
         const baseRerolls = (state && typeof state.baseRerolls === 'number') ? state.baseRerolls : 2;
-        return { faces: [], rerollsRemaining: 0, baseRerolls, phase: 'idle' };
+        return { faces: [], rerollsRemaining: 0, baseRerolls, phase: 'idle', accepted: false };
       }
       return state;
     }

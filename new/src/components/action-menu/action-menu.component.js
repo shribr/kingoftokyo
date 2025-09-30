@@ -23,6 +23,7 @@ export function build({ selector }) {
     <div class="am-label" aria-hidden="true">ACTIONS</div>
     <button id="roll-btn" data-action="roll" class="k-btn k-btn--primary">ROLL</button>
     <button id="keep-btn" data-action="keep" class="k-btn k-btn--secondary" disabled>KEEP ALL</button>
+    <button id="accept-dice-btn" data-action="accept-dice" class="k-btn k-btn--secondary" disabled>ACCEPT DICE RESULTS</button>
     <div class="power-cards-menu-container">
       <button id="power-cards-btn" data-action="power-cards" class="k-btn k-btn--secondary power-cards-btn">
         <span class="arrow-left">◀</span>
@@ -227,6 +228,11 @@ export function build({ selector }) {
         // Hide submenu after action
         const submenu = root.querySelector('.power-cards-submenu');
         submenu.setAttribute('hidden', '');
+        break; }
+      case 'accept-dice': {
+        if (typeof window !== 'undefined' && window.__KOT_NEW__?.turnService) {
+          window.__KOT_NEW__.turnService.acceptDiceResults();
+        }
         break; }
       case 'end': {
         const phase = st.phase;
@@ -434,6 +440,7 @@ export function update(root) {
   
   const rollBtn = root.querySelector('[data-action="roll"]');
   const keepBtn = root.querySelector('[data-action="keep"]');
+  const acceptBtn = root.querySelector('[data-action="accept-dice"]');
   const powerCardsBtn = root.querySelector('[data-action="power-cards"]');
   const flushBtn = root.querySelector('[data-action="flush"]');
   const endBtn = root.querySelector('[data-action="end"]');
@@ -464,22 +471,29 @@ export function update(root) {
   }
   const isCPU = !!(active && (active.isCPU || active.isAi || active.type === 'ai'));
 
+  const accepted = !!dice.accepted;
   if (rollBtn) {
-    rollBtn.disabled = isCPU ? true : !canRoll;
-    // Dynamic label: after first roll, change to RE-ROLL UNSELECTED
+    rollBtn.disabled = isCPU ? true : (!canRoll || accepted); // cannot roll after accepting results
     rollBtn.textContent = hasFirstRoll ? 'RE-ROLL UNSELECTED' : 'ROLL';
   }
   if (keepBtn) {
     const allKept = hasAnyFaces && faces.every(f => !!f.kept);
-    const canKeepAll = st.phase === 'ROLL' && hasAnyFaces && dice.phase === 'resolved' && !isCPU && !allKept;
+    const canKeepAll = st.phase === 'ROLL' && hasAnyFaces && dice.phase === 'resolved' && !isCPU && !allKept && !accepted;
     keepBtn.disabled = !canKeepAll;
     keepBtn.textContent = 'KEEP ALL';
   }
+  if (acceptBtn) {
+    const anyKept = faces.some(f => f && f.kept);
+    const isFinalRoll = dice.rerollsRemaining === 0; // after final roll we auto-apply effects; button stays disabled
+    const canAccept = st.phase === 'ROLL' && (dice.phase === 'resolved' || dice.phase === 'sequence-complete') && hasAnyFaces && anyKept && !isCPU && !accepted && !isFinalRoll;
+    acceptBtn.disabled = !canAccept;
+    acceptBtn.textContent = accepted ? 'DICE ACCEPTED' : (isFinalRoll ? 'FINAL ROLL' : 'ACCEPT DICE RESULTS');
+  }
   if (flushBtn) {
-    // Enable flush button only after final roll (no rerolls remaining) and player has enough energy
-    const afterFinalRoll = st.phase === 'ROLL' && dice.phase === 'resolved' && dice.rerollsRemaining === 0;
+    // Enable flush button during RESOLVE/BUY phases when player has the energy cost available
+    const flushPhaseAllowed = st.phase === 'RESOLVE' || st.phase === 'BUY';
     const hasEnergy = active && active.energy >= 2;
-    const canFlush = !isCPU && afterFinalRoll && hasEnergy;
+    const canFlush = !isCPU && hasEnergy && flushPhaseAllowed;
     flushBtn.disabled = !canFlush;
   }
   if (endBtn) {

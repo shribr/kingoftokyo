@@ -1,6 +1,6 @@
 /** ui/eventsToActions.js */
 import { eventBus } from '../core/eventBus.js';
-import { diceRollStarted, diceRolled, diceToggleKeep, diceRerollUsed, phaseChanged, uiPositionsReset } from '../core/actions.js';
+import { diceRollStarted, diceRolled, diceToggleKeep, diceRerollUsed, diceRollCompleted, phaseChanged, uiPositionsReset } from '../core/actions.js';
 import { rollDice } from '../domain/dice.js';
 import { createPositioningService } from '../services/positioningService.js';
 
@@ -19,7 +19,7 @@ export function bindUIEventBridges(store) {
       // Only allow reroll when we are in resolved state and have rerolls remaining
       if (!(diceState.phase === 'resolved' && diceState.rerollsRemaining > 0)) return;
     }
-    store.dispatch(diceRollStarted());
+  store.dispatch(diceRollStarted());
     // Determine dice count from active player's modifiers if available
     let count = 6;
     try {
@@ -33,7 +33,9 @@ export function bindUIEventBridges(store) {
     const faces = rollDice({ count, currentFaces: diceState.faces });
     store.dispatch(diceRolled(faces));
     if (!isFirstRoll) {
+      // Mark reroll usage (legacy no-op for state) then complete to decrement once faces are resolved
       store.dispatch(diceRerollUsed());
+      store.dispatch(diceRollCompleted());
     }
   }
 

@@ -11,7 +11,7 @@
     position:fixed; bottom:8px; right:8px; z-index:4000; font:12px/1.3 monospace; background:rgba(0,0,0,0.65);
     color:#eee; padding:6px 8px; border-radius:6px; max-width:260px; cursor:pointer; backdrop-filter:blur(4px);
   `;
-  panel.innerHTML = '<strong>Phase Timings</strong><div data-rows></div>';
+  panel.innerHTML = '<div data-rows></div>'; // label removed per request
   const rowsEl = panel.querySelector('[data-rows]');
   let collapsed = true;
   function render() {

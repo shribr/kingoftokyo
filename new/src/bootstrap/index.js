@@ -36,6 +36,7 @@ import '../ui/components/buyWaitStatus.js';
 import { applyScenarios, captureScenarioState } from '../services/scenarioService.js';
 import { getScenario } from '../scenarios/catalog.js';
 import { SCENARIO_APPLY_REQUEST } from '../core/actions.js';
+import { bindTokyoEntryAnimation } from '../services/tokyoEntryAnimationService.js';
 
 // Placeholder reducers until implemented
 function placeholderReducer(state = {}, _action) { return state; }
@@ -93,6 +94,8 @@ if (typeof window !== 'undefined') {
   bindUIEventBridges(store);
   bindUIEventAdapters(store);
   bindA11yOverlays(store);
+  // Tokyo entry animation binding (visual only)
+  try { bindTokyoEntryAnimation(store, logger); } catch(e) { console.warn('tokyoEntryAnimation bind failed', e); }
   
   // Initialize enhanced UI integration (unified modals, dialogs, themes)
   initializeEnhancedIntegration(store);

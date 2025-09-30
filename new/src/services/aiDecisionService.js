@@ -50,6 +50,7 @@ export function bindAIDecisionCapture(store) {
         // Schedule AI keep after dice animation completes + 2s buffer (only for CPU turns)
         scheduleAIAutoKeep(store);
       } else {
+        cancelPendingAIKeep();
         console.log('🤖 AI: Skipping dice selection schedule - no rerolls remaining (final roll complete)');
       }
     }
@@ -289,10 +290,16 @@ function autoKeepHeuristic(store) {
   try {
     // Use the full AI decision engine (same as legacy)
     const faces = state.dice.faces.map(f => f.value);
+    const canonicalFaces = faces.map(face => {
+      if (face === 'claw') return 'attack';
+      if (face === 'heal') return 'heart';
+      return face;
+    });
     const rollsRemaining = state.dice.rerollsRemaining;
     
     console.log('🤖 AI: Calling decision engine with:', {
       faces,
+      canonicalFaces,
       rollsRemaining,
       playerHealth: player.health,
       playerVP: player.victoryPoints || player.vp || 0,
@@ -330,7 +337,13 @@ function autoKeepHeuristic(store) {
     };
     
     // Get AI decision
-    const decision = enhancedEngine.makeRollDecision(faces, rollsRemaining, aiPlayer, gameState);
+    const decision = enhancedEngine.makeRollDecision(canonicalFaces, rollsRemaining, aiPlayer, gameState);
+
+    if (!decision || typeof decision !== 'object') {
+      console.warn('🤖 AI: Decision engine returned no decision; invoking fallback keep logic.');
+      simpleFallbackKeep(store, store.getState());
+      return;
+    }
     
     console.log('🤖 AI Decision:', {
       action: decision.action,
@@ -341,19 +354,30 @@ function autoKeepHeuristic(store) {
     
     // Apply the keep decision from AI engine
     if (decision.keepDice && Array.isArray(decision.keepDice)) {
-      decision.keepDice.forEach(idx => {
-        if (idx >= 0 && idx < state.dice.faces.length) {
-          const die = state.dice.faces[idx];
-          if (!die.kept) {
-            store.dispatch(diceToggleKeep(idx));
-          }
+      const desired = new Set(decision.keepDice.filter(idx => idx >= 0 && idx < state.dice.faces.length));
+
+      // First release any dice currently kept but not desired anymore
+      const beforeState = store.getState();
+      const currentFaces = beforeState.dice.faces || [];
+      currentFaces.forEach((die, idx) => {
+        if (die?.kept && !desired.has(idx)) {
+          store.dispatch(diceToggleKeep(idx));
+        }
+      });
+
+      // Then ensure all desired dice are kept
+      desired.forEach(idx => {
+        const latest = store.getState().dice.faces || [];
+        const die = latest[idx];
+        if (die && !die.kept) {
+          store.dispatch(diceToggleKeep(idx));
         }
       });
     }
   } catch (err) {
     console.error('🤖 AI: Error in autoKeepHeuristic, using fallback:', err);
     // Fallback to simple logic if AI engine fails
-    simpleFallbackKeep(store, state);
+    simpleFallbackKeep(store, store.getState());
   }
 }
 
@@ -387,14 +411,16 @@ function simpleFallbackKeep(store, state) {
 }
 
 function scheduleAIAutoKeep(store) {
+  // Skip scheduling in controller mode (immediate selection handled inside turn controller)
+  try {
+    if (typeof window !== 'undefined' && window.__KOT_NEW__?.cpuControllerModeActive) return;
+  } catch(_) {}
   cancelPendingAIKeep();
   const gen = ++aiKeepGeneration;
   aiKeepTimer = setTimeout(() => {
-    // If another roll started since scheduling, skip
-    if (gen !== aiKeepGeneration) return;
+    if (gen !== aiKeepGeneration) return; // stale generation
     try {
       const st = store.getState();
-      // Ensure we're still in CPU ROLL phase and dice are resolved
       const activeId = selectActivePlayerId(st);
       if (!activeId || st.phase !== 'ROLL' || st.dice.phase !== 'resolved') return;
       const player = st.players.byId[activeId];
@@ -403,6 +429,15 @@ function scheduleAIAutoKeep(store) {
       autoKeepHeuristic(store);
     } catch(_) { /* noop */ }
   }, DICE_ANIM_MS + AI_POST_ANIM_DELAY_MS);
+}
+
+// Public helper: immediate AI dice selection (used by controller mode)
+export function immediateAIDiceSelection(store) {
+  try {
+    autoKeepHeuristic(store);
+  } catch(err) {
+    console.warn('[aiDecisionService] immediateAIDiceSelection failed', err);
+  }
 }
 
 // Immediate safeguard: if AI timer race causes no keeps before reroll evaluation, invoke heuristic now.
