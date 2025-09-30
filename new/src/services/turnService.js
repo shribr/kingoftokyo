@@ -413,9 +413,14 @@ export function createTurnService(store, logger, rng = Math.random) {
     if (st.phase !== 'ROLL') return; // only relevant during roll phase
     if (!st.dice || (st.dice.phase !== 'resolved' && st.dice.phase !== 'sequence-complete')) return;
     if (st.dice.accepted) return; // idempotent
-    resolveDice(store, logger); // apply effects silently
+    // Reentrancy guard: mark accepted first so any nested subscription-triggered calls short-circuit
     store.dispatch(diceResultsAccepted());
-    eventBus.emit('ui/cards/refreshAffordability');
+    try {
+      resolveDice(store, logger); // apply effects silently
+    } catch(err) {
+      logger.warn && logger.warn('acceptDiceResults resolveDice error', err);
+    }
+    try { eventBus.emit('ui/cards/refreshAffordability'); } catch(_) {}
   }
 
   return { startGameIfNeeded, startTurn, performRoll, reroll, resolve, cleanup, endTurn, playCpuTurn, acceptDiceResults };
