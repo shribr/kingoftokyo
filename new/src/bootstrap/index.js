@@ -20,7 +20,7 @@ import { targetSelectionReducer } from '../core/reducers/targetSelection.reducer
 import { gameReducer } from '../core/reducers/game.reducer.js';
 import { createPlayer } from '../domain/player.js';
 import { createLogger } from '../services/logger.js';
-import { initCards } from '../services/cardsService.js';
+import { initCards, refillShop } from '../services/cardsService.js';
 import { settingsReducer } from '../core/reducers/settings.reducer.js';
 import { metaReducer } from '../core/reducers/meta.reducer.js';
 import { createTurnService } from '../services/turnService.js';
@@ -127,7 +127,15 @@ if (typeof window !== 'undefined') {
 
   // Load monsters first; if skipIntro, unconditionally auto-seed players and bypass selection/RFF.
   fetch('./config/config.json').then(r => r.json()).then(cfg => {
-    const monsters = Object.values(cfg.monsters || {}).map(m => ({ id: m.id, name: m.name, image: m.image, description: m.description, personality: m.personality || {}, color: m.color }));
+    let monsters = Object.values(cfg.monsters || {}).map(m => ({ id: m.id, name: m.name, image: m.image, description: m.description, personality: m.personality || {}, color: m.color }));
+    if (!monsters.length) {
+      console.warn('[bootstrap] config.json contained no monsters; using internal default set.');
+      monsters = [
+        { id: 'the_king', name: 'The King', image: 'images/characters/king_of_tokyo_the_king.png', description: 'A mighty ape unleashing chaos.', personality: { aggression:5, strategy:2, risk:3, economic:2 }, color: '#c49b3a' },
+        { id: 'alienoid', name: 'Alienoid', image: 'images/characters/king_of_tokyo_alienoid.png', description: 'A mysterious being from the stars.', personality: { aggression:3, strategy:4, risk:2, economic:3 }, color: '#6ac2d8' },
+        { id: 'kraken', name: 'Kraken', image: 'images/characters/king_of_tokyo_kraken.png', description: 'Terror from the deep seas.', personality: { aggression:4, strategy:3, risk:3, economic:2 }, color: '#2e8cba' }
+      ];
+    }
     store.dispatch(monstersLoaded(monsters));
     if (skipIntro) {
       const st = store.getState();
@@ -136,6 +144,14 @@ if (typeof window !== 'undefined') {
       }
       const seeded = store.getState().players.order.length;
       if (!seeded) console.warn('[bootstrap] skipIntro active but players failed to seed (monsters likely empty or images missing).');
+      // Ensure power card shop populated (user report: empty shop when skipping intro)
+      try {
+        const afterSeed = store.getState();
+        if (afterSeed.cards && Array.isArray(afterSeed.cards.shop) && afterSeed.cards.shop.length === 0) {
+          refillShop(store, logger);
+          logger.system('Refilled empty power card shop post skipIntro seeding.');
+        }
+      } catch(e) { console.warn('Shop refill guard failed', e); }
     }
   }).catch(() => {
     const fallback = [
@@ -149,6 +165,14 @@ if (typeof window !== 'undefined') {
       if (!st.players.order.length) seedRandomPlayers(store, fallback, logger);
       const seeded = store.getState().players.order.length;
       if (!seeded) console.warn('[bootstrap] skipIntro active (fallback) but players failed to seed.');
+      // Fallback path: also ensure shop populated
+      try {
+        const afterSeed = store.getState();
+        if (afterSeed.cards && Array.isArray(afterSeed.cards.shop) && afterSeed.cards.shop.length === 0) {
+          refillShop(store, logger);
+          logger.system('Refilled empty power card shop post skipIntro fallback seeding.');
+        }
+      } catch(e) { console.warn('Shop refill guard (fallback) failed', e); }
     }
   });
   initCards(store, logger);

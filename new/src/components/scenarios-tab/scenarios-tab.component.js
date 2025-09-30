@@ -14,7 +14,7 @@ export function build(ctx) {
 
 function template(){
   const scenarios = listScenarios();
-  return `<h3 style="margin:0 0 8px;font-family:system-ui;letter-spacing:.5px;">Scenarios</h3>
+  return `<h3 style="margin:0 0 8px;font-family:system-ui;letter-spacing:.5px;">Scenario Options</h3>
   <p style="margin:0 0 10px;font-size:12px;opacity:.75;line-height:1.4;">Select one or more scenarios, choose a target group (👤 Human, 🤖 CPUs, or 👤+🤖 Both) then optionally choose how many CPU players (1-5) to include.</p>
   <div class="scenario-list" style="display:grid;gap:6px;margin-bottom:10px;">
     ${scenarios.map(s=>`<label style='display:flex;gap:6px;align-items:flex-start;font-size:13px;'>
@@ -64,6 +64,8 @@ function bind(root){
       } else {
         cpuCountWrapper().style.display = 'flex';
       }
+      // Recompute disabled scenarios for new mode selection
+      applyScenarioUniquenessDisables(root);
     }
     if (e.target.matches('[data-scenario-id]')) {
       updateParamEditor(root);
@@ -83,12 +85,22 @@ function bind(root){
       sync(root);
     }
     if (e.target.matches('[data-apply-selected]')) {
-      const selected = [...root.querySelectorAll('[data-scenario-id]:checked')].map(cb=>cb.getAttribute('data-scenario-id'));
+      let selected = [...root.querySelectorAll('[data-scenario-id]:checked')].map(cb=>cb.getAttribute('data-scenario-id'));
       if (!selected.length) return;
       const mode = modeSelect().value; // HUMAN | CPUS | BOTH
       let cpuCount = 0;
       if (mode !== 'HUMAN') {
         cpuCount = parseInt(cpuCountSelect().value, 10) || 1;
+      }
+      // Enforce uniqueness per target mode: filter out already-assigned scenarios for same mode
+      const stPre = store.getState();
+      const existing = (stPre.settings?.scenarioConfig?.assignments||[]).filter(a=>a.mode===mode);
+      const already = new Set();
+      existing.forEach(a => (a.scenarioIds||[]).forEach(id => already.add(id)));
+      selected = selected.filter(id => !already.has(id));
+      if (!selected.length) {
+        // Nothing new to add; exit gracefully
+        return;
       }
       // Gather parameter values per scenario
       const paramsByScenario = {};
@@ -112,6 +124,8 @@ function bind(root){
       assignments.push({ mode, cpuCount, scenarioIds: selected, paramsByScenario });
       store.dispatch(scenarioConfigUpdated({ assignments }));
       sync(root);
+      // Update disables after adding
+      applyScenarioUniquenessDisables(root);
     }
     if (e.target.matches('[data-run-game]')) {
       launchScenarioApplication();
@@ -162,8 +176,10 @@ function sync(root){
   });
   const summaryEl = root.querySelector('[data-summary]');
   if (summaryEl) {
-    summaryEl.innerHTML = renderSummary(norm);
+    summaryEl.innerHTML = renderSummary(norm) + renderUniquenessHint();
   }
+  // Apply disables after sync (mode might not have changed)
+  applyScenarioUniquenessDisables(root);
 }
 
 function launchScenarioApplication(){
@@ -294,4 +310,34 @@ function updateParamEditor(root){
   if (!blocks.length) { editor.style.display='none'; editor.innerHTML=''; return; }
   editor.style.display='block';
   editor.innerHTML = `<div style='font-weight:600;margin-bottom:4px;'>Parameters</div>${blocks.join('')}`;
+}
+
+// Uniqueness enforcement helpers
+function applyScenarioUniquenessDisables(root){
+  try {
+    const modeSel = root.querySelector('[data-target-mode]');
+    if (!modeSel) return;
+    const mode = modeSel.value; // current chosen mode
+    const st = store.getState();
+    const existing = (st.settings?.scenarioConfig?.assignments||[]).filter(a=>a.mode===mode);
+    const used = new Set();
+    existing.forEach(a => (a.scenarioIds||[]).forEach(id => used.add(id)));
+    root.querySelectorAll('[data-scenario-id]').forEach(cb => {
+      const id = cb.getAttribute('data-scenario-id');
+      if (used.has(id)) {
+        cb.disabled = true;
+        cb.parentElement.style.opacity = '.45';
+        cb.parentElement.title = 'Already assigned for this target';
+        cb.checked = false; // ensure not lingering in selection
+      } else {
+        cb.disabled = false;
+        cb.parentElement.style.opacity = '';
+        cb.parentElement.removeAttribute('title');
+      }
+    });
+  } catch(_) {}
+}
+
+function renderUniquenessHint(){
+  return `<div style='margin-top:8px;opacity:.55;font-size:10px;'>Scenarios already assigned for the selected target are disabled.</div>`;
 }
