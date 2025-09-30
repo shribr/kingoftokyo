@@ -5,7 +5,7 @@ import { uiCardDetailClose } from '../../core/actions.js';
 import { getCardInsight } from '../../utils/card-insights.js';
 import { purchaseCard } from '../../services/cardsService.js';
 import { logger } from '../../bootstrap/index.js';
-import { generatePowerCard } from '../power-cards/power-card-generator.js';
+// Removed generatePowerCard import – intentionally blanking visual card area per user request.
 
 export function build({ selector, emit }) {
   const root = document.createElement('div');
@@ -87,11 +87,11 @@ export function update(root) {
   }
   root.querySelector('[data-name]').textContent = candidate.name;
 
-  // Inject full power card (no buy button, keep footer for symmetry)
+  // Intentionally leave card visual area blank for now (verification phase)
   const cardWrapper = root.querySelector('[data-card-wrapper]');
-  if (cardWrapper && (!cardWrapper.firstChild || cardWrapper.getAttribute('data-card-id') !== candidate.id)) {
-    cardWrapper.innerHTML = generatePowerCard(candidate, { playerEnergy: 0, showBuy: false, showFooter: true, infoButton: false });
-    cardWrapper.setAttribute('data-card-id', candidate.id);
+  if (cardWrapper) {
+    cardWrapper.innerHTML = '<div class="cd-card-blank" aria-label="Card visual temporarily removed"></div>';
+    cardWrapper.removeAttribute('data-card-id');
   }
 
   const insight = getCardInsight(candidate);

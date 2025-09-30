@@ -71,3 +71,12 @@
 .pcm-card:hover { background: #ffe5a0; }
 
 /* Removed obsolete alternative combo styling */
+
+/* --- Card Detail Header / Close Button Reposition --- */
+.card-detail-frame .cd-header { position: relative; padding-top:.35rem; padding-right:.5rem; display:flex; align-items:flex-end; }
+.card-detail-frame .cd-title { margin:0; font-size:1.35rem; font-weight:800; letter-spacing:1px; flex:1; color:#ffefa5; text-shadow:0 2px 0 #000, 0 0 2px #000; }
+/* Close button now floats slightly above and to right of header */
+.card-detail-frame .cd-close { position:absolute; top:-12px; right:-12px; background:transparent; border:none; color:#ffefa5; font-size:1rem; padding:4px 6px; line-height:1; border-radius:0; display:inline-block; box-shadow:none; cursor:pointer; }
+.card-detail-frame .cd-close:hover { color:#fff; background:transparent; }
+.card-detail-frame .cd-close:focus { outline:2px solid #ffefa5; outline-offset:2px; }
+
