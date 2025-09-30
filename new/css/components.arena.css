@@ -173,7 +173,7 @@
 .cmp-arena [data-round-indicator] { position:absolute; top:6px; left:6px; display:flex; flex-direction:row; align-items:center; gap:8px; padding:4px 12px 6px; background:var(--arena-round-color); border:3px solid #000; border-radius:40px; box-shadow:3px 3px 0 #000,0 0 0 2px #222 inset; z-index:10; }
 .cmp-arena [data-round-indicator] .round-indicator-label { font-family:'Bangers',cursive; font-size:1.05rem; letter-spacing:1px; color:#000; white-space:nowrap; display:flex; gap:6px; }
 .cmp-arena [data-round-indicator] [data-round-counter] { font-weight:700; font-size:1.15rem; }
-.cmp-arena .tokyo-occupant { display:flex; flex-direction:column; gap:2px; font-size:.75rem; background:rgba(0,0,0,.6); border:1px solid #444; padding:4px 6px; border-radius:4px; color:#eee; }
+.cmp-arena .tokyo-occupant { display:flex; flex-direction:column; gap:2px; font-size:.75rem; background:transparent; border:0; padding:0; border-radius:4px; color:#eee; }
 .cmp-arena .slot-empty { font-size:.7rem; color:#777; font-style:italic; }
 .cmp-arena [data-arena-section="city"] { transform:rotate(var(--tokyo-city-rot)) scale(var(--tokyo-tile-scale)); }
 .cmp-arena [data-arena-section="bay"] { transform:rotate(var(--tokyo-bay-rot)) scale(var(--tokyo-tile-scale)); }
@@ -212,10 +212,24 @@
 .cmp-arena .city-slot .cmp-player-profile-card,
 .cmp-arena .bay-slot .cmp-player-profile-card {
   width: 100%;
-  height: 100%;
+  /* Remove forced full slot height so card can shrink to content */
+  height: auto;
   transform: scale(0.8);
   transform-origin: center center;
 }
+/* Mini variant explicit sizing (clone in Tokyo) */
+.cmp-arena .city-slot .cmp-player-profile-card.cmp-player-profile-card--mini,
+.cmp-arena .bay-slot .cmp-player-profile-card.cmp-player-profile-card--mini {
+  transform: scale(.75);
+  width: 180px;
+  max-width:180px;
+  height:auto;
+}
+/* Hide any leftover owned cards / health blocks just in case */
+.cmp-arena .city-slot .cmp-player-profile-card.cmp-player-profile-card--mini .ppc-owned-cards,
+.cmp-arena .city-slot .cmp-player-profile-card.cmp-player-profile-card--mini .ppc-health-block,
+.cmp-arena .bay-slot .cmp-player-profile-card.cmp-player-profile-card--mini .ppc-owned-cards,
+.cmp-arena .bay-slot .cmp-player-profile-card.cmp-player-profile-card--mini .ppc-health-block { display:none !important; }
 .cmp-arena .city-slot .cmp-player-profile-card *,
 .cmp-arena .bay-slot .cmp-player-profile-card * { pointer-events: none; }
 

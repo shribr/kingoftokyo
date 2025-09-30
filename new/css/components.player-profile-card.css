@@ -349,6 +349,75 @@
 #active-player-card-slot[data-mini="true"] .cmp-player-profile-card [data-owned-cards][data-owned-cards] { display:none; }
 #active-player-card-slot[data-mini="true"] .cmp-player-profile-card .ppc-health-block { display:none; }
 #active-player-card-slot[data-mini="true"] .cmp-player-profile-card .ppc-name { display:none; }
+
+/* --- Mini Tokyo Occupant Variant -------------------------------------------------
+ * The arena inserts a cloned player profile card with class .cmp-player-profile-card--mini
+ * when a player occupies Tokyo (see arena.component.js renderOccupant). Without sizing
+ * rules this clone renders full height, producing a tall green rectangle. These rules
+ * compress the card, hide non-essential blocks (health + owned cards), and prevent
+ * overflow so the Tokyo slot shows a concise badge-like card.
+ */
+.cmp-player-profile-card.cmp-player-profile-card--mini { 
+  --mini-scale: .78;
+  width: 200px; 
+  max-width:200px; 
+  padding:8px 10px 10px; 
+  position:relative; 
+  border:2px solid var(--ppc-accent,#2d3436);
+  background:linear-gradient(135deg,var(--ppc-accent,#2d3436) 0%, rgba(27,31,32,0.9) 100%);
+  border-radius:6px; 
+  box-shadow:2px 2px 0 #000; 
+  overflow:hidden; 
+  font-size:12px; 
+}
+.cmp-player-profile-card.cmp-player-profile-card--mini .ppc-expand-toggle { display:none !important; }
+.cmp-player-profile-card.cmp-player-profile-card--mini .ppc-owned-cards,
+.cmp-player-profile-card.cmp-player-profile-card--mini .ppc-health-block { display:none !important; }
+.cmp-player-profile-card.cmp-player-profile-card--mini .ppc-stats { margin-top:4px; }
+.cmp-player-profile-card.cmp-player-profile-card--mini .ppc-stats .ppc-stat { padding:2px 4px; }
+.cmp-player-profile-card.cmp-player-profile-card--mini .ppc-name { font-size:18px; }
+.cmp-player-profile-card.cmp-player-profile-card--mini .ppc-status-line { margin-top:2px; }
+.cmp-player-profile-card.cmp-player-profile-card--mini[data-in-tokyo] .ppc-tokyo-indicator { 
+  display:inline-block; 
+  padding:2px 6px; 
+  font-size:11px; 
+  border:2px solid #000; 
+  background:linear-gradient(135deg,#0b435c,#062733); 
+  border-radius:4px; 
+  letter-spacing:1px; 
+}
+.cmp-player-profile-card.cmp-player-profile-card--mini .ppc-avatar { 
+  width:42px; 
+  height:42px; 
+  border-radius:50%; 
+  background-size:cover; 
+  background-position:center; 
+  flex-shrink:0; 
+}
+.cmp-player-profile-card.cmp-player-profile-card--mini .ppc-header { 
+  display:flex; 
+  align-items:center; 
+  gap:10px; 
+  margin:0; 
+  padding:0; 
+}
+.cmp-player-profile-card.cmp-player-profile-card--mini .ppc-meta { flex:1; }
+.cmp-player-profile-card.cmp-player-profile-card--mini .ppc-name { margin:0; line-height:1.1; }
+.cmp-player-profile-card.cmp-player-profile-card--mini .ppc-stats { display:flex; gap:6px; }
+.cmp-player-profile-card.cmp-player-profile-card--mini .ppc-stats .ppc-stat { 
+  background:#fff; 
+  border:2px solid #000; 
+  box-shadow:2px 2px 0 #000; 
+  font-size:11px; 
+  min-width:50px; 
+}
+.cmp-player-profile-card.cmp-player-profile-card--mini .ppc-stats .ppc-stat .label { font-size:9px; letter-spacing:.5px; }
+.cmp-player-profile-card.cmp-player-profile-card--mini .ppc-stats .ppc-stat .value { font-size:14px; }
+
+/* Ensure Tokyo slot wrapper doesn't stretch because of line-height or hidden content */
+.tokyo-occupant { display:flex; align-items:center; justify-content:center; padding:2px 0; }
+.tokyo-occupant > .cmp-player-profile-card--mini { margin:0 !important; }
+
 #active-player-card-slot[data-mini="true"] .cmp-player-profile-card .ppc-meta { display:none; }
 #active-player-card-slot[data-mini="true"] .cmp-player-profile-card .ppc-avatar { width:58px; height:58px; }
 

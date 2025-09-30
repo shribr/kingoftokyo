@@ -5,7 +5,7 @@ import { uiCardDetailClose } from '../../core/actions.js';
 import { getCardInsight } from '../../utils/card-insights.js';
 import { purchaseCard } from '../../services/cardsService.js';
 import { logger } from '../../bootstrap/index.js';
-// Removed generatePowerCard import – intentionally blanking visual card area per user request.
+import { generatePowerCard } from '../power-cards/power-card-generator.js';
 
 export function build({ selector, emit }) {
   const root = document.createElement('div');
@@ -19,7 +19,7 @@ export function build({ selector, emit }) {
         <h2 class="cd-title" id="card-detail-title" data-name></h2>
         <button class="cd-close" data-action="close" aria-label="Close card details">✕</button>
       </div>
-  <div class="cd-card-wrapper" data-card-wrapper></div>
+  <div class="cd-card-wrapper cmp-power-cards-panel" data-card-wrapper></div>
       <div class="cd-body">
         <div class="cd-section cd-strategy" data-strategy-wrapper>
           <h3 class="cd-section-title">STRATEGY</h3>
@@ -87,11 +87,17 @@ export function update(root) {
   }
   root.querySelector('[data-name]').textContent = candidate.name;
 
-  // Intentionally leave card visual area blank for now (verification phase)
+  // Regenerate power card using shared generator (defensive: only if card changed)
   const cardWrapper = root.querySelector('[data-card-wrapper]');
-  if (cardWrapper) {
-    cardWrapper.innerHTML = '<div class="cd-card-blank" aria-label="Card visual temporarily removed"></div>';
-    cardWrapper.removeAttribute('data-card-id');
+  if (cardWrapper && cardWrapper.getAttribute('data-card-id') !== candidate.id) {
+    try {
+      cardWrapper.innerHTML = generatePowerCard(candidate, { playerEnergy: active ? active.energy : 0, showBuy: false, showFooter: true, infoButton: false });
+      cardWrapper.setAttribute('data-card-id', candidate.id);
+    } catch (e) {
+      logger?.warn?.('card-detail: failed to generate power card', e);
+      cardWrapper.innerHTML = '<div class="cd-card-blank" aria-label="Card could not render"></div>';
+      cardWrapper.removeAttribute('data-card-id');
+    }
   }
 
   const insight = getCardInsight(candidate);

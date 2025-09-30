@@ -80,3 +80,15 @@
 .card-detail-frame .cd-close:hover { color:#fff; background:transparent; }
 .card-detail-frame .cd-close:focus { outline:2px solid #ffefa5; outline-offset:2px; }
 
+/* Power card inside modal adjustments */
+.card-detail-frame .cmp-power-cards-panel .pc-card { box-shadow:none; border:2px solid #000; padding:10px 12px 40px; background:linear-gradient(135deg,#303036,#202025); margin:0 0 .75rem; }
+.card-detail-frame .cmp-power-cards-panel { margin-top: .85rem; }
+.card-detail-frame .cmp-power-cards-panel .pc-card:hover { transform:none; box-shadow:none; }
+.card-detail-frame .cmp-power-cards-panel .pc-card:after, .card-detail-frame .cmp-power-cards-panel .pc-card:before { display:none; }
+.card-detail-frame .cmp-power-cards-panel .pc-card__header, .card-detail-frame .cmp-power-cards-panel .pc-card-header { margin:0 0 .5rem; box-shadow:none; background:linear-gradient(135deg,#3b4245,#23272a); }
+.card-detail-frame .cmp-power-cards-panel .pc-card-cost--footer { display:none !important; }
+.card-detail-frame .cmp-power-cards-panel .pc-card-cost--header { display:flex !important; position:static; margin:0 0 0 .5rem; }
+.card-detail-frame .cmp-power-cards-panel .pc-card-name { padding-left:0; }
+.card-detail-frame .cmp-power-cards-panel .pc-card__body, .card-detail-frame .cmp-power-cards-panel .pc-card-description { font-size:14px; line-height:1.4; }
+.card-detail-frame .cmp-power-cards-panel .pc-card .pc-card-footer { display:none; }
+

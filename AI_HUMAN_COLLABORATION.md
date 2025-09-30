@@ -1021,6 +1021,167 @@ The splash screen will now display your beautiful Tokyo cityscape with the neon 
 
 ---
 
+# King of Tokyo - Chat History Day 8
+**Date: September 18, 2025**
+
+---
+
+## Session Summary
+Focused on the Power Card Detail experience: introduced a dedicated modal with a minimalist header (card name + close button only) and ensured cards rendered inside the modal matched styling in the shop/grid. This required disentangling style scoping assumptions and removing the last vestiges of Dark Edition visual markers for consistent parity with the base edition target.
+
+## Key Objectives Achieved
+1. Card Detail Modal Redesign
+2. Unified Card Rendering (shared generator) across shop, owned list, and modal
+3. Removal of Dark Edition badge/symbol references + filtering of Dark-only cards
+4. Layout polish: proper spacing between header and card; elimination of cost footer collision
+
+## Technical Changes
+- Added modal-specific wrapper ensuring the original ancestor class (`.cmp-power-cards-panel`) requirement was satisfied so existing CSS applied without duplicating rules.
+- Removed dark-edition conditionals and badge node creation; sanitized any remaining data arrays referencing unused variant markers.
+- Implemented modal CSS overrides to hide the cost footer (absolute footer previously overlapped when context changed) and neutralize hover / selection shadows in detail view.
+- Standardized DOM structure produced by the card factory to guarantee identical markup across contexts (preventing style drift / cascade surprises).
+
+## Problems & Resolutions
+| Problem | Root Cause | Resolution |
+| --- | --- | --- |
+| Card in modal unstyled | Missing ancestor scoping class | Added wrapper with required class + removed ad hoc !important fallback |
+| Cost circle overlapping text | Footer absolutely positioned relative to different container context | Modal override hides footer & re-centers info block |
+| Dark Edition badge lingering in code | Legacy support logic not pruned | Stripped badge generation & filtered card data |
+
+## Collaboration Highlights
+- User provided concise visual expectation: header should only contain the name and a right-aligned close button—prevented over-design.
+- Rapid iteration: initial attempt added extra container complexity; streamlined after confirming scope limitation.
+- Emphasis on non-destructive integration (no mutation of shared generator beyond necessary neutralization of badge logic).
+
+## Lessons
+1. Preserve existing scoping patterns; replicate expected ancestry rather than broadening CSS selectors (avoids regressions).
+2. Removing deprecated feature branches (Dark Edition) reduces cognitive load and styling contingencies.
+3. Modal contexts often invalidate positional assumptions (absolute elements) — design for context-agnostic layout or provide scoped overrides.
+
+## Next Validation Needed
+- Cross-browser spacing check (Safari line-height quirks possible with header typography).
+- Confirm no remaining Dark Edition assets referenced in preload routines.
+
+*End of Day 8 Chat History*
+
+---
+
+# King of Tokyo - Chat History Day 9
+**Date: September 19, 2025**
+
+---
+
+## Session Summary
+Addressed a persistent visual artifact: a tall green vertical rectangle occupying the Tokyo slot instead of a properly scaled monster/player card. Investigation centered on clone animation logic and styling scope for mini player card variants introduced during Tokyo entry animations.
+
+## Investigation Path
+1. Inspected `tokyoEntryAnimationService` for DOM cloning & placeholder sequencing.
+2. Traced `arena.component` occupant rendering (`renderOccupant`) — discovered addition of `cmp-player-profile-card--mini` class with no corresponding CSS rules (orphan modifier).
+3. Located conflicting legacy slot height rules (`height: 100%`) forcing vertical stretching against background.
+4. Identified residual background / border styles attached to generic slot container (.tokyo-occupant) producing green bar.
+
+## Fixes Implemented
+- Created a dedicated mini variant rule block in `components.player-profile-card.css`:
+    - Scaled down avatar & name typography.
+    - Hid health panel, owned cards list, and non-essential UI sections.
+    - Ensured flex layout compression & consistent aspect ratio.
+- Patched `components.arena.css`:
+    - Removed background and border from `.tokyo-occupant` containers.
+    - Replaced rigid `height: 100%` with `height: auto` for natural content fit.
+    - Added targeted overrides for mini variant inside city/bay to prevent inherited spacing from full-size layout.
+
+## Remaining Uncertainty
+- Awaiting user confirmation that second-stage CSS overrides eliminated artifact (first pass insufficient — root cause deeper than missing variant styles alone).
+- Potential fallback: escalate specificity or prune legacy layout CSS if artifact persists due to cascade order.
+
+## Collaboration Dynamics
+- User quickly signaled first attempt did not remove artifact — prevented premature closure.
+- Iterative refinement emphasized isolating minimal necessary overrides rather than broad global CSS edits.
+
+## Lessons
+1. Animation clones inherit DOM structure but not guaranteed styling semantics; modifier classes must ship with styles simultaneously.
+2. Vertical stretching often traces back to container-imposed height rather than the child component.
+3. Layered legacy + new CSS can silently reintroduce deprecated visuals if specificity remains unbalanced.
+
+## Follow-Up Checklist
+- [ ] Validate artifact removal in live environment.
+- [ ] Audit for stray `.tokyo-occupant` definitions in legacy stylesheets & retire duplicates.
+
+*End of Day 9 Chat History*
+
+---
+
+# King of Tokyo - Chat History Day 10
+**Date: September 20–30, 2025 (Consolidated Period)**
+
+---
+
+## Consolidated Period Summary
+This multi-day span focused on stabilizing UI parity, preparing for upcoming AI turn logic enhancements, and curating collaboration documentation continuity. The emphasis shifted from purely reactive bug fixes toward proactive structural clarity (documentation + style isolation) to accelerate forthcoming gameplay logic work (AI decision tree, CPU dice roller, outcome narration stream).
+
+## Key Threads
+### 1. Documentation Extension
+- Began structured extension of `AI_HUMAN_COLLABORATION.md` beyond Day 7 to preserve institutional memory of stylistic + logic refactors.
+- Ensured narrative tone continuity (human-AI joint retrospection rather than sterile changelog).
+
+### 2. UI Parity Hardening
+- Codified mini profile card variant to avoid future styling drift when reused outside Tokyo context (potential future sidebar / scoreboard compact views).
+- Localized modal overrides to prevent global power card layout regressions.
+
+### 3. Technical Debt Containment
+- Removed dark edition branches — reduced conditional rendering surface area ahead of AI rule introspection work.
+- Identified upcoming necessity to formalize a component registry (implicit via repeated DOM construction patterns) — deferred until AI logic integration requires more deterministic ref lookups.
+
+### 4. Forthcoming AI Systems (Preparation State)
+Planned (not yet implemented) components:
+- AI Decision Evaluation Module (heuristics weighting: survival, VP acceleration, energy economy, aggression opportunism).
+- CPU Dice Roller Orchestrator (interfaces with existing reroll allowances + future power card effect injection points).
+- Narrative Yield Adapter (channels AI reasoning into human-readable action summaries without polluting core log formatting).
+
+## Collaboration Insights (Period)
+- Strategic pause for documentation increased alignment and reduced risk of context loss entering more complex AI implementation phase.
+- Incremental CSS isolation steps serve as a template for future logic encapsulation (prefer wrapper + scoped rules over broad selectors refactors mid-cycle).
+
+## Risks & Mitigations
+| Risk | Impact | Mitigation |
+| --- | --- | --- |
+| Style cascade conflicts during AI UI additions | Visual regressions & debugging churn | Maintain modifier-first pattern; introduce naming lint guideline (planned) |
+| Expanding AI logic without test harness | Hard-to-diagnose decision errors | Introduce minimal deterministic test runner harness (dice seed + decision assertion) before complex heuristics |
+| Log stream overload when AI reasoning added | Reduced readability | Implement collapsible or categorized reasoning panel (separate from core action log) |
+
+## Metrics (Qualitative)
+- UI regressions since modal refactor: 0 observed (pending Tokyo artifact confirmation).
+- Deprecated feature branches removed: Dark Edition path fully excised.
+- New modifier classes introduced with matching styles: 1 (`--mini`).
+
+## Immediate Next Steps (Execution Ready)
+1. Confirm Tokyo slot visual parity (user validation loop).
+2. Draft AI decision heuristic outline (weights + decision pipeline contract).
+3. Scaffold CPU dice roller integration point (non-invasive wrapper over existing roll functions).
+4. Add lightweight seedable test harness to `new/test-runner.html` for future deterministic AI evaluation.
+
+## Longer-Horizon Enhancements (Deferred)
+- Component registry / template factory consolidation.
+- Accessibility pass (focus order, ARIA roles in modals).
+- Performance audit of animation cloning under stress (6-player rapid Tokyo turnovers).
+
+*End of Day 10 Chat History*
+
+---
+
+## Forward-Looking Roadmap Snapshot
+| Track | Near-Term Focus | Rationale |
+| --- | --- | --- |
+| AI Logic | Decision heuristics + dice strategy | Core gameplay differentiation |
+| UI | Validation + minor parity polish | Prevent compounding visual debt |
+| Testing | Seeded scenario harness | Deterministic AI regression prevention |
+| Documentation | Continue living log cadence | Sustains context continuity |
+
+---
+
+*Document extended through September 30, 2025.*
+
+
 # King of Tokyo - Chat History Day 5  
 **Date: September 17, 2025**
 
