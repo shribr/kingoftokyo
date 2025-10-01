@@ -169,15 +169,15 @@ Status Update (Oct 1, 2025): Phase Alpha Steps 1 & 3 complete – AI actuation u
 2. FSM + `turnCycleId` (PARTIAL – guards in place, FSM pending)
 3. Dice roll resolved event (no polling) & CPU loop refactor (DONE)
 4. Deterministic mode (seeded; fixed trials) + snapshot harness
-	- [x] RNG adapter module (`rngFactory(seed)`) with Mulberry32 implementation (core/rng.js)
-	- [x] Seed derivation: `{ turnCycleId, decisionIndex, playerId }` → 32-bit seed hash
-	- [x] Inject RNG into AI decision pipeline (eliminate implicit Math.random for projection phase)
-	- [x] Fixed Monte Carlo trial count constant (`trialsOverride=64` in deterministic mode)
-	- [x] Decision metadata enrichment: `deterministic.{ seed, trials, durationMs, decisionIndex }`
-	- [x] Snapshot harness: multi-run identical output assertion (tools/deterministicDecisionHarness.js)
-	- [x] Divergence logger: console + eventBus emit `ai.determinism.diff`
-	- [x] Telemetry counter placeholder via event emission
-	- [ ] Guard ensures TEST_MODE disables adaptive early-exit heuristics (pending refactor of early stop heuristics)
+	- [ ] RNG adapter module (`rngFactory(seed)`) with Mulberry32 implementation
+	- [ ] Seed derivation: `{ turnCycleId, finalRollIndex, playerId }` → 32-bit seed hash
+	- [ ] Inject RNG into AI decision pipeline (eliminate implicit Math.random)
+	- [ ] Fixed Monte Carlo trial count constant (`AI_TRIALS_TEST_MODE`)
+	- [ ] Decision metadata enrichment: `meta.seed`, `meta.trials`, `meta.durationMs`
+	- [ ] Snapshot harness: multi-run identical output assertion (dice keep sets, yield advisory)
+	- [ ] Divergence logger (on mismatch dump state + seed chain)
+	- [ ] Telemetry counter: `ai.determinism.diff` (target 0)
+	- [ ] Guard ensures TEST_MODE disables adaptive early-exit heuristics
 5. Unified yield & takeover sequence (yield advisory integration)
 6. BUY_WAIT phase + timing spans + takeover ordering asserts
 

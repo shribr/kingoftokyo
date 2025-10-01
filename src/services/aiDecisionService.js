@@ -150,6 +150,9 @@ function captureRoll(state, facesStr, extraMeta) {
         node.mindset = deriveMindset(decision);
         node.justification = decision.reason;
         node.thoughtProcess = enhancedEngine.explain(decision);
+        if (decision.deterministic) {
+          node.deterministic = { ...decision.deterministic };
+        }
       }
     } catch(e) {
       console.warn('[aiDecisionService] enhanced engine enrichment failed', e);

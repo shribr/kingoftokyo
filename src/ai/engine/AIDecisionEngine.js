@@ -11,7 +11,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : (typeof global !== 'undefined'? global : this));
 
 // Deterministic utilities (only active when test flag set)
-import { isDeterministicMode, combineSeed, createSeededRNG } from '../../core/rng.js';
+import { isDeterministicMode, deriveDecisionSeed, createSeededRNG } from '../../core/rng.js';
 
 // Module-level counters (reset per turnCycleId) for stable decision indexing
 let __decisionCounter = 0;
@@ -47,7 +47,7 @@ class AIDecisionEngine {
     const decisionIndex = __decisionCounter++;
     let decisionSeed=null, decisionRng=null, trialsOverride=null;
     if (deterministicActive){
-      decisionSeed = combineSeed('KOT_AI', turnCycleId, decisionIndex, player?.id||0);
+      decisionSeed = deriveDecisionSeed('KOT_AI', turnCycleId, decisionIndex, player?.id||0);
       decisionRng = createSeededRNG(decisionSeed);
       trialsOverride = 64; // fixed trial count for reproducibility
     }
@@ -59,7 +59,8 @@ class AIDecisionEngine {
     let decision=this._assembleDecision(state, goal, scored, ev, rollsRemaining, player, deterministicCtx);
     decision=this._enforceInvariants(decision, state, rollsRemaining);
     if (deterministicActive){
-      decision.deterministic = decision.deterministic || { seed:decisionSeed, trials:trialsOverride, turnCycleId, decisionIndex };
+      const durationMs = +(performance.now()-start).toFixed(2);
+      decision.deterministic = decision.deterministic || { seed:decisionSeed, trials:trialsOverride, turnCycleId, decisionIndex, durationMs };
     }
     this._lastPerFaceProbabilities=scored.map(s=>({ index:s.index, face:s.face, keepProbability:+(s.normScore||0).toFixed(3) }));
     if (typeof window !== 'undefined') window.NewAIOverrideStats.decisions++;

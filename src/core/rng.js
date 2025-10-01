@@ -36,6 +36,21 @@ export function createSeededRNG(seed) {
   return mulberry32(seed >>> 0);
 }
 
+// Base constant so test seeds are stable even if turnCycleId starts at 0
+export const BASE_TEST_SEED = 0xA17C9E55;
+
+// Derive a seed for an AI decision (roll-level) combining stable identifiers
+export function deriveDecisionSeed(prefix, turnCycleId, decisionIndex, playerId) {
+  return combineSeed(BASE_TEST_SEED, prefix || 'AI_DECISION', turnCycleId|0, decisionIndex|0, playerId|0);
+}
+
+// Create deterministic RNG context for an AI decision if deterministic mode active
+export function maybeCreateDecisionRng(turnCycleId, decisionIndex, playerId) {
+  if (!isDeterministicMode()) return null;
+  const seed = deriveDecisionSeed('KOT_AI', turnCycleId, decisionIndex, playerId);
+  return { seed, rng: createSeededRNG(seed) };
+}
+
 export function nextInt(rng, max) { return Math.floor(rng() * max); }
 
 export function deriveRngForTurn(baseSeed, turnCycleId, rollIndex) {
