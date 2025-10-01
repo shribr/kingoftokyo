@@ -19,6 +19,7 @@ import { selectTokyoCityOccupant, selectTokyoBayOccupant } from '../core/selecto
 import { selectActivePlayerId } from '../core/selectors.js';
 import { Phases } from '../core/phaseFSM.js';
 import { createPhaseController } from '../core/phaseController.js';
+import { beginYieldFlow } from './yieldDecisionService.js';
 
 export function resolveDice(store, logger) {
   const phaseCtrl = createPhaseController(store, logger);
@@ -93,7 +94,32 @@ export function resolveDice(store, logger) {
   const postAttackState = store.getState();
   const playerCount = postAttackState.players.order.length;
   const bayAllowed = playerCount >= 5;
-  const { yieldPromptsCreated } = handleYieldAndPotentialTakeover(store, logger, activeId, tally.claw, playerCount, bayAllowed);
+  let yieldPromptsCreated = false;
+  const useUnifiedYield = true; // TODO: feature flag if needed
+  if (useUnifiedYield) {
+    // Attempt immediate takeover if empty first (retain legacy quick-enter logic)
+    const stateNow = store.getState();
+    const attacker = stateNow.players.byId[activeId];
+    const cityOcc = selectTokyoCityOccupant(stateNow);
+    const bayOcc = selectTokyoBayOccupant(stateNow);
+    const anyOccupied = !!cityOcc || !!bayOcc;
+    if (tally.claw > 0) {
+      if (!anyOccupied && !attacker.inTokyo) {
+        store.dispatch(playerEnteredTokyo(activeId));
+        store.dispatch(tokyoOccupantSet(activeId, playerCount));
+        logger.system(`${activeId} enters Tokyo City!`, { kind:'tokyo', slot:'city' });
+        store.dispatch(playerVPGained(activeId, 1, 'enterTokyo'));
+        store.dispatch(uiVPFlash(activeId, 1));
+        logger.info(`${activeId} gains 1 VP for entering Tokyo`);
+      } else if (anyOccupied) {
+        const created = beginYieldFlow(store, logger, activeId, tally.claw, playerCount, bayAllowed);
+        yieldPromptsCreated = created > 0;
+      }
+    }
+  } else {
+    const res = handleYieldAndPotentialTakeover(store, logger, activeId, tally.claw, playerCount, bayAllowed);
+    yieldPromptsCreated = res.yieldPromptsCreated;
+  }
 
   // 6. Elimination cleanup
   const post = store.getState();
@@ -186,41 +212,10 @@ function handleYieldAndPotentialTakeover(store, logger, activeId, clawDamage, pl
             }
           }
         } catch(_) {}
-        if (p.isCPU || p.isAI) {
-          const expiresAt = Date.now() + 10000;
-          store.dispatch(yieldPromptShown(pid, activeId, slot, expiresAt, damage, advisory));
-          logger.info(`${pid} prompted to yield Tokyo ${slot}`, { kind:'tokyo', slot, attacker: activeId });
-          prompts.push({ defenderId: pid, slot });
-          setTimeout(() => {
-            const s = store.getState();
-            const stillPending = s.yield.prompts.find(pr => pr.defenderId === pid && pr.attackerId === activeId && pr.slot === slot && pr.decision == null);
-            if (stillPending) {
-              const autoDecision = evaluateYieldDecision(s, pid, damage, slot);
-              store.dispatch(yieldPromptDecided(pid, activeId, slot, autoDecision));
-              if (autoDecision === 'yield') {
-                store.dispatch(playerLeftTokyo(pid));
-                logger.system(`${pid} auto-yields Tokyo ${slot}`, { kind:'tokyo', slot });
-              }
-              attemptTokyoTakeover(store, logger, activeId, playerCount, bayAllowed);
-            }
-          }, 5100);
-        } else {
-          store.dispatch(yieldPromptShown(pid, activeId, slot, null, damage, advisory));
-          logger.info(`${pid} prompted to yield Tokyo ${slot} (human - no timeout)`, { kind:'tokyo', slot, attacker: activeId });
-          prompts.push({ defenderId: pid, slot });
-        }
-        // Early AI auto yield if lethal risk
-        const sNow = store.getState();
-        const defender = sNow.players.byId[pid];
-        if (defender && (defender.isCPU || defender.isAI)) {
-          const immediate = evaluateYieldDecision(sNow, pid, damage, slot);
-            if (immediate === 'yield' && defender.health - damage <= 2) {
-            store.dispatch(yieldPromptDecided(pid, activeId, slot, 'yield'));
-            store.dispatch(playerLeftTokyo(pid));
-            logger.system(`${pid} AI-yields Tokyo ${slot} (immediate)`, { kind:'tokyo', slot });
-            attemptTokyoTakeover(store, logger, activeId, playerCount, bayAllowed);
-          }
-        }
+        // Legacy AI prompt creation removed (unified yield pipeline supersedes this path)
+        store.dispatch(yieldPromptShown(pid, activeId, slot, null, damage, advisory));
+        logger.info(`${pid} prompted to yield Tokyo ${slot} (legacy path - will be deprecated)`, { kind:'tokyo', slot, attacker: activeId });
+        prompts.push({ defenderId: pid, slot });
       };
       if (cityOcc) addPrompt(cityOcc, 'city');
       if (bayAllowed && bayOcc) addPrompt(bayOcc, 'bay');

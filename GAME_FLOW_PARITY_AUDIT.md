@@ -1,6 +1,7 @@
 ﻿# Game Flow Parity Audit (Legacy v1 vs Rewrite v2)
 
 Date: September 29, 2025  
+(Updated Oct 1, 2025 – Unified Yield Backend & Deterministic AI Yield Decisions)
 Author: Automated audit (v2 architectural review)
 
 ## Objective
@@ -21,7 +22,7 @@ Document concrete differences in turn sequencing, timing, AI behavior, and inter
 | Dice Animation Completion | Callback-driven with clear phase gating | Event-based `DICE_ROLL_RESOLVED` (no polling) | Add edge-case harness tests |
 | Reroll Flow | Lock while rolling; UI disables | Event final resolution; no polling loop | Validate race elimination via test harness |
 | Keep Selection Timing | Disabled mid-animation | Unified actuation (timer path removed) | Audit for residual stale timers |
-| Attack → Yield → Takeover | Ordered chain with modal clarity | Mixed heuristic + timeouts + immediate takeover attempts | Confusing for users; inconsistent timing |
+| Attack → Yield → Takeover | Ordered chain with modal clarity | Batched prompts + deterministic AI (human modal pending) | UI clarity gap (modal + animation) |
 | Buy Phase | Player-driven exit | Fixed delay; placeholder pacing | Implement explicit BUY_WAIT interactive window |
 | CPU Pacing | Distinct phases with dramatic pauses | Static millisecond waits | Feels mechanical |
 | Logging Granularity | Rich action categorization | Limited (fewer categories) | Harder to diagnose parity gaps |
@@ -48,12 +49,12 @@ Rewrite: Effect queue scaffold not yet processing complex stack or delayed trigg
 ## Root Causes
 1. (Partial) FSM prototype behind feature flag (not universal yet).  
 2. (Resolved) Polling replaced by event-driven final roll resolution.  
-3. Conflated yield decision paths (human vs AI) – pending unified modal.  
+3. (Backend unified) Yield decision paths merged (batched + deterministic AI); human modal still pending.  
 4. Incomplete effect processing system (queue scaffold + stale guard only).  
 5. (Improved) Phase spans + transition history; deeper metrics pending.  
 
 ## Remediation Roadmap (Condensed)
-P0 (In Progress): FSM prototype, dice resolved event (done), unified yield (pending), BUY_WAIT phase (pending).  
+P0 (In Progress): FSM prototype, dice resolved event (done), unified yield backend (done), BUY_WAIT phase (pending).  
 P1 (Started): Timing spans (initial), AI heuristic modules (not started), persistence (not started).  
 P2: Effect queue operational + inspector, rationale weights.  
 P3: Advanced card interactions, AI personalities, performance pass.  
@@ -62,7 +63,7 @@ P3: Advanced card interactions, AI personalities, performance pass.
 | Metric | Target |
 |--------|--------|
 | CPU Turn σ/μ | < 0.25 |
-| Yield Latency (AI) | < 300ms |
+| Yield Latency (AI) | < 300ms | Deterministic immediate resolution achieved for all-AI batches |
 | Phase Violations | 0 per 500 turns |
 | Stale Async Actions | 0 |
 | AI Rationale Coverage | >85% major actions annotated |
@@ -70,8 +71,8 @@ P3: Advanced card interactions, AI personalities, performance pass.
 ## Acceptance Criteria for “Flow Parity Achieved”
 1. All turn transitions logged with phase span (start/end + duration).  
 2. No polling loops remain in CPU path.  
-3. Yield decisions always appear as explicit modal (human) or deterministic rationale (AI).  
-4. Tokyo takeover never occurs before all yield prompts resolved.  
+3. Yield decisions appear as explicit modal (human) or deterministic rationale (AI). (Backend AI rationale done; human modal pending)  
+4. Tokyo takeover never occurs before all yield prompts resolved. (Now enforced via batched flow ordering)  
 5. Buy phase either manually exited or times out with explicit countdown.  
 
 ## Traceability Links
@@ -80,7 +81,30 @@ P3: Advanced card interactions, AI personalities, performance pass.
 - `UI_PARITY_TODO.md` (visual & timing tasks)
 
 ---
-Next audit checkpoint scheduled after unified yield + deterministic mode milestone (Phase Alpha subset).
+Next audit checkpoint scheduled after human yield modal + BUY_WAIT integration (Phase Alpha subset).
+
+---
+## Addendum – Oct 1, 2025 (Unified Yield Backend)
+Implemented:
+1. `YIELD_PROMPTS_CREATED` / `YIELD_ALL_RESOLVED` actions and reducer flow metadata.
+2. Deterministic AI yield decision seeding + advisory seeds.
+3. Telemetry events: `yield.prompts.created`, `ai.yield.decision`, `yield.decision` (human), `yield.partial`, `yield.flow.complete`.
+4. Legacy timeout-based AI auto-decision path bypassed (removal pending cleanup task).
+5. Takeover ordering now purely gated on resolution completion; no premature entry on pending prompts.
+
+Immediate Effects:
+- Eliminates AI decision latency variance (all-AI resolves synchronously) enabling <300ms latency target.
+- Enables deterministic harness design for yield rationale & decision reproduction.
+
+Pending UI / Experience:
+- Human modal & a11y focus management.
+- Visual takeover handoff animation.
+- Logging enrichment (include seed + rationale snippet in structured log category `yield`).
+
+Risk / Follow-up:
+- Ensure removal of legacy `setTimeout(...5100)` to prevent reactivation if unified flag toggled.
+- Add ordering assertions test harness for multi-occupant (City + Bay) simultaneous damage.
+---
 \n+---
 ## Addendum – Additional Integration Issues (Sept 30, 2025)
 

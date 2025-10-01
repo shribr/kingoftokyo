@@ -233,20 +233,23 @@ Status Update (Oct 1, 2025): Phase Alpha Step 1 complete – AI actuation unifie
 `meta.phaseSpans` introduced via `META_PHASE_SPAN_UPDATE` capturing per-phase lastStart, lastDuration, accumulated, count for flow parity & performance tracking.
 
 ---
-## Unified Yield & Takeover Sequence (IN PROGRESS)
-**Implemented so far**:
-1. Helper `handleYieldAndPotentialTakeover` centralizes empty-slot entry, prompt creation, AI immediate yield, timeout scheduling, advisory generation.
-2. Advisory metadata on prompts: `advisory { suggestion, reason, seed? }` consumed by A11y overlay & modal.
-3. Deterministic seed placeholder (`combineSeed('KOT_YIELD', turnCycleId, defenderId, slot)`). No RNG yet, future-proof for probabilistic modeling.
-4. Resolution refactor: yield logic extracted improving readability and testability.
+## Unified Yield & Takeover Sequence (BACKEND COMPLETE; UI PENDING)
+**Implemented (Oct 1, 2025)**:
+1. Batched pipeline: `YIELD_PROMPTS_CREATED` + `YIELD_ALL_RESOLVED` with reducer flow metadata (attackerId, total, decided, timestamps).
+2. Deterministic AI yield decision seeding (`KOT_YIELD_DEC`) + advisory seeding (`KOT_YIELD_ADV`).
+3. Telemetry suite: `yield.prompts.created`, `ai.yield.decision`, `yield.decision` (human), `yield.partial`, `yield.flow.complete`.
+4. Legacy timeout auto-decision path bypassed (scheduled for deletion in cleanup task).
+5. Takeover gating enforced: Tokyo entry deferred until all prompts resolved.
 
-**Pending**:
-- Ordering tests for multi-occupant scenarios.
-- Enhanced heuristic (threat index, VP delta, card modifiers).
-- Takeover ordering assertion tests & phase harness integration.
-- Possible AI engine integration for deeper yield projections.
+**Pending (UI / Experience & Tests)**:
+- Human modal integration + a11y focus trap & rationale display.
+- Remove legacy prompt action usages (`YIELD_PROMPT_SHOWN/DECIDED`) from UI after modal migration.
+- Multi-occupant ordering tests (City + Bay simultaneous).
+- Enhanced yield heuristic (threat index, VP delta, effect queue risk).
+- Visual takeover confirmation & animation.
+- Structured log enrichment (`yield` category with seed + advisory snippet).
 
-**Harness**: `tools/yieldFlowHarness.js` simulates a claw attack vs an occupant to validate prompt + advisory.
+**Harness**: `tools/yieldFlowHarness.js` (update planned to assert deterministic seeds & immediate all-AI resolve path).
 
 ---
 

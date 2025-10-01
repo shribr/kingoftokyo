@@ -89,6 +89,12 @@ export const UI_HEALTH_FLASH = 'UI_HEALTH_FLASH';
 // Yield decision (Tokyo leave prompt)
 export const YIELD_PROMPT_SHOWN = 'YIELD_PROMPT_SHOWN';
 export const YIELD_PROMPT_DECIDED = 'YIELD_PROMPT_DECIDED';
+// Unified yield pipeline (batched creation + terminal resolution)
+// YIELD_PROMPTS_CREATED payload shape: { attackerId, prompts: [{ defenderId, slot, damage?, advisory? }] }
+// YIELD_ALL_RESOLVED payload shape: { attackerId, decisions: [{ defenderId, slot, decision, advisory?, decidedAt }], turnCycleId }
+// These coexist with legacy YIELD_PROMPT_SHOWN / YIELD_PROMPT_DECIDED during migration.
+export const YIELD_PROMPTS_CREATED = 'YIELD_PROMPTS_CREATED';
+export const YIELD_ALL_RESOLVED = 'YIELD_ALL_RESOLVED';
 // Settings (new slice)
 export const SETTINGS_LOADED = 'SETTINGS_LOADED';
 export const SETTINGS_UPDATED = 'SETTINGS_UPDATED';
@@ -203,8 +209,13 @@ export const META_PHASE_SPAN_UPDATE = 'META_PHASE_SPAN_UPDATE';
 export const metaPhaseSpanUpdate = (spans) => ({ type: META_PHASE_SPAN_UPDATE, payload: { spans } });
 // Yield prompt actions
 // Yield prompt now supports optional damage (for UI projection) and advisory meta ({ suggestion, reason, seed? })
+// DEPRECATED (migration): Prefer unified batch actions YIELD_PROMPTS_CREATED / YIELD_ALL_RESOLVED
 export const yieldPromptShown = (defenderId, attackerId, slot, expiresAt, damage = null, advisory = null) => ({ type: YIELD_PROMPT_SHOWN, payload: { defenderId, attackerId, slot, expiresAt, damage, advisory } });
+// DEPRECATED (migration): Human decision path will transition to unified terminal resolution
 export const yieldPromptDecided = (defenderId, attackerId, slot, decision) => ({ type: YIELD_PROMPT_DECIDED, payload: { defenderId, attackerId, slot, decision } });
+// Unified yield action creators
+export const yieldPromptsCreated = (attackerId, prompts, turnCycleId = null) => ({ type: YIELD_PROMPTS_CREATED, payload: { attackerId, prompts, turnCycleId } });
+export const yieldAllResolved = (attackerId, decisions, turnCycleId) => ({ type: YIELD_ALL_RESOLVED, payload: { attackerId, decisions, turnCycleId } });
 // Settings actions
 export const settingsLoaded = (settings) => ({ type: SETTINGS_LOADED, payload: { settings } });
 export const settingsUpdated = (partial) => ({ type: SETTINGS_UPDATED, payload: { partial } });

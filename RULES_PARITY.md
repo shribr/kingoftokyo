@@ -1,7 +1,7 @@
 ﻿# King of Tokyo – Rules & Experience Parity (Revised)
 
 Revision Date: September 29, 2025 (supersedes Sept 24 report)
-Progress Addendum: October 1, 2025
+Progress Addendum: October 1, 2025 (Updated Oct 1 – Unified Yield & Deterministic Flow Integration)
 
 ## Purpose
 Provide an accurate, multi-dimensional view of parity between:
@@ -22,7 +22,7 @@ Earlier documents overstated rewrite parity (claiming ~95%). This revision recal
 | Core Rule Correctness | ✅ ~95% | ⚠️ ~80% | Fundamental scoring, damage, Tokyo, victory correct; yield sequencing timing weaker |
 | Turn / Timing Integrity | ✅ | ⚠️ ~55% | FSM prototype (flag) + min phase durations + event-based dice; yield/buy unification pending |
 | Dice Flow UX | ✅ | ⚠️ (improved) | Event final roll; AI double-actuation race removed; minor animation edge races remain |
-| Yield / Tokyo Interaction | ✅ | ⚠️ | Mixed immediate + timeout heuristic; unified modal still pending |
+| Yield / Tokyo Interaction | ✅ | ⚠️ (improved) | Unified batched prompt + deterministic AI decisions; human modal UI wiring pending |
 | Power Card Breadth | ✅ (broad catalog) | ⚠️ ~20% | Small subset + limited effects + no advanced stacking UI (unchanged) |
 | Effect Engine (Sequencing) | ✅ (inline resolved) | 🧪 | Queue scaffold + turnCycleId stale guard; processor/UI pending |
 | AI Strategy (Dice & Cards) | ✅ Advanced | ⚠️ Basic | Single-pass heuristic; actuation path unified (logic depth unchanged) |
@@ -32,7 +32,7 @@ Earlier documents overstated rewrite parity (claiming ~95%). This revision recal
 | Accessibility | ⚠️ Partial | ⚠️ Early | Both need structured pass; v2 lags on landmarks & live regions (unchanged) |
 | UX / Visual Polish | ✅ Mature | ⚠️ Incomplete | Components exist; flow & polish gaps (modals, prompts) (unchanged) |
 
-Weighted composite parity estimate for v2: ≈ 50% (see audit methodology in `GAME_FLOW_PARITY_AUDIT.md`). Updated post-Oct 1 addendum: ≈ 55%.
+Weighted composite parity estimate for v2: ≈ 50% (see audit methodology in `GAME_FLOW_PARITY_AUDIT.md`). Updated post-Oct 1 addendum: ≈ 55% (≈ 57% provisional after unified yield pipeline backend; pending UI modal parity bump).
 
 ## Detailed Rule Matrix (Mechanical Coverage)
 Pure mechanical correctness excluding pacing/UX (what earlier doc measured); kept for transparency.
@@ -51,7 +51,7 @@ Pure mechanical correctness excluding pacing/UX (what earlier doc measured); kep
 | Keep Effects / Modifiers | ✅ | ⚠️ | Limited types | Extend effect handler registry |
 | Attack Resolution (City/Bay) | ✅ | ✅ | – | Attack logging enrichment |
 | Tokyo Entry (Forced) | ✅ | ✅ | – | – |
-| Yield / Leave Tokyo Choice | ✅ | ⚠️ | Heuristic + timeout mixing; FSM hook available | Unified yield modal & deterministic AI decision flow |
+| Yield / Leave Tokyo Choice | ✅ | ⚠️ (backend unified) | Batched pipeline + deterministic AI seeds; human-facing modal & takeover animation polish pending | UI modal integration & takeover feedback polish |
 | Start-of-Turn VP (City/Bay) | ✅ | ✅ | – | Add automated assertions |
 | Victory (VP) | ✅ | ✅ | – | – |
 | Victory (Last Standing) | ✅ | ✅ | – | – |
@@ -124,7 +124,7 @@ Impact Rationale:
 - Other weighted domains (AI strategic depth, card breadth, persistence) unchanged → caps total shift
 
 Outstanding High-Impact Gaps:
-- Unified yield modal & deterministic AI decision pipeline
+- Human-facing unified yield modal (backend deterministic pipeline implemented)
 - Effect processor & inspector UI (beyond queue scaffold)
 - Persistence (snapshot serialize/hydrate)
 - Strategic AI multi-roll EV planning & personality weighting
@@ -132,5 +132,22 @@ Outstanding High-Impact Gaps:
 - Accessibility & UX polish (landmarks, focus, live regions)
 
 Next Focus Recommendation:
-Begin deterministic mode implementation (seeded RNG, reproducible AI decisions) alongside unified yield modal to lock interaction clarity before deeper AI & effect breadth work.
+Finalize human yield modal integration (hook into batched prompts) and introduce BUY_WAIT phase pacing before expanding AI strategic depth and effect processor.
+
+### Addendum (Oct 1, 2025 – Unified Yield Pipeline Implemented)
+Implemented:
+1. Batched yield prompt action (`YIELD_PROMPTS_CREATED`) + terminal resolution action (`YIELD_ALL_RESOLVED`).
+2. Deterministic AI yield decision seeding (`combineSeed('KOT_YIELD_DEC', ...)`) with telemetry (`ai.yield.decision`).
+3. Telemetry events: `yield.prompts.created`, `yield.decision` (human), `ai.yield.decision`, `yield.flow.complete`, `yield.partial`.
+4. Legacy timeout (5100ms) path bypassed (scheduled for full removal) eliminating timing ambiguity for all‑AI scenarios.
+5. Advisory now includes deterministic seed (`KOT_YIELD_ADV`) enabling reproducible rationale tests.
+
+Pending (UI / Experience Layer):
+- Modal sequencing + a11y focus trap for human defenders.
+- Visual takeover confirmation after last prompt decision.
+- Removal of legacy prompt action creators from remaining UI components.
+
+Parity Impact:
+- Yield timing determinism improved; takeover ordering now strictly gated by resolved prompt set.
+- Interaction clarity for human defenders still partial (no new modal yet) → dimension remains ⚠️ pending UI layer work.
 
