@@ -180,7 +180,7 @@ Status Update (Oct 1, 2025): Phase Alpha Steps 1 & 3 complete – AI actuation u
 	- [x] Snapshot harness: `tools/deterministicSnapshotHarness.js` multi-run identical dice history & player snapshot assertion
 	- [x] Divergence logger (state + seed chain) via `core/determinism.js` (emits diff events)
 	- [x] Telemetry event: `ai.determinism.diff` emitted on snapshot mismatch (baseline retained)
-	- [ ] Guard ensures TEST_MODE disables adaptive early-exit heuristics (partial – adaptive profiling still active outside explicit flag)
+	- [x] Guard ensures TEST_MODE disables adaptive early-exit heuristics (adaptive endRoll + dynamic trials suppressed; telemetry `ai.determinism.adaptiveGuard`)
 5. Unified yield & takeover sequence (yield advisory integration)
 6. BUY_WAIT phase + timing spans + takeover ordering asserts
 	- [x] BUY_WAIT min duration gating added (280ms) (Oct 1 2025)

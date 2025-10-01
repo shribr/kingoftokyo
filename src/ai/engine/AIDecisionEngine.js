@@ -123,7 +123,44 @@ class AIDecisionEngine {
     freeDice = state.dice.length - keptFinal.length; let heuristicNote=''; if (releasedIndices.length){ heuristicNote = ` | heuristic: freed ${releasedIndices.length} die${releasedIndices.length>1?'s':''}`; }
     const improvingFaces=[]; const trialCount=freeDice * state.rollsRemaining; if (freeDice>0 && state.rollsRemaining>0){ state.numbers.forEach(n=>{ if (n.count<3){ const needed=1; let p=0; for(let x=needed;x<=trialCount;x++){ p += choose(trialCount,x)*Math.pow(1/6,x)*Math.pow(5/6,trialCount-x); } improvingFaces.push({face:n.face,p}); } }); if (goal && !improvingFaces.find(f=>f.face===goal.face)){ let pGoal=0; for(let x=1;x<=trialCount;x++){ pGoal += choose(trialCount,x)*Math.pow(1/6,x)*Math.pow(5/6,trialCount-x); } improvingFaces.push({face:goal.face,p:pGoal}); } }
     let improvementChance=0; if (improvingFaces.length){ let logNo=0; improvingFaces.forEach(f=>{ const pn=Math.max(0, Math.min(1, 1 - f.p)); logNo += Math.log(pn); }); improvementChance = 1 - Math.exp(logNo); }
-    let action='reroll'; const unresolvedPairs=state.numbers.filter(n=> n.pair && !n.formed).length; const personality=state.personality || { risk:3, aggression:3, strategy:3 }; const riskFactor=(personality.risk - 3); const adaptiveMinKept=Math.max(3, CFG.earlyStopMinKept + (riskFactor<=0 ? -riskFactor : 0)); const adaptiveEVThreshold = CFG.earlyStopImprovementThreshold + (riskFactor * -0.07); if (rollsRemaining>0){ if (kept.length>=adaptiveMinKept && ev.total < adaptiveEVThreshold && unresolvedPairs===0) action='endRoll'; } else action='endRoll'; if (rollsRemaining>=2 && action==='endRoll') action='reroll'; const explanationFragments=[]; if (goal) explanationFragments.push(`pursuing ${goal.face} set`); if (unresolvedPairs>0) explanationFragments.push(`${unresolvedPairs} live pair${unresolvedPairs>1?'s':''}`); if (state.cardSummary.attackBoost) explanationFragments.push('attack boost'); if (state.cardSummary.energyEngine) explanationFragments.push('energy engine'); if (state.cardSummary.healEngine) explanationFragments.push('healing synergy'); if (state.cardSummary.extraDie) explanationFragments.push('extra-die odds'); const evClause = action==='endRoll'? `marginal gain ${ev.total.toFixed(2)} < threshold ${adaptiveEVThreshold.toFixed(2)}`: `projected gain ${ev.total.toFixed(2)} ≥ threshold ${adaptiveEVThreshold.toFixed(2)}`; let reasonSentence = explanationFragments.length? `${evClause} while ${explanationFragments.join(', ')}`: evClause; if (rollsRemaining>=2 && action==='reroll') reasonSentence+=' (exploration)'; const reasonParts=[reasonSentence]; const confidence = action==='endRoll'? (rollsRemaining>0?0.8:0.92):0.6; let yieldSuggestion=false; if (player.isInTokyo){ const threateningEnemies = state.player.gameState?.players?.filter(p=> !p.isEliminated && p.id!==player.id && p.health>0).length || 0; const lowHP = player.health <= CFG.healingCriticalHP; if (lowHP && threateningEnemies>=2){ yieldSuggestion=true; reasonParts.push('consider yielding Tokyo'); } }
+    let action='reroll';
+    const unresolvedPairs=state.numbers.filter(n=> n.pair && !n.formed).length;
+    const personality=state.personality || { risk:3, aggression:3, strategy:3 };
+    const riskFactor=(personality.risk - 3);
+    const adaptiveMinKept=Math.max(3, CFG.earlyStopMinKept + (riskFactor<=0 ? -riskFactor : 0));
+    const adaptiveEVThreshold = CFG.earlyStopImprovementThreshold + (riskFactor * -0.07);
+    if (rollsRemaining>0){
+      if (kept.length>=adaptiveMinKept && ev.total < adaptiveEVThreshold && unresolvedPairs===0) action='endRoll';
+    } else action='endRoll';
+    if (rollsRemaining>=2 && action==='endRoll') action='reroll';
+    // Deterministic guard: suppress early heuristic endRoll while rerolls remain
+    if (deterministicCtx?.active && action==='endRoll' && rollsRemaining>0){
+      action='reroll';
+      try {
+        if (typeof window !== 'undefined') {
+          window.__KOT_TELEMETRY__ = window.__KOT_TELEMETRY__ || [];
+          window.__KOT_TELEMETRY__.push({ type:'ai.determinism.adaptiveGuard', payload:{ turnCycleId: deterministicCtx.turnCycleId, decisionIndex: deterministicCtx.decisionIndex, keptCount: keptFinal?.length || kept.size || 0, rollsRemaining } });
+        }
+      } catch(_) {}
+    }
+    const explanationFragments=[];
+    if (goal) explanationFragments.push(`pursuing ${goal.face} set`);
+    if (unresolvedPairs>0) explanationFragments.push(`${unresolvedPairs} live pair${unresolvedPairs>1?'s':''}`);
+    if (state.cardSummary.attackBoost) explanationFragments.push('attack boost');
+    if (state.cardSummary.energyEngine) explanationFragments.push('energy engine');
+    if (state.cardSummary.healEngine) explanationFragments.push('healing synergy');
+    if (state.cardSummary.extraDie) explanationFragments.push('extra-die odds');
+    const evClause = action==='endRoll'? `marginal gain ${ev.total.toFixed(2)} < threshold ${adaptiveEVThreshold.toFixed(2)}`: `projected gain ${ev.total.toFixed(2)} ≥ threshold ${adaptiveEVThreshold.toFixed(2)}`;
+    let reasonSentence = explanationFragments.length? `${evClause} while ${explanationFragments.join(', ')}`: evClause;
+    if (rollsRemaining>=2 && action==='reroll') reasonSentence+=' (exploration)';
+    const reasonParts=[reasonSentence];
+    const confidence = action==='endRoll'? (rollsRemaining>0?0.8:0.92):0.6;
+    let yieldSuggestion=false;
+    if (player.isInTokyo){
+      const threateningEnemies = state.player.gameState?.players?.filter(p=> !p.isEliminated && p.id!==player.id && p.health>0).length || 0;
+      const lowHP = player.health <= CFG.healingCriticalHP;
+      if (lowHP && threateningEnemies>=2){ yieldSuggestion=true; reasonParts.push('consider yielding Tokyo'); }
+    }
     const evBreakdown = ev.items.map(it=>({ face:it.face, type:it.type, ev:+it.ev.toFixed(3) })); const branchAnalysis = branchSim? { best: branchSim.best? { tag: branchSim.best.tag, score: branchSim.best.score, kept: branchSim.best.kept, improvementEV: branchSim.best.improvementEV, specialUtility: branchSim.best.specialUtility }:null, considered: branchSim.evaluated.slice(0,8) }: null; if (branchAnalysis?.best && !reasonParts.join(' ').includes('branch')){ reasonParts.push(`branch ${branchAnalysis.best.tag} score ${branchAnalysis.best.score}`); } const projection=this._projectTwoRollEV(state, new Set(keptFinal), deterministicCtx); const t1=performance.now(); AIDecisionProfiler.record('assembleDecision', t1-t0);
     const decisionObj = { action, keepDice: keptFinal, reason: reasonParts.join(' ') + heuristicNote, confidence, yieldSuggestion, techMeta:{ keptCount: kept.length, evGain: ev.total, unresolvedPairs, adaptiveEVThreshold, adaptiveMinKept, extraDie: state.cardSummary.extraDie||0 }, goal, releasedIndices, improvementChance:+improvementChance.toFixed(3), improvingFaces:Array.from(improvingFaces), evBreakdown, improvementEV:ev.total, branchAnalysis, projection };
     if (deterministicCtx?.active){

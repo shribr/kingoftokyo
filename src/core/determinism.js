@@ -74,3 +74,6 @@ export function recordOrCompareDeterminism(store, telemetrySink = null) {
 }
 
 export function resetDeterminismBaseline(){ __baseline = null; }
+
+// Helper: adaptive heuristics should be disabled if deterministic mode active
+export function isAdaptiveGuardActive(){ return isDeterministicMode(); }
