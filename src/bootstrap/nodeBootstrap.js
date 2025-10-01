@@ -18,6 +18,7 @@ import { gameReducer } from '../core/reducers/game.reducer.js';
 import { settingsReducer } from '../core/reducers/settings.reducer.js';
 import { metaReducer } from '../core/reducers/meta.reducer.js';
 import { createLogger } from '../services/logger.js';
+import { phaseTransitionReducer } from '../core/phaseMachine.js';
 import { initCards } from '../services/cardsService.js';
 import { createTurnService } from '../services/turnService.js';
 import { createEffectEngine } from '../services/effectEngine.js';
@@ -30,6 +31,8 @@ const reducer = combineReducers({
   tokyo: tokyoReducer,
   cards: cardsReducer,
   phase: phaseReducer,
+  // Phase machine reducer (records structured transition history for harnesses)
+  phaseMachine: phaseTransitionReducer,
   log: logReducer,
   ui: uiReducer,
   ai: (s = {}) => s,

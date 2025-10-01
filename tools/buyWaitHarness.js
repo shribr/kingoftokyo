@@ -19,7 +19,7 @@
  */
 
 // Use node-safe bootstrap (no window / DOM dependencies)
-import { store } from '../src/bootstrap/nodeBootstrap.js';
+import { store, logger as bootstrapLogger } from '../src/bootstrap/nodeBootstrap.js';
 import { Phases } from '../src/core/phaseFSM.js';
 import { diceRolled, diceRollResolved } from '../src/core/actions.js';
 import { purchaseCard } from '../src/services/cardsService.js';
@@ -65,7 +65,7 @@ async function simulateResolveToBuyWindow(){
   store.dispatch(diceRollResolved());
   // Dynamically import resolution logic
   const { resolveDice } = await import('../src/services/resolutionService.js');
-  resolveDice(store, console);
+  resolveDice(store, bootstrapLogger);
 }
 
 function findDiscardCard(){

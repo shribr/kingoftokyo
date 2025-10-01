@@ -187,6 +187,9 @@ Status Update (Oct 1, 2025): Phase Alpha Steps 1 & 3 complete – AI actuation u
 	- [x] Duplicate phase transition guard + telemetry (`phase.duplicate`) (Oct 1 2025)
 	- [x] Harness: `tools/phaseDuplicateGuardHarness.js` (no duplicate contiguous transitions)
 	- [x] Harness: `tools/takeoverSequenceHarness.js` (attack → yield → buy ordering & Tokyo occupant change on leave)
+	- [x] Harness: `tools/victoryConditionHarness.js` (RESOLVE → GAME_OVER transition on ≥20 VP)
+	- [x] Harness: `tools/turnParityHarness.js` (ROLL→RESOLVE→BUY→CLEANUP sequencing over N turns; mirrors phase into legacy slice)
+	- [x] Phase reducer mirrors `PHASE_TRANSITION` actions to keep hybrid path coherent
 
 ### Phase Beta (Strategic Depth & Persistence)
 1. Enhanced AI heuristic modules (survival risk, VP race delta, resource economy, Tokyo risk)

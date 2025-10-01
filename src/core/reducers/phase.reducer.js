@@ -21,6 +21,13 @@ export function phaseReducer(state = initial, action) {
       if (!assertTransition(state, phase)) return state; // reject invalid
       return phase;
     }
+    case 'PHASE_TRANSITION': {
+      // Mirror phaseMachine transitions into legacy phase slice for hybrid operation.
+      const to = action.payload?.to;
+      if (!to) return state;
+      // Skip validation since phaseMachine already validated; prevents circular dependency.
+      return to;
+    }
     default:
       return state;
   }
