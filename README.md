@@ -1,214 +1,62 @@
-# Modular Implementation (Former `new/` Promotion)
+## King of Tokyo – Executive Overview
 
-This root now contains the previously in-progress modular rewrite (formerly under `new/`). All prior references to `new/` in historical docs are legacy and refer to this directory.
+This project is a ground-up internal rebuild of the board game “King of Tokyo,” used as a safe, contained sandbox to explore modern product patterns: human–AI collaboration, deterministic simulation, observability-first design, accessibility considerations, and incremental modernization strategy. It is intentionally experiential: the value lies as much in the reusable collaboration dialog and decision trace as in the code.
 
-## Quick Start
-Add a module script pointing to `./src/bootstrap/index.js` or open the provided test runner for domain logic verification.
+### What It Is
+An end‑to‑end playable experience (monsters, dice rolls, rerolls, Tokyo occupancy, damage, healing, victory paths, power cards) rebuilt with structured phases and AI participation hooks. The implementation emphasizes clarity of turn flow, repeatable outcomes for evaluation, and transparent decision scaffolding.
 
-```html
-<script type="module" src="./src/bootstrap/index.js"></script>
-```
+### Why It Exists
+Traditional feature rewrites drift or stall because intent gets lost. Here, every major architectural move (state machine adoption, deterministic harnesses, unified decision pipeline) was co-developed alongside narrative documentation and status signaling. The result: a living artifact that demonstrates how to make AI augmentation safe, explainable, and testable before applying it to customer domains.
 
-## Test Runner
-Open `test-runner.html` in a browser to execute all specs (`src/tests/index.js`). Console logs show individual spec success lines.
+### Strategic Themes
+1. Deterministic Foundations – Seeded randomness + snapshot diffing enable reproducible AI and logic evaluations.
+2. Explicit Phased Flow – A finite turn/phase model replaces scattered flags, making behavior auditable and upgrade-friendly.
+3. Unified Decision Points – Collapsing divergent human vs AI logic paths reduces risk and improves explainability.
+4. Observability Early – Phase spans, timeline history, and rationale placeholders ensure insight precedes optimization.
+5. Incremental Parity – Distinguishing mechanical correctness from experiential feel guides smarter prioritization.
+6. Dialog as IP – The curated human↔AI design conversations (not just the resulting code) form a reusable modernization playbook.
 
-## Tests
-Current tests cover:
-- Store dispatch & event bus basics
-- Dice domain logic (length, kept preservation, tally, distribution)
-- Player domain logic (damage, heal constraints, energy & VP)
+### What Has Been Accomplished
+✅ Core gameplay loop (roll, reroll, resolve, takeover / yield decisions, buy opportunities).  
+✅ Structured phase machine groundwork and transition telemetry.  
+✅ Deterministic modes for reproducible simulation and AI pathway validation (initial decision paths unified).  
+✅ Power card catalog skeleton and purchase flow with effect queue scaffolding.  
+✅ Logging + span instrumentation for phase timing and decision milestones.  
+✅ UI component baseline (player panels, dice tray, modal scaffolds, profile cards).  
+🟡 Yield & takeover unified backend pipeline (human-facing enhanced modal pending).  
+🟡 Expanded AI rationale surfacing & accessibility enhancements (in progress).  
+⬜ Persistence layer (snapshot import/export) – planned.  
+⬜ Advanced AI heuristics (multi-roll EV, personality tuning) – planned.  
 
-## Structure
-Refer to `JAVASCRIPT_MIGRATION_PLAN.md` for architecture, phases, and quality gates.
+### How To Look At This (Executive Lens)
+Think of the game loop like a compressed enterprise workflow: phases ≈ process stages; dice outcomes ≈ event inputs; yield/buy decisions ≈ approval or gating checkpoints. By perfecting clarity, timing, and reproducibility here, we de-risk applying similar AI augmentation and observability patterns to real customer processes (claims, supply chain steps, employee workflows).
 
-## Next Phases
-Upcoming: component skeletons (`dice-tray`, `player-card`) and wiring roll workflow through actions + event bus.
+### Reusable Outputs
+- Pattern set: deterministic harness, phase transition ledger, unified decision queue.
+- Collaboration transcript motifs: “refactor intent explanation,” “risk enumeration before merge,” “prompted rationale scaffolding.”
+- Status taxonomy (✅ / 🟡 / ⬜ / ⚠️ / 🧪) enabling quick portfolio-level rollups.
+- Documentation style that blends narrative audit + concise progression signals.
 
-## Phase 3 Component Demo
-Open `index.html` (root) or create a minimal page including:
-```html
-<div id="app"></div>
-<script type="module" src="./src/bootstrap/index.js"></script>
-```
-This will:
-1. Initialize store/event bus.
-2. Seed two demo players.
-3. Fetch `components.config.json` and mount `playerCardList` then `diceTray`.
-4. Allow you to press Roll and toggle kept dice.
+### Near-Term Focus
+- Finalize human-facing yield/defender interaction & accessibility semantics.
+- Introduce persistence + session recovery.
+- Expand AI decision rationale into structured, test-assertable metadata.
+- Broaden effect processing and card breadth for rule depth parity.
 
-## Phase 4 Additions (Current)
-Implemented in this phase:
-- Global phase management via `phaseReducer` (`SETUP -> ROLL -> RESOLVE` so far) with automatic advance to `RESOLVE` when rerolls are exhausted.
-- Structured logging (`services/logger.js`) and `logFeed` component displaying last 50 entries.
-- Tokyo occupancy placeholder reducer (`tokyoReducer`) with set/clear actions (no automatic triggers yet).
-- Dice reroll lifecycle: first roll sets `rerollsRemaining = 2`; each subsequent roll during the same sequence decrements; after final reroll dice slice marks `phase: 'sequence-complete'` prompting phase transition.
+### How To Contribute
+Playtest, propose clarity or pacing improvements, enhance accessibility, add rationale surfacing, or help formalize dialog pattern extraction. Light, well-scoped contribution lanes are maintained to keep onboarding fast.
 
-## Smoke Test (Manual Validation)
-Use the steps below to validate Phase 4 behavior manually:
-1. Open root `index.html` in a modern browser.
-2. Open DevTools console.
-3. In the UI, click Roll (first roll) – confirm dice appear and `__KOT_NEW__.store.getState().dice.rerollsRemaining === 2`.
-4. Click Roll again (reroll) – `rerollsRemaining` should decrement to 1.
-5. Click Roll a third time – `rerollsRemaining` becomes 0 and `dice.phase` becomes `sequence-complete`.
-6. Observe that global `phase` changes from `ROLL` to `RESOLVE` automatically (check `__KOT_NEW__.store.getState().phase`).
-7. Inspect log feed component for initial system log. (At present no automatic phase-change log is appended; can be added later.)
+### Where The Original Technical Detail Went
+The prior, deeply technical README is preserved at `docs/README.technical.backup.md`. Additional implementation roadmaps and audits:  
+- `docs/IMPLEMENTATION_TODO.md` (canonical execution tracker)  
+- `docs/GAME_FLOW_PARITY_AUDIT.md` (experience & timing parity)  
+- `RULES_PARITY.md` (rules coverage & dimension matrix)  
+- `UI_PARITY_TODO.md` (visual / interaction alignment tasks)  
 
-Optional console helpers:
-```js
-// Watch phase changes
-const unsub = __KOT_NEW__.store.subscribe(()=>{
-	const st = __KOT_NEW__.store.getState();
-	if (st.phase !== window._lastPhase) {
-		console.log('[phase]', window._lastPhase, '->', st.phase);
-		window._lastPhase = st.phase;
-	}
-});
-```
-Run `unsub()` later to stop observing.
+### Guiding Principle
+Code is transient; the structured methodology and dialog that generated it are the durable, reusable asset.
 
-## Planned Next (Phase 4 Wrap / Phase 5 Prep)
-- Explicit UI indicator for current phase & rerolls remaining (augment dice tray).
-- Automatic Tokyo entry/exit triggers and VP adjustments.
-- Phase progression beyond `RESOLVE` (BUY, CLEANUP, next turn) with turn increment (`meta.turn`).
-- Derived logging (auto log on phase change, Tokyo occupation changes).
-- Card engine skeleton kickoff (effects registry & basic resolution) starting Phase 5.
-
-## Phase 5 Additions (Card Engine Skeleton)
-Implemented:
-- Card catalog & shuffle (`domain/cards.js`), deck build & shop fill on bootstrap.
-- Cards reducer & actions (deck build, shop fill, purchase, player gains card).
-- Service `cardsService.js` orchestrating shop refill and purchase flow.
-- Players reducer now tracks acquired cards; selectors for shop/deck/player cards added.
-- Basic test `cards.spec.js` covering initialization and purchase mutation.
-
-Deferred (future phases):
-- Effect resolution & triggered abilities.
-- Shop refresh (pay energy to discard & refill) and discard reshuffle when deck empty.
-- Full card set & balancing; visual shop component.
-- AI card valuation & purchase decisions.
-
-## UI Parity Pipeline (Initiated)
-See `UI_PARITY_TODO.md` for detailed task list.
-Initial assets added:
-
-How to run style audit (in browser console after app loads):
-```js
-import('./tools/uiAudit.js').then(m => m.runUIAudit());
-```
-Extend `DEFAULT_SELECTORS` in the script or call `runUIAudit(['.your-selector'])` for custom targets.
-
-### Card Detail & Player Cards Modals (Scaffolding)
-Initial scaffolding for power card inspection (`cardDetail` component) and owned cards list (`playerCardsModal`) has been added. Styling currently minimal & token adoption partial (uses brand gold + science category placeholder). Future steps:
-1. Map each card category to semantic token background.
-2. Add entrance/exit animations (scale/slide) via motion tokens.
-3. Integrate accessibility: focus trap + ESC key close.
-
-### Token Usage & Migration Policy
-`css/tokens.css` now contains extracted color, spacing, shadow, and typography tokens derived from legacy CSS (headers, dice area, cards, panels). Migration will proceed incrementally:
-1. New or refactored components must reference tokens instead of hard-coded values.
-2. When touching a legacy style block, replace only the values you interact with using tokens (avoid mass churn).
-3. For gradients/patterns, wrap composite values in semantic custom properties where reuse emerges (`--grad-header`, etc.).
-4. Introduce new tokens ONLY after confirming at least two distinct call sites.
-
-Example replacement (before → after):
-```css
-.dice-area { background: #f8f9fa; }
-/* becomes */
-.dice-area { background: var(--color-text-primary); color: var(--color-text-inverse); }
-```
-
-### Style Baseline & Diff Workflow
-The audit tool now supports baselining and diffs using `localStorage`.
-
-Initial baseline capture (once UI mounts):
-```js
-import('./tools/uiAudit.js').then(m => m.saveBaseline());
-```
-
-Subsequent diff after a change:
-```js
-import('./tools/uiAudit.js').then(m => m.diffCurrentAgainstBaseline());
-```
-
-Export the baseline to commit (creates a download):
-```js
-UI_AUDIT.exportBaselineFile();
-```
-Then add the downloaded `ui-baseline.json` to version control under `tools/baselines/` (create folder if needed).
-
-To import a stored baseline (e.g., after clearing browser cache):
-```js
-// Provide a File object (from input[type=file])
-UI_AUDIT.importBaselineFile(file);
-```
-
-Selectors list lives in `DEFAULT_SELECTORS`; expand as new components are stabilized.
-
-### Planned Enhancements
-- Node/CLI based screenshot + pixel diff harness (Playwright + pixelmatch) referencing tokens.
-- Automated regression gate (fail build if unintended drift detected in baseline JSON or screenshots).
-- Token linter (detect hard-coded color/spacing values) – script stub to be added in a future phase.
-
-## Component Development Notes
-- `eventsToActions.js` currently hosts dice UI bridge logic; will expand for other UI→action translations.
-- Components re-render fully for now; diff optimization deferred to a later phase.
-
-## Phase Progress Tracker (1–11)
-The initial architectural roadmap spans 11 macro phases. Earlier README updates stopped around Phase 5; phases 6–9 work is now documented here.
-
-| Phase | Focus | Status | Key Deliverables |
-|-------|-------|--------|------------------|
-| 1 | Core store, event bus, initial state shape | COMPLETE | `store.js`, `eventBus.js`, base reducers, state factory |
-| 2 | Dice domain + tray + reroll loop seed | COMPLETE | Dice slice, `dice-tray` scaffold |
-| 3 | Player management & turn skeleton | COMPLETE | Players slice, meta turn index |
-| 4 | Phase machine & logging | COMPLETE | `phaseReducer`, logger, `logFeed` |
-| 5 | Card catalog & shop skeleton | COMPLETE | `cardsService`, deck/shop actions |
-| 6 | Player profile cards & positioning | COMPLETE | Profile card + multi manager, drag persistence service |
-| 7 | Effect engine & passive modifiers | COMPLETE | `effectQueue` reducer, `effectEngine`, modifier recalculation |
-| 8 | Modal parity batch 1 | COMPLETE | Card detail, owned cards, monster profiles, splash adjustments |
-| 9 | Modal parity batch 2 | COMPLETE | Settings modal + persistence, hierarchical game log (semantic kinds + collapse persistence), AI decision heuristic w/ hypotheticals, unified modal CSS |
-| 10 | AI transparency & enriched logs | IN PROGRESS | Thought bubble, log kind filters, AI node linking groundwork |
-| 11 | Test hardening & theming (dark hooks) | PENDING | Coverage expansion, accessibility, token override & dark edition scaffolds |
-
-### Recent Work (Phases 7–9)
-1. Added effect queue & processing statuses; integrated card purchase flow to enqueue immediate effects.
-2. Player modifiers (diceSlots, rerollBonus) dynamically alter dice capacity & reroll allowances.
-3. Settings slice with persistence (`cpuSpeed`, `showThoughtBubbles`, `autoActivateMonsters`).
-4. Hierarchical game log (round → turn) with collapsible UI; round tracking added to meta.
-5. AI decision tree placeholder capturing mock roll rationale (will evolve into true scoring engine).
-6. Unified modal styling layer (`components.modals.css`) using design tokens.
-7. Forward Dark Edition hooks: `meta.gameMode`, deck init option, dark token override, planning doc.
-
-### Phase 9 Closure Summary
-Implemented:
-- CPU pacing via `settings.cpuSpeed` (slow/normal/fast) affecting AI roll delays.
-- AI decision heuristic replacing mock (scores claws, energy, healing need, triples + potentials) with hypothetical reroll projections.
-- Semantic log enrichment (uniform fields: `kind`, `round`, `turn`, `phase`) and automatic phase change logging.
-- Persistent hierarchical log collapse state (round & turn) stored in `localStorage`.
-- Added tests for logger semantics & AI decision capture.
-
-Deferred to Phase 10+:
-- Thought bubble visualization for AI rationale (`showThoughtBubbles`).
-- Filtering UI for log kinds.
-- Cross-linking log lines to specific AI decision node IDs.
-
-### Phase 10 (Planned Outline)
-Current progress:
-- Thought bubble component showing latest roll rationale + top hypotheticals (respects `showThoughtBubbles`).
-- Log kind filtering UI with persistence (round/turn collapse + kind selections stored).
-- AI node id attached to roll-related logs (available via `aiNodeId`).
-
-Remaining:
-- Deep reroll branch tree evaluation & comparative scoring.
-- Card purchase heuristic integration.
-- Full accessibility sweep (focus traps, aria-live regions).
-
-### Phase 11 (Planned Outline)
-- Unit & integration test expansion (effect engine edge cases, settings influences, modal lifecycle).
-- Performance instrumentation (timed effect resolution & AI evaluation stats).
-- Theme consolidation + dark edition bootstrap path (apply `.theme-dark-edition` at start for dark mode runs).
-
-## Dark Edition Preparation (Summary)
-Refer to `DARK_EDITION_PLANNING.md` for a full blueprint. Current code includes inert scaffolds only; gameplay unchanged in classic mode.
+---
+For questions, architectural walkthroughs, or contribution interest: open an issue or annotate directly in the relevant doc.
 
 ---
