@@ -16,15 +16,15 @@ Document concrete differences in turn sequencing, timing, AI behavior, and inter
 ## Sequencing Comparison
 | Aspect | Legacy v1 | Rewrite v2 | Delta |
 |--------|-----------|------------|-------|
-| Turn Guarding | Flags (`endingTurn`, `switchingPlayers`) prevent double transitions | Partial guard via `turnCycleId` (effect queue + dice scheduling) | Extend guard coverage to all timeouts |
-| Min Turn Duration | Enforced (≥1s) | Prototype min durations (ROLL / RESOLVE / BUY) | Tune thresholds & broaden coverage |
-| Dice Animation Completion | Callback-driven with clear phase gating | Event-based `DICE_ROLL_RESOLVED` (no polling) | Add edge-case harness tests |
-| Reroll Flow | Lock while rolling; UI disables | Event final resolution; no polling loop | Validate race elimination via test harness |
-| Keep Selection Timing | Disabled mid-animation | Unified actuation (timer path removed) | Audit for residual stale timers |
-| Attack → Yield → Takeover | Ordered chain with modal clarity | Mixed heuristic + timeouts + immediate takeover attempts | Confusing for users; inconsistent timing |
-| Buy Phase | Player-driven exit | Fixed delay; placeholder pacing | Implement explicit BUY_WAIT interactive window |
-| CPU Pacing | Distinct phases with dramatic pauses | Static millisecond waits | Feels mechanical |
-| Logging Granularity | Rich action categorization | Limited (fewer categories) | Harder to diagnose parity gaps |
+| Turn Guarding | Flags (`endingTurn`, `switchingPlayers`) prevent double transitions | 🟡 Partial guard via `turnCycleId` (effect queue + dice scheduling) | Extend guard coverage to all timeouts |
+| Min Turn Duration | Enforced (≥1s) | 🧪 Prototype min durations (ROLL / RESOLVE / BUY) | Tune thresholds & broaden coverage |
+| Dice Animation Completion | Callback-driven with clear phase gating | ✅ Event-based `DICE_ROLL_RESOLVED` (no polling) | Add edge-case harness tests |
+| Reroll Flow | Lock while rolling; UI disables | ✅ Event final resolution; no polling loop | Validate race elimination via test harness |
+| Keep Selection Timing | Disabled mid-animation | ✅ Unified actuation (timer path removed) | Audit for residual stale timers |
+| Attack → Yield → Takeover | Ordered chain with modal clarity | ⚠️ Mixed heuristic + timeouts + immediate takeover attempts | Confusing for users; inconsistent timing |
+| Buy Phase | Player-driven exit | ⚠️ Fixed delay; placeholder pacing | Implement explicit BUY_WAIT interactive window |
+| CPU Pacing | Distinct phases with dramatic pauses | ⚠️ Static millisecond waits | Feels mechanical |
+| Logging Granularity | Rich action categorization | 🟡 Limited (fewer categories) | Harder to diagnose parity gaps |
 
 ## AI Behavioral Gap Summary
 - Missing multi-roll expected value simulation and survival risk modeling.  
@@ -46,17 +46,18 @@ Rewrite: Effect queue scaffold not yet processing complex stack or delayed trigg
 | Timing Feedback | Not required (consistent) | Inconsistent pacing | Timing overlay (dev only) |
 
 ## Root Causes
-1. (Partial) FSM prototype behind feature flag (not universal yet).  
-2. (Resolved) Polling replaced by event-driven final roll resolution.  
-3. Conflated yield decision paths (human vs AI) – pending unified modal.  
-4. Incomplete effect processing system (queue scaffold + stale guard only).  
-5. (Improved) Phase spans + transition history; deeper timing metrics pending.  
+1. 🟡 FSM prototype behind feature flag (not universal yet).  
+2. ✅ Polling replaced by event-driven final roll resolution.  
+3. ⚠️ Conflated yield decision paths (human vs AI) – pending unified modal.  
+4. 🧪 Incomplete effect processing system (queue scaffold + stale guard only).  
+5. 🟡 Phase spans + transition history; deeper timing metrics pending.  
 
 ## Remediation Roadmap (Condensed)
-P0 (In Progress): FSM prototype, dice resolved event (done), unified yield (pending), BUY_WAIT phase (pending).  
-P1 (Started): Timing spans (initial), AI heuristic modules (not started), persistence (not started).  
-P2: Effect queue operational + inspector, rationale weights.  
-P3: Advanced card interactions, AI personalities, performance pass.  
+Roadmap Status Snapshot:
+P0: 🟡 FSM prototype; ✅ dice resolved event; ⬜ unified yield; ⬜ BUY_WAIT phase.  
+P1: 🟡 Timing spans (initial only); ⬜ AI heuristic modules; ⬜ persistence.  
+P2: ⬜ Effect queue operational + inspector; ⬜ rationale weights.  
+P3: ⬜ Advanced card interactions; ⬜ AI personalities; ⬜ performance pass.  
 
 ## Metrics (Targets Post-Remediation)
 | Metric | Target |
@@ -91,14 +92,14 @@ Next audit checkpoint scheduled after unified yield + deterministic mode milesto
 4. **Effect Queue Blind Spot**: Pending queue entries (heal/damage) not represented in AI perception; risk posture / yield decisions ignore imminent changes.
 5. **Mixed Provenance Decision Nodes**: Decision tree currently merges raw heuristic nodes and enriched engine projections without labeling source → interpretability gap.
 
-### Remediation Addendum (Refined Ordering)
-Prepend to existing roadmap:
-0. Remove timer-based auto-keep (unify actuation in controller).
-1. Introduce perception layer (`buildAIState`) eliminating reducer global peeks.
-2. Deterministic mode flag (fixed trials + seeded RNG) for engine decisions in tests.
-3. Augment perception with effect queue virtual deltas (pending heal/energy/VP adjustments).
-4. Label decision tree nodes with `source: 'heuristic' | 'engine'` and unify scoring surface.
-5. Integrate yield advisory output from engine projections (single rationale path).
+## Remediation Addendum (Refined Ordering)
+Prepend to existing roadmap (status inline):
+0. ✅ Remove timer-based auto-keep (unify actuation in controller).
+1. ⬜ Introduce perception layer (`buildAIState`) eliminating reducer global peeks.
+2. 🟡 Deterministic mode flag (fixed trials + seeded RNG) for engine decisions in tests (initial dice path done; yield decisions pending full integration).
+3. ⬜ Augment perception with effect queue virtual deltas (pending heal/energy/VP adjustments).
+4. ⬜ Label decision tree nodes with `source: 'heuristic' | 'engine'` and unify scoring surface.
+5. ⬜ Integrate yield advisory output from engine projections (single rationale path).
 
 ### Expanded Metrics
 | Metric | Target | Notes |

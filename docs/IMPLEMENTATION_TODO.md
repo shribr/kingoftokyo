@@ -7,13 +7,14 @@
 This revision: (1) Marks items completed since baseline, (2) Introduces flow/timing parity tasks, (3) Re-sequences roadmap around Phase FSM, unified yield, AI depth, and persistence.
 
 ## ✅ Completed Since Baseline (Dec 2024 → Sept 2025)
-- [x] Tokyo dual-slot support (City + Bay) + start-of-turn VP logic
-- [x] Shop flush mechanic (2⚡) – functional (logging/tests pending)
-- [x] Peek (clairvoyance) card + transient modal
-- [x] Dynamic dice slot rendering & expansion animation
-- [x] Attack pulse visual feedback layer
-- [x] Pause / resume slice & overlay
-- [x] Yield prompt scaffold (CPU timeout + heuristic) – to be unified
+_Legend: ✅ = completed, PARTIAL = in progress, blank = pending._
+- ✅ Tokyo dual-slot support (City + Bay) + start-of-turn VP logic
+- ✅ Shop flush mechanic (2⚡) – functional (logging/tests pending)
+- ✅ Peek (clairvoyance) card + transient modal
+- ✅ Dynamic dice slot rendering & expansion animation
+- ✅ Attack pulse visual feedback layer
+- ✅ Pause / resume slice & overlay
+- ✅ Yield prompt scaffold (CPU timeout + heuristic) – to be unified
 
 ## 🚨 **CRITICAL FEATURES - MUST IMPLEMENT (Revised)**
 
@@ -46,17 +47,13 @@ This revision: (1) Marks items completed since baseline, (2) Introduces flow/tim
 - [ ] Telemetry schema unification (`ai.decision`, `ai.yield`, `ai.purchasePlan`).
 
 ### Game Flow & Timing Integrity (ELEVATED TO HIGH)
-- [ ] Phase finite state machine (legal transition table)
-- [ ] `turnCycleId` concurrency guard (invalidate stale async tasks) (PARTIAL – effect engine + dice resolution guarded; FSM pending)
-- [x] Event-based dice completion (`DICE_ROLL_RESOLVED`) – removed polling loops & enriched metadata payload
-- [ ] Guarded timer rollout (wrap remaining pacing & animation timeouts) (NEW)
-	- [x] Phase machine prototype (feature-flag `window.__KOT_FLAGS__.USE_PHASE_MACHINE`) with guarded transitions & invalid transition telemetry (Oct 1 2025)
+	- ✅ Phase machine prototype (feature-flag `window.__KOT_FLAGS__.USE_PHASE_MACHINE`) with guarded transitions & invalid transition telemetry (Oct 1 2025)
 - [ ] Minimum phase duration enforcement (ROLL / RESOLVE / BUY_WAIT)
-- [x] Unified yield decision modal (human) + deterministic AI decision promise (Oct 1 2025)
-- [x] BUY_WAIT explicit phase (user ends or timeout) (Oct 1 2025 – feature flag `USE_BUY_WAIT`, manual End Buy CTA; timeout TBD)
+- ✅ Unified yield decision modal (human) + deterministic AI decision promise (Oct 1 2025)
+- ✅ BUY_WAIT explicit phase (user ends or timeout) (Oct 1 2025 – feature flag `USE_BUY_WAIT`, manual End Buy CTA; timeout TBD)
 - [ ] Timing span instrumentation + dev overlay (phase durations, reroll latency)
 - [ ] Structured takeover sequence tests (attacks → yield → takeover)
-	- [x] BUY_WAIT smoke harness (`tools/buyWaitHarness.js`) – validates phase sequencing & follow-up effect gating (Oct 1 2025)
+	- ✅ BUY_WAIT smoke harness (`tools/buyWaitHarness.js`) – validates phase sequencing & follow-up effect gating (Oct 1 2025)
  - [ ] Structured takeover sequence tests (attacks → yield → takeover)
 - [ ] **Animation system** - Smooth transitions and feedback
 - [ ] **Sound effects** - Audio feedback for actions
@@ -185,13 +182,13 @@ Status Update (Oct 1, 2025): Phase Alpha Steps 1, 2 & 3 complete – AI actuatio
 	- [x] Guard ensures TEST_MODE disables adaptive early-exit heuristics (adaptive endRoll + dynamic trials suppressed; telemetry `ai.determinism.adaptiveGuard`)
 5. Unified yield & takeover sequence (DONE – yield advisory + takeover ordering harness validated)
 6. BUY_WAIT phase + timing spans + takeover ordering asserts
-	- [x] BUY_WAIT min duration gating added (280ms) (Oct 1 2025)
-	- [x] Duplicate phase transition guard + telemetry (`phase.duplicate`) (Oct 1 2025)
-	- [x] Harness: `tools/phaseDuplicateGuardHarness.js` (no duplicate contiguous transitions)
-	- [x] Harness: `tools/takeoverSequenceHarness.js` (attack → yield → buy ordering & Tokyo occupant change on leave)
-	- [x] Harness: `tools/victoryConditionHarness.js` (RESOLVE → GAME_OVER transition on ≥20 VP)
-	- [x] Harness: `tools/turnParityHarness.js` (ROLL→RESOLVE→BUY→CLEANUP sequencing over N turns; mirrors phase into legacy slice)
-	- [x] Phase reducer mirrors `PHASE_TRANSITION` actions to keep hybrid path coherent
+	- ✅ BUY_WAIT min duration gating added (280ms) (Oct 1 2025)
+	- ✅ Duplicate phase transition guard + telemetry (`phase.duplicate`) (Oct 1 2025)
+	- ✅ Harness: `tools/phaseDuplicateGuardHarness.js` (no duplicate contiguous transitions)
+	- ✅ Harness: `tools/takeoverSequenceHarness.js` (attack → yield → buy ordering & Tokyo occupant change on leave)
+	- ✅ Harness: `tools/victoryConditionHarness.js` (RESOLVE → GAME_OVER transition on ≥20 VP)
+	- ✅ Harness: `tools/turnParityHarness.js` (ROLL→RESOLVE→BUY→CLEANUP sequencing over N turns; mirrors phase into legacy slice)
+	- ✅ Phase reducer mirrors `PHASE_TRANSITION` actions to keep hybrid path coherent
 
 ### Phase Beta (Strategic Depth & Persistence)
 1. Enhanced AI heuristic modules (survival risk, VP race delta, resource economy, Tokyo risk)

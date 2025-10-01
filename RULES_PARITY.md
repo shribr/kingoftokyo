@@ -15,6 +15,8 @@ Earlier documents overstated rewrite parity (claiming ~95%). This revision recal
 ⚠️ Partial / simplified / quality gap  
 ⛔ Missing  
 🧪 Scaffold present (non-player-facing)  
+🟡 In progress (implementation underway but not complete)  
+⬜ Not started
 
 ## Dimension Summary (High-Level)
 | Dimension | Legacy (v1) | Rewrite (v2) | Notes |
@@ -84,14 +86,14 @@ Pure mechanical correctness excluding pacing/UX (what earlier doc measured); kep
 ## Immediate Remediation Roadmap (Excerpt)
 | Priority | Item | Outcome |
 |----------|------|---------|
-| P0 | Add phase FSM + `turnCycleId` | Deterministic transitions & stale async cancellation (Prototype implemented; feature flag) |
-| P0 | Replace dice polling with `DICE_ROLL_RESOLVED` event | Stable CPU reroll loop (Complete) |
-| P1 | Unified yield modal + AI decision promise | Clear, deterministic takeover ordering |
-| P1 | BUY_WAIT explicit phase (interaction or timeout) | Matches legacy purchasing pace |
-| P1 | Timing instrumentation (spans) | Diagnose & tune parity quantitatively (Initial phase spans + transition history) |
-| P2 | AI heuristic expansion (survival, VP race, economy, Tokyo risk) | Improved decision quality |
-| P2 | Effect processor + inspector UI | Foundation for advanced card parity |
-| P2 | Store snapshot persistence | Restore session continuity |
+| P0 | Add phase FSM + `turnCycleId` | 🟡 Deterministic transitions & stale async cancellation (prototype under feature flag) |
+| P0 | Replace dice polling with `DICE_ROLL_RESOLVED` event | ✅ Stable CPU reroll loop (complete) |
+| P1 | Unified yield modal + AI decision promise | ⬜ Clear, deterministic takeover ordering |
+| P1 | BUY_WAIT explicit phase (interaction or timeout) | ⬜ Matches legacy purchasing pace |
+| P1 | Timing instrumentation (spans) | 🟡 Initial phase spans + transition history present (needs expansion) |
+| P2 | AI heuristic expansion (survival, VP race, economy, Tokyo risk) | ⬜ Improved decision quality |
+| P2 | Effect processor + inspector UI | ⬜ Foundation for advanced card parity |
+| P2 | Store snapshot persistence | ⬜ Restore session continuity |
 
 ## Updated Coverage Estimation Method
 Prior method: counted feature booleans.  
