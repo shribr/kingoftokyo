@@ -212,7 +212,8 @@ Silence → cognitive consolidation → higher quality iteration.
 No direct generation (passive contextual carry).
 
 #### Screenshots & Artifacts
-None.
+![Pre-Commit UI Baseline (Early Modal State)](images/chat collaboration screenshots/Screenshot 2025-09-07 at 1.09.51 AM.png)
+<sub>Early environment capture prior to mechanics scaffold (closest available pre-Day 3 visual).</sub>
 
 ---
 
@@ -251,7 +252,9 @@ Resist early abstraction to preserve velocity.
 Module boundary sketch AI-generated; human pruned speculative branches.
 
 #### Screenshots & Artifacts
-None retained.
+![Early Mechanics Scaffold (Dice + Profile Draft)](images/chat collaboration screenshots/Screenshot 2025-09-09 at 9.05.41 PM.png)
+![Alternate Layout Exploration](images/chat collaboration screenshots/Screenshot 2025-09-09 at 9.13.22 PM.png)
+<sub>Repurposed late-evening Sept 9 captures to approximate early scaffold visual (Day 4 reconstructed).</sub>
 
 ---
 
@@ -290,7 +293,9 @@ Establish canonical processing checkpoints early.
 AI suggested branching; human curated dramatic UX pacing.
 
 #### Screenshots & Artifacts
-None.
+![Elimination & Extra Dice Context](images/chat collaboration screenshots/Screenshot 2025-09-11 at 11.22.34 AM.png)
+![Refactor Pass Snapshot](images/chat collaboration screenshots/Screenshot 2025-09-11 at 11.56.08 PM.png)
+<sub>Shows interface state during mechanics breakthrough & refactor consolidation.</sub>
 
 ---
 
@@ -411,6 +416,9 @@ AI suggested handler consolidation; human validated viability.
 
 #### Screenshots & Artifacts
 None.
+![Drag & Drop + Pause Overlay Integration](images/chat collaboration screenshots/Screenshot 2025-09-14 at 5.19.28 PM.png)
+![Setup Manager & Modal Stack](images/chat collaboration screenshots/Screenshot 2025-09-14 at 9.15.40 PM.png)
+<sub>Representative mid-day & evening integration milestones.</sub>
 
 ---
 
@@ -450,7 +458,8 @@ Centralize gating logic to reduce emergent anomalies.
 AI mapped trigger chain; human validated rules.
 
 #### Screenshots & Artifacts
-None (log snapshot not archived).
+![Tokyo Entry / Roll-off UI Refinement](images/chat collaboration screenshots/Screenshot 2025-09-15 at 5.39.50 PM.png)
+<sub>Depicts post-refactor active player visual + emergent flow polish.</sub>
 
 ---
 
@@ -490,7 +499,8 @@ Instrument early; refactor on evidence not intuition.
 AI proposed caching; human validated memory footprint.
 
 #### Screenshots & Artifacts
-None (snapshot not stored).
+![Dice Stability Breakthrough (Unified Dice View)](images/chat collaboration screenshots/Screenshot 2025-09-16 at 10.41.10 PM.png)
+<sub>Evening capture near dice pipeline stabilization commit `1121900`.</sub>
 
 ---
 
@@ -530,7 +540,8 @@ Name collisions breed hidden complexity—audit early.
 AI scaffolded docs; human refined narrative tone.
 
 #### Screenshots & Artifacts
-None (header ref not stored).
+![Documentation & Active Player Display](images/chat collaboration screenshots/Screenshot 2025-09-17 at 11.14.45 PM.png)
+<sub>Late-night polish phase—active player name + refined layout.</sub>
 
 ---
 
@@ -569,7 +580,8 @@ Favor structural ancestry compliance over selector liberalization.
 AI rationale guidance; human enforced minimal header.
 
 #### Screenshots & Artifacts
-None (recommend future capture).
+![Power Card Modal Minimalism Pass](images/chat collaboration screenshots/Screenshot 2025-09-18 at 12.35.24 AM.png)
+<sub>Modal ancestry fix context & Dark Edition asset removal verification.</sub>
 
 ---
 
@@ -608,7 +620,8 @@ Clone animations need contemporaneous modifier styles.
 AI traced clone path; human validated persistence prompting second patch.
 
 #### Screenshots & Artifacts
-None (recommend before/after capture).
+![Tokyo Slot Artifact Mitigation (Mini Profile Variant)](images/chat collaboration screenshots/Screenshot 2025-09-19 at 1.20.27 PM.png)
+<sub>Green bar removal validated with mini profile styling.</sub>
 
 ---
 
