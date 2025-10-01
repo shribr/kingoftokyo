@@ -36,7 +36,9 @@
     - [Appendix B – Forward Roadmap Snapshot](#appendix-b--forward-roadmap-snapshot)
     - [Appendix C – Legacy Embedded Narrative (Pre-Deduplication)](#appendix-c--legacy-embedded-narrative-pre-deduplication)
     - [Appendix D – Thematic Synthesis Summaries](#appendix-d--thematic-synthesis-summaries)
+    - [Appendix E – Architectural Shift Summary](#appendix-e--architectural-shift-summary)
 5. [Cross-Reference Index](#cross-reference-index)
+6. [Glossary of Collaboration Patterns](#glossary-of-collaboration-patterns)
 
 ---
 
@@ -230,27 +232,35 @@ Some of the most valuable moments came from honest feedback. When the human said
 The original ten‑day narrative closed on polish and documentation. What followed (Days 11–24) became a seamless second arc: transforming a solid legacy implementation into a dual‑path architecture with richer AI transparency, scenario tooling, accessible modals, and animation polish—preserving the same collaborative principles (vision + systematic augmentation) while operating at a higher level of abstraction (heuristics, state orchestration, determinism, refactors).
 
 ### Chapter 11: From Polish to Platform (Sept 17–19)
+Backlink: builds on early foreshadow (State Isolation – [Ch.1](#chapter-1-first-contact---foundation-days); Reflection Incubation – [Ch.2](#chapter-2-silent-reflection); Mechanics Loop Formalization – [Ch.3](#chapter-3-first-breakthrough-mechanics); Capacity Platform – [Ch.4](#chapter-4-silent-sprints))
 With documentation stabilized (Day 11), focus pivoted to *systemic correctness*. Effect deduplication hardened; UI naming collisions were resolved to preserve future component boundaries. Early heuristic scaffolds appeared—not yet full decision trees, but shape hints (weight attribution, diminishing synergy hooks). A Tokyo slot visual artifact fix exemplified the emerging optimization ethos: surgical DOM + CSS lineage intervention over sweeping restyles. Cadence evolved from delivering isolated features to *curating a platform surface* ready for higher‑order experimentation.
 
 ### Chapter 12: Heuristics Awakening & Integrity Baseline (Sept 20–21)
+Backlink: operationalizes intent clarity + state trust (Intent Loop – [Ch.3](#chapter-3-first-breakthrough-mechanics); Isolation → Integrity – [Ch.1](#chapter-1-first-contact---foundation-days))
 An incubation lull (20th) produced a surge in conceptual screenshots. The following day crystallized the *heuristic era*: synergy‑aware scoring layers, diminishing returns controls, and structured purchase rationale objects. Parallel: the integrity baseline (hash manifest + rollback safety tags) formalized trust—anchoring future rewrites and scenario reproducibility. Human emphasis on recoverability + audit met AI’s mechanical rigor (hash enumeration, drift alerts). This closed the loop foreshadowed in Chapter 1: intent clarity feeding systematic resilience.
 
 ### Chapter 13: Spatial Refinement & Interaction Stability (Sept 22–23)
+Backlink: tactile stability extends capacity principles (Structured Interaction Layer – [Ch.4](#chapter-4-silent-sprints); Rationale Seeds – [Ch.3](#chapter-3-first-breakthrough-mechanics))
 Tactile credibility improved: drag stabilization, panel visibility constraints, and collision avoidance patterns. The effect queue + decision modal established *explainable AI moments*: structured decision objects (inputs, weights, projected outcomes) replaced opaque resolutions. Collaboration dialect now negotiated *why a branch was selected* rather than merely *which branch executed*—a direct realization of earlier rationale scaffolding.
 
 ### Chapter 14: Parallel Rewrite Strategy (Sept 24)
+Backlink: reversible evolution = reflection discipline + isolation (Reflection Lull → Strategic Queue – [Ch.2](#chapter-2-silent-reflection); Isolation & Naming Consistency – [Ch.1](#chapter-1-first-contact---foundation-days))
 The deliberate rewrite lane (`/new/`) emerged: services, reducer segmentation, event adapters, and UI isolation layers coexisted with legacy implementation. Dual Tokyo slots, yield prompts, and deeper effect queue scaffolds validated *parallel evolution without destabilization*. Human mandated reversibility; AI supplied parity matrices + drift detection notes. This phase operationalized the integrity baseline—migration under audit, not blind divergence.
 
 ### Chapter 15: Componentization Wave (Sept 25–26)
+Backlink: component seams anticipated by earlier modality + state scoping (Modal Contract Foundations – [Ch.1](#chapter-1-first-contact---foundation-days); Silent Capacity Build – [Ch.4](#chapter-4-silent-sprints))
 Monolithic surfaces decomposed: action menu, status panels, toolbar, profile cards, unified selection flows. Draggable / layout mode affordances amplified user agency. Monster selection refactor removed ad hoc selectors in favor of declarative initialization contracts. Guiding principle hardened: *explicit mount points + scoped styles > implicit global cascade heuristics*—creating predictable insertion seams for later comfort & transparency systems.
 
 ### Chapter 16: Comfort & Intent Systems (Sept 27–28)
+Backlink: user pacing + clarity derive from early UX intent framing (Experience Contract – [Ch.1](#chapter-1-first-contact---foundation-days); Cognitive Load Concerns – [Ch.2](#chapter-2-silent-reflection))
 User cognitive load reduction became a first‑class engineering target: settings architecture (stateful preferences), blackout overlays (focus isolation), toast notifications (non‑blocking feedback), unified modal controller (lifecycle consistency), KEEP ALL dice affordance, tray ergonomic alignment. The experience crossed a threshold—from *playable game* to *operator console* balancing agency, clarity, and rhythm.
 
 ### Chapter 17: Scenario & Transparency Expansion (Sept 29)
+Backlink: transparency arc completes rationale evolution (Problem Surfacing Loop – [Ch.3](#chapter-3-first-breakthrough-mechanics); Deterministic Capacity – [Ch.4](#chapter-4-silent-sprints))
 Scenario seeding + parameterized configuration delivered reproducible experimentation loops. Phase event adapters abstracted temporal transitions; instrumentation hooks aligned with earlier integrity scaffolds. The Decision Tree UI externalized heuristic branching—promoting collaborative critique of weight assignments. Pause/resume, focus traps, and ARIA-conscious layering broadened inclusivity and resilience.
 
 ### Chapter 18: Acceptance & Kinetic Feedback (Sept 30)
+Backlink: acceptance pacing + kinetic semantics fulfill initial interaction contract (Dismissal Interaction Pattern – [Ch.1](#chapter-1-first-contact---foundation-days); Phase Rhythm Ideation – [Ch.2](#chapter-2-silent-reflection))
 The “Accept Dice Results” mechanic formalized *player‑governed phase pacing*, enabling mid‑roll strategic economy (buy pre‑commit). Cohesive animation language emerged: Tokyo slot transitions, pulse feedback for damage/resolution, anchor glow states, nuanced card detail reveals. These kinetic layers fused earlier goals—transparency (what happened & why) + tactility (felt state change). Documentation convergence completed the narrative unification effort foreshadowed when rewrite isolation began.
 
 ----
@@ -1247,6 +1257,28 @@ Full raw pre-restructure narrative retained verbatim in: `AI_HUMAN_COLLABORATION
 
 ---
 
+## Glossary of Collaboration Patterns
+| Term | Definition | First Emergence | Later Realization |
+| ---- | ---------- | --------------- | ----------------- |
+| Interaction Contract | UX intent separated from event handling details | Ch.1 | Acceptance phase + unified modals (Ch.16, Ch.18) |
+| Reflection Lull | Quiet incubation period shaping upcoming bursts | Ch.2 | Rewrite timing discipline (Ch.14) |
+| Problem Surfacing Loop | Friction → mapping → options → implement → recon | Ch.3 | Heuristic rationale evolution (Ch.12–13) |
+| Capacity Fabric | Silent structural affordance accumulation | Ch.4 | Component seams & rewrite path (Ch.15–16) |
+| State Isolation Principle | Decouple logic & presentation for auditability | Ch.1 | Integrity baseline + parity matrices (Ch.12–14) |
+| Reversible Evolution | Change gated by parity & rollback markers | Ch.4 (implicit) | Dual-path rewrite (Ch.14–15) |
+| Explainable Moment | Surfaced reasoning for an internal decision | Ch.3 (seed) | Decision modal + tree (Ch.13, Ch.17) |
+| Cognitive Ease Layer | Systems reducing user mental load | Ch.2 (seed) | Comfort systems (Ch.16) |
+| Scenario Harness | Deterministic configuration for reproducible trials | Ch.2 (idea) | Full harness (Ch.17) |
+| Kinetic Semantics | Animations encode state meaning (not ornament) | Ch.1 (seed) | Cohesive set (Ch.18) |
+| Transparency Stack | Layered visibility (logs → rationale → tree) | Ch.1–3 seeds | Fully stratified (Ch.17–18) |
+| Intent Mediation | Human framing guides AI structural synthesis | Ch.1 | Architecture evolution gating (Ch.11–15) |
+| Structured Option Framing | Enumerated solutions with tradeoffs | Ch.3 | Rewrite fork decisions (Ch.14) |
+| Comfort-Driven Prioritization | UX friction justifies technical investment | Ch.2 | Acceptance & overlays (Ch.16–18) |
+| Parallel Safety Strategy | Evolve new path while baseline stays stable | Ch.4 (capacity) | Live dual execution (Ch.14–15) |
+| Decision Object Formalization | Schema for AI choice explanation | Ch.3 (proto logs) | Effect queue + rationale objects (Ch.13) |
+| Deterministic Confidence Loop | Integrity + scenarios enable fearless iteration | Ch.2 (seed) | Combined harness (Ch.17) |
+| Pacing Governance | Player controls temporal commit points | Ch.2 (implicit) | Accept mechanic (Ch.18) |
+
 
 ---
 
@@ -1813,6 +1845,24 @@ Complementary strengths codified; candid performance feedback accelerated recali
 Narrative closure framed platform readiness for AI heuristics & deterministic test harness.
 
 *End Appendix D – Thematic Synthesis Summaries*
+-
+### Appendix E – Architectural Shift Summary
+| Dimension | Legacy Path (Pre-Fork) | Rewrite Path (Dual Lane) | Shift Trigger | Risk Mitigation |
+| --------- | ---------------------- | ------------------------ | ------------- | --------------- |
+| State Management | Implicit module-scoped state & ad hoc updates | Reducer/services segmentation with explicit handlers | Need for deterministic effect sequencing | Integrity baseline + parity matrix checks |
+| UI Composition | Monolithic DOM regions + cascading CSS | Componentized mount seams + scoped styles | Increasing CSS collision & layout drift | Scoped class namespaces / isolation wrappers |
+| Modal Handling | Independent modal toggles | Unified modal controller + lifecycle orchestration | Overlapping focus & stacking conflicts | Central registry + focus trap policy |
+| Decision Logic | Embedded heuristics & inline conditionals | Externalized rationale objects + decision tree | Lack of explainability & tuning friction | Structured schema + visualization layer |
+| Animation Feedback | Incremental ad hoc transitions | Cohesive kinetic semantics set (state → motion mapping) | Inconsistent state meaning conveyance | Standardized timing tokens & semantic classes |
+| Scenario Execution | Manual ad hoc test setups | Seeded scenario harness (parameterized) | Hard to reproduce complex sequences | Deterministic seed + config manifest |
+| Evolution Strategy | Direct edits on live baseline | Parallel fork in `/new/` with staged adoption | Risk of destabilizing core gameplay | Reversible migration checkpoints |
+| Error Surface | Reactive debugging post-symptom | Pre-emptive effect queue & lifecycle audit | Latent multi-step failure chains | Queue introspection + staged logging |
+| User Pacing | System-driven phase advancement | Player-governed acceptance gating | Perceived rush / reduced deliberation | Explicit commit action + mid-roll economy window |
+| Transparency Layering | Console logs & inferred intent | Multi-layer: logs → decision objects → tree UI | Opaque heuristic outcomes | Progressive disclosure interface |
+| Refactor Timing | Opportunistic during feature work | Intentional batch waves (componentization) | Drift accumulation / coupling risk | Scheduled waves + boundary mapping |
+| Trust Model | Manual verification | Hash integrity baseline + rollback tags | Undetected regression during fork | Hash diff alerts + rollback plan |
+
+*End Appendix E – Architectural Shift Summary*
 - **Stop-and-Ask Approach**: Human insisted AI ask permission before making changes
 - **Revert-First Strategy**: When things broke, immediately revert all changes to restore working state
 - **Full Codebase Review**: Human suggested AI should go through all files systematically to understand architecture
