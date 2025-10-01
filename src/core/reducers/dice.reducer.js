@@ -1,6 +1,6 @@
 import { DICE_ROLL_STARTED, DICE_ROLLED, DICE_TOGGLE_KEEP, DICE_REROLL_USED, PHASE_CHANGED, DICE_SET_ALL_KEPT, DICE_ROLL_RESOLVED, DICE_ROLL_COMPLETED, DICE_RESULTS_ACCEPTED } from '../actions.js';
 
-const initial = { faces: [], rerollsRemaining: 0, baseRerolls: 2, phase: 'idle', accepted: false };
+const initial = { faces: [], rerollsRemaining: 0, baseRerolls: 2, phase: 'idle', accepted: false, rollHistory: [] };
 
 export function diceReducer(state = initial, action) {
   switch (action.type) {
@@ -23,8 +23,16 @@ export function diceReducer(state = initial, action) {
   const rerollsRemaining = state.baseRerolls + bonus;
   return { ...state, phase: 'rolling', rerollsRemaining, accepted: false };
     }
-    case DICE_ROLLED:
-      return { ...state, faces: action.payload.faces, phase: 'resolved' };
+    case DICE_ROLLED: {
+      const { faces, meta } = action.payload;
+      let rollHistory = state.rollHistory;
+      if (meta) {
+        // Append immutable snapshot of faces + meta
+        const snapshot = { ts: Date.now(), meta: { ...meta }, faces: faces.map(f=>({ ...f })) };
+        rollHistory = [...rollHistory, snapshot].slice(-20); // cap history
+      }
+      return { ...state, faces, phase: 'resolved', rollHistory };
+    }
     case DICE_TOGGLE_KEEP: {
       const { index } = action.payload;
       if (index < 0 || index >= state.faces.length) return state;

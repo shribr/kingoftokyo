@@ -122,7 +122,8 @@ export const playerVPGained = (playerId, amount, reason) => ({ type: PLAYER_VP_G
 
 // Dice action creators
 export const diceRollStarted = () => ({ type: DICE_ROLL_STARTED });
-export const diceRolled = (faces) => ({ type: DICE_ROLLED, payload: { faces } });
+// Extended: optional meta (e.g., deterministic seed, rollIndex, turnCycleId, activeId)
+export const diceRolled = (faces, meta = null) => meta ? ({ type: DICE_ROLLED, payload: { faces, meta } }) : ({ type: DICE_ROLLED, payload: { faces } });
 export const diceToggleKeep = (index) => ({ type: DICE_TOGGLE_KEEP, payload: { index } });
 export const diceRerollUsed = () => ({ type: DICE_REROLL_USED });
 export const diceSetAllKept = (kept = true) => ({ type: DICE_SET_ALL_KEPT, payload: { kept } });

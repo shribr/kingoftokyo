@@ -171,15 +171,16 @@ Status Update (Oct 1, 2025): Phase Alpha Steps 1 & 3 complete – AI actuation u
 2. FSM + `turnCycleId` (PARTIAL – guards in place, FSM pending)
 3. Dice roll resolved event (no polling) & CPU loop refactor (DONE)
 4. Deterministic mode (seeded; fixed trials) + snapshot harness
-	- [ ] RNG adapter module (`rngFactory(seed)`) with Mulberry32 implementation
-	- [ ] Seed derivation: `{ turnCycleId, finalRollIndex, playerId }` → 32-bit seed hash
-	- [ ] Inject RNG into AI decision pipeline (eliminate implicit Math.random)
-	- [ ] Fixed Monte Carlo trial count constant (`AI_TRIALS_TEST_MODE`)
-	- [ ] Decision metadata enrichment: `meta.seed`, `meta.trials`, `meta.durationMs`
-	- [ ] Snapshot harness: multi-run identical output assertion (dice keep sets, yield advisory)
-	- [ ] Divergence logger (on mismatch dump state + seed chain)
-	- [ ] Telemetry counter: `ai.determinism.diff` (target 0)
-	- [ ] Guard ensures TEST_MODE disables adaptive early-exit heuristics
+	- [x] RNG adapter module (`rngFactory(seed)`) with Mulberry32 implementation (core/rng.js existing)
+	- [x] Seed derivation: `{ turnCycleId, rollIndex, playerId }` used for dice (`KOT_DICE` combineSeed)
+	- [x] Inject RNG into AI decision pipeline (decision seed + fixed trialsOverride=64)
+	- [x] Fixed Monte Carlo trial count constant in deterministic context
+	- [x] Decision metadata enrichment: `decision.deterministic { seed, trials, turnCycleId, decisionIndex, durationMs }`
+	- [x] Dice roll metadata: `dice.rollHistory[]` storing `{ seed, rollIndex, turnCycleId, activeId }`
+	- [x] Snapshot harness: `tools/deterministicSnapshotHarness.js` multi-run identical dice history & player snapshot assertion
+	- [ ] Divergence logger (on mismatch dump state + seed chain) (PENDING)
+	- [ ] Telemetry counter: `ai.determinism.diff` (target 0) (PENDING)
+	- [ ] Guard ensures TEST_MODE disables adaptive early-exit heuristics (partial – adaptive profiling still active outside explicit flag)
 5. Unified yield & takeover sequence (yield advisory integration)
 6. BUY_WAIT phase + timing spans + takeover ordering asserts
 	- [x] BUY_WAIT min duration gating added (280ms) (Oct 1 2025)
@@ -327,7 +328,8 @@ Planned Enhancements:
 ---
 ## Phase Transition Integrity Harnesses (Oct 1 2025)
 1. `tools/phaseDuplicateGuardHarness.js` – Simulates N turns with phase machine enforcing min durations; fails if any contiguous duplicate `PHASE_TRANSITION` entries occur (guards `phase.duplicate`).
-2. `tools/takeoverSequenceHarness.js` – Forces Tokyo occupant then simulates attack dice; asserts `RESOLVE -> YIELD_DECISION -> BUY/BUI_WAIT` ordering and occupant change on forced leave decision (`--leave`).
+2. `tools/takeoverSequenceHarness.js` – Forces Tokyo occupant then simulates attack dice; asserts `RESOLVE -> YIELD_DECISION -> BUY/BUY_WAIT` ordering and occupant change on forced leave decision (`--leave`).
+3. `tools/deterministicSnapshotHarness.js` – Runs multiple deterministic-mode scenarios comparing dice rollHistory, player snapshots, Tokyo occupancy; fails on any diff.
 
 Usage Examples:
 ```

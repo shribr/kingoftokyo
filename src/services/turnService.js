@@ -265,16 +265,19 @@ export function createTurnService(store, logger, rng = Math.random) {
     console.log(`🎲 Starting dice roll for ${st.players.byId[activeId]?.name || 'unknown'}`);
     store.dispatch(diceRollStarted());
     let useRng = rng;
+    let meta = null;
+    let currentRollIndex = __rollIndex;
     if (isDeterministicMode()) {
-      const seed = combineSeed('KOT_DICE', st.meta.turnCycleId, __rollIndex, activeId || '');
-      useRng = deriveRngForTurn(seed, st.meta.turnCycleId, __rollIndex);
+      const seed = combineSeed('KOT_DICE', st.meta.turnCycleId, currentRollIndex, activeId || '');
+      useRng = deriveRngForTurn(seed, st.meta.turnCycleId, currentRollIndex);
+      meta = { seed, rollIndex: currentRollIndex, turnCycleId: st.meta.turnCycleId, activeId };
     }
     const faces = rollDice({ currentFaces: st.dice.faces, count: diceSlots, rng: useRng });
     __rollIndex++;
     // Simulate AI pacing delay (human players later could bypass)
     const delay = computeDelay(store.getState().settings);
     if (delay) await wait(delay);
-    store.dispatch(diceRolled(faces));
+  if (meta) store.dispatch(diceRolled(faces, meta)); else store.dispatch(diceRolled(faces));
   }
 
   async function reroll() {
