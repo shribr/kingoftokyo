@@ -1,4 +1,3 @@
-<!-- MASTER COLLABORATION DOCUMENT (Three-Section Architecture) -->
 # King of Tokyo – Human & AI Collaboration Chronicle
 **Timeline Covered:** September 7–30, 2025  
 **Structural Model:** Story Narrative → Daily Work Log → Technical Chat Sessions  
@@ -9,32 +8,29 @@
 ## Table of Contents
 1. [Story of the Journey](#story-of-the-journey)
     - [Prologue: The Vision](#prologue-the-vision)
-    - [Chapter 1: First Contact - The Foundation Days](#chapter-1-first-contact---the-foundation-days)
-    - [Chapter 2: The Silent Period - Solo Development](#chapter-2-the-silent-period---solo-development)
-    - [Chapter 3: The Breakthrough Session - Solving Complex Challenges](#chapter-3-the-breakthrough-session---solving-complex-challenges)
-    - [Chapter 4: The Silent Sprints - Intensive Development](#chapter-4-the-silent-sprints---intensive-development)
-    - [Chapter 5: The Refinement Session - Professional Polish](#chapter-5-the-refinement-session---professional-polish)
-    - [Chapter 6: The Power of Visual Communication](#chapter-6-the-power-of-visual-communication)
-    - [Chapter 7: Problem-Solving Patterns That Emerged](#chapter-7-problem-solving-patterns-that-emerged)
-    - [Chapter 8: Communication Breakthroughs and Challenges](#chapter-8-communication-breakthroughs-and-challenges)
-    - [Chapter 9: The Technical Artistry Behind the Scenes](#chapter-9-the-technical-artistry-behind-the-scenes)
-    - [Chapter 10: Lessons in Human-AI Partnership](#chapter-10-lessons-in-human-ai-partnership)
-    - [Epilogue: The Transformation](#epilogue-the-transformation)
-    - [Continuation Phase (Overview)](#continuation-phase-emergent-ai-systems--architectural-evolution-sept-17–30)
-    - [Chapter 11: From Polish to Platform](#chapter-11-from-polish-to-platform-sept-17–19)
-    - [Chapter 12: Heuristics Awakening & Integrity Baseline](#chapter-12-heuristics-awakening--integrity-baseline-sept-20–21)
-    - [Chapter 13: Spatial Refinement & Interaction Stability](#chapter-13-spatial-refinement--interaction-stability-sept-22–23)
-    - [Chapter 14: Dual Paths & Controlled Rewrite](#chapter-14-dual-paths--controlled-rewrite-sept-24)
-    - [Chapter 15: Componentization Wave](#chapter-15-componentization-wave-sept-25–26)
-    - [Chapter 16: Systems for Intent & Comfort](#chapter-16-systems-for-intent--comfort-sept-27–28)
-    - [Chapter 17: Scenario & Transparency Acceleration](#chapter-17-scenario--transparency-acceleration-sept-29)
-    - [Chapter 18: Acceptance & Animation Cohesion](#chapter-18-acceptance--animation-cohesion-sept-30)
+    - [Chapter 1: First Contact – Foundation Days](#chapter-1-first-contact---foundation-days)
+    - [Chapter 2: Silent Reflection](#chapter-2-silent-reflection)
+    - [Chapter 3: First Breakthrough Mechanics](#chapter-3-first-breakthrough-mechanics)
+    - [Chapter 4: Silent Sprints](#chapter-4-silent-sprints)
+    - [Chapter 5: Refinement & Documentation](#chapter-5-refinement--documentation)
+    - [Chapter 6: Visual Communication Leverage](#chapter-6-visual-communication-leverage)
+    - [Chapter 7: Debug & Problem-Solving Patterns](#chapter-7-debug--problem-solving-patterns)
+    - [Chapter 8: Communication Evolution](#chapter-8-communication-evolution)
+    - [Chapter 9: Systems & Incremental Architecture](#chapter-9-systems--incremental-architecture)
+    - [Chapter 10: Partnership Lessons](#chapter-10-partnership-lessons)
+    - [Chapter 11: Platform Mindset Emerges](#chapter-11-platform-mindset-emerges)
+    - [Chapter 12: Heuristics & Integrity Baseline](#chapter-12-heuristics--integrity-baseline)
+    - [Chapter 13: Spatial & Interaction Stability](#chapter-13-spatial--interaction-stability)
+    - [Chapter 14: Parallel Rewrite Strategy](#chapter-14-parallel-rewrite-strategy)
+    - [Chapter 15: Componentization Wave](#chapter-15-componentization-wave)
+    - [Chapter 16: Comfort & Intent Systems](#chapter-16-comfort--intent-systems)
+    - [Chapter 17: Scenario & Transparency Expansion](#chapter-17-scenario--transparency-expansion)
+    - [Chapter 18: Acceptance & Kinetic Feedback](#chapter-18-acceptance--kinetic-feedback)
+    - [Epilogue: The Transformation & Forward Arc](#epilogue-the-transformation--forward-arc)
 2. [Daily Work Log](#daily-work-log)
-    - Days 1–13
-    - [Day 14](#day-14--work-log-heuristic-exploration-incubation) · [Day 15](#day-15--work-log-synergy-heuristics--integrity-baseline) · [Day 16](#day-16--work-log-spatial-stability--drag-refinement) · [Day 17](#day-17--work-log-effect-queue--decision-transparency) · [Day 18](#day-18--work-log-rewrite-launch--dual-tokyo-slots) · [Day 19](#day-19--work-log-componentization-wave) · [Day 20](#day-20--work-log-selection-flow-unification) · [Day 21](#day-21--work-log-settings--overlays) · [Day 22](#day-22--work-log-unified-modals--dice-ergonomics) · [Day 23](#day-23--work-log-scenario--phase-events) · [Day 24](#day-24--work-log-accept-mechanic--animation-polish)
+    - Days 1–24: [1](#day-1--work-log-conception--environment) · [2](#day-2--work-log-modal--splash-ux) · [3](#day-3--work-log-strategic-silence) · [4](#day-4--work-log-early-mechanics-scaffold) · [5](#day-5--work-log-mechanics-breakthrough) · [6](#day-6--work-log-ui-polish--feedback) · [7](#day-7--work-log-feature-expansion--mobile) · [8](#day-8--work-log-integration--pause-layer) · [9](#day-9--work-log-flow--architecture) · [10](#day-10--work-log-dice--performance-breakthrough) · [11](#day-11--work-log-documentation--polish) · [12](#day-12--work-log-power-card-modal-refinement) · [13](#day-13--work-log-tokyo-slot-artifact-fix) · [14](#day-14--work-log-heuristic-exploration-incubation) · [15](#day-15--work-log-synergy-heuristics--integrity-baseline) · [16](#day-16--work-log-spatial-stability--drag-refinement) · [17](#day-17--work-log-effect-queue--decision-transparency) · [18](#day-18--work-log-rewrite-launch--dual-tokyo-slots) · [19](#day-19--work-log-componentization-wave) · [20](#day-20--work-log-selection-flow-unification) · [21](#day-21--work-log-settings--overlays) · [22](#day-22--work-log-unified-modals--dice-ergonomics) · [23](#day-23--work-log-scenario--phase-events) · [24](#day-24--work-log-accept-mechanic--animation-polish)
 3. [Technical Chat Sessions](#technical-chat-sessions)
-    - Days 1–13
-    - [Day 14](#day-14--chat-session-heuristic-screenshot-spike) · [Day 15](#day-15--chat-session-synergy--baseline-hardening) · [Day 16](#day-16--chat-session-drag--visibility-stability) · [Day 17](#day-17--chat-session-effect-queue--decision-modal) · [Day 18](#day-18--chat-session-rewrite-fork--yield-prompts) · [Day 19](#day-19--chat-session-panelization--layout-modes) · [Day 20](#day-20--chat-session-monster-selection-refactor) · [Day 21](#day-21--chat-session-blackout--settings-evolution) · [Day 22](#day-22--chat-session-unified-modals--dice-tray) · [Day 23](#day-23--chat-session-scenarios--decision-tree) · [Day 24](#day-24--chat-session-accept-dice--tokyo-animation)
+    - Sessions 1–24: [1](#day-1--chat-session-initial-ui-interaction) · [5](#day-5--chat-session-logging--emoji-overhaul) · [6](#day-6--chat-session-tokyo-entry-rule-fix) · [7](#day-7--chat-session-active-player-display--method-conflict) · [8](#day-8--chat-session-power-card-modal) · [9](#day-9--chat-session-tokyo-slot-artifact) · [10](#day-10--chat-session-consolidated-period) · [11](#day-11--chat-session-final-polish--documentation) · [14](#day-14--chat-session-heuristic-screenshot-spike) · [15](#day-15--chat-session-synergy--baseline-hardening) · [16](#day-16--chat-session-drag--visibility-stability) · [17](#day-17--chat-session-effect-queue--decision-modal) · [18](#day-18--chat-session-rewrite-fork--yield-prompts) · [19](#day-19--chat-session-panelization--layout-modes) · [20](#day-20--chat-session-monster-selection-refactor) · [21](#day-21--chat-session-blackout--settings-evolution) · [22](#day-22--chat-session-unified-modals--dice-tray) · [23](#day-23--chat-session-scenarios--decision-tree) · [24](#day-24--chat-session-accept-dice--tokyo-animation)
 4. [Appendices](#appendices)
     - [Appendix A – Original Raw Narrative Reference](#appendix-a--original-raw-narrative-reference)
     - [Appendix B – Forward Roadmap Snapshot](#appendix-b--forward-roadmap-snapshot)
@@ -45,92 +41,94 @@
 ---
 
 ## Story of the Journey
-Verbatim original narrative (Prologue through Epilogue) elevated from archival backup to primary storytelling section as requested. Minor formatting normalized (heading levels); wording preserved.
 
 ### Prologue: The Vision
 What started as a simple browser-based board game would become something much more significant—a testament to what's possible when human creativity meets artificial intelligence in the realm of software development. This is the story of how a King of Tokyo digital adaptation evolved from a basic concept into a polished, feature-rich gaming experience through the power of collaborative development.
 
 The journey wasn't just about building a game; it was about discovering new patterns of communication, problem-solving, and partnership between human and artificial intelligence. Over ten days in September 2025, this collaboration would produce over 6,500 lines of code, solve complex technical challenges, and create something neither human nor AI could have achieved alone.
 
-### Chapter 1: First Contact - The Foundation Days
+### Chapter 1: First Contact – Foundation Days
 *September 8, 2025*
 
-The collaboration began with a seemingly simple request: "if a user is on the Monster selection screen and clicks anywhere outside the modal dialog, hide the Monster Selection dialog and show the splash screen." What appeared to be a straightforward UI enhancement would become the first lesson in the complexities of human-AI collaboration.
+The collaboration opened with a deceptively small UX request: clicking outside the monster selection modal should dismiss it and return the player to the splash screen. Beneath that surface lay the seed of a *pattern* that would later power more advanced constructs (decision modals, effect queues, acceptance flows). Even here the pairing began to differentiate between user intent and raw event handling.
 
-#### The Initial Challenge
-The human developer had a vision—a specific user experience in mind. But translating that vision into actionable code required the AI to understand not just the technical requirements, but the intent behind them. This first interaction established a pattern that would define the entire project: the human providing context and creative direction, while the AI contributed systematic analysis and implementation capabilities.
+#### Establishing the Interaction Contract
+The human framed desired *experience* (“graceful fallback to splash, no stale UI state”), while the AI translated that into structural hooks: modal visibility flags, containment click detection, and state reset sequencing. This early exchange created the vocabulary that future systems (like heuristic rationale overlays and scenario seeds) would plug into—clear separation of presentation, state, and intent.
 
-#### The Communication Breakthrough
-What made this initial session successful wasn't just the technical solution, but the discovery of effective communication patterns. The human learned to provide specific, actionable descriptions, while the AI learned to ask clarifying questions and provide comprehensive solutions rather than quick fixes.
+#### Communication Mechanics Emerge
+Rather than volleying single fixes, the AI responded with structured options; the human refined constraints (“no global click listeners that leak; keep future extensibility”). Clarifying question → disambiguation → enumerated implementation path became the canonical loop. Later, when heuristics needed to surface *why* a purchase decision occurred, this loop scaled naturally: ask, contextualize, enumerate, implement.
 
-The foundation was laid—not just in code, but in understanding. The partnership had begun.
+#### Foundational Foreshadowing
+Subtle precursors formed:
+1. **State Isolation** → would later support integrity hashing and rollback safety
+2. **Explicit Modal Contract** → would evolve into unified modal orchestration
+3. **Context-Rich Prompts** → groundwork for decision transparency and rationale trees
+4. **Tight UX Feedback Loop** → enabling kinetic polish (animations, glows) without logic entanglement
 
-#### Setting the Stage
-By the end of the first day, twelve commits had been made, a modal system was in place, and the basic architecture was established. More importantly, a collaboration framework had emerged:
-1. **Human as Vision Keeper**: Providing context, user experience insights, and creative direction
-2. **AI as Implementation Partner**: Offering systematic analysis, code solutions, and technical optimization
-3. **Shared Understanding**: Building common vocabulary and communication patterns
+#### Day One Outcomes
+Twelve commits established the modal scaffold, selection flow, and consistent naming. More importantly, *collaborative invariants* crystallized:
+1. **Human as Vision Keeper** – frames player empathy & pacing
+2. **AI as System Synthesizer** – supplies structured diffs, edge case surfacing
+3. **Shared Semantic Layer** – agreed taxonomy for later advanced systems (“effect”, “decision”, “phase”)
 
-### Chapter 2: The Silent Period - Solo Development
-*September 9-11, 2025*
+The partnership moved from “AI responding to tasks” toward “paired shaping of future architectural affordances.”
 
-For three days, the repository fell silent. No commits, no documented collaboration sessions. But this wasn't a pause in development—it was a different kind of progress.
+### Chapter 2: Silent Reflection
+*September 9–11, 2025*
 
-#### The Human's Journey
-During these quiet days, the human developer was likely:
-- **Testing and Experiencing**: Playing with the initial implementation, discovering edge cases and opportunities
-- **Visioning**: Imagining new features and improvements beyond the basic framework
-- **Planning**: Considering the next phase of development and potential challenges
+Three calendar days showed no visible commit traffic, yet trajectory was compounding. The human explored emergent friction: pacing between rolls, clarity of damage attribution, card purchase cognitive load. Mental modeling during this interval seeded later priorities: explainability, ergonomic dice interaction, and determinism for reproducibility.
 
-#### The Value of Reflection
-This period highlights an important aspect of human-AI collaboration: not everything needs to be done together. Some of the most valuable development happens during reflection, testing, and planning phases where the human can process what's been built and prepare for the next collaborative session.
+#### Latent Backlog Formation
+Silence incubated:
+- Desire for **transparent decision points** (would become acceptance phase + rationale modal)
+- Need for **consistent artifact boundaries** (precursor to componentization wave)
+- Recognition of **testability gaps** (driving integrity baseline + hash manifest work)
 
-#### Building Anticipation
-When the collaboration resumed, it would be with a clearer vision, specific goals, and accumulated insights from using the system. The silence wasn't empty—it was preparation.
+#### Productive Absence
+The pause demonstrated a sustainable cadence: AI accelerates *once* direction is crystallized. Reflection kept future bursts purposeful, preventing refactors without narrative justification.
 
-### Chapter 3: The Breakthrough Session - Solving Complex Challenges
+#### Emerging North Stars
+Concepts like “scenarios,” “effect queue,” and “selection unification” were not yet code—but they now existed as possible organizing lenses. The collaboration had shifted from reactive implementation to *modeling the problem space*.
+
+### Chapter 3: First Breakthrough Mechanics
 *September 11, 2025*
 
-When the collaboration resumed, it was with a vengeance. Three significant commits marked the beginning of a new phase—one focused on core game mechanics and complex problem-solving.
+Resumption brought escalation: beyond UI polish into intertwined rule mechanics. Elimination logic required synchronized strip‑out of a player's influence (dice, UI presence, targeting). Extra dice management injected combinational rule branching. The collaboration shifted from “implement feature X” to *stabilize systems under combinational load*.
 
-#### The Challenge Escalation
-No longer were they dealing with simple UI enhancements. The challenges had evolved:
-- **Player elimination systems** requiring coordinated UI updates across multiple components
-- **Extra dice management** needing sophisticated state tracking and turn-based logic
-- **Code architecture** demanding refactoring for maintainability and scalability
+#### Scaling the Collaboration Pattern
+The emergent five‑step loop solidified:
+1. **Surface Friction** – human notes experiential gap
+2. **Code Topography Map** – AI enumerates structural pressure points
+3. **Option Framing** – tradeoffs (simple patch vs foundational adjustment)
+4. **Guided Implementation** – incremental commits aligned to invariants
+5. **Post-Change Recon** – confirm no orphaned UI states / logic drift
 
-#### Partnership Maturation
-This session marked a maturation in the collaboration. The human had developed a better understanding of how to communicate complex requirements, while the AI had learned to provide more comprehensive solutions that considered broader system implications.
+#### Architectural Precursors
+Work here hinted at systems that would arrive much later:
+- Consolidated “effect” tracking → laid groundwork for effect queue semantics
+- Dice state normalization → enabled later accept‑phase gating
+- Structured logging → embryonic form of rationale surfacing
 
-#### The Pattern Emerges
-A clear development pattern emerged:
-1. **Problem Identification**: Human discovers issues through gameplay and user experience
-2. **System Analysis**: AI provides systematic exploration of the codebase
-3. **Collaborative Design**: Together they design solutions that address both immediate needs and long-term architecture
-4. **Implementation**: AI implements with human guidance and feedback
-5. **Integration**: Testing and refinement to ensure solutions work harmoniously
+#### Trust Gradient
+The human supplied intent vectors (fairness, clarity, speed). The AI responded with refactors that preserved emergent extensibility—avoiding brittle patches that would have blocked the subsequent componentization wave.
 
-### Chapter 4: The Silent Sprints - Intensive Development
-*September 12-16, 2025*
+### Chapter 4: Silent Sprints
+*September 12–16, 2025*
 
-The most productive period of the project wasn't documented in chat sessions—it was a series of intensive development sprints that produced the majority of the game's features. Over five days, more than 40 commits were made, implementing everything from mobile responsiveness to advanced AI systems.
+Five dense build days produced disproportionate value: mobile responsiveness, expanded personalities, drag interactions, turn flow refinement, dice probability shaping. Chat silence did not equal absence of collaboration—it reflected *asynchronous trust execution* built on prior shared semantics.
 
-#### The Mystery of Silent Development
-How does productive development happen without documented collaboration? The answer lies in the foundation built during the initial sessions:
-- **Shared Vision**: Clear understanding of goals and priorities
-- **Established Patterns**: Proven approaches to common challenges
-- **Communication Efficiency**: Ability to work independently when direction is clear
+#### Momentum Mechanics
+Because naming, layering, and modality contracts were settled early, velocity scaled *without accruing chaotic debt*. Each feature now slotted into predictable zones (interaction layer, state manager, visual feedback channel).
 
-#### The Features That Emerged
-During this period, the game transformed:
-- **Day 6**: UI polish and visual enhancement
-- **Day 7**: Advanced features like monster personalities and mobile support
-- **Day 8**: Core systems integration and drag-and-drop functionality  
-- **Day 9**: Game flow refinement and architectural improvements
-- **Day 10**: Major breakthroughs in dice systems and turn management
+#### Emergent System Fabric
+Patterns now visible:
+- **Phase-Oriented Thinking** – seeds of later accept gating & scenario stepping
+- **Containerized Visual Regions** – enabling future draggable panels & overlays
+- **Consistent Event Dispatching** – prerequisite for effect queue adapters
+- **Incremental Roll Feedback** – foundation for eventual kinetic animation polish
 
-#### The Hidden Collaboration
-Even without documented sessions, this period represented collaboration in action. The human was testing, experiencing, and guiding development through issues and feedback, while the AI was implementing, refining, and optimizing based on that guidance.
+#### Strategic Silence Value
+The AI executed high‑confidence expansions; the human curated experiential alignment, queuing higher‑order needs (transparency, comfort, determinism) that would dominate the second arc. This period forged *capacity*—a platform stable enough to justify later architectural bifurcation (legacy vs rewrite path) without stalling delivery.
 
 ### Chapter 5: The Refinement Session - Professional Polish
 *September 17, 2025*
@@ -227,67 +225,35 @@ Trust didn't emerge immediately—it was built through successful collaboration 
 #### The Importance of Honest Feedback
 Some of the most valuable moments came from honest feedback. When the human said "you seem to be a bit off your game today," it demonstrated the kind of direct communication that makes partnerships work.
 
-### Epilogue: The Transformation
-#### What Was Built
-By the end of ten days, a simple game concept had become a sophisticated digital experience:
-- **Complete Game Implementation**: All core mechanics working smoothly
-- **Professional Polish**: Responsive design, animations, and user experience refinements
-- **Advanced Features**: AI personalities, mobile support, comprehensive settings
-- **Robust Architecture**: Clean, maintainable code with proper error handling
+----
 
-#### What Was Learned
-More importantly, new patterns for human-AI collaboration had been discovered:
-- **Visual Communication**: The power of screenshots and visual context
-- **Iterative Problem-Solving**: Breaking complex challenges into manageable pieces  
-- **Complementary Partnership**: Leveraging each partner's unique strengths
-- **Quality Focus**: Shared commitment to excellence and user experience
+The original ten‑day narrative closed on polish and documentation. What followed (Days 11–24) became a seamless second arc: transforming a solid legacy implementation into a dual‑path architecture with richer AI transparency, scenario tooling, accessible modals, and animation polish—preserving the same collaborative principles (vision + systematic augmentation) while operating at a higher level of abstraction (heuristics, state orchestration, determinism, refactors).
 
-#### The Continuing Journey
-This wasn't just a development project—it was a prototype for the future of software development. As AI capabilities continue to evolve, the patterns and insights from this collaboration provide a roadmap for effective human-AI partnership.
+### Chapter 11: From Polish to Platform (Sept 17–19)
+With documentation stabilized (Day 11), focus pivoted to *systemic correctness*. Effect deduplication hardened; UI naming collisions were resolved to preserve future component boundaries. Early heuristic scaffolds appeared—not yet full decision trees, but shape hints (weight attribution, diminishing synergy hooks). A Tokyo slot visual artifact fix exemplified the emerging optimization ethos: surgical DOM + CSS lineage intervention over sweeping restyles. Cadence evolved from delivering isolated features to *curating a platform surface* ready for higher‑order experimentation.
 
-The King of Tokyo game stands as more than just a digital board game. It represents what's possible when human creativity and AI capability are combined through thoughtful collaboration, honest communication, and shared commitment to quality.
+### Chapter 12: Heuristics Awakening & Integrity Baseline (Sept 20–21)
+An incubation lull (20th) produced a surge in conceptual screenshots. The following day crystallized the *heuristic era*: synergy‑aware scoring layers, diminishing returns controls, and structured purchase rationale objects. Parallel: the integrity baseline (hash manifest + rollback safety tags) formalized trust—anchoring future rewrites and scenario reproducibility. Human emphasis on recoverability + audit met AI’s mechanical rigor (hash enumeration, drift alerts). This closed the loop foreshadowed in Chapter 1: intent clarity feeding systematic resilience.
 
-#### The Promise of Tomorrow
-This ten-day journey suggests a future where development isn't about humans versus AI, but humans with AI. Where the creative vision of human developers combines with the systematic capabilities of artificial intelligence to create software that neither could achieve alone.
+### Chapter 13: Spatial Refinement & Interaction Stability (Sept 22–23)
+Tactile credibility improved: drag stabilization, panel visibility constraints, and collision avoidance patterns. The effect queue + decision modal established *explainable AI moments*: structured decision objects (inputs, weights, projected outcomes) replaced opaque resolutions. Collaboration dialect now negotiated *why a branch was selected* rather than merely *which branch executed*—a direct realization of earlier rationale scaffolding.
 
-The game is complete, but the collaboration story continues. Each bug fixed, each feature added, each user delighted represents the ongoing partnership between human creativity and artificial intelligence—a partnership that will define the future of software development.
+### Chapter 14: Parallel Rewrite Strategy (Sept 24)
+The deliberate rewrite lane (`/new/`) emerged: services, reducer segmentation, event adapters, and UI isolation layers coexisted with legacy implementation. Dual Tokyo slots, yield prompts, and deeper effect queue scaffolds validated *parallel evolution without destabilization*. Human mandated reversibility; AI supplied parity matrices + drift detection notes. This phase operationalized the integrity baseline—migration under audit, not blind divergence.
 
----
-*End of Original Narrative Story Section (Elevated)*
+### Chapter 15: Componentization Wave (Sept 25–26)
+Monolithic surfaces decomposed: action menu, status panels, toolbar, profile cards, unified selection flows. Draggable / layout mode affordances amplified user agency. Monster selection refactor removed ad hoc selectors in favor of declarative initialization contracts. Guiding principle hardened: *explicit mount points + scoped styles > implicit global cascade heuristics*—creating predictable insertion seams for later comfort & transparency systems.
 
-### Continuation Phase: Emergent AI Systems & Architectural Evolution (Sept 17–30, 2025)
-The original ten‑day narrative closed on polish and documentation. What followed (Days 11–24) was a second arc: transforming a solid legacy implementation into a dual‑path architecture with richer AI transparency, scenario tooling, accessible modals, and animation polish. This continuation preserves the same collaborative principles—vision + systematic augmentation—while operating at a higher level of abstraction (heuristics, state orchestration, determinism, refactors).
+### Chapter 16: Comfort & Intent Systems (Sept 27–28)
+User cognitive load reduction became a first‑class engineering target: settings architecture (stateful preferences), blackout overlays (focus isolation), toast notifications (non‑blocking feedback), unified modal controller (lifecycle consistency), KEEP ALL dice affordance, tray ergonomic alignment. The experience crossed a threshold—from *playable game* to *operator console* balancing agency, clarity, and rhythm.
 
-#### Chapter 11: From Polish to Platform (Sept 17–19)
-After documentation maturity (Day 11) focus shifted to systemic correctness: effect deduplication patterns hardened, UI naming conflicts resolved, and the groundwork for adaptive AI heuristics appeared. Visual artifact fixes (Tokyo slot) reinforced the pattern: targeted minimal CSS + DOM lineage understanding over broad restyles. The collaboration cadence evolved from “implement feature” to “stabilize platform for expansion.”
+### Chapter 17: Scenario & Transparency Expansion (Sept 29)
+Scenario seeding + parameterized configuration delivered reproducible experimentation loops. Phase event adapters abstracted temporal transitions; instrumentation hooks aligned with earlier integrity scaffolds. The Decision Tree UI externalized heuristic branching—promoting collaborative critique of weight assignments. Pause/resume, focus traps, and ARIA-conscious layering broadened inclusivity and resilience.
 
-#### Chapter 12: Heuristics Awakening & Integrity Baseline (Sept 20–21)
-Screenshots spiked (exploratory UI prototypes) with relatively quiet commit volume on the 20th—an incubation day. On the 21st, momentum crystallized: synergy‑aware heuristic scoring, diminishing returns, purchase rationale objects, and an integrity baseline (hash manifest + rollback safety tags) locked a trustworthy foundation. Human direction emphasized recoverability and audit; AI supplied mechanical rigor (hash mapping, guard rails).
+### Chapter 18: Acceptance & Kinetic Feedback (Sept 30)
+The “Accept Dice Results” mechanic formalized *player‑governed phase pacing*, enabling mid‑roll strategic economy (buy pre‑commit). Cohesive animation language emerged: Tokyo slot transitions, pulse feedback for damage/resolution, anchor glow states, nuanced card detail reveals. These kinetic layers fused earlier goals—transparency (what happened & why) + tactility (felt state change). Documentation convergence completed the narrative unification effort foreshadowed when rewrite isolation began.
 
-#### Chapter 13: Spatial Refinement & Interaction Stability (Sept 22–23)
-Drag/position stability and dashboard visibility refinements addressed tactile usability. The effect queue & decision modal introduced *explainable AI moments*: reasoning surfaced as structured decision objects instead of opaque outcomes. This represented a dialect shift— collaboration now negotiated *why* an action path made sense, not just *what* to implement.
-
-#### Chapter 14: Dual Paths & Controlled Rewrite (Sept 24)
-A controlled architectural fork (“rewrite path”) launched inside `/new/`: reducers, services, event adapters, and component isolation layers coexisted with legacy code. Tokyo dual‑slot mechanics, yield prompts, effect queue scaffolding, and rollback/forward migrations demonstrated *parallel evolution* without abandoning a stable production baseline. Human insisted on reversible migration; AI produced incremental parity matrices and remediation tables.
-
-#### Chapter 15: Componentization Wave (Sept 25–26)
-Legacy monolith fragments decomposed into action menu, panels, toolbar, profile cards, and selection flows. Draggable positioning + layout modes emphasized user agency. Monster selection refactor unified setup semantics, eliminating brittle legacy selectors. The guiding principle: *explicit mount points + scoped styles > global cascade heuristics*.
-
-#### Chapter 16: Systems for Intent & Comfort (Sept 27–28)
-Settings architecture, blackout overlays, toast notifications, unified modal orchestration, KEEP ALL dice shortcut, and tray consistency signaled a pivot toward *cognitive ease*. The platform matured from “functional board game” into “operator console” with deliberate affordances and reduced friction.
-
-#### Chapter 17: Scenario & Transparency Acceleration (Sept 29)
-Scenario configuration (seeded, parameterizable) + phase event adapters formed a reproducible experimentation harness. The AI Decision Tree component externalized branch exploration and projection—moving from black‑box heuristics to shareable analytical artifacts. Pause/resume flows and accessibility focus traps improved resilience and inclusivity.
-
-#### Chapter 18: Acceptance & Animation Cohesion (Sept 30)
-“Accept Dice Results” introduced *player‑driven phase pacing*, enabling mid‑roll economic decisions (buy before commit). Tokyo entry/exit animations, damage pulses, anchor glows, and refined card detail modals united mechanical transparency with tactile feedback. Documentation restructure consolidated narrative coherence—elevating the original story while extending chronological fidelity.
-
-#### Continuation Epilogue: From Game to Experimentation Platform
-By Day 24 the project had crossed a threshold: no longer just a faithful adaptation, it became a *sandbox for AI decision experimentation, UX timing studies, and architectural refinement*. Determinism hooks, scenario seeds, and decision transparency positioned the codebase for future learning loops (profiling, tuning, automated regression). The collaborative lesson of the second arc: sustained velocity with safety requires *visibility (logs, manifests, rationale), reversibility (baselines, tags), and empathetic UX (animations, clarity cues).* The partnership evolved from co‑building to co‑stewarding an extensible system.
-
----
-
----
+----
 
 ## Daily Work Log
 Concise chronological operational record. Each Day block includes cross-links:
@@ -296,7 +262,7 @@ Format: Day N – Work Log [Descriptor]
 Legend: [Story↑] link jumps to narrative chapter; [Chat↓] jumps to technical deep dive (if exists).
 
 ### Day 1 – Work Log [Conception & Environment]
-**Date:** Sept 7, 2025  |  Story: [Chapter 1](#chapter-1-first-contact---the-foundation-days)  |  Chat: [Day 1 Session↓](#day-1--chat-session-initial-ui-interaction)
+**Date:** Sept 7, 2025  |  Story: [Chapter 1](#chapter-1-first-contact---foundation-days)  |  Chat: [Day 1 Session↓](#day-1--chat-session-initial-ui-interaction)
 **Status:** Project Conception & Environment Familiarization (pre-code foundation)
 
 #### Summary
@@ -335,7 +301,7 @@ Planning assistance generated with GPT-4 class assistant; human curated scoping 
 ---
 
 ### Day 2 – Work Log [Modal & Splash UX]
-**Date:** Sept 8, 2025 | Story: [Chapter 1](#chapter-1-first-contact---the-foundation-days) | Chat: (n/a)
+**Date:** Sept 8, 2025 | Story: [Chapter 1](#chapter-1-first-contact---foundation-days) | Chat: (n/a)
 **Status:** Foundational UI + Modal Interaction
 
 #### Summary
@@ -951,7 +917,7 @@ Deep technical transcripts & analyses. Headers formatted: Day N – Chat Session
 
 ### Day 1 – Chat Session [Initial UI Interaction]
 Anchor: `day-1--chat-session-initial-ui-interaction`  
-Work Log: [Day 1↑](#day-1--work-log-conception--environment) | Story: [Chapter 1↑](#chapter-1-first-contact---the-foundation-days)
+Work Log: [Day 1↑](#day-1--work-log-conception--environment) | Story: [Chapter 1↑](#chapter-1-first-contact---foundation-days)
 *Model Footnote:* GPT-4 class assistant; human directed minimalism & correctness.
 
 #### Session Summary
@@ -1264,13 +1230,23 @@ Full raw pre-restructure narrative retained verbatim in: `AI_HUMAN_COLLABORATION
 | 8 | Day 8 – Work Log | Power Card Modal | Chapter 4 / 6 |
 | 9 | Day 9 – Work Log | Tokyo Slot Artifact | Chapter 4 / 6 |
 | 10 | Day 10 – Work Log | Consolidated Period | Chapter 4 |
-| 11 | Day 11 – Work Log | Final Polish & Documentation | Chapter 5 |
+| 11 | Day 11 – Work Log | Final Polish & Documentation | Chapter 5 / 11 |
 | 12 | Day 12 – Work Log | (Uses Day 8 chat session) | Chapter 6 |
 | 13 | Day 13 – Work Log | (Uses Day 9 chat session) | Chapter 6 |
+| 14 | Day 14 – Work Log | Heuristic Screenshot Spike | Chapter 11 / 12 |
+| 15 | Day 15 – Work Log | Synergy & Baseline Hardening | Chapter 12 |
+| 16 | Day 16 – Work Log | Drag & Visibility Stability | Chapter 13 |
+| 17 | Day 17 – Work Log | Effect Queue & Decision Modal | Chapter 13 / 14 |
+| 18 | Day 18 – Work Log | Rewrite Fork & Yield Prompts | Chapter 14 |
+| 19 | Day 19 – Work Log | Panelization & Layout Modes | Chapter 15 |
+| 20 | Day 20 – Work Log | Monster Selection Refactor | Chapter 15 |
+| 21 | Day 21 – Work Log | Blackout Overlays & Settings | Chapter 16 |
+| 22 | Day 22 – Work Log | Unified Modals & Dice Tray | Chapter 16 |
+| 23 | Day 23 – Work Log | Scenarios & Decision Tree | Chapter 17 |
+| 24 | Day 24 – Work Log | Accept Dice & Tokyo Animation | Chapter 18 |
 
 ---
 
-<!-- Removed historical restructure notice per user request -->
 
 ---
 
@@ -1287,7 +1263,6 @@ The original long-form “Chapters” (Prologue through Epilogue) are preserved 
 
 ---
 
-<!-- Removed historical restructure notice per user request -->
 
 
 > Terminology Note (Sept 23): What earlier entries and commits refer to as "player dashboards" are now called "player profile cards" for clearer distinction from monster profile modals. Legacy CSS class names remain during migration.
@@ -2052,6 +2027,67 @@ The splash screen will now display your beautiful Tokyo cityscape with the neon 
 
 ---
 
+## Epilogue: The Transformation & Forward Arc
+
+### What Was Built (Unified View)
+Across two arcs (Days 1–10 foundational, Days 11–24 systemic expansion) the project evolved into a *platform* rather than a mere adaptation:
+- **Complete Core Ruleset**: Turn flow, damage resolution, energy economy, purchase decisions, elimination logic
+- **Progressive Interaction Layer**: Modal contracts → unified modal system → acceptance gating → rationale surfacing
+- **Transparent Decision Fabric**: Heuristic weighting, decision objects, effect queue, decision tree visualization
+- **Architectural Duality**: Legacy stability + rewrite lane enabling reversible evolution
+- **Integrity & Reproducibility**: Hash manifest, scenario seeds, controlled migration parity matrices
+- **UX Comfort Systems**: Settings persistence, overlays, ergonomic dice affordances, kinetic feedback language
+- **Componentization & Layout Agency**: Panels, toolbar, draggable layers, selection unification, consistent mount seams
+- **Kinetic Cohesion**: Tokyo slot transitions, damage pulses, anchor glows, card detail reveal rhythm
+
+### Collaboration Patterns That Scaled
+Early conversational rigor (clarify → enumerate → implement) generalized into higher‑order loops:
+1. **Intent Modeling** → Heuristic rationale objects
+2. **State Isolation** → Integrity baseline & rollback safety tags
+3. **Interaction Contracts** → Unified modal + acceptance phase
+4. **Structured Logging** → Decision transparency tree
+5. **Parallel Safety Nets** → Dual path rewrite under audit
+
+### Human Contributions
+- Product empathy & pacing sensitivity
+- Sequencing of refactors only when narrative justified
+- Quality and *friction detection* through experiential testing
+- Guardrails: reversibility, auditability, clarity-first UX
+
+### AI Contributions
+- Rapid structural enumeration & risk surfacing
+- Code synthesis aligned to established semantics
+- Option framing with tradeoff articulation
+- Mechanical rigor (hashing, adapter scaffolds, rationale shape normalization)
+
+### Emergent Principles
+1. **Visibility > Guesswork** – Decision trees replaced opaque heuristics
+2. **Reversible Change > Hero Refactor** – Rewrite lane audited by parity maps
+3. **User Pace > System Pace** – Acceptance phase empowered intentional commitment
+4. **Focused Kinetics > Gratuitous Motion** – Animations convey state transition meaning
+5. **Narrative Coherence > Historical Fragmentation** – Unified chronology supports learning reuse
+
+### From Game to Experimentation Substrate
+By Day 24 the codebase could host *experiments*: tweak heuristics, simulate deterministic scenarios, adjust pacing, evaluate comfort overlays—without destabilizing baseline play. The collaboration matured from co‑constructing features to *co‑stewarding an extensible decision environment*.
+
+### Forward Arc Opportunities
+| Vector | Next Layer | Rationale |
+| ------ | ---------- | --------- |
+| Heuristics | Weight introspection panel + live tuning | Shorten iteration loops for balance |
+| Scenarios | Batch simulation harness | Generate performance & outcome distributions |
+| Integrity | Snapshot diff visualizer | Faster anomaly localization |
+| Accessibility | Reduced-motion & high-contrast modes | Broaden inclusivity & testing fidelity |
+| Analytics | Event stream timeline | Correlate user pacing with decision friction |
+| Multiplayer Sync | Deterministic state broadcast layer | Extend platform to networked play |
+
+### Closing Reflection
+What began with a dismissed modal click evolved—deliberately—into a layered system where *intent, transparency, comfort, and reversibility* interlock. The partnership proved that when human narrative framing meets AI structural acceleration, velocity and safety are not opposing forces—they are multiplicative.
+
+The story here is not final; it is *versioned trust in motion*. Future work will not restart the journey—it will compound it.
+
+---
+*End of Consolidated Epilogue*
+
 # King of Tokyo - Chat History Day 8
 **Date: September 18, 2025**
 
@@ -2222,7 +2258,6 @@ Consolidated period summaries, risk table structuring, and forward-looking heuri
 *Document extended through September 30, 2025.*
 
 
-<!-- Removed verbose raw chat history blocks (Day 5-7) to reduce confusion; retained structured summaries above -->
 
 ## Session Summary
 
