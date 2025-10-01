@@ -1,4 +1,4 @@
-import { DICE_ROLL_STARTED, DICE_ROLLED, DICE_TOGGLE_KEEP, DICE_REROLL_USED, PHASE_CHANGED, DICE_SET_ALL_KEPT, DICE_ROLL_RESOLVED, DICE_ROLL_COMPLETED, DICE_RESULTS_ACCEPTED } from '../actions.js';
+import { DICE_ROLL_STARTED, DICE_ROLLED, DICE_TOGGLE_KEEP, DICE_REROLL_USED, DICE_SET_ALL_KEPT, DICE_ROLL_RESOLVED, DICE_ROLL_COMPLETED, DICE_RESULTS_ACCEPTED } from '../actions.js';
 
 const initial = { faces: [], rerollsRemaining: 0, baseRerolls: 2, phase: 'idle', accepted: false, rollHistory: [] };
 
@@ -71,12 +71,11 @@ export function diceReducer(state = initial, action) {
       if (state.accepted) return state; // idempotent
       return { ...state, accepted: true };
     }
-    case PHASE_CHANGED: {
-      // Reset dice state when returning to ROLL phase for a new turn
-      if (action.payload.phase === 'ROLL') {
-        // Preserve configuration like baseRerolls; only reset transient fields
+    case 'PHASE_TRANSITION': {
+      const to = action.payload?.to;
+      if (to === 'ROLL') {
         const baseRerolls = (state && typeof state.baseRerolls === 'number') ? state.baseRerolls : 2;
-        return { faces: [], rerollsRemaining: 0, baseRerolls, phase: 'idle', accepted: false };
+        return { faces: [], rerollsRemaining: 0, baseRerolls, phase: 'idle', accepted: false, rollHistory: [] };
       }
       return state;
     }

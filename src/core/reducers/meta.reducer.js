@@ -1,4 +1,4 @@
-import { NEXT_TURN, PLAYER_JOINED, META_ACTIVE_PLAYER_SET, PHASE_CHANGED, META_WINNER_SET } from '../actions.js';
+import { NEXT_TURN, PLAYER_JOINED, META_ACTIVE_PLAYER_SET, META_WINNER_SET } from '../actions.js';
 
 // Internal action (not yet exported in actions.js) forwarded by instrumentation
 const META_PHASE_SPAN_UPDATE = 'META_PHASE_SPAN_UPDATE';
@@ -21,10 +21,10 @@ export function metaReducer(state = initial, action, rootStateRef) {
       const wrapped = nextIdx === 0; // completed a full cycle
       return { ...state, turn: state.turn + 1, activePlayerIndex: nextIdx, round: wrapped ? state.round + 1 : state.round, turnCycleId: state.turnCycleId + 1 };
     }
-    case PHASE_CHANGED: {
-      const phase = action.payload?.phase;
-      if (!phase) return state;
-      return { ...state, lastPhase: phase };
+    case 'PHASE_TRANSITION': {
+      const to = action.payload?.to;
+      if (!to) return state;
+      return { ...state, lastPhase: to };
     }
     case META_ACTIVE_PLAYER_SET: {
       const idx = action.payload.index;

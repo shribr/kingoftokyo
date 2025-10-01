@@ -1,5 +1,5 @@
-import { PHASE_CHANGED } from '../actions.js';
-import { assertTransition } from '../phaseFSM.js';
+// Legacy phase reducer (deprecated). Maintained temporarily for code still reading state.phase.
+// Populated exclusively via PHASE_TRANSITION mirroring from phaseMachine.
 
 // Enumerate known phases for potential future validation; not strictly enforced yet.
 export const KNOWN_PHASES = [
@@ -14,21 +14,9 @@ export const KNOWN_PHASES = [
 const initial = 'SETUP';
 
 export function phaseReducer(state = initial, action) {
-  switch (action.type) {
-    case PHASE_CHANGED: {
-      const { phase } = action.payload;
-      if (!phase) return state;
-      if (!assertTransition(state, phase)) return state; // reject invalid
-      return phase;
-    }
-    case 'PHASE_TRANSITION': {
-      // Mirror phaseMachine transitions into legacy phase slice for hybrid operation.
-      const to = action.payload?.to;
-      if (!to) return state;
-      // Skip validation since phaseMachine already validated; prevents circular dependency.
-      return to;
-    }
-    default:
-      return state;
+  if (action.type === 'PHASE_TRANSITION') {
+    const to = action.payload?.to;
+    if (to) return to;
   }
+  return state;
 }

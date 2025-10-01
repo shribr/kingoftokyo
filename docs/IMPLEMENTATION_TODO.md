@@ -164,11 +164,11 @@ This revision: (1) Marks items completed since baseline, (2) Introduces flow/tim
 - [ ] **Error tracking** - Production error monitoring
 
 ## 🔍 **IMPLEMENTATION PRIORITIES (New Sequencing)**
-Status Update (Oct 1, 2025): Phase Alpha Steps 1 & 3 complete – AI actuation unified (timer removed), perception layer (`buildAIState`) added, dice roll event migration done (metadata + polling removal). Step 2 partially complete (turnCycleId guard in effect engine & dice flow; FSM still pending).
+Status Update (Oct 1, 2025): Phase Alpha Steps 1, 2 & 3 complete – AI actuation unified (timer removed), perception layer (`buildAIState`) added, dice roll event migration done (metadata + polling removal). FSM migrated to single authoritative `phaseMachine` (legacy `PHASE_CHANGED` dispatches removed; reducers now consume `PHASE_TRANSITION`). Added regression harness preventing legacy phase mutation.
 
 ### Phase Alpha (Flow Parity)
 1. AI actuation unification (remove timer auto-keep) + perception layer
-2. FSM + `turnCycleId` (PARTIAL – guards in place, FSM pending)
+2. FSM + `turnCycleId` (DONE – unified `phaseMachine` source of truth; legacy reducer now mirror-only; regression harness in place)
 3. Dice roll resolved event (no polling) & CPU loop refactor (DONE)
 4. Deterministic mode (seeded; fixed trials) + snapshot harness
 	- [x] RNG adapter module (`rngFactory(seed)`) with Mulberry32 implementation (core/rng.js existing)

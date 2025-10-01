@@ -14,8 +14,8 @@ export function createPhaseGuardMiddleware(logger = console) {
         if (!machine) {
           machine = createPhaseMachine(store, logger, { resolutionComplete: ()=> true });
         }
-        const target = action.payload?.phase;
-        const from = store.getState().phaseMachine?.current || store.getState().phase;
+  const target = action.payload?.phase;
+  const from = store.getState().phaseMachine?.current || store.getState().phase;
         if (from === target) return next(action); // no-op
         const ok = machine.to(target, { reason:'legacy_direct_dispatch' });
         if (!ok.ok) {
