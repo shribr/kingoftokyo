@@ -182,6 +182,10 @@ Status Update (Oct 1, 2025): Phase Alpha Steps 1 & 3 complete – AI actuation u
 	- [ ] Guard ensures TEST_MODE disables adaptive early-exit heuristics
 5. Unified yield & takeover sequence (yield advisory integration)
 6. BUY_WAIT phase + timing spans + takeover ordering asserts
+	- [x] BUY_WAIT min duration gating added (280ms) (Oct 1 2025)
+	- [x] Duplicate phase transition guard + telemetry (`phase.duplicate`) (Oct 1 2025)
+	- [x] Harness: `tools/phaseDuplicateGuardHarness.js` (no duplicate contiguous transitions)
+	- [x] Harness: `tools/takeoverSequenceHarness.js` (attack → yield → buy ordering & Tokyo occupant change on leave)
 
 ### Phase Beta (Strategic Depth & Persistence)
 1. Enhanced AI heuristic modules (survival risk, VP race delta, resource economy, Tokyo risk)
@@ -319,6 +323,19 @@ Planned Enhancements:
 - Integrate feature flag awareness (warn vs info when flag disabled)
 - Add effect queue length snapshots pre/post BUY_WAIT
 - Emit JSON summary (`--json`) for CI ingestion
+
+---
+## Phase Transition Integrity Harnesses (Oct 1 2025)
+1. `tools/phaseDuplicateGuardHarness.js` – Simulates N turns with phase machine enforcing min durations; fails if any contiguous duplicate `PHASE_TRANSITION` entries occur (guards `phase.duplicate`).
+2. `tools/takeoverSequenceHarness.js` – Forces Tokyo occupant then simulates attack dice; asserts `RESOLVE -> YIELD_DECISION -> BUY/BUI_WAIT` ordering and occupant change on forced leave decision (`--leave`).
+
+Usage Examples:
+```
+node tools/phaseDuplicateGuardHarness.js --turns=75 --use-phase-machine
+node tools/takeoverSequenceHarness.js --leave --use-phase-machine --use-buy-wait
+```
+
+These harnesses advance Phase Alpha flow parity by validating transition correctness and takeover sequencing, reducing reliance on manual log inspection.
 
 
 ---

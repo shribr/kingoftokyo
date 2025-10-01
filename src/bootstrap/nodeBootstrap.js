@@ -48,12 +48,21 @@ export const logger = createLogger(store);
 // Initialize minimal card deck/shop so purchases function
 initCards(store, logger, Math.random, { darkEdition: false });
 
+// Feature flags (enable via env or process args)
+const args = process.argv || [];
+const envFlags = {
+  USE_PHASE_MACHINE: process.env.KOT_USE_PHASE_MACHINE === '1' || args.includes('--use-phase-machine'),
+  USE_BUY_WAIT: process.env.KOT_USE_BUY_WAIT === '1' || args.includes('--use-buy-wait')
+};
+globalThis.window = globalThis.window || {}; // minimal shim
+globalThis.window.__KOT_FLAGS__ = Object.assign({}, globalThis.window.__KOT_FLAGS__ || {}, envFlags);
+
 // Seed two players for harness operations if none exist
 function ensurePlayers(){
   const st = store.getState();
   if (!st.players.order.length) {
-    const p1 = createPlayer('p1', 'HarnessOne');
-    const p2 = createPlayer('p2', 'HarnessTwo');
+    const p1 = createPlayer({ id:'p1', name:'HarnessOne', monsterId:'the_king' });
+    const p2 = createPlayer({ id:'p2', name:'HarnessTwo', monsterId:'alienoid' });
     store.dispatch({ type:'PLAYER_JOINED', payload:{ player: p1 }});
     store.dispatch({ type:'PLAYER_JOINED', payload:{ player: p2 }});
   }

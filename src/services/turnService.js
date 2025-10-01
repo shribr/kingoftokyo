@@ -55,7 +55,8 @@ export function createTurnService(store, logger, rng = Math.random) {
     minDurations: {
       ROLL: 300,
       RESOLVE: 180,
-      BUY: 350
+      BUY: 350,
+      BUY_WAIT: 280
     },
     diceSequenceComplete: () => {
       const st = store.getState();

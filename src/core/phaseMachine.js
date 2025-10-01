@@ -152,7 +152,18 @@ export function phaseTransitionReducer(state = { current: 'SETUP', previous: nul
   switch(action.type) {
     case 'PHASE_TRANSITION': {
       const { from, to, ts, reason, turnCycleId, event } = action.payload;
-      if (state.current === to) return state; // ignore duplicate
+      if (state.current === to) {
+        // Duplicate contiguous transition attempt; emit telemetry for diagnostics
+        try {
+          if (typeof window !== 'undefined') {
+            window.__KOT_DUP_PHASE__ = (window.__KOT_DUP_PHASE__||0) + 1;
+            if (window.__KOT_TELEMETRY__) {
+              window.__KOT_TELEMETRY__.push({ type:'phase.duplicate', payload:{ from, to, ts, reason, turnCycleId, event } });
+            }
+          }
+        } catch(_) {}
+        return state;
+      }
       const entry = { from, to, ts, reason, turnCycleId, event };
       const history = [...state.history, entry];
       if (history.length > 100) history.shift();
