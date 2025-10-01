@@ -48,6 +48,7 @@ This revision: (1) Marks items completed since baseline, (2) Introduces flow/tim
 - [ ] `turnCycleId` concurrency guard (invalidate stale async tasks) (PARTIAL – effect engine + dice resolution guarded; FSM pending)
 - [x] Event-based dice completion (`DICE_ROLL_RESOLVED`) – removed polling loops & enriched metadata payload
 - [ ] Guarded timer rollout (wrap remaining pacing & animation timeouts) (NEW)
+	- [x] Phase machine prototype (feature-flag `window.__KOT_FLAGS__.USE_PHASE_MACHINE`) with guarded transitions & invalid transition telemetry (Oct 1 2025)
 - [ ] Minimum phase duration enforcement (ROLL / RESOLVE / BUY_WAIT)
 - [ ] Unified yield decision modal (human) + deterministic AI decision promise
 - [ ] BUY_WAIT explicit phase (user ends or timeout)
@@ -273,6 +274,48 @@ Status Update (Oct 1, 2025): Phase Alpha Steps 1 & 3 complete – AI actuation u
 1. Audit remaining timeouts → produce coverage report.
 2. Wrap high-frequency pacing timers first (yield decision, animation sequences).
 3. Add harness to simulate rapid consecutive `NEXT_TURN` events and verify zero stale mutations.
+
+---
+## Phase Finite State Machine (NEW SECTION)
+**Status**: Prototype integrated (`phaseMachine.js`) behind feature flag `window.__KOT_FLAGS__.USE_PHASE_MACHINE`.
+
+**Phases**: SETUP → ROLL → RESOLVE → (YIELD_DECISION | BUY | GAME_OVER) → BUY → (BUY_WAIT) → CLEANUP → ROLL …
+
+**Transition Guard Hooks** (context-driven):
+- diceSequenceComplete: dice sub-phase reached resolved/sequence-complete
+- yieldRequired: yield prompts exist (Tokyo attack)
+- resolutionComplete: dice accepted, no unresolved yield prompts, effect queue idle (strengthened Oct 1 2025)
+- victoryConditionMet: winner flagged in meta slice
+- yieldDecisionsResolved: all yield prompts decided
+- postPurchaseFollowupsPending: effect queue has pending follow-ups
+- postPurchaseDone: queue drained & idle
+- buyWindowClosed: pacing window elapsed or user confirmed
+- turnAdvanceReady: cleanup complete / safe to advance
+
+**Actions/Events**: PHASE_TRANSITION (meta logged), PHASE_TRANSITION_INVALID (telemetry)
+
+**Reducer**: `phaseTransitionReducer` holds current, previous, history (cap 100).
+
+**Invalid Transition Telemetry**: increments `window.__KOT_PHASE_WARN__` and appends event to optional `window.__KOT_TELEMETRY__`.
+
+**Adoption Plan**:
+1. Run with flag off (default) & compare logs for parity (ROLL/RESOLVE/BUY/CLEANUP sequence) – harness supports.
+2. Enable flag in dev to detect illegal legacy direct dispatches (search for `phaseChanged(` occurrences to replace).
+3. Expand guards (e.g., forbid RESOLVE→BUY unless dice.accepted=true and effectQueue pending=0 unless buy path).
+4. Integrate min-duration enforcement (DONE prototype: ROLL≥300ms, RESOLVE≥180ms, BUY≥350ms) – transition defers if not elapsed.
+
+**Next Enhancements**:
+- Replace direct phaseChanged dispatch calls globally (lint rule or runtime warn).
+- Add explicit reason codes enumeration to avoid free-form strings.
+- Integrate with deterministic mode snapshots for phase history diffs.
+- Add assertion harness: ensure no duplicate PHASE_TRANSITION with identical from/to consecutively.
+- Adaptive min durations based on CPU speed setting (e.g., fast lowers thresholds but never 0).
+
+**Acceptance Criteria (FSM)**:
+- 0 invalid transitions across 500 simulated turns (test harness) with phase machine enabled.
+- Phase history aligns with legacy baseline trace for equivalent scenarios.
+- Telemetry includes reason + turnCycleId for each PHASE_TRANSITION entry.
+
 
 ---
 **Note**: Revisions incorporate parity audit findings (Sept 29, 2025). Legacy remains the reference standard until Flow Parity (Phase Alpha) is achieved.

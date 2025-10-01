@@ -11,6 +11,7 @@ import { createCpuTurnController } from './cpuTurnController.js';
 import { forceAIDiceKeepIfPending } from './aiDecisionService.js';
 import { Phases } from '../core/phaseFSM.js';
 import { createPhaseController } from '../core/phaseController.js';
+import { createPhaseMachine } from '../core/phaseMachine.js';
 import { rollDice } from '../domain/dice.js';
 import { isDeterministicMode, deriveRngForTurn, combineSeed } from '../core/rng.js';
 import { resolveDice, awardStartOfTurnTokyoVP, checkGameOver } from './resolutionService.js';
@@ -49,6 +50,54 @@ function waitUnlessPaused(store, ms) {
 
 export function createTurnService(store, logger, rng = Math.random) {
   const phaseCtrl = createPhaseController(store, logger);
+  const usePhaseMachine = (typeof window !== 'undefined' && window.__KOT_FLAGS__?.USE_PHASE_MACHINE) || false;
+  const phaseMachine = usePhaseMachine ? createPhaseMachine(store, logger, {
+    minDurations: {
+      ROLL: 300,
+      RESOLVE: 180,
+      BUY: 350
+    },
+    diceSequenceComplete: () => {
+      const st = store.getState();
+      return st.dice?.phase === 'sequence-complete' || st.dice?.phase === 'resolved';
+    },
+    resolutionComplete: () => {
+      // Require dice accepted AND no unresolved yield prompts AND effect queue not processing
+      const st = store.getState();
+      const diceOk = !!st.dice?.accepted;
+      const yieldClear = !(st.yield?.prompts?.some(p => p.decision == null));
+      const q = st.effectQueue?.queue || [];
+      const anyProcessing = st.effectQueue?.processing;
+      const anyWaiting = q.some(e => e.status !== 'resolved' && e.status !== 'failed');
+      const effectsIdle = !anyProcessing && !anyWaiting;
+      return diceOk && yieldClear && effectsIdle;
+    },
+    yieldRequired: () => {
+      const st = store.getState();
+      return !!st.yield?.prompts?.length;
+    },
+    victoryConditionMet: () => {
+      try { const st = store.getState(); return st.meta?.winner != null; } catch(_) { return false; }
+    },
+    yieldDecisionsResolved: () => {
+      const st = store.getState();
+      return !(st.yield?.prompts?.some(p => p.decision == null));
+    },
+    postPurchaseFollowupsPending: () => {
+      const st = store.getState();
+      const q = st.effectQueue?.queue || [];
+      return q.some(e => e.status !== 'resolved' && e.status !== 'failed');
+    },
+    buyWindowClosed: () => true,
+    postPurchaseDone: () => {
+      const st = store.getState();
+      const q = st.effectQueue?.queue || [];
+      const anyProcessing = st.effectQueue?.processing;
+      const anyWaiting = q.some(e => e.status !== 'resolved' && e.status !== 'failed');
+      return !anyProcessing && !anyWaiting;
+    },
+    turnAdvanceReady: () => true
+  }) : null;
   // Phase timing instrumentation (scoped to service to allow store access)
   const __phaseTimings = { active: null, spans: [] };
   function markPhaseStart(phase) {
@@ -103,7 +152,11 @@ export function createTurnService(store, logger, rng = Math.random) {
           logger.system('Phase: BUY (yield decisions resolved)', { kind:'phase' });
           const phaseEvents = typeof window !== 'undefined' ? window.__KOT_NEW__?.phaseEventsService : null;
           if (phaseEvents) phaseEvents.publish('YIELD_DECISION_MADE'); else {
-            phaseCtrl.to(Phases.BUY, { reason: 'yield_decisions_resolved' });
+            if (usePhaseMachine && phaseMachine) {
+              phaseMachine.event('YIELD_DECISION_MADE');
+            } else {
+              phaseCtrl.to(Phases.BUY, { reason: 'yield_decisions_resolved' });
+            }
             markPhaseStart('BUY');
           }
         }
@@ -118,7 +171,11 @@ export function createTurnService(store, logger, rng = Math.random) {
           logger.system('Phase: CLEANUP (post-purchase effects resolved)', { kind:'phase' });
           const phaseEvents = typeof window !== 'undefined' ? window.__KOT_NEW__?.phaseEventsService : null;
           if (phaseEvents) phaseEvents.publish('POST_PURCHASE_RESOLVED'); else {
-            phaseCtrl.to(Phases.CLEANUP, { reason: 'post_purchase_idle' });
+            if (usePhaseMachine && phaseMachine) {
+              phaseMachine.event('POST_PURCHASE_RESOLVED');
+            } else {
+              phaseCtrl.to(Phases.CLEANUP, { reason: 'post_purchase_idle' });
+            }
             markPhaseStart('CLEANUP');
           }
             // immediately call cleanup since we bypassed resolve() path
@@ -130,7 +187,7 @@ export function createTurnService(store, logger, rng = Math.random) {
   function startGameIfNeeded() {
     const st = store.getState();
     if (st.phase === Phases.SETUP) {
-      phaseCtrl.to(Phases.ROLL, { reason: 'game_start' });
+      if (usePhaseMachine && phaseMachine) phaseMachine.to(Phases.ROLL, { reason: 'game_start' }); else phaseCtrl.to(Phases.ROLL, { reason: 'game_start' });
       startTurn();
     }
   }
@@ -140,7 +197,7 @@ export function createTurnService(store, logger, rng = Math.random) {
     // Start-of-turn bonuses (Tokyo VP if occupying City at turn start)
     awardStartOfTurnTokyoVP(store, logger);
   logger.system('Phase: ROLL', { kind: 'phase' });
-  phaseCtrl.to(Phases.ROLL, { reason: 'turn_start' });
+  if (usePhaseMachine && phaseMachine) phaseMachine.to(Phases.ROLL, { reason: 'turn_start' }); else phaseCtrl.to(Phases.ROLL, { reason: 'turn_start' });
     markPhaseStart('ROLL');
     // If active player is CPU, run automated turn logic
     try {
@@ -205,8 +262,8 @@ export function createTurnService(store, logger, rng = Math.random) {
 
   async function resolve() {
     markPhaseEnd('ROLL');
-    logger.system('Phase: RESOLVE', { kind: 'phase' });
-    phaseCtrl.event('ROLL_COMPLETE');
+  logger.system('Phase: RESOLVE', { kind: 'phase' });
+  if (usePhaseMachine && phaseMachine) phaseMachine.event('ROLL_COMPLETE'); else phaseCtrl.event('ROLL_COMPLETE');
     markPhaseStart('RESOLVE');
     // If dice already accepted (effects applied), skip duplicate resolution
     try {
@@ -239,20 +296,20 @@ export function createTurnService(store, logger, rng = Math.random) {
       markPhaseEnd('RESOLVE');
       logger.system('Phase: GAME_OVER', { kind:'phase' });
       await waitUnlessPaused(store, 2000);
-      phaseCtrl.event('PLAYER_WON');
+      if (usePhaseMachine && phaseMachine) phaseMachine.event('GAME_OVER'); else phaseCtrl.event('PLAYER_WON');
       return;
     }
 
     // Transition to BUY phase window
     markPhaseEnd('RESOLVE');
-    logger.system('Phase: BUY', { kind:'phase' });
-    phaseCtrl.event('RESOLUTION_COMPLETE');
+  logger.system('Phase: BUY', { kind:'phase' });
+  if (usePhaseMachine && phaseMachine) phaseMachine.event('RESOLUTION_COMPLETE'); else phaseCtrl.event('RESOLUTION_COMPLETE');
     markPhaseStart('BUY');
     const buyDelay = Math.min(1500, Math.max(400, computeDelay(store.getState().settings) * 3));
     await waitUnlessPaused(store, buyDelay);
     markPhaseEnd('BUY');
-    logger.system('Phase: CLEANUP', { kind:'phase' });
-    phaseCtrl.event('BUY_COMPLETE');
+  logger.system('Phase: CLEANUP', { kind:'phase' });
+  if (usePhaseMachine && phaseMachine) phaseMachine.event('BUY_COMPLETE'); else phaseCtrl.event('BUY_COMPLETE');
     markPhaseStart('CLEANUP');
     await cleanup();
   }

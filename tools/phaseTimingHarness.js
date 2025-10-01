@@ -4,7 +4,7 @@
  * Run: node tools/phaseTimingHarness.js
  */
 import { store } from '../src/bootstrap/index.js';
-import { phaseChanged, diceRolled, diceRollResolved } from '../src/core/actions.js';
+import { diceRolled, diceRollResolved } from '../src/core/actions.js';
 import { Phases } from '../src/core/phaseFSM.js';
 import { resolveDice } from '../src/services/resolutionService.js';
 import { purchaseCard } from '../src/services/cardsService.js';
@@ -16,7 +16,13 @@ function logPhase(label){
 async function run(){
   console.log('[HARNESS] Starting phase timing harness');
   // Force start turn state
-  store.dispatch(phaseChanged(Phases.ROLL));
+  try {
+    if (typeof window !== 'undefined' && window.__KOT_NEW__?.phaseEventsService) {
+      window.__KOT_NEW__.phaseEventsService.publish('GAME_START');
+    } else {
+      store.dispatch({ type:'PHASE_TRANSITION', payload:{ from: store.getState().phase, to: Phases.ROLL, ts: Date.now(), reason:'harness_force', turnCycleId: store.getState().meta?.turnCycleId } });
+    }
+  } catch(_) {}
   logPhase('after force ROLL');
   // Provide dice faces to resolve
   store.dispatch(diceRolled(['claw','1','2','3','energy','heart'].map(v=>({ value:v, kept:false }))));
@@ -24,7 +30,13 @@ async function run(){
   resolveDice(store, console);
   logPhase('post resolveDice');
   // Move to BUY
-  store.dispatch(phaseChanged(Phases.BUY));
+  try {
+    if (typeof window !== 'undefined' && window.__KOT_NEW__?.phaseEventsService) {
+      window.__KOT_NEW__.phaseEventsService.publish('RESOLUTION_COMPLETE');
+    } else {
+      store.dispatch({ type:'PHASE_TRANSITION', payload:{ from: store.getState().phase, to: Phases.BUY, ts: Date.now(), reason:'harness_force', turnCycleId: store.getState().meta?.turnCycleId } });
+    }
+  } catch(_) {}
   logPhase('enter BUY');
   // Attempt a purchase (first affordable card)
   const st = store.getState();

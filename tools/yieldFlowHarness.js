@@ -4,7 +4,7 @@
  * Usage: node tools/yieldFlowHarness.js
  */
 import { store } from '../src/bootstrap/index.js';
-import { phaseChanged, diceRolled, diceRollResolved } from '../src/core/actions.js';
+import { diceRolled, diceRollResolved } from '../src/core/actions.js';
 import { Phases } from '../src/core/phaseFSM.js';
 
 function logPrompts(stage){
@@ -32,8 +32,24 @@ function setupPlayers(){
 
 async function run(){
   console.log('[HARNESS] Starting yield flow harness');
-  // Force phase to RESOLVE path
-  store.dispatch(phaseChanged(Phases.RESOLVE));
+  // Force phase to RESOLVE via phase events service or phaseMachine
+  try {
+    if (typeof window !== 'undefined' && window.__KOT_FLAGS__?.USE_PHASE_MACHINE) {
+      const pm = window.__PHASE_MACHINE__ || null;
+      if (pm && pm.to) {
+        pm.to(Phases.RESOLVE, { reason:'harness_force' });
+      } else if (window.__KOT_NEW__?.phaseEventsService) {
+        window.__KOT_NEW__.phaseEventsService.publish('ROLL_COMPLETE');
+      } else {
+        store.dispatch({ type:'PHASE_TRANSITION', payload:{ from: store.getState().phase, to: Phases.RESOLVE, ts: Date.now(), reason:'harness_force', turnCycleId: store.getState().meta?.turnCycleId } });
+      }
+    } else if (typeof window !== 'undefined' && window.__KOT_NEW__?.phaseEventsService) {
+      window.__KOT_NEW__.phaseEventsService.publish('ROLL_COMPLETE');
+    } else {
+      // fallback minimal direct transition (legacy)
+      store.dispatch({ type:'PHASE_TRANSITION', payload:{ from: store.getState().phase, to: Phases.RESOLVE, ts: Date.now(), reason:'harness_force', turnCycleId: store.getState().meta?.turnCycleId } });
+    }
+  } catch(e) { console.warn('[HARNESS] phase force error', e); }
   const { attackerId } = setupPlayers();
   // Inject dice roll with at least one claw to trigger damage
   store.dispatch(diceRolled(['claw','heart','1','2','3','claw'].map(v => ({ value:v, kept:false }))));
