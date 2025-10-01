@@ -20,7 +20,7 @@ const pm = createPhaseMachine(store, console, {
   resolutionComplete: () => true,
   yieldRequired: () => false,
   victoryConditionMet: () => {
-    try { return getPlayer()?.victoryPoints >= 20; } catch(_) { return false; }
+    try { return store.getState().meta?.winner != null; } catch(_) { return false; }
   },
   yieldDecisionsResolved: () => true,
   postPurchaseFollowupsPending: () => false,
@@ -34,11 +34,12 @@ pm.recordStart(Phases.SETUP);
 pm.to(Phases.ROLL, { reason:'harness_game_start' });
 pm.event('ROLL_COMPLETE'); // ROLL -> RESOLVE
 
-// Award VP directly
+// Award VP directly & set winner meta
 store.dispatch({ type:'PLAYER_VP_GAINED', payload:{ playerId: PLAYER_ID, amount: 20 } });
+store.dispatch({ type:'META_WINNER_SET', payload:{ winnerId: PLAYER_ID } });
 const p = getPlayer();
-if (!p || p.victoryPoints < 20) {
-  console.error('[VICTORY_HARNESS] Failed to grant sufficient VP to trigger victory.');
+if (!p || p.victoryPoints < 20 || store.getState().meta?.winner !== PLAYER_ID) {
+  console.error('[VICTORY_HARNESS] Failed to set winner state correctly.');
   process.exit(1);
 }
 

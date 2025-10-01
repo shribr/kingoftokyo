@@ -6,7 +6,7 @@
  *     - CPU: this service auto-plays the entire turn (roll -> rerolls -> resolve)
  *   resolve() -> applies dice effects, checks win, then enters BUY -> CLEANUP -> next turn
  */
-import { phaseChanged, nextTurn, diceRollStarted, diceRolled, diceRerollUsed, playerEnteredTokyo, tokyoOccupantSet, playerVPGained, uiVPFlash, diceRollResolved, diceRollCompleted, diceResultsAccepted, DICE_ROLL_RESOLVED } from '../core/actions.js';
+import { phaseChanged, nextTurn, diceRollStarted, diceRolled, diceRerollUsed, playerEnteredTokyo, tokyoOccupantSet, playerVPGained, uiVPFlash, diceRollResolved, diceRollCompleted, diceResultsAccepted, DICE_ROLL_RESOLVED, metaWinnerSet } from '../core/actions.js';
 import { createCpuTurnController } from './cpuTurnController.js';
 import { forceAIDiceKeepIfPending } from './aiDecisionService.js';
 import { Phases } from '../core/phaseFSM.js';
@@ -18,6 +18,7 @@ import { resolveDice, awardStartOfTurnTokyoVP, checkGameOver } from './resolutio
 import { selectTokyoCityOccupant, selectTokyoBayOccupant } from '../core/selectors.js';
 import { DICE_ANIM_MS, AI_POST_ANIM_DELAY_MS, CPU_TURN_START_MS, CPU_DECISION_DELAY_MS } from '../constants/uiTimings.js';
 import { eventBus } from '../core/eventBus.js';
+import { recordOrCompareDeterminism } from '../core/determinism.js';
 
 function computeDelay(settings) {
   const speed = settings?.cpuSpeed || 'normal';
@@ -306,6 +307,8 @@ export function createTurnService(store, logger, rng = Math.random) {
       } else {
         logger.debug && logger.debug('[turnService] Skipping resolveDice (already accepted)');
       }
+      // Determinism snapshot capture (only active under test/deterministic mode)
+      try { recordOrCompareDeterminism(store); } catch(_) {}
     } catch(_) { resolveDice(store, logger); }
     
     // Critical: Wait briefly for Redux state to update with dice results (energy, VP, health)
@@ -326,6 +329,8 @@ export function createTurnService(store, logger, rng = Math.random) {
     // Winner check & transition (retained from legacy path)
     const winner = checkGameOver(store, logger);
     if (winner) {
+      // Record winner in meta slice for phaseMachine victory guard & external observers
+      try { store.dispatch(metaWinnerSet(winner)); } catch(_) {}
       markPhaseEnd('RESOLVE');
       logger.system('Phase: GAME_OVER', { kind:'phase' });
       await waitUnlessPaused(store, 2000);

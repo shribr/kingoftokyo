@@ -1,4 +1,4 @@
-import { NEXT_TURN, PLAYER_JOINED, META_ACTIVE_PLAYER_SET, PHASE_CHANGED } from '../actions.js';
+import { NEXT_TURN, PLAYER_JOINED, META_ACTIVE_PLAYER_SET, PHASE_CHANGED, META_WINNER_SET } from '../actions.js';
 
 // Internal action (not yet exported in actions.js) forwarded by instrumentation
 const META_PHASE_SPAN_UPDATE = 'META_PHASE_SPAN_UPDATE';
@@ -36,6 +36,11 @@ export function metaReducer(state = initial, action, rootStateRef) {
       if (!spans || typeof spans !== 'object') return state;
       // Merge shallowly to avoid losing prior data
       return { ...state, phaseSpans: { ...(state.phaseSpans||{}), ...spans } };
+    }
+    case META_WINNER_SET: {
+      const winnerId = action.payload?.winnerId;
+      if (!winnerId) return state;
+      return { ...state, winner: winnerId };
     }
     default:
       return state;

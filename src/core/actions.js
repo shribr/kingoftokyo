@@ -43,6 +43,7 @@ export const NEXT_TURN = 'NEXT_TURN';
 export const GAME_STATE_IMPORTED = 'GAME_STATE_IMPORTED';
 // Meta direct set (e.g., first player determination)
 export const META_ACTIVE_PLAYER_SET = 'META_ACTIVE_PLAYER_SET';
+export const META_WINNER_SET = 'META_WINNER_SET';
 // UI
 export const UI_CARD_DETAIL_OPEN = 'UI_CARD_DETAIL_OPEN';
 export const UI_CARD_DETAIL_CLOSE = 'UI_CARD_DETAIL_CLOSE';
@@ -161,6 +162,7 @@ export const cardEffectFailed = (entryId, reason) => ({ type: CARD_EFFECT_FAILED
 export const nextTurn = () => ({ type: NEXT_TURN });
 export const gameStateImported = (snapshot) => ({ type: GAME_STATE_IMPORTED, payload: { snapshot } });
 export const metaActivePlayerSet = (index) => ({ type: META_ACTIVE_PLAYER_SET, payload: { index } });
+export const metaWinnerSet = (winnerId) => ({ type: META_WINNER_SET, payload: { winnerId } });
 // UI action creators
 export const uiCardDetailOpen = (cardId, source) => ({ type: UI_CARD_DETAIL_OPEN, payload: { cardId, source } });
 export const uiCardDetailClose = () => ({ type: UI_CARD_DETAIL_CLOSE });
