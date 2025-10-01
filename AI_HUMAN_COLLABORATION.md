@@ -29,9 +29,52 @@
     - [Chapter 18: Acceptance & Kinetic Feedback](#ch18)
     - [Epilogue: The Transformation & Forward Arc](#epilogue)
 2. [Daily Work Log](#daily-work-log)
-    - Days 1–24: [1](#day-1--work-log-conception--environment) · [2](#day-2--work-log-modal--splash-ux) · [3](#day-3--work-log-strategic-silence) · [4](#day-4--work-log-early-mechanics-scaffold) · [5](#day-5--work-log-mechanics-breakthrough) · [6](#day-6--work-log-ui-polish--feedback) · [7](#day-7--work-log-feature-expansion--mobile) · [8](#day-8--work-log-integration--pause-layer) · [9](#day-9--work-log-flow--architecture) · [10](#day-10--work-log-dice--performance-breakthrough) · [11](#day-11--work-log-documentation--polish) · [12](#day-12--work-log-power-card-modal-refinement) · [13](#day-13--work-log-tokyo-slot-artifact-fix) · [14](#day-14--work-log-heuristic-exploration-incubation) · [15](#day-15--work-log-synergy-heuristics--integrity-baseline) · [16](#day-16--work-log-spatial-stability--drag-refinement) · [17](#day-17--work-log-effect-queue--decision-transparency) · [18](#day-18--work-log-rewrite-launch--dual-tokyo-slots) · [19](#day-19--work-log-componentization-wave) · [20](#day-20--work-log-selection-flow-unification) · [21](#day-21--work-log-settings--overlays) · [22](#day-22--work-log-unified-modals--dice-ergonomics) · [23](#day-23--work-log-scenario--phase-events) · [24](#day-24--work-log-accept-mechanic--animation-polish)
+    - Days:
+        - [Day 1](#day-1)
+        - [Day 2](#day-2)
+        - [Day 3](#day-3)
+        - [Day 4](#day-4)
+        - [Day 5](#day-5)
+        - [Day 6](#day-6)
+        - [Day 7](#day-7)
+        - [Day 8](#day-8)
+        - [Day 9](#day-9)
+        - [Day 10](#day-10)
+        - [Day 11](#day-11)
+        - [Day 12](#day-12)
+        - [Day 13](#day-13)
+        - [Day 14](#day-14)
+        - [Day 15](#day-15)
+        - [Day 16](#day-16)
+        - [Day 17](#day-17)
+        - [Day 18](#day-18)
+        - [Day 19](#day-19)
+        - [Day 20](#day-20)
+        - [Day 21](#day-21)
+        - [Day 22](#day-22)
+        - [Day 23](#day-23)
+        - [Day 24](#day-24)
 3. [Technical Chat Sessions](#technical-chat-sessions)
-    - Sessions 1–24: [1](#day-1--chat-session-initial-ui-interaction) · [5](#day-5--chat-session-logging--emoji-overhaul) · [6](#day-6--chat-session-tokyo-entry-rule-fix) · [7](#day-7--chat-session-active-player-display--method-conflict) · [8](#day-8--chat-session-power-card-modal) · [9](#day-9--chat-session-tokyo-slot-artifact) · [10](#day-10--chat-session-consolidated-period) · [11](#day-11--chat-session-final-polish--documentation) · [14](#day-14--chat-session-heuristic-screenshot-spike) · [15](#day-15--chat-session-synergy--baseline-hardening) · [16](#day-16--chat-session-drag--visibility-stability) · [17](#day-17--chat-session-effect-queue--decision-modal) · [18](#day-18--chat-session-rewrite-fork--yield-prompts) · [19](#day-19--chat-session-panelization--layout-modes) · [20](#day-20--chat-session-monster-selection-refactor) · [21](#day-21--chat-session-blackout--settings-evolution) · [22](#day-22--chat-session-unified-modals--dice-tray) · [23](#day-23--chat-session-scenarios--decision-tree) · [24](#day-24--chat-session-accept-dice--tokyo-animation)
+    - Chat Sessions:
+        - [Day 1](#day-1--chat-session-initial-ui-interaction)
+        - [Day 5](#day-5--chat-session-logging--emoji-overhaul)
+        - [Day 6](#day-6--chat-session-tokyo-entry-rule-fix)
+        - [Day 7](#day-7--chat-session-active-player-display--method-conflict)
+        - [Day 8](#day-8--chat-session-power-card-modal)
+        - [Day 9](#day-9--chat-session-tokyo-slot-artifact)
+        - [Day 10](#day-10--chat-session-consolidated-period)
+        - [Day 11](#day-11--chat-session-final-polish--documentation)
+        - [Day 14](#day-14--chat-session-heuristic-screenshot-spike)
+        - [Day 15](#day-15--chat-session-synergy--baseline-hardening)
+        - [Day 16](#day-16--chat-session-drag--visibility-stability)
+        - [Day 17](#day-17--chat-session-effect-queue--decision-modal)
+        - [Day 18](#day-18--chat-session-rewrite-fork--yield-prompts)
+        - [Day 19](#day-19--chat-session-panelization--layout-modes)
+        - [Day 20](#day-20--chat-session-monster-selection-refactor)
+        - [Day 21](#day-21--chat-session-blackout--settings-evolution)
+        - [Day 22](#day-22--chat-session-unified-modals--dice-tray)
+        - [Day 23](#day-23--chat-session-scenarios--decision-tree)
+        - [Day 24](#day-24--chat-session-accept-dice--tokyo-animation)
 4. [Appendices](#appendices)
     - [Appendix A – Original Raw Narrative Reference](#appendix-a--original-raw-narrative-reference)
     - [Appendix B – Forward Roadmap Snapshot](#appendix-b--forward-roadmap-snapshot)
@@ -296,12 +339,16 @@ The “Accept Dice Results” mechanic formalized *player‑governed phase pacin
 ----
 
 ## Daily Work Log
+> Contributor Note: Each Day is promoted to an H2 (## Day X) with a stable short anchor (`#day-X`) plus legacy slug anchors preserved for backward compatibility. Subsections (Summary, Key Chat Touchpoints, etc.) remain H3/H4 to keep the GitHub outline concise.
 Concise chronological operational record. Each Day block includes cross-links:
 Format: Day N – Work Log [Descriptor]
 
 Legend: [Story↑] link jumps to narrative chapter; [Chat↓] jumps to technical deep dive (if exists).
 
-### Day 1 – Work Log [Conception & Environment]
+<a id="day-1"></a>
+<a id="day-1--work-log-conception--environment"></a>
+## Day 1
+**Work Log Focus:** Conception & Environment
 **Date:** Sept 7, 2025  |  Story: [Chapter 1](#ch1)  |  Chat: [Day 1 Session↓](#day-1--chat-session-initial-ui-interaction)
 **Status:** Project Conception & Environment Familiarization (pre-code foundation)
 
@@ -340,7 +387,10 @@ Planning assistance generated with GPT-4 class assistant; human curated scoping 
 
 ---
 
-### Day 2 – Work Log [Modal & Splash UX]
+<a id="day-2"></a>
+<a id="day-2--work-log-modal--splash-ux"></a>
+## Day 2
+**Work Log Focus:** Modal & Splash UX
 **Date:** Sept 8, 2025 | Story: [Chapter 1](#ch1) | Chat: (n/a)
 **Status:** Foundational UI + Modal Interaction
 
@@ -380,7 +430,10 @@ Modal scaffold AI-drafted; human enforced simplicity + speed constraints.
 
 ---
 
-### Day 3 – Work Log [Strategic Silence]
+<a id="day-3"></a>
+<a id="day-3--work-log-strategic-silence"></a>
+## Day 3
+**Work Log Focus:** Strategic Silence
 **Date:** Sept 9, 2025 | Story: [Chapter 2](#ch2) | Chat: (n/a)
 **Status:** Silent Iteration / Planning
 
@@ -416,7 +469,10 @@ No direct generation (passive contextual carry).
 
 ---
 
-### Day 4 – Work Log [Early Mechanics Scaffold]
+<a id="day-4"></a>
+<a id="day-4--work-log-early-mechanics-scaffold"></a>
+## Day 4
+**Work Log Focus:** Early Mechanics Scaffold
 **Date:** Sept 10, 2025 | Story: [Chapter 2](#ch2) | Chat: (n/a)
 **Status:** Early Mechanics + Structural Expansion (Partially Reconstructed)
 
@@ -455,7 +511,10 @@ Module boundary sketch AI-generated; human pruned speculative branches.
 
 ---
 
-### Day 5 – Work Log [Mechanics Breakthrough]
+<a id="day-5"></a>
+<a id="day-5--work-log-mechanics-breakthrough"></a>
+## Day 5
+**Work Log Focus:** Mechanics Breakthrough
 **Date:** Sept 11, 2025 | Story: [Chapter 3](#ch3) | Chat: [Day 5 Session↓](#day-5--chat-session-logging--emoji-overhaul)
 **Status:** Core Mechanics Breakthrough
 
@@ -494,7 +553,10 @@ AI suggested branching; human curated dramatic UX pacing.
 
 ---
 
-### Day 6 – Work Log [UI Polish & Feedback]
+<a id="day-6"></a>
+<a id="day-6--work-log-ui-polish--feedback"></a>
+## Day 6
+**Work Log Focus:** UI Polish & Feedback
 **Date:** Sept 12, 2025 | Story: [Chapter 4](#ch4) | Chat: [Day 6 Session↓](#day-6--chat-session-tokyo-entry-rule-fix)
 **Status:** UI Polish & Feedback Loops
 
@@ -534,7 +596,10 @@ AI drafted formatting; human ordered priorities.
 
 ---
 
-### Day 7 – Work Log [Feature Expansion & Mobile]
+<a id="day-7"></a>
+<a id="day-7--work-log-feature-expansion--mobile"></a>
+## Day 7
+**Work Log Focus:** Feature Expansion & Mobile
 **Date:** Sept 13, 2025 | Story: [Chapter 4](#ch4) | Chat: [Day 7 Session↓](#day-7--chat-session-active-player-display--method-conflict)
 **Status:** Feature Expansion & Mobile Support
 
@@ -574,7 +639,10 @@ AI proposed pointer abstraction; human validated ergonomics.
 
 ---
 
-### Day 8 – Work Log [Integration & Pause Layer]
+<a id="day-8"></a>
+<a id="day-8--work-log-integration--pause-layer"></a>
+## Day 8
+**Work Log Focus:** Integration & Pause Layer
 **Date:** Sept 14, 2025 | Story: [Chapter 4](#ch4) | Chat: [Day 8 Session↓](#day-8--chat-session-power-card-modal)
 **Status:** Systems Integration & Pause / Setup
 
@@ -614,7 +682,10 @@ AI suggested handler consolidation; human validated viability.
 
 ---
 
-### Day 9 – Work Log [Flow & Architecture]
+<a id="day-9"></a>
+<a id="day-9--work-log-flow--architecture"></a>
+## Day 9
+**Work Log Focus:** Flow & Architecture
 **Date:** Sept 15, 2025 | Story: [Chapter 4](#ch4) | Chat: [Day 9 Session↓](#day-9--chat-session-tokyo-slot-artifact)
 **Status:** Flow & Architecture Refinement
 
@@ -654,7 +725,10 @@ AI mapped trigger chain; human validated rules.
 
 ---
 
-### Day 10 – Work Log [Dice + Performance Breakthrough]
+<a id="day-10"></a>
+<a id="day-10--work-log-dice--performance-breakthrough"></a>
+## Day 10
+**Work Log Focus:** Dice + Performance Breakthrough
 **Date:** Sept 16, 2025 | Story: [Chapter 4](#ch4) | Chat: [Day 10 Session↓](#day-10--chat-session-consolidated-period)
 **Status:** Breakthrough Day (Dice + Performance)
 
@@ -694,7 +768,10 @@ AI proposed caching; human validated memory footprint.
 
 ---
 
-### Day 11 – Work Log [Documentation & Polish]
+<a id="day-11"></a>
+<a id="day-11--work-log-documentation--polish"></a>
+## Day 11
+**Work Log Focus:** Documentation & Polish
 **Date:** Sept 17, 2025 | Story: [Chapter 5](#ch5) | Chat: [Day 11 Session↓](#day-11--chat-session-final-polish--documentation)
 **Status:** Documentation & Final Polish (Phase 1 End)
 
@@ -734,7 +811,10 @@ AI scaffolded docs; human refined narrative tone.
 
 ---
 
-### Day 12 – Work Log [Power Card Modal Refinement]
+<a id="day-12"></a>
+<a id="day-12--work-log-power-card-modal-refinement"></a>
+## Day 12
+**Work Log Focus:** Power Card Modal Refinement
 **Date:** Sept 18, 2025 | Story: [Chapter 6](#ch6) | Chat: [Day 8 Session↓](#day-8--chat-session-power-card-modal)
 **Status:** Modal & Power Card Detail Refinement (Phase 2 Start)
 
@@ -773,7 +853,10 @@ AI rationale guidance; human enforced minimal header.
 
 ---
 
-### Day 13 – Work Log [Tokyo Slot Artifact Fix]
+<a id="day-13"></a>
+<a id="day-13--work-log-tokyo-slot-artifact-fix"></a>
+## Day 13
+**Work Log Focus:** Tokyo Slot Artifact Fix
 **Date:** Sept 19, 2025 | Story: [Chapter 6](#ch6) | Chat: [Day 9 Session↓](#day-9--chat-session-tokyo-slot-artifact)
 **Status:** Tokyo Slot Visual Artifact & Mini Variant Styling
 
@@ -810,7 +893,10 @@ AI traced clone path; human validated persistence prompting second patch.
 #### Screenshots & Artifacts
 (Image moved to Day 9 chat session / Tokyo artifact deep dive.)
 
-### Day 14 – Work Log [Heuristic Exploration Incubation]
+<a id="day-14"></a>
+<a id="day-14--work-log-heuristic-exploration-incubation"></a>
+## Day 14
+**Work Log Focus:** Heuristic Exploration Incubation
 **Date:** Sept 20, 2025 | Story: [Chapter 12](#ch12) | Chat: [Day 14 Session↓](#day-14--chat-session-heuristic-screenshot-spike)
 **Status:** Low‑commit exploratory day (visual probes, heuristic planning)
 
@@ -835,7 +921,10 @@ Human curated screenshot sequences to accelerate later AI transparency design.
 #### Next Focus
 Implement synergy + diminishing returns model (Day 15).
 
-### Day 15 – Work Log [Synergy Heuristics & Integrity Baseline]
+<a id="day-15"></a>
+<a id="day-15--work-log-synergy-heuristics--integrity-baseline"></a>
+## Day 15
+**Work Log Focus:** Synergy Heuristics & Integrity Baseline
 **Date:** Sept 21, 2025 | Story: [Chapter 12](#ch12) | Chat: [Day 15 Session↓](#day-15--chat-session-synergy--baseline-hardening)
 **Status:** Major AI + integrity day
 
@@ -853,7 +942,10 @@ Introduced synergy‑aware greedy optimizer, diminishing returns, purchase ratio
 #### Next Focus
 UI positioning & drag stability (Day 16).
 
-### Day 16 – Work Log [Spatial Stability & Drag Refinement]
+<a id="day-16"></a>
+<a id="day-16--work-log-spatial-stability--drag-refinement"></a>
+## Day 16
+**Work Log Focus:** Spatial Stability & Drag Refinement
 **Date:** Sept 22, 2025 | Story: [Chapter 13](#ch13) | Chat: [Day 16 Session↓](#day-16--chat-session-drag--visibility-stability)
 **Status:** Positional / visibility hardening
 
@@ -867,7 +959,10 @@ Refined draggable dashboards, visibility correction logic, high‑signal logging
 - Reduced layout jitter.
 - Clarified reflow order for active card transitions.
 
-### Day 17 – Work Log [Effect Queue & Decision Transparency]
+<a id="day-17"></a>
+<a id="day-17--work-log-effect-queue--decision-transparency"></a>
+## Day 17
+**Work Log Focus:** Effect Queue & Decision Transparency
 **Date:** Sept 23, 2025 | Story: [Chapter 13](#ch13) | Chat: [Day 17 Session↓](#day-17--chat-session-effect-queue--decision-modal)
 **Status:** Explainability enablement
 
@@ -877,7 +972,10 @@ Effect queue & decision modal delivered introspectable AI path; draggable profil
 #### Commits (Sample)
 `3eaa494`, `f07a12d`, `410bb5e`, `0be6b7a`
 
-### Day 18 – Work Log [Rewrite Launch & Dual Tokyo Slots]
+<a id="day-18"></a>
+<a id="day-18--work-log-rewrite-launch--dual-tokyo-slots"></a>
+## Day 18
+**Work Log Focus:** Rewrite Launch & Dual Tokyo Slots
 **Date:** Sept 24, 2025 | Story: [Chapter 14](#ch14) | Chat: [Day 18 Session↓](#day-18--chat-session-rewrite-fork--yield-prompts)
 **Status:** Parallel architecture established
 
@@ -887,7 +985,10 @@ Rewrite path bootstrapped (reducers, services, modalized setup); dual-slot Tokyo
 #### Commits (Sample)
 `6b729c4`, `65dbdec`, `1784b16`, `c05bb14`
 
-### Day 19 – Work Log [Componentization Wave]
+<a id="day-19"></a>
+<a id="day-19--work-log-componentization-wave"></a>
+## Day 19
+**Work Log Focus:** Componentization Wave
 **Date:** Sept 25, 2025 | Story: [Chapter 15](#ch15) | Chat: [Day 19 Session↓](#day-19--chat-session-panelization--layout-modes)
 **Status:** Panel & layout decomposition
 
@@ -897,7 +998,10 @@ Action menu, monsters panel, toolbar, profile card modes; adaptive layout & stac
 #### Commits (Sample)
 `8887c58`, `c2f816e`, `57a742f`, `d1a261b`
 
-### Day 20 – Work Log [Selection Flow Unification]
+<a id="day-20"></a>
+<a id="day-20--work-log-selection-flow-unification"></a>
+## Day 20
+**Work Log Focus:** Selection Flow Unification
 **Date:** Sept 26, 2025 | Story: [Chapter 15](#ch15) | Chat: [Day 20 Session↓](#day-20--chat-session-monster-selection-refactor)
 **Status:** Setup → selection convergence
 
@@ -907,7 +1011,10 @@ Legacy setup migrated into unified monster selection component; blackout fallbac
 #### Commits (Sample)
 `817d478`, `b64171d`, `7803094`, `a0fe910`
 
-### Day 21 – Work Log [Settings & Overlays]
+<a id="day-21"></a>
+<a id="day-21--work-log-settings--overlays"></a>
+## Day 21
+**Work Log Focus:** Settings & Overlays
 **Date:** Sept 27, 2025 | Story: [Chapter 16](#ch16) | Chat: [Day 21 Session↓](#day-21--chat-session-blackout--settings-evolution)
 **Status:** Context & comfort systems
 
@@ -917,7 +1024,10 @@ Blackout controller, transient turn toasts, mobile settings menu, improved modal
 #### Commits (Sample)
 `d1d512b`, `ef5f687`, `8f4b781`
 
-### Day 22 – Work Log [Unified Modals & Dice Ergonomics]
+<a id="day-22"></a>
+<a id="day-22--work-log-unified-modals--dice-ergonomics"></a>
+## Day 22
+**Work Log Focus:** Unified Modals & Dice Ergonomics
 **Date:** Sept 28, 2025 | Story: [Chapter 16](#ch16) | Chat: [Day 22 Session↓](#day-22--chat-session-unified-modals--dice-tray)
 **Status:** Modal consolidation + roll efficiency
 
@@ -927,7 +1037,10 @@ Central modal system, KEEP ALL action, dice tray state enforcement, backdrop fil
 #### Commits (Sample)
 `22c2fe2`, `55afd48`, `333847a`, `2bc3e81`
 
-### Day 23 – Work Log [Scenario & Phase Events]
+<a id="day-23"></a>
+<a id="day-23--work-log-scenario--phase-events"></a>
+## Day 23
+**Work Log Focus:** Scenario & Phase Events
 **Date:** Sept 29, 2025 | Story: [Chapter 17](#ch17) | Chat: [Day 23 Session↓](#day-23--chat-session-scenarios--decision-tree)
 **Status:** Reproducibility + transparency
 
@@ -937,7 +1050,10 @@ Scenario tab + parameters, phase event adapter pipeline, pause/resume overlay, A
 #### Commits (Sample)
 `ad7b1dd`, `2dd4197`, `e213a7a`, `9be7563`
 
-### Day 24 – Work Log [Accept Mechanic & Animation Polish]
+<a id="day-24"></a>
+<a id="day-24--work-log-accept-mechanic--animation-polish"></a>
+## Day 24
+**Work Log Focus:** Accept Mechanic & Animation Polish
 **Date:** Sept 30, 2025 | Story: [Chapter 18](#ch18) | Chat: [Day 24 Session↓](#day-24--chat-session-accept-dice--tokyo-animation)
 **Status:** Phase pacing + kinetic feedback
 
