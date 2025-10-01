@@ -43,8 +43,11 @@ export function deriveRngForTurn(baseSeed, turnCycleId, rollIndex) {
 }
 
 export function isDeterministicMode() {
+  // Prefer explicit browser flag if present
   if (typeof window !== 'undefined') {
-    return !!window.__KOT_TEST_MODE__;
+    if (window.__KOT_TEST_MODE__) return true;
+    // Fallback to env even if window polyfilled (Node test harness creates window object)
+    return !!(typeof process !== 'undefined' && process.env && process.env.KOT_TEST_MODE);
   }
-  return !!process?.env?.KOT_TEST_MODE;
+  return !!(typeof process !== 'undefined' && process.env && process.env.KOT_TEST_MODE);
 }

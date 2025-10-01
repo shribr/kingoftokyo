@@ -5,13 +5,13 @@
  * This is a lightweight harness; it simulates just enough state to call the AI engine.
  */
 
-import { AIDecisionEngine } from '../src/ai/engine/AIDecisionEngine.js';
-import { combineSeed, createSeededRNG } from '../src/core/rng.js';
-
-if (!process.env.KOT_TEST_MODE && !global.window?.__KOT_TEST_MODE__) {
-  console.log('Enabling deterministic mode for smoke via env flag.');
+// Ensure deterministic flag is set BEFORE importing engine (import-time check)
+if (!process.env.KOT_TEST_MODE) {
   process.env.KOT_TEST_MODE = '1';
 }
+
+import { AIDecisionEngine } from '../src/ai/engine/AIDecisionEngine.js';
+import { combineSeed, createSeededRNG } from '../src/core/rng.js';
 
 function mockGameState(turnCycleId){
   return {
