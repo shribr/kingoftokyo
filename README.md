@@ -1,16 +1,16 @@
-# New Modular Implementation (Sandbox)
+# Modular Implementation (Former `new/` Promotion)
 
-This directory hosts the in-progress modular rewrite of King of Tokyo. Legacy code remains untouched outside `new/`.
+This root now contains the previously in-progress modular rewrite (formerly under `new/`). All prior references to `new/` in historical docs are legacy and refer to this directory.
 
 ## Quick Start
-Add a module script pointing to `./new/src/bootstrap/index.js` or open the provided test runner for domain logic verification.
+Add a module script pointing to `./src/bootstrap/index.js` or open the provided test runner for domain logic verification.
 
 ```html
-<script type="module" src="./new/src/bootstrap/index.js"></script>
+<script type="module" src="./src/bootstrap/index.js"></script>
 ```
 
 ## Test Runner
-Open `new/test-runner.html` in a browser to execute all specs (`src/tests/index.js`). Console logs show individual spec success lines.
+Open `test-runner.html` in a browser to execute all specs (`src/tests/index.js`). Console logs show individual spec success lines.
 
 ## Tests
 Current tests cover:
@@ -28,7 +28,7 @@ Upcoming: component skeletons (`dice-tray`, `player-card`) and wiring roll workf
 Open `index.html` (root) or create a minimal page including:
 ```html
 <div id="app"></div>
-<script type="module" src="./new/src/bootstrap/index.js"></script>
+<script type="module" src="./src/bootstrap/index.js"></script>
 ```
 This will:
 1. Initialize store/event bus.
@@ -93,7 +93,7 @@ Initial assets added:
 
 How to run style audit (in browser console after app loads):
 ```js
-import('./new/tools/uiAudit.js').then(m => m.runUIAudit());
+import('./tools/uiAudit.js').then(m => m.runUIAudit());
 ```
 Extend `DEFAULT_SELECTORS` in the script or call `runUIAudit(['.your-selector'])` for custom targets.
 
@@ -122,19 +122,19 @@ The audit tool now supports baselining and diffs using `localStorage`.
 
 Initial baseline capture (once UI mounts):
 ```js
-import('./new/tools/uiAudit.js').then(m => m.saveBaseline());
+import('./tools/uiAudit.js').then(m => m.saveBaseline());
 ```
 
 Subsequent diff after a change:
 ```js
-import('./new/tools/uiAudit.js').then(m => m.diffCurrentAgainstBaseline());
+import('./tools/uiAudit.js').then(m => m.diffCurrentAgainstBaseline());
 ```
 
 Export the baseline to commit (creates a download):
 ```js
 UI_AUDIT.exportBaselineFile();
 ```
-Then add the downloaded `ui-baseline.json` to version control under `new/tools/baselines/` (create folder if needed).
+Then add the downloaded `ui-baseline.json` to version control under `tools/baselines/` (create folder if needed).
 
 To import a stored baseline (e.g., after clearing browser cache):
 ```js

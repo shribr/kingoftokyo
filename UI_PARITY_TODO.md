@@ -12,13 +12,13 @@ Goal: Achieve reproducible, testable visual parity vs legacy implementation.
 ### Phase P2 – Snapshot & Baselines
 - [ ] Author `tools/uiAudit.js` to walk DOM and produce JSON of computed styles for key selectors.
 - [ ] Define selector list in `ui-audit-selectors.json`.
-- [ ] Generate baseline JSON (`/new/.baselines/ui-styles.json`).
+- [ ] Generate baseline JSON (`/.baselines/ui-styles.json`).
 - [ ] Add comparison script stub (`tools/compareAudit.js`).
 
 ### Phase P3 – Visual Regression (Optional Early)
 - [ ] Decide tooling (Playwright + pixelmatch).
 - [ ] Add minimal script to capture screenshots for three states: initial lobby, post-roll, post-resolve.
-- [ ] Store images under `/new/.baselines/screenshots/`.
+- [ ] Store images under `/.baselines/screenshots/`.
 
 ### Phase P4 – Accessibility & Semantics
 - [ ] Add landmark roles to root container.
@@ -40,7 +40,7 @@ Closure Criteria Met: All planned scaffold objectives done; no redesign introduc
 
 ### Phase 7 – Layout Rails & Positional Persistence (IN PROGRESS)
 Objectives:
-	- Introduce layout rail container abstraction (players, dice/actions, log, modals staging) inside `new/` only.
+	- Introduce layout rail container abstraction (players, dice/actions, log, modals staging) in modular root only.
 	- Add UI slice support for persisted positions: `ui.positions[componentName] = { x, y }`.
 	- Implement drag handling utility (pointer events) with throttled store writes.
 	- Provide `reset positions` internal API (no legacy UI wiring yet).

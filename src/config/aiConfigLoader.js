@@ -19,14 +19,15 @@ export async function getAIConfig() {
   if (aiConfig) return aiConfig;
   
   if (!configPromise) {
-    configPromise = fetch('/new/config/ai-config.json')
+  // Path updated after promotion: remove /new prefix
+  configPromise = fetch('/config/ai-config.json')
       .then(response => response.json())
       .then(config => {
         aiConfig = config;
         return config;
       })
       .catch(e => {
-        console.warn('[aiConfig] Failed to load new/config/ai-config.json, using fallback', e);
+  console.warn('[aiConfig] Failed to load /config/ai-config.json, using fallback', e);
         aiConfig = { 
           diceEvaluation: {
             attack: { baseValue: 3 },
@@ -65,14 +66,15 @@ export async function getAIPhrases() {
   if (aiPhrases) return aiPhrases;
   
   if (!phrasesPromise) {
-    phrasesPromise = fetch('/new/config/ai-phrases.json')
+  // Path updated after promotion: remove /new prefix
+  phrasesPromise = fetch('/config/ai-phrases.json')
       .then(response => response.json())
       .then(phrases => {
         aiPhrases = phrases;
         return phrases;
       })
       .catch(e => {
-        console.warn('[aiConfig] Failed to load new/config/ai-phrases.json, using fallback', e);
+  console.warn('[aiConfig] Failed to load /config/ai-phrases.json, using fallback', e);
         aiPhrases = { 
           analyzing: ['Cross-referencing outcomes...', 'Pattern matching dice...'],
           motivational: ['Stay focused...', 'Every roll counts...'],
