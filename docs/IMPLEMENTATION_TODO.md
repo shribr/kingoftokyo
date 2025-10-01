@@ -54,6 +54,8 @@ This revision: (1) Marks items completed since baseline, (2) Introduces flow/tim
 - [x] BUY_WAIT explicit phase (user ends or timeout) (Oct 1 2025 – feature flag `USE_BUY_WAIT`, manual End Buy CTA; timeout TBD)
 - [ ] Timing span instrumentation + dev overlay (phase durations, reroll latency)
 - [ ] Structured takeover sequence tests (attacks → yield → takeover)
+	- [x] BUY_WAIT smoke harness (`tools/buyWaitHarness.js`) – validates phase sequencing & follow-up effect gating (Oct 1 2025)
+ - [ ] Structured takeover sequence tests (attacks → yield → takeover)
 - [ ] **Animation system** - Smooth transitions and feedback
 - [ ] **Sound effects** - Audio feedback for actions
 - [ ] **Error handling** - Graceful error recovery
@@ -283,6 +285,41 @@ Status Update (Oct 1, 2025): Phase Alpha Steps 1 & 3 complete – AI actuation u
 1. Audit remaining timeouts → produce coverage report.
 2. Wrap high-frequency pacing timers first (yield decision, animation sequences).
 3. Add harness to simulate rapid consecutive `NEXT_TURN` events and verify zero stale mutations.
+
+---
+## BUY_WAIT Phase Harness (NEW – Oct 1 2025)
+Purpose: Validate presence/absence and exit conditions of the BUY_WAIT phase under human vs CPU and follow-up effect scenarios.
+
+Script: `tools/buyWaitHarness.js`
+
+Scenarios Covered:
+1. Human (default) with no follow-up effects: Expect BUY → BUY_WAIT (if feature flag enabled) then CLEANUP after manual or idle exit.
+2. Human with `--followup` (forced discard purchase): BUY transitions to BUY_WAIT due to queued immediate effect(s); exit only once queue drains.
+3. CPU with no follow-up (`--cpu`): Expect BUY → CLEANUP (no BUY_WAIT) unless effects force it.
+4. CPU with follow-up (`--cpu --followup`): BUY_WAIT present; exit after effect queue idle.
+
+Assertions:
+- No duplicate contiguous phases in log.
+- BUY_WAIT appears only when appropriate.
+- CPU path does not erroneously enter BUY_WAIT without follow-ups.
+
+Usage Examples:
+```
+node tools/buyWaitHarness.js
+node tools/buyWaitHarness.js --followup
+node tools/buyWaitHarness.js --cpu
+node tools/buyWaitHarness.js --cpu --followup
+```
+
+Exit Codes:
+- 0 = success (assertions passed)
+- 1 = failure (unexpected phase ordering or BUY_WAIT presence)
+
+Planned Enhancements:
+- Integrate feature flag awareness (warn vs info when flag disabled)
+- Add effect queue length snapshots pre/post BUY_WAIT
+- Emit JSON summary (`--json`) for CI ingestion
+
 
 ---
 ## Phase Finite State Machine (NEW SECTION)

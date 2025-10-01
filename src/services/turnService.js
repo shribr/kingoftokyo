@@ -369,6 +369,30 @@ export function createTurnService(store, logger, rng = Math.random) {
     }
   }
 
+  // Minimal cleanup implementation (advance to next turn)
+  async function cleanup() {
+    try {
+      markPhaseEnd('CLEANUP');
+    } catch(_) {}
+    try {
+      // Advance active player index
+      const st = store.getState();
+      const order = st.players.order;
+      if (order.length) {
+        const nextIndex = (st.meta.activePlayerIndex + 1) % order.length;
+        store.dispatch({ type:'NEXT_TURN', payload:{ prev: st.meta.activePlayerIndex, next: nextIndex }});
+        store.dispatch({ type:'META_ACTIVE_PLAYER_SET', payload:{ index: nextIndex }});
+      }
+      if (usePhaseMachine && phaseMachine) phaseMachine.to(Phases.ROLL, { reason:'cleanup_complete' }); else phaseCtrl.to(Phases.ROLL, { reason:'cleanup_complete' });
+      markPhaseStart('ROLL');
+    } catch(err) { logger.warn && logger.warn('cleanup error', err); }
+  }
+
+  async function endTurn() {
+    // Alias to cleanup for now (placeholder until richer logic restored)
+    return cleanup();
+  }
+
   return { startGameIfNeeded, startTurn, performRoll, reroll, resolve, cleanup, endTurn, playCpuTurn, acceptDiceResults };
 }
 
