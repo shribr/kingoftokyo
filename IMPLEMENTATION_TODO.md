@@ -44,8 +44,10 @@ This revision: (1) Marks items completed since baseline, (2) Introduces flow/tim
 - [ ] Telemetry schema unification (`ai.decision`, `ai.yield`, `ai.purchasePlan`).
 
 ### Game Flow & Timing Integrity (ELEVATED TO HIGH)
-- [ ] Phase finite state machine (legal transition table)
-- [ ] `turnCycleId` concurrency guard (invalidate stale async tasks)
+- [x] Phase finite state machine (legal transition table) – baseline implemented (`phaseFSM.js`) + controller utilities (`phaseController.js`).
+- [x] `turnCycleId` concurrency guard (baseline: meta.turnCycleId + guard utilities adopted in CPU turn & watchdog).
+- [ ] Phase controller adoption (migrate direct `phaseChanged` dispatches in services to centralized API).
+- [ ] Extended concurrency adoption (apply guard to effect queue processing & UI pacing timers).
 - [ ] Event-based dice completion (`DICE_ROLL_RESOLVED`) – remove polling loops
 - [ ] Minimum phase duration enforcement (ROLL / RESOLVE / BUY_WAIT)
 - [ ] Unified yield decision modal (human) + deterministic AI decision promise
