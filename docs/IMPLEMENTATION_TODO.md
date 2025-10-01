@@ -2,6 +2,8 @@
 *Original Baseline: December 30, 2024*  
 *Revised & Reprioritized: September 29, 2025 (Parity Audit)*
 
+> Canonical Source: This is the single authoritative implementation roadmap. All former duplicate files (root / `new/`) were removed on Oct 1, 2025. Update only this file.
+
 This revision: (1) Marks items completed since baseline, (2) Introduces flow/timing parity tasks, (3) Re-sequences roadmap around Phase FSM, unified yield, AI depth, and persistence.
 
 ## ✅ Completed Since Baseline (Dec 2024 → Sept 2025)
@@ -167,7 +169,7 @@ This revision: (1) Marks items completed since baseline, (2) Introduces flow/tim
 Status Update (Oct 1, 2025): Phase Alpha Steps 1, 2 & 3 complete – AI actuation unified (timer removed), perception layer (`buildAIState`) added, dice roll event migration done (metadata + polling removal). FSM migrated to single authoritative `phaseMachine` (legacy `PHASE_CHANGED` dispatches removed; reducers now consume `PHASE_TRANSITION`). Added regression harness preventing legacy phase mutation.
 
 ### Phase Alpha (Flow Parity)
-1. AI actuation unification (remove timer auto-keep) + perception layer
+1. AI actuation unification (remove timer auto-keep) + perception layer (DONE – timer auto-keep removed; perception via extractEngineInputs)
 2. FSM + `turnCycleId` (DONE – unified `phaseMachine` source of truth; legacy reducer now mirror-only; regression harness in place)
 3. Dice roll resolved event (no polling) & CPU loop refactor (DONE)
 4. Deterministic mode (seeded; fixed trials) + snapshot harness
@@ -181,7 +183,7 @@ Status Update (Oct 1, 2025): Phase Alpha Steps 1, 2 & 3 complete – AI actuatio
 	- [x] Divergence logger (state + seed chain) via `core/determinism.js` (emits diff events)
 	- [x] Telemetry event: `ai.determinism.diff` emitted on snapshot mismatch (baseline retained)
 	- [x] Guard ensures TEST_MODE disables adaptive early-exit heuristics (adaptive endRoll + dynamic trials suppressed; telemetry `ai.determinism.adaptiveGuard`)
-5. Unified yield & takeover sequence (yield advisory integration)
+5. Unified yield & takeover sequence (DONE – yield advisory + takeover ordering harness validated)
 6. BUY_WAIT phase + timing spans + takeover ordering asserts
 	- [x] BUY_WAIT min duration gating added (280ms) (Oct 1 2025)
 	- [x] Duplicate phase transition guard + telemetry (`phase.duplicate`) (Oct 1 2025)

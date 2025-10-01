@@ -1,63 +1,14 @@
-# King of Tokyo - Implementation TODO List
-*Original Baseline: December 30, 2024*  
-*Revised & Reprioritized: September 29, 2025 (Parity Audit)*
+This file has been intentionally minimized.
 
-This revision: (1) Marks items completed since baseline, (2) Introduces flow/timing parity tasks, (3) Re-sequences roadmap around Phase FSM, unified yield, AI depth, and persistence.
+Canonical roadmap & implementation plan now lives ONLY at:
 
-## ✅ Completed Since Baseline (Dec 2024 → Sept 2025)
-- [x] Tokyo dual-slot support (City + Bay) + start-of-turn VP logic
-- [x] Shop flush mechanic (2⚡) – functional (logging/tests pending)
-- [x] Peek (clairvoyance) card + transient modal
-- [x] Dynamic dice slot rendering & expansion animation
-- [x] Attack pulse visual feedback layer
-- [x] Pause / resume slice & overlay
-- [x] Yield prompt scaffold (CPU timeout + heuristic) – to be unified
+	docs/IMPLEMENTATION_TODO.md
 
-## 🚨 **CRITICAL FEATURES - MUST IMPLEMENT (Revised)**
+All prior duplicate copies were removed (Oct 1, 2025) to prevent divergence. Please update the canonical file instead.
 
-### Power Cards System (HIGH PRIORITY – Breadth & Engine)
-- [ ] **Expand card catalog** - Currently ~10 cards, need 50+ base game cards
-- [ ] **Complex effect engine** - Only basic effects work (VP gain, energy gain)
-- [ ] **Card interaction system** - Cards that modify other cards
-- [ ] **Effect timing and stacking** - When multiple cards interact
-- [ ] **Discard vs Keep mechanics** - Full implementation of both types
-- [ ] **Targeted effects** - Cards that target specific players
-- [ ] **Conditional effects** - Cards with "if" conditions
+If you encounter tooling or links expecting this path, update them to reference the docs/ version.
 
-### AI Decision System (HIGH PRIORITY – Strategic Depth)  
-- [ ] **Strategic decision making** - Multi-turn planning
-- [ ] **Personality-based behavior** - Different monster personalities
-- [ ] **Card purchase intelligence** - Smart card buying decisions
-- [ ] **Risk assessment** - Tokyo stay/leave decisions
-- [ ] **Dice keep strategy** - Optimal dice keeping logic
-- [ ] **Win condition awareness** - Adapting strategy based on game state
-
-#### AI Infrastructure Unification (NEW – Precedes Depth Expansion)
-- [x] Deprecated duplicate enhanced AI file (formerly `new/js/ai-decisions.js`) – unified on single engine; legacy snapshots retained under `src/legacy/`.
-- [ ] Remove scheduled auto-keep timer path from `aiDecisionService.js` (controller becomes sole actuator).
-- [ ] Introduce perception layer (`buildAIState(storeState, activePlayerId)`) – pure extract; eliminate reducer global peeks.
-- [ ] Deterministic engine mode (seed + fixed Monte Carlo trial count) under `TEST_MODE` flag.
-- [ ] Replace purchase heuristic with portfolio optimizer advisory wrapper.
-- [ ] Integrate yield advisory via engine projection (single rationale channel).
-- [ ] Effect queue virtual state adapter (pending heals/damage influence risk posture).
-- [ ] Decision node labeling (`source`, `factors[]`, `confidence`).
-- [ ] Telemetry schema unification (`ai.decision`, `ai.yield`, `ai.purchasePlan`).
-
-### Game Flow & Timing Integrity (ELEVATED TO HIGH)
-- [x] Phase finite state machine (legal transition table) – baseline implemented (`phaseFSM.js`) + controller utilities (`phaseController.js`).
-- [x] `turnCycleId` concurrency guard (baseline: meta.turnCycleId + guard utilities adopted in CPU turn & watchdog).
-- [ ] Phase controller adoption (migrate direct `phaseChanged` dispatches in services to centralized API).
-- [ ] Extended concurrency adoption (apply guard to effect queue processing & UI pacing timers).
-- [ ] Event-based dice completion (`DICE_ROLL_RESOLVED`) – remove polling loops
-- [ ] Minimum phase duration enforcement (ROLL / RESOLVE / BUY_WAIT)
-- [x] Unified yield decision modal (human) + deterministic AI decision promise (Oct 1 2025 – modal lazily mounted; deterministic seeds + telemetry wired)
-- [x] BUY_WAIT explicit phase (user ends or timeout) (Oct 1 2025 – phase active under feature flag `USE_BUY_WAIT`; End Buy CTA present; timeout fallback pending)
-- [ ] Timing span instrumentation + dev overlay (phase durations, reroll latency)
-- [ ] Structured takeover sequence tests (attacks → yield → takeover)
-- [ ] **Animation system** - Smooth transitions and feedback
-- [ ] **Sound effects** - Audio feedback for actions
-- [ ] **Error handling** - Graceful error recovery
-- [ ] **Edge case handling** - Unusual game state management
+– Consolidation Note
 - [ ] **Performance optimization** - Smooth gameplay
 - [ ] **Mobile responsiveness** - Touch-friendly interface
 
@@ -165,7 +116,7 @@ This revision: (1) Marks items completed since baseline, (2) Introduces flow/tim
 Status Update (Oct 1, 2025): Phase Alpha Step 1 complete – AI actuation unified (timer removed), perception layer (`buildAIState`) added, engine inputs centralized.
 
 ### Phase Alpha (Flow Parity)
-1. AI actuation unification (remove timer auto-keep) + perception layer
+1. AI actuation unification (remove timer auto-keep) + perception layer ✅ (timer auto-keep removed; perception inputs centralized)
 2. FSM + `turnCycleId`
 3. Dice roll resolved event (no polling) & CPU loop refactor ✅ (metadata payload + harness + legacy polling removed; AI listener enriched with final node)
 4. Deterministic mode (seeded; fixed trials) + snapshot harness ✅ (trials=64, per-turn & per-decision seeding)
