@@ -85,7 +85,7 @@
 6. [Glossary of Collaboration Patterns](#glossary-of-collaboration-patterns)
 
 > Contributor Note: Stable Anchor Scheme
-> (Anchor note removed per request to drop inline HTML anchor tags; chapter links may need updating to native heading slugs if #chX links break.)
+> Chapter links use explicit short anchors (`#ch1` … `#ch18`, plus `#epilogue` and `#legacy-v2-transition`). These are defined via `<a id="chX"></a>` tags immediately preceding each chapter heading. When renaming headings, do not remove or rename these ids—internal and external references rely on them for long-term stability independent of wording changes.
 
 ---
 
@@ -96,6 +96,7 @@ What started as a simple browser-based board game would become something much mo
 
 The journey wasn't just about building a game; it was about discovering new patterns of communication, problem-solving, and partnership between human and artificial intelligence. Over ten days in September 2025, this collaboration would produce over 6,500 lines of code, solve complex technical challenges, and create something neither human nor AI could have achieved alone.
 
+<a id="ch1"></a>
 ## Chapter 1: First Contact – Foundation Days
 *September 8, 2025*
 
@@ -122,6 +123,7 @@ Twelve commits established the modal scaffold, selection flow, and consistent na
 
 The partnership moved from “AI responding to tasks” toward “paired shaping of future architectural affordances.”
 
+<a id="ch2"></a>
 ## Chapter 2: Silent Reflection
 *September 9–11, 2025*
 
@@ -139,6 +141,7 @@ The pause demonstrated a sustainable cadence: AI accelerates *once* direction is
 #### Emerging North Stars
 Concepts like “scenarios,” “effect queue,” and “selection unification” were not yet code—but they now existed as possible organizing lenses. The collaboration had shifted from reactive implementation to *modeling the problem space*.
 
+<a id="ch3"></a>
 ## Chapter 3: First Breakthrough Mechanics
 *September 11, 2025*
 
@@ -161,6 +164,7 @@ Work here hinted at systems that would arrive much later:
 #### Trust Gradient
 The human supplied intent vectors (fairness, clarity, speed). The AI responded with refactors that preserved emergent extensibility—avoiding brittle patches that would have blocked the subsequent componentization wave.
 
+<a id="ch4"></a>
 ## Chapter 4: Silent Sprints
 *September 12–16, 2025*
 
@@ -179,6 +183,7 @@ Patterns now visible:
 #### Strategic Silence Value
 The AI executed high‑confidence expansions; the human curated experiential alignment, queuing higher‑order needs (transparency, comfort, determinism) that would dominate the second arc. This period forged *capacity*—a platform stable enough to justify later architectural bifurcation (legacy vs rewrite path) without stalling delivery.
 
+<a id="ch5"></a>
 ## Chapter 5: The Refinement Session - Professional Polish
 *September 17, 2025*
 
@@ -196,6 +201,7 @@ One of the most significant outcomes of this session was the creation of compreh
 #### The Recognition of Success
 The session included a moment of honest feedback: "you seem to be a bit off your game today. is everything OK?" This human recognition that AI performance can vary, and the willingness to provide direct feedback, showed the genuine partnership that had developed.
 
+<a id="ch6"></a>
 ## Chapter 6: The Power of Visual Communication
 Throughout the journey, one of the most significant discoveries was the power of visual communication in human-AI collaboration.
 
@@ -208,6 +214,7 @@ Screenshots did more than provide information—they created a bridge of empathy
 #### A New Communication Standard
 This discovery established a new standard for human-AI collaboration: when possible, show rather than tell. Visual context transforms abstract problems into concrete, solvable challenges.
 
+<a id="ch7"></a>
 ## Chapter 7: Problem-Solving Patterns That Emerged
 #### The Iterative Debugging Dance
 A specific pattern emerged for complex bug solving:
@@ -223,6 +230,7 @@ Some of the most impressive collaboration happened when tracking down complex bu
 #### Context Preservation as Collaboration Skill
 One of the most challenging aspects proved to be context preservation—maintaining awareness of previous fixes while working on new challenges. This became a collaborative skill, with the human providing continuity and the AI maintaining technical coherence.
 
+<a id="ch8"></a>
 ## Chapter 8: Communication Breakthroughs and Challenges
 #### What Worked: Specific and Visual
 The most effective communication was:
@@ -240,6 +248,7 @@ Communication challenges arose from:
 #### The Evolution of Shared Vocabulary
 Over time, the partners developed a shared vocabulary and communication style that became increasingly efficient. Technical terms gained shared meaning, and communication patterns became more natural and effective.
 
+<a id="ch9"></a>
 ## Chapter 9: The Technical Artistry Behind the Scenes
 While this story focuses on collaboration rather than code, it's worth acknowledging the technical artistry that emerged from this partnership.
 
@@ -252,6 +261,7 @@ Instead of trying to design everything upfront, the collaboration embraced incre
 #### Quality as a Shared Value
 One of the most impressive aspects was the shared commitment to quality. Neither partner was satisfied with "good enough"—they pushed each other toward solutions that were elegant, maintainable, and user-friendly.
 
+<a id="ch10"></a>
 ## Chapter 10: Lessons in Human-AI Partnership
 #### The Complementary Nature of Strengths
 This collaboration highlighted how human and AI strengths complement each other:
@@ -278,18 +288,22 @@ Some of the most valuable moments came from honest feedback. When the human said
 
 The original ten‑day narrative closed on polish and documentation. What followed (Days 11–24) became a seamless second arc: transforming a solid legacy implementation into a dual‑path architecture with richer AI transparency, scenario tooling, accessible modals, and animation polish—preserving the same collaborative principles (vision + systematic augmentation) while operating at a higher level of abstraction (heuristics, state orchestration, determinism, refactors).
 
+<a id="ch11"></a>
 ## Chapter 11: From Polish to Platform (Sept 17–19)
 Backlink: builds on early foreshadow (State Isolation – Ch.1; Reflection Incubation – Ch.2; Mechanics Loop Formalization – Ch.3; Capacity Platform – Ch.4)
 With documentation stabilized (Day 11), focus pivoted to *systemic correctness*. Effect deduplication hardened; UI naming collisions were resolved to preserve future component boundaries. Early heuristic scaffolds appeared—not yet full decision trees, but shape hints (weight attribution, diminishing synergy hooks). A Tokyo slot visual artifact fix exemplified the emerging optimization ethos: surgical DOM + CSS lineage intervention over sweeping restyles. Cadence evolved from delivering isolated features to *curating a platform surface* ready for higher‑order experimentation.
 
+<a id="ch12"></a>
 ## Chapter 12: Heuristics Awakening & Integrity Baseline (Sept 20–21)
 Backlink: operationalizes intent clarity + state trust (Intent Loop – Ch.3; Isolation → Integrity – Ch.1)
 An incubation lull (20th) produced a surge in conceptual screenshots. The following day crystallized the *heuristic era*: synergy‑aware scoring layers, diminishing returns controls, and structured purchase rationale objects. Parallel: the integrity baseline (hash manifest + rollback safety tags) formalized trust—anchoring future rewrites and scenario reproducibility. Human emphasis on recoverability + audit met AI’s mechanical rigor (hash enumeration, drift alerts). This closed the loop foreshadowed in Chapter 1: intent clarity feeding systematic resilience.
 
+<a id="ch13"></a>
 ## Chapter 13: Spatial Refinement & Interaction Stability (Sept 22–23)
 Backlink: tactile stability extends capacity principles (Structured Interaction Layer – [Ch.4](#ch4); Rationale Seeds – [Ch.3](#ch3))
 Tactile credibility improved: drag stabilization, panel visibility constraints, and collision avoidance patterns. The effect queue + decision modal established *explainable AI moments*: structured decision objects (inputs, weights, projected outcomes) replaced opaque resolutions. Collaboration dialect now negotiated *why a branch was selected* rather than merely *which branch executed*—a direct realization of earlier rationale scaffolding.
 
+<a id="ch14"></a>
 ## Chapter 14: Parallel Rewrite Strategy (Sept 24)
 Backlink: reversible evolution = reflection discipline + isolation (Reflection Lull → Strategic Queue – Ch.2; Isolation & Naming Consistency – Ch.1)
 The deliberate rewrite lane (`/new/`) emerged: services, reducer segmentation, event adapters, and UI isolation layers coexisted with legacy implementation. Dual Tokyo slots, yield prompts, and deeper effect queue scaffolds validated *parallel evolution without destabilization*. Human mandated reversibility; AI supplied parity matrices + drift detection notes. This phase operationalized the integrity baseline—migration under audit, not blind divergence.
@@ -302,18 +316,22 @@ This point marks the architectural pivot from incremental legacy layering to a *
 - **Outcome:** Enables experimentation (heuristics, scenario harness) without jeopardizing core stability.
 This transition formalizes the beginning of “V2”—an architecture optimized for transparency, reversibility, and modular expansion.
 
+<a id="ch15"></a>
 ## Chapter 15: Componentization Wave (Sept 25–26)
 Backlink: component seams anticipated by earlier modality + state scoping (Modal Contract Foundations – Ch.1; Silent Capacity Build – Ch.4)
 Monolithic surfaces decomposed: action menu, status panels, toolbar, profile cards, unified selection flows. Draggable / layout mode affordances amplified user agency. Monster selection refactor removed ad hoc selectors in favor of declarative initialization contracts. Guiding principle hardened: *explicit mount points + scoped styles > implicit global cascade heuristics*—creating predictable insertion seams for later comfort & transparency systems.
 
+<a id="ch16"></a>
 ## Chapter 16: Comfort & Intent Systems (Sept 27–28)
 Backlink: user pacing + clarity derive from early UX intent framing (Experience Contract – Ch.1; Cognitive Load Concerns – Ch.2)
 User cognitive load reduction became a first‑class engineering target: settings architecture (stateful preferences), blackout overlays (focus isolation), toast notifications (non‑blocking feedback), unified modal controller (lifecycle consistency), KEEP ALL dice affordance, tray ergonomic alignment. The experience crossed a threshold—from *playable game* to *operator console* balancing agency, clarity, and rhythm.
 
+<a id="ch17"></a>
 ## Chapter 17: Scenario & Transparency Expansion (Sept 29)
 Backlink: transparency arc completes rationale evolution (Problem Surfacing Loop – [Ch.3](#ch3); Deterministic Capacity – [Ch.4](#ch4))
 Scenario seeding + parameterized configuration delivered reproducible experimentation loops. Phase event adapters abstracted temporal transitions; instrumentation hooks aligned with earlier integrity scaffolds. The Decision Tree UI externalized heuristic branching—promoting collaborative critique of weight assignments. Pause/resume, focus traps, and ARIA-conscious layering broadened inclusivity and resilience.
 
+<a id="ch18"></a>
 ## Chapter 18: Acceptance & Kinetic Feedback (Sept 30)
 Backlink: acceptance pacing + kinetic semantics fulfill initial interaction contract (Dismissal Interaction Pattern – Ch.1; Phase Rhythm Ideation – Ch.2)
 The “Accept Dice Results” mechanic formalized *player‑governed phase pacing*, enabling mid‑roll strategic economy (buy pre‑commit). Cohesive animation language emerged: Tokyo slot transitions, pulse feedback for damage/resolution, anchor glow states, nuanced card detail reveals. These kinetic layers fused earlier goals—transparency (what happened & why) + tactility (felt state change). Documentation convergence completed the narrative unification effort foreshadowed when rewrite isolation began.
@@ -2205,6 +2223,7 @@ The splash screen will now display your beautiful Tokyo cityscape with the neon 
 
 ---
 
+<a id="epilogue"></a>
 ## Epilogue: The Transformation & Forward Arc
 
 ### What Was Built (Unified View)
