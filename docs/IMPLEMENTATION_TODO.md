@@ -50,8 +50,8 @@ This revision: (1) Marks items completed since baseline, (2) Introduces flow/tim
 - [ ] Guarded timer rollout (wrap remaining pacing & animation timeouts) (NEW)
 	- [x] Phase machine prototype (feature-flag `window.__KOT_FLAGS__.USE_PHASE_MACHINE`) with guarded transitions & invalid transition telemetry (Oct 1 2025)
 - [ ] Minimum phase duration enforcement (ROLL / RESOLVE / BUY_WAIT)
-- [ ] Unified yield decision modal (human) + deterministic AI decision promise
-- [ ] BUY_WAIT explicit phase (user ends or timeout)
+- [x] Unified yield decision modal (human) + deterministic AI decision promise (Oct 1 2025)
+- [x] BUY_WAIT explicit phase (user ends or timeout) (Oct 1 2025 – feature flag `USE_BUY_WAIT`, manual End Buy CTA; timeout TBD)
 - [ ] Timing span instrumentation + dev overlay (phase durations, reroll latency)
 - [ ] Structured takeover sequence tests (attacks → yield → takeover)
 - [ ] **Animation system** - Smooth transitions and feedback

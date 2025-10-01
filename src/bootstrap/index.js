@@ -37,6 +37,8 @@ import { applyScenarios, captureScenarioState } from '../services/scenarioServic
 import { getScenario } from '../scenarios/catalog.js';
 import { SCENARIO_APPLY_REQUEST } from '../core/actions.js';
 import { bindTokyoEntryAnimation } from '../services/tokyoEntryAnimationService.js';
+import { createYieldModal } from '../ui/components/YieldModal.js';
+import { mountEndBuyButton } from '../ui/components/EndBuyButton.js';
 
 // Placeholder reducers until implemented
 function placeholderReducer(state = {}, _action) { return state; }
@@ -275,6 +277,33 @@ if (typeof window !== 'undefined') {
       if (blk) { blk.classList.add('is-hidden'); setTimeout(()=>blk.remove(), 520); }
     }
     prevSelectionOpen = selectionOpen;
+
+    // Lazy mount YieldModal if any pending human yield prompts exist
+    try {
+      const prompts = st.yield?.prompts || [];
+      const hasHumanPending = prompts.some(p => p.decision == null && !st.players.byId[p.defenderId].isCPU && !st.players.byId[p.defenderId].isAI);
+      if (hasHumanPending && !window.__KOT_YIELD_MODAL__) {
+        window.__KOT_YIELD_MODAL__ = createYieldModal(store);
+      }
+      if (!hasHumanPending && window.__KOT_YIELD_MODAL__) {
+        // Allow component to self-close; keep instance for reuse
+      }
+    } catch(_) {}
+
+    // BUY_WAIT EndBuyButton (feature-flagged)
+    try {
+      const flags = (typeof window !== 'undefined') ? (window.__KOT_FLAGS__ || {}) : {};
+      const enableBuyWait = !!flags.USE_BUY_WAIT; // default off until stabilized
+      if (enableBuyWait) {
+        if (st.phase === 'BUY_WAIT') {
+          if (!window.__KOT_ENDBUY_BTN__) {
+            window.__KOT_ENDBUY_BTN__ = mountEndBuyButton(store);
+          }
+        } else if (window.__KOT_ENDBUY_BTN__) {
+          // Keep mounted but hide via component logic; no destroy needed yet
+        }
+      }
+    } catch(_) {}
 
     // removed selection visibility watchdog
   });

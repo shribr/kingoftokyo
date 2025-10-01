@@ -21,7 +21,7 @@ function contentHTML() {
   return `<p><strong>Goal:</strong> Reach 20 Victory Points or be the last monster standing.</p>
   <h3>Turn Structure</h3>
   <ol>
-    <li><strong>Roll Dice</strong> (up to 3 rolls, keep dice between rolls)</li>
+  <li><strong>Roll Dice</strong> (base 3 total rolls: 1 initial + 2 rerolls; some power cards may grant extra rerolls)</li>
     <li><strong>Resolve Dice</strong> (gain Energy, Hearts heal if outside Tokyo, Claws attack)</li>
     <li><strong>Enter / Yield Tokyo</strong> (if you attacked occupant)</li>
     <li><strong>Buy Power Cards</strong> (spend Energy)</li>

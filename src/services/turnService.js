@@ -159,6 +159,35 @@ export function createTurnService(store, logger, rng = Math.random) {
             }
             markPhaseStart('BUY');
           }
+          // BUY phase pacing: immediately transition to BUY_WAIT if we require a post-purchase interaction window
+          try {
+            const st2 = store.getState();
+            const activeId = st2.players.order[st2.meta.activePlayerIndex % st2.players.order.length];
+            const active = st2.players.byId[activeId];
+            const human = !(active.isCPU || active.isAI);
+            if (human) {
+              // Defer transition a tick to allow any immediate card effects to enqueue
+              setTimeout(()=>{
+                if (store.getState().phase === Phases.BUY) {
+                  markPhaseEnd('BUY');
+                  logger.system('Phase: BUY_WAIT (human buy window)', { kind:'phase' });
+                  if (usePhaseMachine && phaseMachine) phaseMachine.to(Phases.BUY_WAIT, { reason: 'human_buy_window' }); else phaseCtrl.to(Phases.BUY_WAIT, { reason: 'human_buy_window' });
+                  markPhaseStart('BUY_WAIT');
+                }
+              }, 0);
+            } else {
+              // CPUs skip straight through unless effects force wait (future)
+              setTimeout(()=>{
+                if (store.getState().phase === Phases.BUY) {
+                  markPhaseEnd('BUY');
+                  logger.system('Phase: CLEANUP (cpu auto skip buy)', { kind:'phase' });
+                  if (usePhaseMachine && phaseMachine) phaseMachine.to(Phases.CLEANUP, { reason: 'cpu_no_buy' }); else phaseCtrl.to(Phases.CLEANUP, { reason: 'cpu_no_buy' });
+                  markPhaseStart('CLEANUP');
+                  cleanup();
+                }
+              }, 0);
+            }
+          } catch(_) {}
         }
       }
       // BUY_WAIT auto-advance: once effectQueue idle, proceed to CLEANUP

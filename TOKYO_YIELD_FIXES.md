@@ -4,7 +4,7 @@
 
 ### 1. 🎲 **CPU Infinite Rolling Bug**
 - **Problem**: CPU could get infinite rerolls due to unsafe while loop
-- **Solution**: Added safety counter limiting to MAX 3 total rolls
+- **Solution**: Added safety guard; base total rolls = 3 (1 initial + 2 rerolls) but now respects reroll bonus modifiers (cards can increase this)
 - **Code**: Enhanced `playCpuTurn()` with roll tracking and comprehensive logging
 
 ### 2. 🏯 **Missing Tokyo Yield Modal** 
@@ -12,7 +12,7 @@
 - **Solution**: Created complete Tokyo yield decision modal system
 - **Components**:
   - `tokyo-yield-modal.component.js` - Modal logic with legacy-style UI
-  - `components.tokyo-yield-modal.css` - Authentic legacy styling
+  - `components.tokyo-yield-modal.css` (removed Oct 1 2025) - legacy styling replaced by unified `yield-modal.css`
   - Integrated with `yieldDecision` state slice
   - 10-second decision window with fallback
 
@@ -44,10 +44,11 @@
 - Click overlay defaults to "Stay" (safer choice)
 - Integrates with existing `yieldPromptDecided` action system
 - Auto-hides when decision made or no pending prompts
+ - Dice roll budget now computed dynamically via `computeMaxRolls(state, activePlayerId)` (base 3 + bonuses)
 
 ## Testing Checklist:
 
-✅ **CPU Turns**: Should complete in exactly 3 rolls maximum
+✅ **CPU Turns**: Should complete within allowed roll budget (base 3; +bonus from reroll-granting power cards)
 ✅ **Human Player Stats**: Should update immediately in both panels and Tokyo areas  
 ✅ **Tokyo Yield**: Human players should see modal when attacked in Tokyo
 ✅ **Card Movement**: Should finish before next turn starts
@@ -58,7 +59,7 @@
 - `/src/services/turnService.js` - CPU roll limiting
 - `/src/services/resolutionService.js` - Yield prompt debugging  
 - `/src/components/tokyo-yield-modal/` - New modal component
-- `/css/components.tokyo-yield-modal.css` - Legacy styling
+- `/css/yield-modal.css` - Unified minimal styling (replaces removed legacy file)
 - `/components.config.json` - Arena state keys + modal registration
 
 ## Debug Console Keywords:

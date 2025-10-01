@@ -4,6 +4,7 @@ import { diceRollStarted, diceRolled, diceToggleKeep, diceRerollUsed, diceRollCo
 import { uiPlayerCardsOpen } from '../core/actions.js';
 import { selectActivePlayerId } from '../core/selectors.js';
 import { rollDice } from '../domain/dice.js';
+import { computeMaxRolls } from '../utils/rolls.js';
 import { createPositioningService } from '../services/positioningService.js';
 
 // Bind UI events to store actions after store is created to avoid circular imports
@@ -16,11 +17,27 @@ export function bindUIEventBridges(store) {
     if (stAll.phase !== 'ROLL') return;
     const diceState = stAll.dice;
     const isFirstRoll = diceState.faces.length === 0 || diceState.phase === 'idle';
-    // Enforce total of 3 rolls (first + 2 rerolls)
+    // Dynamic enforcement: rely on reducer-maintained rerollsRemaining + base/bonus computation
     if (!isFirstRoll) {
-      // Only allow reroll when we are in resolved state and have rerolls remaining
       if (!(diceState.phase === 'resolved' && diceState.rerollsRemaining > 0)) return;
     }
+    // Optional diagnostic (dev only): verify we have not exceeded theoretical max
+    try {
+      if (process.env.NODE_ENV !== 'production') {
+        const stCheck = store.getState();
+        const activeId = stCheck.players.order[stCheck.meta.activePlayerIndex % stCheck.players.order.length];
+        const max = computeMaxRolls(stCheck, activeId);
+        const facesEmpty = diceState.faces.length === 0;
+        // rollsUsed = initial (if faces exist) plus (baseRerolls - rerollsRemaining)
+        if (!facesEmpty) {
+          const baseRerolls = diceState.baseRerolls ?? 2;
+          const used = baseRerolls + (stCheck.players.byId[activeId]?.modifiers?.rerollBonus || 0) - diceState.rerollsRemaining + 1;
+          if (used > max) {
+            console.warn('[rolls] exceeded computed max rolls', { used, max });
+          }
+        }
+      }
+    } catch(_) {}
   store.dispatch(diceRollStarted());
     // Determine dice count from active player's modifiers if available
     let count = 6;

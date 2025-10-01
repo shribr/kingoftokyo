@@ -1,6 +1,7 @@
-/** tokyo-yield-modal.component.js
- * Modal for human players to decide whether to yield Tokyo when attacked.
- * Recreates the legacy decision modal UI with Tokyo-specific styling.
+/** tokyo-yield-modal.component.js (DEPRECATED)
+ * Legacy modal for human players to decide whether to yield Tokyo when attacked.
+ * Replaced by unified batched modal in `src/ui/components/YieldModal.js` (Oct 1 2025).
+ * Retained temporarily for reference during UI parity merge; not mounted in new bootstrap path.
  */
 import { store } from '../../bootstrap/index.js';
 import { yieldPromptDecided } from '../../core/actions.js';

@@ -50,8 +50,8 @@ This revision: (1) Marks items completed since baseline, (2) Introduces flow/tim
 - [ ] Extended concurrency adoption (apply guard to effect queue processing & UI pacing timers).
 - [ ] Event-based dice completion (`DICE_ROLL_RESOLVED`) – remove polling loops
 - [ ] Minimum phase duration enforcement (ROLL / RESOLVE / BUY_WAIT)
-- [ ] Unified yield decision modal (human) + deterministic AI decision promise
-- [ ] BUY_WAIT explicit phase (user ends or timeout)
+- [x] Unified yield decision modal (human) + deterministic AI decision promise (Oct 1 2025 – modal lazily mounted; deterministic seeds + telemetry wired)
+- [x] BUY_WAIT explicit phase (user ends or timeout) (Oct 1 2025 – phase active under feature flag `USE_BUY_WAIT`; End Buy CTA present; timeout fallback pending)
 - [ ] Timing span instrumentation + dev overlay (phase durations, reroll latency)
 - [ ] Structured takeover sequence tests (attacks → yield → takeover)
 - [ ] **Animation system** - Smooth transitions and feedback
@@ -242,12 +242,14 @@ Status Update (Oct 1, 2025): Phase Alpha Step 1 complete – AI actuation unifie
 5. Takeover gating enforced: Tokyo entry deferred until all prompts resolved.
 
 **Pending (UI / Experience & Tests)**:
-- Human modal integration + a11y focus trap & rationale display.
-- Remove legacy prompt action usages (`YIELD_PROMPT_SHOWN/DECIDED`) from UI after modal migration.
+- Yield modal a11y enhancements (focus trap loop, Escape key) & rationale/advisory display.
+- Remove deprecated prompt action references (`YIELD_PROMPT_SHOWN/DECIDED`) – reducer already consolidated.
 - Multi-occupant ordering tests (City + Bay simultaneous).
 - Enhanced yield heuristic (threat index, VP delta, effect queue risk).
 - Visual takeover confirmation & animation.
 - Structured log enrichment (`yield` category with seed + advisory snippet).
+- BUY_WAIT timeout/auto-advance fallback + visual timer/hint.
+- BUY_WAIT feature flag doc + rollout plan (flag: `USE_BUY_WAIT`).
 
 **Harness**: `tools/yieldFlowHarness.js` (update planned to assert deterministic seeds & immediate all-AI resolve path).
 
