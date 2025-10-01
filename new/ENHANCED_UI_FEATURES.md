@@ -3,11 +3,14 @@
 ## Overview
 A comprehensive enhancement to the King of Tokyo game UI featuring unified modals, dialogs, power card theming, and an advanced market system. All enhancements maintain backward compatibility with legacy systems.
 
-## Features Added
+> Reality Check (Sept 30, 2025): Some features below were originally documented aspirationally. This file now distinguishes IMPLEMENTED vs PLANNED/IN PROGRESS to avoid overstatement.
+
+## Features Added (Implemented vs In Progress)
 
 ### 1. AI Decision Tree Button ✨
 - **Location**: Main toolbar (sparkle icon)
-- **Function**: Opens AI Decision Tree modal showing decision-making process
+- **Function (Implemented)**: Opens current decision insight panel (simplified tree / rationale list)
+- **NOT YET**: Full branch weight table & factor attribution breakdown (planned component)
 - **Icon**: Custom 4-pointed star with smaller accent stars
 - **Integration**: Unified modal system with theme support
 
@@ -105,21 +108,54 @@ A comprehensive enhancement to the King of Tokyo game UI featuring unified modal
 - `ESC`: Close active modal/dialog
 - `Tab Navigation`: Full keyboard accessibility
 
-## Files Modified/Created
+## Implementation Reality Audit (Sept 30, 2025)
 
-### New Files
-- `src/utils/enhanced-integration.js` - Integration layer
-- `src/utils/unified-dialogs.js` - Dialog system
-- `src/utils/power-card-market.js` - Market interface
-- `css/components.unified-modals.css` - Modal styling
-- `css/components.power-cards-themes.css` - Theme system
+| Area | Implemented | Gap / Planned |
+|------|-------------|---------------|
+| Unified Modal Styling | Core modal container + theme classes | Some legacy dialogs bypass theme augmentation |
+| AI Decision Tree Panel | Basic rationale list / roll info button | Missing full branch weight & factor table |
+| Power Card Themes | 3 themes applied to market & card panels | Theme tokens not universally adopted across all components |
+| Market System | Overlay, rarity badges, purchase flow, keyboard open (Cmd/Ctrl+M) | Sorting / filtering logic & rarity-driven dynamic ordering not implemented |
+| Unified Dialogs | Tokyo choice, victory, elimination, generic card detail | Notification stack lacks queue management & dismiss animations |
+| Accessibility | Basic focus & ESC handling | Inconsistent focus trap + ARIA labeling across all modals |
+| Performance Optimizations | Deferred market build on open | No template cache / partial hydration layer yet |
+| Settings Integration | Theme + dialog system toggles persist | No user-defined custom theme builder |
+| Keyboard Shortcuts | ESC close + market shortcut | Missing shortcuts for dialog cycling / AI panel toggle |
 
-### Enhanced Files
-- `src/components/toolbar/toolbar.component.js` - AI button
-- `src/components/power-cards-panel/power-cards-panel.component.js` - Market integration
-- `src/utils/new-modals.js` - Enhanced modal content
-- `src/bootstrap/index.js` - Integration initialization
-- `css/components.power-cards.css` - Market button styling
+### File Inventory (Verified)
+New / Key Utility Modules:
+- `src/utils/enhanced-integration.js`
+- `src/utils/unified-dialogs.js`
+- `src/utils/power-card-market.js`
+- `src/utils/new-modal-system.js` (naming vs doc drift corrected)
+
+CSS Modules:
+- `css/components.unified-modals.css`
+- `css/components.power-cards-themes.css`
+- `css/components.power-cards.css`
+- `css/components.toolbar.css`
+
+Enhanced Components:
+- `src/components/toolbar/toolbar.component.js`
+- `src/components/power-cards-panel/power-cards-panel.component.js`
+
+Planned (Not Yet Present):
+- Dedicated `decision-tree-modal.component.*`
+- Effect queue / rationale correlation panel
+- Cached dialog template registry
+
+### Prior Claims Adjusted
+- “Advanced market sorting & rarity indicators” → rarity indicators only (no sorting logic yet).
+- “Comprehensive notification system” → basic dispatch without stacked lifecycle.
+- “Cached dialog templates” → not implemented (each invocation reconstructs DOM).
+
+### Immediate UI Enhancement Priorities
+1. Extract decision tree modal component with factor weights table.
+2. Add minimal effect queue sidebar (observability).
+3. Introduce dialog focus trap utility (centralized, reused).
+4. Implement market sorting pipeline (by cost, rarity, tag relevance).
+5. Normalize theme token usage (color + spacing scale) across non-card components.
+
 
 ## Settings Options
 
@@ -149,7 +185,7 @@ A comprehensive enhancement to the King of Tokyo game UI featuring unified modal
 - Lazy-loaded market system
 - Efficient theme switching
 - Minimal DOM manipulation
-- Cached dialog templates
+- (Planned) Cached dialog templates (not yet implemented)
 
 ## Future Extensibility
 
@@ -165,8 +201,8 @@ A comprehensive enhancement to the King of Tokyo game UI featuring unified modal
 
 ### Market System
 - Expandable to other game items
-- Wishlist and favorites features
-- Advanced filtering and sorting
+- Wishlist and favorites features (planned)
+- Advanced filtering and sorting (planned)
 
 ## Compatibility
 

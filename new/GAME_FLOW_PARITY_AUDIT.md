@@ -81,3 +81,39 @@ P3: Advanced card interactions, AI personalities, performance pass.
 
 ---
 Next audit checkpoint scheduled after Phase Alpha completion.
+\n+---
+## Addendum – Additional Integration Issues (Sept 30, 2025)
+
+### Newly Observed Since Prior Audit
+1. **Dual AI Invocation Path**: `cpuTurnController` immediate decisions + `aiDecisionService` scheduled auto-keep timer can overlap, risking double writes to dice keep state.
+2. **Modifier Side-Channel**: Reroll bonus & dice slot modifiers read indirectly via global (`window.__KOT_NEW__`) inside reducers; undermines deterministic replay and unit isolation.
+3. **Monte Carlo Adaptivity**: Adaptive trial count without deterministic test guard introduces non-reproducible decision output variance.
+4. **Effect Queue Blind Spot**: Pending queue entries (heal/damage) not represented in AI perception; risk posture / yield decisions ignore imminent changes.
+5. **Mixed Provenance Decision Nodes**: Decision tree currently merges raw heuristic nodes and enriched engine projections without labeling source → interpretability gap.
+
+### Remediation Addendum (Refined Ordering)
+Prepend to existing roadmap:
+0. Remove timer-based auto-keep (unify actuation in controller).
+1. Introduce perception layer (`buildAIState`) eliminating reducer global peeks.
+2. Deterministic mode flag (fixed trials + seeded RNG) for engine decisions in tests.
+3. Augment perception with effect queue virtual deltas (pending heal/energy/VP adjustments).
+4. Label decision tree nodes with `source: 'heuristic' | 'engine'` and unify scoring surface.
+5. Integrate yield advisory output from engine projections (single rationale path).
+
+### Expanded Metrics
+| Metric | Target | Notes |
+|--------|--------|-------|
+| Dual Decision Invocations / Roll | 0 | Logged via telemetry counter |
+| Deterministic Variation (10 runs) | 0 diffs | TEST_MODE enabled |
+| Effect-Aware Decisions (when pending effects) | ≥90% | Decision metadata includes `pendingEffectImpact` |
+| Modifier Access Purity | 100% selector-based | Enforced via lint check |
+| Labeled Decision Nodes | 100% | Each node includes `source` + `factors[]` |
+
+### Success Criteria Additions
+- Snapshot tests covering multi-pair reroll branching produce identical keepIndex sets across runs.
+- Yield decisions include structured confidence + risk differentials.
+- No reducer references global window for modifier retrieval.
+- Telemetry log contains zero entries of type `ai.decision.duplicate` over 500-turn simulation.
+
+---
+End Addendum (Sept 30, 2025)

@@ -3,6 +3,16 @@
 ## Overview
 This document provides a comprehensive technical chronicle of the King of Tokyo web game development from September 8-17, 2025. It details the specific implementations, git commits, code changes, and technical architecture decisions made throughout the 10-day development journey.
 
+### Update (Sept 30, 2025) - Chat Persistence Tooling Added
+Introduced a dual-layer persistence system after accidental loss of ephemeral workspace chat threads:
+1. File-based transcripts: `logs/chat/YYYY-MM-DD.md` (and optional `--session` variants) appended via `node new/tools/chatLogger.js` or `npm run log:chat -- --role user --content "..."`.
+2. Browser localStorage module: `js/chat-persistence.js` exposing `ChatPersistence` API (`addMessage`, `exportMarkdown`, `downloadMarkdown`, etc.) for in-browser capture and manual export.
+
+Rationale: Prevent recurrence of irreversible loss from VS Code "Clear All Workspace Chats" action; ensure architectural and reasoning discussions are durably archived.
+
+Future Enhancements (Planned): Daily summarizer script, optional redact filter for sensitive tokens, integration with development session start/stop hooks.
+
+
 **Technical Statistics:**
 - **Development Period**: 10 days (September 8-17, 2025)
 - **Total Git Commits**: 50+ commits

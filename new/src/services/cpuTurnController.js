@@ -12,6 +12,7 @@ import { diceRollStarted, diceRolled, diceRollResolved, diceRollCompleted } from
 import { selectActivePlayerId } from '../core/selectors.js';
 import { enhancedEngineGuard } from './internal/engineGuard.js'; // (future-proof placeholder if needed)
 import { immediateAIDiceSelection } from './aiDecisionService.js';
+import { extractEngineInputs } from '../ai/perception/stateView.js';
 import { rollDice } from '../domain/dice.js';
 import { DICE_ANIM_MS, AI_POST_ANIM_DELAY_MS } from '../constants/uiTimings.js';
 
@@ -81,12 +82,12 @@ export function createCpuTurnController(store, engine, logger = console, options
       await wait(DICE_ANIM_MS + AI_POST_ANIM_DELAY_MS);
 
       // Get AI decision immediately after roll
-      const st = store.getState();
-      const faces = (st.dice.faces||[]).map(f=> f.value);
-      const canonical = faces.map(f=> f==='claw'?'attack': (f==='heal'?'heart': f));
-      const rerollsRemaining = st.dice.rerollsRemaining;
-      const player = st.players.byId[playerId];
-      const gameState = { players: st.players.order.map(id=>{ const p=st.players.byId[id]; return { id:p.id, victoryPoints:p.victoryPoints, health:p.health, energy:p.energy, isInTokyo:!!p.inTokyo, isEliminated:!p.status?.alive, powerCards:p.cards||[] }; }), availablePowerCards: st.cards?.shop||[] };
+  const st = store.getState();
+  const engineInputs = extractEngineInputs(st);
+  const canonical = engineInputs?.diceFacesCanonical || [];
+  const rerollsRemaining = engineInputs?.rerollsRemaining ?? 0;
+  const player = engineInputs?.playerForEngine || st.players.byId[playerId];
+  const gameState = engineInputs?.gameState || { players: [], availablePowerCards: [] };
       let decisionPromise;
       let rawDecision;
       try {

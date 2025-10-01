@@ -32,6 +32,17 @@ This revision: (1) Marks items completed since baseline, (2) Introduces flow/tim
 - [ ] **Dice keep strategy** - Optimal dice keeping logic
 - [ ] **Win condition awareness** - Adapting strategy based on game state
 
+#### AI Infrastructure Unification (NEW – Precedes Depth Expansion)
+- [ ] Deprecate duplicate enhanced AI file (`new/js/ai-decisions.js`) – enforce single engine import.
+- [ ] Remove scheduled auto-keep timer path from `aiDecisionService.js` (controller becomes sole actuator).
+- [ ] Introduce perception layer (`buildAIState(storeState, activePlayerId)`) – pure extract; eliminate reducer global peeks.
+- [ ] Deterministic engine mode (seed + fixed Monte Carlo trial count) under `TEST_MODE` flag.
+- [ ] Replace purchase heuristic with portfolio optimizer advisory wrapper.
+- [ ] Integrate yield advisory via engine projection (single rationale channel).
+- [ ] Effect queue virtual state adapter (pending heals/damage influence risk posture).
+- [ ] Decision node labeling (`source`, `factors[]`, `confidence`).
+- [ ] Telemetry schema unification (`ai.decision`, `ai.yield`, `ai.purchasePlan`).
+
 ### Game Flow & Timing Integrity (ELEVATED TO HIGH)
 - [ ] Phase finite state machine (legal transition table)
 - [ ] `turnCycleId` concurrency guard (invalidate stale async tasks)
@@ -65,6 +76,9 @@ This revision: (1) Marks items completed since baseline, (2) Introduces flow/tim
 - [ ] **Integration tests** - Full game flow testing  
 - [ ] **Component tests** - UI component behavior
 - [ ] **AI decision tests** - AI behavior validation
+- [ ] Deterministic snapshot tests (multi-pair reroll, attack cluster low HP, extra die + reroll bonus).
+- [ ] Duplicate decision invocation guard test (ensure single actuation per roll).
+- [ ] Purchase advisory regression tests (stable ordering with unchanged energy/state).
 - [ ] **Performance tests** - Load and stress testing
 - [ ] **Accessibility tests** - Screen reader compatibility
 
@@ -146,29 +160,35 @@ This revision: (1) Marks items completed since baseline, (2) Introduces flow/tim
 - [ ] **Error tracking** - Production error monitoring
 
 ## 🔍 **IMPLEMENTATION PRIORITIES (New Sequencing)**
+Status Update (Oct 1, 2025): Phase Alpha Step 1 complete – AI actuation unified (timer removed), perception layer (`buildAIState`) added, engine inputs centralized.
+
 ### Phase Alpha (Flow Parity)
-1. FSM + `turnCycleId`
-2. Dice roll resolved event & CPU loop refactor
-3. Unified yield & takeover sequence
-4. BUY_WAIT phase + timing spans
+1. AI actuation unification (remove timer auto-keep) + perception layer
+2. FSM + `turnCycleId`
+3. Dice roll resolved event (no polling) & CPU loop refactor
+4. Deterministic mode (seeded; fixed trials) + snapshot harness
+5. Unified yield & takeover sequence (yield advisory integration)
+6. BUY_WAIT phase + timing spans + takeover ordering asserts
 
 ### Phase Beta (Strategic Depth & Persistence)
-1. AI heuristic modules (survival, VP delta, economy, Tokyo risk)
+1. Enhanced AI heuristic modules (survival risk, VP race delta, resource economy, Tokyo risk)
 2. Snapshot persistence + export/import UI
 3. Expanded card catalog (+10–15 cards)
-4. Effect processor MVP (sequential resolution)
+4. Effect processor MVP (sequential resolution + failure handling)
 
 ### Phase Gamma (UX & Observability)
-1. Timing diagnostics overlay
-2. Rationale tree enrichment (factor weights)
-3. Yield & buy UX polish (copy, accessibility)
-4. Accessibility pass (landmarks, live regions, focus loops)
+1. Timing diagnostics overlay (phase spans, decision latency)
+2. Rationale tree enrichment (factor weights + branch scores table)
+3. Yield & buy UX polish (copy, accessibility, countdown)
+4. Effect queue sidebar & correlation with decisions
+5. Accessibility pass (landmarks, live regions, focus loops)
 
 ### Phase Delta (Polish & Extension)
 1. Advanced card interactions (conditional triggers, steals)
 2. Multi-target selection finalized
 3. AI personality weighting layer
 4. Performance profiling & micro-optimizations
+ 5. Purchase planning multi-turn projection (energy accumulation horizon)
 
 ## 📊 **SUCCESS METRICS (Expanded)**
 
@@ -183,6 +203,25 @@ This revision: (1) Marks items completed since baseline, (2) Introduces flow/tim
 - [ ] **Phase Transition Violations**: 0 in automated suite
 - [ ] **Stale Async Actions**: 0 after FSM integration
 - [ ] **AI Rationale Coverage**: >85% major actions annotated with factor weights
+- [ ] **Deterministic Stability**: 0 decision diffs across 10 seeded runs per scenario
+- [ ] **Duplicate Invocation Count**: 0 `ai.decision.duplicate` events / 500-turn simulation
+- [ ] **Effect-Aware Decisions**: ≥90% when queue pending modifications
+
+---
+## Deterministic Mode (NEW SECTION)
+**Purpose**: Ensure reproducible AI decision outcomes for CI & regression analysis.
+
+**Activation**: `window.__KOT_TEST_MODE__ = true` (or ENV flag at build time)
+
+**Behavior Changes**:
+1. Monte Carlo trial count fixed (e.g., 80 trials) instead of adaptive.
+2. Seeded RNG (Mulberry32 or similar) keyed by `turnCycleId` + roll number.
+3. Decision output includes `meta: { seed, trials }` for audit.
+4. Performance profiling disabled (avoids adaptive feedback loops).
+
+**Test Harness Expectations**:
+- Snapshot tests assert identical `keepIndices`, `stopEarly`, `confidence`, and `factors` arrays across N runs.
+- Divergence triggers diagnostic dump (state view + RNG seed).
 
 ---
 

@@ -11,6 +11,7 @@ import { DICE_ANIM_MS, AI_POST_ANIM_DELAY_MS } from '../constants/uiTimings.js';
 import { logAppended } from '../core/actions.js';
 import { getAIConfig } from '../config/aiConfigLoader.js';
 import { AIDecisionEngine } from '../ai/engine/AIDecisionEngine.js';
+import { extractEngineInputs } from '../ai/perception/stateView.js';
 
 const enhancedEngine = new AIDecisionEngine();
 
@@ -18,8 +19,9 @@ let latestTree = { rounds: [] };
 let lastRollNodeId = null;
 let nextNodeId = 1;
 // Dice/AI timing constants imported from centralized module
-let aiKeepTimer = null;
-let aiKeepGeneration = 0;
+// Removed timer-based auto keep (scheduleAIAutoKeep) in favor of unified cpuTurnController actuation.
+let aiKeepTimer = null; // retained for backward compatibility of cancelPendingAIKeep during transition
+let aiKeepGeneration = 0; // will be deprecated after confirming no external calls
 // Future (dark edition): include wickness / corruption context nodes.
 // Example extended shape per roll:
 // { faces: '1,2,3', rationale: '...', score: '0.82', wicknessDelta: 1, poisonApplied: 0 }
@@ -43,16 +45,7 @@ export function bindAIDecisionCapture(store) {
     if (action.type === DICE_ROLLED) {
       const facesStr = state.dice.faces.map(f => f.value).join(',');
       captureRoll(state, facesStr, { stage: 'post' });
-      
-      // CRITICAL: Only schedule AI dice selection if there are rerolls remaining
-      // Don't select dice AFTER the final roll - selection must happen BEFORE the final roll
-      if (state.dice.rerollsRemaining > 0) {
-        // Schedule AI keep after dice animation completes + 2s buffer (only for CPU turns)
-        scheduleAIAutoKeep(store);
-      } else {
-        cancelPendingAIKeep();
-        console.log('🤖 AI: Skipping dice selection schedule - no rerolls remaining (final roll complete)');
-      }
+      // Timer-based auto keep removed: cpuTurnController handles immediate decisions.
     }
     if (action.type === DICE_ROLL_RESOLVED) {
       // Early forced resolution terminates any scheduled keep
@@ -109,30 +102,15 @@ function captureRoll(state, facesStr, extraMeta) {
       node.rollNumber = existingPost.length + 1;
       node.keptIndices = faces.map((f,i)=> f.kept? i : null).filter(v=> v!==null);
 
-      // Prepare game state summary for engine
-      const gameState = {
-        players: state.players.order.map(id => {
-          const p = state.players.byId[id];
-          return {
-            id: p.id,
-            victoryPoints: p.victoryPoints,
-            health: p.health,
-            maxHealth: p.maxHealth || 10,
-            isInTokyo: !!p.inTokyo,
-            isEliminated: !p.status?.alive,
-            energy: p.energy || 0,
-            powerCards: p.powerCards || []
-          };
-        }),
-        availablePowerCards: (state.cards?.shop || []).map(c => ({ id:c.id, name:c.name, cost:c.cost, effects:c.effect? [c.effect]: (c.effects||[]) }))
-      };
-      const diceFacesCanon = faces.map(f => {
-        if (f.value === '1') return 'one';
-        if (f.value === '2') return 'two';
-        if (f.value === '3') return 'three';
-        return f.value; // attack, energy, heart
-      });
-      const decision = enhancedEngine.makeRollDecision(diceFacesCanon, state.dice.rerollsRemaining, { ...player, monster: player.monster || {}, gameState }, gameState);
+      // Use perception layer for consistent engine inputs
+      const engineInputs = extractEngineInputs(state);
+      const diceFacesCanon = engineInputs?.diceFacesCanonical || [];
+      const decision = enhancedEngine.makeRollDecision(
+        diceFacesCanon,
+        engineInputs?.rerollsRemaining ?? state.dice.rerollsRemaining,
+        { ...(engineInputs?.playerForEngine || player), gameState: engineInputs?.gameState },
+        engineInputs?.gameState || { players: [], availablePowerCards: [] }
+      );
       if (decision) {
         node.action = decision.action === 'endRoll' ? 'keep' : decision.action; // normalize
         node.confidence = decision.confidence;
@@ -410,34 +388,12 @@ function simpleFallbackKeep(store, state) {
   }
 }
 
-function scheduleAIAutoKeep(store) {
-  // Skip scheduling in controller mode (immediate selection handled inside turn controller)
-  try {
-    if (typeof window !== 'undefined' && window.__KOT_NEW__?.cpuControllerModeActive) return;
-  } catch(_) {}
-  cancelPendingAIKeep();
-  const gen = ++aiKeepGeneration;
-  aiKeepTimer = setTimeout(() => {
-    if (gen !== aiKeepGeneration) return; // stale generation
-    try {
-      const st = store.getState();
-      const activeId = selectActivePlayerId(st);
-      if (!activeId || st.phase !== 'ROLL' || st.dice.phase !== 'resolved') return;
-      const player = st.players.byId[activeId];
-      const isCpu = !!(player && (player.isCPU || player.isAi || player.isAI || player.type === 'ai'));
-      if (!isCpu) return;
-      autoKeepHeuristic(store);
-    } catch(_) { /* noop */ }
-  }, DICE_ANIM_MS + AI_POST_ANIM_DELAY_MS);
-}
+// scheduleAIAutoKeep removed (controller now authoritative). Keeping stub comment for historical diff trace.
 
 // Public helper: immediate AI dice selection (used by controller mode)
 export function immediateAIDiceSelection(store) {
-  try {
-    autoKeepHeuristic(store);
-  } catch(err) {
-    console.warn('[aiDecisionService] immediateAIDiceSelection failed', err);
-  }
+  // Retain heuristic call for non-controller contexts (e.g., legacy/manual triggers)
+  try { autoKeepHeuristic(store); } catch(err) { console.warn('[aiDecisionService] immediateAIDiceSelection failed', err); }
 }
 
 // Immediate safeguard: if AI timer race causes no keeps before reroll evaluation, invoke heuristic now.
@@ -454,7 +410,8 @@ export function forceAIDiceKeepIfPending(store) {
     const anyKept = (st.dice.faces||[]).some(f=> f.kept);
     if (anyKept) return false; // heuristic already acted or nothing to keep intentionally
     if (st.dice.rerollsRemaining > 0) {
-      autoKeepHeuristic(store);
+      // Controller path should have kept dice; fallback heuristic only if truly none kept
+      try { autoKeepHeuristic(store); } catch(_) {}
       return true;
     }
   } catch(_) {}
