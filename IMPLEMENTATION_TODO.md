@@ -169,8 +169,8 @@ Status Update (Oct 1, 2025): Phase Alpha Step 1 complete – AI actuation unifie
 2. FSM + `turnCycleId`
 3. Dice roll resolved event (no polling) & CPU loop refactor
 4. Deterministic mode (seeded; fixed trials) + snapshot harness ✅ (trials=64, per-turn & per-decision seeding)
-5. Unified yield & takeover sequence (yield advisory integration)
-6. BUY_WAIT phase + timing spans + takeover ordering asserts
+5. Unified yield & takeover sequence (yield advisory integration) ✅ (advisory + helper extraction)
+6. BUY_WAIT phase + timing spans + takeover ordering asserts (partial ✅: BUY_WAIT transitions via effect engine; phase span instrumentation & ordering asserts added; remaining: deeper multi-effect queue tests)
 
 ### Phase Beta (Strategic Depth & Persistence)
 1. Enhanced AI heuristic modules (survival risk, VP race delta, resource economy, Tokyo risk)

@@ -114,6 +114,31 @@ export function resolveDice(store, logger) {
   // Final takeover attempt
   attemptTokyoTakeover(store, logger, activeId, playerCount, bayAllowed);
 
+  // Ordering assertions (non-fatal diagnostics)
+  try {
+    const diag = store.getState();
+    const city = selectTokyoCityOccupant(diag);
+    const bay = selectTokyoBayOccupant(diag);
+    if (city && bay && city === bay) {
+      logger.warn?.('OrderingAssert: City and Bay share same occupant (invalid)');
+    }
+    if (bay && playerCount < 5) {
+      logger.warn?.('OrderingAssert: Bay occupied with <5 players');
+    }
+    // If attacker entered city but city already had occupant previously & no yield recorded
+    // (Light heuristic: if attacker now cityOcc and no prompt for that occupant with decision yield)
+    const priorPrompts = diag.yield?.prompts || [];
+    if (city === activeId) {
+      const hadPrompt = priorPrompts.some(p => p.defenderId === activeId && p.decision === 'yield');
+      const wasInside = !!diag.players.byId[activeId].inTokyo; // current state; historical requires more tracking
+      // Skip if attacker started inside (cannot detect here without earlier snapshot)
+      if (!wasInside && !hadPrompt && priorPrompts.length === 0) {
+        // benign: empty city case; just annotate
+        logger.debug?.('OrderingAssert: Attacker entered empty city (expected path)');
+      }
+    }
+  } catch(_) {}
+
   if (yieldPromptsCreated) {
     const st2 = store.getState();
     const pendingAny = st2.yield.prompts.some(p => p.decision == null);

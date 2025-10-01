@@ -443,6 +443,13 @@ function enhancedEngineProxy(){
 const __phaseTimings = { active: null, spans: [] };
 function markPhaseStart(phase) {
   __phaseTimings.active = { phase, start: performance.now() };
+  try {
+    const st = store.getState();
+    const spans = (st.meta?.phaseSpans && { ...st.meta.phaseSpans }) || {};
+    spans[phase] = spans[phase] || {};
+    spans[phase].lastStart = performance.now();
+    store.dispatch({ type:'META_PHASE_SPAN_UPDATE', payload:{ spans } });
+  } catch(_) {}
 }
 function markPhaseEnd(expectedPhase) {
   if (!__phaseTimings.active) return;
@@ -452,5 +459,19 @@ function markPhaseEnd(expectedPhase) {
   __phaseTimings.spans.push(span);
   if (__phaseTimings.spans.length > 25) __phaseTimings.spans.shift();
   try { if (window?.__KOT_METRICS__) { window.__KOT_METRICS__.phaseSpans = [...__phaseTimings.spans]; } } catch(_) {}
+  try {
+    const st = store.getState();
+    const spans = (st.meta?.phaseSpans && { ...st.meta.phaseSpans }) || {};
+    const rec = spans[expectedPhase];
+    if (rec?.lastStart) {
+      const dur = end - rec.lastStart;
+      rec.lastDuration = dur;
+      rec.accumulated = (rec.accumulated||0) + dur;
+      rec.count = (rec.count||0) + 1;
+      spans[expectedPhase] = rec;
+      store.dispatch({ type:'META_PHASE_SPAN_UPDATE', payload:{ spans } });
+      logger.system?.(`PhaseSpan: ${expectedPhase} ${dur.toFixed(1)}ms`, { kind:'metrics', phase: expectedPhase, duration: dur });
+    }
+  } catch(_) {}
   __phaseTimings.active = null;
 }
