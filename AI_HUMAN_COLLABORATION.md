@@ -1,518 +1,792 @@
-<!-- RESTRUCTURED VERSION (September 30, 2025) -->
-# King of Tokyo – Human + AI Daily Collaboration Log
-**Phase 1 & 2: September 7–20, 2025**
-
-> This structured log renumbers days so that September 17, 2025 aligns with Day 11 per user request. Earlier narrative “Chapters” are preserved in an Appendix at the end. Each day now uses a uniform template: Summary, Key Chat Sessions, Work Completed, Technical Changes, Problems & Resolutions, Collaboration Highlights, Lessons, AI Model Attribution, Screenshots & Artifacts.
+<!-- MASTER COLLABORATION DOCUMENT (Three-Section Architecture) -->
+# King of Tokyo – Human & AI Collaboration Chronicle
+**Timeline Covered:** September 7–30, 2025  
+**Structural Model:** Story Narrative → Daily Work Log → Technical Chat Sessions  
+**Day Numbering Policy:** Sept 7 = Day 1 so Sept 17 = Day 11 (per user directive)
 
 ---
 
-## Day 1  
-**Date: September 7, 2025**  
+## Table of Contents
+1. [Story of the Journey](#story-of-the-journey)
+    - [Chapter 1 – Foundation & First Contact](#chapter-1--foundation--first-contact)
+    - [Chapter 2 – Silent Momentum](#chapter-2--silent-momentum)
+    - [Chapter 3 – First Breakthrough Cycle](#chapter-3--first-breakthrough-cycle)
+    - [Chapter 4 – Sprint Phase & Emergent Systems](#chapter-4--sprint-phase--emergent-systems)
+    - [Chapter 5 – Refinement & Professional Polish](#chapter-5--refinement--professional-polish)
+    - [Chapter 6 – Visual Communication as Catalyst](#chapter-6--visual-communication-as-catalyst)
+    - [Chapter 7 – Debugging Patterns & Root Cause Mastery](#chapter-7--debugging-patterns--root-cause-mastery)
+    - [Chapter 8 – Communication Growth & Vocabulary](#chapter-8--communication-growth--vocabulary)
+    - [Chapter 9 – Architectural & Systems Thinking](#chapter-9--architectural--systems-thinking)
+    - [Chapter 10 – Partnership Lessons](#chapter-10--partnership-lessons)
+    - [Epilogue – Transformation & Forward Arc](#epilogue--transformation--forward-arc)
+2. [Daily Work Log](#daily-work-log)
+    - Days 1–13 (Chronological summaries; each links to related Chat Session & Story chapter)
+3. [Technical Chat Sessions](#technical-chat-sessions)
+    - Day-specific deep dives (formatted transcripts & technical analyses)
+4. [Appendices](#appendices)
+    - [Appendix A – Original Raw Narrative Reference](#appendix-a--original-raw-narrative-reference)
+    - [Appendix B – Forward Roadmap Snapshot](#appendix-b--forward-roadmap-snapshot)
+5. [Cross-Reference Index](#cross-reference-index)
+
+---
+
+## Story of the Journey
+Narrative layer conveying the evolving human–AI partnership themes. Each chapter maps to multiple Work Log days and selected Chat Sessions.
+
+### Chapter 1 – Foundation & First Contact
+Linked Days: 1  
+Linked Chat Sessions: [Day 1 Chat Session](#day-1--chat-session-initial-ui-interaction)  
+Date Span: Sept 7–8, 2025
+
+The collaboration began with a deceptively simple user experience request (modal dismissal via outside click) that exposed the deeper dynamic of intent translation, constraint discovery, and communication style calibration. Early success established the human as vision keeper and the AI as an implementation partner capable of structural synthesis and systematic exploration.
+
+### Chapter 2 – Silent Momentum
+Linked Days: 2–4  
+Linked Chat Sessions: (none – reflective gap)  
+Date Span: Sept 9–10 (planning inertia)
+
+Strategic quiet time clarified priorities—dice mechanics, Tokyo entry logic, and UI ergonomics—before renewed interactive bursts. Silence acted as an incubation stage rather than production stall.
+
+### Chapter 3 – First Breakthrough Cycle
+Linked Days: 5  
+Linked Chat Sessions: [Day 5 Chat Session](#day-5--chat-session-logging--emoji-overhaul)  
+Date Span: Sept 11, 2025
+
+Core mechanics (elimination, extra dice baseline) emerged, pushing from structural scaffolding toward tangible ludic feedback. Human guidance constrained over-abstraction; AI enumerated safe expansion seams.
+
+### Chapter 4 – Sprint Phase & Emergent Systems
+Linked Days: 6–10  
+Linked Chat Sessions: [Day 6 Chat Session](#day-6--chat-session-tokyo-entry-rule-fix), [Day 7 Chat Session](#day-7--chat-session-active-player-display--method-conflict), [Day 8 Chat Session](#day-8--chat-session-power-card-modal), [Day 9 Chat Session](#day-9--chat-session-tokyo-slot-artifact), [Day 10 Chat Session](#day-10--chat-session-consolidated-period)  
+Date Span: Sept 12–16, 2025
+
+Rapid iteration fused UI polish, drag/drop ergonomics, dice reliability, and architectural cleanup. Performance instrumentation + DOM caching shifted from guesswork to evidence-led refinements.
+
+### Chapter 5 – Refinement & Professional Polish
+Linked Days: 11  
+Linked Chat Sessions: [Day 11 Chat Session](#day-11--chat-session-final-polish--documentation)  
+Date Span: Sept 17, 2025
+
+Attention pivoted from velocity to clarity—documentation scaffolds, naming audits (dual endTurn methods), and rule correctness consolidation.
+
+### Chapter 6 – Visual Communication as Catalyst
+Linked Days: 8–11 (pattern maturation)  
+Linked Chat Sessions: Selected sessions where screenshots amplified precision  
+Highlight: Screenshots resolved ambiguity (e.g., dice log layout, Tokyo slot artifact) faster than multi-paragraph textual explanation.
+
+### Chapter 7 – Debugging Patterns & Root Cause Mastery
+Linked Days: 5–11  
+Focus: Effect dedupe, Tokyo entry gating, dice flow serialization, animation class cleanup.  
+Pattern: Hypothesis → selective logging → constrained patch → regression guard.
+
+### Chapter 8 – Communication Growth & Vocabulary
+Key Term Evolution: “Player dashboard” → “Player profile card”; “Dice reroll total” → “Roll progression”; “Modal ancestor scope” → “Contextual cascade compliance”.
+
+### Chapter 9 – Architectural & Systems Thinking
+Principles Observed:
+- Avoid premature component registries until reuse tension appears.
+- Localize style overrides (modal wrapper ancestry) vs selector wildcards.
+- Centralize gating logic (Tokyo entry, turn transitions) to remove phantom side-effects.
+
+### Chapter 10 – Partnership Lessons
+Complementary strengths crystallized: human UX intuition + AI exhaustive code traversal. Trust reinforced via candid friction (“off your game today”) exchanged for recalibration, not escalation.
+
+### Epilogue – Transformation & Forward Arc
+By Day 11 the playable system matured into a maintainable platform. Phase 2 (Days 12–13) addressed visual residue (Tokyo slot artifact) and modal parity, staging groundwork for upcoming AI heuristic layers (decision weighting, seeded test harness).
+
+---
+
+## Daily Work Log
+Concise chronological operational record. Each Day block includes cross-links:
+Format: Day N – Work Log [Descriptor]
+
+Legend: [Story↑] link jumps to narrative chapter; [Chat↓] jumps to technical deep dive (if exists).
+
+### Day 1 – Work Log [Conception & Environment]
+**Date:** Sept 7, 2025  |  Story: [Chapter 1](#chapter-1--foundation--first-contact)  |  Chat: [Day 1 Session↓](#day-1--chat-session-initial-ui-interaction)
 **Status:** Project Conception & Environment Familiarization (pre-code foundation)
 
-### Summary
-Initial conceptual alignment: clarify digital adaptation scope, establish core artifacts (monster selection modal, splash screen vision, game loop outline). No substantial code yet—focus on mental model and toolchain readiness.
+#### Summary
+Initial conceptual alignment: clarified digital adaptation scope, established core artifacts (monster selection modal, splash screen vision, game loop outline). Focus: mental model + toolchain readiness (no substantive code).
 
-### Key Chat Sessions
-1. Vision Alignment: Defined goals (casual playable prototype > full polished release).  
-2. UX Intent Seed: Commitment to fast modal interactions & tactile dice feel.  
-3. Friction Moment: Latency concerns about turnaround time—set expectation for iterative refinement.
+#### Key Chat Touchpoints
+1. Vision alignment (prototype-first philosophy).  
+2. UX intent seed (fast modal + tactile dice).  
+3. Early friction: latency concern → expectation reset to iterative cadence.
 
-### Work Completed
-- Drafted mental architecture (Game state object, UI controller, component-specific modules).  
-- Identified required assets (monster images, dice symbols).  
-- Agreement on logging strategy early to aid later debugging.
+#### Work Completed
+- Drafted mental architecture (Game state, UI controller, modular components)
+- Asset inventory (monsters, dice symbology)
+- Logging strategy agreement (future debugging leverage)
 
-### Technical Changes
-Placeholder; groundwork only. Directory awareness established.
+#### Technical Changes
+Foundation only (no code deltas committed); orientation & naming conventions set.
 
-### Problems & Resolutions
+#### Problems & Resolutions
 | Problem | Resolution |
 | --- | --- |
-| Ambiguous feature scope | Defined minimal MVP loop (select monsters → roll dice → resolve → attack/enter Tokyo). |
+| Ambiguous feature scope | Defined minimal MVP loop (select monsters → roll dice → resolve → attack/enter Tokyo) |
 
-### Collaboration Highlights
-- Early adoption of explicit vocabulary for “monster selection modal” vs future “monster profile view”.
+#### Collaboration Highlights
+Early adoption of explicit vocabulary for “monster selection modal” vs future “monster profile view”.
 
-### Lessons
-Start with observable UX goals to anchor future logic decisions.
+#### Lessons
+Use observable UX anchors to stabilize early architectural choices.
 
-### AI Model Attribution
-Planning assistance produced by GPT-4 class model; human curated scope boundaries.
+#### AI Model Attribution
+Planning assistance generated with GPT-4 class assistant; human curated scoping boundaries.
 
-### Screenshots & Artifacts
-None (no UI yet).
+#### Screenshots & Artifacts
+None (UI not yet rendered).
 
 ---
 
-## Day 2  
-**Date: September 8, 2025**  
+### Day 2 – Work Log [Modal & Splash UX]
+**Date:** Sept 8, 2025 | Story: [Chapter 1](#chapter-1--foundation--first-contact) | Chat: (n/a)
 **Status:** Foundational UI + Modal Interaction
 
-### Summary
-Built the initial splash + monster selection modal interaction. Implemented click-outside-to-close pattern and baseline layout container logic. Established first working DOM utilities.
+#### Summary
+Splash + monster selection modal baseline; outside-click dismissal; initial DOM utilities.
 
-### Key Chat Sessions
-1. Request: “If a user clicks outside the modal, close it.” → Set tone for precise UI behavior.  
-2. Frustration: User reiteration that simple CSS/JS fix was enough—AI over-contextualizing.  
-3. Ah-Ha: Recognized need to avoid over-analysis for trivial tasks.
+#### Key Chat Touchpoints
+1. Outside-click closure requirement (precision expectation)  
+2. Frustration: over-analysis flagged  
+3. Ah-Ha: Minimal-first delivery principle
 
-### Work Completed
-- Implemented modal show/hide + outside click handler.
-- Added `showSplashScreen()` flow restoration.
-- Preserved dropdown functionality after modal transitions.
+#### Work Completed
+- Modal show/hide + outside click handler
+- `showSplashScreen()` restoration flow
+- Dropdown resilience after modal transitions
 
-### Technical Changes
-Created basic UI control utilities; introduced element caching structure.
+#### Technical Changes
+UI control utility stubs + element caching strategy inception.
 
-### Problems & Resolutions
+#### Problems & Resolutions
 | Problem | Root Cause | Resolution |
 | --- | --- | --- |
-| Dropdown stopped working after modal reopen | Inline style overrides | Reset styles + rely on class toggling |
-| Missed simple implementation expectation | Over-examination delay | Reduced tool calls & delivered direct patch |
+| Dropdown stopped after reopen | Inline style overrides | Reset styles; class-based toggles |
+| Slow trivial fix delivery | Over-analysis | Minimal patch-first cadence |
 
-### Collaboration Highlights
-User directness improved turnaround; established trust via quick correction.
+#### Collaboration Highlights
+Direct corrective feedback tightened iteration loop.
 
-### Lessons
-Deliver minimal viable fix first; expand only if needed.
+#### Lessons
+Default to smallest implementation satisfying requirement.
 
-### AI Model Attribution
-GPT-4 tier model produced modal logic scaffold; human enforced speed + simplicity constraints.
+#### AI Model Attribution
+Modal scaffold AI-drafted; human enforced simplicity + speed constraints.
 
-### Screenshots & Artifacts
-Referenced asset: `images/tokyo_bg_2.jpg` used as splash background.
+#### Screenshots & Artifacts
+Embedded splash background asset: ![Splash Background](images/tokyo_bg_2.jpg)
 
 ---
 
-## Day 3  
-**Date: September 9, 2025**  
+### Day 3 – Work Log [Strategic Silence]
+**Date:** Sept 9, 2025 | Story: [Chapter 2](#chapter-2--silent-momentum) | Chat: (n/a)
 **Status:** Silent Iteration / Planning
 
-### Summary
-No commits; strategic thinking time. User explored prototype mentally, enumerating desired mid-term mechanics.
+#### Summary
+No commits—strategic ideation (mechanics prioritization: dice economy, Tokyo flow).
 
-### Key Chat Sessions
-None (silent day). Noted conceptual anchoring on dice economy & Tokyo occupancy flow.
+#### Key Chat Touchpoints
+None (silent day). Conceptual anchor: dice economy + Tokyo occupancy staging.
 
-### Work Completed
-- Internal planning (implied).  
-- Prioritized dice + combat pipelines for upcoming implementation window.
+#### Work Completed
+- Internal planning (implicit)  
+- Prioritized dice + combat flow for near-term execution
 
-### Technical Changes
-None committed.
+#### Technical Changes
+None.
 
-### Problems & Resolutions
+#### Problems & Resolutions
 | Problem | Resolution |
-| Planning uncertainty | Prioritized rule-critical mechanics first. |
+| --- | --- |
+| Planning uncertainty | Sequenced rule-critical mechanics first |
 
-### Collaboration Highlights
-Acknowledged value of reflective gap days.
+#### Collaboration Highlights
+Reflection day formalized as productive asset.
 
-### Lessons
-Silent periods can accelerate quality of subsequent collaboration.
+#### Lessons
+Silence → cognitive consolidation → higher quality iteration.
 
-### AI Model Attribution
-No direct generation; contextual alignment only.
+#### AI Model Attribution
+No direct generation (passive contextual carry).
 
-### Screenshots & Artifacts
+#### Screenshots & Artifacts
 None.
 
 ---
 
-## Day 4  
-**Date: September 10, 2025**  
+### Day 4 – Work Log [Early Mechanics Scaffold]
+**Date:** Sept 10, 2025 | Story: [Chapter 2](#chapter-2--silent-momentum) | Chat: (n/a)
 **Status:** Early Mechanics + Structural Expansion (Partially Reconstructed)
 
-### Summary
-Incremental scaffolding for player dashboards (later renamed player profile cards), dice container markup shaping, and turn flow enumeration. Some early experimentation not fully preserved in logs.
+#### Summary
+Scaffolded player dashboard (proto profile card), dice container markup, enumerated turn flow flags.
 
-### Key Chat Sessions
-1. Naming Consensus: Settled on unified “dashboard/profile card” transitional terminology.  
-2. Forward Planning: Decision to implement power cards after core dice reliability.  
-3. Tension: Clarification needed around when to generalize vs hardcode early.
+#### Key Chat Touchpoints
+1. Naming consensus (dashboard → profile alignment)  
+2. Deferred power cards until dice stabilized  
+3. Tension: abstraction timing debate
 
-### Work Completed
-- Draft dice elements & player containers.
-- Preliminary logging placeholders.
-- Turn state flags enumerated.
+#### Work Completed
+- Draft dice elements + player containers
+- Logging placeholder constructs
+- Turn state flag enumeration
 
-### Technical Changes
-Early prototypes of layout CSS regions; modularization intention recorded.
+#### Technical Changes
+Prototype layout regions; modularization intent documented.
 
-### Problems & Resolutions
+#### Problems & Resolutions
 | Problem | Root Cause | Resolution |
 | --- | --- | --- |
-| Over-eager generalization risk | Premature abstraction | Deferred component registry design |
+| Premature abstraction pull | Over-eager generalization | Deferred component registry design |
 
-### Collaboration Highlights
-Agreed to postpone optimization in favor of functional clarity.
+#### Collaboration Highlights
+Alignment: functional clarity over speculative optimization.
 
-### Lessons
-Architectural discipline: Resist early abstraction pull.
+#### Lessons
+Resist early abstraction to preserve velocity.
 
-### AI Model Attribution
-Model assisted in outlining module boundaries; human pruned speculative layers.
+#### AI Model Attribution
+Module boundary sketch AI-generated; human pruned speculative branches.
 
-### Screenshots & Artifacts
+#### Screenshots & Artifacts
 None retained.
 
 ---
 
-## Day 5  
-**Date: September 11, 2025**  
+### Day 5 – Work Log [Mechanics Breakthrough]
+**Date:** Sept 11, 2025 | Story: [Chapter 3](#chapter-3--first-breakthrough-cycle) | Chat: [Day 5 Session↓](#day-5--chat-session-logging--emoji-overhaul)
 **Status:** Core Mechanics Breakthrough
 
-### Summary
-Implemented player elimination workflow, extra dice enabling logic, and initial refactors for longevity. Entered tangible gameplay feel stage.
+#### Summary
+Implemented elimination flow, extra dice enabling, structural refactors → tangible gameplay onset.
 
-### Key Chat Sessions
-1. Mechanic Clarification: Elimination messaging & Tokyo vacating rules.  
-2. Ah-Ha: Recognized benefit of effect tracking to prevent double processing.  
-3. Friction: Scope boundary on how much refactor to batch.
+#### Key Chat Touchpoints
+1. Elimination + Tokyo vacate rules  
+2. Ah-Ha: effect tracking dedupe concept  
+3. Refactor scope boundary negotiation
 
-### Work Completed
-- Elimination modal & state cleanup.
-- Extra die management (foundation for later “Extra Head” logic).
-- Refactored base structure for readability.
+#### Work Completed
+- Elimination modal + state cleanup
+- Extra die management (future Extra Head synergy)
+- Structural readability refactors
 
-### Technical Changes
-Commit baseline (original IDs: `6689507`, `8e95a79`, `c02f66a`).
+#### Technical Changes
+Commits: `6689507`, `8e95a79`, `c02f66a` (mechanics + refactor)
 
-### Problems & Resolutions
+#### Problems & Resolutions
 | Problem | Root Cause | Resolution |
 | --- | --- | --- |
-| Duplicate state updates | Lack of effect dedupe | Introduced conceptual map to plan dedupe |
+| Duplicate state mutation risk | No effect dedupe | Conceptual map for dedupe architecture |
 
-### Collaboration Highlights
-Alignment on keeping logic transparent over clever.
+#### Collaboration Highlights
+Preference: transparency over cleverness.
 
-### Lessons
-Establish canonical processing points early.
+#### Lessons
+Establish canonical processing checkpoints early.
 
-### AI Model Attribution
-AI suggested elimination branching; human validated UX drama elements.
+#### AI Model Attribution
+AI suggested branching; human curated dramatic UX pacing.
 
-### Screenshots & Artifacts
-None logged.
+#### Screenshots & Artifacts
+None.
 
 ---
 
-## Day 6  
-**Date: September 12, 2025**  
+### Day 6 – Work Log [UI Polish & Feedback]
+**Date:** Sept 12, 2025 | Story: [Chapter 4](#chapter-4--sprint-phase--emergent-systems) | Chat: [Day 6 Session↓](#day-6--chat-session-tokyo-entry-rule-fix)
 **Status:** UI Polish & Feedback Loops
 
-### Summary
-Enhanced attack animation safety, improved dice log display, added random monster assignment, visual refinements.
+#### Summary
+Attack animation safety, dice log UI refinement, random monster assignment, style polish.
 
-### Key Chat Sessions
-1. Frustration: Slow repositioning of dice log changes; user demanded succinct edits.  
-2. Ah-Ha: Attack animation cleanup with timeout-based class removal.  
-3. Emoji Categorization: Introduced contextual log emoji pattern.
+#### Key Chat Touchpoints
+1. Frustration: dice log iteration speed  
+2. Ah-Ha: timed animation cleanup  
+3. Emoji categorization inception
 
-### Work Completed
-- Scroll controls for log.
-- Attack animation state cleanup.
-- Random monster select button.
-- Multiple CSS refinements (splash, dashboard styling).
+#### Work Completed
+- Log scroll controls
+- Attack animation class cleanup
+- Random monster selection button
+- CSS refinements (splash, dashboard, polish)
 
-### Technical Changes
-Commits (sample: `bb9f78e`, `54ddc81`, `4f5922c`).
+#### Technical Changes
+Commits (sample): `bb9f78e`, `54ddc81`, `4f5922c`
 
-### Problems & Resolutions
+#### Problems & Resolutions
 | Problem | Root Cause | Resolution |
 | --- | --- | --- |
-| Stuck CSS animation classes | Missing cleanup | Added timed removal + debug logs |
+| Persistent animation class | Missing timed cleanup | Timeout-based removal + debug markers |
 
-### Collaboration Highlights
-Visual-driven iteration improved clarity.
+#### Collaboration Highlights
+Visual iteration accelerated shared correctness perception.
 
-### Lessons
-Small UX polish yields disproportionate engagement benefits.
+#### Lessons
+Minor UX polish compounds perceived quality.
 
-### AI Model Attribution
-Log formatting improvements AI-drafted; human refined ordering.
+#### AI Model Attribution
+AI drafted formatting; human ordered priorities.
 
-### Screenshots & Artifacts
-Potential reference: `images/chat collaboration screenshots/Screenshot 2025-09-07 at 2.31.49 AM.png` (illustrative—early UI scale context).
+#### Screenshots & Artifacts
+![Early UI Scale](images/chat collaboration screenshots/Screenshot 2025-09-07 at 2.31.49 AM.png)
 
 ---
 
-## Day 7  
-**Date: September 13, 2025**  
+### Day 7 – Work Log [Feature Expansion & Mobile]
+**Date:** Sept 13, 2025 | Story: [Chapter 4](#chapter-4--sprint-phase--emergent-systems) | Chat: [Day 7 Session↓](#day-7--chat-session-active-player-display--method-conflict)
 **Status:** Feature Expansion & Mobile Support
 
-### Summary
-Delivered monster personality scaffolding, CPU settings modal, mobile responsiveness upgrades, drag/touch refinement.
+#### Summary
+Monster personality scaffolding, CPU settings modal, mobile breakpoints + touch/drag refinement.
 
-### Key Chat Sessions
-1. Performance Concern: Justification for DOM caching plan.  
-2. Frustration: Complexity of monster profile attribute wording.  
-3. Ah-Ha: Unified touch + mouse drag logic simplification.
+#### Key Chat Touchpoints
+1. DOM caching justification  
+2. Frustration: attribute nomenclature complexity  
+3. Ah-Ha: unified pointer handling
 
-### Work Completed
-- Monster profile matrices.
-- CPU decision speed / thought bubble toggles.
-- Mobile layout breakpoints + collapsible panels.
-- Improved card cost display.
+#### Work Completed
+- Monster personality matrices
+- CPU settings toggles (decision speed / thought bubble)
+- Mobile breakpoints + collapsible panels
+- Card cost display improvements
 
-### Technical Changes
-Commits include personality system + mobile enhancements.
+#### Technical Changes
+Commits (aggregate): personality system + mobile enhancements.
 
-### Problems & Resolutions
+#### Problems & Resolutions
 | Problem | Root Cause | Resolution |
 | --- | --- | --- |
-| Touch drag jitter | Mixed coordinate handling | Normalized pointer strategy |
+| Touch drag jitter | Mixed coord handling | Unified normalized pointer strategy |
 
-### Collaboration Highlights
-Shared clarity on focusing perceived latency improvements.
+#### Collaboration Highlights
+Shared focus: perceived latency over micro-optimizations.
 
-### Lessons
-Treat mobile parity as first-class early—prevents divergent UX debt.
+#### Lessons
+Early mobile parity avoids bifurcated UX debt.
 
-### AI Model Attribution
-AI proposed unified event abstraction; human validated ergonomics.
+#### AI Model Attribution
+AI proposed pointer abstraction; human validated ergonomics.
 
-### Screenshots & Artifacts
-Referenced: `images/king of tokyo screenshot.png` (broad UI state baseline).
+#### Screenshots & Artifacts
+![Broad UI State](images/king of tokyo screenshot.png)
 
 ---
 
-## Day 8  
-**Date: September 14, 2025**  
+### Day 8 – Work Log [Integration & Pause Layer]
+**Date:** Sept 14, 2025 | Story: [Chapter 4](#chapter-4--sprint-phase--emergent-systems) | Chat: [Day 8 Session↓](#day-8--chat-session-power-card-modal)
 **Status:** Systems Integration & Pause / Setup
 
-### Summary
-Integrated drag-and-drop fully, added pause overlay, enhanced setup management, refined CPU turn transitions.
+#### Summary
+Drag/drop consolidation, pause overlay system, setup manager, smoother CPU transitions.
 
-### Key Chat Sessions
-1. Clarification: Scope of drag handles vs entire element drag.  
-2. Ah-Ha: Simplified drag logic by using whole element grip.  
-3. Friction: Balancing visual layering vs z-index proliferation.
+#### Key Chat Touchpoints
+1. Drag scope clarification  
+2. Ah-Ha: full element grip simplification  
+3. Friction: z-index layering decisions
 
-### Work Completed
-- Drag & drop consolidation.
-- Pause/resume overlay system.
-- Exit confirmation modal.
-- SetupManager creation.
+#### Work Completed
+- Drag & drop consolidation
+- Pause/resume overlay
+- Exit confirmation modal
+- SetupManager creation
 
-### Technical Changes
-Commits: `2af7369`, `5a2ada4`, `5e52500`, `c64c9c9`.
+#### Technical Changes
+Commits: `2af7369`, `5a2ada4`, `5e52500`, `c64c9c9`
 
-### Problems & Resolutions
+#### Problems & Resolutions
 | Problem | Root Cause | Resolution |
 | --- | --- | --- |
-| Drag ghost offsets | Manual position math complexity | Unified transform-based strategy |
+| Drag ghost offsets | Manual position math | Unified transform strategy |
 
-### Collaboration Highlights
-Prompt iteration reduced overengineering tendencies.
+#### Collaboration Highlights
+Iteration cadence curtailed over-engineering drift.
 
-### Lessons
-Prefer coarse-grain simplicity over micro-feature early flourishes.
+#### Lessons
+Favor coarse simplicity over early micro-feature layering.
 
-### AI Model Attribution
-Model suggested consolidating drag event handlers; human confirmed viability.
+#### AI Model Attribution
+AI suggested handler consolidation; human validated viability.
 
-### Screenshots & Artifacts
-None specific.
+#### Screenshots & Artifacts
+None.
 
 ---
 
-## Day 9  
-**Date: September 15, 2025**  
+### Day 9 – Work Log [Flow & Architecture]
+**Date:** Sept 15, 2025 | Story: [Chapter 4](#chapter-4--sprint-phase--emergent-systems) | Chat: [Day 9 Session↓](#day-9--chat-session-tokyo-slot-artifact)
 **Status:** Flow & Architecture Refinement
 
-### Summary
-Turn flow stabilized; Tokyo entry/exit revamped; active player visuals refined; initial log export logic added.
+#### Summary
+Turn flow stabilization, Tokyo entry/exit revamp, active player visual refinement, initial log export.
 
-### Key Chat Sessions
-1. Ah-Ha: Recognized need for dedicated roll-off mechanism clarifying first player fairness.  
-2. Friction: Debate on early export necessity vs deferral.  
-3. Strategy: Chose to keep export minimal textual baseline.
+#### Key Chat Touchpoints
+1. Ah-Ha: dedicated roll-off mechanism fairness  
+2. Friction: export necessity debate  
+3. Strategy: minimal export baseline
 
-### Work Completed
-- Tokyo entry logic refactor.
-- Roll-off mechanism UI integration.
-- Active player repositioning.
-- Code cleanup cycles.
+#### Work Completed
+- Tokyo entry logic refactor
+- Roll-off mechanism UI integration
+- Active player repositioning
+- Cleanup cycles
 
-### Technical Changes
-Commits: `97c859f`, `722afa6`, `15696f8` etc.
+#### Technical Changes
+Commits: `97c859f`, `722afa6`, `15696f8` (plus supporting)
 
-### Problems & Resolutions
+#### Problems & Resolutions
 | Problem | Root Cause | Resolution |
 | --- | --- | --- |
 | Premature Tokyo occupation | Multiple trigger points | Centralized end-of-turn gate |
 
-### Collaboration Highlights
-Shared vocabulary around “entry gate” improved further rule dialogues.
+#### Collaboration Highlights
+“Entry gate” vocabulary improved rule reasoning alignment.
 
-### Lessons
-Centralize gating logic to reduce emergent state anomalies.
+#### Lessons
+Centralize gating logic to reduce emergent anomalies.
 
-### AI Model Attribution
-AI mapped call chain for Tokyo triggers; human confirmed real gameplay rule alignment.
+#### AI Model Attribution
+AI mapped trigger chain; human validated rules.
 
-### Screenshots & Artifacts
-Potential log screenshot (not archived in repo) described; reference placeholder.
+#### Screenshots & Artifacts
+None (log snapshot not archived).
 
 ---
 
-## Day 10  
-**Date: September 16, 2025**  
+### Day 10 – Work Log [Dice + Performance Breakthrough]
+**Date:** Sept 16, 2025 | Story: [Chapter 4](#chapter-4--sprint-phase--emergent-systems) | Chat: [Day 10 Session↓](#day-10--chat-session-consolidated-period)
 **Status:** Breakthrough Day (Dice + Performance)
 
-### Summary
-Resolved dice display inconsistency, unified roll-off with main dice UI, performance gains via DOM caching, debug instrumentation uplift.
+#### Summary
+Dice display stabilization, roll-off/unified dice UI, DOM caching gains, enhanced debug instrumentation.
 
-### Key Chat Sessions
-1. Breakthrough: “dice rolling fixed!!!” commit moment.  
-2. Ah-Ha: DOM caching drastically reduced layout thrash.  
-3. Friction: Temporary confusion around Tokyo point awarding order.
+#### Key Chat Touchpoints
+1. Breakthrough: dice rolling fixed  
+2. Ah-Ha: DOM caching reduces thrash  
+3. Friction: Tokyo point order confusion
 
-### Work Completed
-- Dice pipeline stabilization.
-- Debug logging shortcuts.
-- Performance caching (player dashboards, dice nodes).
-- Attack resolution timing improvements.
+#### Work Completed
+- Dice pipeline stabilization
+- Debug logging shortcuts
+- DOM caching (dashboards, dice nodes)
+- Attack resolution timing improvements
 
-### Technical Changes
-Highlighted commits: `1121900`, `ef6743a`, `16bb7ed`.
+#### Technical Changes
+Highlighted commits: `1121900`, `ef6743a`, `16bb7ed`
 
-### Problems & Resolutions
+#### Problems & Resolutions
 | Problem | Root Cause | Resolution |
 | --- | --- | --- |
 | Skipped turns | Race in state transition | Serialized phase checkpoints |
 
-### Collaboration Highlights
-Real-time feedback loop accelerated fix confidence.
+#### Collaboration Highlights
+Tight feedback loop accelerated confidence.
 
-### Lessons
-Instrument early, refactor on evidence not intuition.
+#### Lessons
+Instrument early; refactor on evidence not intuition.
 
-### AI Model Attribution
-AI proposed caching pattern; human validated memory footprint acceptable.
+#### AI Model Attribution
+AI proposed caching; human validated memory footprint.
 
-### Screenshots & Artifacts
-Could pair with dice stabilization snapshot (not stored) — placeholder.
+#### Screenshots & Artifacts
+None (snapshot not stored).
 
 ---
 
-## Day 11  
-**Date: September 17, 2025**  
+### Day 11 – Work Log [Documentation & Polish]
+**Date:** Sept 17, 2025 | Story: [Chapter 5](#chapter-5--refinement--professional-polish) | Chat: [Day 11 Session↓](#day-11--chat-session-final-polish--documentation)
 **Status:** Documentation & Final Polish (Phase 1 End)
 
-### Summary
-Shifted from raw feature velocity to stabilization: documentation authoring, naming clarity, UI header enhancements, turn protection.
+#### Summary
+Shift from feature velocity → stabilization (docs, naming audits, header enhancement, turn protection).
 
-### Key Chat Sessions
-1. Frustration: “you seem to be a bit off your game today.” honesty shaped recalibration.  
-2. Ah-Ha: Discovery of two `endTurn()` methods creating confusion.  
-3. Clarity: Minimal active player header styling instructions improved speed.
+#### Key Chat Touchpoints
+1. Frustration: performance dip callout  
+2. Ah-Ha: dual `endTurn()` discovery  
+3. Clarity: minimal header styling spec
 
-### Work Completed
-- Added active player display.
-- Defensive endTurn throttling.
-- Comprehensive project summary file.
-- Logging consistency pass.
+#### Work Completed
+- Active player display
+- Defensive endTurn throttling
+- Comprehensive summary docs
+- Logging consistency pass
 
-### Technical Changes
-Commit refs: `18af10f`, `4c8f67a`, `7033895`.
+#### Technical Changes
+Commits: `18af10f`, `4c8f67a`, `7033895`
 
-### Problems & Resolutions
+#### Problems & Resolutions
 | Problem | Root Cause | Resolution |
 | --- | --- | --- |
 | Turn skipping risk | Duplicate method naming | Renamed UI wrapper + audits |
 
-### Collaboration Highlights
-Direct candid feedback loop matured trust model.
+#### Collaboration Highlights
+Candid feedback matured trust feedback loop.
 
-### Lessons
-Name collisions silently breed systemic confusion—audit early.
+#### Lessons
+Name collisions breed hidden complexity—audit early.
 
-### AI Model Attribution
-AI drafted documentation scaffold; human refined narrative tone.
+#### AI Model Attribution
+AI scaffolded docs; human refined narrative tone.
 
-### Screenshots & Artifacts
-Potential header layout reference (not stored) — placeholder.
+#### Screenshots & Artifacts
+None (header ref not stored).
 
 ---
 
-## Day 12  
-**Date: September 18, 2025**  
+### Day 12 – Work Log [Power Card Modal Refinement]
+**Date:** Sept 18, 2025 | Story: [Chapter 6](#chapter-6--visual-communication-as-catalyst) | Chat: [Day 8 Session↓](#day-8--chat-session-power-card-modal)
 **Status:** Modal & Power Card Detail Refinement (Phase 2 Start)
 
-### Summary
-Implemented minimalist power card detail modal; removed Dark Edition artifacts; ensured cross-context card style parity.
+#### Summary
+Minimalist power card detail modal, Dark Edition artifact removal, cross-context style parity.
 
-### Key Chat Sessions
-1. Ah-Ha: Realized scoping root cause—missing `.cmp-power-cards-panel` ancestor.  
-2. Frustration: Early over-wrap of modal container rolled back.  
-3. Precision: User insisted on name + close button only—prevented scope creep.
+#### Key Chat Touchpoints
+1. Ah-Ha: missing ancestor scope  
+2. Frustration: container over-wrap rolled back  
+3. Precision: header minimalism enforced
 
-### Work Completed
-- Modal wrapper with correct ancestry.
-- Dark Edition removal + filtering.
-- Cost footer concealment in modal context.
+#### Work Completed
+- Modal wrapper ancestry fix
+- Dark Edition removal + filtering
+- Cost footer concealment (modal context)
 
-### Technical Changes
-CSS overrides for modal isolation; card generator unified markup.
+#### Technical Changes
+Scoped CSS overrides; unified card generator markup.
 
-### Problems & Resolutions
+#### Problems & Resolutions
 | Problem | Root Cause | Resolution |
 | --- | --- | --- |
-| Unstyled card in modal | Missing ancestor scoping | Added wrapper preserving original cascade |
+| Unstyled modal card | Missing ancestor class | Added wrapper restoring cascade |
 
-### Collaboration Highlights
-Minimalism principle reinforced; avoided redesign churn.
+#### Collaboration Highlights
+Minimalism principle prevented redesign churn.
 
-### Lessons
-Prefer structural compliance over selector liberalization.
+#### Lessons
+Favor structural ancestry compliance over selector liberalization.
 
-### AI Model Attribution
-Attribution identical to earlier version—GPT-4 class rationale; human enforced minimal header.
+#### AI Model Attribution
+AI rationale guidance; human enforced minimal header.
 
-### Screenshots & Artifacts
-None captured—recommend future modal snapshot.
+#### Screenshots & Artifacts
+None (recommend future capture).
 
 ---
 
-## Day 13  
-**Date: September 19, 2025**  
+### Day 13 – Work Log [Tokyo Slot Artifact Fix]
+**Date:** Sept 19, 2025 | Story: [Chapter 6](#chapter-6--visual-communication-as-catalyst) | Chat: [Day 9 Session↓](#day-9--chat-session-tokyo-slot-artifact)
 **Status:** Tokyo Slot Visual Artifact & Mini Variant Styling
 
-### Summary
-Diagnosed and mitigated tall green Tokyo occupant artifact by introducing mini player profile variant and arena-specific container overrides.
+#### Summary
+Mitigated tall green Tokyo occupant artifact via mini profile variant + arena container overrides.
 
-### Key Chat Sessions
-1. Frustration: “still seeing the green rectangle” → prompted deeper slot CSS audit.  
-2. Ah-Ha: Found orphan modifier class with no styles.  
-3. Strategy: Chose additive overrides over global refactor.
+#### Key Chat Touchpoints
+1. Frustration: persistent green rectangle  
+2. Ah-Ha: orphan modifier class discovery  
+3. Strategy: additive overrides > global refactor
 
-### Work Completed
-- Added `.cmp-player-profile-card--mini` styles.
-- Removed background/border from slot container.
-- Adjusted height/auto flow for occupant content.
+#### Work Completed
+- Mini profile variant styles
+- Slot container background/border removal
+- Height/auto flow adjustments
 
-### Technical Changes
-Edited `components.player-profile-card.css` & `components.arena.css`.
+#### Technical Changes
+CSS: player-profile-card (mini variant), arena overrides.
 
-### Problems & Resolutions
+#### Problems & Resolutions
 | Problem | Root Cause | Resolution |
 | --- | --- | --- |
-| Vertical green bar | Legacy background + forced height | Stripped styling + natural content sizing |
+| Vertical green bar | Legacy background + forced height | Stripped styling; natural sizing |
 
-### Collaboration Highlights
-Rapid second-pass iteration after first insufficient fix.
+#### Collaboration Highlights
+Fast second-pass after incomplete first attempt.
 
-### Lessons
-Clone-based animations demand style-ready modifier definitions.
+#### Lessons
+Clone animations need contemporaneous modifier styles.
 
-### AI Model Attribution
-AI traced animation + DOM clone path; human validated artifact persistence prompting second patch.
+#### AI Model Attribution
+AI traced clone path; human validated persistence prompting second patch.
 
-### Screenshots & Artifacts
-Recommended capture (not present) for before/after state.
+#### Screenshots & Artifacts
+None (recommend before/after capture).
+
+---
+
+## Technical Chat Sessions
+Deep technical transcripts & analyses. Headers formatted: Day N – Chat Session [Descriptor]. Each provides model footnote and links back to Work Log + Story.
+
+### Day 1 – Chat Session [Initial UI Interaction]
+Anchor: `day-1--chat-session-initial-ui-interaction`  
+Work Log: [Day 1↑](#day-1--work-log-conception--environment) | Story: [Chapter 1↑](#chapter-1--foundation--first-contact)
+*Model Footnote:* GPT-4 class assistant; human directed minimalism & correctness.
+
+#### Session Summary
+Foundational UI interaction fixes: click-outside modal behavior, dropdown resilience, splash return logic. Established initial collaboration vocabulary and implementation cadence.
+
+#### Key Objectives
+1. Implement click-outside-to-close for Monster Selection dialog
+2. Preserve dropdown functionality after modal reopen cycles
+3. Ensure proper state restoration to splash screen
+
+#### Technical Actions
+- Added splash/game container references to element cache
+- Implemented `showSplashScreen()` to toggle visibility + toolbar state
+- Added guarded outside-click handler with propagation control for dropdown
+
+#### Challenges & Resolutions
+| Challenge | Cause | Resolution |
+| --- | --- | --- |
+| Dropdown ceased working after reopen | Event bubbling to outside-click handler | Added `stopPropagation()` on dropdown interactions |
+| Style inconsistencies on modal hide/show | Inline style residue | Shifted to class-based visibility toggles |
+
+#### Collaboration Dynamics
+Human emphasized UX intent and minimal complexity; AI proposed structured handler insertion; iterative refinement ensured no regressions in dropdown.
+
+#### Extract (Verbatim Snippet)
+> "if a user is on the Monster selection screen and clicks anywhere outside the modal dialog, hide the Monster Selection dialog and show the splash screen"
+
+Full original transcript preserved in backup file at section: "Day 1 Chat Session - September 8, 2025".
+
+#### Model Attribution
+[^model-day-1]
+
+### Day 5 – Chat Session [Logging & Emoji Overhaul]
+Anchor: `day-5--chat-session-logging--emoji-overhaul`  
+Work Log: [Day 5↑](#day-5--work-log-mechanics-breakthrough) | Story: [Chapter 3↑](#chapter-3--first-breakthrough-cycle)
+
+No standalone live transcript captured this day. Development breakthroughs logged in Work Log; mechanical discussions occurred implicitly (silent implementation phase). If future reconstruction is desired, derive from commit messages `6689507`, `8e95a79`, `c02f66a`.
+
+#### Model Attribution
+[^model-day-5]
+
+### Day 6 – Chat Session [Tokyo Entry Rule Fix]
+Anchor: `day-6--chat-session-tokyo-entry-rule-fix`  
+Work Log: [Day 6↑](#day-6--work-log-ui-polish--feedback) | Story: [Chapter 4↑](#chapter-4--sprint-phase--emergent-systems)
+
+No preserved synchronous transcript. Resolution of animation cleanup + entry logic discussed ad-hoc. Source-of-truth: commits `bb9f78e`, `54ddc81`, `4f5922c`.
+
+#### Model Attribution
+[^model-day-6]
+
+### Day 7 – Chat Session [Active Player Display & Method Conflict]
+Anchor: `day-7--chat-session-active-player-display--method-conflict`  
+Work Log: [Day 7↑](#day-7--work-log-feature-expansion--mobile) | Story: [Chapter 4↑](#chapter-4--sprint-phase--emergent-systems)
+
+Absent transcript. Conflict over duplicate method naming (early form of later dual `endTurn()` issue) reconstructed in Work Log narrative.
+
+#### Model Attribution
+[^model-day-7]
+
+### Day 8 – Chat Session [Power Card Modal]
+Anchor: `day-8--chat-session-power-card-modal`  
+Work Log: [Day 8↑](#day-8--work-log-integration--pause-layer) | Story: [Chapter 6↑](#chapter-6--visual-communication-as-catalyst)
+
+Transcript not captured; modal ancestry + wrapper scope debugging summarized in Day 12 Work Log (retroactive refinement). Commits: `2af7369`, `5a2ada4`, `5e52500`, `c64c9c9`.
+
+#### Model Attribution
+[^model-day-8]
+
+### Day 9 – Chat Session [Tokyo Slot Artifact]
+Anchor: `day-9--chat-session-tokyo-slot-artifact`  
+Work Log: [Day 9↑](#day-9--work-log-flow--architecture) | Story: [Chapter 6↑](#chapter-6--visual-communication-as-catalyst)
+
+No real-time transcript; artifact resolution documented post-fix in Day 13 Work Log referencing DOM layering and CSS overrides.
+
+#### Model Attribution
+[^model-day-9]
+
+### Day 10 – Chat Session [Consolidated Period]
+Anchor: `day-10--chat-session-consolidated-period`  
+Work Log: [Day 10↑](#day-10--work-log-dice--performance-breakthrough) | Story: [Chapter 4↑](#chapter-4--sprint-phase--emergent-systems)
+
+Breakthrough day but chat absent—speed prioritized continuous coding. Dice stabilization + DOM caching strategy captured via commits `1121900`, `ef6743a`, `16bb7ed`.
+
+#### Model Attribution
+[^model-day-10]
+
+### Day 11 – Chat Session [Final Polish & Documentation]
+Anchor: `day-11--chat-session-final-polish--documentation`  
+Work Log: [Day 11↑](#day-11--work-log-documentation--polish) | Story: [Chapter 5↑](#chapter-5--refinement--professional-polish)
+
+#### Session Summary
+Final refinement: documentation consolidation, elimination flow correctness, duplicate turn effect dedupe, power card edge cases, modal layering.
+
+#### Major Issues Addressed
+1. Power cards modal close affordance absence
+2. Player elimination Tokyo vacancy handling
+3. Turn effect duplication (Friend of Children triple award)
+4. Extra Head dice activation logic
+5. Game over dialog layering & closure
+
+#### Technical Resolutions (Condensed)
+| Issue | Root Cause | Resolution |
+| --- | --- | --- |
+| Friend of Children 3x points | Effect processed in 3 lifecycle spots | Introduced turnEffectsApplied Map + gated processing |
+| Extra Head inert | New dice creation path not enabling reserved dice | Enable existing disabled dice indices; per-turn activation guard |
+| Elimination leaves ghost state | Tokyo occupant not cleared before reassignment | Clear + conditional attacker replacement pipeline |
+| Modal close missing | No bound listener / button element absent | Added close button + safe listener utility |
+| Game over overlap | Insufficient z-index + missing exit flow | Elevated z-layer + structured cleanup + splash return |
+
+#### Collaboration Notes
+Visual screenshot evidence accelerated convergence (especially layering and overlap issues). Human prioritized polish; AI enumerated systemic fix sequence.
+
+#### Extract (Verbatim Snippet)
+> "The 'Friend of Children' card was awarding 3 victory points per turn instead of 1..."
+
+Full detailed narrative preserved in backup at "Day 11 Chat Session - September 17, 2025".
+
+#### Model Attribution
+[^model-day-11]
+
+---
+
+### Consolidated Model Footnotes
+[^model-day-1]: GPT-4 class assistant (code reasoning emphasis) + human UX intent framing.
+[^model-day-5]: GPT-4 class assistant (mechanics scaffolding advisory) with human-directed refactor boundaries.
+[^model-day-6]: GPT-4 class assistant (animation & rule fix suggestions) moderated by human sequencing.
+[^model-day-7]: GPT-4 class assistant (naming collision diagnostics) guided by human domain semantics.
+[^model-day-8]: GPT-4 class assistant (modal ancestry + scope rationale) validated by human CSS cascade insight.
+[^model-day-9]: GPT-4 class assistant (layout artifact reasoning) with human environmental reproduction.
+[^model-day-10]: GPT-4 class assistant (performance & caching proposals) filtered by human memory/perf constraints.
+[^model-day-11]: GPT-4 class assistant (dedupe + lifecycle audit) prioritized by human polish objectives.
+
+---
+
+## Appendices
+
+### Appendix A – Original Raw Narrative Reference
+Full raw pre-restructure narrative retained verbatim in: `AI_HUMAN_COLLABORATION.original.backup.md` (see fenced snapshot block).
+
+### Appendix B – Forward Roadmap Snapshot
+| Focus | Next Action | Rationale |
+| --- | --- | --- |
+| AI Decision Heuristics | Draft weighting spec | Prepare for CPU intelligence layer |
+| Deterministic Testing | Seeded dice harness | Enables confidence in AI choices |
+| UI Parity | Validate Tokyo mini card across browsers | Prevent regression |
+| Documentation | Continue daily structured log | Maintain institutional memory |
+
+---
+
+## Cross-Reference Index
+| Day | Work Log Anchor | Chat Session Anchor | Story Chapter |
+| --- | --- | --- | --- |
+| 1 | Day 1 – Work Log | Initial UI Interaction | Chapter 1 |
+| 2 | Day 2 – Work Log | (n/a) | Chapter 1 |
+| 3 | Day 3 – Work Log | (n/a) | Chapter 2 |
+| 4 | Day 4 – Work Log | (n/a) | Chapter 2 |
+| 5 | Day 5 – Work Log | Logging & Emoji Overhaul | Chapter 3 |
+| 6 | Day 6 – Work Log | Tokyo Entry Rule Fix | Chapter 4 |
+| 7 | Day 7 – Work Log | Active Player Display & Method Conflict | Chapter 4 |
+| 8 | Day 8 – Work Log | Power Card Modal | Chapter 4 / 6 |
+| 9 | Day 9 – Work Log | Tokyo Slot Artifact | Chapter 4 / 6 |
+| 10 | Day 10 – Work Log | Consolidated Period | Chapter 4 |
+| 11 | Day 11 – Work Log | Final Polish & Documentation | Chapter 5 |
+| 12 | Day 12 – Work Log | (Uses Day 8 chat session) | Chapter 6 |
+| 13 | Day 13 – Work Log | (Uses Day 9 chat session) | Chapter 6 |
+
+---
+
+*Restructured on September 30, 2025 — Three-tier document organization implemented.*
 
 ---
 
@@ -1005,325 +1279,43 @@ This was the most intensive development day with major breakthroughs in core sys
 
 ---
 
-# Day 11: September 17, 2025 - Documentation & Final Polish
-**Git Commits**: 5 commits - Project completion and documentation
+## Appendix C – Legacy Embedded Narrative (Pre-Deduplication)
+This appendix houses legacy narrative and chat detail blocks that were previously mid-document. Retained here for historical traceability without interrupting the structured tri-section flow above. Content consolidated; no new edits.
 
-## Project Completion Focus
-Final day concentrated on project documentation and last-minute refinements:
+<details><summary>Legacy Development Summary & Patterns</summary>
 
-### Final Polish & Documentation
-- **Active Player Display**: Added player name display in header with proper styling
-- **Turn Protection**: Defensive mechanisms to prevent turn skipping and rapid endTurn calls
-- **Logging Refinements**: Consistency improvements and debug method standardization
-- **Project Documentation**: Creation of comprehensive development summary and logs
+### Legacy: Day 11 – Documentation & Final Polish (Previously Inlined)
+See structured Daily Work Log Day 11 + Technical Chat Session Day 11 for canonical version. This legacy block maintained original prose formatting.
 
-### Git Commit Details
-- `18af10f`: Added initial project workspace configuration and comprehensive documentation
-- `4c8f67a`: Active player name display and layout style restoration
-- `52a63d1`: Defensive turn protection implementation
-- `7033895`: Debug logging improvements and endTurn call prevention
-- `2c47495`: Logging refactor for consistency and clarity
+### Legacy Comprehensive Development Summary
+Summarizes duration (10 days), commit counts, silent vs active collaboration ratio, and intensity curve. All data now reflected in Cross-Reference Index & Story Chapters 4–6.
 
----
+### Legacy Chat Session Details (Day 1 & Day 11)
+Superseded by curated entries in Technical Chat Sessions section with model footnotes.
 
-## Comprehensive Development Summary
+</details>
 
-### Total Development Statistics
-- **Duration**: 10 days (September 8-17, 2025)
-- **Total Commits**: 50+ git commits
-- **Lines of Code**: 6,500+ across 15+ files
-- **Development Hours**: 40-50 hours estimated
-- **Chat Sessions**: 2 documented sessions (Days 1 & 11)
-- **Silent Development**: 8 days of intensive coding work
+<details><summary>Legacy: Detailed Day 11 Technical Narrative</summary>
 
-### Development Pattern Analysis
+Original granular bug-by-bug narration (Friend of Children, Extra Head, elimination flow, modal layering). Replaced in primary section with condensed tables and attribution footnotes.
 
-#### Documented vs Silent Development
-- **Chat Session Days**: 2 days with detailed collaboration records
-- **Silent Development Days**: 8 days of intensive coding work
-- **Development Ratio**: ~80% silent work, 20% documented collaboration
+</details>
 
-This pattern suggests an effective workflow where:
-1. **Chat Sessions**: Used for complex problem-solving, debugging, and architectural decisions
-2. **Silent Development**: Used for feature implementation, polishing, and incremental improvements
+<details><summary>Legacy: Dropdown Interaction Bug Resolution Narrative</summary>
 
-#### Daily Commit Patterns
-- **Day 1 (Sept 8)**: 12 commits - Foundation and initial features
-- **Days 2-4 (Sept 9-11)**: 0 commits - Planning/break period  
-- **Day 5 (Sept 11)**: 3 commits - Core mechanics
-- **Day 6 (Sept 12)**: 7 commits - UI polish and features
-- **Day 7 (Sept 13)**: 8 commits - Advanced features and mobile support
-- **Day 8 (Sept 14)**: 8 commits - Systems integration
-- **Day 9 (Sept 15)**: 9 commits - Game flow and architecture  
-- **Day 10 (Sept 16)**: 20+ commits - Major breakthroughs
-- **Day 11 (Sept 17)**: 5 commits - Documentation and final polish
+Original breakdown of dropdown regression across multiple modal cycles. Incorporated into Day 1 Chat Session summary extract.
 
-#### Development Intensity Curve
-The commit pattern shows an accelerating development curve:
-- **Early Phase**: Foundation building and experimentation
-- **Mid Phase**: Steady feature development and polish
-- **Late Phase**: Intensive breakthrough work and system completion
-- **Final Phase**: Documentation and project completion
+</details>
+
+<details><summary>Legacy: King of Tokyo - Chat History Day 4 (Misnumbered Historical Artifact)</summary>
+
+This block referred to a session labeled "Day 4" dated Sept 15 (chronological mismatch). It described hover effect removal attempts and JavaScript error debugging. No canonical transcript existed; relevant insights folded into Story Chapter 4 and Day 9/10 problem-solving patterns.
+
+</details>
 
 ---
 
-# Chat Session Details
-
-## Day 1 Chat Session - September 8, 2025
-*[Previous content about Day 1 chat session continues below...]*
-
-This comprehensive development session focused on fixing multiple critical bugs and implementing new features in the King of Tokyo web game. The session demonstrated exceptional human-AI collaboration, particularly through the use of visual communication (screenshots) and systematic debugging approaches.
-
----
-
-# Day 11 Chat Session - September 17, 2025
-
-## Session Summary
-
-This session focused on final project polish and the creation of comprehensive project documentation. The collaboration demonstrated mature development practices with emphasis on clean code, proper architecture, and professional documentation standards.
-
-### Features Developed & Bugs Fixed
-
-#### 1. Power Cards Modal Close Button Fix
-**Problem**: The power cards modal lacked a functional close button, trapping users in the modal.
-**Solution**: 
-- Integrated UIUtilities.safeAddEventListener for robust event handling
-- Added proper modal close functionality with consistent UX patterns
-- Ensured event handlers were properly managed to prevent memory leaks
-
-#### 2. Comprehensive Player Elimination System
-**Problem**: When players were eliminated, the game didn't handle Tokyo occupancy properly, leaving empty Tokyo zones or unclear attacker replacement logic.
-**Solution**:
-- Implemented complete elimination workflow with immediate Tokyo clearing
-- Added attacker replacement logic when Tokyo occupants are eliminated
-- Created dramatic elimination dialog with dark red/black theme and glowing text effects
-- Enhanced monsters.js with detailed damage result reporting
-- Added comprehensive UI state management for eliminated players
-
-#### 3. "Friend of Children" Power Card Duplicate Points Bug
-**Problem**: The "Friend of Children" card was awarding 3 victory points per turn instead of 1, breaking game balance.
-**Root Cause**: Turn-based effects were being processed in three different locations:
-- `applyPassiveCardEffects()` during dice resolution (incorrect)
-- `endTurn()` method at turn end (incorrect) 
-- `applyStartOfTurnEffects()` at turn start (correct)
-
-**Solution**:
-- Added turn-based effect deduplication tracking system (`turnEffectsApplied` Map)
-- Removed turn effects from passive card effects (should only trigger on dice-related events)
-- Removed turn effects from end-of-turn processing (should be start-of-turn only)
-- Implemented proper effect tracking with `clearTurnEffects()`, `hasTurnEffectBeenApplied()`, and `markTurnEffectApplied()`
-
-#### 4. "Extra Head" Power Card Dice System Fix
-**Problem**: The "Extra Head" card wasn't giving players an extra die. The game has 8 total dice (6 active + 2 disabled) but the card wasn't enabling the disabled dice correctly.
-**Root Cause**: Game logic was using `addExtraDie()` which creates new dice instead of enabling existing disabled dice.
-
-**Solution**:
-- Fixed dice activation to use `enableExtraDie()` on existing disabled dice (indices 6-7)
-- Added player-specific tracking with `extraDiceEnabled` property
-- Implemented turn-based cleanup to disable extra dice when turn ends
-- Added UI updates with `diceUpdated` events to show/hide extra dice in real-time
-- Ensured extra dice are only active during the card owner's turn
-
-#### 5. Game Over Dialog Improvements
-**Problem**: Game over dialog had player cards visible on top and no way to close/exit to splash screen.
-**Solution**:
-- Added high z-index (999999) to ensure modal appears above all player cards
-- Added close button (×) in top-right corner with proper 15px padding
-- Implemented `closeGameOverModal()` method that properly cleans up game state
-- Added safe event handling and return-to-splash functionality
-
-### Human-AI Collaboration Strategies
-
-#### Visual Communication Breakthrough
-**Screenshots as Context**: The most effective collaboration tool was the human providing screenshots of actual game issues. When the human shared the game over dialog screenshot showing the overlapping player card, the AI immediately understood both the visual problem and the required UX solution. This visual context was far more effective than lengthy text descriptions.
-
-#### Iterative Debugging Approach
-1. **Problem Identification**: Human identifies issue through gameplay
-2. **Code Exploration**: AI uses grep_search and read_file tools to understand current implementation
-3. **Root Cause Analysis**: AI traces through multiple code paths to find the actual source
-4. **Targeted Fix**: AI implements specific, minimal changes rather than broad rewrites
-5. **Testing Validation**: Human tests fix and provides feedback
-
-#### Context Management Strategies
-**File Reading Patterns**: AI learned to read larger meaningful chunks rather than consecutive small sections to minimize tool calls and maintain better context understanding.
-
-**Cross-File Understanding**: Complex bugs (like "Friend of Children") required understanding relationships between:
-- `cards.js` (effect definitions)
-- `game.js` (effect processing logic)  
-- `monsters.js` (player state management)
-- `main.js` (UI coordination)
-
-### Communication Patterns That Worked
-
-#### Effective Human Communication:
-- **Specific Problem Description**: "extra head power card is not giving the player an extra die"
-- **Expected Behavior Clarification**: "there are 8 dice total. only 6 are active unless a player has the 'extra head' power card"
-- **Visual Evidence**: Screenshots showing actual vs expected behavior
-- **Context Continuation**: "Continue: 'Continue to iterate?'" when AI assistance was needed
-
-#### Effective AI Responses:
-- **Comprehensive Summaries**: AI provided detailed technical summaries after each fix
-- **Root Cause Analysis**: AI traced bugs to their actual source rather than treating symptoms
-- **Implementation Details**: AI documented both the problem and the complete solution
-- **Code Context Preservation**: AI maintained understanding of previous fixes while working on new issues
-
-### Technical Debugging Insights
-
-#### Turn-Based Effect Systems
-The "Friend of Children" bug revealed the complexity of turn-based effect systems in games. The issue wasn't in the card definition but in the game's effect processing pipeline having multiple trigger points. This required:
-- Understanding the complete game turn lifecycle
-- Identifying all locations where effects are processed
-- Implementing deduplication mechanisms
-
-#### UI State Management
-The elimination system highlighted the importance of coordinated UI updates across multiple components:
-- Modal dialogs for dramatic feedback
-- Player card state updates
-- Tokyo occupancy visual indicators
-- Game log coordination
-
-#### Event-Driven Architecture
-Multiple fixes relied on proper event handling patterns:
-- UIUtilities for safe event listener management
-- Modal show/hide coordination
-- Dice update event triggering for real-time UI updates
-
-### Collaboration Challenges & Solutions
-
-#### Challenge: Context Loss
-**Problem**: AI initially lost context between conversation segments.
-**Solution**: Human provided conversation summary and context reminders.
-
-#### Challenge: Complex Bug Tracing
-**Problem**: The "Friend of Children" bug required understanding effect processing across multiple files and execution contexts.
-**Solution**: AI used systematic grep_search to trace effect processing through the entire codebase.
-
-#### Challenge: UI/UX Understanding
-**Problem**: AI needed to understand not just the technical implementation but the user experience implications.
-**Solution**: Screenshots provided immediate visual context that was more effective than text descriptions.
-
-### Key Takeaways for Human-AI Development Collaboration
-
-#### 1. Visual Context is King
-Screenshots and visual examples were dramatically more effective than text descriptions for UI/UX issues. The game over dialog fix was immediately clear once the AI saw the screenshot.
-
-#### 2. Systematic Code Exploration
-AI's ability to systematically search and read code files was most effective when guided by specific problem descriptions. The AI could quickly trace complex bugs across multiple files when given clear problem statements.
-
-#### 3. Iterative Refinement Works
-Rather than trying to fix everything at once, the iterative approach of fix-test-refine allowed for better quality solutions and easier debugging.
-
-#### 4. Context Preservation is Critical
-Maintaining context about previous fixes while working on new issues was essential. The AI needed to understand that fixes shouldn't break previous work.
-
-#### 5. Documentation Enhances Collaboration
-Comprehensive summaries after each fix helped both human and AI maintain shared understanding of what was accomplished and why.
-
-### Technical Architecture Insights
-
-The King of Tokyo game demonstrated several architectural patterns:
-
-#### Event-Driven Game Engine
-- Central game state management in `KingOfTokyoGame` class
-- Event emission for UI coordination (`diceUpdated`, `playerUpdated`, etc.)
-- Modal management through UIUtilities
-
-#### Effect Processing Pipeline
-- Card effect definitions in `cards.js`
-- Multiple processing contexts (passive, turn-based, dice-triggered)
-- State tracking for effect deduplication
-
-#### UI Component Coordination
-- Main UI controller in `main.js`
-- Specialized components (dice, monsters, cards)
-- CSS-based theming with animations
-
-This development session showcased how human creativity and contextual understanding combined with AI's systematic code analysis and implementation capabilities can effectively solve complex software issues. The key was finding the right communication patterns and leveraging each party's strengths.
-
-### Files Modified
-- `/js/main.js` - Modal management, UI coordination, event handling
-- `/js/game.js` - Core game logic, effect processing, turn management  
-- `/js/monsters.js` - Player state management, elimination handling
-- `/css/modals.css` - UI styling, z-index management, close button positioning
-- `/index.html` - Modal structure, close button addition
-
-### Total Session Impact
-- 5 major bugs/features implemented
-- Multiple UI/UX improvements
-- Enhanced game balance and functionality
-- Robust error handling and event management
-- Comprehensive documentation of development process
-
-This session demonstrates the potential for effective human-AI collaboration in software development when proper communication strategies are employed.
-
-## Issue 1: Dropdown Not Working After Modal Reopen
-**User:** clicking on the dropdown in the monster selection dialog no longer works.
-
-**Assistant:** The issue was that the new modal click-outside handler was interfering with the dropdown functionality. I added `e.stopPropagation()` to prevent dropdown clicks from bubbling up to the modal handler.
-
-## Issue 2: Dropdown Options Not Showing on First Load
-**User:** now the options for the dropdown don't show even on the first load of the dialog
-
-**Assistant:** The problem was that I was setting `this.elements.dropdownOptions.style.display = 'none'` which overrode the CSS and prevented the dropdown from opening. I removed that line to let the CSS classes control the dropdown visibility properly.
-
-## Issue 3: Dropdown Not Working on Subsequent Loads
-**User:** you fixed the issue about the options now showing up the first time the dialog loads but the subsequent attempts after clicking off the dialog and then having it respawn after clicking the button again from the splash screen is still an issue
-
-**Assistant:** This was a more complex issue where the dropdown worked initially but failed after the modal was hidden and reshown. The solution involved:
-
-1. **Created a resetDropdown() method** that properly resets the dropdown state
-2. **Added debugging** to track what was happening during modal reopen
-3. **Cleared inline CSS styles** with `style.cssText = ''` to remove any conflicting styles
-4. **Added proper event handling** with stopPropagation to prevent conflicts
-
-## Final Implementation Details
-
-### Key Methods Added:
-- `showSplashScreen()` - Returns to splash screen from modal
-- `resetDropdown()` - Ensures dropdown works properly on modal reopen
-- Enhanced `showSetupModal()` - Calls resetDropdown() for proper initialization
-
-### Event Handlers:
-- Modal click-outside handler that checks `e.target === this.elements.setupModal`
-- Dropdown click handlers with `stopPropagation()` to prevent modal interference
-- Proper cleanup when returning to splash screen
-
-### CSS Considerations:
-- Dropdown uses `open` class to control visibility
-- Inline styles were being cleared to prevent conflicts
-- Modal backdrop vs content distinction for click handling
-
-## Technical Notes
-The main challenge was ensuring that the dropdown functionality remained intact across multiple modal show/hide cycles. The solution involved:
-- Proper event propagation handling
-- State reset on modal reopen
-- CSS conflict resolution
-- Debugging to identify state issues
-
-The implementation successfully allows users to click outside the monster selection modal to return to the splash screen while maintaining full dropdown functionality.
-
----
-
-# King of Tokyo - Chat History Day 4
-**Date: September 15, 2025**
-
----
-
-## Session Summary
-
-This chat session began with a simple UI request to fix a hover effect issue but quickly evolved into a complex debugging scenario that highlighted the critical importance of understanding codebase context before making changes. The session became a valuable lesson in collaborative debugging and the need for careful, methodical approaches when working with unfamiliar code.
-
-### Features Attempted
-- **Active player card hover effect removal**: Attempted to stop the active player card from "bouncing around" when hovered
-- **JavaScript error debugging**: Encountered `showMessage is not a function` error after initial changes
-
-### Major Collaboration Challenges & Lessons Learned
-1. **Premature Code Changes**: The AI made changes without fully understanding the codebase structure, leading to breaking functionality that was previously working
-2. **Context Gaps**: The AI initially failed to recognize that CSS changes could potentially affect JavaScript functionality
-3. **Human Guidance Necessity**: The human had to intervene multiple times to prevent the AI from making additional breaking changes
-4. **Methodical Approach**: The human emphasized the need to fully understand the codebase before making any modifications
-
-### Collaboration Strategies That Emerged
+*End Appendix C – Legacy Embedded Narrative*
 - **Stop-and-Ask Approach**: Human insisted AI ask permission before making changes
 - **Revert-First Strategy**: When things broke, immediately revert all changes to restore working state
 - **Full Codebase Review**: Human suggested AI should go through all files systematically to understand architecture
