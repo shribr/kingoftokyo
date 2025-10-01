@@ -8,25 +8,26 @@
 ## Table of Contents
 1. [Story of the Journey](#story-of-the-journey)
     - [Prologue: The Vision](#prologue-the-vision)
-    - [Chapter 1: First Contact – Foundation Days](#chapter-1-first-contact---foundation-days)
-    - [Chapter 2: Silent Reflection](#chapter-2-silent-reflection)
-    - [Chapter 3: First Breakthrough Mechanics](#chapter-3-first-breakthrough-mechanics)
-    - [Chapter 4: Silent Sprints](#chapter-4-silent-sprints)
-    - [Chapter 5: Refinement & Documentation](#chapter-5-refinement--documentation)
-    - [Chapter 6: Visual Communication Leverage](#chapter-6-visual-communication-leverage)
-    - [Chapter 7: Debug & Problem-Solving Patterns](#chapter-7-debug--problem-solving-patterns)
-    - [Chapter 8: Communication Evolution](#chapter-8-communication-evolution)
-    - [Chapter 9: Systems & Incremental Architecture](#chapter-9-systems--incremental-architecture)
-    - [Chapter 10: Partnership Lessons](#chapter-10-partnership-lessons)
-    - [Chapter 11: Platform Mindset Emerges](#chapter-11-platform-mindset-emerges)
-    - [Chapter 12: Heuristics & Integrity Baseline](#chapter-12-heuristics--integrity-baseline)
-    - [Chapter 13: Spatial & Interaction Stability](#chapter-13-spatial--interaction-stability)
-    - [Chapter 14: Parallel Rewrite Strategy](#chapter-14-parallel-rewrite-strategy)
-    - [Chapter 15: Componentization Wave](#chapter-15-componentization-wave)
-    - [Chapter 16: Comfort & Intent Systems](#chapter-16-comfort--intent-systems)
-    - [Chapter 17: Scenario & Transparency Expansion](#chapter-17-scenario--transparency-expansion)
-    - [Chapter 18: Acceptance & Kinetic Feedback](#chapter-18-acceptance--kinetic-feedback)
-    - [Epilogue: The Transformation & Forward Arc](#epilogue-the-transformation--forward-arc)
+    - [Chapter 1: First Contact – Foundation Days](#ch1)
+    - [Chapter 2: Silent Reflection](#ch2)
+    - [Chapter 3: First Breakthrough Mechanics](#ch3)
+    - [Chapter 4: Silent Sprints](#ch4)
+    - [Chapter 5: Refinement & Documentation](#ch5)
+    - [Chapter 6: Visual Communication Leverage](#ch6)
+    - [Chapter 7: Debug & Problem-Solving Patterns](#ch7)
+    - [Chapter 8: Communication Evolution](#ch8)
+    - [Chapter 9: Systems & Incremental Architecture](#ch9)
+    - [Chapter 10: Partnership Lessons](#ch10)
+    - [Chapter 11: Platform Mindset Emerges](#ch11)
+    - [Chapter 12: Heuristics & Integrity Baseline](#ch12)
+    - [Chapter 13: Spatial & Interaction Stability](#ch13)
+    - [Chapter 14: Parallel Rewrite Strategy](#ch14)
+    - [Legacy → V2 Transition](#legacy-v2-transition)
+    - [Chapter 15: Componentization Wave](#ch15)
+    - [Chapter 16: Comfort & Intent Systems](#ch16)
+    - [Chapter 17: Scenario & Transparency Expansion](#ch17)
+    - [Chapter 18: Acceptance & Kinetic Feedback](#ch18)
+    - [Epilogue: The Transformation & Forward Arc](#epilogue)
 2. [Daily Work Log](#daily-work-log)
     - Days 1–24: [1](#day-1--work-log-conception--environment) · [2](#day-2--work-log-modal--splash-ux) · [3](#day-3--work-log-strategic-silence) · [4](#day-4--work-log-early-mechanics-scaffold) · [5](#day-5--work-log-mechanics-breakthrough) · [6](#day-6--work-log-ui-polish--feedback) · [7](#day-7--work-log-feature-expansion--mobile) · [8](#day-8--work-log-integration--pause-layer) · [9](#day-9--work-log-flow--architecture) · [10](#day-10--work-log-dice--performance-breakthrough) · [11](#day-11--work-log-documentation--polish) · [12](#day-12--work-log-power-card-modal-refinement) · [13](#day-13--work-log-tokyo-slot-artifact-fix) · [14](#day-14--work-log-heuristic-exploration-incubation) · [15](#day-15--work-log-synergy-heuristics--integrity-baseline) · [16](#day-16--work-log-spatial-stability--drag-refinement) · [17](#day-17--work-log-effect-queue--decision-transparency) · [18](#day-18--work-log-rewrite-launch--dual-tokyo-slots) · [19](#day-19--work-log-componentization-wave) · [20](#day-20--work-log-selection-flow-unification) · [21](#day-21--work-log-settings--overlays) · [22](#day-22--work-log-unified-modals--dice-ergonomics) · [23](#day-23--work-log-scenario--phase-events) · [24](#day-24--work-log-accept-mechanic--animation-polish)
 3. [Technical Chat Sessions](#technical-chat-sessions)
@@ -49,6 +50,7 @@ What started as a simple browser-based board game would become something much mo
 
 The journey wasn't just about building a game; it was about discovering new patterns of communication, problem-solving, and partnership between human and artificial intelligence. Over ten days in September 2025, this collaboration would produce over 6,500 lines of code, solve complex technical challenges, and create something neither human nor AI could have achieved alone.
 
+<a id="ch1"></a>
 ### Chapter 1: First Contact – Foundation Days
 *September 8, 2025*
 
@@ -75,6 +77,7 @@ Twelve commits established the modal scaffold, selection flow, and consistent na
 
 The partnership moved from “AI responding to tasks” toward “paired shaping of future architectural affordances.”
 
+<a id="ch2"></a>
 ### Chapter 2: Silent Reflection
 *September 9–11, 2025*
 
@@ -92,6 +95,7 @@ The pause demonstrated a sustainable cadence: AI accelerates *once* direction is
 #### Emerging North Stars
 Concepts like “scenarios,” “effect queue,” and “selection unification” were not yet code—but they now existed as possible organizing lenses. The collaboration had shifted from reactive implementation to *modeling the problem space*.
 
+<a id="ch3"></a>
 ### Chapter 3: First Breakthrough Mechanics
 *September 11, 2025*
 
@@ -114,6 +118,7 @@ Work here hinted at systems that would arrive much later:
 #### Trust Gradient
 The human supplied intent vectors (fairness, clarity, speed). The AI responded with refactors that preserved emergent extensibility—avoiding brittle patches that would have blocked the subsequent componentization wave.
 
+<a id="ch4"></a>
 ### Chapter 4: Silent Sprints
 *September 12–16, 2025*
 
@@ -132,6 +137,7 @@ Patterns now visible:
 #### Strategic Silence Value
 The AI executed high‑confidence expansions; the human curated experiential alignment, queuing higher‑order needs (transparency, comfort, determinism) that would dominate the second arc. This period forged *capacity*—a platform stable enough to justify later architectural bifurcation (legacy vs rewrite path) without stalling delivery.
 
+<a id="ch5"></a>
 ### Chapter 5: The Refinement Session - Professional Polish
 *September 17, 2025*
 
@@ -149,6 +155,7 @@ One of the most significant outcomes of this session was the creation of compreh
 #### The Recognition of Success
 The session included a moment of honest feedback: "you seem to be a bit off your game today. is everything OK?" This human recognition that AI performance can vary, and the willingness to provide direct feedback, showed the genuine partnership that had developed.
 
+<a id="ch6"></a>
 ### Chapter 6: The Power of Visual Communication
 Throughout the journey, one of the most significant discoveries was the power of visual communication in human-AI collaboration.
 
@@ -161,6 +168,7 @@ Screenshots did more than provide information—they created a bridge of empathy
 #### A New Communication Standard
 This discovery established a new standard for human-AI collaboration: when possible, show rather than tell. Visual context transforms abstract problems into concrete, solvable challenges.
 
+<a id="ch7"></a>
 ### Chapter 7: Problem-Solving Patterns That Emerged
 #### The Iterative Debugging Dance
 A specific pattern emerged for complex bug solving:
@@ -176,6 +184,7 @@ Some of the most impressive collaboration happened when tracking down complex bu
 #### Context Preservation as Collaboration Skill
 One of the most challenging aspects proved to be context preservation—maintaining awareness of previous fixes while working on new challenges. This became a collaborative skill, with the human providing continuity and the AI maintaining technical coherence.
 
+<a id="ch8"></a>
 ### Chapter 8: Communication Breakthroughs and Challenges
 #### What Worked: Specific and Visual
 The most effective communication was:
@@ -193,6 +202,7 @@ Communication challenges arose from:
 #### The Evolution of Shared Vocabulary
 Over time, the partners developed a shared vocabulary and communication style that became increasingly efficient. Technical terms gained shared meaning, and communication patterns became more natural and effective.
 
+<a id="ch9"></a>
 ### Chapter 9: The Technical Artistry Behind the Scenes
 While this story focuses on collaboration rather than code, it's worth acknowledging the technical artistry that emerged from this partnership.
 
@@ -205,6 +215,7 @@ Instead of trying to design everything upfront, the collaboration embraced incre
 #### Quality as a Shared Value
 One of the most impressive aspects was the shared commitment to quality. Neither partner was satisfied with "good enough"—they pushed each other toward solutions that were elegant, maintainable, and user-friendly.
 
+<a id="ch10"></a>
 ### Chapter 10: Lessons in Human-AI Partnership
 #### The Complementary Nature of Strengths
 This collaboration highlighted how human and AI strengths complement each other:
@@ -231,36 +242,52 @@ Some of the most valuable moments came from honest feedback. When the human said
 
 The original ten‑day narrative closed on polish and documentation. What followed (Days 11–24) became a seamless second arc: transforming a solid legacy implementation into a dual‑path architecture with richer AI transparency, scenario tooling, accessible modals, and animation polish—preserving the same collaborative principles (vision + systematic augmentation) while operating at a higher level of abstraction (heuristics, state orchestration, determinism, refactors).
 
+<a id="ch11"></a>
 ### Chapter 11: From Polish to Platform (Sept 17–19)
-Backlink: builds on early foreshadow (State Isolation – [Ch.1](#chapter-1-first-contact---foundation-days); Reflection Incubation – [Ch.2](#chapter-2-silent-reflection); Mechanics Loop Formalization – [Ch.3](#chapter-3-first-breakthrough-mechanics); Capacity Platform – [Ch.4](#chapter-4-silent-sprints))
+Backlink: builds on early foreshadow (State Isolation – [Ch.1](#ch1); Reflection Incubation – [Ch.2](#ch2); Mechanics Loop Formalization – [Ch.3](#ch3); Capacity Platform – [Ch.4](#ch4))
 With documentation stabilized (Day 11), focus pivoted to *systemic correctness*. Effect deduplication hardened; UI naming collisions were resolved to preserve future component boundaries. Early heuristic scaffolds appeared—not yet full decision trees, but shape hints (weight attribution, diminishing synergy hooks). A Tokyo slot visual artifact fix exemplified the emerging optimization ethos: surgical DOM + CSS lineage intervention over sweeping restyles. Cadence evolved from delivering isolated features to *curating a platform surface* ready for higher‑order experimentation.
 
+<a id="ch12"></a>
 ### Chapter 12: Heuristics Awakening & Integrity Baseline (Sept 20–21)
-Backlink: operationalizes intent clarity + state trust (Intent Loop – [Ch.3](#chapter-3-first-breakthrough-mechanics); Isolation → Integrity – [Ch.1](#chapter-1-first-contact---foundation-days))
+Backlink: operationalizes intent clarity + state trust (Intent Loop – [Ch.3](#ch3); Isolation → Integrity – [Ch.1](#ch1))
 An incubation lull (20th) produced a surge in conceptual screenshots. The following day crystallized the *heuristic era*: synergy‑aware scoring layers, diminishing returns controls, and structured purchase rationale objects. Parallel: the integrity baseline (hash manifest + rollback safety tags) formalized trust—anchoring future rewrites and scenario reproducibility. Human emphasis on recoverability + audit met AI’s mechanical rigor (hash enumeration, drift alerts). This closed the loop foreshadowed in Chapter 1: intent clarity feeding systematic resilience.
 
+<a id="ch13"></a>
 ### Chapter 13: Spatial Refinement & Interaction Stability (Sept 22–23)
-Backlink: tactile stability extends capacity principles (Structured Interaction Layer – [Ch.4](#chapter-4-silent-sprints); Rationale Seeds – [Ch.3](#chapter-3-first-breakthrough-mechanics))
+Backlink: tactile stability extends capacity principles (Structured Interaction Layer – [Ch.4](#ch4); Rationale Seeds – [Ch.3](#ch3))
 Tactile credibility improved: drag stabilization, panel visibility constraints, and collision avoidance patterns. The effect queue + decision modal established *explainable AI moments*: structured decision objects (inputs, weights, projected outcomes) replaced opaque resolutions. Collaboration dialect now negotiated *why a branch was selected* rather than merely *which branch executed*—a direct realization of earlier rationale scaffolding.
 
+<a id="ch14"></a>
 ### Chapter 14: Parallel Rewrite Strategy (Sept 24)
-Backlink: reversible evolution = reflection discipline + isolation (Reflection Lull → Strategic Queue – [Ch.2](#chapter-2-silent-reflection); Isolation & Naming Consistency – [Ch.1](#chapter-1-first-contact---foundation-days))
+Backlink: reversible evolution = reflection discipline + isolation (Reflection Lull → Strategic Queue – [Ch.2](#ch2); Isolation & Naming Consistency – [Ch.1](#ch1))
 The deliberate rewrite lane (`/new/`) emerged: services, reducer segmentation, event adapters, and UI isolation layers coexisted with legacy implementation. Dual Tokyo slots, yield prompts, and deeper effect queue scaffolds validated *parallel evolution without destabilization*. Human mandated reversibility; AI supplied parity matrices + drift detection notes. This phase operationalized the integrity baseline—migration under audit, not blind divergence.
 
+#### Legacy → V2 Transition
+This point marks the architectural pivot from incremental legacy layering to a *dual-path platform strategy*:
+- **Motivation:** Reduce refactor collision risk while enabling systemic upgrades.
+- **Mechanism:** `/new/` path introduces isolated reducers, adapter seams, and component boundaries.
+- **Safety Nets:** Integrity hash baseline, parity matrices, rollback checkpoints.
+- **Outcome:** Enables experimentation (heuristics, scenario harness) without jeopardizing core stability.
+This transition formalizes the beginning of “V2”—an architecture optimized for transparency, reversibility, and modular expansion.
+
+<a id="ch15"></a>
 ### Chapter 15: Componentization Wave (Sept 25–26)
-Backlink: component seams anticipated by earlier modality + state scoping (Modal Contract Foundations – [Ch.1](#chapter-1-first-contact---foundation-days); Silent Capacity Build – [Ch.4](#chapter-4-silent-sprints))
+Backlink: component seams anticipated by earlier modality + state scoping (Modal Contract Foundations – [Ch.1](#ch1); Silent Capacity Build – [Ch.4](#ch4))
 Monolithic surfaces decomposed: action menu, status panels, toolbar, profile cards, unified selection flows. Draggable / layout mode affordances amplified user agency. Monster selection refactor removed ad hoc selectors in favor of declarative initialization contracts. Guiding principle hardened: *explicit mount points + scoped styles > implicit global cascade heuristics*—creating predictable insertion seams for later comfort & transparency systems.
 
+<a id="ch16"></a>
 ### Chapter 16: Comfort & Intent Systems (Sept 27–28)
-Backlink: user pacing + clarity derive from early UX intent framing (Experience Contract – [Ch.1](#chapter-1-first-contact---foundation-days); Cognitive Load Concerns – [Ch.2](#chapter-2-silent-reflection))
+Backlink: user pacing + clarity derive from early UX intent framing (Experience Contract – [Ch.1](#ch1); Cognitive Load Concerns – [Ch.2](#ch2))
 User cognitive load reduction became a first‑class engineering target: settings architecture (stateful preferences), blackout overlays (focus isolation), toast notifications (non‑blocking feedback), unified modal controller (lifecycle consistency), KEEP ALL dice affordance, tray ergonomic alignment. The experience crossed a threshold—from *playable game* to *operator console* balancing agency, clarity, and rhythm.
 
+<a id="ch17"></a>
 ### Chapter 17: Scenario & Transparency Expansion (Sept 29)
-Backlink: transparency arc completes rationale evolution (Problem Surfacing Loop – [Ch.3](#chapter-3-first-breakthrough-mechanics); Deterministic Capacity – [Ch.4](#chapter-4-silent-sprints))
+Backlink: transparency arc completes rationale evolution (Problem Surfacing Loop – [Ch.3](#ch3); Deterministic Capacity – [Ch.4](#ch4))
 Scenario seeding + parameterized configuration delivered reproducible experimentation loops. Phase event adapters abstracted temporal transitions; instrumentation hooks aligned with earlier integrity scaffolds. The Decision Tree UI externalized heuristic branching—promoting collaborative critique of weight assignments. Pause/resume, focus traps, and ARIA-conscious layering broadened inclusivity and resilience.
 
+<a id="ch18"></a>
 ### Chapter 18: Acceptance & Kinetic Feedback (Sept 30)
-Backlink: acceptance pacing + kinetic semantics fulfill initial interaction contract (Dismissal Interaction Pattern – [Ch.1](#chapter-1-first-contact---foundation-days); Phase Rhythm Ideation – [Ch.2](#chapter-2-silent-reflection))
+Backlink: acceptance pacing + kinetic semantics fulfill initial interaction contract (Dismissal Interaction Pattern – [Ch.1](#ch1); Phase Rhythm Ideation – [Ch.2](#ch2))
 The “Accept Dice Results” mechanic formalized *player‑governed phase pacing*, enabling mid‑roll strategic economy (buy pre‑commit). Cohesive animation language emerged: Tokyo slot transitions, pulse feedback for damage/resolution, anchor glow states, nuanced card detail reveals. These kinetic layers fused earlier goals—transparency (what happened & why) + tactility (felt state change). Documentation convergence completed the narrative unification effort foreshadowed when rewrite isolation began.
 
 ----
@@ -272,7 +299,7 @@ Format: Day N – Work Log [Descriptor]
 Legend: [Story↑] link jumps to narrative chapter; [Chat↓] jumps to technical deep dive (if exists).
 
 ### Day 1 – Work Log [Conception & Environment]
-**Date:** Sept 7, 2025  |  Story: [Chapter 1](#chapter-1-first-contact---foundation-days)  |  Chat: [Day 1 Session↓](#day-1--chat-session-initial-ui-interaction)
+**Date:** Sept 7, 2025  |  Story: [Chapter 1](#ch1)  |  Chat: [Day 1 Session↓](#day-1--chat-session-initial-ui-interaction)
 **Status:** Project Conception & Environment Familiarization (pre-code foundation)
 
 #### Summary
@@ -311,7 +338,7 @@ Planning assistance generated with GPT-4 class assistant; human curated scoping 
 ---
 
 ### Day 2 – Work Log [Modal & Splash UX]
-**Date:** Sept 8, 2025 | Story: [Chapter 1](#chapter-1-first-contact---foundation-days) | Chat: (n/a)
+**Date:** Sept 8, 2025 | Story: [Chapter 1](#ch1) | Chat: (n/a)
 **Status:** Foundational UI + Modal Interaction
 
 #### Summary
@@ -351,7 +378,7 @@ Modal scaffold AI-drafted; human enforced simplicity + speed constraints.
 ---
 
 ### Day 3 – Work Log [Strategic Silence]
-**Date:** Sept 9, 2025 | Story: [Chapter 2](#chapter-2-the-silent-period---solo-development) | Chat: (n/a)
+**Date:** Sept 9, 2025 | Story: [Chapter 2](#ch2) | Chat: (n/a)
 **Status:** Silent Iteration / Planning
 
 #### Summary
@@ -387,7 +414,7 @@ No direct generation (passive contextual carry).
 ---
 
 ### Day 4 – Work Log [Early Mechanics Scaffold]
-**Date:** Sept 10, 2025 | Story: [Chapter 2](#chapter-2-the-silent-period---solo-development) | Chat: (n/a)
+**Date:** Sept 10, 2025 | Story: [Chapter 2](#ch2) | Chat: (n/a)
 **Status:** Early Mechanics + Structural Expansion (Partially Reconstructed)
 
 #### Summary
@@ -426,7 +453,7 @@ Module boundary sketch AI-generated; human pruned speculative branches.
 ---
 
 ### Day 5 – Work Log [Mechanics Breakthrough]
-**Date:** Sept 11, 2025 | Story: [Chapter 3](#chapter-3-the-breakthrough-session---solving-complex-challenges) | Chat: [Day 5 Session↓](#day-5--chat-session-logging--emoji-overhaul)
+**Date:** Sept 11, 2025 | Story: [Chapter 3](#ch3) | Chat: [Day 5 Session↓](#day-5--chat-session-logging--emoji-overhaul)
 **Status:** Core Mechanics Breakthrough
 
 #### Summary
@@ -465,7 +492,7 @@ AI suggested branching; human curated dramatic UX pacing.
 ---
 
 ### Day 6 – Work Log [UI Polish & Feedback]
-**Date:** Sept 12, 2025 | Story: [Chapter 4](#chapter-4-the-silent-sprints---intensive-development) | Chat: [Day 6 Session↓](#day-6--chat-session-tokyo-entry-rule-fix)
+**Date:** Sept 12, 2025 | Story: [Chapter 4](#ch4) | Chat: [Day 6 Session↓](#day-6--chat-session-tokyo-entry-rule-fix)
 **Status:** UI Polish & Feedback Loops
 
 #### Summary
@@ -505,7 +532,7 @@ AI drafted formatting; human ordered priorities.
 ---
 
 ### Day 7 – Work Log [Feature Expansion & Mobile]
-**Date:** Sept 13, 2025 | Story: [Chapter 4](#chapter-4-the-silent-sprints---intensive-development) | Chat: [Day 7 Session↓](#day-7--chat-session-active-player-display--method-conflict)
+**Date:** Sept 13, 2025 | Story: [Chapter 4](#ch4) | Chat: [Day 7 Session↓](#day-7--chat-session-active-player-display--method-conflict)
 **Status:** Feature Expansion & Mobile Support
 
 #### Summary
@@ -545,7 +572,7 @@ AI proposed pointer abstraction; human validated ergonomics.
 ---
 
 ### Day 8 – Work Log [Integration & Pause Layer]
-**Date:** Sept 14, 2025 | Story: [Chapter 4](#chapter-4-the-silent-sprints---intensive-development) | Chat: [Day 8 Session↓](#day-8--chat-session-power-card-modal)
+**Date:** Sept 14, 2025 | Story: [Chapter 4](#ch4) | Chat: [Day 8 Session↓](#day-8--chat-session-power-card-modal)
 **Status:** Systems Integration & Pause / Setup
 
 #### Summary
@@ -585,7 +612,7 @@ AI suggested handler consolidation; human validated viability.
 ---
 
 ### Day 9 – Work Log [Flow & Architecture]
-**Date:** Sept 15, 2025 | Story: [Chapter 4](#chapter-4-the-silent-sprints---intensive-development) | Chat: [Day 9 Session↓](#day-9--chat-session-tokyo-slot-artifact)
+**Date:** Sept 15, 2025 | Story: [Chapter 4](#ch4) | Chat: [Day 9 Session↓](#day-9--chat-session-tokyo-slot-artifact)
 **Status:** Flow & Architecture Refinement
 
 #### Summary
@@ -625,7 +652,7 @@ AI mapped trigger chain; human validated rules.
 ---
 
 ### Day 10 – Work Log [Dice + Performance Breakthrough]
-**Date:** Sept 16, 2025 | Story: [Chapter 4](#chapter-4-the-silent-sprints---intensive-development) | Chat: [Day 10 Session↓](#day-10--chat-session-consolidated-period)
+**Date:** Sept 16, 2025 | Story: [Chapter 4](#ch4) | Chat: [Day 10 Session↓](#day-10--chat-session-consolidated-period)
 **Status:** Breakthrough Day (Dice + Performance)
 
 #### Summary
@@ -665,7 +692,7 @@ AI proposed caching; human validated memory footprint.
 ---
 
 ### Day 11 – Work Log [Documentation & Polish]
-**Date:** Sept 17, 2025 | Story: [Chapter 5](#chapter-5-the-refinement-session---professional-polish) | Chat: [Day 11 Session↓](#day-11--chat-session-final-polish--documentation)
+**Date:** Sept 17, 2025 | Story: [Chapter 5](#ch5) | Chat: [Day 11 Session↓](#day-11--chat-session-final-polish--documentation)
 **Status:** Documentation & Final Polish (Phase 1 End)
 
 #### Summary
@@ -705,7 +732,7 @@ AI scaffolded docs; human refined narrative tone.
 ---
 
 ### Day 12 – Work Log [Power Card Modal Refinement]
-**Date:** Sept 18, 2025 | Story: [Chapter 6](#chapter-6-the-power-of-visual-communication) | Chat: [Day 8 Session↓](#day-8--chat-session-power-card-modal)
+**Date:** Sept 18, 2025 | Story: [Chapter 6](#ch6) | Chat: [Day 8 Session↓](#day-8--chat-session-power-card-modal)
 **Status:** Modal & Power Card Detail Refinement (Phase 2 Start)
 
 #### Summary
@@ -744,7 +771,7 @@ AI rationale guidance; human enforced minimal header.
 ---
 
 ### Day 13 – Work Log [Tokyo Slot Artifact Fix]
-**Date:** Sept 19, 2025 | Story: [Chapter 6](#chapter-6-the-power-of-visual-communication) | Chat: [Day 9 Session↓](#day-9--chat-session-tokyo-slot-artifact)
+**Date:** Sept 19, 2025 | Story: [Chapter 6](#ch6) | Chat: [Day 9 Session↓](#day-9--chat-session-tokyo-slot-artifact)
 **Status:** Tokyo Slot Visual Artifact & Mini Variant Styling
 
 #### Summary
@@ -781,7 +808,7 @@ AI traced clone path; human validated persistence prompting second patch.
 (Image moved to Day 9 chat session / Tokyo artifact deep dive.)
 
 ### Day 14 – Work Log [Heuristic Exploration Incubation]
-**Date:** Sept 20, 2025 | Story: [Chapter 12](#chapter-12-heuristics-awakening--integrity-baseline-sept-20–21) | Chat: [Day 14 Session↓](#day-14--chat-session-heuristic-screenshot-spike)
+**Date:** Sept 20, 2025 | Story: [Chapter 12](#ch12) | Chat: [Day 14 Session↓](#day-14--chat-session-heuristic-screenshot-spike)
 **Status:** Low‑commit exploratory day (visual probes, heuristic planning)
 
 #### Summary
@@ -806,7 +833,7 @@ Human curated screenshot sequences to accelerate later AI transparency design.
 Implement synergy + diminishing returns model (Day 15).
 
 ### Day 15 – Work Log [Synergy Heuristics & Integrity Baseline]
-**Date:** Sept 21, 2025 | Story: [Chapter 12](#chapter-12-heuristics-awakening--integrity-baseline-sept-20–21) | Chat: [Day 15 Session↓](#day-15--chat-session-synergy--baseline-hardening)
+**Date:** Sept 21, 2025 | Story: [Chapter 12](#ch12) | Chat: [Day 15 Session↓](#day-15--chat-session-synergy--baseline-hardening)
 **Status:** Major AI + integrity day
 
 #### Summary
@@ -824,7 +851,7 @@ Introduced synergy‑aware greedy optimizer, diminishing returns, purchase ratio
 UI positioning & drag stability (Day 16).
 
 ### Day 16 – Work Log [Spatial Stability & Drag Refinement]
-**Date:** Sept 22, 2025 | Story: [Chapter 13](#chapter-13-spatial-refinement--interaction-stability-sept-22–23) | Chat: [Day 16 Session↓](#day-16--chat-session-drag--visibility-stability)
+**Date:** Sept 22, 2025 | Story: [Chapter 13](#ch13) | Chat: [Day 16 Session↓](#day-16--chat-session-drag--visibility-stability)
 **Status:** Positional / visibility hardening
 
 #### Summary
@@ -838,7 +865,7 @@ Refined draggable dashboards, visibility correction logic, high‑signal logging
 - Clarified reflow order for active card transitions.
 
 ### Day 17 – Work Log [Effect Queue & Decision Transparency]
-**Date:** Sept 23, 2025 | Story: [Chapter 13](#chapter-13-spatial-refinement--interaction-stability-sept-22–23) | Chat: [Day 17 Session↓](#day-17--chat-session-effect-queue--decision-modal)
+**Date:** Sept 23, 2025 | Story: [Chapter 13](#ch13) | Chat: [Day 17 Session↓](#day-17--chat-session-effect-queue--decision-modal)
 **Status:** Explainability enablement
 
 #### Summary
@@ -848,7 +875,7 @@ Effect queue & decision modal delivered introspectable AI path; draggable profil
 `3eaa494`, `f07a12d`, `410bb5e`, `0be6b7a`
 
 ### Day 18 – Work Log [Rewrite Launch & Dual Tokyo Slots]
-**Date:** Sept 24, 2025 | Story: [Chapter 14](#chapter-14-dual-paths--controlled-rewrite-sept-24) | Chat: [Day 18 Session↓](#day-18--chat-session-rewrite-fork--yield-prompts)
+**Date:** Sept 24, 2025 | Story: [Chapter 14](#ch14) | Chat: [Day 18 Session↓](#day-18--chat-session-rewrite-fork--yield-prompts)
 **Status:** Parallel architecture established
 
 #### Summary
@@ -858,7 +885,7 @@ Rewrite path bootstrapped (reducers, services, modalized setup); dual-slot Tokyo
 `6b729c4`, `65dbdec`, `1784b16`, `c05bb14`
 
 ### Day 19 – Work Log [Componentization Wave]
-**Date:** Sept 25, 2025 | Story: [Chapter 15](#chapter-15-componentization-wave-sept-25–26) | Chat: [Day 19 Session↓](#day-19--chat-session-panelization--layout-modes)
+**Date:** Sept 25, 2025 | Story: [Chapter 15](#ch15) | Chat: [Day 19 Session↓](#day-19--chat-session-panelization--layout-modes)
 **Status:** Panel & layout decomposition
 
 #### Summary
@@ -868,7 +895,7 @@ Action menu, monsters panel, toolbar, profile card modes; adaptive layout & stac
 `8887c58`, `c2f816e`, `57a742f`, `d1a261b`
 
 ### Day 20 – Work Log [Selection Flow Unification]
-**Date:** Sept 26, 2025 | Story: [Chapter 15](#chapter-15-componentization-wave-sept-25–26) | Chat: [Day 20 Session↓](#day-20--chat-session-monster-selection-refactor)
+**Date:** Sept 26, 2025 | Story: [Chapter 15](#ch15) | Chat: [Day 20 Session↓](#day-20--chat-session-monster-selection-refactor)
 **Status:** Setup → selection convergence
 
 #### Summary
@@ -878,7 +905,7 @@ Legacy setup migrated into unified monster selection component; blackout fallbac
 `817d478`, `b64171d`, `7803094`, `a0fe910`
 
 ### Day 21 – Work Log [Settings & Overlays]
-**Date:** Sept 27, 2025 | Story: [Chapter 16](#chapter-16-systems-for-intent--comfort-sept-27–28) | Chat: [Day 21 Session↓](#day-21--chat-session-blackout--settings-evolution)
+**Date:** Sept 27, 2025 | Story: [Chapter 16](#ch16) | Chat: [Day 21 Session↓](#day-21--chat-session-blackout--settings-evolution)
 **Status:** Context & comfort systems
 
 #### Summary
@@ -888,7 +915,7 @@ Blackout controller, transient turn toasts, mobile settings menu, improved modal
 `d1d512b`, `ef5f687`, `8f4b781`
 
 ### Day 22 – Work Log [Unified Modals & Dice Ergonomics]
-**Date:** Sept 28, 2025 | Story: [Chapter 16](#chapter-16-systems-for-intent--comfort-sept-27–28) | Chat: [Day 22 Session↓](#day-22--chat-session-unified-modals--dice-tray)
+**Date:** Sept 28, 2025 | Story: [Chapter 16](#ch16) | Chat: [Day 22 Session↓](#day-22--chat-session-unified-modals--dice-tray)
 **Status:** Modal consolidation + roll efficiency
 
 #### Summary
@@ -898,7 +925,7 @@ Central modal system, KEEP ALL action, dice tray state enforcement, backdrop fil
 `22c2fe2`, `55afd48`, `333847a`, `2bc3e81`
 
 ### Day 23 – Work Log [Scenario & Phase Events]
-**Date:** Sept 29, 2025 | Story: [Chapter 17](#chapter-17-scenario--transparency-acceleration-sept-29) | Chat: [Day 23 Session↓](#day-23--chat-session-scenarios--decision-tree)
+**Date:** Sept 29, 2025 | Story: [Chapter 17](#ch17) | Chat: [Day 23 Session↓](#day-23--chat-session-scenarios--decision-tree)
 **Status:** Reproducibility + transparency
 
 #### Summary
@@ -908,7 +935,7 @@ Scenario tab + parameters, phase event adapter pipeline, pause/resume overlay, A
 `ad7b1dd`, `2dd4197`, `e213a7a`, `9be7563`
 
 ### Day 24 – Work Log [Accept Mechanic & Animation Polish]
-**Date:** Sept 30, 2025 | Story: [Chapter 18](#chapter-18-acceptance--animation-cohesion-sept-30) | Chat: [Day 24 Session↓](#day-24--chat-session-accept-dice--tokyo-animation)
+**Date:** Sept 30, 2025 | Story: [Chapter 18](#ch18) | Chat: [Day 24 Session↓](#day-24--chat-session-accept-dice--tokyo-animation)
 **Status:** Phase pacing + kinetic feedback
 
 #### Summary
@@ -927,7 +954,7 @@ Deep technical transcripts & analyses. Headers formatted: Day N – Chat Session
 
 ### Day 1 – Chat Session [Initial UI Interaction]
 Anchor: `day-1--chat-session-initial-ui-interaction`  
-Work Log: [Day 1↑](#day-1--work-log-conception--environment) | Story: [Chapter 1↑](#chapter-1-first-contact---foundation-days)
+Work Log: [Day 1↑](#day-1--work-log-conception--environment) | Story: [Chapter 1↑](#ch1)
 *Model Footnote:* GPT-4 class assistant; human directed minimalism & correctness.
 
 #### Session Summary
@@ -966,7 +993,7 @@ Full original transcript preserved in backup file at section: "Day 1 Chat Sessio
     <img src="images/chat collaboration screenshots/Screenshot 2025-09-11 at 11.56.08 PM.png" alt="Late refactor snapshot" width="780" />
 </div>
 Anchor: `day-5--chat-session-logging--emoji-overhaul`  
-Work Log: [Day 5↑](#day-5--work-log-mechanics-breakthrough) | Story: [Chapter 3↑](#chapter-3--first-breakthrough-cycle)
+Work Log: [Day 5↑](#day-5--work-log-mechanics-breakthrough) | Story: [Chapter 3↑](#ch3)
 
 No standalone live transcript captured this day. Development breakthroughs logged in Work Log; mechanical discussions occurred implicitly (silent implementation phase). If future reconstruction is desired, derive from commit messages `6689507`, `8e95a79`, `c02f66a`.
 
@@ -975,7 +1002,7 @@ No standalone live transcript captured this day. Development breakthroughs logge
 
 ### Day 6 – Chat Session [Tokyo Entry Rule Fix]
 Anchor: `day-6--chat-session-tokyo-entry-rule-fix`  
-Work Log: [Day 6↑](#day-6--work-log-ui-polish--feedback) | Story: [Chapter 4↑](#chapter-4-the-silent-sprints---intensive-development)
+Work Log: [Day 6↑](#day-6--work-log-ui-polish--feedback) | Story: [Chapter 4↑](#ch4)
 
 No preserved synchronous transcript. Resolution of animation cleanup + entry logic discussed ad-hoc. Source-of-truth: commits `bb9f78e`, `54ddc81`, `4f5922c`.
 
@@ -984,7 +1011,7 @@ No preserved synchronous transcript. Resolution of animation cleanup + entry log
 
 ### Day 7 – Chat Session [Active Player Display & Method Conflict]
 Anchor: `day-7--chat-session-active-player-display--method-conflict`  
-Work Log: [Day 7↑](#day-7--work-log-feature-expansion--mobile) | Story: [Chapter 4↑](#chapter-4-the-silent-sprints---intensive-development)
+Work Log: [Day 7↑](#day-7--work-log-feature-expansion--mobile) | Story: [Chapter 4↑](#ch4)
 
 Absent transcript. Conflict over duplicate method naming (early form of later dual `endTurn()` issue) reconstructed in Work Log narrative.
 
@@ -997,7 +1024,7 @@ Absent transcript. Conflict over duplicate method naming (early form of later du
     <img src="images/chat collaboration screenshots/Screenshot 2025-09-14 at 9.15.40 PM.png" alt="Modal stack & setup manager" width="780" />
 </div>
 Anchor: `day-8--chat-session-power-card-modal`  
-Work Log: [Day 8↑](#day-8--work-log-integration--pause-layer) | Story: [Chapter 6↑](#chapter-6-the-power-of-visual-communication)
+Work Log: [Day 8↑](#day-8--work-log-integration--pause-layer) | Story: [Chapter 6↑](#ch6)
 
 Transcript not captured; modal ancestry + wrapper scope debugging summarized in Day 12 Work Log (retroactive refinement). Commits: `2af7369`, `5a2ada4`, `5e52500`, `c64c9c9`.
 
@@ -1009,7 +1036,7 @@ Transcript not captured; modal ancestry + wrapper scope debugging summarized in 
     <img src="images/chat collaboration screenshots/Screenshot 2025-09-19 at 1.20.27 PM.png" alt="Tokyo slot artifact resolved (mini card variant)" width="780" />
 </div>
 Anchor: `day-9--chat-session-tokyo-slot-artifact`  
-Work Log: [Day 9↑](#day-9--work-log-flow--architecture) | Story: [Chapter 6↑](#chapter-6-the-power-of-visual-communication)
+Work Log: [Day 9↑](#day-9--work-log-flow--architecture) | Story: [Chapter 6↑](#ch6)
 
 No real-time transcript; artifact resolution documented post-fix in Day 13 Work Log referencing DOM layering and CSS overrides.
 
@@ -1021,7 +1048,7 @@ No real-time transcript; artifact resolution documented post-fix in Day 13 Work 
     <img src="images/chat collaboration screenshots/Screenshot 2025-09-16 at 10.41.10 PM.png" alt="Unified dice display stability" width="780" />
 </div>
 Anchor: `day-10--chat-session-consolidated-period`  
-Work Log: [Day 10↑](#day-10--work-log-dice--performance-breakthrough) | Story: [Chapter 4↑](#chapter-4-the-silent-sprints---intensive-development)
+Work Log: [Day 10↑](#day-10--work-log-dice--performance-breakthrough) | Story: [Chapter 4↑](#ch4)
 
 Breakthrough day but chat absent—speed prioritized continuous coding. Dice stabilization + DOM caching strategy captured via commits `1121900`, `ef6743a`, `16bb7ed`.
 
@@ -1035,7 +1062,7 @@ Breakthrough day but chat absent—speed prioritized continuous coding. Dice sta
 
 ### Day 14 – Chat Session [Heuristic Screenshot Spike]
 Anchor: `day-14--chat-session-heuristic-screenshot-spike`  
-Work Log: [Day 14↑](#day-14--work-log-heuristic-exploration-incubation) | Story: [Chapter 12↑](#chapter-12-heuristics-awakening--integrity-baseline-sept-20–21)
+Work Log: [Day 14↑](#day-14--work-log-heuristic-exploration-incubation) | Story: [Chapter 12↑](#ch12)
 
 #### Session Summary
 Exploratory screenshot capture and timing observation—no code persisted. Established visual baselines for future AI transparency overlays.
@@ -1051,7 +1078,7 @@ Exploratory screenshot capture and timing observation—no code persisted. Estab
 
 ### Day 15 – Chat Session [Synergy & Baseline Hardening]
 Anchor: `day-15--chat-session-synergy--baseline-hardening`  
-Work Log: [Day 15↑](#day-15--work-log-synergy-heuristics--integrity-baseline) | Story: [Chapter 12↑](#chapter-12-heuristics-awakening--integrity-baseline-sept-20–21)
+Work Log: [Day 15↑](#day-15--work-log-synergy-heuristics--integrity-baseline) | Story: [Chapter 12↑](#ch12)
 
 #### Session Summary
 Introduced synergy matrix, diminishing returns, rationale object; generated integrity manifest + safety tags, restored VP rules on Tokyo entry.
@@ -1067,7 +1094,7 @@ Introduced synergy matrix, diminishing returns, rationale object; generated inte
 
 ### Day 16 – Chat Session [Drag & Visibility Stability]
 Anchor: `day-16--chat-session-drag--visibility-stability`  
-Work Log: [Day 16↑](#day-16--work-log-spatial-stability--drag-refinement) | Story: [Chapter 13↑](#chapter-13-spatial-refinement--interaction-stability-sept-22–23)
+Work Log: [Day 16↑](#day-16--work-log-spatial-stability--drag-refinement) | Story: [Chapter 13↑](#ch13)
 
 #### Session Summary
 Refined draggable boundaries, added corrective visibility checks, pruned redundant debug traces.
@@ -1077,7 +1104,7 @@ Refined draggable boundaries, added corrective visibility checks, pruned redunda
 
 ### Day 17 – Chat Session [Effect Queue & Decision Modal]
 Anchor: `day-17--chat-session-effect-queue--decision-modal`  
-Work Log: [Day 17↑](#day-17--work-log-effect-queue--decision-transparency) | Story: [Chapter 13↑](#chapter-13-spatial-refinement--interaction-stability-sept-22–23)
+Work Log: [Day 17↑](#day-17--work-log-effect-queue--decision-transparency) | Story: [Chapter 13↑](#ch13)
 
 #### Session Summary
 Effect queue scaffolding + decision modal provided structured transparency pivot: actions now narrate evaluation context.
@@ -1087,7 +1114,7 @@ Effect queue scaffolding + decision modal provided structured transparency pivot
 
 ### Day 18 – Chat Session [Rewrite Fork & Yield Prompts]
 Anchor: `day-18--chat-session-rewrite-fork--yield-prompts`  
-Work Log: [Day 18↑](#day-18--work-log-rewrite-launch--dual-tokyo-slots) | Story: [Chapter 14↑](#chapter-14-dual-paths--controlled-rewrite-sept-24)
+Work Log: [Day 18↑](#day-18--work-log-rewrite-launch--dual-tokyo-slots) | Story: [Chapter 14↑](#ch14)
 
 #### Session Summary
 Initialized reducer/event architecture; integrated yield decision prompts; validated rollback safety process.
@@ -1097,7 +1124,7 @@ Initialized reducer/event architecture; integrated yield decision prompts; valid
 
 ### Day 19 – Chat Session [Panelization & Layout Modes]
 Anchor: `day-19--chat-session-panelization--layout-modes`  
-Work Log: [Day 19↑](#day-19--work-log-componentization-wave) | Story: [Chapter 15↑](#chapter-15-componentization-wave-sept-25–26)
+Work Log: [Day 19↑](#day-19--work-log-componentization-wave) | Story: [Chapter 15↑](#ch15)
 
 #### Session Summary
 Modular panels + layout variants (stacked/condensed) lowered coupling; improved maintainability.
@@ -1107,7 +1134,7 @@ Modular panels + layout variants (stacked/condensed) lowered coupling; improved 
 
 ### Day 20 – Chat Session [Monster Selection Refactor]
 Anchor: `day-20--chat-session-monster-selection-refactor`  
-Work Log: [Day 20↑](#day-20--work-log-selection-flow-unification) | Story: [Chapter 15↑](#chapter-15-componentization-wave-sept-25–26)
+Work Log: [Day 20↑](#day-20--work-log-selection-flow-unification) | Story: [Chapter 15↑](#ch15)
 
 #### Session Summary
 Merged legacy setup into unified selection surface; introduced blackout fallback consistency.
@@ -1117,7 +1144,7 @@ Merged legacy setup into unified selection surface; introduced blackout fallback
 
 ### Day 21 – Chat Session [Blackout & Settings Evolution]
 Anchor: `day-21--chat-session-blackout--settings-evolution`  
-Work Log: [Day 21↑](#day-21--work-log-settings--overlays) | Story: [Chapter 16↑](#chapter-16-systems-for-intent--comfort-sept-27–28)
+Work Log: [Day 21↑](#day-21--work-log-settings--overlays) | Story: [Chapter 16↑](#ch16)
 
 #### Session Summary
 Enhanced user comfort layer (blackout, settings menu, toast). Foundation for accessibility semantics.
@@ -1127,7 +1154,7 @@ Enhanced user comfort layer (blackout, settings menu, toast). Foundation for acc
 
 ### Day 22 – Chat Session [Unified Modals & Dice Tray]
 Anchor: `day-22--chat-session-unified-modals--dice-tray`  
-Work Log: [Day 22↑](#day-22--work-log-unified-modals--dice-ergonomics) | Story: [Chapter 16↑](#chapter-16-systems-for-intent--comfort-sept-27–28)
+Work Log: [Day 22↑](#day-22--work-log-unified-modals--dice-ergonomics) | Story: [Chapter 16↑](#ch16)
 
 #### Session Summary
 Central modal controller + KEEP ALL ergonomics + visual coherence pass.
@@ -1137,7 +1164,7 @@ Central modal controller + KEEP ALL ergonomics + visual coherence pass.
 
 ### Day 23 – Chat Session [Scenarios & Decision Tree]
 Anchor: `day-23--chat-session-scenarios--decision-tree`  
-Work Log: [Day 23↑](#day-23--work-log-scenario--phase-events) | Story: [Chapter 17↑](#chapter-17-scenario--transparency-acceleration-sept-29)
+Work Log: [Day 23↑](#day-23--work-log-scenario--phase-events) | Story: [Chapter 17↑](#ch17)
 
 #### Session Summary
 Scenario parameterization + AI decision branch visualization + phase events pipeline hardened.
@@ -1147,7 +1174,7 @@ Scenario parameterization + AI decision branch visualization + phase events pipe
 
 ### Day 24 – Chat Session [Accept Dice & Tokyo Animation]
 Anchor: `day-24--chat-session-accept-dice--tokyo-animation`  
-Work Log: [Day 24↑](#day-24--work-log-accept-mechanic--animation-polish) | Story: [Chapter 18↑](#chapter-18-acceptance--animation-cohesion-sept-30)
+Work Log: [Day 24↑](#day-24--work-log-accept-mechanic--animation-polish) | Story: [Chapter 18↑](#ch18)
 
 #### Session Summary
 Accept mechanic introduced mid-phase decision gating; Tokyo entry/exit flight animations unify kinetic feedback with state transitions; card detail modal minimalism refined.
@@ -1155,7 +1182,7 @@ Accept mechanic introduced mid-phase decision gating; Tokyo entry/exit flight an
 #### Model Attribution
 [^model-day-24]
 Anchor: `day-11--chat-session-final-polish--documentation`  
-Work Log: [Day 11↑](#day-11--work-log-documentation--polish) | Story: [Chapter 5↑](#chapter-5--refinement--professional-polish)
+Work Log: [Day 11↑](#day-11--work-log-documentation--polish) | Story: [Chapter 5↑](#ch5)
 
 #### Session Summary
 Final refinement: documentation consolidation, elimination flow correctness, duplicate turn effect dedupe, power card edge cases, modal layering.
@@ -2077,6 +2104,7 @@ The splash screen will now display your beautiful Tokyo cityscape with the neon 
 
 ---
 
+<a id="epilogue"></a>
 ## Epilogue: The Transformation & Forward Arc
 
 ### What Was Built (Unified View)
