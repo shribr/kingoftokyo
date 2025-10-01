@@ -8,17 +8,18 @@
 
 ## Table of Contents
 1. [Story of the Journey](#story-of-the-journey)
-    - [Chapter 1 – Foundation & First Contact](#chapter-1--foundation--first-contact)
-    - [Chapter 2 – Silent Momentum](#chapter-2--silent-momentum)
-    - [Chapter 3 – First Breakthrough Cycle](#chapter-3--first-breakthrough-cycle)
-    - [Chapter 4 – Sprint Phase & Emergent Systems](#chapter-4--sprint-phase--emergent-systems)
-    - [Chapter 5 – Refinement & Professional Polish](#chapter-5--refinement--professional-polish)
-    - [Chapter 6 – Visual Communication as Catalyst](#chapter-6--visual-communication-as-catalyst)
-    - [Chapter 7 – Debugging Patterns & Root Cause Mastery](#chapter-7--debugging-patterns--root-cause-mastery)
-    - [Chapter 8 – Communication Growth & Vocabulary](#chapter-8--communication-growth--vocabulary)
-    - [Chapter 9 – Architectural & Systems Thinking](#chapter-9--architectural--systems-thinking)
-    - [Chapter 10 – Partnership Lessons](#chapter-10--partnership-lessons)
-    - [Epilogue – Transformation & Forward Arc](#epilogue--transformation--forward-arc)
+    - [Prologue: The Vision](#prologue-the-vision)
+    - [Chapter 1: First Contact - The Foundation Days](#chapter-1-first-contact---the-foundation-days)
+    - [Chapter 2: The Silent Period - Solo Development](#chapter-2-the-silent-period---solo-development)
+    - [Chapter 3: The Breakthrough Session - Solving Complex Challenges](#chapter-3-the-breakthrough-session---solving-complex-challenges)
+    - [Chapter 4: The Silent Sprints - Intensive Development](#chapter-4-the-silent-sprints---intensive-development)
+    - [Chapter 5: The Refinement Session - Professional Polish](#chapter-5-the-refinement-session---professional-polish)
+    - [Chapter 6: The Power of Visual Communication](#chapter-6-the-power-of-visual-communication)
+    - [Chapter 7: Problem-Solving Patterns That Emerged](#chapter-7-problem-solving-patterns-that-emerged)
+    - [Chapter 8: Communication Breakthroughs and Challenges](#chapter-8-communication-breakthroughs-and-challenges)
+    - [Chapter 9: The Technical Artistry Behind the Scenes](#chapter-9-the-technical-artistry-behind-the-scenes)
+    - [Chapter 10: Lessons in Human-AI Partnership](#chapter-10-lessons-in-human-ai-partnership)
+    - [Epilogue: The Transformation](#epilogue-the-transformation)
 2. [Daily Work Log](#daily-work-log)
     - Days 1–13 (Chronological summaries; each links to related Chat Session & Story chapter)
 3. [Technical Chat Sessions](#technical-chat-sessions)
@@ -26,72 +27,222 @@
 4. [Appendices](#appendices)
     - [Appendix A – Original Raw Narrative Reference](#appendix-a--original-raw-narrative-reference)
     - [Appendix B – Forward Roadmap Snapshot](#appendix-b--forward-roadmap-snapshot)
+    - [Appendix C – Legacy Embedded Narrative (Pre-Deduplication)](#appendix-c--legacy-embedded-narrative-pre-deduplication)
+    - [Appendix D – Thematic Synthesis Summaries](#appendix-d--thematic-synthesis-summaries)
 5. [Cross-Reference Index](#cross-reference-index)
 
 ---
 
 ## Story of the Journey
-Narrative layer conveying the evolving human–AI partnership themes. Each chapter maps to multiple Work Log days and selected Chat Sessions.
+Verbatim original narrative (Prologue through Epilogue) elevated from archival backup to primary storytelling section as requested. Minor formatting normalized (heading levels); wording preserved.
 
-### Chapter 1 – Foundation & First Contact
-Linked Days: 1  
-Linked Chat Sessions: [Day 1 Chat Session](#day-1--chat-session-initial-ui-interaction)  
-Date Span: Sept 7–8, 2025
+### Prologue: The Vision
+What started as a simple browser-based board game would become something much more significant—a testament to what's possible when human creativity meets artificial intelligence in the realm of software development. This is the story of how a King of Tokyo digital adaptation evolved from a basic concept into a polished, feature-rich gaming experience through the power of collaborative development.
 
-The collaboration began with a deceptively simple user experience request (modal dismissal via outside click) that exposed the deeper dynamic of intent translation, constraint discovery, and communication style calibration. Early success established the human as vision keeper and the AI as an implementation partner capable of structural synthesis and systematic exploration.
+The journey wasn't just about building a game; it was about discovering new patterns of communication, problem-solving, and partnership between human and artificial intelligence. Over ten days in September 2025, this collaboration would produce over 6,500 lines of code, solve complex technical challenges, and create something neither human nor AI could have achieved alone.
 
-### Chapter 2 – Silent Momentum
-Linked Days: 2–4  
-Linked Chat Sessions: (none – reflective gap)  
-Date Span: Sept 9–10 (planning inertia)
+### Chapter 1: First Contact - The Foundation Days
+*September 8, 2025*
 
-Strategic quiet time clarified priorities—dice mechanics, Tokyo entry logic, and UI ergonomics—before renewed interactive bursts. Silence acted as an incubation stage rather than production stall.
+The collaboration began with a seemingly simple request: "if a user is on the Monster selection screen and clicks anywhere outside the modal dialog, hide the Monster Selection dialog and show the splash screen." What appeared to be a straightforward UI enhancement would become the first lesson in the complexities of human-AI collaboration.
 
-### Chapter 3 – First Breakthrough Cycle
-Linked Days: 5  
-Linked Chat Sessions: [Day 5 Chat Session](#day-5--chat-session-logging--emoji-overhaul)  
-Date Span: Sept 11, 2025
+#### The Initial Challenge
+The human developer had a vision—a specific user experience in mind. But translating that vision into actionable code required the AI to understand not just the technical requirements, but the intent behind them. This first interaction established a pattern that would define the entire project: the human providing context and creative direction, while the AI contributed systematic analysis and implementation capabilities.
 
-Core mechanics (elimination, extra dice baseline) emerged, pushing from structural scaffolding toward tangible ludic feedback. Human guidance constrained over-abstraction; AI enumerated safe expansion seams.
+#### The Communication Breakthrough
+What made this initial session successful wasn't just the technical solution, but the discovery of effective communication patterns. The human learned to provide specific, actionable descriptions, while the AI learned to ask clarifying questions and provide comprehensive solutions rather than quick fixes.
 
-### Chapter 4 – Sprint Phase & Emergent Systems
-Linked Days: 6–10  
-Linked Chat Sessions: [Day 6 Chat Session](#day-6--chat-session-tokyo-entry-rule-fix), [Day 7 Chat Session](#day-7--chat-session-active-player-display--method-conflict), [Day 8 Chat Session](#day-8--chat-session-power-card-modal), [Day 9 Chat Session](#day-9--chat-session-tokyo-slot-artifact), [Day 10 Chat Session](#day-10--chat-session-consolidated-period)  
-Date Span: Sept 12–16, 2025
+The foundation was laid—not just in code, but in understanding. The partnership had begun.
 
-Rapid iteration fused UI polish, drag/drop ergonomics, dice reliability, and architectural cleanup. Performance instrumentation + DOM caching shifted from guesswork to evidence-led refinements.
+#### Setting the Stage
+By the end of the first day, twelve commits had been made, a modal system was in place, and the basic architecture was established. More importantly, a collaboration framework had emerged:
+1. **Human as Vision Keeper**: Providing context, user experience insights, and creative direction
+2. **AI as Implementation Partner**: Offering systematic analysis, code solutions, and technical optimization
+3. **Shared Understanding**: Building common vocabulary and communication patterns
 
-### Chapter 5 – Refinement & Professional Polish
-Linked Days: 11  
-Linked Chat Sessions: [Day 11 Chat Session](#day-11--chat-session-final-polish--documentation)  
-Date Span: Sept 17, 2025
+### Chapter 2: The Silent Period - Solo Development
+*September 9-11, 2025*
 
-Attention pivoted from velocity to clarity—documentation scaffolds, naming audits (dual endTurn methods), and rule correctness consolidation.
+For three days, the repository fell silent. No commits, no documented collaboration sessions. But this wasn't a pause in development—it was a different kind of progress.
 
-### Chapter 6 – Visual Communication as Catalyst
-Linked Days: 8–11 (pattern maturation)  
-Linked Chat Sessions: Selected sessions where screenshots amplified precision  
-Highlight: Screenshots resolved ambiguity (e.g., dice log layout, Tokyo slot artifact) faster than multi-paragraph textual explanation.
+#### The Human's Journey
+During these quiet days, the human developer was likely:
+- **Testing and Experiencing**: Playing with the initial implementation, discovering edge cases and opportunities
+- **Visioning**: Imagining new features and improvements beyond the basic framework
+- **Planning**: Considering the next phase of development and potential challenges
 
-### Chapter 7 – Debugging Patterns & Root Cause Mastery
-Linked Days: 5–11  
-Focus: Effect dedupe, Tokyo entry gating, dice flow serialization, animation class cleanup.  
-Pattern: Hypothesis → selective logging → constrained patch → regression guard.
+#### The Value of Reflection
+This period highlights an important aspect of human-AI collaboration: not everything needs to be done together. Some of the most valuable development happens during reflection, testing, and planning phases where the human can process what's been built and prepare for the next collaborative session.
 
-### Chapter 8 – Communication Growth & Vocabulary
-Key Term Evolution: “Player dashboard” → “Player profile card”; “Dice reroll total” → “Roll progression”; “Modal ancestor scope” → “Contextual cascade compliance”.
+#### Building Anticipation
+When the collaboration resumed, it would be with a clearer vision, specific goals, and accumulated insights from using the system. The silence wasn't empty—it was preparation.
 
-### Chapter 9 – Architectural & Systems Thinking
-Principles Observed:
-- Avoid premature component registries until reuse tension appears.
-- Localize style overrides (modal wrapper ancestry) vs selector wildcards.
-- Centralize gating logic (Tokyo entry, turn transitions) to remove phantom side-effects.
+### Chapter 3: The Breakthrough Session - Solving Complex Challenges
+*September 11, 2025*
 
-### Chapter 10 – Partnership Lessons
-Complementary strengths crystallized: human UX intuition + AI exhaustive code traversal. Trust reinforced via candid friction (“off your game today”) exchanged for recalibration, not escalation.
+When the collaboration resumed, it was with a vengeance. Three significant commits marked the beginning of a new phase—one focused on core game mechanics and complex problem-solving.
 
-### Epilogue – Transformation & Forward Arc
-By Day 11 the playable system matured into a maintainable platform. Phase 2 (Days 12–13) addressed visual residue (Tokyo slot artifact) and modal parity, staging groundwork for upcoming AI heuristic layers (decision weighting, seeded test harness).
+#### The Challenge Escalation
+No longer were they dealing with simple UI enhancements. The challenges had evolved:
+- **Player elimination systems** requiring coordinated UI updates across multiple components
+- **Extra dice management** needing sophisticated state tracking and turn-based logic
+- **Code architecture** demanding refactoring for maintainability and scalability
+
+#### Partnership Maturation
+This session marked a maturation in the collaboration. The human had developed a better understanding of how to communicate complex requirements, while the AI had learned to provide more comprehensive solutions that considered broader system implications.
+
+#### The Pattern Emerges
+A clear development pattern emerged:
+1. **Problem Identification**: Human discovers issues through gameplay and user experience
+2. **System Analysis**: AI provides systematic exploration of the codebase
+3. **Collaborative Design**: Together they design solutions that address both immediate needs and long-term architecture
+4. **Implementation**: AI implements with human guidance and feedback
+5. **Integration**: Testing and refinement to ensure solutions work harmoniously
+
+### Chapter 4: The Silent Sprints - Intensive Development
+*September 12-16, 2025*
+
+The most productive period of the project wasn't documented in chat sessions—it was a series of intensive development sprints that produced the majority of the game's features. Over five days, more than 40 commits were made, implementing everything from mobile responsiveness to advanced AI systems.
+
+#### The Mystery of Silent Development
+How does productive development happen without documented collaboration? The answer lies in the foundation built during the initial sessions:
+- **Shared Vision**: Clear understanding of goals and priorities
+- **Established Patterns**: Proven approaches to common challenges
+- **Communication Efficiency**: Ability to work independently when direction is clear
+
+#### The Features That Emerged
+During this period, the game transformed:
+- **Day 6**: UI polish and visual enhancement
+- **Day 7**: Advanced features like monster personalities and mobile support
+- **Day 8**: Core systems integration and drag-and-drop functionality  
+- **Day 9**: Game flow refinement and architectural improvements
+- **Day 10**: Major breakthroughs in dice systems and turn management
+
+#### The Hidden Collaboration
+Even without documented sessions, this period represented collaboration in action. The human was testing, experiencing, and guiding development through issues and feedback, while the AI was implementing, refining, and optimizing based on that guidance.
+
+### Chapter 5: The Refinement Session - Professional Polish
+*September 17, 2025*
+
+The final documented collaboration session had a different character entirely. Gone were the exploratory questions and basic implementations. This was about refinement, polish, and professional-quality documentation.
+
+#### The Matured Partnership
+By this point, the collaboration had reached a sophisticated level:
+- **Intuitive Communication**: The human could provide minimal direction and get comprehensive results
+- **Shared Context**: Both partners understood the full scope and history of the project
+- **Quality Focus**: Attention turned from feature development to polish and maintainability
+
+#### The Documentation Achievement
+One of the most significant outcomes of this session was the creation of comprehensive project documentation. This wasn't just about recording what had been built—it was about preserving the story and insights for future development.
+
+#### The Recognition of Success
+The session included a moment of honest feedback: "you seem to be a bit off your game today. is everything OK?" This human recognition that AI performance can vary, and the willingness to provide direct feedback, showed the genuine partnership that had developed.
+
+### Chapter 6: The Power of Visual Communication
+Throughout the journey, one of the most significant discoveries was the power of visual communication in human-AI collaboration.
+
+#### Screenshots as Game-Changers
+The most effective moments in the collaboration came when the human shared screenshots of actual issues. When visual evidence replaced lengthy text descriptions, understanding became immediate and solutions became precise.
+
+#### The Empathy Bridge
+Screenshots did more than provide information—they created a bridge of empathy. The AI could "see" the user experience from the human's perspective, leading to better solutions that considered not just technical requirements but user frustration and delight.
+
+#### A New Communication Standard
+This discovery established a new standard for human-AI collaboration: when possible, show rather than tell. Visual context transforms abstract problems into concrete, solvable challenges.
+
+### Chapter 7: Problem-Solving Patterns That Emerged
+#### The Iterative Debugging Dance
+A specific pattern emerged for complex bug solving:
+1. **Human Discovery**: Issues found through actual gameplay
+2. **AI Investigation**: Systematic code exploration and root cause analysis
+3. **Collaborative Design**: Joint problem-solving and solution design
+4. **Incremental Implementation**: Small, testable changes rather than large rewrites
+5. **Human Validation**: Testing and feedback to ensure solutions work in practice
+
+#### The Art of Root Cause Analysis
+Some of the most impressive collaboration happened when tracking down complex bugs. The "Friend of Children" power card bug, for example, required understanding effect processing across multiple files and execution contexts. The AI's systematic approach combined with the human's contextual understanding created detective work that neither could have accomplished alone.
+
+#### Context Preservation as Collaboration Skill
+One of the most challenging aspects proved to be context preservation—maintaining awareness of previous fixes while working on new challenges. This became a collaborative skill, with the human providing continuity and the AI maintaining technical coherence.
+
+### Chapter 8: Communication Breakthroughs and Challenges
+#### What Worked: Specific and Visual
+The most effective communication was:
+- **Specific Problem Descriptions**: "extra head power card is not giving the player an extra die"
+- **Expected Behavior Clarification**: Clear descriptions of what should happen
+- **Visual Evidence**: Screenshots showing problems and desired outcomes
+- **Direct Feedback**: Honest assessment of results and direction
+
+#### What Didn't Work: Assumptions and Abstractions
+Communication challenges arose from:
+- **Assumed Context**: When either partner assumed the other understood unstated requirements
+- **Abstract Descriptions**: Vague problem descriptions that required multiple rounds of clarification
+- **Technical Jargon**: Over-reliance on technical terms without explaining user impact
+
+#### The Evolution of Shared Vocabulary
+Over time, the partners developed a shared vocabulary and communication style that became increasingly efficient. Technical terms gained shared meaning, and communication patterns became more natural and effective.
+
+### Chapter 9: The Technical Artistry Behind the Scenes
+While this story focuses on collaboration rather than code, it's worth acknowledging the technical artistry that emerged from this partnership.
+
+#### Systems Thinking in Action
+The collaboration demonstrated systems thinking at its best. Rather than treating each feature as isolated, the partners considered how changes would affect the entire system. This led to architectural decisions that made the codebase more maintainable and extensible.
+
+#### The Beauty of Incremental Design
+Instead of trying to design everything upfront, the collaboration embraced incremental design. Features evolved organically, guided by actual use and testing rather than theoretical requirements.
+
+#### Quality as a Shared Value
+One of the most impressive aspects was the shared commitment to quality. Neither partner was satisfied with "good enough"—they pushed each other toward solutions that were elegant, maintainable, and user-friendly.
+
+### Chapter 10: Lessons in Human-AI Partnership
+#### The Complementary Nature of Strengths
+This collaboration highlighted how human and AI strengths complement each other:
+
+**Human Strengths:**
+- Creative vision and user experience intuition
+- Contextual understanding and real-world testing
+- Quality assessment and aesthetic judgment
+- Communication of intent and priorities
+
+**AI Strengths:**
+- Systematic code analysis and pattern recognition
+- Comprehensive implementation and testing consideration
+- Consistent application of best practices
+- Rapid exploration of solution spaces
+
+#### The Trust Development Process
+Trust didn't emerge immediately—it was built through successful collaboration cycles. Each successful fix increased confidence, while each mistake provided learning opportunities for better communication.
+
+#### The Importance of Honest Feedback
+Some of the most valuable moments came from honest feedback. When the human said "you seem to be a bit off your game today," it demonstrated the kind of direct communication that makes partnerships work.
+
+### Epilogue: The Transformation
+#### What Was Built
+By the end of ten days, a simple game concept had become a sophisticated digital experience:
+- **Complete Game Implementation**: All core mechanics working smoothly
+- **Professional Polish**: Responsive design, animations, and user experience refinements
+- **Advanced Features**: AI personalities, mobile support, comprehensive settings
+- **Robust Architecture**: Clean, maintainable code with proper error handling
+
+#### What Was Learned
+More importantly, new patterns for human-AI collaboration had been discovered:
+- **Visual Communication**: The power of screenshots and visual context
+- **Iterative Problem-Solving**: Breaking complex challenges into manageable pieces  
+- **Complementary Partnership**: Leveraging each partner's unique strengths
+- **Quality Focus**: Shared commitment to excellence and user experience
+
+#### The Continuing Journey
+This wasn't just a development project—it was a prototype for the future of software development. As AI capabilities continue to evolve, the patterns and insights from this collaboration provide a roadmap for effective human-AI partnership.
+
+The King of Tokyo game stands as more than just a digital board game. It represents what's possible when human creativity and AI capability are combined through thoughtful collaboration, honest communication, and shared commitment to quality.
+
+#### The Promise of Tomorrow
+This ten-day journey suggests a future where development isn't about humans versus AI, but humans with AI. Where the creative vision of human developers combines with the systematic capabilities of artificial intelligence to create software that neither could achieve alone.
+
+The game is complete, but the collaboration story continues. Each bug fixed, each feature added, each user delighted represents the ongoing partnership between human creativity and artificial intelligence—a partnership that will define the future of software development.
+
+---
+*End of Original Narrative Story Section (Elevated)*
 
 ---
 
@@ -101,8 +252,8 @@ Format: Day N – Work Log [Descriptor]
 
 Legend: [Story↑] link jumps to narrative chapter; [Chat↓] jumps to technical deep dive (if exists).
 
-### Day 1 – Work Log [Conception & Environment]
-**Date:** Sept 7, 2025  |  Story: [Chapter 1](#chapter-1--foundation--first-contact)  |  Chat: [Day 1 Session↓](#day-1--chat-session-initial-ui-interaction)
+## Day 1 – Work Log [Conception & Environment]
+**Date:** Sept 7, 2025  |  Story: [Chapter 1](#chapter-1-first-contact---the-foundation-days)  |  Chat: [Day 1 Session↓](#day-1--chat-session-initial-ui-interaction)
 **Status:** Project Conception & Environment Familiarization (pre-code foundation)
 
 #### Summary
@@ -140,8 +291,8 @@ None (UI not yet rendered).
 
 ---
 
-### Day 2 – Work Log [Modal & Splash UX]
-**Date:** Sept 8, 2025 | Story: [Chapter 1](#chapter-1--foundation--first-contact) | Chat: (n/a)
+## Day 2 – Work Log [Modal & Splash UX]
+**Date:** Sept 8, 2025 | Story: [Chapter 1](#chapter-1-first-contact---the-foundation-days) | Chat: (n/a)
 **Status:** Foundational UI + Modal Interaction
 
 #### Summary
@@ -180,8 +331,8 @@ Embedded splash background asset: ![Splash Background](images/tokyo_bg_2.jpg)
 
 ---
 
-### Day 3 – Work Log [Strategic Silence]
-**Date:** Sept 9, 2025 | Story: [Chapter 2](#chapter-2--silent-momentum) | Chat: (n/a)
+## Day 3 – Work Log [Strategic Silence]
+**Date:** Sept 9, 2025 | Story: [Chapter 2](#chapter-2-the-silent-period---solo-development) | Chat: (n/a)
 **Status:** Silent Iteration / Planning
 
 #### Summary
@@ -217,8 +368,8 @@ No direct generation (passive contextual carry).
 
 ---
 
-### Day 4 – Work Log [Early Mechanics Scaffold]
-**Date:** Sept 10, 2025 | Story: [Chapter 2](#chapter-2--silent-momentum) | Chat: (n/a)
+## Day 4 – Work Log [Early Mechanics Scaffold]
+**Date:** Sept 10, 2025 | Story: [Chapter 2](#chapter-2-the-silent-period---solo-development) | Chat: (n/a)
 **Status:** Early Mechanics + Structural Expansion (Partially Reconstructed)
 
 #### Summary
@@ -258,8 +409,8 @@ Module boundary sketch AI-generated; human pruned speculative branches.
 
 ---
 
-### Day 5 – Work Log [Mechanics Breakthrough]
-**Date:** Sept 11, 2025 | Story: [Chapter 3](#chapter-3--first-breakthrough-cycle) | Chat: [Day 5 Session↓](#day-5--chat-session-logging--emoji-overhaul)
+## Day 5 – Work Log [Mechanics Breakthrough]
+**Date:** Sept 11, 2025 | Story: [Chapter 3](#chapter-3-the-breakthrough-session---solving-complex-challenges) | Chat: [Day 5 Session↓](#day-5--chat-session-logging--emoji-overhaul)
 **Status:** Core Mechanics Breakthrough
 
 #### Summary
@@ -299,8 +450,8 @@ AI suggested branching; human curated dramatic UX pacing.
 
 ---
 
-### Day 6 – Work Log [UI Polish & Feedback]
-**Date:** Sept 12, 2025 | Story: [Chapter 4](#chapter-4--sprint-phase--emergent-systems) | Chat: [Day 6 Session↓](#day-6--chat-session-tokyo-entry-rule-fix)
+## Day 6 – Work Log [UI Polish & Feedback]
+**Date:** Sept 12, 2025 | Story: [Chapter 4](#chapter-4-the-silent-sprints---intensive-development) | Chat: [Day 6 Session↓](#day-6--chat-session-tokyo-entry-rule-fix)
 **Status:** UI Polish & Feedback Loops
 
 #### Summary
@@ -339,8 +490,8 @@ AI drafted formatting; human ordered priorities.
 
 ---
 
-### Day 7 – Work Log [Feature Expansion & Mobile]
-**Date:** Sept 13, 2025 | Story: [Chapter 4](#chapter-4--sprint-phase--emergent-systems) | Chat: [Day 7 Session↓](#day-7--chat-session-active-player-display--method-conflict)
+## Day 7 – Work Log [Feature Expansion & Mobile]
+**Date:** Sept 13, 2025 | Story: [Chapter 4](#chapter-4-the-silent-sprints---intensive-development) | Chat: [Day 7 Session↓](#day-7--chat-session-active-player-display--method-conflict)
 **Status:** Feature Expansion & Mobile Support
 
 #### Summary
@@ -379,8 +530,8 @@ AI proposed pointer abstraction; human validated ergonomics.
 
 ---
 
-### Day 8 – Work Log [Integration & Pause Layer]
-**Date:** Sept 14, 2025 | Story: [Chapter 4](#chapter-4--sprint-phase--emergent-systems) | Chat: [Day 8 Session↓](#day-8--chat-session-power-card-modal)
+## Day 8 – Work Log [Integration & Pause Layer]
+**Date:** Sept 14, 2025 | Story: [Chapter 4](#chapter-4-the-silent-sprints---intensive-development) | Chat: [Day 8 Session↓](#day-8--chat-session-power-card-modal)
 **Status:** Systems Integration & Pause / Setup
 
 #### Summary
@@ -422,8 +573,8 @@ None.
 
 ---
 
-### Day 9 – Work Log [Flow & Architecture]
-**Date:** Sept 15, 2025 | Story: [Chapter 4](#chapter-4--sprint-phase--emergent-systems) | Chat: [Day 9 Session↓](#day-9--chat-session-tokyo-slot-artifact)
+## Day 9 – Work Log [Flow & Architecture]
+**Date:** Sept 15, 2025 | Story: [Chapter 4](#chapter-4-the-silent-sprints---intensive-development) | Chat: [Day 9 Session↓](#day-9--chat-session-tokyo-slot-artifact)
 **Status:** Flow & Architecture Refinement
 
 #### Summary
@@ -463,8 +614,8 @@ AI mapped trigger chain; human validated rules.
 
 ---
 
-### Day 10 – Work Log [Dice + Performance Breakthrough]
-**Date:** Sept 16, 2025 | Story: [Chapter 4](#chapter-4--sprint-phase--emergent-systems) | Chat: [Day 10 Session↓](#day-10--chat-session-consolidated-period)
+## Day 10 – Work Log [Dice + Performance Breakthrough]
+**Date:** Sept 16, 2025 | Story: [Chapter 4](#chapter-4-the-silent-sprints---intensive-development) | Chat: [Day 10 Session↓](#day-10--chat-session-consolidated-period)
 **Status:** Breakthrough Day (Dice + Performance)
 
 #### Summary
@@ -504,8 +655,8 @@ AI proposed caching; human validated memory footprint.
 
 ---
 
-### Day 11 – Work Log [Documentation & Polish]
-**Date:** Sept 17, 2025 | Story: [Chapter 5](#chapter-5--refinement--professional-polish) | Chat: [Day 11 Session↓](#day-11--chat-session-final-polish--documentation)
+## Day 11 – Work Log [Documentation & Polish]
+**Date:** Sept 17, 2025 | Story: [Chapter 5](#chapter-5-the-refinement-session---professional-polish) | Chat: [Day 11 Session↓](#day-11--chat-session-final-polish--documentation)
 **Status:** Documentation & Final Polish (Phase 1 End)
 
 #### Summary
@@ -545,8 +696,8 @@ AI scaffolded docs; human refined narrative tone.
 
 ---
 
-### Day 12 – Work Log [Power Card Modal Refinement]
-**Date:** Sept 18, 2025 | Story: [Chapter 6](#chapter-6--visual-communication-as-catalyst) | Chat: [Day 8 Session↓](#day-8--chat-session-power-card-modal)
+## Day 12 – Work Log [Power Card Modal Refinement]
+**Date:** Sept 18, 2025 | Story: [Chapter 6](#chapter-6-the-power-of-visual-communication) | Chat: [Day 8 Session↓](#day-8--chat-session-power-card-modal)
 **Status:** Modal & Power Card Detail Refinement (Phase 2 Start)
 
 #### Summary
@@ -585,8 +736,8 @@ AI rationale guidance; human enforced minimal header.
 
 ---
 
-### Day 13 – Work Log [Tokyo Slot Artifact Fix]
-**Date:** Sept 19, 2025 | Story: [Chapter 6](#chapter-6--visual-communication-as-catalyst) | Chat: [Day 9 Session↓](#day-9--chat-session-tokyo-slot-artifact)
+## Day 13 – Work Log [Tokyo Slot Artifact Fix]
+**Date:** Sept 19, 2025 | Story: [Chapter 6](#chapter-6-the-power-of-visual-communication) | Chat: [Day 9 Session↓](#day-9--chat-session-tokyo-slot-artifact)
 **Status:** Tokyo Slot Visual Artifact & Mini Variant Styling
 
 #### Summary
@@ -628,9 +779,9 @@ AI traced clone path; human validated persistence prompting second patch.
 ## Technical Chat Sessions
 Deep technical transcripts & analyses. Headers formatted: Day N – Chat Session [Descriptor]. Each provides model footnote and links back to Work Log + Story.
 
-### Day 1 – Chat Session [Initial UI Interaction]
+## Day 1 – Chat Session [Initial UI Interaction]
 Anchor: `day-1--chat-session-initial-ui-interaction`  
-Work Log: [Day 1↑](#day-1--work-log-conception--environment) | Story: [Chapter 1↑](#chapter-1--foundation--first-contact)
+Work Log: [Day 1↑](#day-1--work-log-conception--environment) | Story: [Chapter 1↑](#chapter-1-first-contact---the-foundation-days)
 *Model Footnote:* GPT-4 class assistant; human directed minimalism & correctness.
 
 #### Session Summary
@@ -663,7 +814,7 @@ Full original transcript preserved in backup file at section: "Day 1 Chat Sessio
 #### Model Attribution
 [^model-day-1]
 
-### Day 5 – Chat Session [Logging & Emoji Overhaul]
+## Day 5 – Chat Session [Logging & Emoji Overhaul]
 Anchor: `day-5--chat-session-logging--emoji-overhaul`  
 Work Log: [Day 5↑](#day-5--work-log-mechanics-breakthrough) | Story: [Chapter 3↑](#chapter-3--first-breakthrough-cycle)
 
@@ -672,52 +823,52 @@ No standalone live transcript captured this day. Development breakthroughs logge
 #### Model Attribution
 [^model-day-5]
 
-### Day 6 – Chat Session [Tokyo Entry Rule Fix]
+## Day 6 – Chat Session [Tokyo Entry Rule Fix]
 Anchor: `day-6--chat-session-tokyo-entry-rule-fix`  
-Work Log: [Day 6↑](#day-6--work-log-ui-polish--feedback) | Story: [Chapter 4↑](#chapter-4--sprint-phase--emergent-systems)
+Work Log: [Day 6↑](#day-6--work-log-ui-polish--feedback) | Story: [Chapter 4↑](#chapter-4-the-silent-sprints---intensive-development)
 
 No preserved synchronous transcript. Resolution of animation cleanup + entry logic discussed ad-hoc. Source-of-truth: commits `bb9f78e`, `54ddc81`, `4f5922c`.
 
 #### Model Attribution
 [^model-day-6]
 
-### Day 7 – Chat Session [Active Player Display & Method Conflict]
+## Day 7 – Chat Session [Active Player Display & Method Conflict]
 Anchor: `day-7--chat-session-active-player-display--method-conflict`  
-Work Log: [Day 7↑](#day-7--work-log-feature-expansion--mobile) | Story: [Chapter 4↑](#chapter-4--sprint-phase--emergent-systems)
+Work Log: [Day 7↑](#day-7--work-log-feature-expansion--mobile) | Story: [Chapter 4↑](#chapter-4-the-silent-sprints---intensive-development)
 
 Absent transcript. Conflict over duplicate method naming (early form of later dual `endTurn()` issue) reconstructed in Work Log narrative.
 
 #### Model Attribution
 [^model-day-7]
 
-### Day 8 – Chat Session [Power Card Modal]
+## Day 8 – Chat Session [Power Card Modal]
 Anchor: `day-8--chat-session-power-card-modal`  
-Work Log: [Day 8↑](#day-8--work-log-integration--pause-layer) | Story: [Chapter 6↑](#chapter-6--visual-communication-as-catalyst)
+Work Log: [Day 8↑](#day-8--work-log-integration--pause-layer) | Story: [Chapter 6↑](#chapter-6-the-power-of-visual-communication)
 
 Transcript not captured; modal ancestry + wrapper scope debugging summarized in Day 12 Work Log (retroactive refinement). Commits: `2af7369`, `5a2ada4`, `5e52500`, `c64c9c9`.
 
 #### Model Attribution
 [^model-day-8]
 
-### Day 9 – Chat Session [Tokyo Slot Artifact]
+## Day 9 – Chat Session [Tokyo Slot Artifact]
 Anchor: `day-9--chat-session-tokyo-slot-artifact`  
-Work Log: [Day 9↑](#day-9--work-log-flow--architecture) | Story: [Chapter 6↑](#chapter-6--visual-communication-as-catalyst)
+Work Log: [Day 9↑](#day-9--work-log-flow--architecture) | Story: [Chapter 6↑](#chapter-6-the-power-of-visual-communication)
 
 No real-time transcript; artifact resolution documented post-fix in Day 13 Work Log referencing DOM layering and CSS overrides.
 
 #### Model Attribution
 [^model-day-9]
 
-### Day 10 – Chat Session [Consolidated Period]
+## Day 10 – Chat Session [Consolidated Period]
 Anchor: `day-10--chat-session-consolidated-period`  
-Work Log: [Day 10↑](#day-10--work-log-dice--performance-breakthrough) | Story: [Chapter 4↑](#chapter-4--sprint-phase--emergent-systems)
+Work Log: [Day 10↑](#day-10--work-log-dice--performance-breakthrough) | Story: [Chapter 4↑](#chapter-4-the-silent-sprints---intensive-development)
 
 Breakthrough day but chat absent—speed prioritized continuous coding. Dice stabilization + DOM caching strategy captured via commits `1121900`, `ef6743a`, `16bb7ed`.
 
 #### Model Attribution
 [^model-day-10]
 
-### Day 11 – Chat Session [Final Polish & Documentation]
+## Day 11 – Chat Session [Final Polish & Documentation]
 Anchor: `day-11--chat-session-final-polish--documentation`  
 Work Log: [Day 11↑](#day-11--work-log-documentation--polish) | Story: [Chapter 5↑](#chapter-5--refinement--professional-polish)
 
@@ -1329,6 +1480,44 @@ This block referred to a session labeled "Day 4" dated Sept 15 (chronological mi
 ---
 
 *End Appendix C – Legacy Embedded Narrative*
+
+### Appendix D – Thematic Synthesis Summaries
+Previously primary synthesized narrative (now secondary). Retained for quick thematic scanning; maps to original narrative chapters above.
+
+#### Synthesis: Foundation & First Contact
+Early interaction patterns, modal dismissal UX, vocabulary alignment; established trust roles.
+
+#### Synthesis: Silent Momentum
+Reflection period crystallized priorities (dice stability, Tokyo gating) without code churn.
+
+#### Synthesis: First Breakthrough Cycle
+Mechanics consolidation (elimination, extra dice) derisked core loop; avoided premature abstraction.
+
+#### Synthesis: Sprint Phase & Emergent Systems
+Multi-day acceleration: drag/drop, UI polish, caching, instrumentation, mobile parity emergence.
+
+#### Synthesis: Refinement & Professional Polish
+Shift to correctness, naming audits, duplication removal (dual endTurn), documentation maturity.
+
+#### Synthesis: Visual Communication as Catalyst
+Screenshot-driven clarity reduced iteration cycles vs prose ambiguity; empathy via shared render states.
+
+#### Synthesis: Debugging Patterns & Root Cause Mastery
+Pattern: targeted logging over speculative change; effect dedupe + gating centralization.
+
+#### Synthesis: Communication Growth & Vocabulary
+Converged domain lexicon reduced cognitive friction (profile card, roll progression, cascade ancestry).
+
+#### Synthesis: Architectural & Systems Thinking
+Principles: centralize transitions, delay registries, preserve explicit ancestry in CSS.
+
+#### Synthesis: Partnership Lessons
+Complementary strengths codified; candid performance feedback accelerated recalibration.
+
+#### Synthesis: Forward Arc
+Narrative closure framed platform readiness for AI heuristics & deterministic test harness.
+
+*End Appendix D – Thematic Synthesis Summaries*
 - **Stop-and-Ask Approach**: Human insisted AI ask permission before making changes
 - **Revert-First Strategy**: When things broke, immediately revert all changes to restore working state
 - **Full Codebase Review**: Human suggested AI should go through all files systematically to understand architecture
