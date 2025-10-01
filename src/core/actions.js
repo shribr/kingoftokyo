@@ -190,7 +190,8 @@ export const uiVPFlash = (playerId, amount, ts = Date.now()) => ({ type: UI_VP_F
 export const uiEnergyFlash = (playerId, amount, ts = Date.now()) => ({ type: UI_ENERGY_FLASH, payload: { playerId, amount, ts } });
 export const uiHealthFlash = (playerId, amount, ts = Date.now()) => ({ type: UI_HEALTH_FLASH, payload: { playerId, amount, ts } });
 // Yield prompt actions
-export const yieldPromptShown = (defenderId, attackerId, slot, expiresAt) => ({ type: YIELD_PROMPT_SHOWN, payload: { defenderId, attackerId, slot, expiresAt } });
+// Yield prompt now supports optional damage (for UI projection) and advisory meta ({ suggestion, reason, seed? })
+export const yieldPromptShown = (defenderId, attackerId, slot, expiresAt, damage = null, advisory = null) => ({ type: YIELD_PROMPT_SHOWN, payload: { defenderId, attackerId, slot, expiresAt, damage, advisory } });
 export const yieldPromptDecided = (defenderId, attackerId, slot, decision) => ({ type: YIELD_PROMPT_DECIDED, payload: { defenderId, attackerId, slot, decision } });
 // Settings actions
 export const settingsLoaded = (settings) => ({ type: SETTINGS_LOADED, payload: { settings } });

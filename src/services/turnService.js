@@ -12,6 +12,7 @@ import { forceAIDiceKeepIfPending } from './aiDecisionService.js';
 import { Phases } from '../core/phaseFSM.js';
 import { createPhaseController } from '../core/phaseController.js';
 import { rollDice } from '../domain/dice.js';
+import { isDeterministicMode, deriveRngForTurn, combineSeed } from '../core/rng.js';
 import { resolveDice, awardStartOfTurnTokyoVP, checkGameOver } from './resolutionService.js';
 import { selectTokyoCityOccupant, selectTokyoBayOccupant } from '../core/selectors.js';
 import { DICE_ANIM_MS, AI_POST_ANIM_DELAY_MS, CPU_TURN_START_MS, CPU_DECISION_DELAY_MS } from '../constants/uiTimings.js';
@@ -94,7 +95,10 @@ export function createTurnService(store, logger, rng = Math.random) {
           markPhaseEnd('YIELD_DECISION');
           logger.system('Phase: BUY (yield decisions resolved)', { kind:'phase' });
           const phaseEvents = typeof window !== 'undefined' ? window.__KOT_NEW__?.phaseEventsService : null;
-          if (phaseEvents) phaseEvents.publish('YIELD_DECISION_MADE'); else { store.dispatch(phaseChanged(Phases.BUY)); markPhaseStart('BUY'); }
+          if (phaseEvents) phaseEvents.publish('YIELD_DECISION_MADE'); else {
+            phaseCtrl.to(Phases.BUY, { reason: 'yield_decisions_resolved' });
+            markPhaseStart('BUY');
+          }
         }
       }
       // BUY_WAIT auto-advance: once effectQueue idle, proceed to CLEANUP
@@ -106,7 +110,10 @@ export function createTurnService(store, logger, rng = Math.random) {
           markPhaseEnd('BUY_WAIT');
           logger.system('Phase: CLEANUP (post-purchase effects resolved)', { kind:'phase' });
           const phaseEvents = typeof window !== 'undefined' ? window.__KOT_NEW__?.phaseEventsService : null;
-          if (phaseEvents) phaseEvents.publish('POST_PURCHASE_RESOLVED'); else { store.dispatch(phaseChanged(Phases.CLEANUP)); markPhaseStart('CLEANUP'); }
+          if (phaseEvents) phaseEvents.publish('POST_PURCHASE_RESOLVED'); else {
+            phaseCtrl.to(Phases.CLEANUP, { reason: 'post_purchase_idle' });
+            markPhaseStart('CLEANUP');
+          }
             // immediately call cleanup since we bypassed resolve() path
             cleanup();
         }
@@ -122,6 +129,7 @@ export function createTurnService(store, logger, rng = Math.random) {
   }
 
   function startTurn() {
+    __rollIndex = 0; // reset per new turn (defined later)
     // Start-of-turn bonuses (Tokyo VP if occupying City at turn start)
     awardStartOfTurnTokyoVP(store, logger);
   logger.system('Phase: ROLL', { kind: 'phase' });
@@ -151,6 +159,7 @@ export function createTurnService(store, logger, rng = Math.random) {
     } catch(_) {}
   }
 
+  let __rollIndex = 0; // per-turn roll counter
   async function performRoll() {
     // Dispatches DICE_ROLL_STARTED and then DICE_ROLLED with new faces
     const st = store.getState();
@@ -163,7 +172,13 @@ export function createTurnService(store, logger, rng = Math.random) {
     }
     console.log(`🎲 Starting dice roll for ${st.players.byId[activeId]?.name || 'unknown'}`);
     store.dispatch(diceRollStarted());
-    const faces = rollDice({ currentFaces: st.dice.faces, count: diceSlots, rng });
+    let useRng = rng;
+    if (isDeterministicMode()) {
+      const seed = combineSeed('KOT_DICE', st.meta.turnCycleId, __rollIndex, activeId || '');
+      useRng = deriveRngForTurn(seed, st.meta.turnCycleId, __rollIndex);
+    }
+    const faces = rollDice({ currentFaces: st.dice.faces, count: diceSlots, rng: useRng });
+    __rollIndex++;
     // Simulate AI pacing delay (human players later could bypass)
     const delay = computeDelay(store.getState().settings);
     if (delay) await wait(delay);

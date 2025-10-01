@@ -13,7 +13,8 @@
  */
 import { tallyFaces, extractTriples } from '../domain/dice.js';
 import { applyPlayerDamage, healPlayerAction, playerGainEnergy, playerVPGained, playerEnteredTokyo, playerLeftTokyo, uiAttackPulse, uiVPFlash, uiEnergyFlash, uiHealthFlash, tokyoOccupantSet, yieldPromptShown, yieldPromptDecided } from '../core/actions.js';
-import { evaluateYieldDecision } from './aiDecisionService.js';
+import { evaluateYieldDecision, evaluateYieldAdvisory } from './aiDecisionService.js';
+import { isDeterministicMode, combineSeed } from '../core/rng.js';
 import { selectTokyoCityOccupant, selectTokyoBayOccupant } from '../core/selectors.js';
 import { selectActivePlayerId } from '../core/selectors.js';
 import { Phases } from '../core/phaseFSM.js';
@@ -27,10 +28,10 @@ export function resolveDice(store, logger) {
   const faces = state.dice.faces;
   if (!faces.length) return;
   const tally = tallyFaces(faces);
-  // 1. Numeric triples scoring (3 of a number gives that number VP, +1 VP per extra of that number)
+  // 1. Numeric triples scoring
   const triples = extractTriples(tally);
   for (const t of triples) {
-    const base = t.number; // 1,2,3
+    const base = t.number;
     const extras = t.count - 3;
     const vp = base + Math.max(0, extras);
     if (vp > 0) {
@@ -54,7 +55,7 @@ export function resolveDice(store, logger) {
       logger.info(`${activeId} heals ${tally.heart}`);
     }
   }
-  // 4. Attacks (claws) – if attacker outside Tokyo hit occupant; if inside hit everyone outside
+  // 4. Attacks (claws)
   if (tally.claw > 0) {
     const current = store.getState();
     const attacker = current.players.byId[activeId];
@@ -62,7 +63,6 @@ export function resolveDice(store, logger) {
     const bayOcc = selectTokyoBayOccupant(current);
     const damaged = [];
     if (attacker.inTokyo) {
-      // Attacker is in (either city or bay) -> hit everyone not in any Tokyo slot
       current.players.order.forEach(pid => {
         if (pid !== activeId) {
           const target = current.players.byId[pid];
@@ -74,7 +74,6 @@ export function resolveDice(store, logger) {
         }
       });
     } else {
-      // Attacking Tokyo occupants (both city & bay if present)
       if (cityOcc) {
         store.dispatch(applyPlayerDamage(cityOcc, tally.claw));
         logger.info(`${activeId} claws ${cityOcc} in Tokyo City for ${tally.claw}`);
@@ -90,84 +89,13 @@ export function resolveDice(store, logger) {
       store.dispatch(uiAttackPulse(damaged));
     }
   }
-  // 5. Tokyo entry/exit decisions (yield prompts and takeover logic)
-  const afterCombat = store.getState();
-  const attacker = afterCombat.players.byId[activeId];
-  const cityOcc = selectTokyoCityOccupant(afterCombat);
-  const bayOcc = selectTokyoBayOccupant(afterCombat);
-  const anyOccupied = !!cityOcc || !!bayOcc;
-  const playerCount = afterCombat.players.order.length;
+  // 5. Yield / takeover flow (extracted)
+  const postAttackState = store.getState();
+  const playerCount = postAttackState.players.order.length;
   const bayAllowed = playerCount >= 5;
-  let yieldPromptsCreated = false;
-  if (!anyOccupied && tally.claw > 0 && !attacker.inTokyo) {
-    // Enter city first (only city when empty)
-    store.dispatch(playerEnteredTokyo(activeId));
-    store.dispatch(tokyoOccupantSet(activeId, playerCount));
-    logger.system(`${activeId} enters Tokyo City!`, { kind:'tokyo', slot:'city' });
-    store.dispatch(playerVPGained(activeId, 1, 'enterTokyo'));
-    store.dispatch(uiVPFlash(activeId, 1));
-    logger.info(`${activeId} gains 1 VP for entering Tokyo`);
-  } else if (anyOccupied && tally.claw > 0) {
-    // Interactive yield: create prompt(s) for each occupant damaged & still alive
-    const post = store.getState();
-    const prompts = [];
-      const addPrompt = (pid, slot) => {
-      if (!pid) return;
-      const p = post.players.byId[pid];
-      if (!p || !p.status.alive) return;
-      console.log(`🏯 Creating yield prompt for ${p.name} (${p.isCPU ? 'CPU' : 'Human'}) in ${slot}`);
-      
-      // Different handling for human vs CPU players
-      const damage = tally.claw;
-      if (p.isCPU || p.isAI) {
-        // CPU/AI players get a 10 second timeout
-        const expiresAt = Date.now() + 10000;
-        store.dispatch(yieldPromptShown(pid, activeId, slot, expiresAt));
-        logger.info(`${pid} prompted to yield Tokyo ${slot}`, { kind:'tokyo', slot, attacker: activeId });
-        prompts.push({ defenderId: pid, slot });
-        // Auto decision fallback after expiry (simple: stay if above 3 health else yield)
-        setTimeout(() => {
-          const s = store.getState();
-          const stillPending = s.yield.prompts.find(pr => pr.defenderId === pid && pr.attackerId === activeId && pr.slot === slot && pr.decision == null);
-          if (stillPending) {
-            const curP = s.players.byId[pid];
-              // Use heuristic
-              const incomingDamage = tally.claw; // approximate recent damage amount
-              const autoDecision = evaluateYieldDecision(s, pid, incomingDamage, slot);
-              store.dispatch(yieldPromptDecided(pid, activeId, slot, autoDecision));
-              if (autoDecision === 'yield') {
-                store.dispatch(playerLeftTokyo(pid));
-                logger.system(`${pid} auto-yields Tokyo ${slot}`, { kind:'tokyo', slot });
-              }
-              attemptTokyoTakeover(store, logger, activeId, playerCount, bayAllowed);
-          }
-        }, 5100);
-      } else {
-        // Human players get no timeout - they can take as long as they want
-        store.dispatch(yieldPromptShown(pid, activeId, slot, null));
-        logger.info(`${pid} prompted to yield Tokyo ${slot} (human - no timeout)`, { kind:'tokyo', slot, attacker: activeId });
-        prompts.push({ defenderId: pid, slot });
-      }
-      
-      // Early AI auto decision: if defender is AI (heuristic placeholder), decide immediately if clear-cut
-      const sNow = store.getState();
-      const defender = sNow.players.byId[pid];
-      if (defender && (defender.isCPU || defender.isAI)) {
-        const immediate = evaluateYieldDecision(sNow, pid, tally.claw, slot);
-        if (immediate === 'yield' && defender.health - tally.claw <= 2) {
-          store.dispatch(yieldPromptDecided(pid, activeId, slot, 'yield'));
-          store.dispatch(playerLeftTokyo(pid));
-          logger.system(`${pid} AI-yields Tokyo ${slot} (immediate)`, { kind:'tokyo', slot });
-          attemptTokyoTakeover(store, logger, activeId, playerCount, bayAllowed);
-        }
-      }
-    };
-  if (cityOcc) addPrompt(cityOcc, 'city');
-  if (bayAllowed && bayOcc) addPrompt(bayOcc, 'bay');
-    yieldPromptsCreated = true;
-    // Immediate takeover not performed yet; takeover attempted when decisions resolved.
-  }
-  // Elimination cleanup: ensure defeated occupants are removed before final takeover
+  const { yieldPromptsCreated } = handleYieldAndPotentialTakeover(store, logger, activeId, tally.claw, playerCount, bayAllowed);
+
+  // 6. Elimination cleanup
   const post = store.getState();
   const cityAfter = selectTokyoCityOccupant(post);
   const bayAfter = selectTokyoBayOccupant(post);
@@ -183,19 +111,98 @@ export function resolveDice(store, logger) {
       store.dispatch(playerLeftTokyo(bayAfter));
     }
   }
-  // Final takeover attempt after cleanup and any immediate yields
+  // Final takeover attempt
   attemptTokyoTakeover(store, logger, activeId, playerCount, bayAllowed);
 
-  // If any yield prompts were created for humans or AI awaiting timeout, move into YIELD_DECISION phase; else remain in RESOLVE completion path.
   if (yieldPromptsCreated) {
     const st2 = store.getState();
     const pendingAny = st2.yield.prompts.some(p => p.decision == null);
     if (pendingAny) {
       phaseCtrl.event('NEEDS_YIELD_DECISION');
       logger.system('Phase: YIELD_DECISION', { kind:'phase' });
-      try { if (window?.__KOT_METRICS__) { /* placeholder if needed */ } } catch(_) {}
+      try { if (window?.__KOT_METRICS__) { /* metrics hook */ } } catch(_) {}
     }
   }
+}
+
+// Extracted helper: manages immediate entry when empty OR creates yield prompts for damaged occupants.
+function handleYieldAndPotentialTakeover(store, logger, activeId, clawDamage, playerCount, bayAllowed) {
+  const state = store.getState();
+  const attacker = state.players.byId[activeId];
+  const cityOcc = selectTokyoCityOccupant(state);
+  const bayOcc = selectTokyoBayOccupant(state);
+  const anyOccupied = !!cityOcc || !!bayOcc;
+  let yieldPromptsCreated = false;
+  if (clawDamage > 0) {
+    if (!anyOccupied && !attacker.inTokyo) {
+      // Empty -> enter immediately
+      store.dispatch(playerEnteredTokyo(activeId));
+      store.dispatch(tokyoOccupantSet(activeId, playerCount));
+      logger.system(`${activeId} enters Tokyo City!`, { kind:'tokyo', slot:'city' });
+      store.dispatch(playerVPGained(activeId, 1, 'enterTokyo'));
+      store.dispatch(uiVPFlash(activeId, 1));
+      logger.info(`${activeId} gains 1 VP for entering Tokyo`);
+    } else if (anyOccupied) {
+      const post = store.getState();
+      const prompts = [];
+      const addPrompt = (pid, slot) => {
+        if (!pid) return;
+        const p = post.players.byId[pid];
+        if (!p || !p.status.alive) return;
+        console.log(`🏯 Creating yield prompt for ${p.name} (${p.isCPU ? 'CPU' : 'Human'}) in ${slot}`);
+        const damage = clawDamage;
+        let advisory = null;
+        try {
+          const adv = evaluateYieldAdvisory(store.getState(), pid, damage, slot);
+          if (adv) {
+            advisory = { ...adv };
+            if (isDeterministicMode()) {
+              advisory.seed = combineSeed('KOT_YIELD', store.getState().meta.turnCycleId, pid, slot);
+            }
+          }
+        } catch(_) {}
+        if (p.isCPU || p.isAI) {
+          const expiresAt = Date.now() + 10000;
+          store.dispatch(yieldPromptShown(pid, activeId, slot, expiresAt, damage, advisory));
+          logger.info(`${pid} prompted to yield Tokyo ${slot}`, { kind:'tokyo', slot, attacker: activeId });
+          prompts.push({ defenderId: pid, slot });
+          setTimeout(() => {
+            const s = store.getState();
+            const stillPending = s.yield.prompts.find(pr => pr.defenderId === pid && pr.attackerId === activeId && pr.slot === slot && pr.decision == null);
+            if (stillPending) {
+              const autoDecision = evaluateYieldDecision(s, pid, damage, slot);
+              store.dispatch(yieldPromptDecided(pid, activeId, slot, autoDecision));
+              if (autoDecision === 'yield') {
+                store.dispatch(playerLeftTokyo(pid));
+                logger.system(`${pid} auto-yields Tokyo ${slot}`, { kind:'tokyo', slot });
+              }
+              attemptTokyoTakeover(store, logger, activeId, playerCount, bayAllowed);
+            }
+          }, 5100);
+        } else {
+          store.dispatch(yieldPromptShown(pid, activeId, slot, null, damage, advisory));
+          logger.info(`${pid} prompted to yield Tokyo ${slot} (human - no timeout)`, { kind:'tokyo', slot, attacker: activeId });
+          prompts.push({ defenderId: pid, slot });
+        }
+        // Early AI auto yield if lethal risk
+        const sNow = store.getState();
+        const defender = sNow.players.byId[pid];
+        if (defender && (defender.isCPU || defender.isAI)) {
+          const immediate = evaluateYieldDecision(sNow, pid, damage, slot);
+            if (immediate === 'yield' && defender.health - damage <= 2) {
+            store.dispatch(yieldPromptDecided(pid, activeId, slot, 'yield'));
+            store.dispatch(playerLeftTokyo(pid));
+            logger.system(`${pid} AI-yields Tokyo ${slot} (immediate)`, { kind:'tokyo', slot });
+            attemptTokyoTakeover(store, logger, activeId, playerCount, bayAllowed);
+          }
+        }
+      };
+      if (cityOcc) addPrompt(cityOcc, 'city');
+      if (bayAllowed && bayOcc) addPrompt(bayOcc, 'bay');
+      yieldPromptsCreated = true;
+    }
+  }
+  return { yieldPromptsCreated };
 }
 
 // Helper: if there are no pending undecided prompts and attacker not in Tokyo, fill open slots (city then bay)

@@ -230,5 +230,21 @@ Status Update (Oct 1, 2025): Phase Alpha Step 1 complete – AI actuation unifie
 **Smoke Harness**: `tools/deterministicSmoke.js` validates stable dice + decision object across two runs.
 
 ---
+## Unified Yield & Takeover Sequence (IN PROGRESS)
+**Implemented so far**:
+1. Helper `handleYieldAndPotentialTakeover` centralizes empty-slot entry, prompt creation, AI immediate yield, timeout scheduling, advisory generation.
+2. Advisory metadata on prompts: `advisory { suggestion, reason, seed? }` consumed by A11y overlay & modal.
+3. Deterministic seed placeholder (`combineSeed('KOT_YIELD', turnCycleId, defenderId, slot)`). No RNG yet, future-proof for probabilistic modeling.
+4. Resolution refactor: yield logic extracted improving readability and testability.
+
+**Pending**:
+- Ordering tests for multi-occupant scenarios.
+- Enhanced heuristic (threat index, VP delta, card modifiers).
+- Takeover ordering assertion tests & phase harness integration.
+- Possible AI engine integration for deeper yield projections.
+
+**Harness**: `tools/yieldFlowHarness.js` simulates a claw attack vs an occupant to validate prompt + advisory.
+
+---
 
 **Note**: Revisions incorporate parity audit findings (Sept 29, 2025). Legacy remains the reference standard until Flow Parity (Phase Alpha) is achieved.

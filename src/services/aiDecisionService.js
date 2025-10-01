@@ -439,6 +439,51 @@ export function evaluateYieldDecision(state, defenderId, incomingDamage, slot) {
   return 'stay';
 }
 
+// Extended advisory helper: returns { suggestion:'yield'|'stay', reason:string }
+// Provides a lightweight human-readable rationale for UI display.
+export function evaluateYieldAdvisory(state, defenderId, incomingDamage, slot) {
+  const suggestion = evaluateYieldDecision(state, defenderId, incomingDamage, slot);
+  const defender = state.players.byId[defenderId];
+  if (!defender) {
+    return { suggestion: 'stay', reason: 'No defender state available' };
+  }
+  const projected = defender.health - incomingDamage;
+  // Threat index: count alive opponents that could immediately deal >=2 damage next turn (rough proxy: alive & not in Tokyo when defender is in, or outside when defender outside — simplified)
+  const opponents = state.players.order.filter(id => id !== defenderId).map(id => state.players.byId[id]).filter(p => p.status.alive);
+  const threatIndex = opponents.length;
+  // VP differential: highest opponent VP minus defender VP (positive means trailing)
+  const maxOpponentVP = opponents.reduce((m,p)=> Math.max(m, p.victoryPoints), 0);
+  const vpDiff = maxOpponentVP - defender.victoryPoints;
+  // Low HP risk band flags
+  const lowHPAfter = projected <= 2;
+  let reason;
+  // Deterministic note: Currently heuristic uses only state & damage (no RNG); seed recorded upstream for future stochastic refinements.
+  // Simple stochastic survival modeling (future extensible):
+  // Estimate probability defender survives next round if staying (rough heuristic using projected HP & threatIndex)
+  // P(survive) ≈ clamp( projectedHP / (projectedHP + threatIndex*1.5), 0, 1 )
+  const rawProb = projected <= 0 ? 0 : projected / (projected + Math.max(1, threatIndex) * 1.5);
+  const survivalProb = Math.max(0, Math.min(1, rawProb));
+  // Adjust final suggestion if survival probability is extremely low
+  let adjustedSuggestion = suggestion;
+  if (suggestion === 'stay' && survivalProb < 0.25 && projected <= 2) {
+    adjustedSuggestion = 'yield';
+  }
+  if (adjustedSuggestion === 'yield') {
+    if (lowHPAfter && defender.victoryPoints < 12) reason = `Low HP (${projected}) with VP < 12 – survival priority`;
+    else if (slot === 'bay' && incomingDamage >= 3 && projected < defender.health) reason = 'Moderate damage in lower-value Bay slot';
+    else if (threatIndex >= 2 && projected <= 3) reason = `Multiple threats (${threatIndex}) while HP ${projected}`;
+    else if (vpDiff < -4) reason = 'Ahead on VP – reduce elimination risk';
+    else if (survivalProb < 0.25) reason = `Very low survival probability (${(survivalProb*100)|0}%) if staying`;
+    else reason = 'Yielding preserves health for later turns';
+  } else { // stay
+    if (defender.victoryPoints >= 15 && projected > 0) reason = 'Close to VP win – maintain position';
+    else if (projected > 2 && threatIndex <= 1) reason = `Sufficient HP buffer (${projected}) with limited threats`;
+    else if (vpDiff > 3 && projected > 1) reason = 'Behind on VP – need Tokyo pressure';
+    else reason = 'Risk acceptable to hold Tokyo';
+  }
+  return { suggestion: adjustedSuggestion, reason, metrics: { projectedHP: projected, threatIndex, vpDiff, survivalProb } };
+}
+
 // AI purchase heuristic: prefer cheap immediate VP / energy cards under budget; fallback to utility.
 function attemptAIPurchases(store) {
   const state = store.getState();

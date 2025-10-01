@@ -24,6 +24,7 @@ export function build({ selector, emit }) {
         <div class="decision-damage-info" data-damage-info>
           <!-- Damage and health info will be populated here -->
         </div>
+        <div class="decision-advisory" data-advisory style="display:none;margin-top:8px;font-size:0.85rem;color:#ddd"></div>
       </div>
       <div class="decision-actions">
         <button class="decision-btn btn primary" data-stay>
@@ -88,6 +89,7 @@ export function build({ selector, emit }) {
     const contextEl = root.querySelector('[data-context]');
     const messageEl = root.querySelector('[data-message]');
     const damageInfoEl = root.querySelector('[data-damage-info]');
+  const advisoryEl = root.querySelector('[data-advisory]');
 
     // Update title based on slot
     const slotName = prompt.slot === 'city' ? 'Tokyo City' : 'Tokyo Bay';
@@ -120,6 +122,15 @@ export function build({ selector, emit }) {
       damageInfoEl.style.display = 'block';
     } else {
       damageInfoEl.style.display = 'none';
+    }
+
+    // Advisory
+    if (prompt.advisory) {
+      const adv = prompt.advisory;
+      advisoryEl.textContent = `Suggestion: ${adv.suggestion === 'yield' ? 'Yield' : 'Stay'} – ${adv.reason}`;
+      advisoryEl.style.display = 'block';
+    } else {
+      advisoryEl.style.display = 'none';
     }
   }
 

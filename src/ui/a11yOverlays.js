@@ -82,7 +82,8 @@ function renderYieldPrompts(prompts, state, store) {
     panel.setAttribute('aria-label', `Yield Tokyo ${p.slot}`);
     panel.style.cssText = 'background:#222;color:#fff;padding:8px 12px;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.4);';
     const timeLeft = Math.max(0, p.expiresAt - Date.now());
-    panel.innerHTML = `<div style="font-size:13px">${p.defenderId}: Yield Tokyo ${p.slot}? <span aria-live="polite" class="yield-timer">${Math.ceil(timeLeft/1000)}s</span></div>`;
+  const advisoryLine = p.advisory ? `<div style='font-size:11px;color:#ccc;margin-top:2px'>Suggest: ${p.advisory.suggestion === 'yield' ? 'Yield' : 'Stay'} – ${p.advisory.reason}</div>` : '';
+  panel.innerHTML = `<div style="font-size:13px">${p.defenderId}: Yield Tokyo ${p.slot}? <span aria-live="polite" class="yield-timer">${Math.ceil(timeLeft/1000)}s</span></div>${advisoryLine}`;
     const btnWrap = document.createElement('div'); btnWrap.style.marginTop = '4px';
     const btnStay = document.createElement('button'); btnStay.textContent = 'Stay'; btnStay.style.marginRight = '6px'; btnStay.setAttribute('aria-label','Stay in Tokyo');
     const btnYield = document.createElement('button'); btnYield.textContent = 'Yield'; btnYield.setAttribute('aria-label','Yield Tokyo');
