@@ -10,6 +10,7 @@ import { phaseChanged, nextTurn, diceRollStarted, diceRolled, diceRerollUsed, pl
 import { createCpuTurnController } from './cpuTurnController.js';
 import { forceAIDiceKeepIfPending } from './aiDecisionService.js';
 import { Phases } from '../core/phaseFSM.js';
+import { createPhaseController } from '../core/phaseController.js';
 import { rollDice } from '../domain/dice.js';
 import { resolveDice, awardStartOfTurnTokyoVP, checkGameOver } from './resolutionService.js';
 import { selectTokyoCityOccupant, selectTokyoBayOccupant } from '../core/selectors.js';
@@ -75,6 +76,7 @@ function clearCpuWatchdog(turnCycleId) {
 }
 
 export function createTurnService(store, logger, rng = Math.random) {
+  const phaseCtrl = createPhaseController(store, logger);
   // Watch for completion of YIELD_DECISION phase (all prompts resolved) to advance to BUY automatically
   store.subscribe((state, action) => {
     try {
@@ -114,7 +116,7 @@ export function createTurnService(store, logger, rng = Math.random) {
   function startGameIfNeeded() {
     const st = store.getState();
     if (st.phase === Phases.SETUP) {
-      store.dispatch(phaseChanged(Phases.ROLL)); // initial direct transition allowed
+      phaseCtrl.to(Phases.ROLL, { reason: 'game_start' });
       startTurn();
     }
   }
@@ -123,7 +125,7 @@ export function createTurnService(store, logger, rng = Math.random) {
     // Start-of-turn bonuses (Tokyo VP if occupying City at turn start)
     awardStartOfTurnTokyoVP(store, logger);
   logger.system('Phase: ROLL', { kind: 'phase' });
-  store.dispatch(phaseChanged(Phases.ROLL)); // ROLL is explicit start-of-turn
+  phaseCtrl.to(Phases.ROLL, { reason: 'turn_start' });
     markPhaseStart('ROLL');
     // If active player is CPU, run automated turn logic
     try {
@@ -184,10 +186,7 @@ export function createTurnService(store, logger, rng = Math.random) {
   async function resolve() {
     markPhaseEnd('ROLL');
     logger.system('Phase: RESOLVE', { kind: 'phase' });
-    {
-      const phaseEvents = typeof window !== 'undefined' ? window.__KOT_NEW__?.phaseEventsService : null;
-      if (phaseEvents) phaseEvents.publish('ROLL_COMPLETE'); else store.dispatch(phaseChanged(Phases.RESOLVE));
-    }
+    phaseCtrl.event('ROLL_COMPLETE');
     markPhaseStart('RESOLVE');
     // If dice already accepted (effects applied), skip duplicate resolution
     try {
@@ -241,17 +240,13 @@ export function createTurnService(store, logger, rng = Math.random) {
       logger.system('Phase: GAME_OVER', { kind: 'phase' });
       // Build some drama: wait 2s before transitioning to GAME_OVER
       await waitUnlessPaused(store, 2000);
-  const phaseEvents = typeof window !== 'undefined' ? window.__KOT_NEW__?.phaseEventsService : null;
-  if (phaseEvents) phaseEvents.publish('PLAYER_WON'); else store.dispatch(phaseChanged(Phases.GAME_OVER));
+      phaseCtrl.event('PLAYER_WON');
       return;
     }
     // New: BUY phase window for shop interactions
     markPhaseEnd('RESOLVE');
   logger.system('Phase: BUY', { kind: 'phase' });
-  {
-    const phaseEvents = typeof window !== 'undefined' ? window.__KOT_NEW__?.phaseEventsService : null;
-    if (phaseEvents) phaseEvents.publish('RESOLUTION_COMPLETE'); else store.dispatch(phaseChanged(Phases.BUY));
-  }
+  phaseCtrl.event('RESOLUTION_COMPLETE');
     markPhaseStart('BUY');
     // Provide a short pause for UI interactions; can be adjusted via settings later
     const delay = Math.min(1500, Math.max(400, computeDelay(store.getState().settings) * 3));
@@ -259,10 +254,7 @@ export function createTurnService(store, logger, rng = Math.random) {
     // Proceed to CLEANUP
     markPhaseEnd('BUY');
   logger.system('Phase: CLEANUP', { kind: 'phase' });
-  {
-    const phaseEvents = typeof window !== 'undefined' ? window.__KOT_NEW__?.phaseEventsService : null;
-    if (phaseEvents) phaseEvents.publish('BUY_COMPLETE'); else store.dispatch(phaseChanged(Phases.CLEANUP));
-  }
+  phaseCtrl.event('BUY_COMPLETE');
     markPhaseStart('CLEANUP');
     await cleanup();
   }
@@ -395,7 +387,7 @@ export function createTurnService(store, logger, rng = Math.random) {
     const afterResolve = store.getState();
     if (afterResolve.phase === 'ROLL') {
       console.warn('⚠️ CPU Turn: Phase still ROLL after diceRollResolved dispatch (expected RESOLVE). Forcing phase change.');
-      store.dispatch(phaseChanged(Phases.RESOLVE));
+      phaseCtrl.to(Phases.RESOLVE, { reason: 'safety_force' });
     }
     clearCpuWatchdog(startingCycle);
     try {
@@ -403,7 +395,7 @@ export function createTurnService(store, logger, rng = Math.random) {
       console.log('🤖 CPU Turn: Resolution complete');
     } catch(err) {
       console.error('🚨 CPU Turn: Error during resolve()', err);
-      try { store.dispatch(phaseChanged(Phases.BUY)); } catch(_) {}
+      try { phaseCtrl.to(Phases.BUY, { reason: 'resolve_error_fallback' }); } catch(_) {}
     }
   }
 

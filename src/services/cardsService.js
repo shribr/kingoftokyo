@@ -2,8 +2,9 @@
  * Orchestrates deck build & initial / refill shop.
  */
 import { buildBaseCatalog, buildDeck, draw } from '../domain/cards.js';
-import { cardsDeckBuilt, cardsShopFilled, cardPurchased, playerSpendEnergy, playerCardGained, cardDiscarded, cardShopFlushed, uiPeekShow, uiPeekHide, phaseChanged } from '../core/actions.js';
+import { cardsDeckBuilt, cardsShopFilled, cardPurchased, playerSpendEnergy, playerCardGained, cardDiscarded, cardShopFlushed, uiPeekShow, uiPeekHide } from '../core/actions.js';
 import { Phases } from '../core/phaseFSM.js';
+import { createPhaseController } from '../core/phaseController.js';
 import { createEffectEngine } from './effectEngine.js';
 
 export function initCards(store, logger, rng = Math.random, opts = {}) {
@@ -39,6 +40,7 @@ export function refillShop(store, logger) {
 }
 
 export function purchaseCard(store, logger, playerId, cardId) {
+  const phaseCtrl = createPhaseController(store, logger);
   const state = store.getState();
   const card = state.cards.shop.find(c => c.id === cardId);
   if (!card) return false;
@@ -70,8 +72,7 @@ export function purchaseCard(store, logger, playerId, cardId) {
       const st2 = store.getState();
       if (st2.phase === Phases.BUY) {
         logger.system('Phase: BUY_WAIT (post-purchase effect processing)', { kind:'phase' });
-        const phaseEvents = typeof window !== 'undefined' ? window.__KOT_NEW__?.phaseEventsService : null;
-        if (phaseEvents) phaseEvents.publish('PURCHASE_WITH_FOLLOWUP'); else store.dispatch(phaseChanged(Phases.BUY_WAIT));
+        phaseCtrl.event('PURCHASE_WITH_FOLLOWUP');
       }
     }
   } catch(_) {}

@@ -2,17 +2,18 @@
 // Central dispatcher translating domain-level events into FSM phase transitions.
 // Provides publish(eventName, meta) used instead of calling phaseChanged directly in scattered locations.
 
-import { phaseChanged } from '../core/actions.js';
 import { Phases, nextForEvent } from '../core/phaseFSM.js';
+import { createPhaseController } from '../core/phaseController.js';
 
 export function createPhaseEventsService(store, logger) {
+  const phaseCtrl = createPhaseController(store, logger);
   function publish(eventName, meta = {}) {
     const state = store.getState();
     const current = state.phase;
     const target = nextForEvent(current, eventName);
     if (target && target !== current) {
       logger.system(`Phase Event '${eventName}' -> ${current} → ${target}`, { kind: 'phase-event', event: eventName, from: current, to: target });
-      store.dispatch(phaseChanged(target));
+      phaseCtrl.to(target, { reason: `phase_event:${eventName}` });
     } else {
       if (process?.env?.NODE_ENV !== 'production') {
         logger.debug?.(`[phaseEvents] No transition for event ${eventName} in phase ${current}`);

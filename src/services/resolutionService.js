@@ -12,13 +12,15 @@
  * Also checks GAME OVER conditions after application of results (in the turn service).
  */
 import { tallyFaces, extractTriples } from '../domain/dice.js';
-import { applyPlayerDamage, healPlayerAction, playerGainEnergy, playerVPGained, playerEnteredTokyo, playerLeftTokyo, uiAttackPulse, uiVPFlash, uiEnergyFlash, uiHealthFlash, tokyoOccupantSet, yieldPromptShown, yieldPromptDecided, phaseChanged } from '../core/actions.js';
+import { applyPlayerDamage, healPlayerAction, playerGainEnergy, playerVPGained, playerEnteredTokyo, playerLeftTokyo, uiAttackPulse, uiVPFlash, uiEnergyFlash, uiHealthFlash, tokyoOccupantSet, yieldPromptShown, yieldPromptDecided } from '../core/actions.js';
 import { evaluateYieldDecision } from './aiDecisionService.js';
 import { selectTokyoCityOccupant, selectTokyoBayOccupant } from '../core/selectors.js';
 import { selectActivePlayerId } from '../core/selectors.js';
 import { Phases } from '../core/phaseFSM.js';
+import { createPhaseController } from '../core/phaseController.js';
 
 export function resolveDice(store, logger) {
+  const phaseCtrl = createPhaseController(store, logger);
   const state = store.getState();
   const activeId = selectActivePlayerId(state);
   if (!activeId) return;
@@ -189,8 +191,7 @@ export function resolveDice(store, logger) {
     const st2 = store.getState();
     const pendingAny = st2.yield.prompts.some(p => p.decision == null);
     if (pendingAny) {
-  const phaseEvents = typeof window !== 'undefined' ? window.__KOT_NEW__?.phaseEventsService : null;
-  if (phaseEvents) phaseEvents.publish('NEEDS_YIELD_DECISION'); else store.dispatch(phaseChanged(Phases.YIELD_DECISION));
+      phaseCtrl.event('NEEDS_YIELD_DECISION');
       logger.system('Phase: YIELD_DECISION', { kind:'phase' });
       try { if (window?.__KOT_METRICS__) { /* placeholder if needed */ } } catch(_) {}
     }
