@@ -349,9 +349,31 @@ function skipAndAssign(dispatch, getState, root) {
   const idx = Math.floor(Math.random()*order.length);
   dispatch(metaActivePlayerSet(idx));
   dispatch(uiRollForFirstResolved());
-  if (st.phase === 'SETUP') eventBus.emit('ui/intent/gameStart');
+  // Force start: emit intent + direct turnService guard (some environments reported no phase transition firing)
+  try {
+    if (st.phase === 'SETUP') {
+      console.debug('[RFF.skipAndAssign] Emitting gameStart intent');
+      eventBus.emit('ui/intent/gameStart');
+      // Direct call as belt-and-suspenders
+      if (window.__KOT_NEW__?.turnService?.startGameIfNeeded) {
+        window.__KOT_NEW__.turnService.startGameIfNeeded();
+      }
+    }
+  } catch(e) { console.warn('[RFF.skipAndAssign] startGameIfNeeded direct call failed', e); }
+  // Reset first CPU roll guard so bootstrap subscription can auto-roll if CPU chosen first
+  try { delete window.__KOT_FIRST_CPU_ROLL_TRIGGERED; } catch(_) {}
   // Immediate UI fallback: mark game-active so main layout becomes visible even if phase transition stalls.
-  try { document.body.classList.add('game-active'); } catch(_) {}
+  try { document.body.classList.add('game-active'); window.__KOT_GAME_STARTED = true; } catch(_) {}
+  // Schedule a micro + delayed fallback to ensure phase leaves SETUP; if still SETUP after 300ms, force once more
+  setTimeout(() => {
+    try {
+      const cur = getState();
+      if (cur.phase === 'SETUP') {
+        console.warn('[RFF.skipAndAssign] Phase still SETUP after 300ms; forcing startGameIfNeeded again');
+        window.__KOT_NEW__?.turnService?.startGameIfNeeded?.();
+      }
+    } catch(_) {}
+  }, 300);
   hide(root);
 }
 

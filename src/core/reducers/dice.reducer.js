@@ -79,6 +79,17 @@ export function diceReducer(state = initial, action) {
       }
       return state;
     }
+    case 'PHASE_CHANGED': {
+      // Ensure dice state is reset whenever global phase enters ROLL (covers legacy phase controller path)
+      try {
+        const nextPhase = action.payload?.phase;
+        if (nextPhase === 'ROLL') {
+          const baseRerolls = (state && typeof state.baseRerolls === 'number') ? state.baseRerolls : 2;
+          return { faces: [], rerollsRemaining: 0, baseRerolls, phase: 'idle', accepted: false, rollHistory: [] };
+        }
+      } catch(_) {}
+      return state;
+    }
     default:
       return state;
   }
