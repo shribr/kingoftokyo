@@ -1,0 +1,390 @@
+/* AI Logic Flow Styles */
+/* AI Logic Flow (Refined Styling) */
+ #ai-logic-flow {
+  font-family: var(--ui-font, system-ui, sans-serif);
+  padding: 8px 10px 36px;
+  line-height: 1.35;
+  font-size: 14px;
+  background: var(--ai-logic-bg, #f5f6f8);
+  color: #1f2328;
+  border-radius: 8px;
+ }
+ body.dark-mode #ai-logic-flow {
+  --ai-logic-bg: #1f2429;
+  color: #e6ebf0;
+ }
+ #ai-logic-flow .ai-flow-empty { opacity: .7; font-style: italic; padding: 10px 4px; }
+
+ .ai-flow-round { border:1px solid rgba(0,0,0,0.08); border-radius:6px; margin:0 0 10px; background:#ffffff; box-shadow:0 1px 2px rgba(0,0,0,.06); color:#000; }
+ body.dark-mode .ai-flow-round { background:#262c31; border-color:#30363d; box-shadow:0 1px 2px rgba(0,0,0,.5); }
+ .ai-flow-round.collapsed .ai-flow-round-body { display:none; }
+.ai-flow-round-header { cursor:pointer; padding:10px 16px; font-weight:700; background:linear-gradient(90deg,#eef3f8,#e2e7ec); border-bottom:1px solid rgba(0,0,0,0.05); display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:16px; }
+ body.dark-mode .ai-flow-round-header { background:linear-gradient(90deg,#2c3339,#242a2f); border-bottom:1px solid #30363d; }
+ .ai-flow-round-header:hover { filter:brightness(0.97); }
+ .ai-flow-round-meta { font-weight:400; font-size:11px; opacity:.75; }
+
+ .ai-flow-turn { border-top:1px solid rgba(0,0,0,0.05); }
+ body.dark-mode .ai-flow-turn { border-color:#30363d; }
+.ai-flow-turn-header { cursor:pointer; padding:8px 18px; background:#fdfefe; font-weight:600; display:flex; justify-content:space-between; align-items:center; font-size:16px; gap:10px; }
+ body.dark-mode .ai-flow-turn-header { background:#2b3238; }
+ .ai-flow-turn-header:hover { filter:brightness(0.96); }
+ .ai-flow-turn.collapsed .ai-flow-turn-body { display:none; }
+ .ai-flow-turn-meta { font-size:11px; opacity:.65; margin-left:6px; }
+.ai-flow-turn-body { padding:8px 18px 14px; background:#fff; font-size:14px; line-height:1.45; color:#000; }
+ body.dark-mode .ai-flow-turn-body { background:#262c31; }
+/* Turn body typography update */
+.ai-flow-turn-body { font-family: Arial, var(--ui-font, system-ui, sans-serif); font-style: italic; }
+
+/* Initial goal row */
+.ai-flow-turn-initial-goal-row { padding:4px 18px 2px; font-size:12px; background:linear-gradient(90deg,#f5f9fd,#edf2f7); border-top:1px solid rgba(0,0,0,0.04); color:#000; display:flex; align-items:center; flex-wrap:wrap; gap:4px; }
+/* Icon spacing in Initial Goal row matching mini dice spacing */
+.ai-flow-turn-initial-goal-row .mini-die.logic-flow-die { margin-right:2px; }
+/* Ensure general text in modal is black for contrast (scoped) */
+#ai-decision-tree-modal { color:#000; }
+/* Remove over-broad heading color inheritance so specialized accents (like header highlight) can apply.
+     We scope neutral color inheritance only to the version tag and goal nodes that already define their own background. */
+#ai-decision-tree-modal .goal-node,
+#ai-decision-tree-modal .ai-tree-version { color:inherit; }
+
+/* Mode toggle + unified expand/collapse toggle styling */
+#ai-mode-toggle, #ai-expand-collapse-toggle {
+    background: linear-gradient(90deg,#ffde72,#ffc933);
+    color:#2d2410;
+    border:1px solid #d2a200;
+    font-weight:600;
+    padding:4px 10px;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    border-radius:4px;
+    cursor:pointer;
+}
+body.dark-mode #ai-mode-toggle, body.dark-mode #ai-expand-collapse-toggle { color:#3a2a00; border-color:#e2b200; }
+#ai-mode-toggle:hover, #ai-expand-collapse-toggle:hover { filter:brightness(1.05); }
+
+/* Decision / confidence pills */
+.ai-flow-decision-pill, .ai-flow-confidence-pill { display:inline-block; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:600; line-height:1; }
+.ai-flow-decision-pill { background:#1f262c; color:#ffde72; border:1px solid #2e3a44; }
+body.dark-mode .ai-flow-decision-pill { background:#2e3942; border-color:#3a4752; }
+.ai-flow-confidence-pill.high { background:#1d6f2d; color:#fff; }
+.ai-flow-confidence-pill.med { background:#b38600; color:#fff; }
+.ai-flow-confidence-pill.low { background:#8b1e1e; color:#fff; }
+
+/* Structured lines */
+.ai-flow-line { display:flex; align-items:flex-start; gap:8px; padding:2px 0; font-size:13px; }
+.ai-flow-line-label { font-weight:700; min-width:95px; display:inline-block; }
+.ai-flow-line-value.kept { display:flex; flex-wrap:wrap; gap:4px; }
+.ai-flow-just-text { margin:4px 0 0 0; font-style:normal; }
+.ai-flow-line.just-label { margin-top:4px; }
+.ai-flow-goal-inline { margin-left:6px; opacity:.85; font-size:11px; }
+
+/* Metrics row under dice */
+.ai-flow-metrics-row { display:flex; gap:14px; padding:4px 18px 2px; font-size:11px; opacity:.8; }
+
+
+/* Explicit header title class to style main Decision Tree heading without being clobbered */
+.ai-tree-header h2.ai-tree-header-title { 
+    background:linear-gradient(90deg,#ffde72,#ffd24a 60%,#ffc933 100%);
+    -webkit-background-clip:text; 
+    background-clip:text; /* standard */
+    color:#d18b00; /* fallback visible color */
+    font-weight:700;
+    letter-spacing:.5px;
+}
+body.dark-mode .ai-tree-header h2.ai-tree-header-title {
+    background:linear-gradient(90deg,#ffd978,#ffcc49 60%,#ffbf1f 100%);
+    color:#ffcf5c;
+}
+/* Correct fixed height application: the decision tree uses .ai-tree-content not .modal-content */
+/* Maintain a stable outer shell height so expanding/collapsing only affects internal scroll, not layout shift */
+#ai-decision-tree-modal .ai-tree-content {
+    height: clamp(560px, 78vh, 860px);
+    display:flex; /* reinforce existing flex */
+    flex-direction:column;
+}
+/* Inner scroll region already .ai-tree-body; ensure it can scroll fully within fixed shell */
+#ai-decision-tree-modal .ai-tree-body { flex:1 1 auto; overflow-y:auto; min-height:0; }
+
+/* === Hierarchical Visual Differentiation (Round > Turn > Roll) === */
+/* Subtle thematic palette (Tokyo twilight blues) while preserving strong contrast with black text */
+.ai-flow-round {
+    background: linear-gradient(180deg,#ffffff 0%, #f4f8fb 100%);
+    border-color: #ccd6de;
+}
+body.dark-mode .ai-flow-round {
+    background: linear-gradient(180deg,#2a3137 0%, #222a30 100%);
+    border-color:#303b44;
+}
+.ai-flow-round-header {
+    background: linear-gradient(90deg,#e9f1f7,#dde7ef);
+}
+body.dark-mode .ai-flow-round-header {
+    background: linear-gradient(90deg,#323b42,#2a333a);
+}
+
+/* Turn container differentiation */
+.ai-flow-turn-header {
+    background: linear-gradient(90deg,#fbfdff,#f0f6fa);
+    border-left:4px solid #b7ccdc;
+}
+body.dark-mode .ai-flow-turn-header {
+    background: linear-gradient(90deg,#2d353b,#262e34);
+    border-left:4px solid #425462;
+}
+.ai-flow-turn-body {
+    background:#ffffff;
+    border-left:4px solid #d2e1ec;
+}
+body.dark-mode .ai-flow-turn-body { background:#262c31; border-left:4px solid #36444f; }
+
+/* Roll cards: inset accent & gentle gradient */
+.ai-flow-roll {
+    background: linear-gradient(180deg,#ffffff 0%, #f6f9fc 100%);
+    border-left:4px solid #c9dae8;
+}
+body.dark-mode .ai-flow-roll {
+    background: linear-gradient(180deg,#30363d 0%, #2a3137 100%);
+    border-left:4px solid #3e4d58;
+}
+.ai-flow-roll:hover { border-color:#6ea6ff; box-shadow:0 2px 4px rgba(0,0,0,0.08); }
+
+/* Opening intent refinement for contrast on tinted backgrounds */
+.ai-flow-opening-intent {
+    background: linear-gradient(90deg, rgba(255,255,255,0.82), rgba(255,255,255,0));
+    border-left-color:#c5b02e;
+}
+body.dark-mode .ai-flow-opening-intent { background: linear-gradient(90deg, rgba(48,54,61,0.85), rgba(48,54,61,0)); color:#ddd !important; border-left-color:#d4c14f; }
+
+/* Turn chain narrative tint */
+.ai-flow-turn-chain { background:#eef4f8; border-color:#cfd8df; }
+body.dark-mode .ai-flow-turn-chain { background:#2b3238; border-color:#3a444c; }
+
+/* Probability bar subtle refinement */
+.ai-flow-prob-bar-wrap { background:#e1e7ed; }
+body.dark-mode .ai-flow-prob-bar-wrap { background:#2f3840; }
+body.dark-mode .ai-flow-turn-initial-goal-row { background:linear-gradient(90deg,#273036,#20272c); border-top-color:#30363d; }
+.ai-flow-initial-goal { font-weight:600; display:inline-flex; align-items:center; gap:4px; }
+
+.ai-flow-opening-intent {
+    font-size: 12px;
+    line-height: 1.35;
+    background: linear-gradient(90deg, rgba(255,255,255,0.65), rgba(255,255,255,0));
+    padding: 6px 10px 6px 10px;
+    border-left: 3px solid #d4c14f;
+    border-radius: 4px;
+    font-style: italic;
+    color: #333;
+}
+
+.ai-flow-opening-intent .die-mini, .ai-flow-opening-intent .die-mini-inline {
+    transform: scale(.9);
+    margin-right: 2px;
+    position: relative;
+    top: 2px;
+}
+
+/* Composite goal icon count */
+.goal-icon-wrap { position:relative; display:inline-block; margin-right:4px; }
+.goal-icon-wrap .goal-count { position:absolute; top:-6px; right:-6px; background:#222; color:#fff; font-size:9px; line-height:1; padding:2px 3px; border-radius:10px; font-weight:600; box-shadow:0 0 0 1px rgba(255,255,255,0.6); }
+body.dark-mode .goal-icon-wrap .goal-count { background:#d4c14f; color:#111; box-shadow:0 0 0 1px #111; }
+.ai-flow-initial-goal.none { opacity:.6; font-weight:500; }
+
+/* Goal timeline */
+.ai-flow-goal-timeline { padding:6px 18px 4px; display:flex; flex-direction:column; gap:4px; margin:8px 0 14px; border-bottom:1px solid rgba(0,0,0,0.08); }
+.goal-timeline-label { font-size:11px; text-transform:uppercase; letter-spacing:.6px; font-weight:700; opacity:.85; color:#222; }
+.goal-timeline-track { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.goal-node { padding:4px 8px; border:1px solid #c2a400; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; background:#fffbe6; position:relative; font-size:11px; font-weight:600; box-shadow:2px 2px 0 #000; line-height:1; }
+body.dark-mode .goal-node { background:#3a3518; border-color:#d4c14f; box-shadow:2px 2px 0 #111; color:#f5e9b0; }
+.goal-node.initial { background:#fff3c2; }
+body.dark-mode .goal-node.initial { background:#4a431e; }
+.goal-node.changed { background:#ffe17a; }
+body.dark-mode .goal-node.changed { background:#5a5126; }
+.goal-node.empty { background:#f1f3f5; color:#8a8f94; font-size:10px; border-style:dashed; }
+body.dark-mode .goal-node.empty { background:#2b3238; color:#6f7a82; }
+.goal-edge { font-weight:700; color:#000; }
+body.dark-mode .goal-edge { color:#d4c14f; }
+@keyframes pulseGoal { 0%{transform:scale(.85); opacity:.5;} 40%{transform:scale(1.1); opacity:1;} 100%{transform:scale(1); opacity:1;} }
+
+/* Accent theme (yellow) */
+:root { --ai-accent:#FFD700; }
+/* Correct selector to match actual header structure (.ai-tree-header) */
+.ai-tree-modal .ai-tree-header h2 { color:var(--ai-accent); text-shadow:0 0 2px #000,2px 2px 0 #000; }
+.ai-tree-modal .ai-tree-header h2 .ai-tree-version { text-shadow:none; }
+.ai-flow-controls button.active, .ai-flow-controls button:hover { border-color:#000; background:linear-gradient(135deg,var(--ai-accent) 0%,#ffea75 60%,var(--ai-accent) 100%); color:#000; }
+.ai-tree-version { font-size:.6em; font-weight:500; opacity:.7; margin-left:6px; letter-spacing:.5px; }
+
+/* Inline confidence inside decision line */
+.ai-flow-confidence-inline { margin-left:10px; padding:2px 8px; border-radius:14px; font-size:10px; background:#d0d7de; font-weight:600; letter-spacing:.4px; display:inline-block; }
+.ai-flow-confidence-inline.high { background:#1d7a33; color:#e6f5e9; }
+.ai-flow-confidence-inline.med { background:#fdd247; color:#3a2d00; }
+.ai-flow-confidence-inline.low { background:#c62828; color:#ffe4e4; }
+.ai-flow-decision-line { display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:4px; align-items:center; }
+.ai-flow-decision-action-main { font-size:12px; }
+
+/* Thought Process toggle */
+.ai-flow-thought-toggle { cursor:pointer; font-size:11px; font-weight:600; padding:2px 6px; background:#e4e9f1; border-radius:12px; display:inline-flex; align-items:center; gap:4px; margin-bottom:6px; }
+body.dark-mode .ai-flow-thought-toggle { background:#36414b; }
+.ai-flow-thought-collapsed .ai-flow-thought-body { display:none; }
+.ai-flow-thought-toggle::before { content:'\25BC'; font-size:9px; transition:transform .18s ease; }
+.ai-flow-thought-collapsed .ai-flow-thought-toggle::before { transform:rotate(-90deg); }
+
+.ai-flow-roll { border:1px solid rgba(0,0,0,0.07); background:#ffffff; border-radius:8px; padding:10px 14px 12px; margin:10px 0; box-shadow:0 1px 2px rgba(0,0,0,0.05); display:flex; flex-direction:column; gap:10px; }
+ body.dark-mode .ai-flow-roll { background:#30363d; border-color:#384048; }
+ .ai-flow-roll:hover { border-color:#6ea6ff; }
+.ai-flow-roll-header { display:flex; gap:12px; align-items:center; font-size:11px; text-transform:uppercase; letter-spacing:.6px; opacity:.95; }
+.ai-flow-roll-header .ai-flow-imp, .ai-flow-roll-header .ai-flow-ev {
+    font-size:.7rem;
+    background:rgba(255,255,255,0.08);
+    padding:2px 6px;
+    border-radius:4px;
+    position:relative;
+    cursor:default;
+}
+.ai-flow-roll-header .ai-flow-ev:hover .ev-breakdown-tip { opacity:1; pointer-events:auto; transform:translateY(0); }
+.ev-breakdown-tip{
+    position:absolute;
+    top:100%;
+    left:0;
+    background:#111;
+    color:#eee;
+    padding:.4rem .6rem;
+    border:1px solid #333;
+    border-radius:6px;
+    box-shadow:0 4px 12px rgba(0,0,0,.4);
+    width:180px;
+    z-index:40;
+    opacity:0;
+    pointer-events:none;
+    transform:translateY(4px);
+    transition:opacity .18s ease, transform .18s ease;
+}
+.ev-breakdown-tip .ev-head { font-weight:600; font-size:.65rem; text-transform:uppercase; letter-spacing:.05em; margin-bottom:.25rem; opacity:.85; }
+.ev-breakdown-tip .ev-row { display:flex; justify-content:space-between; font-size:.6rem; padding:2px 0; border-bottom:1px dashed #222; }
+.ev-breakdown-tip .ev-row:last-child{ border-bottom:none; }
+.ev-breakdown-tip .ev-face { flex:0 0 auto; }
+.ev-breakdown-tip .ev-type { flex:1; text-align:center; opacity:.7; }
+.ev-breakdown-tip .ev-val { flex:0 0 auto; font-variant-numeric:tabular-nums; }
+
+/* Released dice highlight */
+.ai-flow-dice .released-die { outline:2px dashed #ffcc33; outline-offset:2px; border-radius:4px; position:relative; }
+.ai-flow-dice .released-die:after { content:'R'; position:absolute; top:-6px; right:-6px; background:#ffcc33; color:#222; font-size:.5rem; font-weight:700; padding:2px 3px; border-radius:50%; box-shadow:0 0 0 1px #222; }
+ .ai-flow-roll-number { font-weight:600; }
+.ai-flow-dice-row { display:flex; margin-top:4px; margin-bottom:8px; }
+.ai-flow-dice { display:flex; gap:6px; flex-wrap:wrap; }
+
+ .mini-die.logic-flow-die { width:24px; height:24px; border-radius:5px; display:inline-flex; align-items:center; justify-content:center; font-size:14px; font-weight:600; background:#ffffff; color:#111; border:1px solid #d0d7de; box-shadow:0 1px 1px rgba(0,0,0,0.06); position:relative; vertical-align:middle; }
+ body.dark-mode .mini-die.logic-flow-die { background:#1f2429; border-color:#30363d; color:#e6ebf0; }
+ .mini-die.logic-flow-die.attack { background:#ffe4d5; border-color:#ffb491; }
+ body.dark-mode .mini-die.logic-flow-die.attack { background:#43230e; border-color:#ffb491; }
+ .mini-die.logic-flow-die.kept { outline:2px solid #25a244; box-shadow:0 0 0 2px rgba(37,162,68,0.35); }
+
+ .ai-flow-confidence { padding:2px 6px; border-radius:14px; font-size:10px; font-weight:600; background:#d0d7de; color:#1f2328; letter-spacing:.5px; }
+ .ai-flow-confidence.high { background:#1d7a33; color:#e6f5e9; }
+ .ai-flow-confidence.med { background:#fdd247; color:#3a2d00; }
+ .ai-flow-confidence.low { background:#c62828; color:#ffe4e4; }
+
+ .ai-flow-action { font-size:11px; font-weight:600; background:#e0ecff; color:#174ea6; padding:2px 6px; border-radius:4px; }
+ body.dark-mode .ai-flow-action { background:#1c3354; color:#8fbaff; }
+
+ .ai-flow-reason-line, .ai-flow-analysis-line { font-size:11px; line-height:1.25; padding:2px 4px 0 2px; color:#333; }
+ body.dark-mode .ai-flow-reason-line, body.dark-mode .ai-flow-analysis-line { color:#d3d9df; }
+ .ai-flow-reason-line { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; opacity:.9; }
+ .ai-flow-analysis-line { opacity:.75; display:flex; gap:6px; flex-wrap:wrap; }
+
+ .ai-flow-tag { background:#e4e9f1; padding:2px 6px; border-radius:10px; font-size:10px; text-transform:uppercase; letter-spacing:.5px; font-weight:600; }
+ body.dark-mode .ai-flow-tag { background:#36414b; }
+ .ai-flow-tag.cat { background:#d6dfff; color:#102a74; }
+ body.dark-mode .ai-flow-tag.cat { background:#1b3566; color:#c7dcff; }
+ .ai-flow-summary { font-size:10px; opacity:.85; }
+
+ #ai-logic-flow { max-height:480px; overflow-y:auto; }
+
+/* Help / instruction text */
+.ai-logic-help { margin-top:10px; font-size:14px; line-height:1.4; font-weight:600; color:#111; letter-spacing:.3px; }
+body.dark-mode .ai-logic-help { color:#f2f2f2; }
+
+/* Roll narrative */
+.ai-flow-narrative { margin-top:4px; font-size:12px; line-height:1.4; background:#fcfcfd; border:1px solid #dfe3e7; border-radius:6px; padding:6px 10px; box-shadow:0 1px 1px rgba(0,0,0,.04); }
+/* Structured roll sections */
+.ai-flow-section { border:1px solid #e3e7eb; background:#f7f9fb; padding:8px 10px; border-radius:6px; line-height:1.4; }
+body.dark-mode .ai-flow-section { background:#2b3238; border-color:#394148; }
+.ai-flow-sec-h { font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:.6px; margin-bottom:6px; opacity:.85; }
+
+/* Disclosure triangle placeholder (triangles inserted via JS or CSS ::before) */
+.ai-flow-round-header::before, .ai-flow-turn-header::before { content:'\25B6'; display:inline-block; transform:rotate(90deg); margin-right:6px; font-size:10px; opacity:.7; transition:transform .18s ease; }
+.ai-flow-round.collapsed > .ai-flow-round-header::before { transform:rotate(0deg); }
+.ai-flow-turn.collapsed > .ai-flow-turn-header::before { transform:rotate(0deg); }
+body.dark-mode .ai-flow-narrative { background:#20262b; border-color:#30363d; }
+.ai-flow-narrative .mini-die { transform:scale(.85); margin-right:2px; }
+.ai-flow-inline-dice-seq { margin-top:4px; display:flex; flex-wrap:wrap; gap:2px; }
+.ai-flow-inline-dice-seq .mini-die.logic-flow-die { flex:0 0 auto; }
+
+/* Ensure narrative dice render horizontally and don't collapse vertically */
+.ai-flow-narrative .ai-flow-inline-dice-seq { flex-direction:row; align-items:center; }
+
+/* Fallback styling for unknown face to prevent bleed */
+.mini-die.logic-flow-die.face-unknown { background:#eee; color:#666; font-size:12px; border-style:dashed; }
+body.dark-mode .mini-die.logic-flow-die.face-unknown { background:#333; color:#999; }
+
+/* Prevent dice content overflow */
+.mini-die.logic-flow-die { overflow:hidden; }
+
+/* Kept dice row */
+.ai-flow-kept-dice-row { display:flex; gap:6px; align-items:center; margin:4px 0 6px; flex-wrap:wrap; }
+.ai-flow-kept-label { font-size:11px; font-weight:600; letter-spacing:.5px; text-transform:uppercase; opacity:.75; }
+.ai-flow-kept-dice { display:flex; gap:6px; flex-wrap:wrap; }
+
+/* Probability chart */
+.ai-flow-prob-chart { margin-top:10px; display:flex; flex-direction:column; gap:6px; max-width:520px; }
+.ai-flow-prob-row { display:flex; align-items:center; gap:8px; font-size:11px; }
+.ai-flow-prob-label { width:90px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; opacity:.85; display:flex; align-items:center; gap:4px; }
+.ai-flow-prob-bar-wrap { flex:1; height:14px; border-radius:5px; background:#e4e9f1; position:relative; overflow:hidden; max-width:360px; }
+body.dark-mode .ai-flow-prob-bar-wrap { background:#2f3840; }
+.ai-flow-prob-bar { position:absolute; top:0; left:0; height:100%; background:linear-gradient(90deg,#4f8df7,#1b62d1); box-shadow:0 0 0 1px rgba(0,0,0,.15) inset; }
+.ai-flow-prob-val { width:36px; text-align:right; font-size:10px; font-weight:600; opacity:.85; }
+body.dark-mode .ai-flow-prob-bar { background:linear-gradient(90deg,#3d7fe0,#619dff); }
+
+.ai-flow-prob-bar.delta-positive { box-shadow:0 0 0 1px rgba(0,0,0,.15) inset, 0 0 4px 1px rgba(37,162,68,.5); }
+.ai-flow-prob-bar.delta-negative { filter:brightness(.85) saturate(.6); }
+
+/* Turn chain narrative */
+.ai-flow-turn-chain { margin-top:12px; font-size:11px; line-height:1.4; background:#eef2f6; border:1px solid #d0d7de; padding:8px 10px; border-radius:6px; }
+body.dark-mode .ai-flow-turn-chain { background:#2b3238; border-color:#30363d; }
+.ai-flow-turn-chain .mini-die { transform:scale(.75); margin:0 1px; }
+
+/* === Header Controls / Modes === */
+.ai-tree-header { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+.ai-tree-header .ai-tree-controls { display:flex; gap:.4rem; flex-wrap:wrap; }
+.ai-tree-ctl { background:#2d3136; color:#e2e6ea; border:1px solid #444c55; padding:4px 10px; font-size:.65rem; text-transform:uppercase; letter-spacing:.06em; border-radius:4px; cursor:pointer; line-height:1; font-weight:600; }
+body.dark-mode .ai-tree-ctl { background:#303840; border-color:#49525b; color:#dbe2e8; }
+.ai-tree-ctl:hover { background:#3a4148; color:#ffffff; }
+body.dark-mode .ai-tree-ctl:hover { background:#3d4750; }
+.ai-tree-ctl.active { background:#1452a5; border-color:#0d3a77; color:#fff; box-shadow:0 0 0 2px rgba(20,82,165,.35); }
+body.dark-mode .ai-tree-ctl.active { background:#1d6fd1; border-color:#0e4483; box-shadow:0 0 0 2px rgba(29,111,209,.4); }
+.ai-tree-ctl:focus-visible { outline:3px solid #ffcc33; outline-offset:2px; }
+body.dark-mode .ai-tree-ctl:focus-visible { outline:3px solid #ffd658; }
+.ai-flow-round-header, .ai-flow-turn-header { position:relative; }
+.ai-flow-round-header:focus-visible, .ai-flow-turn-header:focus-visible { outline:3px solid #ffcc33; outline-offset:2px; }
+body.dark-mode .ai-flow-round-header:focus-visible, body.dark-mode .ai-flow-turn-header:focus-visible { outline:3px solid #ffd658; }
+
+/* Concise Mode */
+/* Concise mode now keeps opening intent & chain narrative visible for context */
+.ai-logic-flow-container.concise .ai-flow-section:not(.keep-visible),
+.ai-logic-flow-container.concise .ai-flow-sec-h { display:none !important; }
+
+/* Base text weight normalization inside decision tree */
+#ai-decision-tree-modal, #ai-decision-tree-modal p, #ai-decision-tree-modal div, #ai-decision-tree-modal span { font-weight:400; }
+
+/* Preserve bold only where semantically intended */
+#ai-decision-tree-modal h1, #ai-decision-tree-modal h2, #ai-decision-tree-modal h3,
+#ai-decision-tree-modal .ai-flow-sec-h, #ai-decision-tree-modal .goal-timeline-label { font-weight:700; }
+
+/* Specific narrative blocks ensure non-bold */
+.ai-flow-turn-chain, .ai-flow-opening-intent, .ai-flow-narrative, .ai-flow-reason-line, .ai-flow-analysis-line { font-weight:400; }
+.ai-logic-flow-container.concise .ai-flow-roll { margin-bottom:.4rem; }
+
+/* Lazy stub */
+.ai-flow-round.lazy-stub { border-style:dashed; opacity:.75; cursor:pointer; }
+.ai-flow-round.lazy-stub .ai-flow-round-body { display:none; }
+.ai-flow-round.lazy-stub:hover { opacity:.95; }
+

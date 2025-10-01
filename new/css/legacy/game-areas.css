@@ -1,0 +1,1142 @@
+/* Game Areas - Tokyo and Players */
+
+/* Tokyo Area - Centered design with staggered card layout */
+.tokyo-area {
+    background: 
+        /* Sharp geometric background pattern */
+        linear-gradient(45deg, transparent 30%, rgba(255, 215, 0, 0.2) 30%, rgba(255, 215, 0, 0.2) 70%, transparent 70%),
+        linear-gradient(-45deg, transparent 30%, rgba(255, 140, 0, 0.15) 30%, rgba(255, 140, 0, 0.15) 70%, transparent 70%),
+        /* Main gradient background */
+        linear-gradient(135deg, #2a2a2a 0%, #404040 50%, #2a2a2a 100%);
+    background-size: 40px 40px, 60px 60px, 100% 100%;
+    border: 6px solid #000;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 
+        8px 8px 0px #000,
+        12px 12px 30px rgba(0, 0, 0, 0.8);
+    position: relative;
+    transform: perspective(600px) rotateX(2deg) rotateZ(-1deg);
+    display: block; /* Change back to block for positioning */
+}
+
+/* Debug outline for hidden/offscreen detection */
+.dash-debug-outline {
+    outline: 2px dashed #ff0066 !important;
+    outline-offset: 2px;
+}
+
+.tokyo-area::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 20% 20%, rgba(255, 193, 7, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(255, 87, 34, 0.3) 0%, transparent 50%),
+        linear-gradient(45deg, transparent 30%, rgba(0, 0, 0, 0.1) 50%, transparent 70%);
+    pointer-events: none;
+}
+
+.tokyo-bay, .tokyo-city {
+    display: inline-block;
+    background: 
+        linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.2) 100%);
+    padding: 25px;
+    border: 4px solid #000;
+    border-radius: 0;
+    width: 240px; /* Fixed width for positioning */
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+    position: absolute;
+    z-index: 300; /* Playing area - Tokyo areas */
+    box-shadow: 
+        6px 6px 0px #000,
+        8px 8px 15px rgba(0, 0, 0, 0.4);
+    transform: perspective(400px) rotateX(1deg) rotateZ(-0.5deg);
+    overflow: hidden; /* Ensure children stay within container bounds */
+    
+    /* Comic book halftone pattern */
+    background-image: 
+        radial-gradient(circle at 3px 3px, rgba(255,255,255,0.1) 1px, transparent 0),
+        linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.2) 100%);
+    background-size: 15px 15px, 100% 100%;
+}
+
+/* Tokyo tiles positioning - Tokyo City prominent, Tokyo Bay in background */
+.tokyo-city {
+    left: 32%; /* Shifted left for more space */
+    top: 25%;
+    transform: translateX(-50%) scale(1.2) perspective(400px) rotateX(-1deg) rotateZ(1.5deg); /* Centered, larger and prominent */
+    opacity: 1; /* Full opacity - prominent */
+    z-index: 350; /* Playing area - Tokyo City in front of Tokyo Bay */
+}
+
+.tokyo-bay {
+    top: 70px !important;
+    right: 850px !important; /* Moved much further left to make more room */
+    opacity: 0.3; /* Very faded for fewer than 5 players */
+    transform: scale(0.7) perspective(400px) rotateX(1deg) rotateZ(-2deg); /* Smaller and in background */
+    z-index: 310; /* Playing area - Tokyo Bay behind Tokyo City */
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+/* Tokyo Bay becomes prominent with 5+ players */
+.game-board.five-players .tokyo-bay,
+.game-board.six-players .tokyo-bay {
+    opacity: 1;
+    transform: scale(1) perspective(400px) rotateX(1deg) rotateZ(-2deg);
+}
+
+.tokyo-bay h3, .tokyo-city h3 {
+    color: #FFD700;
+    font-family: 'Bangers', cursive;
+    font-weight: 900;
+    margin-bottom: 15px;
+    font-size: 1.4em;
+    text-shadow: 
+        -2px -2px 0 #000,
+        2px -2px 0 #000,
+        -2px 2px 0 #000,
+        2px 2px 0 #000,
+        4px 4px 8px rgba(0, 0, 0, 0.8);
+    letter-spacing: 1px;
+}
+
+.monster-slot {
+    width: 170px;
+    height: 170px;
+    border: 4px dashed rgba(255, 255, 255, 0.7);
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    transition: all 0.4s ease;
+    background: rgba(255, 255, 255, 0.1);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+    box-shadow: 
+        inset 0 0 20px rgba(255, 255, 255, 0.1),
+        4px 4px 8px rgba(0, 0, 0, 0.3);
+    /* Reduced transform to stay within container bounds */
+    transform: perspective(300px) rotateX(1deg) rotateZ(0.2deg);
+}
+
+.monster-slot.occupied {
+    border: 4px solid #000; /* Black border */
+    /* Background will be set by monster-specific rules below */
+}
+
+/* Monster-specific backgrounds for occupied slots */
+.monster-slot.occupied[data-monster="cyberbunny"] {
+    background: #dda0dd; /* Pink background for Cyber Bunny */
+}
+
+.monster-slot.occupied[data-monster="alienoid"] {
+    background: #8fbc8f; /* Yellowish green background for Alienoid */
+}
+
+.monster-slot.occupied[data-monster="gigazaur"] {
+    background: #1e3a1e; /* Dark forest green background for Gigazaur */
+}
+
+.monster-slot.occupied[data-monster="kraken"] {
+    background: #1e3a37; /* Dark greenish blue background for Kraken */
+}
+
+.monster-slot.occupied[data-monster="kinghull"] {
+    background: #4a3c1f; /* Dark brown background for The King */
+}
+
+.monster-slot.occupied[data-monster="megalodon"] {
+    background: #cd5c5c; /* Red background for Meka Dragon */
+}
+
+.tokyo-monster {
+    text-align: center;
+}
+
+.tokyo-monster .monster-avatar {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 10px;
+    border: 4px solid #fff; /* Reduced white border thickness */
+    animation: tokyoGlow 2s ease-in-out infinite alternate;
+}
+
+.tokyo-monster .monster-name {
+    color: white;
+    font-weight: bold;
+    font-size: 1.4em; /* Increased from 1.2em for better visibility */
+    text-shadow: 2px 2px 0px #000; /* Black drop shadow */
+    margin-top: 16px; /* Move the name down more */
+}
+
+/* Tokyo Monster Hover Effect - Cursor pointer to indicate interactivity */
+.monster-slot.occupied {
+    cursor: pointer;
+}
+
+/* Player card highlight when corresponding Tokyo monster is hovered */
+.player-dashboard.tokyo-highlight {
+    z-index: 600 !important; /* Playing area - special highlight effects */
+    animation: tokyoCardWiggle 0.6s ease-in-out;
+    transform: perspective(800px) rotateX(-1deg) rotateY(0.5deg) rotateZ(1deg) translateY(-10px) scale(1.05) !important;
+    box-shadow: 
+        8px 8px 0px #000,
+        12px 12px 30px rgba(0, 0, 0, 0.8),
+        0 0 20px rgba(255, 215, 0, 0.5),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.1) !important;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+}
+
+/* Vertical collapse - cards before the target collapse upward */
+.player-dashboard.collapse-up {
+    transform: perspective(800px) rotateX(25deg) rotateY(-5deg) rotateZ(-8deg) 
+               translateY(-40px) translateX(-10px) scale(0.85) !important;
+    opacity: 0.3;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Vertical collapse - cards after the target collapse downward */
+.player-dashboard.collapse-down {
+    transform: perspective(800px) rotateX(-25deg) rotateY(5deg) rotateZ(8deg) 
+               translateY(40px) translateX(10px) scale(0.85) !important;
+    opacity: 0.3;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Smooth return transition - set z-index to slide behind properly */
+.player-dashboard.tokyo-return-behind {
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Expand back to normal positions after return is complete */
+.player-dashboard.expand-back-normal {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.2s; /* Delay to ensure return completes first */
+}
+
+/* Active player wiggle when they are in Tokyo and their Tokyo card is hovered */
+.player-dashboard.active.tokyo-active-wiggle {
+    animation: activePlayerWiggle 0.8s ease-in-out;
+}
+
+@keyframes tokyoCardWiggle {
+    0%, 100% {
+        transform: perspective(800px) rotateX(-1deg) rotateY(0.5deg) rotateZ(1deg) translateY(-10px) scale(1.05);
+    }
+    25% {
+        transform: perspective(800px) rotateX(-1.2deg) rotateY(0.3deg) rotateZ(0.8deg) translateY(-12px) scale(1.06);
+    }
+    50% {
+        transform: perspective(800px) rotateX(-0.8deg) rotateY(0.7deg) rotateZ(1.2deg) translateY(-8px) scale(1.04);
+    }
+    75% {
+        transform: perspective(800px) rotateX(-1.1deg) rotateY(0.4deg) rotateZ(0.9deg) translateY(-11px) scale(1.05);
+    }
+}
+
+@keyframes activePlayerWiggle {
+    0%, 100% {
+        transform: perspective(800px) rotateX(-0.7deg) rotateY(0.6deg) rotateZ(2.3deg) scale(1.02);
+    }
+    25% {
+        transform: perspective(800px) rotateX(-0.9deg) rotateY(0.4deg) rotateZ(2.1deg) scale(1.03);
+    }
+    50% {
+        transform: perspective(800px) rotateX(-0.5deg) rotateY(0.8deg) rotateZ(2.5deg) scale(1.01);
+    }
+    75% {
+        transform: perspective(800px) rotateX(-0.8deg) rotateY(0.5deg) rotateZ(2.2deg) scale(1.025);
+    }
+}
+
+.empty-slot {
+    color: rgba(255, 255, 255, 0.7);
+    font-style: italic;
+    font-size: 1.1em;
+}
+
+/* Players Area - Fixed on right side */
+.players-area {
+    background: 
+        /* Comic book panel background */
+        linear-gradient(135deg, #1e1e1e 0%, #3a3a3a 50%, #1e1e1e 100%);
+    border: 4px solid #000;
+    border-radius: 6px;
+    padding: 15px;
+    box-shadow: 
+        6px 6px 0px #000,
+        10px 10px 25px rgba(0, 0, 0, 0.6);
+    position: relative;
+    transform: perspective(600px) rotateX(-1deg) rotateZ(0.5deg);
+    overflow-y: auto;
+    
+    /* Comic book halftone pattern */
+    background-image: 
+        radial-gradient(circle at 2px 2px, rgba(255,255,255,0.1) 1px, transparent 0),
+        linear-gradient(135deg, #1e1e1e 0%, #3a3a3a 50%, #1e1e1e 100%);
+    background-size: 12px 12px, 100% 100%;
+}
+
+.players-area h3,
+.players-area .panel-header {
+    margin-bottom: 12px;
+    color: #FFD700;
+    font-family: 'Bangers', cursive;
+    font-weight: 900;
+    font-size: 1.54em; /* Increased by 10% from 1.4em */
+    text-align: center;
+    text-shadow: 
+        -2px -2px 0 #000,
+        2px -2px 0 #000,
+        -2px 2px 0 #000,
+        2px 2px 0 #000,
+        4px 4px 8px rgba(0, 0, 0, 0.8);
+    letter-spacing: 1px;
+    transform: perspective(300px) rotateX(-5deg);
+}
+
+/* Collapsible Panel Styles */
+.collapsible-panel {
+    transition: all 0.3s ease-in-out;
+    position: relative;
+}
+
+.panel-header {
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-user-select: none;
+    user-select: none;
+    transition: all 0.3s ease-in-out;
+}
+
+.panel-header .header-text {
+    transition: transform 0.3s ease-in-out;
+}
+
+.panel-header .toggle-arrow {
+    font-size: 1.2em;
+    font-weight: bold;
+    transition: all 0.3s ease-in-out;
+    color: #FFD700;
+    text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+    opacity: 0;
+    margin: 0 8px;
+}
+
+/* Show arrows only on hover */
+.panel-header:hover .toggle-arrow {
+    opacity: 1;
+}
+
+/* Position arrows correctly for each panel */
+.players-area .toggle-arrow {
+    margin-left: 8px;
+    margin-right: 0;
+}
+
+.cards-area .toggle-arrow {
+    margin-right: 8px;
+    margin-left: 0;
+}
+
+.panel-content {
+    transition: all 0.3s ease-in-out;
+    overflow: hidden;
+}
+
+/* Collapsed state for Monsters panel (left side) */
+.collapsible-panel.collapsed.monsters-collapsed {
+    width: 60px;
+    padding: 15px 10px;
+}
+
+.collapsible-panel.collapsed.monsters-collapsed .header-text {
+    transform: rotate(-90deg) translateX(-30px);
+    white-space: nowrap;
+    margin-top: 20px;
+}
+
+.collapsible-panel.collapsed.monsters-collapsed .toggle-arrow {
+    opacity: 1;
+    margin: 0;
+}
+
+.collapsible-panel.collapsed.monsters-collapsed .panel-content {
+    width: 0;
+    height: 0;
+    opacity: 0;
+    margin: 0;
+    padding: 0;
+}
+
+/* Collapsed state for Power Cards panel (right side) */
+.collapsible-panel.collapsed.cards-collapsed {
+    width: 60px;
+    padding: 15px 10px;
+}
+
+.collapsible-panel.collapsed.cards-collapsed .header-text {
+    transform: rotate(90deg) translateX(30px);
+    white-space: nowrap;
+    margin-top: 20px;
+}
+
+.collapsible-panel.collapsed.cards-collapsed .toggle-arrow {
+    opacity: 1;
+    margin: 0;
+}
+
+.collapsible-panel.collapsed.cards-collapsed .panel-content {
+    width: 0;
+    height: 0;
+    opacity: 0;
+    margin: 0;
+    padding: 0;
+}
+
+/* Players container with optimized spacing for 6 players - active player separate */
+#players-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0px; /* Remove gap since cards are now overlapping naturally */
+    height: 100%; /* Use full height now that dice controls are moved */
+    overflow: visible; /* Allow hover effects to show */
+    padding: 5px 15px 5px 15px; /* Further reduced padding to maximize available space */
+    position: relative;
+}
+
+.player-dashboard {
+    background: 
+        linear-gradient(135deg, var(--monster-color-light, #3c3c3c) 0%, var(--monster-color, #2c2c2c) 100%); /* Use monster colors if available */
+    padding: 16px; /* Increased padding for better stat visibility */
+    border-radius: 0; /* Sharp corners to match monster selection tiles */
+    border: 3px solid #000 !important; /* Always black border */
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.2s ease-out 0.1s; /* Added delay to transform for less sensitivity */
+    position: relative;
+    overflow: visible; /* Allow power card tabs to show */
+    flex: 1;
+    min-height: 300px !important; /* Increased from 280px to 300px to accommodate larger text and spacing */
+    margin-bottom: 10px; /* Provide sufficient space for health bar expansion */
+}
+
+/* Non-active players remain in normal flow with better condensed spacing */
+.player-dashboard:not(.active) {
+    position: relative; /* Keep in normal document flow */
+    width: 100%; /* Full width within container */
+    z-index: 400; /* Playing area - player cards base level */
+    
+    /* Comic book style effects */
+    box-shadow: 
+        4px 4px 0px #000,
+        6px 6px 15px rgba(0, 0, 0, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+    
+    /* Comic panel tilt */
+    transform: perspective(800px) rotateX(1deg) rotateY(-0.5deg) rotateZ(0.25deg);
+}
+
+/* Better condensed spacing for non-active players to fit 5 cards */
+.player-dashboard:not(.active):nth-child(1) {
+    margin-bottom: -100px; /* More aggressive to pull stack up */
+}
+
+.player-dashboard:not(.active):nth-child(2) {
+    margin-top: -50px; /* More aggressive pull-up */
+    margin-bottom: -105px; /* More aggressive to pull stack up */
+}
+
+.player-dashboard:not(.active):nth-child(3) {
+    margin-top: -50px; /* More aggressive pull-up */
+    margin-bottom: -105px; /* More aggressive to pull stack up */
+}
+
+.player-dashboard:not(.active):nth-child(4) {
+    margin-top: -55px; /* More aggressive pull-up */
+    margin-bottom: -105px; /* More aggressive to pull stack up */
+}
+
+.player-dashboard:not(.active):nth-child(5) {
+    margin-top: -55px; /* More aggressive pull-up */
+    margin-bottom: -105px; /* More aggressive to pull stack up */
+}
+
+.player-dashboard:not(.active):nth-child(6) {
+    margin-top: -40px; /* More aggressive pull-up */
+    margin-bottom: 5px; /* Small positive margin for last card visibility */
+}
+
+/* Add variation to card angles for haphazard look - balanced for 6 players - ONLY for non-active players */
+.player-dashboard:nth-child(1):not(.active) {
+    transform: perspective(800px) rotateX(0.8deg) rotateY(-0.3deg) rotateZ(-2.2deg);
+    margin-left: 6px;
+    margin-bottom: -95px; /* More aggressive to pull stack up */
+}
+
+.player-dashboard:nth-child(2):not(.active) {
+    transform: perspective(800px) rotateX(1.2deg) rotateY(0.4deg) rotateZ(2.6deg);
+    margin-left: -8px;
+    margin-top: -35px; /* More aggressive pull-up */
+    margin-bottom: -95px; /* More aggressive to pull stack up */
+}
+
+.player-dashboard:nth-child(3):not(.active) {
+    transform: perspective(800px) rotateX(0.9deg) rotateY(-0.7deg) rotateZ(-2.1deg);
+    margin-left: 7px;
+    margin-top: -35px; /* More aggressive pull-up */
+    margin-bottom: -95px; /* More aggressive to pull stack up */
+}
+
+.player-dashboard:nth-child(4):not(.active) {
+    transform: perspective(800px) rotateX(1.1deg) rotateY(0.2deg) rotateZ(2.4deg);
+    margin-left: -7px;
+    margin-top: -40px; /* More aggressive pull-up */
+    margin-bottom: -95px; /* More aggressive to pull stack up */
+}
+
+.player-dashboard:nth-child(5):not(.active) {
+    transform: perspective(800px) rotateX(0.7deg) rotateY(-0.4deg) rotateZ(-2.0deg);
+    margin-left: 6px;
+    margin-top: -40px; /* More aggressive pull-up */
+    margin-bottom: -95px; /* More aggressive to pull stack up */
+}
+
+.player-dashboard:nth-child(6):not(.active) {
+    transform: perspective(800px) rotateX(1.3deg) rotateY(0.6deg) rotateZ(2.3deg);
+    margin-left: -6px;
+    margin-top: -30px; /* More aggressive pull-up */
+    margin-bottom: -5px; /* Small negative to keep tight but visible */
+}
+
+/* Last player dashboard - ensure visibility without content overflow */
+.player-dashboard:last-child {
+    margin-bottom: 50px !important; /* More bottom space to ensure visibility */
+    margin-top: -40px !important; /* More aggressive pull-up to shift entire stack */
+}
+
+/* Individual active transforms removed - active player is now positioned separately via main .active class */
+
+.player-dashboard:nth-child(6).active {
+    transform: perspective(800px) rotateX(-0.7deg) rotateY(0.6deg) rotateZ(2.3deg) scale(1.02);
+}
+
+/* Ensure active player's stats are always visible */
+.player-dashboard.active .player-stats {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+}
+
+/* Hover effect - bring to front and emphasize */
+.player-dashboard:hover {
+    z-index: 500; /* Playing area - hover effects */
+    margin-bottom: 25px; /* Provide space when lifted */
+    box-shadow: 
+        8px 8px 0px #000,
+        12px 12px 30px rgba(0, 0, 0, 0.8),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Disable hover effects for active players - use high specificity to override all hover rules */
+.player-dashboard.no-hover:hover,
+.player-dashboard.active.no-hover:hover,
+.player-dashboard.no-hover:nth-child(1):hover,
+.player-dashboard.no-hover:nth-child(2):hover,
+.player-dashboard.no-hover:nth-child(3):hover,
+.player-dashboard.no-hover:nth-child(4):hover,
+.player-dashboard.no-hover:nth-child(5):hover,
+.player-dashboard.no-hover:nth-child(6):hover,
+.player-dashboard.no-hover:first-child:hover,
+.player-dashboard.no-hover:last-child:hover {
+    z-index: 6000 !important; /* Fixed z-index, no change on hover */
+    margin-bottom: 0 !important; /* No margin change on hover */
+    margin-top: 0 !important; /* No margin change on hover */
+    box-shadow: 4px 4px 0px #000, 6px 6px 15px rgba(0, 0, 0, 0.4), inset 0 -2px 0 rgba(0, 0, 0, 0.1) !important; /* Maintain active styling */
+    transform: perspective(800px) rotateX(-0.7deg) rotateY(0.6deg) rotateZ(2.3deg) scale(1.02) !important; /* Maintain active transform */
+    opacity: 1 !important; /* Fixed opacity, no change on hover */
+    width: 290px !important; /* Maintain width */
+    min-height: 280px !important; /* Maintain height */
+}
+
+/* Disable all child element hover effects for no-hover players */
+.player-dashboard.no-hover:hover .player-stats,
+.player-dashboard.no-hover:hover .player-info,
+.player-dashboard.no-hover:hover .player-name,
+.player-dashboard.no-hover:hover .player-info .player-name,
+.player-dashboard.no-hover:hover .player-name-container .player-name,
+.player-dashboard.no-hover:hover .tokyo-indicator-inline,
+.player-dashboard.no-hover:hover::after {
+    opacity: 1 !important; /* Fixed opacity */
+    transform: none !important; /* No transform */
+    margin-bottom: 15px !important; /* Maintain normal margin */
+    color: #ffffff !important; /* Keep white text color */
+}
+
+/* Individual hover transforms that preserve unique angles */
+.player-dashboard:nth-child(1):hover {
+    transform: perspective(800px) rotateX(-1.2deg) rotateY(-0.3deg) rotateZ(-2.2deg) translateY(-20px) scale(1.02);
+}
+
+.player-dashboard:nth-child(2):hover {
+    transform: perspective(800px) rotateX(-0.8deg) rotateY(0.4deg) rotateZ(2.6deg) translateY(-20px) scale(1.02);
+}
+
+.player-dashboard:nth-child(3):hover {
+    transform: perspective(800px) rotateX(-1.1deg) rotateY(-0.7deg) rotateZ(-2.1deg) translateY(-20px) scale(1.02);
+}
+
+.player-dashboard:nth-child(4):hover {
+    transform: perspective(800px) rotateX(-0.9deg) rotateY(0.2deg) rotateZ(2.4deg) translateY(-20px) scale(1.02);
+}
+
+.player-dashboard:nth-child(5):hover {
+    transform: perspective(800px) rotateX(-1.3deg) rotateY(-0.4deg) rotateZ(-2.0deg) translateY(-20px) scale(1.02);
+}
+
+.player-dashboard:nth-child(6):hover {
+    transform: perspective(800px) rotateX(-0.7deg) rotateY(0.6deg) rotateZ(2.3deg) translateY(-20px) scale(1.02);
+}
+
+/* Special hover behavior for first player dashboard - now handled by nth-child(1) */
+.player-dashboard:first-child:hover {
+    margin-top: -20px; /* Pull up to create space */
+}
+
+/* Special hover behavior for last player dashboard - works for any number of players */
+.player-dashboard:last-child:hover {
+    transform: perspective(800px) rotateX(-0.7deg) rotateY(0.6deg) rotateZ(2.3deg) translateY(-150px) scale(1.02) !important;
+    margin-bottom: 50px !important; /* Extra space when hovering the last card */
+    z-index: 500 !important; /* Playing area - hover effects */
+}
+
+/* Ensure stats are visible on hover */
+.player-dashboard:hover .player-stats {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* All elements always visible - no hiding when not hovered */
+
+/* Health Bar Styling */
+.health-bar-container {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: #ffffff;
+    border: 3px solid #000;
+    border-radius: 0;
+    box-shadow: 
+        2px 2px 0px #000,
+        3px 3px 8px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.health-bar-container:hover {
+    transform: scale(1.05);
+    padding: 10px 15px;
+    box-shadow: 
+        3px 3px 0px #000,
+        4px 4px 12px rgba(0, 0, 0, 0.4);
+    z-index: 600; /* Higher in playing area hierarchy when hovered */
+    position: relative; /* Create new stacking context */
+    margin-bottom: 10px; /* Add space below when expanded */
+}
+
+/* Alternative approach: ensure health bar expansion doesn't get clipped */
+.player-dashboard {
+    overflow: visible !important; /* Force visible overflow for hover effects */
+}
+
+.player-dashboard .health-bar-container {
+    overflow: visible; /* Ensure health bar can expand */
+}
+
+.health-bar-label {
+    font-family: 'Bangers', cursive;
+    font-size: 1.1em;
+    color: #000;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+    text-align: center;
+    text-shadow: none;
+    font-weight: 900;
+    transition: all 0.3s ease;
+}
+
+.health-bar-container:hover .health-bar-label {
+    font-size: 1.3em;
+    margin-bottom: 7px;
+}
+
+.health-bar {
+    height: 16px;
+    background: #333;
+    border: 2px solid #000;
+    border-radius: 0;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 
+        inset 2px 2px 4px rgba(0, 0, 0, 0.3),
+        inset -1px -1px 2px rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.health-bar-container:hover .health-bar {
+    height: 20px;
+    border: 3px solid #000;
+}
+
+.health-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff4444 0%, #ff6666 50%, #ff4444 100%);
+    transition: width 0.3s ease;
+    border-radius: 0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* Health Bar Color States */
+.health-bar-fill.health-high {
+    background: linear-gradient(90deg, #22c55e 0%, #4ade80 50%, #22c55e 100%);
+}
+
+.health-bar-fill.health-medium {
+    background: linear-gradient(90deg, #eab308 0%, #fbbf24 50%, #eab308 100%);
+}
+
+.health-bar-fill.health-low {
+    background: linear-gradient(90deg, #f97316 0%, #fb923c 50%, #f97316 100%);
+}
+
+.health-bar-fill.health-critical {
+    background: linear-gradient(90deg, #dc2626 0%, #ef4444 50%, #dc2626 100%);
+    animation: healthCritical 1s ease-in-out infinite alternate;
+}
+
+@keyframes healthCritical {
+    from {
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+    to {
+        box-shadow: 
+            inset 0 1px 0 rgba(255, 255, 255, 0.3),
+            0 0 8px rgba(220, 38, 38, 0.8);
+    }
+}
+
+/* Power Cards Stat Clickable Styling */
+.stat.power-cards {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.stat.power-cards:hover {
+    background: linear-gradient(135deg, #fff8dc 0%, #ffecb3 50%, #ffe082 100%); /* Golden highlight on hover */
+    transform: scale(1.05);
+    box-shadow: 
+        4px 4px 0px #000,
+        6px 6px 15px rgba(0, 0, 0, 0.3);
+    border: 3px solid #000;
+}
+
+.player-dashboard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
+        linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.player-dashboard::after {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    border-radius: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, transparent 40%, rgba(0, 0, 0, 0.1) 100%);
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.player-dashboard:hover::after {
+    opacity: 1;
+}
+
+/* Active player container - positioned directly on body for proper fixed positioning */
+/* Active player dashboard positioning */
+.player-dashboard.active {
+    position: fixed !important;
+    bottom: 420px !important; /* Above the action menu (which is at bottom: 110px) */
+    right: 520px !important; /* Same horizontal alignment as action menu */
+    z-index: 6000 !important; /* Same level as side panels, below pause overlay */
+    pointer-events: auto !important;
+    
+    /* Preserve original player dashboard styling - no !important to allow monster colors */
+    background: 
+        linear-gradient(135deg, var(--monster-color-light, #3c3c3c) 0%, var(--monster-color, #2c2c2c) 100%);
+    border: 3px solid #000 !important; /* Always black border */
+    border-radius: 0 !important;
+    padding: 16px !important; /* Restored padding */
+    transform: perspective(800px) rotateX(-0.7deg) rotateY(0.6deg) rotateZ(2.3deg) scale(1.02) !important;
+    width: 290px !important;
+    min-height: 280px !important;
+    margin: 0 !important;
+    
+    /* Enhanced styling for active state */
+    box-shadow: 
+        4px 4px 0px #000,
+        6px 6px 15px rgba(0, 0, 0, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.1) !important;
+    
+    /* Ensure visibility */
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Remove duplicate draggable styling that overrides monster background */
+
+/* Hide active player when any modal is showing */
+.modal:not(.hidden) ~ .player-dashboard.active,
+body:has(.modal:not(.hidden)) .player-dashboard.active {
+    z-index: 100 !important; /* Much lower when modal is active */
+    opacity: 0.3; /* Make it more transparent when modal is showing */
+}
+
+/* Additional styling for active player dashboard */
+.player-dashboard.active {
+    /* Active player styling */
+    width: 290px !important; /* Smaller, standard card width */
+    min-height: 280px !important; /* Increased to match regular cards for health bar space */
+    margin: 0 !important; /* Reset all margins */
+    
+    /* Clean styling without gradients */
+    border-color: var(--monster-color, #000) !important; /* Use monster color for border */
+    box-shadow: 
+        4px 4px 0px #000,
+        6px 6px 15px rgba(0, 0, 0, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.1) !important;
+    transform: perspective(800px) rotateX(-0.7deg) rotateY(0.6deg) rotateZ(2.3deg) scale(1.02) !important; /* Subtle prominent styling with tilt */
+}
+
+/* Active card hover effect is more pronounced */
+.player-dashboard.active:hover {
+    transform: perspective(800px) rotateX(-2deg) rotateY(-0.5deg) rotateZ(0.25deg) translateY(-25px) scale(1.05);
+    z-index: 600 !important; /* Playing area - active card hover effects */
+    margin-bottom: 30px; /* Even more space for the active card when hovered */
+    box-shadow: 
+        8px 8px 0px #000,
+        12px 12px 30px rgba(0, 0, 0, 0.6),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15),
+        inset 2px 0 0 rgba(255, 255, 255, 0.6),
+        inset -2px 0 0 rgba(0, 0, 0, 0.1),
+        0 0 0 3px #FFD700;
+}
+
+.player-dashboard.eliminated {
+    opacity: 0.6;
+    background: 
+        linear-gradient(135deg, #e0e0e0 0%, #bdbdbd 20%, #9e9e9e 60%, #757575 100%);
+    border-color: #616161;
+    filter: grayscale(100%) contrast(0.7) brightness(0.8);
+    transform: perspective(800px) rotateX(8deg) scale(0.90);
+    pointer-events: none; /* Disable all interactions */
+    position: relative;
+}
+
+/* Add a "ELIMINATED" overlay to the card */
+.player-dashboard.eliminated::after {
+    content: "ELIMINATED";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-15deg);
+    font-family: 'Bangers', cursive;
+    font-size: 1.2em;
+    color: #ff0000;
+    text-shadow: 
+        -2px -2px 0 #000,
+        2px -2px 0 #000,
+        -2px 2px 0 #000,
+        2px 2px 0 #000;
+    z-index: 10;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 5px 15px;
+    border: 2px solid #ff0000;
+    border-radius: 5px;
+}
+
+.player-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start; /* Changed from center to flex-start to allow name positioning */
+    margin-bottom: 4px; /* Reduced margin to bring names closer to top */
+    position: relative;
+    z-index: 10; /* Higher z-index to stay above overlapping cards */
+    transition: all 0.3s ease;
+    padding-top: 0; /* Remove any top padding that might offset the name positioning */
+}
+
+/* Expand margin on hover */
+.player-dashboard:hover .player-info {
+    margin-bottom: 15px;
+}
+
+.player-name {
+    font-size: 1.5em; /* Increased from 1.3em */
+    font-weight: 900;
+    font-family: 'Bangers', cursive;
+    color: #ffffff; /* White font color */
+    text-shadow: 
+        -2px -2px 0 #000,
+        2px -2px 0 #000,
+        -2px 2px 0 #000,
+        2px 2px 0 #000,
+        3px 3px 6px rgba(0, 0, 0, 0.8); /* Black drop shadows */
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    margin-top: -12px !important; /* Move the name up even more towards the top - using !important to override any other styling */
+}
+
+/* More specific targeting for player names to ensure consistency */
+.player-dashboard .player-name,
+.player-dashboard .player-info .player-name,
+.player-name-container .player-name {
+    margin-top: -12px !important; /* Ensure all player names are positioned consistently */
+    font-size: 1.5em !important; /* Ensure consistent font size */
+}
+
+/* Expand name size on hover */
+.player-dashboard:hover .player-name,
+.player-dashboard:hover .player-info .player-name,
+.player-dashboard:hover .player-name-container .player-name {
+    font-size: 1.7em !important; /* Increased from 1.5em to match new base size */
+}
+
+/* Player subtitle (player name in parentheses) */
+.player-subtitle {
+    font-size: 0.7em; /* Smaller than monster name */
+    font-weight: 600;
+    opacity: 0.9;
+    color: #f0f0f0; /* Slightly dimmer than monster name */
+    text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000,
+        2px 2px 4px rgba(0, 0, 0, 0.7); /* Lighter shadow than monster name */
+}
+
+/* CPU indicator on monster avatar */
+.cpu-indicator-avatar {
+    position: absolute;
+    bottom: -8px;
+    right: -8px;
+    background: linear-gradient(135deg, #007acc 0%, #0099ff 50%, #33b5ff 100%);
+    color: #ffffff;
+    font-family: 'Bangers', cursive;
+    font-size: 0.6em;
+    font-weight: 700;
+    padding: 2px 4px;
+    border-radius: 8px;
+    border: 2px solid #000000;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    box-shadow: 
+        2px 2px 0px #000000,
+        3px 3px 8px rgba(0, 0, 0, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    z-index: 15;
+    min-width: 20px;
+    text-align: center;
+    line-height: 1;
+}
+
+/* CPU Indicator styling */
+.cpu-indicator {
+    display: inline-block;
+    background: linear-gradient(135deg, #007acc 0%, #0099ff 50%, #33b5ff 100%);
+    color: #ffffff;
+    font-family: 'Bangers', cursive;
+    font-size: 0.6em;
+    padding: 2px 6px;
+    border-radius: 8px;
+    border: 2px solid #000;
+    margin-left: 8px;
+    text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+    box-shadow: 
+        2px 2px 0px #000,
+        3px 3px 8px rgba(0, 0, 0, 0.6);
+    transform: perspective(200px) rotateX(-2deg);
+    letter-spacing: 0.5px;
+    background-image: 
+        radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0);
+    background-size: 4px 4px;
+}
+
+/* Player Name Container for Inline Tokyo Indicator */
+.player-name-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px; /* Increased from 2px to add more space between name and Tokyo labels */
+    padding-top: 5px; /* Add padding to accommodate larger text */
+}
+
+.tokyo-indicator-inline {
+    font-family: 'Bangers', cursive;
+    font-size: 1.3em; /* Increased from 1.1em */
+    font-weight: 900;
+    background: var(--monster-color, #ff6b00); /* Solid color, no gradient or opacity */
+    color: white;
+    padding: 3px 10px; /* Increased padding for larger text */
+    border: 2px solid #000;
+    border-radius: 0;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1px; /* Added letter spacing for better readability */
+    text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+    box-shadow: 
+        2px 2px 0px #000,
+        3px 3px 8px rgba(0, 0, 0, 0.5);
+    transition: font-size 0.3s ease, padding 0.3s ease; /* Removed glow animation */
+}
+
+.player-dashboard:hover .tokyo-indicator-inline {
+    font-size: 1.5em; /* Increased from 1.3em */
+    padding: 4px 12px; /* Increased padding for larger hover text */
+}
+
+/* Cyber Bunny player dashboard - pink background */
+.player-dashboard[data-monster="cyberbunny"] {
+    background: #dda0dd; /* Pink background */
+}
+
+/* Cyber Bunny player dashboard - pink background */
+.player-dashboard[data-monster="cyberbunny"] {
+    background: #dda0dd; /* Pink background */
+}
+
+.player-dashboard[data-monster="cyberbunny"]::before {
+    background: transparent;
+}
+
+/* Removed hardcoded active background - let CSS custom properties handle it */
+
+/* Alienoid player dashboard - yellowish green background */
+.player-dashboard[data-monster="alienoid"] {
+    background: #8fbc8f; /* Yellowish green background */
+}
+
+.player-dashboard[data-monster="alienoid"]::before {
+    background: transparent;
+}
+
+/* Removed hardcoded active background - let CSS custom properties handle it */
+
+/* Gigazaur player dashboard - darker forest green background */
+.player-dashboard[data-monster="gigazaur"] {
+    background: #1e3a1e;
+}
+
+.player-dashboard[data-monster="gigazaur"]::before {
+    background: transparent;
+}
+
+/* Removed hardcoded active background - let CSS custom properties handle it */
+
+/* Kraken player dashboard - darker forest green/greenish blue background */
+.player-dashboard[data-monster="kraken"] {
+    background: #1e3a37;
+}
+
+.player-dashboard[data-monster="kraken"]::before {
+    background: transparent;
+}
+
+/* Removed hardcoded active background - let CSS custom properties handle it */
+
+/* The King player dashboard - darker brown background */
+.player-dashboard[data-monster="kinghull"] {
+    background: #4a3c1f;
+}
+
+.player-dashboard[data-monster="kinghull"]::before {
+    background: transparent;
+}
+
+/* Removed hardcoded active background - let CSS custom properties handle it */
+
+/* Meka Dragon player dashboard - red background */
+.player-dashboard[data-monster="megalodon"] {
+    background: #cd5c5c; /* Red background */
+}
+
+.player-dashboard[data-monster="megalodon"]::before {
+    background: transparent;
+}
+
+/* Removed hardcoded active background - let CSS custom properties handle it */
+
+/* Override any Tokyo-specific styling to maintain monster backgrounds */
+/* Cyber Bunny in Tokyo - maintain regular background */
+.player-dashboard[data-monster="cyberbunny"].in-tokyo-city,
+.player-dashboard[data-monster="cyberbunny"].in-tokyo {
+    background: #dda0dd !important; /* Force regular pink background */
+}
+
+/* Alienoid in Tokyo - maintain regular background */
+.player-dashboard[data-monster="alienoid"].in-tokyo-city,
+.player-dashboard[data-monster="alienoid"].in-tokyo {
+    background: #8fbc8f !important; /* Force regular yellowish green background */
+}
+
+/* Gigazaur in Tokyo - maintain regular background */
+.player-dashboard[data-monster="gigazaur"].in-tokyo-city,
+.player-dashboard[data-monster="gigazaur"].in-tokyo {
+    background: #1e3a1e !important; /* Force regular dark forest green background */
+}
+
+/* Kraken in Tokyo - maintain regular background */
+.player-dashboard[data-monster="kraken"].in-tokyo-city,
+.player-dashboard[data-monster="kraken"].in-tokyo {
+    background: #1e3a37 !important; /* Force regular dark greenish blue background */
+}
+
+/* The King in Tokyo - maintain regular background */
+.player-dashboard[data-monster="kinghull"].in-tokyo-city,
+.player-dashboard[data-monster="kinghull"].in-tokyo {
+    background: #4a3c1f !important; /* Force regular dark brown background */
+}
+
+/* Meka Dragon in Tokyo - maintain regular background */
+.player-dashboard[data-monster="megalodon"].in-tokyo-city,
+.player-dashboard[data-monster="megalodon"].in-tokyo {
+    background: #cd5c5c !important; /* Force regular red background */
+}

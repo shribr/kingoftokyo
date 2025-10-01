@@ -1,25 +1,44 @@
-# Legacy CSS (Transplanted Reference)
+# CSS Architecture Overview
 
-This folder centralizes copied legacy or transplanted global CSS taken from the original (non-`new/`) codebase.
+This document explains the layering and conventions introduced for improved maintainability.
 
-Purpose:
-- Provide a single quarantine location for styles pending incremental migration into the new modular architecture.
-- Prevent accidental editing of legacy snapshots scattered across active component styling.
-- Enable a final cleanup (delete entire folder) once every required token/rule has been re-homed.
+## Layer Order (Load Sequence in `index.html`)
+1. base.css – Reset, global tokens, accessibility primitives
+2. splash.css – Entry screen visuals (can be skipped after load)
+3. layout.css – Positional scaffolding (fixed panels, z-index, structural coordinates)
+4. game-areas.css – In‑board area styling (Tokyo, player panels internals) – NO positional overrides of fixed panels
+5. monsters.css – Player dashboard & monster visual skins
+6. dice.css – Dice component skin (not position)
+7. cards.css – Power card panel & card skin
+8. modals.css – Overlay dialogs & complex UI flows
+9. animations.css – Reusable animation keyframes & effect classes
+10. ai-logic-flow.css / rolloff.css – Feature‑specific visualizations
+11. responsive.css – Media queries & progressive enhancement
 
-Guidelines:
-1. Do NOT add new rules here. Create or extend component-scoped CSS instead (e.g. `components.*.css`).
-2. When you migrate a rule, annotate the destination file (temporary comment) then remove the rule here ONLY after validation.
-3. Avoid importing these legacy files wholesale in production once parity is achieved—prefer selective reimplementation.
-4. `base.css` and `layout.css` here are snapshots; the *active* versions remain in `new/css/` until fully modularized.
+## Key Conventions
+- Layout vs. Skin: All `position: fixed` and macro geometry stays in `layout.css`. Component skins live in their specific file.
+- Animations: Project-scoped keyframes use `ko-` OR a descriptive unique name. Short entrance vs. persistent glow separated (`tokyoEnterGlow` vs. `tokyoGlow`).
+- Utilities: Shared long shadows & text shadow tokens implemented via CSS custom properties + utility classes (see `base.css`).
+- State Classes: Prefer additive class names (e.g., `.game-active`, `.cpu-rolling`) instead of overriding base styles inline.
 
-Deletion Criteria (UPDATED – achieved):
-✔ All global layout, header, panel, dice, and modal styling refactored into component/tokens.
-✔ No remaining runtime references to legacy-only selectors (.players-area, .cards-area, .dice-area, .action-menu) – components now use cmp-* equivalents.
-✔ Power cards + player profile card visuals sourced from dedicated component styles.
-✔ Action menu + dice tray fully migrated (positioning + styling) with draggable service.
+## New Utility Classes
+(Defined in `base.css`)
+- `.ts-comic-outline` – Heavy 4-direction black outline text shadow (classic comic title)
+- `.ts-comic-mid` – Mid weight multi-direction outline
+- `.ts-comic-soft` – Softer small outline
+- `.u-gradient-panel` – Standard panel gradient token reference
+- `.u-focus-ring` – Explicit focus outline helper (overrides if needed)
 
-Status: Folder retained temporarily only for rollback safety. Safe to delete `css/legacy/` in next cleanup commit.
+## Migration Strategy
+Gradually replace repeated `text-shadow` blocks by adding appropriate utility class to the element or its container. Keep legacy declarations during transition where risk of regression exists; prune them after visual QA.
 
----
-Timestamp: Auto-generated on migration pass.
+## Don’ts
+- Don’t redeclare `position` for `.players-area`, `.cards-area`, `.dice-area`, `.action-menu` outside `layout.css`.
+- Don’t reintroduce generic keyframe names like `pulse` or `tokyoGlow` in feature files.
+
+## Next Recommended Cleanups
+1. Replace remaining duplicated text-shadow declarations (phase 2).
+2. Introduce `prefers-reduced-motion` fallbacks for heavy glow/box-shadow animations.
+3. Centralize gradient palettes into `:root` custom properties.
+4. Add Stylelint to CI to guard against duplicate keyframe names & missing braces.
+
