@@ -169,6 +169,15 @@ Status Update (Oct 1, 2025): Phase Alpha Steps 1 & 3 complete – AI actuation u
 2. FSM + `turnCycleId` (PARTIAL – guards in place, FSM pending)
 3. Dice roll resolved event (no polling) & CPU loop refactor (DONE)
 4. Deterministic mode (seeded; fixed trials) + snapshot harness
+	- [ ] RNG adapter module (`rngFactory(seed)`) with Mulberry32 implementation
+	- [ ] Seed derivation: `{ turnCycleId, finalRollIndex, playerId }` → 32-bit seed hash
+	- [ ] Inject RNG into AI decision pipeline (eliminate implicit Math.random)
+	- [ ] Fixed Monte Carlo trial count constant (`AI_TRIALS_TEST_MODE`)
+	- [ ] Decision metadata enrichment: `meta.seed`, `meta.trials`, `meta.durationMs`
+	- [ ] Snapshot harness: multi-run identical output assertion (dice keep sets, yield advisory)
+	- [ ] Divergence logger (on mismatch dump state + seed chain)
+	- [ ] Telemetry counter: `ai.determinism.diff` (target 0)
+	- [ ] Guard ensures TEST_MODE disables adaptive early-exit heuristics
 5. Unified yield & takeover sequence (yield advisory integration)
 6. BUY_WAIT phase + timing spans + takeover ordering asserts
 
@@ -318,4 +327,4 @@ Status Update (Oct 1, 2025): Phase Alpha Steps 1 & 3 complete – AI actuation u
 
 
 ---
-**Note**: Revisions incorporate parity audit findings (Sept 29, 2025). Legacy remains the reference standard until Flow Parity (Phase Alpha) is achieved.
+**Note**: Revisions incorporate parity audit findings (Sept 29, 2025) and Oct 1 progress addendum. Legacy remains the reference standard until Flow Parity (Phase Alpha) is achieved. Next scheduled parity review: post unified yield + deterministic mode completion.

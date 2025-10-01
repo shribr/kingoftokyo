@@ -50,7 +50,7 @@ Rewrite: Effect queue scaffold not yet processing complex stack or delayed trigg
 2. (Resolved) Polling replaced by event-driven final roll resolution.  
 3. Conflated yield decision paths (human vs AI) – pending unified modal.  
 4. Incomplete effect processing system (queue scaffold + stale guard only).  
-5. (Improved) Phase spans + transition history; deeper metrics pending.  
+5. (Improved) Phase spans + transition history; deeper timing metrics pending.  
 
 ## Remediation Roadmap (Condensed)
 P0 (In Progress): FSM prototype, dice resolved event (done), unified yield (pending), BUY_WAIT phase (pending).  
@@ -125,7 +125,7 @@ End Addendum (Sept 30, 2025)
 1. Event-based dice resolution (`DICE_ROLL_RESOLVED`) removed polling loop.
 2. Phase FSM prototype with guarded transitions and invalid transition telemetry (feature-flag gated).
 3. Prototype min phase durations (ROLL / RESOLVE / BUY) added for pacing stabilization.
-4. Concurrency guard (`turnCycleId`) applied to effect queue & dice scheduling (partial coverage).
+4. Concurrency guard (`turnCycleId`) applied to effect queue & dice scheduling (partial coverage; more needed).
 5. AI dice actuation unified (timer auto-keep path removed); final roll metadata captured.
 6. Phase span instrumentation + transition history logging established.
 
