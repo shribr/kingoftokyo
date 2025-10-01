@@ -231,6 +231,7 @@ export function createTurnService(store, logger, rng = Math.random) {
     }
     // If we already left SETUP at some point, mark started (covers external phase changes) and bail.
     if (st.phase !== Phases.SETUP) {
+      logger.debug && logger.debug('[turnService] startGameIfNeeded: phase no longer SETUP (current=' + st.phase + ')');
       if (!startGameIfNeeded.__started) startGameIfNeeded.__started = true;
       return;
     }
@@ -240,6 +241,9 @@ export function createTurnService(store, logger, rng = Math.random) {
     startGameIfNeeded.__attempts++;
     try {
       logger.system && logger.system(`[turnService] Game start attempt #${startGameIfNeeded.__attempts}`);
+      if (startGameIfNeeded.__attempts === 1) {
+        console.debug('[turnService] Initial activePlayerIndex:', st.meta?.activePlayerIndex, 'players:', st.players?.order);
+      }
       if (usePhaseMachine && phaseMachine) {
         phaseMachine.to(Phases.ROLL, { reason: 'game_start' });
       } else {
@@ -256,6 +260,14 @@ export function createTurnService(store, logger, rng = Math.random) {
       if (startGameIfNeeded.__attempts >= 3) {
         logger.error && logger.error('[turnService] Aborting further start attempts after 3 failures');
         startGameIfNeeded.__started = true; // hard stop to break potential infinite loop
+        try {
+          const still = store.getState();
+          if (still.phase === Phases.SETUP) {
+            console.warn('[turnService] Forced fallback PHASE_TRANSITION to ROLL after failed attempts');
+            store.dispatch({ type:'PHASE_TRANSITION', payload:{ from: 'SETUP', to: 'ROLL', reason:'forced_fallback', ts: Date.now() }});
+            startTurn();
+          }
+        } catch(_) {}
       } else {
         // Release starting flag so a later call can retry
         startGameIfNeeded.__starting = false;
@@ -268,11 +280,24 @@ export function createTurnService(store, logger, rng = Math.random) {
 
   function startTurn() {
     __rollIndex = 0; // reset per new turn (defined later)
+    try { console.debug('[turnService] startTurn invoked, activePlayerIndex=', store.getState().meta?.activePlayerIndex); } catch(_) {}
     // Start-of-turn bonuses (Tokyo VP if occupying City at turn start)
     awardStartOfTurnTokyoVP(store, logger);
   logger.system('Phase: ROLL', { kind: 'phase' });
   if (usePhaseMachine && phaseMachine) phaseMachine.to(Phases.ROLL, { reason: 'turn_start' }); else phaseCtrl.to(Phases.ROLL, { reason: 'turn_start' });
     markPhaseStart('ROLL');
+    // Guard against duplicate startTurn within same activePlayerIndex + phase frame
+    try {
+      const stGuard = store.getState();
+      const activeIdx = stGuard.meta?.activePlayerIndex;
+      if (startTurn.__activeIndexStarted === activeIdx && startTurn.__inProgress) {
+        logger.debug && logger.debug('[turnService] startTurn re-entry ignored (active index)', activeIdx);
+        return;
+      }
+      startTurn.__activeIndexStarted = activeIdx;
+      startTurn.__inProgress = true;
+      setTimeout(()=>{ startTurn.__inProgress = false; }, 0); // release next tick
+    } catch(_) {}
     // If active player is CPU, run automated turn logic
     try {
       const st = store.getState();
@@ -283,6 +308,23 @@ export function createTurnService(store, logger, rng = Math.random) {
         const isCPU = !!(active && (active.isCPU || active.isAi || active.type === 'ai' || active.isAI));
         console.log(`🎯 Starting turn for ${active?.name} (${isCPU ? 'CPU' : 'Human'}) - Index: ${st.meta.activePlayerIndex}`);
         if (isCPU) {
+          // Immediate kickoff attempt (before UI subscription based triggers) to avoid missing first roll
+          const attemptImmediate = () => {
+            try {
+              const cs = store.getState();
+              if (cs.phase === 'ROLL' && cs.dice?.phase === 'idle' && (!cs.dice.faces || cs.dice.faces.length === 0)) {
+                console.debug('[turnService] CPU immediate kickoff start');
+                playCpuTurn(activeId);
+                return true;
+              }
+            } catch(_) {}
+            return false;
+          };
+          if (!attemptImmediate()) {
+            let tries = 0; const MAX_TRIES = 5;
+            const retry = () => { if (attemptImmediate()) return; if (++tries < MAX_TRIES) setTimeout(retry, 40); };
+            setTimeout(retry, 40);
+          }
           // Always use controller (legacy polling removed)
           waitUnlessPaused(store, CPU_TURN_START_MS).then(() => {
             const currentState = store.getState();
@@ -290,6 +332,16 @@ export function createTurnService(store, logger, rng = Math.random) {
               playCpuTurn(activeId);
             }
           });
+          // Watchdog: if after 1.2s still no faces rolled, force start
+          setTimeout(()=> {
+            try {
+              const ws = store.getState();
+              if (ws.phase === 'ROLL' && ws.dice?.faces?.length === 0 && ws.dice.phase === 'idle') {
+                console.warn('[turnService] CPU kickoff watchdog firing (forcing playCpuTurn)');
+                playCpuTurn(activeId);
+              }
+            } catch(_) {}
+          }, 1200);
         }
       }
     } catch(_) {}
@@ -414,8 +466,19 @@ export function createTurnService(store, logger, rng = Math.random) {
   async function playCpuTurn(forcedActiveId = null) {
     // Always delegate to controller (legacy loop removed)
     try {
+      const stPre = store.getState();
+      const activeIdLog = forcedActiveId || (stPre.players.order[stPre.meta.activePlayerIndex % stPre.players.order.length]);
+      console.debug('[turnService] playCpuTurn invoked for', activeIdLog);
       const controller = createCpuTurnController(store, enhancedEngineProxy(), store._logger || console, {});
       controller.start();
+      setTimeout(()=> {
+        try {
+          const ds = store.getState().dice;
+          if (store.getState().phase === 'ROLL' && ds.faces.length === 0 && ds.phase === 'idle') {
+            console.warn('[turnService] playCpuTurn post-start check: still idle (faces empty)');
+          }
+        } catch(_) {}
+      }, 300);
     } catch(err) {
       console.error('🤖 CPU Controller start failed', err);
     }
@@ -434,9 +497,10 @@ export function createTurnService(store, logger, rng = Math.random) {
         const nextIndex = (st.meta.activePlayerIndex + 1) % order.length;
         store.dispatch({ type:'NEXT_TURN', payload:{ prev: st.meta.activePlayerIndex, next: nextIndex }});
         store.dispatch({ type:'META_ACTIVE_PLAYER_SET', payload:{ index: nextIndex }});
+        logger.system && logger.system(`[turnService] Advancing to next turn index ${nextIndex}`);
       }
-      if (usePhaseMachine && phaseMachine) phaseMachine.to(Phases.ROLL, { reason:'cleanup_complete' }); else phaseCtrl.to(Phases.ROLL, { reason:'cleanup_complete' });
-      markPhaseStart('ROLL');
+      // Delegate to startTurn so that start-of-turn hooks & CPU automation always run
+      startTurn();
     } catch(err) { logger.warn && logger.warn('cleanup error', err); }
   }
 

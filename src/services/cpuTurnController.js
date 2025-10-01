@@ -42,6 +42,7 @@ export function createCpuTurnController(store, engine, logger = console, options
       window.__KOT_NEW__ = window.__KOT_NEW__ || {}; 
       window.__KOT_NEW__.cpuControllerModeActive = true;
     }
+    try { logger.debug && logger.debug('[cpuController] start() invoked'); } catch(_) {}
     try {
       const state = store.getState();
       const activeId = selectActivePlayerId(state);
@@ -51,6 +52,7 @@ export function createCpuTurnController(store, engine, logger = console, options
       if (typeof window !== 'undefined' && window.__KOT_NEW__) {
         window.__KOT_NEW__.cpuControllerModeActive = false;
       }
+      try { logger.debug && logger.debug('[cpuController] start() complete'); } catch(_) {}
       active = false;
     }
   }
@@ -140,6 +142,7 @@ export function createCpuTurnController(store, engine, logger = console, options
     }
 
     // Final resolution transition - mimic legacy behavior with metadata payload
+    try { logger.debug && logger.debug('[cpuController] dispatching diceRollResolved after rolls', { totalRolls: rollNumber }); } catch(_) {}
     try {
       const stFinal = store.getState();
       const faces = (stFinal.dice.faces||[]).map(f=> f.value);

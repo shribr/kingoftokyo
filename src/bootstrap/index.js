@@ -143,6 +143,7 @@ if (typeof window !== 'undefined') {
       const st = store.getState();
       if (!st.players.order.length) {
         seedRandomPlayers(store, monsters, logger);
+        try { window.__KOT_BOOT_READY = true; } catch(_) {}
       }
       const seeded = store.getState().players.order.length;
       if (!seeded) console.warn('[bootstrap] skipIntro active but players failed to seed (monsters likely empty or images missing).');
@@ -165,6 +166,7 @@ if (typeof window !== 'undefined') {
     if (skipIntro) {
       const st = store.getState();
       if (!st.players.order.length) seedRandomPlayers(store, fallback, logger);
+      try { window.__KOT_BOOT_READY = true; } catch(_) {}
       const seeded = store.getState().players.order.length;
       if (!seeded) console.warn('[bootstrap] skipIntro active (fallback) but players failed to seed.');
       // Fallback path: also ensure shop populated
@@ -257,27 +259,7 @@ if (typeof window !== 'undefined') {
     if (rff && rff.resolved && st.phase === 'SETUP') {
       turnService.startGameIfNeeded();
     }
-    // Auto-kick first CPU roll if the game just transitioned into ROLL and active player is CPU.
-    // Reason: action-menu auto-roll logic only triggers after its own update cycle; on first frame it may not yet fire
-    // if component order/update timing delays its evaluation. This ensures a guaranteed initial CPU roll trigger.
-    try {
-      const after = store.getState();
-      if (after.phase === 'ROLL' && after.dice.phase === 'idle' && (!after.dice.faces || after.dice.faces.length === 0)) {
-        const order = after.players.order;
-        if (order.length) {
-          const activeId = order[after.meta.activePlayerIndex % order.length];
-          const active = after.players.byId[activeId];
-          const isCPU = !!(active && (active.isCPU || active.isAi || active.type === 'ai'));
-          if (isCPU) {
-            // Debounce so we don't double-trigger if action-menu also fires; mark a guard flag.
-            if (!window.__KOT_FIRST_CPU_ROLL_TRIGGERED) {
-              window.__KOT_FIRST_CPU_ROLL_TRIGGERED = true;
-              setTimeout(()=>{ try { eventBus.emit('ui/dice/rollRequested'); } catch(_){} }, 120);
-            }
-          }
-        }
-      }
-    } catch(_) {}
+    // (Removed) previous subscription-based CPU auto-roll kick; logic centralized in turnService.startTurn
     // no per-tick tracing
     // When phase leaves SETUP (i.e., game actually starts) mark body active and fade out blackout
     if (st.phase !== 'SETUP' && !document.body.classList.contains('game-active')) {

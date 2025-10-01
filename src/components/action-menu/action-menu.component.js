@@ -462,7 +462,9 @@ export function update(root) {
   const anyUnkept = faces.some(f => f && !f.kept);
   const canReroll = dice.phase === 'resolved' && dice.rerollsRemaining > 0 && anyUnkept;
   const canInitialRoll = isIdle;
-  const canRoll = st.phase === 'ROLL' && (canInitialRoll || canReroll) && dice.phase !== 'rolling';
+  // Phase value may be plain string or object (phase machine). Support both.
+  const phaseName = (st.phase && typeof st.phase === 'object' && st.phase.name) ? st.phase.name : st.phase;
+  const canRoll = phaseName === 'ROLL' && (canInitialRoll || canReroll) && dice.phase !== 'rolling';
   const order = st.players.order;
   let active = null;
   if (order.length) {
@@ -481,6 +483,10 @@ export function update(root) {
 
   const accepted = !!dice.accepted;
   if (rollBtn) {
+    // Temporary diagnostic: log when roll button disabled while we expect it to be enabled
+    if (!isCPU && !accepted && phaseName === 'ROLL' && dice.phase === 'idle' && (!dice.faces || dice.faces.length === 0) && rollBtn.disabled) {
+      console.debug('[action-menu] Roll button unexpectedly disabled', { phaseName, dicePhase: dice.phase, faces: dice.faces?.length, canInitialRoll, canReroll });
+    }
     rollBtn.disabled = isCPU ? true : (!canRoll || accepted); // cannot roll after accepting results
     rollBtn.textContent = hasFirstRoll ? 'RE-ROLL UNSELECTED' : 'ROLL';
   }
