@@ -1,241 +1,64 @@
-/* CSS Reset and Base Styles */
-@import url('https://fonts.googleapis.com/css2?family=Creepster&family=Nunito:wght@400;600;700;800;900&family=Bangers&display=swap');
+/* Enhanced Base CSS (migrated from root) */
+/* Font imports moved to index.html for better preload + connection reuse */
 
-/* CSS Reset */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+* { margin:0; padding:0; box-sizing:border-box; }
+/* Default to white text given predominantly dark game surfaces; light UIs should override locally */
+body { font-family:'Nunito',sans-serif; background:#000; color:#fff; overflow-x:hidden; overflow-y:visible; height:100vh; }
+
+/* Text Shadow Utilities */
+:root {
+    --ts-comic-heavy: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 4px 4px 8px rgba(0,0,0,.8);
+    --ts-comic-mid: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000;
+    --ts-comic-soft: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
 }
+.ts-comic-outline { text-shadow: var(--ts-comic-heavy); }
+.ts-comic-mid { text-shadow: var(--ts-comic-mid); }
+.ts-comic-soft { text-shadow: var(--ts-comic-soft); }
 
-body {
-    font-family: 'Nunito', sans-serif;
-    background: #000;
-    color: #fff;
-    overflow-x: hidden; /* Prevent horizontal scrollbars only */
-    overflow-y: visible; /* Allow vertical expansion for player cards */
-    height: 100vh; /* Ensure body takes full viewport height */
-}
+/* Focus ring utility */
+.u-focus-ring { outline:2px solid #7fd65d; outline-offset:2px; }
 
-/* Typography */
-h1, h2, h3, h4, h5, h6 {
-    font-family: 'Bangers', cursive;
-    color: #fff;
-}
+/* Skip Link */
+.skip-link { position:absolute; left:-999px; top:auto; width:1px; height:1px; overflow:hidden; }
+.skip-link:focus { left:8px; top:8px; width:auto; height:auto; background:#111; color:#fff; padding:6px 10px; z-index:2000; border:2px solid #7fd65d; border-radius:4px; }
 
-/* Button Base Styles */
-button {
-    font-family: 'Bangers', cursive;
-    cursor: pointer;
-    border: none;
-    background: none;
-    outline: none;
-}
+:focus-visible { outline:2px solid #7fd65d; outline-offset:2px; }
 
-/* Tokyo Base Button Class - Core styling for all Tokyo-themed buttons */
-.btn-tokyo-base {
-    font-family: 'Bangers', cursive;
-    font-size: 1.44em;
-    color: #fff; /* Default white text */
-    font-weight: bold;
-    letter-spacing: 2px;
-    text-shadow: 
-        -2px -2px 0 #000,
-        2px -2px 0 #000,
-        -2px 2px 0 #000,
-        2px 2px 0 #000,
-        4px 4px 8px rgba(0, 0, 0, 0.8);
-    white-space: nowrap;
-    padding: 9.6px 14.4px;
-    background: #666; /* Default gray background */
-    border: 4px solid #000;
-    border-radius: 0;
-    box-shadow: 
-        4px 4px 0px #000,
-        6px 6px 20px rgba(0, 0, 0, 0.4);
-    transform: perspective(400px) rotateX(2deg) rotateZ(-1.5deg) scale(1.0);
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
+/* Headings default to white; light components can override locally */
+h1,h2,h3,h4,h5,h6 { font-family: var(--font-family-brand,'Bangers','Creepster',cursive); color:#fff; }
+button { font-family: var(--font-family-brand,'Bangers',cursive); cursor:pointer; border:none; background:none; outline:none; }
 
-/* Default hover effect */
-.btn-tokyo-base:hover {
-    transform: perspective(400px) rotateX(2deg) rotateZ(-1.5deg) scale(1.05);
-    box-shadow: 
-        6px 6px 0px #000,
-        8px 8px 25px rgba(0, 0, 0, 0.5);
-}
+.btn-tokyo-base { font-family: var(--font-family-brand,'Bangers',cursive); font-size:1.44em; color:#fff; font-weight:bold; letter-spacing:2px; text-shadow:var(--ts-comic-heavy); white-space:nowrap; padding:9.6px 14.4px; background:#666; border:4px solid #000; border-radius:0; box-shadow:4px 4px 0 #000,6px 6px 20px rgba(0,0,0,.4); transform:perspective(400px) rotateX(2deg) rotateZ(-1.5deg) scale(1); transition:.2s ease; }
+.btn-tokyo-base:hover { transform:perspective(400px) rotateX(2deg) rotateZ(-1.5deg) scale(1.05); box-shadow:6px 6px 0 #000,8px 8px 25px rgba(0,0,0,.5); }
+.btn-tokyo-base:active { transform:perspective(400px) rotateX(2deg) rotateZ(-1.5deg) scale(.98); box-shadow:2px 2px 0 #000,3px 3px 15px rgba(0,0,0,.3); }
 
-/* Active/pressed effect */
-.btn-tokyo-base:active {
-    transform: perspective(400px) rotateX(2deg) rotateZ(-1.5deg) scale(0.98);
-    box-shadow: 
-        2px 2px 0px #000,
-        3px 3px 15px rgba(0, 0, 0, 0.3);
-}
+/* Utility visibility helpers (kept with !important to override component styles safely) */
+.hidden { display:none !important; } /* stylelint-disable-line declaration-no-important */
+.visible { display:block !important; } /* stylelint-disable-line declaration-no-important */
+.comic-border { border:4px solid #000; border-radius:0; box-shadow:6px 6px 0 #000; }
+.halftone-pattern { background-image:radial-gradient(circle at 2px 2px, rgba(0,0,0,.15) 1px, transparent 0); background-size:8px 8px; }
 
-/* Utility Classes */
-.hidden {
-    display: none !important;
-}
+.header-notification { position:absolute; top:220px; right:750px; z-index:1000; padding:8px 20px; margin:8px 0; background:#fff; border:2px solid #333; border-radius:25px; font-family:'Bangers',cursive; font-size:18px; color:#000; text-align:center; cursor:pointer; opacity:0; transition:.3s ease; box-shadow:none; min-width:300px; white-space:nowrap; background-image:radial-gradient(circle at 2px 2px, rgba(0,0,0,.1) 1px, transparent 0); background-size:8px 8px; }
+.header-notification.visible { opacity:1; }
+.header-notification:hover { background:#fff; color:#000; transform:translateY(-2px); box-shadow:none; }
 
-.visible {
-    display: block !important;
-}
+.cpu-action-notification { position:absolute; top:-80px; left:50%; transform:translateX(-50%); z-index:999; padding:10px 20px; background:rgba(255,255,255,.95); border:2px solid #333; border-radius:20px; font-family:'Bangers',cursive; font-size:16px; color:#333; text-align:center; cursor:pointer; opacity:0; transition:.4s ease; box-shadow:0 4px 15px rgba(0,0,0,.3); -webkit-backdrop-filter:blur(5px); backdrop-filter:blur(5px); display:flex; align-items:center; gap:10px; max-width:400px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; background-image:radial-gradient(circle at 2px 2px, rgba(0,0,0,.08) 1px, transparent 0); background-size:6px 6px; }
+.cpu-action-notification.visible { opacity:1; transform:translateX(-50%) translateY(-5px); }
+.cpu-action-notification:hover { background:rgba(255,255,255,.98); transform:translateX(-50%) translateY(-8px); box-shadow:0 6px 20px rgba(0,0,0,.4); }
+.cpu-action-notification .notification-avatar { width:24px; height:24px; border-radius:50%; border:1px solid #333; flex-shrink:0; }
+.cpu-action-notification .notification-text { flex:1; min-width:0; }
 
-/* Comic Book Border Utility */
-.comic-border {
-    border: 4px solid #000;
-    border-radius: 0;
-    box-shadow: 6px 6px 0px #000;
-}
+body.dark-mode { background:#1a1a1a; color:#e0e0e0; }
+/* LEGACY ARENA SELECTOR (DEPRECATED) dark mode background retained until removal */
+/* Removed legacy .game-board dark-mode styling (arena now scoped via .cmp-arena) */
+body.dark-mode .modal-content { background:#333; color:#e0e0e0; }
+body.dark-mode .power-card, body.dark-mode .player-card { background:#404040; border-color:#555; }
+body.dark-mode .dice { background:#404040; border-color:#666; }
+body.dark-mode input, body.dark-mode button { background:#555; color:#e0e0e0; border-color:#666; }
+body.dark-mode .log-entry { background:rgba(255,255,255,.05); color:#e0e0e0; }
 
-/* Halftone Pattern Utility */
-.halftone-pattern {
-    background-image: radial-gradient(circle at 2px 2px, rgba(0,0,0,0.15) 1px, transparent 0);
-    background-size: 8px 8px;
-}
-
-/* Header Notification (Non-blocking) */
-.header-notification {
-    position: absolute;
-    top: 220px; /* Position under Tokyo bay tile (bay is at 70px + height) */
-    right: 750px; /* Position under Tokyo bay (bay is at right: 850px) */
-    transform: none; /* Remove centering transform */
-    z-index: 1000; /* Ensure it appears above other elements */
-    padding: 8px 20px;
-    margin: 8px 0;
-    background: #ffffff; /* White background */
-    border: 2px solid #000;
-    border-radius: 25px;
-    font-family: 'Bangers', cursive;
-    font-size: 18px;
-    color: #000; /* Plain black text color */
-    text-align: center;
-    cursor: pointer;
-    opacity: 0;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    min-width: 300px; /* Increased width to prevent text wrapping */
-    white-space: nowrap; /* Prevent text wrapping */
-    
-    /* Comic book halftone pattern */
-    background-image: 
-        radial-gradient(circle at 2px 2px, rgba(0,0,0,0.1) 1px, transparent 0);
-    background-size: 8px 8px;
-}
-
-.header-notification.visible {
-    opacity: 1;
-    transform: none; /* Remove centering transform */
-}
-
-.header-notification:hover {
-    background: #ffffff; /* Keep white background on hover */
-    color: #000; /* Keep plain black text on hover */
-    transform: translateY(-2px); /* Only move up slightly on hover */
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-}
-
-/* CPU Action Notification (Above dice area) */
-.cpu-action-notification {
-    position: absolute;
-    top: -80px; /* Position higher above dice container */
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 999;
-    padding: 10px 20px;
-    background: rgba(255, 255, 255, 0.95);
-    border: 2px solid #333;
-    border-radius: 20px;
-    font-family: 'Bangers', cursive;
-    font-size: 16px;
-    color: #333;
-    text-align: center;
-    cursor: pointer;
-    opacity: 0;
-    transition: all 0.4s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    -webkit-backdrop-filter: blur(5px);
-    backdrop-filter: blur(5px);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    max-width: 400px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    
-    /* Comic book style */
-    background-image: 
-        radial-gradient(circle at 2px 2px, rgba(0,0,0,0.08) 1px, transparent 0);
-    background-size: 6px 6px;
-}
-
-.cpu-action-notification.visible {
-    opacity: 1;
-    transform: translateX(-50%) translateY(-5px);
-}
-
-.cpu-action-notification:hover {
-    background: rgba(255, 255, 255, 0.98);
-    transform: translateX(-50%) translateY(-8px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-}
-
-.cpu-action-notification .notification-avatar {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    border: 1px solid #333;
-    flex-shrink: 0;
-}
-
-.cpu-action-notification .notification-text {
-    flex: 1;
-    min-width: 0;
-}
-
-/* Dark Mode Support */
-body.dark-mode {
-    background: #1a1a1a;
-    color: #e0e0e0;
-}
-
-body.dark-mode .game-board {
-    background: #2d2d2d;
-}
-
-body.dark-mode .modal-content {
-    background: #333;
-    color: #e0e0e0;
-}
-
-body.dark-mode .power-card,
-body.dark-mode .player-card {
-    background: #404040;
-    border-color: #555;
-}
-
-body.dark-mode .dice {
-    background: #404040;
-    border-color: #666;
-}
-
-body.dark-mode input,
-body.dark-mode button {
-    background: #555;
-    color: #e0e0e0;
-    border-color: #666;
-}
-
-body.dark-mode .log-entry {
-    background: rgba(255, 255, 255, 0.05) !important;
-    color: #e0e0e0;
-}
-
-/* ================= CPU Rolling Indicator ================= */
-.cpu-rolling-indicator { position:absolute; top:4px; right:6px; display:flex; gap:3px; opacity:0.9; animation:koFadeIn .3s ease; pointer-events:none; }
+/* CPU Rolling Indicator */
+.cpu-rolling-indicator { position:absolute; top:4px; right:6px; display:flex; gap:3px; opacity:.9; animation:koFadeIn .3s ease; pointer-events:none; }
 .cpu-rolling-indicator .dot { width:6px; height:6px; background:#d4c14f; border-radius:50%; animation: koPulseDots 1s infinite ease-in-out; box-shadow:0 0 4px rgba(0,0,0,.3); }
 .cpu-rolling-indicator .dot:nth-child(2){ animation-delay:.2s; }
 .cpu-rolling-indicator .dot:nth-child(3){ animation-delay:.4s; }
@@ -244,40 +67,37 @@ body.dark-mode .log-entry {
 @keyframes koFadeIn { from { opacity:0;} to { opacity:.9;} }
 body.dark-mode .cpu-rolling-indicator .dot { background:#f4e38a; }
 
-/* Cursor Fix - Ensure all interactive elements have pointer cursor */
-button,
-.btn,
-.toolbar-btn,
-.clickable,
-[role="button"],
-[onclick],
-input[type="button"],
-input[type="submit"],
-input[type="reset"],
-input[type="checkbox"],
-input[type="radio"],
-select,
-a,
-.monster-card,
-.die:not(.disabled),
-.power-card:not(.disabled),
-.dropdown-selected,
-.dropdown-option,
-.modal-header .close-btn,
-.close-btn,
-.settings-gear-icon,
-.tab-btn,
-.radio-option,
-.player-tile,
-.polaroid {
-    cursor: pointer !important;
-}
+/* Early paint blackout fallback (ensures full cover before layout.css loads). */
+.post-splash-blackout { background:#000; }
 
-/* Ensure disabled elements don't have pointer cursor */
-button:disabled,
-.btn:disabled,
-.die.disabled,
-.power-card.disabled,
-input:disabled {
-    cursor: default !important;
+/* Cursor utilities */
+button, .btn, .toolbar-btn, .clickable, [role="button"], [onclick], input[type="button"], input[type="submit"], input[type="reset"], input[type="checkbox"], input[type="radio"], select, a, .monster-card, .die:not(.disabled), .power-card:not(.disabled), .dropdown-selected, .dropdown-option, .modal-header .close-btn, .close-btn, .settings-gear-icon, .tab-btn, .radio-option, .player-tile, .polaroid { cursor:pointer; }
+button:disabled, .btn:disabled, .die.disabled, .power-card.disabled, input:disabled { cursor:default; }
+
+/* Accessibility utilities */
+.visually-hidden { position:absolute; height:1px; width:1px; overflow:hidden; clip:rect(1px,1px,1px,1px); white-space:nowrap; border:0; padding:0; margin:0; }
+
+/* Transient toast below active player card on turn start */
+.active-start-toast {
+    position: fixed;
+    left: 0; top: 0; /* will be positioned inline via JS */
+    transform: translate(-50%, 6px);
+    background: #fffef8;
+    color: #000;
+    border: 3px solid #000;
+    border-radius: 22px;
+    padding: 6px 14px 7px;
+    font-family: 'Bangers', cursive;
+    font-size: 18px;
+    letter-spacing: 1px;
+    box-shadow: 4px 4px 0 #000, 0 0 0 2px #222 inset;
+    z-index: 9000;
+    opacity: 0;
+    transition: opacity .22s ease, transform .22s ease;
+    pointer-events: none;
+    white-space: nowrap;
+}
+.active-start-toast.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
 }

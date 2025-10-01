@@ -1,858 +1,232 @@
+/* === Transplanted Enhanced responsive.css === */
+/* Verbose copy of root responsive.css at time of transplant. Further edits only here. */
+
 /* Fluid Typography */
-:root {
-    --h1-size: clamp(2rem, 5vw + 1rem, 4rem);
-    --h2-size: clamp(1.5rem, 3vw + 1rem, 2.8rem);
-    --body-size: clamp(0.875rem, 1vw + 0.5rem, 1.125rem);
-    --btn-size: clamp(0.875rem, 1vw + 0.5rem, 1rem);
+:root { --h1-size:clamp(2rem,5vw + 1rem,4rem); --h2-size:clamp(1.5rem,3vw + 1rem,2.8rem); --body-size:clamp(.875rem,1vw + .5rem,1.125rem); --btn-size:clamp(.875rem,1vw + .5rem,1rem); }
+.game-header h1 { font-size:var(--h1-size); }
+.tokyo-area h2, .section-header { font-size:var(--h2-size); }
+body, .btn, .card-text { font-size:var(--body-size); }
 
-/* Base Typography */
-.game-header h1 {
-    font-size: var(--h1-size);
-}
-
-.tokyo-area h2, .section-header {
-    font-size: var(--h2-size);
-}
-
-body, .btn, .card-text {
-    font-size: var(--body-size);
-}
-
-/* Responsive Design */
 /* Monster Selection Dialog Base Styles */
-#monster-profiles-modal {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+#monster-profiles-modal { display:flex; align-items:center; justify-content:center; }
+#monster-profiles-modal .modal-content { width:90%; max-width:1200px; margin:20px auto; background:rgba(255,255,255,.95); border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,.15); }
+#monster-profiles-modal .monster-profiles-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; padding:20px; width:100%; }
+#monster-profiles-modal .player-tiles { display:flex; flex-wrap:wrap; gap:15px; justify-content:center; margin-top:20px; }
+@media screen and (max-width:1056px){ #monster-profiles-modal .monster-profiles-grid { grid-template-columns:repeat(2,1fr); } }
+
+#monster-profiles-modal .setup-header { display:grid; grid-template-columns:auto 1fr auto auto; align-items:center; gap:15px; padding:15px; }
+#monster-profiles-modal .monster-select { grid-column:2; }
+#monster-profiles-modal .btn { min-width:120px; white-space:nowrap; }
+@media screen and (max-width:972px){
+	#monster-profiles-modal .modal-content { display:flex; flex-direction:column; }
+	#monster-profiles-modal .setup-header { display:flex; flex-direction:column; align-items:center; padding:15px; gap:15px; }
+	#monster-profiles-modal .monster-select { width:100%; max-width:300px; }
+	#monster-profiles-modal .setup-buttons { display:flex; flex-direction:row; justify-content:center; gap:15px; width:100%; max-width:300px; }
+	#monster-profiles-modal .btn { flex:1; min-width:120px; margin:0; }
+	#monster-profiles-modal .monster-profiles-grid { grid-template-columns:repeat(2,1fr); padding:15px; gap:15px; }
+	#monster-profiles-modal .player-tiles { order:2; width:100%; padding:20px; margin-top:30px; border-top:3px solid #000; display:flex; flex-wrap:wrap; justify-content:center; gap:15px; }
+}
+.monster-profile { background-color:rgba(255,255,255,.9); border-radius:8px; padding:20px; text-align:center; transition:transform .2s ease; cursor:pointer; }
+.monster-profile:hover { transform:translateY(-5px); box-shadow:0 5px 15px rgba(0,0,0,.2); }
+
+@media (max-width:1200px){ .game-header h1 { letter-spacing:2px; text-shadow:var(--ts-comic-mid); } .dice-container { gap:12px; } .die { width:65px; height:65px; font-size:1.6em; } }
+/* Desktop: ensure action menu is visible on larger screens */
+@media (min-width: 761px) {
+  #action-menu {
+    display: flex !important;
+  }
 }
 
-#monster-profiles-modal .modal-content {
-    width: 90%;
-    max-width: 1200px;
-    margin: 20px auto;
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+@media (max-width:760px){
+	#game-container { padding:clamp(10px,3vw,15px); width:100%; max-width:100%; margin:0 auto; }
+	
+  /* Mobile action menu - hidden by default, shown by mobile toggle button */
+  #action-menu {
+    display: none !important;
+  }
+  
+  /* Disable dragging for action menu in mobile */
+  #action-menu[data-draggable="false"] {
+    cursor: default !important;
+  }
+  
+  /* Mobile power cards button - control arrow opacity directly */
+  #power-cards-btn .arrow-right {
+    opacity: 0 !important;
+  }
+  
+  #power-cards-btn .arrow-left {
+    opacity: 1 !important;
+  }
+  
+  /* Mobile power cards submenu - force leftward expansion */
+  #power-cards-btn ~ .power-cards-submenu {
+    right: 100% !important;
+    left: auto !important;
+    margin-right: 8px !important;
+    margin-left: 0 !important;
+  }  /* When shown in mobile, position above the mobile button, right-aligned */
+  #action-menu[style*="display: flex"] {
+    position: fixed !important;
+    bottom: 80px !important; /* Above mobile button */
+    right: 20px !important; /* Right-align with button's right edge */
+    left: auto !important;
+    transform: none !important;
+    z-index: 7000 !important; /* Higher than monsters panel */
+    width: 260px !important;
+    height: auto !important;
+    max-height: calc(100vh - 120px) !important; /* Leave space for button */
+    top: auto !important;
+  }	/* Mobile dice tray positioning and toggle */
+	.cmp-dice-tray {
+		position: fixed !important;
+		bottom: 0 !important;
+		left: -80% !important;
+		top: auto !important;
+		transform: none !important;
+		transition: left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+		width: 100vw;
+		z-index: 6600;
+	}
+	
+	.cmp-dice-tray.expanded {
+		left: 0 !important;
+	}
+	
+	.cmp-dice-tray .tray-outer {
+		width: 100%;
+		min-width: 100%;
+	}
+	
+	/* Dice tray toggle button */
+	#dice-toggle-btn {
+		position: fixed;
+		bottom: 20px;
+		left: 20px;
+		width: 50px;
+		height: 50px;
+		background: var(--dice-tray-label-bg, #ffcf33);
+		border: 3px solid #333;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 24px;
+		cursor: pointer;
+		box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+		z-index: 6700;
+		transition: transform 0.2s ease;
+	}
+	
+	#dice-toggle-btn:hover {
+		transform: scale(1.05) !important;
+	}	#dice-toggle-btn:active {
+		transform: scale(0.95) !important;
+	}
+
+	/* Mobile action menu button */
+	#action-menu-mobile-btn {
+		position: fixed;
+		bottom: 20px;
+		left: calc(100vw - 70px);
+		width: 50px;
+		height: 50px;
+		background: linear-gradient(135deg, #ffcf33 0%, #ffb300 100%);
+		border: 3px solid #333;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 24px;
+		cursor: pointer;
+		box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+		z-index: 1500;
+		transition: transform 0.2s ease;
+	}
+
+	#action-menu-mobile-btn:hover {
+		transform: scale(1.05) !important;
+	}
+
+	#action-menu-mobile-btn:active {
+		transform: scale(0.95) !important;
+	}
+
+	.game-header { padding:clamp(15px,4vw,20px); flex-direction:column; gap:clamp(10px,3vw,15px); width:100%; max-width:100vw; }
+	.game-header h1 { font-size:2.5em; letter-spacing:2px; text-align:center; transform:perspective(400px) rotateX(2deg); text-shadow:var(--ts-comic-soft); }
+	.game-info { flex-direction:row; justify-content:center; }
+	/* LEGACY ARENA SELECTOR (DEPRECATED) */
+	.game-board { grid-template-columns:1fr; grid-template-rows:auto auto auto; gap:15px; }
+	/* LEGACY ARENA SELECTOR (DEPRECATED) */
+	.tokyo-area { padding:20px 15px; text-align:center; }
+	.tokyo-area h2 { font-size:2.2em; }
+	.tokyo-bay, .tokyo-city { display:inline-block; margin:8px; min-width:clamp(140px, 35vw, 180px); vertical-align:top; }
+	.monster-slot { width:clamp(100px,25vw,140px); height:clamp(100px,25vw,140px); }
+	.dice-container { justify-content:center; gap:clamp(8px,2vw,12px); flex-wrap:wrap; }
+	.die { width:clamp(45px,12vw,55px); height:clamp(45px,12vw,55px); font-size:clamp(1.2em,3vw,1.4em); }
+	.player-stats { grid-template-columns:repeat(3,1fr); gap:8px; }
+	.cards-container { grid-template-columns:repeat(auto-fit, minmax(min(120px,100%),1fr)); gap:clamp(8px,2vw,10px); width:100%; padding:clamp(5px,2vw,10px); }
+	.monster-grid { grid-template-columns:repeat(auto-fit, minmax(min(100px,100%),1fr)); gap:clamp(10px,3vw,15px); width:100%; padding:clamp(5px,2vw,10px); }
+	.game-board { display:grid; grid-template-columns:1fr; gap:clamp(10px,3vw,15px); width:100%; max-width:100vw; padding:clamp(5px,2vw,10px); }
+	.monster-emoji { font-size:2.8em; }
+	.btn { padding:12px 20px; font-size:1em; }
 }
-
-#monster-profiles-modal .monster-profiles-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 20px;
-    padding: 20px;
-    width: 100%;
+@media (max-width:900px){ .splash-logo-image { width:80%; max-width:500px; } .polaroids-left, .polaroids-right { gap:15px; } .polaroid { transform:scale(.9); } }
+@media (max-width:768px){ .splash-content { flex-direction:column; padding:20px; } .polaroids-left, .polaroids-right { flex-direction:row; justify-content:center; padding:10px; } .splash-logo-image { width:90%; max-width:400px; } .splash-subtitle { font-size:1.2em; } }
+@media (max-width:480px){
+	.game-header h1 { font-size:2em; letter-spacing:1px; transform:perspective(300px) rotateX(1deg); text-shadow:var(--ts-comic-soft); }
+	.tokyo-area h2 { font-size:1.8em; }
+	.die { width:50px; height:50px; font-size:1.2em; }
+	.cmp-player-profile-card { padding:12px; min-height:60px; margin-bottom:-20px; }
+	.cmp-player-profile-card:hover { transform:perspective(600px) rotateX(-1deg) translateY(-15px) scale(1.01); min-height:120px; margin-bottom:5px; }
+	.power-card-tabs { left:-15px; }
+		/* Legacy .player-dashboard selectors removed (component migrated to .cmp-player-profile-card) */
+	.power-card-tab { width:25px; height:35px; border:2px solid #000; }
+	.cmp-player-profile-card:hover .power-card-tab { width:30px; height:40px; }
+	.tab-preview { font-size:12px; }
+	.cmp-player-profile-card:hover .tab-preview { font-size:14px; }
+	.card-purchase-modal { max-width:95%; margin:20px; }
+	.purchase-card-display { padding:20px; }
+	.purchase-card-display .card-name { font-size:24px; margin:40px 0 10px 0; }
+	.purchase-buttons { flex-direction:column; gap:10px; }
+	.purchase-btn, .decline-btn { padding:10px 20px; font-size:14px; }
+	.monster-avatar { width:60px; height:60px; font-size:1.8em; }
+	.cards-container { grid-template-columns:1fr; max-height:250px; }
+	.modal-content { padding:clamp(15px,4vw,25px); width:98%; max-height:90vh; overflow-y:auto; }
+	.modal-content, .modal-content::before, .modal-content::after, #game-over-modal .modal-content, #decision-modal .modal-content, #game-log-modal .modal-content, #storage-mgmt-modal .modal-content, #settings-modal .modal-content, #instructions-modal .modal-content, #monster-profiles-modal .modal-content, .card-purchase-modal, .target-selection-modal, .decision-modal, .game-log-content, .storage-mgmt-content, .monster-profiles-content, .instructions-modal .modal-content { transform:none; perspective:none; }
+	.modal-content:hover, .modal-content:hover::before, .modal-content:hover::after { transform:none; }
+	.modal-content .btn, .modal-content .btn:hover, .modal-content .btn:active, .modal-content button, .modal-content button:hover, .modal-content button:active { transform:none; perspective:none; }
+	#monster-profiles-modal .modal-content { width:100%; padding:0; max-height:100vh; margin:0; transform:none; box-shadow:none; text-align:center; border:none; background:rgba(255,255,255,.95); }
+	#monster-profiles-modal .modal-content h2 { position:sticky; top:0; background:transparent; padding:4px 0; margin:0; z-index:1; font-size:1.1rem; text-align:center; }
+	#monster-profiles-modal select, #monster-profiles-modal button { font-size:.875rem; padding:4px 8px; margin:2px auto; display:block; width:auto; min-width:120px; }
+	#monster-profiles-modal .controls-container { display:flex; flex-direction:column; align-items:center; gap:4px; padding:0; margin-bottom:4px; width:100%; }
+	.monster-profiles-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:4px; padding:0; width:100%; margin:0; max-width:none; }
+	.monster-profile { padding:4px; margin:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:transparent; border:none; min-height:0; gap:2px; }
+	.monster-profile img { width:45px; height:45px; border-radius:0; margin:0; border:1px solid #000; object-fit:contain; background:#fff; }
+	#monster-profiles-modal { align-items:flex-start; padding:0; }
+	#monster-profiles-modal .modal-content { display:flex; flex-direction:column; min-height:100vh; }
+	.monster-profile .monster-info { width:100%; text-align:center; }
+	.monster-profile h3 { font-size:.8rem; margin:0; color:#333; text-align:center; line-height:1.2; font-weight:bold; }
+	.monster-profile p { display:none; }
+	.monster-grid { grid-template-columns:repeat(2,1fr); gap:clamp(8px,2vw,12px); }
+	@media (max-width:360px){
+		#monster-profiles-modal .modal-content { padding:5px; margin:5px; }
+		#monster-profiles-modal .modal-content h2 { font-size:1rem; padding:5px 0; }
+		.monster-profiles-grid { grid-template-columns:repeat(2,1fr); gap:5px; padding:3px; }
+		.monster-profile { padding:4px; }
+		.monster-profile img { max-width:60px; margin-bottom:2px; }
+		.monster-profile h3 { font-size:.7rem; margin:0; }
+		#monster-profiles-modal select, #monster-profiles-modal button { font-size:.75rem; padding:4px 8px; margin:2px; }
+	}
+	.player-stats { display:grid; grid-template-columns:repeat(2,1fr); gap:clamp(5px,2vw,8px); font-size:.9em; }
+	.game-actions { display:flex; flex-direction:column; gap:clamp(8px,2vw,12px); padding:clamp(8px,2vw,12px); }
+	.game-toolbar { padding:clamp(5px,2vw,8px); gap:clamp(5px,1.5vw,8px); }
+	.toolbar-btn { padding:clamp(6px,1.5vw,8px); font-size:clamp(.8em,2vw,1em); }
+	.instructions-modal .modal-content, .settings-modal .settings-content, .game-log-modal .modal-content { width:95%; max-height:85vh; margin:10px auto; padding:clamp(10px,3vw,20px); }
 }
+@media (hover:none){ .btn, .toolbar-btn, .monster-slot, .die, .card { cursor:pointer; -webkit-tap-highlight-color:transparent; touch-action:manipulation; } .btn:active, .toolbar-btn:active, .monster-slot:active, .die:active, .card:active { transform:scale(.95); } .btn, .toolbar-btn { min-height:44px; min-width:44px; padding:clamp(12px,3vw,20px); } .die { min-width:48px; min-height:48px; } }
+@media (max-width:1024px){ .collapsible-panel { max-width:300px; } .toggle-arrow { opacity:.8; } .panel-header:hover .toggle-arrow { opacity:1; } }
+@media (max-width:768px){ .collapsible-panel { width:60px; padding:10px 5px; } .collapsible-panel.collapsed .header-text { font-size:1.2em; } .collapsible-panel.collapsed.monsters-collapsed .header-text { transform:rotate(-90deg) translateX(-40px); margin-top:25px; } .collapsible-panel.collapsed.cards-collapsed .header-text { transform:rotate(90deg) translateX(40px); margin-top:25px; } .panel-content { width:0; height:0; opacity:0; overflow:hidden; } .collapsible-panel:not(.collapsed) .panel-content { width:auto; height:auto; opacity:1; overflow:visible; } .toggle-arrow { opacity:1; } }
+@media (max-width:480px){ .collapsible-panel { display:none; } .panel-toggle-overlay { position:fixed; top:50%; transform:translateY(-50%); background:rgba(0,0,0,.8); color:#FFD700; padding:10px 5px; border-radius:5px; cursor:pointer; z-index:1000; font-size:12px; writing-mode:vertical-rl; text-orientation:mixed; } .panel-toggle-overlay.left { left:5px; } .panel-toggle-overlay.right { right:5px; } .panel-toggle-overlay.visible { display:block; } .collapsible-panel.force-show { display:block !important; /* stylelint-disable-line declaration-no-important */ position:fixed; top:0; bottom:0; z-index:1001; background:rgba(0,0,0,.95); overflow-y:auto; width:90vw; } .collapsible-panel.force-show.monsters-panel { left:0; } .collapsible-panel.force-show.cards-area { right:0; } }
 
-#monster-profiles-modal .player-tiles {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    justify-content: center;
-    margin-top: 20px;
-}
-
-@media screen and (max-width: 1056px) {
-    #monster-profiles-modal .monster-profiles-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-    }
-}
-
-/* Setup header base styles */
-#monster-profiles-modal .setup-header {
-    display: grid;
-    grid-template-columns: auto 1fr auto auto;
-    align-items: center;
-    gap: 15px;
-    padding: 15px;
-}
-
-#monster-profiles-modal .monster-select {
-    grid-column: 2;
-}
-
-#monster-profiles-modal .btn {
-    min-width: 120px;
-    white-space: nowrap;
-}
-
-/* When either button would wrap, move both under the dropdown */
-@media screen and (max-width: 972px) {
-    #monster-profiles-modal .modal-content {
-        display: flex;
-        flex-direction: column;
-    }
-
-    #monster-profiles-modal .setup-header {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 15px;
-        gap: 15px;
-    }
-
-    #monster-profiles-modal .monster-select {
-        width: 100%;
-        max-width: 300px;
-    }
-
-    #monster-profiles-modal .setup-buttons {
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-        gap: 15px;
-        width: 100%;
-        max-width: 300px;
-    }
-
-    #monster-profiles-modal .btn {
-        flex: 1;
-        min-width: 120px;
-        margin: 0;
-    }
-    
-    #monster-profiles-modal .monster-profiles-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-        padding: 15px;
-        gap: 15px;
-    }
-    
-    #monster-profiles-modal .player-tiles {
-        order: 2;
-        width: 100%;
-        padding: 20px;
-        margin-top: 30px;
-        border-top: 3px solid #000;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 15px;
-    }
-}
-
-.monster-profile {
-    background-color: rgba(255, 255, 255, 0.9);
-    border-radius: 8px;
-    padding: 20px;
-    text-align: center;
-    transition: transform 0.2s ease;
-    cursor: pointer;
-}
-
-.monster-profile:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-}
-
-@media (max-width: 1200px) {
-    .game-header h1 {
-        letter-spacing: 2px;
-        text-shadow: 
-            -2px -2px 0 #000,
-            2px -2px 0 #000,
-            -2px 2px 0 #000,
-            2px 2px 0 #000,
-            -1px -1px 0 #000,
-            1px -1px 0 #000,
-            -1px 1px 0 #000,
-            1px 1px 0 #000,
-            4px 4px 8px rgba(0, 0, 0, 0.7);
-    }
-    
-    .dice-container {
-        gap: 12px;
-    }
-    
-    .die {
-        width: 65px;
-        height: 65px;
-        font-size: 1.6em;
-    }
-}
-
-@media (max-width: 768px) {
-    #game-container {
-        padding: clamp(10px, 3vw, 15px);
-        width: 100%;
-        max-width: 100%;
-        margin: 0 auto;
-    }
-    
-    .game-header {
-        padding: clamp(15px, 4vw, 20px);
-        flex-direction: column;
-        gap: clamp(10px, 3vw, 15px);
-        width: 100%;
-        max-width: 100vw;
-    }
-    
-    .game-header h1 {
-        font-size: 2.5em;
-        letter-spacing: 2px;
-        text-align: center;
-        transform: perspective(400px) rotateX(2deg);
-        text-shadow: 
-            -1px -1px 0 #000,
-            1px -1px 0 #000,
-            -1px 1px 0 #000,
-            1px 1px 0 #000,
-            2px 2px 4px rgba(0, 0, 0, 0.7);
-    }
-    
-    .game-info {
-        flex-direction: row;
-        justify-content: center;
-    }
-    
-    .game-board {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto;
-        gap: 15px;
-    }
-    
-    .tokyo-area {
-        padding: 20px 15px;
-    }
-    
-    .tokyo-area h2 {
-        font-size: 2.2em;
-    }
-    
-    .tokyo-bay, .tokyo-city {
-        display: block;
-        margin: 15px auto;
-        min-width: 180px;
-    }
-    
-    .monster-slot {
-        width: clamp(100px, 25vw, 140px);
-        height: clamp(100px, 25vw, 140px);
-    }
-    
-    .dice-container {
-        justify-content: center;
-        gap: clamp(8px, 2vw, 12px);
-        flex-wrap: wrap;
-    }
-    
-    .die {
-        width: clamp(45px, 12vw, 55px);
-        height: clamp(45px, 12vw, 55px);
-        font-size: clamp(1.2em, 3vw, 1.4em);
-    }
-    
-    .player-stats {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-    }
-    
-    .cards-container {
-        grid-template-columns: repeat(auto-fit, minmax(min(120px, 100%), 1fr));
-        gap: clamp(8px, 2vw, 10px);
-        width: 100%;
-        padding: clamp(5px, 2vw, 10px);
-    }
-    
-    .monster-grid {
-        grid-template-columns: repeat(auto-fit, minmax(min(100px, 100%), 1fr));
-        gap: clamp(10px, 3vw, 15px);
-        width: 100%;
-        padding: clamp(5px, 2vw, 10px);
-    }
-    
-    .game-board {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: clamp(10px, 3vw, 15px);
-        width: 100%;
-        max-width: 100vw;
-        padding: clamp(5px, 2vw, 10px);
-    }
-    
-    .monster-emoji {
-        font-size: 2.8em;
-    }
-    
-    .btn {
-        padding: 12px 20px;
-        font-size: 1em;
-    }
-}
-
-/* Splash Screen Responsive Design */
-@media (max-width: 900px) {
-    .splash-logo-image {
-        width: 80%;
-        max-width: 500px;
-    }
-    
-    .polaroids-left, .polaroids-right {
-        gap: 15px;
-    }
-    
-    .polaroid {
-        transform: scale(0.9);
-    }
-}
-
-@media (max-width: 768px) {
-    .splash-content {
-        flex-direction: column;
-        padding: 20px;
-    }
-    
-    .polaroids-left, .polaroids-right {
-        flex-direction: row;
-        justify-content: center;
-        padding: 10px;
-    }
-    
-    .splash-logo-image {
-        width: 90%;
-        max-width: 400px;
-    }
-    
-    .splash-subtitle {
-        font-size: 1.2em;
-    }
-}
-
-@media (max-width: 480px) {
-    .game-header h1 {
-        font-size: 2em;
-        letter-spacing: 1px;
-        transform: perspective(300px) rotateX(1deg);
-        text-shadow: 
-            -1px -1px 0 #000,
-            1px -1px 0 #000,
-            -1px 1px 0 #000,
-            1px 1px 0 #000,
-            2px 2px 4px rgba(0, 0, 0, 0.6);
-    }
-    
-    .tokyo-area h2 {
-        font-size: 1.8em;
-    }
-    
-    .die {
-        width: 50px;
-        height: 50px;
-        font-size: 1.2em;
-    }
-    
-    .player-dashboard {
-        padding: 12px; /* Reduced padding for mobile */
-        min-height: 60px; /* Smaller minimum height on mobile */
-        margin-bottom: -20px; /* Tighter stacking on mobile */
-    }
-    
-    /* Adjust hover effect for mobile */
-    .player-dashboard:hover {
-        transform: perspective(600px) rotateX(-1deg) translateY(-15px) scale(1.01);
-        min-height: 120px; /* Less expansion on mobile */
-        margin-bottom: 5px;
-    }
-    
-    /* Smaller power card tabs on mobile */
-    .power-card-tabs {
-        left: -15px; /* Less stick out on mobile */
-    }
-    
-    .power-card-tab {
-        width: 25px;
-        height: 35px;
-        border: 2px solid #000; /* Thinner border on mobile */
-    }
-    
-    .player-dashboard:hover .power-card-tab {
-        width: 30px;
-        height: 40px;
-    }
-    
-    .tab-preview {
-        font-size: 12px;
-    }
-    
-    .player-dashboard:hover .tab-preview {
-        font-size: 14px;
-    }
-    
-    /* Adjust purchase modal for mobile */
-    .card-purchase-modal {
-        max-width: 95%;
-        margin: 20px;
-    }
-    
-    .purchase-card-display {
-        padding: 20px;
-    }
-    
-    .purchase-card-display .card-name {
-        font-size: 24px;
-        margin: 40px 0 10px 0;
-    }
-    
-    .purchase-buttons {
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .purchase-btn, .decline-btn {
-        padding: 10px 20px;
-        font-size: 14px;
-    }
-    
-    .monster-avatar {
-        width: 60px;
-        height: 60px;
-        font-size: 1.8em;
-    }
-    
-    .cards-container {
-        grid-template-columns: 1fr;
-        max-height: 250px;
-    }
-    
-    .modal-content {
-        padding: clamp(15px, 4vw, 25px);
-        width: 98%;
-        max-height: 90vh;
-        overflow-y: auto;
-    }
-    
-    /* Disable all modal transforms on mobile for better usability */
-    .modal-content,
-    .modal-content::before,
-    .modal-content::after,
-    #setup-modal .modal-content,
-    #game-over-modal .modal-content,
-    #decision-modal .modal-content,
-    #game-log-modal .modal-content,
-    #storage-mgmt-modal .modal-content,
-    #settings-modal .modal-content,
-    #instructions-modal .modal-content,
-    #monster-profiles-modal .modal-content,
-    .card-purchase-modal,
-    .target-selection-modal,
-    .decision-modal,
-    .game-log-content,
-    .storage-mgmt-content,
-    .monster-profiles-content,
-    .instructions-modal .modal-content {
-        transform: none !important;
-        perspective: none !important;
-    }
-    
-    /* Disable transform-based hover effects on mobile */
-    .modal-content:hover,
-    .modal-content:hover::before,
-    .modal-content:hover::after {
-        transform: none !important;
-    }
-    
-    /* Disable button transforms inside modals on mobile */
-    .modal-content .btn,
-    .modal-content .btn:hover,
-    .modal-content .btn:active,
-    .modal-content button,
-    .modal-content button:hover,
-    .modal-content button:active {
-        transform: none !important;
-        perspective: none !important;
-    }
-    
-    /* Monster Selection Dialog Responsive Styles */
-    #monster-profiles-modal .modal-content {
-        width: 100%;
-        padding: 0;
-        max-height: 100vh;
-        margin: 0;
-        transform: none;
-        box-shadow: none;
-        text-align: center;
-        border: none;
-        background: rgba(255, 255, 255, 0.95);
-    }
-    
-    /* Header and controls adjustments */
-    #monster-profiles-modal .modal-content h2 {
-        position: sticky;
-        top: 0;
-        background: transparent;
-        padding: 4px 0;
-        margin: 0;
-        z-index: 1;
-        font-size: 1.1rem;
-        text-align: center;
-    }
-
-    /* Dropdown and button adjustments */
-    #monster-profiles-modal select,
-    #monster-profiles-modal button {
-        font-size: 0.875rem;
-        padding: 4px 8px;
-        margin: 2px auto;
-        display: block;
-        width: auto;
-        min-width: 120px;
-    }
-
-    #monster-profiles-modal .controls-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-        padding: 0;
-        margin-bottom: 4px;
-        width: 100%;
-    }
-    
-    .monster-profiles-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 4px;
-        padding: 0;
-        width: 100%;
-        margin: 0;
-        max-width: none;
-    }
-
-    .monster-profile {
-        padding: 4px;
-        margin: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        background: transparent;
-        border: none;
-        min-height: 0;
-        gap: 2px;
-    }
-
-    .monster-profile img {
-        width: 45px;
-        height: 45px;
-        border-radius: 0;
-        margin: 0;
-        border: 1px solid #000;
-        object-fit: contain;
-        background: white;
-    }
-
-    /* Ensure content is centered in viewport */
-    #monster-profiles-modal {
-        align-items: flex-start;
-        padding: 0;
-    }
-
-    #monster-profiles-modal .modal-content {
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-    }    .monster-profile .monster-info {
-        width: 100%;
-        text-align: center;
-    }
-
-    .monster-profile h3 {
-        font-size: 0.8rem;
-        margin: 0;
-        color: #333;
-        text-align: center;
-        line-height: 1.2;
-        font-weight: bold;
-    }
-    
-    .monster-profile p {
-        display: none; /* Hide description to save space */
-    }
-    
-    .monster-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: clamp(8px, 2vw, 12px);
-    }
-    
-    /* Extra small devices */
-    @media (max-width: 360px) {
-        #monster-profiles-modal .modal-content {
-            padding: 5px;
-            margin: 5px;
-        }
-
-        #monster-profiles-modal .modal-content h2 {
-            font-size: 1rem;
-            padding: 5px 0;
-        }
-
-        #monster-profiles-modal .setup-header {
-            padding: 10px;
-        }
-
-        #monster-profiles-modal .setup-buttons {
-            flex-direction: row;
-            gap: 10px;
-        }
-
-        #monster-profiles-modal .btn {
-            padding: 8px;
-            font-size: 0.9em;
-        }
-
-        .monster-profiles-grid {
-            grid-template-columns: 1fr;
-            gap: 5px;
-            padding: 3px;
-            max-width: 100%;
-        }
-
-        .monster-profile {
-            padding: 6px;
-            gap: 8px;
-        }
-
-        .monster-profile img {
-            width: 50px;
-            height: 50px;
-        }
-
-        .monster-profile h3 {
-            font-size: 0.8rem;
-            margin: 0 0 2px 0;
-        }
-
-        .monster-profile p {
-            font-size: 0.7rem;
-        }
-
-        #monster-profiles-modal select,
-        #monster-profiles-modal button {
-            font-size: 0.75rem;
-            padding: 4px 8px;
-            margin: 2px;
-        }
-    }
-}
-
-/* Extra small devices */
-@media (max-width: 360px) {
-    #monster-profiles-modal .modal-content {
-        padding: 5px;
-        margin: 5px;
-    }
-
-    #monster-profiles-modal .modal-content h2 {
-        font-size: 1rem;
-        padding: 5px 0;
-    }
-
-    .monster-profiles-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 5px;
-        padding: 3px;
-    }
-
-    .monster-profile {
-        padding: 4px;
-    }
-
-    .monster-profile img {
-        max-width: 60px;
-        margin-bottom: 2px;
-    }
-
-    .monster-profile h3 {
-        font-size: 0.7rem;
-        margin: 0;
-    }
-
-    #monster-profiles-modal select,
-    #monster-profiles-modal button {
-        font-size: 0.75rem;
-        padding: 4px 8px;
-        margin: 2px;
-    }
-}
-
-    /* Optimize game elements for small screens */
-    .player-stats {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: clamp(5px, 2vw, 8px);
-        font-size: 0.9em;
-    }
-
-    .game-actions {
-        display: flex;
-        flex-direction: column;
-        gap: clamp(8px, 2vw, 12px);
-        padding: clamp(8px, 2vw, 12px);
-    }
-
-    .game-toolbar {
-        padding: clamp(5px, 2vw, 8px);
-        gap: clamp(5px, 1.5vw, 8px);
-    }
-
-    .toolbar-btn {
-        padding: clamp(6px, 1.5vw, 8px);
-        font-size: clamp(0.8em, 2vw, 1em);
-    }
-
-    /* Adjust modal sizes for better mobile viewing */
-    .instructions-modal .modal-content,
-    .settings-modal .settings-content,
-    .game-log-modal .modal-content {
-        width: 95%;
-        max-height: 85vh;
-        margin: 10px auto;
-        padding: clamp(10px, 3vw, 20px);
-    }
-}
-
-/* Touch Device Optimizations */
-@media (hover: none) {
-    .btn, 
-    .toolbar-btn,
-    .monster-slot,
-    .die,
-    .card {
-        cursor: pointer;
-        -webkit-tap-highlight-color: transparent;
-        touch-action: manipulation;
-    }
-
-    .btn:active,
-    .toolbar-btn:active,
-    .monster-slot:active,
-    .die:active,
-    .card:active {
-        transform: scale(0.95);
-    }
-
-    /* Increase hit areas for better touch interaction */
-    .btn,
-    .toolbar-btn {
-        min-height: 44px;
-        min-width: 44px;
-        padding: clamp(12px, 3vw, 20px);
-    }
-
-    .die {
-        min-width: 48px;
-        min-height: 48px;
-    }
-}
-
-/* Collapsible Panels - Auto-collapse on smaller screens */
-@media (max-width: 1024px) {
-    /* Enable collapsible panel behavior on smaller screens */
-    .collapsible-panel {
-        max-width: 300px;
-    }
-    
-    /* Show toggle arrows on smaller screens */
-    .toggle-arrow {
-        opacity: 0.8 !important;
-    }
-    
-    .panel-header:hover .toggle-arrow {
-        opacity: 1 !important;
-    }
-}
-
-@media (max-width: 768px) {
-    /* Auto-collapse panels on mobile */
-    .collapsible-panel {
-        width: 60px;
-        padding: 10px 5px;
-    }
-    
-    .collapsible-panel.collapsed .header-text {
-        font-size: 1.2em;
-    }
-    
-    .collapsible-panel.collapsed.monsters-collapsed .header-text {
-        transform: rotate(-90deg) translateX(-40px);
-        margin-top: 25px;
-    }
-    
-    .collapsible-panel.collapsed.cards-collapsed .header-text {
-        transform: rotate(90deg) translateX(40px);
-        margin-top: 25px;
-    }
-    
-    /* Hide content by default on mobile */
-    .panel-content {
-        width: 0;
-        height: 0;
-        opacity: 0;
-        overflow: hidden;
-    }
-    
-    /* Show content when expanded */
-    .collapsible-panel:not(.collapsed) .panel-content {
-        width: auto;
-        height: auto;
-        opacity: 1;
-        overflow: visible;
-    }
-    
-    /* Make arrows visible on mobile */
-    .toggle-arrow {
-        opacity: 1 !important;
-    }
-}
-
-/* Auto-hide panels on very narrow screens */
-@media (max-width: 480px) {
-    .collapsible-panel {
-        display: none;
-    }
-    
-    /* Show a small toggle button to bring panels back */
-    .panel-toggle-overlay {
-        position: fixed;
-        top: 50%;
-        transform: translateY(-50%);
-        background: rgba(0, 0, 0, 0.8);
-        color: #FFD700;
-        padding: 10px 5px;
-        border-radius: 5px;
-        cursor: pointer;
-        z-index: 1000;
-        font-size: 12px;
-        writing-mode: vertical-rl;
-        text-orientation: mixed;
-    }
-    
-    .panel-toggle-overlay.left {
-        left: 5px;
-    }
-    
-    .panel-toggle-overlay.right {
-        right: 5px;
-    }
-    
-    .panel-toggle-overlay.visible {
-        display: block;
-    }
-    
-    .collapsible-panel.force-show {
-        display: block !important;
-        position: fixed;
-        top: 0;
-        bottom: 0;
-        z-index: 1001;
-        background: rgba(0, 0, 0, 0.95);
-        overflow-y: auto;
-        width: 90vw;
-    }
-    
-    .collapsible-panel.force-show.monsters-panel {
-        left: 0;
-    }
-    
-    .collapsible-panel.force-show.cards-area {
-        right: 0;
-    }
-}
+/* End transplanted responsive.css */

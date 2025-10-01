@@ -1,79 +1,111 @@
-# King of Tokyo Rules Parity Report
+﻿# King of Tokyo – Rules & Experience Parity (Revised)
 
-_Date: September 24, 2025_
+Revision Date: September 29, 2025 (supersedes Sept 24 report)
 
-This document tracks feature/rule implementation status across:
-- Legacy Path (original implementation in root `js/` / `css/`)
-- Rewrite Path (`/new` modular architecture)
+## Purpose
+Provide an accurate, multi-dimensional view of parity between:
+1. Legacy (v1) implementation (`/js`, fully playable)  
+2. Rewrite (v2) modular architecture (`/new`)
+
+Earlier documents overstated rewrite parity (claiming ~95%). This revision recalibrates metrics to include not only surface rule execution but also timing fidelity, AI depth, interaction clarity, card breadth, and UX polish.
 
 ## Legend
-- ✅ Implemented
-- ⚠️ Partial / simplified
-- ⛔ Not yet implemented
-- 🧪 Planned (scaffold present, UI/logic pending)
+✅ Full / production-quality parity  
+⚠️ Partial / simplified / quality gap  
+⛔ Missing  
+🧪 Scaffold present (non-player-facing)  
 
-## Base Game Rule Matrix
-| Category | Description | Legacy | Rewrite | Notes / Gaps (Rewrite) | Action Plan |
-|----------|-------------|--------|---------|------------------------|-------------|
-| Dice Core Loop | Up to 3 rolls, selective keeps | ✅ | ✅ | — | Maintain tests |
-| Reroll Bonuses | Extra rerolls via cards | ✅ | ✅ | — | Add unit test |
-| Extra Dice Slots | Card-based slot increase | ✅ | ✅ | Animation added; needs tests | Test stacking multi-cards |
-| Number Scoring | Triples & extras | ✅ | ✅ | — | — |
-| Energy Gain/Spend | Energy dice & card costs | ✅ | ✅ | — | — |
-| Shop Refill | Always 3 cards | ✅ | ✅ | — | — |
-| Shop Flush | Pay 2⚡ to refresh | ✅ | ✅ | — | Log entry pending |
-| Card Purchase Flow | Keep vs discard | ✅ | ✅ | Limited catalog | Expand catalog incrementally |
-| Discard Effects | Immediate resolution | ✅ | ⚠️ | Effect engine partial (subset kinds) | Extend handlers |
-| Keep Effects | Persistent modifiers | ✅ | ⚠️ | Effect queue UI absent | Build effect inspector |
-| Attack Resolution | City/Bay / inside/outside targeting | ✅ | ✅ | Dual-slot now added | Confirm multi-target logging |
-| Entry to Tokyo | Forced entry; multiple slots (5-6 players) | ✅ | ✅ | Heuristic yield vs UI prompt | Add yield choice UI |
-| Yield / Leave Tokyo | Choice on taking damage | ✅ | ⚠️ | Heuristic only (health<threshold) | UI decision modal |
-| Start-of-Turn VP | City:2, Bay:1 | ✅ | ✅ | Implemented now | Add tests |
-| Victory (20 VP) | Instant win check | ✅ | ✅ | — | — |
-| Victory (Last Standing) | Elimination detection | ✅ | ✅ | — | — |
-| Healing Rules | No healing in Tokyo | ✅ | ✅ | — | — |
-| Elimination Flow | Remove, clear Tokyo if occupant | ✅ | ⚠️ | Needs Tokyo slot cleanup on death | Add cleanup in reducer/service |
-| Effect Timing System | Sequenced resolution | ✅ | 🧪 | Queue built; limited handlers | Add UI + more effect kinds |
-| Persistence | Save/load full game | ✅ | ⛔ | Not ported | Serialize slices API |
-| AI Decision System | Advanced heuristics & transparency | ✅ | ⚠️ | Basic automation only | Port heuristics iteratively |
-| Accessibility | ARIA roles, focus mgmt | ⚠️ | ⛔ | Peek modal unlabeled | Add aria + focus trap |
-| Logging | Structured log feed | ✅ | ⚠️ | Missing peek/flush entries | Dispatch logAppended |
-| Tokyo Bay Activation | Only for 5-6 players | ✅ | ⚠️ | Always available | Gate on player count |
-| Multi-Target Effects | Heal / damage groups | ✅ | ⚠️ | Partial (heal_all) | Add targeting UI |
+## Dimension Summary (High-Level)
+| Dimension | Legacy (v1) | Rewrite (v2) | Notes |
+|-----------|-------------|--------------|-------|
+| Core Rule Correctness | ✅ ~95% | ⚠️ ~80% | Fundamental scoring, damage, Tokyo, victory correct; yield sequencing timing weaker |
+| Turn / Timing Integrity | ✅ | ⚠️ ~45% | Missing FSM & min phase durations; polling in CPU loop |
+| Dice Flow UX | ✅ | ⚠️ | Roll/reroll functional; keep timing races possible for AI scheduling |
+| Yield / Tokyo Interaction | ✅ | ⚠️ | Mixed immediate + timeout heuristic; clarity gap vs legacy modal flow |
+| Power Card Breadth | ✅ (broad catalog) | ⚠️ ~20% | Small subset + limited effects + no advanced stacking UI |
+| Effect Engine (Sequencing) | ✅ (inline resolved) | 🧪 | Queue scaffold only; little UI/control surface |
+| AI Strategy (Dice & Cards) | ✅ Advanced | ⚠️ Basic | Single-pass heuristic, no multi-turn planning/personality weighting |
+| AI Turn Pacing / Natural Feel | ✅ | ⚠️ | Static delays; lacks adaptive “thinking” spans |
+| Persistence / Recovery | ✅ | ⛔ | Snapshot import/export not implemented yet (docs previously implied) |
+| Logging & Observability | ✅ Rich | ⚠️ | Fewer semantic categories & timing spans |
+| Accessibility | ⚠️ Partial | ⚠️ Early | Both need structured pass; v2 lags on landmarks & live regions |
+| UX / Visual Polish | ✅ Mature | ⚠️ Incomplete | Components exist; flow & polish gaps (modals, prompts) |
 
-## Current Coverage (Weighted)
-Formula: full = 1, partial = 0.5, planned = 0.25, missing = 0.
+Weighted composite parity estimate for v2: ≈ 50% (see audit methodology in `GAME_FLOW_PARITY_AUDIT.md`).
 
-Rewrite score = (Full: 18 *1) + (Partial: 10 *0.5) + (Planned: 1 *0.25) + (Missing: 2 *0) = 18 + 5 + 0.25 = 23.25 over 31 ≈ 75%.
+## Detailed Rule Matrix (Mechanical Coverage)
+Pure mechanical correctness excluding pacing/UX (what earlier doc measured); kept for transparency.
 
-(Improved from earlier 70% after Tokyo dual-slot + start-of-turn VP refinement.)
+| Category | Legacy | Rewrite | Gap Summary | Planned Fix |
+|----------|--------|---------|-------------|-------------|
+| Dice Core Loop (3 rolls, keeps) | ✅ | ✅ | – | Add event-driven roll resolved action |
+| Reroll Bonuses | ✅ | ✅ | Need tests | Unit tests (stacking) |
+| Extra Dice Slots | ✅ | ✅ | Animation only; stacking tests missing | Add stacking/limit tests |
+| Number Triples Scoring | ✅ | ✅ | – | – |
+| Energy Gain/Spend | ✅ | ✅ | – | – |
+| Shop Refill (3 cards) | ✅ | ✅ | – | – |
+| Shop Flush (2⚡) | ✅ | ✅ | Missing log & test | Add log & unit test |
+| Card Purchase Flow | ✅ | ✅ | Catalog breadth gap | Expand catalog incrementally |
+| Discard Immediate Effects | ✅ | ⚠️ | Subset only | Implement remaining handlers |
+| Keep Effects / Modifiers | ✅ | ⚠️ | Limited types | Extend effect handler registry |
+| Attack Resolution (City/Bay) | ✅ | ✅ | – | Attack logging enrichment |
+| Tokyo Entry (Forced) | ✅ | ✅ | – | – |
+| Yield / Leave Tokyo Choice | ✅ | ⚠️ | Heuristic + timeout mixing | Unified yield modal & deterministic AI decision flow |
+| Start-of-Turn VP (City/Bay) | ✅ | ✅ | – | Add automated assertions |
+| Victory (VP) | ✅ | ✅ | – | – |
+| Victory (Last Standing) | ✅ | ✅ | – | – |
+| Healing Rules | ✅ | ✅ | – | – |
+| Elimination Cleanup (Tokyo slots) | ✅ | ⚠️ | Basic, needs edge-case tests | Add elimination test battery |
+| Effect Timing System | ✅ | 🧪 | Queue scaffold only | Implement processor + UI inspector |
+| Persistence | ✅ | ⛔ | Missing snapshot flows | Serialize & hydrate store slices |
+| AI Decision System | ✅ | ⚠️ | Simplistic heuristic | Port layered heuristics + personality weights |
+| Accessibility (ARIA / Focus) | ⚠️ | ⚠️ | Both partial | Add landmark & live region mapping |
+| Logging (Structured) | ✅ | ⚠️ | Limited categories | Introduce timing spans & categories |
+| Tokyo Bay Activation (5–6 players) | ✅ | ✅ | – | Add gating test |
+| Multi-Target Effects | ✅ | ⚠️ | Target selection scaffold only | Complete selection interaction loop |
 
-## Immediate Remediation Targets (High ROI)
-1. Add yield decision UI (replaces heuristic) – raises 2 partials to full.
-2. Persistence serialization (store snapshot + hydrate) – removes 1 missing.
-3. Log integration for flush & peek – converts partial logging to full.
-4. Tokyo Bay gating by player count (5-6 only) – lift partial.
-5. Elimination cleanup ensuring Tokyo slots freed (edge case) – lift partial.
-6. Accessibility pass for new components – improves compliance.
+## “Feel Parity” Metrics (Subjective UX / Timing)
+| Aspect | Legacy Bench | v2 Current | Delta Cause | Target Remediation |
+|--------|-------------|-----------|------------|--------------------|
+| Turn Smoothness | Consistent paced | Variable / abrupt | No min-phase guards | FSM + min duration barriers |
+| AI Thinking Illusion | Natural pauses | Mechanical waits | Static timeouts | Pacing planner + adaptive delays |
+| Yield Interaction Clarity | Clear modal & flow | Mixed heuristic/timeouts | Split decision paths | Unified modal + single decision pipeline |
+| Dice Keep Feedback | Locked during roll | Occasional race risk | Timer-based AI keep | Event-driven post-animation hook |
+| Buy Phase Engagement | Player-controlled window | Auto short delay | Forced timeout | Explicit BUY_WAIT phase |
 
-Estimated post-remediation coverage: ~85–88% without full effect engine & AI parity.
+## Key Regressions vs Legacy
+1. Absence of finite state machine and concurrency guards (turnCycleId) → timing fragility.  
+2. Mixed synchronous/asynchronous yield resolution → player clarity loss.  
+3. AI lacks strategic layers (no multi-roll EV planning, no personality scaling).  
+4. Effect queue not operational → cannot support complex card stack sequencing yet.  
+5. Persistence missing → cannot resume long games in rewrite path.
 
-## Longer-Term Parity Tasks
-- Expand card catalog (map official base set to structured schema).
-- Complete effect handlers (damage modifiers, conditional triggers, reroll manipulations, energy steals, etc.).
-- Effect queue UI (visual stack, resolution controls, failure retry).
-- Advanced AI heuristic port (portfolio optimization, projection) into rewrite.
-- Save format versioning & migration path.
-- Full accessibility (WCAG focus order, keyboard-only flows, announcements).
+## Immediate Remediation Roadmap (Excerpt)
+| Priority | Item | Outcome |
+|----------|------|---------|
+| P0 | Add phase FSM + `turnCycleId` | Deterministic transitions & stale async cancellation |
+| P0 | Replace dice polling with `DICE_ROLL_RESOLVED` event | Stable CPU reroll loop |
+| P1 | Unified yield modal + AI decision promise | Clear, deterministic takeover ordering |
+| P1 | BUY_WAIT explicit phase (interaction or timeout) | Matches legacy purchasing pace |
+| P1 | Timing instrumentation (spans) | Diagnose & tune parity quantitatively |
+| P2 | AI heuristic expansion (survival, VP race, economy, Tokyo risk) | Improved decision quality |
+| P2 | Effect processor + inspector UI | Foundation for advanced card parity |
+| P2 | Store snapshot persistence | Restore session continuity |
 
-## Action Checklist (Next Sprint)
-- [ ] Implement `yieldDecision` modal + actions.
-- [ ] Add `logAppended` calls for peek & flush.
-- [ ] Gate Tokyo Bay by player count >=5.
-- [ ] Free Tokyo slots on occupant elimination.
-- [ ] Add simple persistence (`exportGameState` / `importGameState`).
-- [ ] Label & focus-manage peek modal.
-- [ ] Unit tests: flushShop, peekTopCard, dual-slot VP awarding, elimination cleanup.
+## Updated Coverage Estimation Method
+Prior method: counted feature booleans.  
+New method: weights (Core correctness 40%, Timing 15%, AI 15%, Cards breadth 15%, UX polish 10%, Persistence 5%).  
+Rewrite composite ≈ 50%. Recalculation details in audit doc (`GAME_FLOW_PARITY_AUDIT.md`).
+
+## Verification Plan Additions
+- Introduce automated phase transition assertion tests.  
+- Add timing span capture & histogram overlay (dev mode).  
+- Unit tests for yield pipeline & takeover ordering.  
+- Snapshot test: start-of-turn VP awarding in dual-slot scenarios.
+
+## Transparency & Historical Note
+This correction intentionally preserves earlier (overstated) matrix in repository history for traceability. Parity claims will now require dual sign-off (mechanical + experiential) before escalation.
 
 ---
-Generated as part of rewrite parity tracking initiative.
+Next scheduled parity review: After implementation of FSM + unified yield (target mid-October 2025).
+
