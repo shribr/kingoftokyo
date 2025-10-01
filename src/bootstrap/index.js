@@ -194,6 +194,15 @@ if (typeof window !== 'undefined') {
     ensurePostSplashBlackout();
     setTimeout(() => {
       try { turnService.startGameIfNeeded(); } catch(e) { console.warn('Skip intro start failed', e); }
+      // Immediate UI activation fallback (skipIntro path bypasses RFF finalize hooks)
+      try {
+        if (!document.body.classList.contains('game-active')) {
+          document.body.classList.add('game-active');
+        }
+        window.__KOT_GAME_STARTED = true;
+        const blk = document.querySelector('.post-splash-blackout');
+        if (blk) { blk.classList.add('is-hidden'); setTimeout(()=>{ try { blk.remove(); } catch(_){} }, 320); }
+      } catch(_) {}
       try {
         // If scenario config present, apply after game started
         const stNow = store.getState();
@@ -307,6 +316,41 @@ if (typeof window !== 'undefined') {
 
     // removed selection visibility watchdog
   });
+  // Game Activation Watchdog (ensures play area appears even if phase start races occur)
+  if (!window.__KOT_GAME_ACTIVATION_WATCHDOG__) {
+    window.__KOT_GAME_ACTIVATION_WATCHDOG__ = true;
+    let runs = 0;
+    const MAX_RUNS = 40; // ~20s at 500ms
+    const pulse = () => {
+      try {
+        const st = store.getState();
+        const rff = st.ui?.rollForFirst;
+        const playersReady = (st.players?.order?.length || 0) > 0;
+        const shouldBeActive = playersReady && ((rff && rff.resolved) || window.__KOT_GAME_STARTED);
+        if (shouldBeActive) {
+          if (st.phase === 'SETUP') {
+            // Attempt normal path first
+            try { window.__KOT_NEW__?.turnService?.startGameIfNeeded?.(); } catch(e) { console.warn('[watchdog] startGameIfNeeded error', e); }
+            // Force fallback if still stuck next tick
+          }
+          // Ensure UI visibility
+          if (st.phase !== 'SETUP' && !document.body.classList.contains('game-active')) {
+            console.debug('[watchdog] Forcing game-active class (UI still hidden).');
+            try { document.body.classList.add('game-active'); } catch(_) {}
+          }
+          // Cleanup lingering blackout
+          try {
+            const blk = document.querySelector('.post-splash-blackout');
+            if (blk) { blk.classList.add('is-hidden'); setTimeout(()=>{ try { blk.remove(); } catch(_){} }, 400); }
+          } catch(_) {}
+          if (st.phase !== 'SETUP' && document.body.classList.contains('game-active')) return; // success -> stop
+        }
+      } catch(_) {}
+      runs++;
+      if (runs < MAX_RUNS) setTimeout(pulse, 500);
+    };
+    setTimeout(pulse, 600);
+  }
   // Lightweight animation tagging for profile cards (Tokyo entry & resource gains)
   let prevPlayers = store.getState().players.byId;
   store.subscribe(()=>{

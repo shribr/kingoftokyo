@@ -24,7 +24,35 @@ export function bindUIEventAdapters(store) {
 
   // Start game from setup (after roll-for-first or skip intro)
   eventBus.on('ui/intent/gameStart', () => {
-    phaseService()?.publish('GAME_START');
+    // Primary path: phase events service (phaseMachine) handles GAME_START.
+    const svc = phaseService();
+    const before = store.getState().phase;
+    try { svc?.publish('GAME_START'); } catch(err) { console.warn('[eventAdapters] GAME_START publish failed', err); }
+    // Fallback: if still in SETUP next microtask, invoke turnService.startGameIfNeeded directly.
+    Promise.resolve().then(()=>{
+      const st = store.getState();
+      if (st.phase === 'SETUP') {
+        try {
+          const ts = (typeof window !== 'undefined') ? window.__KOT_NEW__?.turnService : null;
+          if (ts && typeof ts.startGameIfNeeded === 'function') {
+            console.debug('[eventAdapters] Fallback invoking turnService.startGameIfNeeded (phase still SETUP after GAME_START publish).');
+            ts.startGameIfNeeded();
+          } else {
+            // Absolute last resort: directly dispatch legacy phase change
+            console.warn('[eventAdapters] turnService missing; dispatching legacy phaseChanged action fallback');
+            store.dispatch({ type:'PHASE_TRANSITION', payload:{ from: before, to: 'ROLL', ts: Date.now(), reason:'fallback_game_start' }});
+          }
+        } catch(e) {
+          console.error('[eventAdapters] Fallback game start failed', e);
+        }
+      }
+      // Ensure body shows main layout even if phase transition is delayed
+      try {
+        if (store.getState().phase !== 'SETUP' && !document.body.classList.contains('game-active')) {
+          document.body.classList.add('game-active');
+        }
+      } catch(_) {}
+    });
   });
 
   // Begin a new turn after cleanup explicitly (optional external control)

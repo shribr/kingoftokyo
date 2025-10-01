@@ -217,10 +217,53 @@ export function createTurnService(store, logger, rng = Math.random) {
   });
   function startGameIfNeeded() {
     const st = store.getState();
-    if (st.phase === Phases.SETUP) {
-      if (usePhaseMachine && phaseMachine) phaseMachine.to(Phases.ROLL, { reason: 'game_start' }); else phaseCtrl.to(Phases.ROLL, { reason: 'game_start' });
-      startTurn();
+    // Internal guarded state (closure-scoped). These vars are hoisted above via JS function scope when first executed.
+    // Guard rationale (2025-10-01): Multiple bootstrap/store subscriptions (skipIntro path, selection close,
+    // roll-for-first resolution) could call startGameIfNeeded synchronously while phase remained SETUP,
+    // causing rapid recursive attempts and perceived infinite loop / runaway dispatch. We introduce
+    // idempotent flags (__starting, __started) plus a capped retry counter to ensure only the first
+    // successful transition advances the phase and all subsequent calls become no-ops.
+    if (!startGameIfNeeded.__init) {
+      startGameIfNeeded.__init = true;
+      startGameIfNeeded.__attempts = 0;
+      startGameIfNeeded.__starting = false;
+      startGameIfNeeded.__started = false;
     }
+    // If we already left SETUP at some point, mark started (covers external phase changes) and bail.
+    if (st.phase !== Phases.SETUP) {
+      if (!startGameIfNeeded.__started) startGameIfNeeded.__started = true;
+      return;
+    }
+    // Prevent reentrancy / tight loop (multiple store.subscribe callers all invoking this while still synchronously in SETUP)
+    if (startGameIfNeeded.__starting || startGameIfNeeded.__started) return;
+    startGameIfNeeded.__starting = true;
+    startGameIfNeeded.__attempts++;
+    try {
+      logger.system && logger.system(`[turnService] Game start attempt #${startGameIfNeeded.__attempts}`);
+      if (usePhaseMachine && phaseMachine) {
+        phaseMachine.to(Phases.ROLL, { reason: 'game_start' });
+      } else {
+        phaseCtrl.to(Phases.ROLL, { reason: 'game_start' });
+      }
+      startTurn();
+      startGameIfNeeded.__started = true;
+      if (typeof window !== 'undefined') {
+        try { window.__KOT_GAME_STARTED = true; } catch(_) {}
+      }
+    } catch(err) {
+      logger.warn && logger.warn('[turnService] startGameIfNeeded failed', err);
+      // Allow limited retries if phase still SETUP. After 3 failures, lock to avoid infinite loop spam.
+      if (startGameIfNeeded.__attempts >= 3) {
+        logger.error && logger.error('[turnService] Aborting further start attempts after 3 failures');
+        startGameIfNeeded.__started = true; // hard stop to break potential infinite loop
+      } else {
+        // Release starting flag so a later call can retry
+        startGameIfNeeded.__starting = false;
+      }
+      return;
+    }
+    // Mark done
+    startGameIfNeeded.__starting = false;
   }
 
   function startTurn() {

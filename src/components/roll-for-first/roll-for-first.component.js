@@ -349,7 +349,9 @@ function skipAndAssign(dispatch, getState, root) {
   const idx = Math.floor(Math.random()*order.length);
   dispatch(metaActivePlayerSet(idx));
   dispatch(uiRollForFirstResolved());
-    if (st.phase === 'SETUP') eventBus.emit('ui/intent/gameStart');
+  if (st.phase === 'SETUP') eventBus.emit('ui/intent/gameStart');
+  // Immediate UI fallback: mark game-active so main layout becomes visible even if phase transition stalls.
+  try { document.body.classList.add('game-active'); } catch(_) {}
   hide(root);
 }
 
