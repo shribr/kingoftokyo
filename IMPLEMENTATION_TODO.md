@@ -168,7 +168,7 @@ Status Update (Oct 1, 2025): Phase Alpha Step 1 complete – AI actuation unifie
 1. AI actuation unification (remove timer auto-keep) + perception layer
 2. FSM + `turnCycleId`
 3. Dice roll resolved event (no polling) & CPU loop refactor
-4. Deterministic mode (seeded; fixed trials) + snapshot harness
+4. Deterministic mode (seeded; fixed trials) + snapshot harness ✅ (trials=64, per-turn & per-decision seeding)
 5. Unified yield & takeover sequence (yield advisory integration)
 6. BUY_WAIT phase + timing spans + takeover ordering asserts
 
@@ -210,20 +210,24 @@ Status Update (Oct 1, 2025): Phase Alpha Step 1 complete – AI actuation unifie
 - [ ] **Effect-Aware Decisions**: ≥90% when queue pending modifications
 
 ---
-## Deterministic Mode (NEW SECTION)
-**Purpose**: Ensure reproducible AI decision outcomes for CI & regression analysis.
+## Deterministic Mode (UPDATED)
+**Purpose**: Reproducible dice + AI decision outcomes for CI & regression analysis.
 
-**Activation**: `window.__KOT_TEST_MODE__ = true` (or ENV flag at build time)
+**Activation**: `window.__KOT_TEST_MODE__ = true` (browser) or `KOT_TEST_MODE=1` (env).
 
-**Behavior Changes**:
-1. Monte Carlo trial count fixed (e.g., 80 trials) instead of adaptive.
-2. Seeded RNG (Mulberry32 or similar) keyed by `turnCycleId` + roll number.
-3. Decision output includes `meta: { seed, trials }` for audit.
-4. Performance profiling disabled (avoids adaptive feedback loops).
+**Behavior Changes Implemented**:
+1. Monte Carlo trial count fixed to 64.
+2. Seeded RNG (Mulberry32) for dice: seed = combineSeed('KOT_DICE', turnCycleId, rollIndex, playerId).
+3. Seeded RNG for AI decisions: seed = combineSeed('KOT_AI', turnCycleId, decisionIndex, playerId).
+4. Decision object now includes `deterministic: { seed, trials, turnCycleId, decisionIndex }`.
+5. Profiling remains optional; deterministic mode does not auto-disable it yet (future improvement: freeze adaptive responses entirely).
 
-**Test Harness Expectations**:
-- Snapshot tests assert identical `keepIndices`, `stopEarly`, `confidence`, and `factors` arrays across N runs.
-- Divergence triggers diagnostic dump (state view + RNG seed).
+**Pending Enhancements**:
+- Seeded shop card ordering.
+- Replay export (seed + state diff stream).
+- Deterministic card effect resolution ordering assertions.
+
+**Smoke Harness**: `tools/deterministicSmoke.js` validates stable dice + decision object across two runs.
 
 ---
 
