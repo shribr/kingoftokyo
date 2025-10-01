@@ -33,7 +33,7 @@ This revision: (1) Marks items completed since baseline, (2) Introduces flow/tim
 - [ ] **Win condition awareness** - Adapting strategy based on game state
 
 #### AI Infrastructure Unification (NEW – Precedes Depth Expansion)
-- [x] Deprecated duplicate enhanced AI file (formerly `new/js/ai-decisions.js`) – unified on single engine; legacy snapshots retained under `src/legacy/`.
+- [ ] Deprecate duplicate enhanced AI file (`new/js/ai-decisions.js`) – enforce single engine import.
 - [ ] Remove scheduled auto-keep timer path from `aiDecisionService.js` (controller becomes sole actuator).
 - [ ] Introduce perception layer (`buildAIState(storeState, activePlayerId)`) – pure extract; eliminate reducer global peeks.
 - [ ] Deterministic engine mode (seed + fixed Monte Carlo trial count) under `TEST_MODE` flag.
@@ -44,11 +44,10 @@ This revision: (1) Marks items completed since baseline, (2) Introduces flow/tim
 - [ ] Telemetry schema unification (`ai.decision`, `ai.yield`, `ai.purchasePlan`).
 
 ### Game Flow & Timing Integrity (ELEVATED TO HIGH)
-- [x] Phase finite state machine (legal transition table) – baseline implemented (`phaseFSM.js`) + controller utilities (`phaseController.js`).
-- [x] `turnCycleId` concurrency guard (baseline: meta.turnCycleId + guard utilities adopted in CPU turn & watchdog).
-- [ ] Phase controller adoption (migrate direct `phaseChanged` dispatches in services to centralized API).
-- [ ] Extended concurrency adoption (apply guard to effect queue processing & UI pacing timers).
-- [ ] Event-based dice completion (`DICE_ROLL_RESOLVED`) – remove polling loops
+- [ ] Phase finite state machine (legal transition table)
+- [ ] `turnCycleId` concurrency guard (invalidate stale async tasks) (PARTIAL – effect engine + dice resolution guarded; FSM pending)
+- [x] Event-based dice completion (`DICE_ROLL_RESOLVED`) – removed polling loops & enriched metadata payload
+- [ ] Guarded timer rollout (wrap remaining pacing & animation timeouts) (NEW)
 - [ ] Minimum phase duration enforcement (ROLL / RESOLVE / BUY_WAIT)
 - [ ] Unified yield decision modal (human) + deterministic AI decision promise
 - [ ] BUY_WAIT explicit phase (user ends or timeout)
@@ -162,15 +161,15 @@ This revision: (1) Marks items completed since baseline, (2) Introduces flow/tim
 - [ ] **Error tracking** - Production error monitoring
 
 ## 🔍 **IMPLEMENTATION PRIORITIES (New Sequencing)**
-Status Update (Oct 1, 2025): Phase Alpha Step 1 complete – AI actuation unified (timer removed), perception layer (`buildAIState`) added, engine inputs centralized.
+Status Update (Oct 1, 2025): Phase Alpha Steps 1 & 3 complete – AI actuation unified (timer removed), perception layer (`buildAIState`) added, dice roll event migration done (metadata + polling removal). Step 2 partially complete (turnCycleId guard in effect engine & dice flow; FSM still pending).
 
 ### Phase Alpha (Flow Parity)
 1. AI actuation unification (remove timer auto-keep) + perception layer
-2. FSM + `turnCycleId`
-3. Dice roll resolved event (no polling) & CPU loop refactor ✅ (metadata payload + harness + legacy polling removed; AI listener enriched with final node)
-4. Deterministic mode (seeded; fixed trials) + snapshot harness ✅ (trials=64, per-turn & per-decision seeding)
-5. Unified yield & takeover sequence (yield advisory integration) ✅ (advisory + helper extraction)
-6. BUY_WAIT phase + timing spans + takeover ordering asserts (partial ✅: BUY_WAIT transitions via effect engine; phase span instrumentation & ordering asserts added; remaining: deeper multi-effect queue tests)
+2. FSM + `turnCycleId` (PARTIAL – guards in place, FSM pending)
+3. Dice roll resolved event (no polling) & CPU loop refactor (DONE)
+4. Deterministic mode (seeded; fixed trials) + snapshot harness
+5. Unified yield & takeover sequence (yield advisory integration)
+6. BUY_WAIT phase + timing spans + takeover ordering asserts
 
 ### Phase Beta (Strategic Depth & Persistence)
 1. Enhanced AI heuristic modules (survival risk, VP race delta, resource economy, Tokyo risk)
@@ -204,50 +203,76 @@ Status Update (Oct 1, 2025): Phase Alpha Step 1 complete – AI actuation unifie
 - [ ] **Yield Decision Latency**: <300ms AI, immediate modal human
 - [ ] **Phase Transition Violations**: 0 in automated suite
 - [ ] **Stale Async Actions**: 0 after FSM integration
+- [ ] **Guarded Timer Coverage**: ≥95% of async timeouts wrapped by guard utilities
 - [ ] **AI Rationale Coverage**: >85% major actions annotated with factor weights
 - [ ] **Deterministic Stability**: 0 decision diffs across 10 seeded runs per scenario
 - [ ] **Duplicate Invocation Count**: 0 `ai.decision.duplicate` events / 500-turn simulation
 - [ ] **Effect-Aware Decisions**: ≥90% when queue pending modifications
 
 ---
-## Deterministic Mode (UPDATED)
-**Purpose**: Reproducible dice + AI decision outcomes for CI & regression analysis.
+## Deterministic Mode (NEW SECTION)
+**Purpose**: Ensure reproducible AI decision outcomes for CI & regression analysis.
 
-**Activation**: `window.__KOT_TEST_MODE__ = true` (browser) or `KOT_TEST_MODE=1` (env).
+**Activation**: `window.__KOT_TEST_MODE__ = true` (or ENV flag at build time)
 
-**Behavior Changes Implemented**:
-1. Monte Carlo trial count fixed to 64.
-2. Seeded RNG (Mulberry32) for dice: seed = combineSeed('KOT_DICE', turnCycleId, rollIndex, playerId).
-3. Seeded RNG for AI decisions: seed = combineSeed('KOT_AI', turnCycleId, decisionIndex, playerId).
-4. Decision object now includes `deterministic: { seed, trials, turnCycleId, decisionIndex }`.
-5. Profiling remains optional; deterministic mode does not auto-disable it yet (future improvement: freeze adaptive responses entirely).
+**Behavior Changes**:
+1. Monte Carlo trial count fixed (e.g., 80 trials) instead of adaptive.
+2. Seeded RNG (Mulberry32 or similar) keyed by `turnCycleId` + roll number.
+3. Decision output includes `meta: { seed, trials }` for audit.
+4. Performance profiling disabled (avoids adaptive feedback loops).
 
-**Pending Enhancements**:
-- Seeded shop card ordering.
-- Replay export (seed + state diff stream).
-- Deterministic card effect resolution ordering assertions.
-
-**Smoke Harness**: `tools/deterministicSmoke.js` validates stable dice + decision object across two runs.
-
-### Instrumentation Addendum (Oct 1 2025)
-`meta.phaseSpans` introduced via `META_PHASE_SPAN_UPDATE` capturing per-phase lastStart, lastDuration, accumulated, count for flow parity & performance tracking.
-
----
-## Unified Yield & Takeover Sequence (IN PROGRESS)
-**Implemented so far**:
-1. Helper `handleYieldAndPotentialTakeover` centralizes empty-slot entry, prompt creation, AI immediate yield, timeout scheduling, advisory generation.
-2. Advisory metadata on prompts: `advisory { suggestion, reason, seed? }` consumed by A11y overlay & modal.
-3. Deterministic seed placeholder (`combineSeed('KOT_YIELD', turnCycleId, defenderId, slot)`). No RNG yet, future-proof for probabilistic modeling.
-4. Resolution refactor: yield logic extracted improving readability and testability.
-
-**Pending**:
-- Ordering tests for multi-occupant scenarios.
-- Enhanced heuristic (threat index, VP delta, card modifiers).
-- Takeover ordering assertion tests & phase harness integration.
-- Possible AI engine integration for deeper yield projections.
-
-**Harness**: `tools/yieldFlowHarness.js` simulates a claw attack vs an occupant to validate prompt + advisory.
+**Test Harness Expectations**:
+- Snapshot tests assert identical `keepIndices`, `stopEarly`, `confidence`, and `factors` arrays across N runs.
+- Divergence triggers diagnostic dump (state view + RNG seed).
 
 ---
 
+## Concurrency Guard Pattern (NEW SECTION)
+**Purpose**: Prevent stale asynchronous callbacks (effects, timers, delayed UI pacing) from mutating state after a new turn begins.
+
+**Core Mechanism**:
+1. A monotonically increasing `turnCycleId` increments on each `NEXT_TURN` (or equivalent state transition).
+2. Async producers capture a snapshot (`const cycle = getTurnCycleId()`) when scheduling work.
+3. Before executing, guarded callbacks compare current `turnCycleId` to the captured snapshot; if mismatched, they abort silently.
+4. Utilities supplied in `turnGuards.js`:
+	- `makeTurnGuard(getCycleFn)` → returns `{ isStale(snapshot), snapshot() }` helpers.
+	- `guardedTimeout(store, fn, ms, label?)` → wraps `setTimeout`, executing only if cycle unchanged.
+
+**Design Goals**:
+- Eliminate race conditions from overlapping phase transitions.
+- Ensure effect queue cannot apply outdated effects post-yield / elimination.
+- Provide low-friction migration path (drop-in replacement for `setTimeout`).
+- Maintain deterministic test mode stability (aborted callbacks do not perturb RNG sequence).
+
+**Current Coverage (Oct 1, 2025)**:
+- Effect engine processing loop (stale cycle abort)
+- Dice roll resolution path (event driven; no lingering polling)
+- Selection polling inside effect engine (converted to `guardedTimeout`)
+
+**Pending Coverage**:
+- Animation pacing timers (enter/leave Tokyo visuals)
+- Yield modal auto-dismiss / CPU pacing timers
+- Card purchase debounce / advisory timers
+- Any residual legacy `setTimeout` usages (audit pass required)
+
+**Migration Checklist** (for each `setTimeout` found):
+1. Replace with `guardedTimeout(store, () => { /* original body */ }, delay, 'label')`.
+2. If callback chains further async work, ensure each link re-validates or uses guarded wrappers.
+3. Add optional dev log on stale abort when `TEST_MODE` to surface unexpected drops.
+
+**Instrumentation Roadmap**:
+- Introduce optional dev overlay panel row: Guard Drops (count per turn).
+- Emit telemetry event `guard.abort` with `{ label, scheduledAt, executedAt? }` (executedAt absent when aborted).
+
+**Acceptance Criteria**:
+- No state mutations observed from callbacks whose scheduling turn != execution turn in 500-turn simulation.
+- Guarded Timer Coverage metric ≥95%.
+- Zero phase FSM violations attributable to stale async side-effects.
+
+**Next Actions**:
+1. Audit remaining timeouts → produce coverage report.
+2. Wrap high-frequency pacing timers first (yield decision, animation sequences).
+3. Add harness to simulate rapid consecutive `NEXT_TURN` events and verify zero stale mutations.
+
+---
 **Note**: Revisions incorporate parity audit findings (Sept 29, 2025). Legacy remains the reference standard until Flow Parity (Phase Alpha) is achieved.

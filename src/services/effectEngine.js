@@ -2,10 +2,19 @@
  * Phase 8 scaffold: interprets card effect descriptors and applies outcomes.
  */
 import { cardEffectProcessing, cardEffectFailed, cardEffectResolved, playerGainEnergy, playerVPGained, healPlayerAction, playerCardGained, applyPlayerDamage, targetSelectionStarted, targetSelectionConfirmed } from '../core/actions.js';
+import { guardedTimeout } from '../core/turnGuards.js';
 
 let _id = 0; const nextId = () => 'eff_' + (++_id);
 
 export function createEffectEngine(store, logger) {
+  // Capture current turnCycleId for guard; if changes mid-processing we abort further synchronous steps.
+  function currentCycle() { return store.getState().meta?.turnCycleId; }
+  let activeCycle = currentCycle();
+  store.subscribe((st, action) => {
+    if (action.type === 'NEXT_TURN') {
+      activeCycle = currentCycle();
+    }
+  });
   const handlers = {
     vp_gain: ({ playerId, effect }) => {
       store.dispatch(playerVPGained(playerId, effect.value, 'card')); return true;
@@ -109,7 +118,7 @@ export function createEffectEngine(store, logger) {
           return; // processing will continue after queue rotates (we requeue if needed?)
         }
         // Wait for valid selection & confirmation
-        setTimeout(poll, 150);
+        guardedTimeout(store, poll, 150, 'effectSelectionPoll');
       };
       poll();
       // Return false to keep processing paused until selection; we won't resolve yet.
@@ -140,6 +149,10 @@ export function createEffectEngine(store, logger) {
       return;
     }
     try {
+      if (activeCycle !== currentCycle()) {
+        logger.warn('[effectEngine] Aborting effect processing due to turnCycleId change (stale entry).');
+        return; // do not process stale effect chain
+      }
       const ok = handler({ playerId: entry.playerId, card: { id: entry.cardId, effect }, effect, entry });
       if (ok) {
         store.dispatch(cardEffectResolved({ id: entry.cardId }, effect));
@@ -152,7 +165,8 @@ export function createEffectEngine(store, logger) {
       store.dispatch(cardEffectFailed(entry.id, 'EXCEPTION'));
       logger.error('[effectEngine] Exception processing effect', e);
     } finally {
-      setTimeout(processNext, 50); // gentle loop
+      // Only schedule continuation if still same turn (avoid leakage into next cycle)
+      if (activeCycle === currentCycle()) setTimeout(processNext, 50);
     }
   }
 

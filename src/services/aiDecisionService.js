@@ -50,6 +50,31 @@ export function bindAIDecisionCapture(store) {
     if (action.type === DICE_ROLL_RESOLVED) {
       // Early forced resolution terminates any scheduled keep
       cancelPendingAIKeep();
+      try {
+        // Create a synthetic final node capturing final faces & deterministic metadata (if provided)
+        const payload = action.payload || {};
+        if (state.dice?.faces?.length) {
+          const facesStr = state.dice.faces.map(f=> f.value).join(',');
+          const finalMeta = { stage: 'final', resolution: true, totalRolls: payload.totalRolls }; 
+          captureRoll(state, facesStr, finalMeta);
+          // Attach deterministic metadata to last node if available
+          const turn = state.meta.turn || 0;
+          const round = state.meta.round || 1;
+          const turnNode = latestTree.rounds.find(r=> r.round===round)?.turns.find(t=> t.turn===turn);
+          if (turnNode && turnNode.rolls.length) {
+            const last = turnNode.rolls[turnNode.rolls.length-1];
+            last.deterministic = payload.deterministic || { mode:false };
+            last.totalRolls = payload.totalRolls;
+            last.final = true;
+            last.keptMask = (state.dice.faces||[]).map(f=> !!f.kept);
+            last.faceValues = (state.dice.faces||[]).map(f=> f.value);
+          }
+          // Emit telemetry event (lightweight)
+          try { eventBus.emit('ai/roll/final', { turnCycleId: state.meta.turnCycleId, totalRolls: payload.totalRolls, activePlayerId: payload.activePlayerId, deterministic: payload.deterministic }); } catch(_) {}
+        }
+      } catch(e) {
+        console.warn('[aiDecisionService] final roll capture failed', e);
+      }
     }
     if (action.type === PHASE_CHANGED) {
       // Any phase change cancels pending keeps; we only keep during ROLL
