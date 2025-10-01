@@ -33,7 +33,7 @@ This revision: (1) Marks items completed since baseline, (2) Introduces flow/tim
 - [ ] **Win condition awareness** - Adapting strategy based on game state
 
 #### AI Infrastructure Unification (NEW – Precedes Depth Expansion)
-- [ ] Deprecate duplicate enhanced AI file (`new/js/ai-decisions.js`) – enforce single engine import.
+- [x] Deprecated duplicate enhanced AI file (formerly `new/js/ai-decisions.js`) – unified on single engine; legacy snapshots retained under `src/legacy/`.
 - [ ] Remove scheduled auto-keep timer path from `aiDecisionService.js` (controller becomes sole actuator).
 - [ ] Introduce perception layer (`buildAIState(storeState, activePlayerId)`) – pure extract; eliminate reducer global peeks.
 - [ ] Deterministic engine mode (seed + fixed Monte Carlo trial count) under `TEST_MODE` flag.
