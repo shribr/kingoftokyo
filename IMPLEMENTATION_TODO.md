@@ -167,7 +167,7 @@ Status Update (Oct 1, 2025): Phase Alpha Step 1 complete – AI actuation unifie
 ### Phase Alpha (Flow Parity)
 1. AI actuation unification (remove timer auto-keep) + perception layer
 2. FSM + `turnCycleId`
-3. Dice roll resolved event (no polling) & CPU loop refactor
+3. Dice roll resolved event (no polling) & CPU loop refactor (in progress: enriched `DICE_ROLL_RESOLVED` metadata + harness; remaining: remove legacy polling paths & watchdog reliance)
 4. Deterministic mode (seeded; fixed trials) + snapshot harness ✅ (trials=64, per-turn & per-decision seeding)
 5. Unified yield & takeover sequence (yield advisory integration) ✅ (advisory + helper extraction)
 6. BUY_WAIT phase + timing spans + takeover ordering asserts (partial ✅: BUY_WAIT transitions via effect engine; phase span instrumentation & ordering asserts added; remaining: deeper multi-effect queue tests)
@@ -228,6 +228,9 @@ Status Update (Oct 1, 2025): Phase Alpha Step 1 complete – AI actuation unifie
 - Deterministic card effect resolution ordering assertions.
 
 **Smoke Harness**: `tools/deterministicSmoke.js` validates stable dice + decision object across two runs.
+
+### Instrumentation Addendum (Oct 1 2025)
+`meta.phaseSpans` introduced via `META_PHASE_SPAN_UPDATE` capturing per-phase lastStart, lastDuration, accumulated, count for flow parity & performance tracking.
 
 ---
 ## Unified Yield & Takeover Sequence (IN PROGRESS)

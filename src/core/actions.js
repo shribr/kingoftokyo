@@ -120,7 +120,16 @@ export const diceRolled = (faces) => ({ type: DICE_ROLLED, payload: { faces } })
 export const diceToggleKeep = (index) => ({ type: DICE_TOGGLE_KEEP, payload: { index } });
 export const diceRerollUsed = () => ({ type: DICE_REROLL_USED });
 export const diceSetAllKept = (kept = true) => ({ type: DICE_SET_ALL_KEPT, payload: { kept } });
-export const diceRollResolved = () => ({ type: DICE_ROLL_RESOLVED });
+// Dice roll fully resolved (player ends roll sequence early or no rerolls remain)
+// Optional payload (new contract): {
+//   faces: string[]            // final face values (in order)
+//   keptMask: boolean[]        // which dice were kept at final decision
+//   totalRolls: number         // number of rolls performed (initial + rerolls)
+//   activePlayerId: string
+//   turnCycleId: number
+//   deterministic?: { mode: boolean, seeds?: string[] }
+// }
+export const diceRollResolved = (meta = null) => meta ? ({ type: DICE_ROLL_RESOLVED, payload: meta }) : ({ type: DICE_ROLL_RESOLVED });
 export const diceRollCompleted = () => ({ type: DICE_ROLL_COMPLETED });
 export const diceResultsAccepted = () => ({ type: DICE_RESULTS_ACCEPTED });
 
@@ -189,6 +198,9 @@ export const uiAttackPulse = (playerIds, ts = Date.now()) => ({ type: UI_ATTACK_
 export const uiVPFlash = (playerId, amount, ts = Date.now()) => ({ type: UI_VP_FLASH, payload: { playerId, amount, ts } });
 export const uiEnergyFlash = (playerId, amount, ts = Date.now()) => ({ type: UI_ENERGY_FLASH, payload: { playerId, amount, ts } });
 export const uiHealthFlash = (playerId, amount, ts = Date.now()) => ({ type: UI_HEALTH_FLASH, payload: { playerId, amount, ts } });
+// Meta instrumentation
+export const META_PHASE_SPAN_UPDATE = 'META_PHASE_SPAN_UPDATE';
+export const metaPhaseSpanUpdate = (spans) => ({ type: META_PHASE_SPAN_UPDATE, payload: { spans } });
 // Yield prompt actions
 // Yield prompt now supports optional damage (for UI projection) and advisory meta ({ suggestion, reason, seed? })
 export const yieldPromptShown = (defenderId, attackerId, slot, expiresAt, damage = null, advisory = null) => ({ type: YIELD_PROMPT_SHOWN, payload: { defenderId, attackerId, slot, expiresAt, damage, advisory } });

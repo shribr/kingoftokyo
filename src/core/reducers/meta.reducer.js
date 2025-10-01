@@ -1,5 +1,8 @@
 import { NEXT_TURN, PLAYER_JOINED, META_ACTIVE_PLAYER_SET, PHASE_CHANGED } from '../actions.js';
 
+// Internal action (not yet exported in actions.js) forwarded by instrumentation
+const META_PHASE_SPAN_UPDATE = 'META_PHASE_SPAN_UPDATE';
+
 // Forward-compat fields (dark edition scaffolding):
 // gameMode: 'classic' | 'dark'
 // wickness: tracked externally later; kept out of meta to avoid bloating state watchers now.
@@ -27,6 +30,12 @@ export function metaReducer(state = initial, action, rootStateRef) {
       const idx = action.payload.index;
       if (typeof idx !== 'number' || idx < 0) return state;
       return { ...state, activePlayerIndex: idx };
+    }
+    case META_PHASE_SPAN_UPDATE: {
+      const spans = action.payload?.spans;
+      if (!spans || typeof spans !== 'object') return state;
+      // Merge shallowly to avoid losing prior data
+      return { ...state, phaseSpans: { ...(state.phaseSpans||{}), ...spans } };
     }
     default:
       return state;

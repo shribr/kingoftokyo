@@ -52,7 +52,8 @@ export function diceReducer(state = initial, action) {
     case DICE_ROLL_RESOLVED: {
       // Force mark sequence complete if currently in resolved state but rerolls remain (e.g., player ended early)
       if (state.phase === 'resolved' || state.phase === 'rolling') {
-        return { ...state, phase: 'sequence-complete', rerollsRemaining: 0 };
+        const meta = action.payload || null;
+        return { ...state, phase: 'sequence-complete', rerollsRemaining: 0, lastResolution: meta ? { ...meta, ts: Date.now() } : state.lastResolution };
       }
       return state;
     }

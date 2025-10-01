@@ -139,8 +139,19 @@ export function createCpuTurnController(store, engine, logger = console, options
       await wait(settings.nextRollDelayMs + settings.decisionThinkingMs);
     }
 
-    // Final resolution transition - mimic legacy behavior
-    store.dispatch(diceRollResolved());
+    // Final resolution transition - mimic legacy behavior with metadata payload
+    try {
+      const stFinal = store.getState();
+      const faces = (stFinal.dice.faces||[]).map(f=> f.value);
+      const keptMask = (stFinal.dice.faces||[]).map(f=> !!f.kept);
+      const totalRolls = rollNumber;
+      const activePlayerId = playerId;
+      const turnCycleId = stFinal.meta?.turnCycleId;
+      const deterministic = (typeof window !== 'undefined' && window.__KOT_TEST_MODE__) ? { mode:true } : { mode:false };
+      store.dispatch(diceRollResolved({ faces, keptMask, totalRolls, activePlayerId, turnCycleId, deterministic }));
+    } catch(_) {
+      store.dispatch(diceRollResolved());
+    }
   }
 
   return { start, cancel, isActive: ()=> active && !cancelled };
