@@ -1,119 +1,305 @@
-/* Replay State Overlay Styles */
+/* Replay State Overlay Styles - Enhanced Version */
 .replay-state-overlay {
   position: fixed;
   top: 10px;
   right: 10px;
-  width: 350px;
+  width: 380px;
   max-height: 90vh;
-  background: rgba(0, 0, 0, 0.95);
+  background: rgba(10, 10, 15, 0.98);
   border: 3px solid #ffcf33;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+  border-radius: 12px;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.9),
+    0 0 0 1px rgba(255, 207, 51, 0.3) inset;
   color: #fff;
   font-family: 'Nunito', sans-serif;
   font-size: 12px;
   z-index: 9999;
-  overflow-y: auto;
-  -webkit-backdrop-filter: blur(5px);
-  backdrop-filter: blur(5px);
+  overflow: hidden;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: replayOverlayEnter 0.4s ease-out;
+}
+
+@keyframes replayOverlayEnter {
+  from {
+    opacity: 0;
+    transform: translateX(100%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.replay-state-overlay.minimized {
+  height: auto;
+  max-height: 120px;
+}
+
+.replay-state-overlay.minimized [data-panels] {
+  display: none !important;
 }
 
 .replay-overlay-header {
-  background: linear-gradient(135deg, #ffcf33, #f39c12);
+  background: linear-gradient(135deg, #ffcf33, #f39c12, #e67e22);
   color: #000;
-  padding: 8px 12px;
-  border-bottom: 2px solid #000;
+  padding: 12px 16px;
+  border-bottom: 3px solid #d35400;
   font-weight: bold;
+  position: relative;
 }
 
 .replay-title {
-  font-size: 14px;
-  text-align: center;
-  margin-bottom: 4px;
-  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 15px;
+  margin-bottom: 8px;
+  letter-spacing: 1.2px;
+}
+
+.replay-icon {
+  font-size: 18px;
+  margin-right: 8px;
+  animation: replayPulse 2s ease-in-out infinite;
+}
+
+@keyframes replayPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.replay-text {
+  flex: 1;
+  font-weight: 900;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.replay-minimize-btn {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  padding: 4px 6px;
+  cursor: pointer;
+  color: #000;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.replay-minimize-btn:hover {
+  background: rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
 }
 
 .replay-progress {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
 }
 
-.replay-entry-count {
-  font-size: 10px;
-  min-width: 80px;
+.replay-entry-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.replay-percentage {
+  color: #27ae60;
+  font-weight: 800;
 }
 
 .replay-progress-bar {
-  flex: 1;
-  height: 6px;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 3px;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
   overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(0, 0, 0, 0.2);
 }
 
 .replay-progress-fill {
   height: 100%;
-  background: #27ae60;
-  transition: width 0.3s ease;
+  background: linear-gradient(90deg, #27ae60, #2ecc71, #58d68d);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   width: 0%;
+  position: relative;
+}
+
+.replay-progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: progressShine 2s ease-in-out infinite;
+}
+
+@keyframes progressShine {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.replay-progress-handle {
+  position: absolute;
+  top: -2px;
+  right: -4px;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border: 2px solid #27ae60;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0;
+}
+
+.replay-progress-bar:hover .replay-progress-handle {
+  opacity: 1;
 }
 
 .replay-status {
   font-size: 10px;
   text-align: center;
-  opacity: 0.8;
+  opacity: 0.9;
+  font-weight: 600;
+  color: #2c3e50;
 }
 
 .replay-state-panels {
-  padding: 8px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+  max-height: calc(90vh - 180px);
+  overflow-y: auto;
+  /* Scrollbar styling for supported browsers */
+}
+
+.replay-state-panels::-webkit-scrollbar {
+  width: 4px;
+}
+
+.replay-state-panels::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.replay-state-panels::-webkit-scrollbar-thumb {
+  background: #ffcf33;
+  border-radius: 2px;
 }
 
 .replay-panel {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  padding: 6px 8px;
-  border: 1px solid rgba(255, 207, 51, 0.3);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.08));
+  border-radius: 8px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 207, 51, 0.4);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-.replay-panel h4 {
-  margin: 0 0 6px 0;
-  font-size: 11px;
+.replay-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #ffcf33, transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.replay-panel:hover::before {
+  opacity: 1;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.panel-header h4 {
+  margin: 0;
+  font-size: 12px;
   color: #ffcf33;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
+  font-weight: 800;
+}
+
+.panel-badge {
+  background: rgba(255, 207, 51, 0.2);
+  border: 1px solid rgba(255, 207, 51, 0.6);
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffcf33;
+  text-align: center;
+  min-width: 24px;
 }
 
 /* Dice Panel */
 .replay-dice-display {
   display: flex;
-  gap: 4px;
+  gap: 6px;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .replay-die {
-  width: 28px;
-  height: 28px;
-  background: #333;
-  border: 2px solid #666;
-  border-radius: 4px;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #2c3e50, #34495e);
+  border: 2px solid #566573;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: bold;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.replay-die::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  height: 8px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent);
+  border-radius: 3px 3px 0 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .replay-die.active {
-  background: linear-gradient(135deg, #fff, #e0e0e0);
-  color: #000;
+  background: linear-gradient(135deg, #fff, #f8f9fa, #e9ecef);
+  color: #2c3e50;
   border-color: #ffcf33;
-  box-shadow: 0 2px 4px rgba(255, 207, 51, 0.5);
+  box-shadow: 
+    0 0 12px rgba(255, 207, 51, 0.6),
+    0 4px 8px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px) scale(1.05);
+}
+
+.replay-die.active::before {
+  opacity: 1;
 }
 
 .replay-die.inactive {
@@ -159,45 +345,94 @@
 .replay-players-grid {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .replay-player-card {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 3px;
-  padding: 4px 6px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
+  border-radius: 6px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.replay-player-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255, 207, 51, 0.8), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .replay-player-card:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.08));
+  border-color: rgba(255, 207, 51, 0.4);
+  transform: translateY(-1px);
+}
+
+.replay-player-card:hover::before {
+  opacity: 1;
+}
+
+.replay-player-card.active-player {
+  border-color: #ffcf33;
+  background: linear-gradient(135deg, rgba(255, 207, 51, 0.15), rgba(255, 207, 51, 0.05));
+  box-shadow: 0 0 8px rgba(255, 207, 51, 0.3);
+}
+
+.replay-player-card.active-player::before {
+  opacity: 1;
+  background: linear-gradient(90deg, #ffcf33, #f39c12, #ffcf33);
 }
 
 .player-name {
-  font-weight: bold;
-  font-size: 11px;
-  margin-bottom: 2px;
+  font-weight: 800;
+  font-size: 12px;
+  margin-bottom: 4px;
   color: #ffcf33;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .player-stats {
   display: flex;
-  gap: 8px;
-  margin-bottom: 2px;
+  gap: 6px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
 }
 
 .player-stats .stat {
   font-size: 10px;
-  background: rgba(0, 0, 0, 0.3);
-  padding: 1px 4px;
-  border-radius: 2px;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6));
+  padding: 3px 6px;
+  border-radius: 4px;
   border: 1px solid rgba(255, 255, 255, 0.2);
+  font-weight: 700;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  transition: all 0.2s ease;
+  min-width: 32px;
+  text-align: center;
 }
 
-.stat.health { color: #e74c3c; }
-.stat.energy { color: #f1c40f; }
-.stat.vp { color: #27ae60; }
+.stat.health { 
+  color: #e74c3c; 
+  border-color: rgba(231, 76, 60, 0.4);
+}
+
+.stat.energy { 
+  color: #f1c40f; 
+  border-color: rgba(241, 196, 15, 0.4);
+}
+
+.stat.vp { 
+  color: #27ae60; 
+  border-color: rgba(39, 174, 96, 0.4);
+}
 
 .player-status {
   font-size: 9px;
@@ -232,35 +467,110 @@
 
 /* Controls Overlay */
 .replay-controls-overlay {
-  border-top: 2px solid rgba(255, 207, 51, 0.3);
-  padding: 6px 8px;
+  border-top: 2px solid rgba(255, 207, 51, 0.4);
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
-  gap: 4px;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.replay-controls-row {
+  display: flex;
+  gap: 6px;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.3);
+  align-items: center;
 }
 
 .replay-btn {
-  background: #3498db;
+  background: linear-gradient(135deg, #3498db, #2980b9);
   color: #fff;
-  border: none;
-  border-radius: 3px;
-  padding: 4px 8px;
-  font-size: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 11px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-weight: bold;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.replay-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.3s ease;
+}
+
+.replay-btn:hover:not(:disabled)::before {
+  left: 100%;
 }
 
 .replay-btn:hover:not(:disabled) {
-  background: #2980b9;
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #2980b9, #3498db);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.replay-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .replay-btn:disabled {
-  background: #666;
+  background: linear-gradient(135deg, #666, #555);
   cursor: not-allowed;
   opacity: 0.5;
+  transform: none !important;
+  box-shadow: none;
+}
+
+.speed-btn {
+  background: linear-gradient(135deg, #e67e22, #d35400);
+  min-width: 50px;
+}
+
+.speed-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #d35400, #e67e22);
+}
+
+.replay-speed-controls {
+  display: none;
+  gap: 4px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.speed-option {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 207, 51, 0.4);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 10px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 600;
+}
+
+.speed-option:hover {
+  background: rgba(255, 207, 51, 0.2);
+  border-color: #ffcf33;
+}
+
+.speed-option.active {
+  background: #ffcf33;
+  color: #000;
+  border-color: #f39c12;
+  font-weight: 800;
 }
 
 /* Body class when overlay is visible */
@@ -332,4 +642,100 @@ body.dark-mode .replay-panel h4 {
 body.dark-mode .slot-label,
 body.dark-mode .player-name {
   color: #f4e38a;
+}
+
+/* AIDT Integration Styles */
+.aidt-indicator {
+  margin-left: 8px;
+  padding: 3px 8px;
+  background: rgba(102, 126, 234, 0.2);
+  border: 1px solid rgba(102, 126, 234, 0.4);
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #667eea;
+  transition: all 0.3s ease;
+  cursor: help;
+}
+
+.aidt-indicator.active {
+  background: rgba(102, 126, 234, 0.8);
+  color: white;
+  box-shadow: 0 0 8px rgba(102, 126, 234, 0.5);
+  animation: aidtPulse 0.5s ease-out;
+}
+
+@keyframes aidtPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.aidt-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+  padding: 4px 0;
+  font-size: 10px;
+  opacity: 0.8;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.aidt-progress-label {
+  color: #667eea;
+  font-weight: 600;
+}
+
+.aidt-progress-info {
+  color: #ccc;
+}
+
+.aidt-current {
+  color: #667eea;
+  font-weight: 600;
+}
+
+/* AI Decision Visualization in Replay */
+.ai-decision-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(102, 126, 234, 0.1);
+  border: 2px solid rgba(102, 126, 234, 0.3);
+  border-radius: 8px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.replay-state-overlay.ai-active .ai-decision-overlay {
+  opacity: 1;
+  animation: aiGlow 1s ease-in-out infinite alternate;
+}
+
+@keyframes aiGlow {
+  from { border-color: rgba(102, 126, 234, 0.3); }
+  to { border-color: rgba(102, 126, 234, 0.8); }
+}
+
+/* Dark mode AIDT styles */
+body.dark-mode .aidt-indicator {
+  background: rgba(102, 126, 234, 0.3);
+  border-color: rgba(102, 126, 234, 0.5);
+}
+
+body.dark-mode .aidt-indicator.active {
+  background: rgba(102, 126, 234, 0.9);
+}
+
+body.dark-mode .aidt-progress-label {
+  color: #8fa8ff;
+}
+
+body.dark-mode .aidt-current {
+  color: #8fa8ff;
 }
