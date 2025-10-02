@@ -4,8 +4,53 @@
  */
 
 import { newModalSystem } from './new-modal-system.js';
+import { uiSettingsOpen } from '../core/actions.js';
 
 export function createSettingsModal() {
+  console.log('[DEBUG] createSettingsModal() called');
+  // Import and initialize our component-based settings modal
+  import('../components/settings-modal/settings-modal.component.js').then(module => {
+    console.log('[DEBUG] Settings modal module loaded:', module);
+    // Remove any existing settings modal
+    const existing = document.querySelector('.cmp-settings-modal');
+    if (existing) {
+      console.log('[DEBUG] Removing existing settings modal');
+      existing.remove();
+    }
+    
+    // Initialize the component using the named export - it creates its own root element
+    if (module.build) {
+      console.log('[DEBUG] Calling module.build()');
+      const instance = module.build({});
+      console.log('[DEBUG] Component instance:', instance);
+      
+      // Add the component's root to the document body
+      if (instance.root) {
+        document.body.appendChild(instance.root);
+        console.log('[DEBUG] Added component root to document body');
+      }
+      
+      // Show the modal by dispatching the settings open action
+      if (window.__KOT_NEW__?.store) {
+        console.log('[DEBUG] Dispatching uiSettingsOpen action');
+        window.__KOT_NEW__.store.dispatch(uiSettingsOpen());
+      } else {
+        console.error('[DEBUG] No store found on window.__KOT_NEW__');
+      }
+      
+      console.log('[Settings] Component-based settings modal created and opened');
+    } else {
+      console.error('[DEBUG] No build function found in module');
+    }
+  }).catch(err => {
+    console.error('Failed to load settings modal component:', err);
+    // Fallback to original implementation
+    createLegacySettingsModal();
+  });
+}
+
+// Rename the original function as fallback
+function createLegacySettingsModal() {
   const content = document.createElement('div');
   content.innerHTML = `
     <!-- Tab Navigation -->

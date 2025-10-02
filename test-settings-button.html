@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings Button Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #222; color: #fff; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #444; border-radius: 8px; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+        #log { background: #111; padding: 10px; border-radius: 4px; max-height: 300px; overflow-y: auto; }
+        .log-entry { margin: 2px 0; font-family: monospace; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Settings Button Test</h1>
+    
+    <div class="test-section">
+        <h3>Direct Function Test</h3>
+        <button onclick="testCreateSettingsModal()">Test createSettingsModal()</button>
+        <button onclick="testToolbarButtonClick()">Test Toolbar Button Click</button>
+        <button onclick="clearLog()">Clear Log</button>
+    </div>
+
+    <div class="test-section">
+        <h3>Console Log</h3>
+        <div id="log"></div>
+    </div>
+
+    <script type="module">
+        const logEl = document.getElementById('log');
+        
+        function addLog(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = 'log-entry';
+            div.style.color = type === 'error' ? '#ff6b6b' : type === 'success' ? '#51cf66' : '#74c0fc';
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logEl.appendChild(div);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        // Override console methods to capture logs
+        const originalLog = console.log;
+        const originalError = console.error;
+        
+        console.log = function(...args) {
+            addLog(args.join(' '), 'info');
+            originalLog.apply(console, args);
+        };
+        
+        console.error = function(...args) {
+            addLog(args.join(' '), 'error');
+            originalError.apply(console, args);
+        };
+
+        window.testCreateSettingsModal = async function() {
+            try {
+                addLog('Testing createSettingsModal directly...', 'info');
+                const { createSettingsModal } = await import('../src/utils/new-modals.js');
+                createSettingsModal();
+                addLog('✅ createSettingsModal called successfully', 'success');
+            } catch (error) {
+                addLog(`❌ Error calling createSettingsModal: ${error.message}`, 'error');
+            }
+        };
+
+        window.testToolbarButtonClick = function() {
+            try {
+                addLog('Testing toolbar button click...', 'info');
+                const toolbarButton = document.querySelector('[data-action="settings"]');
+                if (toolbarButton) {
+                    addLog('✅ Found toolbar settings button', 'success');
+                    toolbarButton.click();
+                    addLog('✅ Clicked toolbar settings button', 'success');
+                } else {
+                    addLog('❌ Toolbar settings button not found', 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Error clicking toolbar button: ${error.message}`, 'error');
+            }
+        };
+
+        window.clearLog = function() {
+            logEl.innerHTML = '';
+        };
+
+        addLog('🚀 Test page loaded - try the buttons above');
+    </script>
+</body>
+</html>

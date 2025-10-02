@@ -85,6 +85,21 @@ New Flow / Parity Tasks:
 ⬜ Automatic screenshot harness states updated to include yield modal & buy phase
 ⬜ Accessibility: Add live region for phase announcements & yield prompts
 
+### Phase Beta – Developer Tools Integration ✅ COMPLETED (Oct 2025)
+Objectives: Provide comprehensive developer debugging and analysis tools integrated into the settings UI.
+
+Deliverables Achieved:
+	- ✅ Settings-integrated developer panel (no more floating overlays)
+	- ✅ Archive Manager: Game state archiving with localStorage persistence & export/import
+	- ✅ Analytics Dashboard: Real-time game statistics, performance metrics, and data visualization
+	- ✅ Replay Controls: Enhanced replay system with speed adjustment (0.5x-4x), keyboard shortcuts, progress indicators
+	- ✅ AI Debug Tools: AI decision tree inspection, thought bubble visualization, decision export
+	- ✅ Vertical sub-tab organization: Clean UI for Archives/Analytics/Replay/AIDT sections
+	- ✅ Component-based architecture: Modern modular design replacing legacy devPanel.js
+	- ✅ Developer CSS styling: Responsive design with proper theming integration
+
+Closure Criteria Met: All developer productivity tools consolidated into organized settings panel; legacy floating dev panel removed; comprehensive debugging capabilities available.
+
 Metrics to Collect (post-implementation):
 - Mean & σ of ROLL phase duration (CPU vs Human)
 - Yield decision latency (AI)

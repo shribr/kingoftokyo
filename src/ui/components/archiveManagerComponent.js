@@ -1385,6 +1385,448 @@ export class ArchiveManagerComponent {
   }
 
   /**
+   * Render archive manager content in a provided container (for tab embedding)
+   * @param {HTMLElement} container - Container element to render into
+   */
+  renderInContainer(container) {
+    if (!container) {
+      console.error('[ArchiveManager] No container provided for tab rendering');
+      return;
+    }
+
+    // Create tab-friendly version of the archive manager
+    container.innerHTML = this.getTabTemplate();
+    
+    // Setup event listeners for the tab version
+    this.setupTabEventListeners(container);
+    
+    // Load initial data
+    this.refreshArchivesInTab(container);
+    
+    console.log('[ArchiveManager] Rendered in tab container');
+  }
+
+  /**
+   * Get template optimized for tab layout
+   */
+  getTabTemplate() {
+    return `
+      <div class="archive-manager-tab">
+        <div class="tab-archive-header">
+          <div class="tab-header-left">
+            <h4>📁 Archive Manager</h4>
+            <div class="archive-summary">
+              <span data-summary>0 archives</span>
+              <span data-selected-count style="display:none;">0 selected</span>
+            </div>
+          </div>
+          <div class="tab-header-right">
+            <button class="refresh-btn" data-refresh title="Refresh Archives">🔄</button>
+          </div>
+        </div>
+        
+        <div class="tab-archive-toolbar">
+          <div class="toolbar-section filters-section">
+            <div class="search-container">
+              <input type="text" data-search placeholder="Search archives..." class="search-input">
+            </div>
+            <div class="filter-container">
+              <select data-filter-date class="filter-select">
+                <option value="">All Dates</option>
+                <option value="today">Today</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+              </select>
+              <select data-filter-player class="filter-select">
+                <option value="">All Players</option>
+              </select>
+              <select data-sort class="filter-select">
+                <option value="date-desc">Newest First</option>
+                <option value="date-asc">Oldest First</option>
+                <option value="name-asc">Name A-Z</option>
+                <option value="name-desc">Name Z-A</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="toolbar-section actions-section">
+            <div class="view-toggle">
+              <button data-view="grid" class="view-btn active" title="Grid View">⊞</button>
+              <button data-view="list" class="view-btn" title="List View">☰</button>
+              <button data-view="analytics" class="view-btn" title="Analytics">📊</button>
+            </div>
+            <div class="bulk-actions" style="display:none;">
+              <button data-bulk-action="export" class="action-btn">📤 Export</button>
+              <button data-bulk-action="delete" class="action-btn delete-btn">🗑️ Delete</button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="tab-archive-content">
+          <div data-view-grid class="archive-grid-view">
+            <div data-archives-grid class="archive-grid"></div>
+          </div>
+          <div data-view-list class="archive-list-view" style="display:none;">
+            <div data-archives-list class="archive-list"></div>
+          </div>
+          <div data-view-analytics class="archive-analytics-view" style="display:none;">
+            <div data-analytics-dashboard class="analytics-dashboard"></div>
+          </div>
+        </div>
+        
+        <div class="tab-archive-footer">
+          <div class="storage-info">
+            <span class="storage-label">Storage:</span>
+            <span class="storage-value" data-storage-size>Calculating...</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Setup event listeners for tab version
+   */
+  setupTabEventListeners(container) {
+    // Refresh button
+    const refreshBtn = container.querySelector('[data-refresh]');
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', () => this.refreshArchivesInTab(container));
+    }
+
+    // Search input
+    const searchInput = container.querySelector('[data-search]');
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        this.handleSearch(e.target.value, container);
+      });
+    }
+
+    // Filter dropdowns
+    const filterDate = container.querySelector('[data-filter-date]');
+    const filterPlayer = container.querySelector('[data-filter-player]');
+    const sortSelect = container.querySelector('[data-sort]');
+
+    if (filterDate) {
+      filterDate.addEventListener('change', () => this.applyFiltersInTab(container));
+    }
+    if (filterPlayer) {
+      filterPlayer.addEventListener('change', () => this.applyFiltersInTab(container));
+    }
+    if (sortSelect) {
+      sortSelect.addEventListener('change', () => this.applyFiltersInTab(container));
+    }
+
+    // View toggle buttons
+    const viewBtns = container.querySelectorAll('[data-view]');
+    viewBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const view = btn.getAttribute('data-view');
+        this.switchViewInTab(view, container);
+      });
+    });
+
+    // Bulk action buttons
+    const bulkBtns = container.querySelectorAll('[data-bulk-action]');
+    bulkBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const action = btn.getAttribute('data-bulk-action');
+        this.handleBulkActionInTab(action, container);
+      });
+    });
+  }
+
+  /**
+   * Refresh archives in tab layout
+   */
+  async refreshArchivesInTab(container) {
+    try {
+      this.archives = await archiveManager.getArchives();
+      this.updatePlayerFilterInTab(container);
+      this.renderArchivesInTab(container);
+      this.updateSummaryInTab(container);
+      this.updateStorageInfoInTab(container);
+    } catch (error) {
+      console.error('[ArchiveManager] Tab refresh error:', error);
+    }
+  }
+
+  /**
+   * Update player filter dropdown in tab
+   */
+  updatePlayerFilterInTab(container) {
+    const playerFilter = container.querySelector('[data-filter-player]');
+    if (!playerFilter) return;
+
+    const players = new Set();
+    this.archives.forEach(archive => {
+      if (archive.metadata && archive.metadata.players) {
+        archive.metadata.players.forEach(player => players.add(player));
+      }
+    });
+
+    const currentValue = playerFilter.value;
+    playerFilter.innerHTML = '<option value="">All Players</option>';
+    
+    Array.from(players).sort().forEach(player => {
+      const option = document.createElement('option');
+      option.value = player;
+      option.textContent = player;
+      playerFilter.appendChild(option);
+    });
+
+    playerFilter.value = currentValue;
+  }
+
+  /**
+   * Switch view in tab layout
+   */
+  switchViewInTab(view, container) {
+    // Update button states
+    const viewBtns = container.querySelectorAll('[data-view]');
+    viewBtns.forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-view') === view);
+    });
+
+    // Show/hide view panels
+    const gridView = container.querySelector('[data-view-grid]');
+    const listView = container.querySelector('[data-view-list]');
+    const analyticsView = container.querySelector('[data-view-analytics]');
+
+    if (gridView) gridView.style.display = view === 'grid' ? 'block' : 'none';
+    if (listView) listView.style.display = view === 'list' ? 'block' : 'none';
+    if (analyticsView) analyticsView.style.display = view === 'analytics' ? 'block' : 'none';
+
+    this.currentView = view;
+
+    // Load view-specific content
+    if (view === 'analytics') {
+      this.renderAnalyticsViewInTab(container);
+    } else {
+      this.renderArchivesInTab(container);
+    }
+  }
+
+  /**
+   * Render archives in the current view for tab layout
+   */
+  renderArchivesInTab(container) {
+    if (this.currentView === 'grid') {
+      this.renderGridViewInTab(container);
+    } else if (this.currentView === 'list') {
+      this.renderListViewInTab(container);
+    }
+  }
+
+  /**
+   * Render grid view in tab
+   */
+  renderGridViewInTab(container) {
+    const gridContainer = container.querySelector('[data-archives-grid]');
+    if (!gridContainer) return;
+
+    if (this.archives.length === 0) {
+      gridContainer.innerHTML = `
+        <div class="empty-state-small">
+          <div class="empty-icon">📁</div>
+          <div>No archives found</div>
+        </div>
+      `;
+      return;
+    }
+
+    gridContainer.innerHTML = this.archives.map(archive => this.renderArchiveCard(archive)).join('');
+  }
+
+  /**
+   * Render list view in tab
+   */
+  renderListViewInTab(container) {
+    const listContainer = container.querySelector('[data-archives-list]');
+    if (!listContainer) return;
+
+    if (this.archives.length === 0) {
+      listContainer.innerHTML = '<div class="empty-state-small">No archives found</div>';
+      return;
+    }
+
+    listContainer.innerHTML = this.archives.map(archive => this.renderArchiveListItem(archive)).join('');
+  }
+
+  /**
+   * Render analytics view in tab
+   */
+  async renderAnalyticsViewInTab(container) {
+    const dashboard = container.querySelector('[data-analytics-dashboard]');
+    if (!dashboard) return;
+
+    dashboard.innerHTML = '<div class="analytics-loading">📊 Calculating analytics...</div>';
+
+    try {
+      const analytics = await archiveAnalytics.calculateCompleteAnalytics();
+      dashboard.innerHTML = this.renderAdvancedAnalyticsDashboard(analytics);
+    } catch (error) {
+      dashboard.innerHTML = '<div class="analytics-error">Failed to load analytics</div>';
+      console.error('Analytics error:', error);
+    }
+  }
+
+  /**
+   * Update summary display in tab
+   */
+  updateSummaryInTab(container) {
+    const summaryEl = container.querySelector('[data-summary]');
+    if (summaryEl) {
+      summaryEl.textContent = `${this.archives.length} archives`;
+    }
+  }
+
+  /**
+   * Update storage info in tab
+   */
+  async updateStorageInfoInTab(container) {
+    const storageEl = container.querySelector('[data-storage-size]');
+    if (!storageEl) return;
+
+    try {
+      const stats = await archiveManager.getStorageStats();
+      storageEl.textContent = this.formatFileSize(stats.totalSize);
+    } catch (error) {
+      storageEl.textContent = 'Unknown';
+      console.error('Storage calculation error:', error);
+    }
+  }
+
+  /**
+   * Handle search in tab layout
+   */
+  handleSearch(query, container) {
+    // Filter archives based on search query
+    const filtered = this.archives.filter(archive => {
+      const searchText = [
+        archive.name,
+        archive.metadata?.players?.join(' '),
+        archive.metadata?.gameType,
+        archive.metadata?.timestamp
+      ].filter(Boolean).join(' ').toLowerCase();
+      
+      return searchText.includes(query.toLowerCase());
+    });
+
+    // Temporarily store filtered results
+    const originalArchives = this.archives;
+    this.archives = filtered;
+    this.renderArchivesInTab(container);
+    this.updateSummaryInTab(container);
+    this.archives = originalArchives;
+  }
+
+  /**
+   * Apply filters in tab layout
+   */
+  applyFiltersInTab(container) {
+    // Get filter values
+    const dateFilter = container.querySelector('[data-filter-date]')?.value;
+    const playerFilter = container.querySelector('[data-filter-player]')?.value;
+    const sortValue = container.querySelector('[data-sort]')?.value;
+
+    // Apply filters and sorting
+    let filtered = [...this.archives];
+
+    // Date filter
+    if (dateFilter) {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      
+      filtered = filtered.filter(archive => {
+        const archiveDate = new Date(archive.timestamp);
+        
+        switch (dateFilter) {
+          case 'today':
+            return archiveDate >= today;
+          case 'week':
+            const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+            return archiveDate >= weekAgo;
+          case 'month':
+            const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+            return archiveDate >= monthAgo;
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Player filter
+    if (playerFilter) {
+      filtered = filtered.filter(archive => {
+        return archive.metadata?.players?.includes(playerFilter);
+      });
+    }
+
+    // Sorting
+    if (sortValue) {
+      const [field, direction] = sortValue.split('-');
+      
+      filtered.sort((a, b) => {
+        let aVal, bVal;
+        
+        switch (field) {
+          case 'date':
+            aVal = new Date(a.timestamp);
+            bVal = new Date(b.timestamp);
+            break;
+          case 'name':
+            aVal = a.name.toLowerCase();
+            bVal = b.name.toLowerCase();
+            break;
+          default:
+            return 0;
+        }
+        
+        if (direction === 'asc') {
+          return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+        } else {
+          return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
+        }
+      });
+    }
+
+    // Temporarily store filtered results
+    const originalArchives = this.archives;
+    this.archives = filtered;
+    this.renderArchivesInTab(container);
+    this.updateSummaryInTab(container);
+    this.archives = originalArchives;
+  }
+
+  /**
+   * Handle bulk actions in tab layout
+   */
+  handleBulkActionInTab(action, container) {
+    // Get selected archives
+    const selectedCheckboxes = container.querySelectorAll('[data-archive-select]:checked');
+    const selectedIds = Array.from(selectedCheckboxes).map(cb => cb.value);
+
+    if (selectedIds.length === 0) {
+      alert('No archives selected');
+      return;
+    }
+
+    switch (action) {
+      case 'export':
+        this.bulkExport(selectedIds);
+        break;
+      case 'delete':
+        if (confirm(`Delete ${selectedIds.length} selected archives?`)) {
+          this.bulkDelete(selectedIds).then(() => {
+            this.refreshArchivesInTab(container);
+          });
+        }
+        break;
+    }
+  }
+
+  /**
    * Utility methods
    */
   showLoading(message = 'Loading...') {

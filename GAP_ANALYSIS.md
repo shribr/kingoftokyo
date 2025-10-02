@@ -296,5 +296,27 @@ F. Replace purchase heuristic with portfolio optimizer advisory output.
 | Modifier Access Purity | 100% selector-based | Test isolation |
 | Effect-Aware Decisions (when queue pending) | ≥90% annotated | Demonstrates perception enrichment |
 
+## Developer Tools & Debugging (October 2025 Update)
+
+### ✅ **Completed Developer Features**
+
+**Settings-Integrated Developer Panel**
+- ✅ Archive Manager - Complete game state archiving and analytics
+- ✅ Analytics Dashboard - Game statistics and performance metrics  
+- ✅ Replay Controls - Enhanced replay with speed adjustment and AIDT integration
+- ✅ AI Debug Tools - AI decision tree debugging and thought bubble controls
+- ✅ Vertical Sub-tab Organization - Clean UI for multiple developer features
+- ✅ Component-based Architecture - Modern modular design replacing legacy floating panels
+
+**Developer Features Status: ~85% Complete**
+- ✅ Game state archiving with localStorage persistence
+- ✅ Analytics computation and visualization
+- ✅ Replay system with keyboard shortcuts and speed controls
+- ✅ AI decision inspection and debugging tools
+- ✅ Integrated settings panel approach (no more floating overlays)
+- ⚠️ Still missing: advanced debugging breakpoints, live state editing
+
+**Impact:** Developer productivity significantly improved with organized tooling
+
 ---
 End of Sept 30, 2025 Addendum.

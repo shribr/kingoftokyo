@@ -1,5 +1,5 @@
 /* Roll For First Modal Styles */
-.cmp-roll-for-first.rff-modal { position:fixed; inset:0; display:flex; align-items:flex-start; justify-content:center; padding-top:5vh; z-index:15100; /* Above blackout & monster selection */ pointer-events:none; }
+.cmp-roll-for-first.rff-modal { position:fixed; inset:0; display:flex; align-items:flex-start; justify-content:center; padding-top:5vh; z-index:100000; /* Above all other components including tokyo-yield-modal */ pointer-events:none; }
 .cmp-roll-for-first.rff-modal.hidden { display:none; }
 .cmp-roll-for-first.rff-modal.hidden { display:none; }
 .cmp-roll-for-first.rff-modal .rff-frame { pointer-events:auto; background:#1c1c1c; border:2px solid #111; box-shadow:10px 10px 0 #000, 0 0 0 2px #000 inset, 0 18px 42px -14px rgba(0,0,0,.85); padding:30px 46px 78px; width:min(1040px,96vw); max-height:92vh; overflow:auto; border-radius:0; font-family:'Bangers',cursive; color:#e4e4e4; position:relative; }
