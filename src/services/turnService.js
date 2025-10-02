@@ -231,7 +231,7 @@ export function createTurnService(store, logger, rng = Math.random) {
     }
     // If we already left SETUP at some point, mark started (covers external phase changes) and bail.
     if (st.phase !== Phases.SETUP) {
-      logger.debug && logger.debug('[turnService] startGameIfNeeded: phase no longer SETUP (current=' + st.phase + ')');
+  try { console.log('[turnService] startGameIfNeeded: phase no longer SETUP (current=' + st.phase + ')'); } catch(_) {}
       if (!startGameIfNeeded.__started) startGameIfNeeded.__started = true;
       return;
     }
@@ -242,7 +242,7 @@ export function createTurnService(store, logger, rng = Math.random) {
     try {
       logger.system && logger.system(`[turnService] Game start attempt #${startGameIfNeeded.__attempts}`);
       if (startGameIfNeeded.__attempts === 1) {
-        console.debug('[turnService] Initial activePlayerIndex:', st.meta?.activePlayerIndex, 'players:', st.players?.order);
+        try { console.log('[turnService] Initial activePlayerIndex:', st.meta?.activePlayerIndex, 'players:', st.players?.order); } catch(_) {}
       }
       if (usePhaseMachine && phaseMachine) {
         phaseMachine.to(Phases.ROLL, { reason: 'game_start' });
@@ -280,7 +280,7 @@ export function createTurnService(store, logger, rng = Math.random) {
 
   function startTurn() {
     __rollIndex = 0; // reset per new turn (defined later)
-    try { console.debug('[turnService] startTurn invoked, activePlayerIndex=', store.getState().meta?.activePlayerIndex); } catch(_) {}
+  try { console.log('[turnService] startTurn invoked, activePlayerIndex=', store.getState().meta?.activePlayerIndex); } catch(_) {}
     // Start-of-turn bonuses (Tokyo VP if occupying City at turn start)
     awardStartOfTurnTokyoVP(store, logger);
   logger.system('Phase: ROLL', { kind: 'phase' });
@@ -291,7 +291,7 @@ export function createTurnService(store, logger, rng = Math.random) {
       const stGuard = store.getState();
       const activeIdx = stGuard.meta?.activePlayerIndex;
       if (startTurn.__activeIndexStarted === activeIdx && startTurn.__inProgress) {
-        logger.debug && logger.debug('[turnService] startTurn re-entry ignored (active index)', activeIdx);
+  try { console.log('[turnService] startTurn re-entry ignored (active index)', activeIdx); } catch(_) {}
         return;
       }
       startTurn.__activeIndexStarted = activeIdx;
@@ -313,7 +313,7 @@ export function createTurnService(store, logger, rng = Math.random) {
             try {
               const cs = store.getState();
               if (cs.phase === 'ROLL' && cs.dice?.phase === 'idle' && (!cs.dice.faces || cs.dice.faces.length === 0)) {
-                console.debug('[turnService] CPU immediate kickoff start');
+                try { console.log('[turnService] CPU immediate kickoff start'); } catch(_) {}
                 playCpuTurn(activeId);
                 return true;
               }
@@ -337,7 +337,7 @@ export function createTurnService(store, logger, rng = Math.random) {
             try {
               const ws = store.getState();
               if (ws.phase === 'ROLL' && ws.dice?.faces?.length === 0 && ws.dice.phase === 'idle') {
-                console.warn('[turnService] CPU kickoff watchdog firing (forcing playCpuTurn)');
+                try { console.warn('[turnService] CPU kickoff watchdog firing (forcing playCpuTurn)'); } catch(_) {}
                 playCpuTurn(activeId);
               }
             } catch(_) {}
@@ -428,6 +428,8 @@ export function createTurnService(store, logger, rng = Math.random) {
       try { store.dispatch(metaWinnerSet(winner)); } catch(_) {}
       markPhaseEnd('RESOLVE');
       logger.system('Phase: GAME_OVER', { kind:'phase' });
+      // Auto-archive logs if configured
+      try { (async () => { const mod = await import('./autoArchiveTempService.js'); mod.autoArchiveOnGameOver(store); })(); } catch(_){ }
       await waitUnlessPaused(store, 2000);
       if (usePhaseMachine && phaseMachine) phaseMachine.event('GAME_OVER'); else phaseCtrl.event('PLAYER_WON');
       return;
@@ -468,14 +470,14 @@ export function createTurnService(store, logger, rng = Math.random) {
     try {
       const stPre = store.getState();
       const activeIdLog = forcedActiveId || (stPre.players.order[stPre.meta.activePlayerIndex % stPre.players.order.length]);
-      console.debug('[turnService] playCpuTurn invoked for', activeIdLog);
+  try { console.log('[turnService] playCpuTurn invoked for', activeIdLog); } catch(_) {}
       const controller = createCpuTurnController(store, enhancedEngineProxy(), store._logger || console, {});
       controller.start();
       setTimeout(()=> {
         try {
           const ds = store.getState().dice;
           if (store.getState().phase === 'ROLL' && ds.faces.length === 0 && ds.phase === 'idle') {
-            console.warn('[turnService] playCpuTurn post-start check: still idle (faces empty)');
+            try { console.warn('[turnService] playCpuTurn post-start check: still idle (faces empty)'); } catch(_) {}
           }
         } catch(_) {}
       }, 300);

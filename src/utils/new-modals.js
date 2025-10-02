@@ -211,6 +211,28 @@ export function createSettingsModal() {
             </label>
             <div class="field-help">Display frame rate and performance statistics</div>
           </div>
+
+          <div class="field">
+            <label class="field-checkbox">
+              <input type="checkbox" name="autoArchiveGameLogs">
+              <span class="checkbox-label">Auto-Archive Game Logs at Game Over</span>
+            </label>
+            <div class="field-help">When a game ends, save a compact log snapshot to temp storage (max kept by retention rules)</div>
+          </div>
+
+          <div class="field">
+            <label class="field-checkbox">
+              <input type="checkbox" name="autoArchiveAIDTLogs">
+              <span class="checkbox-label">Auto-Archive AI Decision Trees</span>
+            </label>
+            <div class="field-help">Capture the AI decision tree at game end for later replay analysis</div>
+          </div>
+
+          <div class="field">
+            <label class="field-label">Archive Retention (Days)</label>
+            <input type="number" min="1" max="30" step="1" name="archiveRetentionDays" style="width:100px;" />
+            <div class="field-help">Auto-purge archived logs older than this (enforced opportunistically). Max 10 per type regardless of days.</div>
+          </div>
         </div>
 
         <div class="section">
@@ -423,7 +445,10 @@ export function createSettingsModal() {
       // Advanced settings
       autoStartInTest: form.querySelector('input[name="autoStartInTest"]')?.checked || false,
       debugMode: form.querySelector('input[name="debugMode"]')?.checked || false,
-      showPerformanceMetrics: form.querySelector('input[name="showPerformanceMetrics"]')?.checked || false
+      showPerformanceMetrics: form.querySelector('input[name="showPerformanceMetrics"]')?.checked || false,
+      autoArchiveGameLogs: form.querySelector('input[name="autoArchiveGameLogs"]')?.checked || false,
+      autoArchiveAIDTLogs: form.querySelector('input[name="autoArchiveAIDTLogs"]')?.checked || false,
+      archiveRetentionDays: (function(){ const v = parseInt(form.querySelector('input[name="archiveRetentionDays"]').value,10); return isNaN(v)?3:Math.min(30, Math.max(1, v)); })()
     };
     
     // Update settings in store if available
@@ -580,6 +605,14 @@ export function createSettingsModal() {
     
     const performanceMetrics = content.querySelector('input[name="showPerformanceMetrics"]');
     if (performanceMetrics) performanceMetrics.checked = !!settings.showPerformanceMetrics;
+
+  // Archive settings
+  const autoArchiveGame = content.querySelector('input[name="autoArchiveGameLogs"]');
+  if (autoArchiveGame) autoArchiveGame.checked = !!settings.autoArchiveGameLogs;
+  const autoArchiveAIDT = content.querySelector('input[name="autoArchiveAIDTLogs"]');
+  if (autoArchiveAIDT) autoArchiveAIDT.checked = !!settings.autoArchiveAIDTLogs;
+  const retentionInput = content.querySelector('input[name="archiveRetentionDays"]');
+  if (retentionInput) retentionInput.value = settings.archiveRetentionDays != null ? settings.archiveRetentionDays : 3;
 
     // Load player card layout mode
     const cardLayoutMode = settings.playerCardLayoutMode || (settings.stackedPlayerCards === false ? 'list' : 'stacked');

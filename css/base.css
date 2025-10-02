@@ -67,6 +67,21 @@ body.dark-mode .log-entry { background:rgba(255,255,255,.05); color:#e0e0e0; }
 @keyframes koFadeIn { from { opacity:0;} to { opacity:.9;} }
 body.dark-mode .cpu-rolling-indicator .dot { background:#f4e38a; }
 
+/* Replay Mode - disable pointer events for most interactive elements */
+body.replay-mode-active .action-menu button,
+body.replay-mode-active .cmp-settings-menu button,
+body.replay-mode-active .toolbar button,
+body.replay-mode-active button,
+body.replay-mode-active .power-card,
+body.replay-mode-active .die,
+body.replay-mode-active .player-card { pointer-events:none !important; opacity:.6; }
+/* Allow replay controls & pause button (assumes have data attributes or classes) */
+body.replay-mode-active .replay-controls button,
+body.replay-mode-active button[data-action="pause"],
+body.replay-mode-active button[data-action="resume"],
+body.replay-mode-active .toolbar button[data-action="pause"],
+body.replay-mode-active .toolbar button[data-action="resume"] { pointer-events:auto !important; opacity:1 !important; }
+
 /* Early paint blackout fallback (ensures full cover before layout.css loads). */
 .post-splash-blackout { background:#000; }
 

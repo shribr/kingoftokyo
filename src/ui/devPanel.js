@@ -22,7 +22,16 @@ export function mountDevPanel() {
       <button data-log-positions>Log Positions</button>
       <button data-log-dice>Log Dice</button>
       <button data-log-effects>Log Effects</button>
-    </div>`;
+    </div>
+    <div style="margin-top:4px;">
+      <button data-archive-game>Archive Game Log</button>
+      <button data-view-game>View Game Logs</button>
+    </div>
+    <div>
+      <button data-archive-aidt>Archive AIDT</button>
+      <button data-view-aidt>View AIDT Logs</button>
+    </div>
+    <div style="font-size:10px;margin-top:4px;opacity:.7;">Archiving stores snapshot into localStorage; export/import via viewers.</div>`;
   panel.querySelector('[data-reset-positions]').addEventListener('click', () => eventBus.emit('ui/positions/reset'));
   panel.querySelector('[data-log-positions]').addEventListener('click', () => {
     console.log('UI Positions', window.__KOT_NEW__.store.getState().ui.positions);
@@ -40,6 +49,27 @@ export function mountDevPanel() {
   panel.querySelector('[data-log-effects]').addEventListener('click', () => {
     const st = window.__KOT_NEW__.store.getState();
     console.log('Effect Queue', st.effectQueue);
+  });
+  // Archive / View buttons
+  panel.querySelector('[data-archive-game]').addEventListener('click', async () => {
+    const { archiveGameLog } = await import('../services/logArchiveService.js');
+    archiveGameLog(window.__KOT_NEW__.store, 'Manual Snapshot');
+    console.log('[devPanel] Game log archived');
+  });
+  panel.querySelector('[data-view-game]').addEventListener('click', async () => {
+    const mod = await import('./components/gameLogViewer.js');
+    const { root } = mod.createGameLogViewer(window.__KOT_NEW__.store);
+    document.body.appendChild(root);
+  });
+  panel.querySelector('[data-archive-aidt]').addEventListener('click', async () => {
+    const { archiveAIDT } = await import('../services/logArchiveService.js');
+    archiveAIDT(window.__KOT_NEW__.store, 'Manual Snapshot');
+    console.log('[devPanel] AIDT archived');
+  });
+  panel.querySelector('[data-view-aidt]').addEventListener('click', async () => {
+    const mod = await import('./components/aiDecisionLogViewer.js');
+    const { root } = mod.createAIDecisionLogViewer(window.__KOT_NEW__.store);
+    document.body.appendChild(root);
   });
   document.body.appendChild(panel);
 }

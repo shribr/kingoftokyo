@@ -1,0 +1,335 @@
+/* Replay State Overlay Styles */
+.replay-state-overlay {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  width: 350px;
+  max-height: 90vh;
+  background: rgba(0, 0, 0, 0.95);
+  border: 3px solid #ffcf33;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+  color: #fff;
+  font-family: 'Nunito', sans-serif;
+  font-size: 12px;
+  z-index: 9999;
+  overflow-y: auto;
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+}
+
+.replay-overlay-header {
+  background: linear-gradient(135deg, #ffcf33, #f39c12);
+  color: #000;
+  padding: 8px 12px;
+  border-bottom: 2px solid #000;
+  font-weight: bold;
+}
+
+.replay-title {
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 4px;
+  letter-spacing: 1px;
+}
+
+.replay-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.replay-entry-count {
+  font-size: 10px;
+  min-width: 80px;
+}
+
+.replay-progress-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.replay-progress-fill {
+  height: 100%;
+  background: #27ae60;
+  transition: width 0.3s ease;
+  width: 0%;
+}
+
+.replay-status {
+  font-size: 10px;
+  text-align: center;
+  opacity: 0.8;
+}
+
+.replay-state-panels {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.replay-panel {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 207, 51, 0.3);
+}
+
+.replay-panel h4 {
+  margin: 0 0 6px 0;
+  font-size: 11px;
+  color: #ffcf33;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Dice Panel */
+.replay-dice-display {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.replay-die {
+  width: 28px;
+  height: 28px;
+  background: #333;
+  border: 2px solid #666;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.replay-die.active {
+  background: linear-gradient(135deg, #fff, #e0e0e0);
+  color: #000;
+  border-color: #ffcf33;
+  box-shadow: 0 2px 4px rgba(255, 207, 51, 0.5);
+}
+
+.replay-die.inactive {
+  background: #222;
+  color: #666;
+  border-color: #444;
+}
+
+/* Tokyo Panel */
+.replay-tokyo-status {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tokyo-slot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.slot-label {
+  font-weight: bold;
+  font-size: 10px;
+  color: #ffcf33;
+}
+
+.slot-occupant.occupied {
+  color: #27ae60;
+  font-weight: bold;
+}
+
+.slot-occupant.empty {
+  color: #666;
+  font-style: italic;
+}
+
+/* Players Panel */
+.replay-players-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.replay-player-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+  padding: 4px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.replay-player-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.player-name {
+  font-weight: bold;
+  font-size: 11px;
+  margin-bottom: 2px;
+  color: #ffcf33;
+}
+
+.player-stats {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.player-stats .stat {
+  font-size: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 1px 4px;
+  border-radius: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stat.health { color: #e74c3c; }
+.stat.energy { color: #f1c40f; }
+.stat.vp { color: #27ae60; }
+
+.player-status {
+  font-size: 9px;
+  opacity: 0.8;
+  color: #bbb;
+}
+
+/* Phase Panel */
+.replay-phase-display {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.current-phase,
+.active-player {
+  padding: 3px 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+  font-size: 10px;
+  text-align: center;
+}
+
+.current-phase {
+  color: #3498db;
+  font-weight: bold;
+}
+
+.active-player {
+  color: #e67e22;
+}
+
+/* Controls Overlay */
+.replay-controls-overlay {
+  border-top: 2px solid rgba(255, 207, 51, 0.3);
+  padding: 6px 8px;
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.replay-btn {
+  background: #3498db;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  padding: 4px 8px;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: bold;
+}
+
+.replay-btn:hover:not(:disabled) {
+  background: #2980b9;
+  transform: translateY(-1px);
+}
+
+.replay-btn:disabled {
+  background: #666;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Body class when overlay is visible */
+body.replay-overlay-visible {
+  /* Reserved for future overlay-specific body adjustments */
+  position: relative;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .replay-state-overlay {
+    width: 300px;
+    right: 5px;
+    top: 5px;
+  }
+}
+
+@media (max-width: 800px) {
+  .replay-state-overlay {
+    width: 280px;
+    max-height: 80vh;
+    font-size: 11px;
+  }
+  
+  .replay-dice-display {
+    justify-content: center;
+  }
+  
+  .replay-die {
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+  }
+}
+
+/* Animation for state changes */
+@keyframes replayStateUpdate {
+  0% { 
+    background: rgba(255, 207, 51, 0.3);
+    transform: scale(1.02);
+  }
+  100% { 
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1);
+  }
+}
+
+.replay-player-card.state-changed,
+.replay-die.state-changed,
+.tokyo-slot.state-changed {
+  animation: replayStateUpdate 0.5s ease;
+}
+
+/* Dark mode adjustments */
+body.dark-mode .replay-state-overlay {
+  background: rgba(20, 20, 20, 0.98);
+  border-color: #f4e38a;
+}
+
+body.dark-mode .replay-overlay-header {
+  background: linear-gradient(135deg, #f4e38a, #dbc570);
+  color: #000;
+}
+
+body.dark-mode .replay-panel h4 {
+  color: #f4e38a;
+}
+
+body.dark-mode .slot-label,
+body.dark-mode .player-name {
+  color: #f4e38a;
+}

@@ -52,9 +52,11 @@ export function createPhaseController(store, logger = console) {
     const cur = current();
     const next = nextForEvent(cur, eventName);
     if (!next) {
-      if (process?.env?.NODE_ENV !== 'production') {
-        logger.debug?.(`[phaseController] No transition for event '${eventName}' in phase ${cur}`);
-      }
+      try {
+        if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production') {
+          logger.debug?.(`[phaseController] No transition for event '${eventName}' in phase ${cur}`);
+        }
+      } catch(_) {}
       return { ok: false, phase: cur };
     }
     return to(next, { ...meta, reason: `event:${eventName}` });
@@ -73,9 +75,11 @@ export function createPhaseController(store, logger = console) {
 
   function warnInvalid(from, to, reason) {
     const msg = `Invalid phase transition blocked: ${from} -> ${to} (reason=${reason})`;
-    if (process?.env?.NODE_ENV !== 'production') {
-      console.warn(msg);
-    }
+    try {
+      if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production') {
+        console.warn(msg);
+      }
+    } catch(_) {}
     logger.warn?.(msg);
   }
 

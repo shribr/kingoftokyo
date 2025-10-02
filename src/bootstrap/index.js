@@ -78,6 +78,7 @@ export const logger = createLogger(store);
 
 // Example diagnostic wiring
 if (typeof window !== 'undefined') {
+  try { console.log('[bootstrap] initialization begin'); } catch(_) {}
   // Global diagnostics for silent errors halting execution before gating dispatches
   window.addEventListener('error', (e)=>{ try { console.error('[global-error]', e.message, e.filename, e.lineno+':'+e.colno); } catch(_) {} });
   window.addEventListener('unhandledrejection', (e)=>{ try { console.error('[global-unhandled-rejection]', e.reason); } catch(_) {} });
@@ -88,6 +89,33 @@ if (typeof window !== 'undefined') {
   // Provide logger reference for AI utilities lacking direct injection
   store._logger = logger;
   eventBus.emit('bootstrap/ready', {});
+  // Hard failsafe timers (3s & 6s) to guarantee game start in pathological stalls
+  try {
+    setTimeout(()=>{
+      try {
+        const st = store.getState();
+        if (st.phase === 'SETUP') {
+          console.warn('[failsafe] 3s elapsed in SETUP; forcing startGameIfNeeded');
+          window.__KOT_NEW__?.turnService?.startGameIfNeeded?.();
+        }
+      } catch(e) { console.warn('[failsafe] 3s handler error', e); }
+    }, 3000);
+    setTimeout(()=>{
+      try {
+        const st = store.getState();
+        if (st.phase === 'SETUP') {
+          console.error('[failsafe] 6s elapsed still in SETUP; forcing PHASE_TRANSITION and manual startTurn');
+          store.dispatch({ type:'PHASE_TRANSITION', payload:{ from:'SETUP', to:'ROLL', reason:'failsafe_6s', ts: Date.now() }});
+          const ts = window.__KOT_NEW__?.turnService;
+          if (ts && typeof ts.startTurn === 'function') {
+            try { ts.startTurn(); } catch(e2){ console.error('[failsafe] direct startTurn error', e2); }
+          } else {
+            console.error('[failsafe] turnService.startTurn missing');
+          }
+        }
+      } catch(e) { console.warn('[failsafe] 6s handler error', e); }
+    }, 6000);
+  } catch(_) {}
   // Load persisted settings before UI mounts
   loadSettings(store);
   loadLogCollapse(store);
@@ -144,6 +172,8 @@ if (typeof window !== 'undefined') {
       if (!st.players.order.length) {
         seedRandomPlayers(store, monsters, logger);
         try { window.__KOT_BOOT_READY = true; } catch(_) {}
+        // Immediate start attempt post-seed
+        try { window.__KOT_NEW__?.turnService?.startGameIfNeeded?.(); } catch(e) { console.warn('[post-seed] startGameIfNeeded error', e); }
       }
       const seeded = store.getState().players.order.length;
       if (!seeded) console.warn('[bootstrap] skipIntro active but players failed to seed (monsters likely empty or images missing).');
@@ -167,6 +197,7 @@ if (typeof window !== 'undefined') {
       const st = store.getState();
       if (!st.players.order.length) seedRandomPlayers(store, fallback, logger);
       try { window.__KOT_BOOT_READY = true; } catch(_) {}
+  try { window.__KOT_NEW__?.turnService?.startGameIfNeeded?.(); } catch(e) { console.warn('[post-seed-fallback] startGameIfNeeded error', e); }
       const seeded = store.getState().players.order.length;
       if (!seeded) console.warn('[bootstrap] skipIntro active (fallback) but players failed to seed.');
       // Fallback path: also ensure shop populated
@@ -306,18 +337,27 @@ if (typeof window !== 'undefined') {
     const pulse = () => {
       try {
         const st = store.getState();
-        const rff = st.ui?.rollForFirst;
         const playersReady = (st.players?.order?.length || 0) > 0;
-        const shouldBeActive = playersReady && ((rff && rff.resolved) || window.__KOT_GAME_STARTED);
-        if (shouldBeActive) {
+        const selectionOpen = !!st.ui?.monsterSelection?.open;
+        const rff = st.ui?.rollForFirst;
+        // Further relaxed: as soon as players exist, attempt start (ignore selection state entirely)
+        const shouldAttemptStart = playersReady;
+        if (runs < 6) {
+          try { console.log('[watchdog:pulse]', { run: runs, phase: st.phase, playersReady, selectionOpen, rffState: rff && { open:rff.open, resolved:rff.resolved } }); } catch(_) {}
+        }
+        if (shouldAttemptStart) {
+          if (st.phase === 'SETUP' && !window.__KOT_GAME_STARTED) {
+            console.log('[watchdog] Triggering startGameIfNeeded (playersReady, selectionClosed, phase SETUP)');
+            try { window.__KOT_NEW__?.turnService?.startGameIfNeeded?.(); } catch(e) { console.warn('[watchdog] startGameIfNeeded error', e); }
+          }
           if (st.phase === 'SETUP') {
             // Attempt normal path first
-            try { window.__KOT_NEW__?.turnService?.startGameIfNeeded?.(); } catch(e) { console.warn('[watchdog] startGameIfNeeded error', e); }
+            try { window.__KOT_NEW__?.turnService?.startGameIfNeeded?.(); } catch(e) { console.warn('[watchdog] startGameIfNeeded error (second attempt)', e); }
             // Force fallback if still stuck next tick
           }
           // Ensure UI visibility
           if (st.phase !== 'SETUP' && !document.body.classList.contains('game-active')) {
-            console.debug('[watchdog] Forcing game-active class (UI still hidden).');
+            console.log('[watchdog] Forcing game-active class (UI still hidden).');
             try { document.body.classList.add('game-active'); } catch(_) {}
           }
           // Cleanup lingering blackout

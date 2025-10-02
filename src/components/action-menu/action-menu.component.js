@@ -464,7 +464,9 @@ export function update(root) {
   const canInitialRoll = isIdle;
   // Phase value may be plain string or object (phase machine). Support both.
   const phaseName = (st.phase && typeof st.phase === 'object' && st.phase.name) ? st.phase.name : st.phase;
-  const canRoll = phaseName === 'ROLL' && (canInitialRoll || canReroll) && dice.phase !== 'rolling';
+  // Allow initial roll even if rerollsRemaining is 0 (defensive) whenever dice are idle and empty in ROLL phase.
+  const defensiveInitial = phaseName === 'ROLL' && isIdle && (!dice.faces || dice.faces.length === 0);
+  const canRoll = phaseName === 'ROLL' && (canInitialRoll || canReroll || defensiveInitial) && dice.phase !== 'rolling';
   const order = st.players.order;
   let active = null;
   if (order.length) {

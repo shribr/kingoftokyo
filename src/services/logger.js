@@ -7,13 +7,37 @@ import { getLastAIRollId } from './aiDecisionService.js';
 let nextId = 1;
 
 export function createLogger(store) {
+  function substitutePlayerNames(raw) {
+    try {
+      if (typeof raw !== 'string') return raw;
+      const st = store.getState();
+      const order = st.players?.order || [];
+      if (!order.length) return raw;
+      let out = raw;
+      // Build map from p1,p2 style ids to actual player names if pattern matches
+      const idToName = {};
+      order.forEach((pid, idx) => {
+        const canonical = 'p' + (idx + 1);
+        const player = st.players.byId[pid];
+        if (player && player.name && canonical !== player.name) {
+          idToName[canonical] = player.name;
+        }
+      });
+      // Replace only whole-word occurrences (word boundary) to avoid partial collisions
+      Object.entries(idToName).forEach(([pid, name]) => {
+        const re = new RegExp(`\\b${pid}\\b`, 'g');
+        out = out.replace(re, name);
+      });
+      return out;
+    } catch(_) { return raw; }
+  }
   function append(type, message, meta = {}) {
     const state = store.getState();
     const entry = {
       id: nextId++,
       ts: Date.now(),
       type,
-      message,
+      message: substitutePlayerNames(message),
       meta,
       // Promote semantic fields for tree grouping / filtering
       kind: meta.kind || inferKind(type, message, meta),

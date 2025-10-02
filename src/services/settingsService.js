@@ -40,6 +40,31 @@ export function bindSettingsPersistence(store) {
           if (document.body.hasAttribute('data-disable-animations')) document.body.removeAttribute('data-disable-animations');
         }
       } catch(_) {}
+      // Opportunistic retention cleanup for auto archives if retention setting changed
+      try {
+        import('./autoArchiveTempService.js').then(mod => {
+          const st = store.getState();
+            const retentionDays = Math.max(1, parseInt(st.settings.archiveRetentionDays||3,10));
+            const maxPer = Math.max(1, parseInt(st.settings.archiveMaxPerType||10,10));
+            // Using internal prune: list keys to force prune by triggering a dummy archive pass with no writes
+            // We'll just call private-like behavior by archiving nothing: reusing exported listing to decide.
+            // Instead directly import and call internal prune is not exposed; mimic by writing nothing and relying on prune
+            // We'll simply re-save oldest entries forcing prune: cheap approach is to call a hidden helper; for now replicate minimal logic
+            const now=Date.now();
+            // Local inline prune duplication (kept minimal to avoid circular import exporting prune)
+            const prefixes = ['kot_game_','kot_aidt_'];
+            prefixes.forEach(pref=>{
+              const keys = Object.keys(localStorage).filter(k=>k.startsWith(pref)).sort();
+              // Retention
+              keys.forEach(k=>{ try { const obj = JSON.parse(localStorage.getItem(k)); if (obj?.meta?.ts && now - obj.meta.ts > retentionDays*86400000) localStorage.removeItem(k); } catch(_){} });
+              // Max count
+              const remain = Object.keys(localStorage).filter(k=>k.startsWith(pref)).sort();
+              if (remain.length > maxPer){
+                remain.slice(0, remain.length-maxPer).forEach(k=>{ try { localStorage.removeItem(k); } catch(_){} });
+              }
+            });
+        }).catch(()=>{});
+      } catch(_) {}
     }
     if (action && action.type === 'UI_GAME_LOG_COLLAPSE_STATE') {
       try {

@@ -13,6 +13,10 @@ const DEFAULT_SETTINGS = {
   , autoStartInTest: true // when skipintro=1 load + auto-start full random game; if false just load UI without starting
   , scenarioConfig: { assignments: [] } // scenario test harness configuration
   , disableAnimations: false // global UI animation suppression (non-critical FX)
+  , autoArchiveGameLogs: false // auto-archive game logs on GAME_OVER into temp storage
+  , autoArchiveAIDTLogs: false // auto-archive AI decision tree on GAME_OVER
+  , archiveRetentionDays: 3 // days to retain auto archived logs before purge (purge runs opportunistically)
+  , archiveMaxPerType: 10 // hard cap per type (game / aidt) for auto archives
 };
 
 export function settingsReducer(state = DEFAULT_SETTINGS, action) {
