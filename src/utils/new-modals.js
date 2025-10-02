@@ -9,7 +9,7 @@ export function createSettingsModal() {
   const content = document.createElement('div');
   content.innerHTML = `
     <!-- Tab Navigation -->
-    <div class="settings-tabs" style="display: flex; border-bottom: 2px solid #333; margin-bottom: 20px; background: #1a1a1a; border-radius: 6px 6px 0 0;">
+    <div class="settings-tabs" style="display: flex; border-bottom: 2px solid #333; margin-bottom: 20px; background: #1a1a1a; border-radius: 6px 6px 0 0;" role="tablist">
       <button type="button" class="tab-button active" data-tab="gameplay" style="flex: 1; background: none; border: none; color: #e4e4e4; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s;">
         🎮 Gameplay
       </button>
@@ -24,6 +24,18 @@ export function createSettingsModal() {
       </button>
       <button type="button" class="tab-button" data-tab="scenarios" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s;">
         🧪 Scenarios
+      </button>
+      <button type="button" class="tab-button" data-tab="archives" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s;">
+        🗂 Archives
+      </button>
+      <button type="button" class="tab-button" data-tab="replay" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s;">
+        ▶️ Replay
+      </button>
+      <button type="button" class="tab-button" data-tab="ai" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s;">
+        🧠 AI Insight
+      </button>
+      <button type="button" class="tab-button" data-tab="devtools" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s;">
+        🛠 Dev Tools
       </button>
     </div>
 
@@ -255,6 +267,71 @@ export function createSettingsModal() {
           </div>
         </div>
       </div>
+
+      <!-- Archives Tab -->
+      <div class="tab-content" data-tab-content="archives" style="display:none;">
+        <div class="section" style="max-height:60vh;overflow:auto;">
+          <h3 class="section-title">🗂 Archives</h3>
+          <p style="font-size:12px;opacity:.75;">Browse archived game logs and AI decision snapshots.</p>
+          <div data-archives-host class="archives-list" style="border:1px solid #222;background:#141414;padding:8px 10px;border-radius:6px;min-height:120px;">
+            <div class="loading" style="font-size:11px;opacity:.6;">Listing archives…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Replay Tab -->
+      <div class="tab-content" data-tab-content="replay" style="display:none;">
+        <div class="section" style="max-height:60vh;overflow:auto;">
+          <h3 class="section-title">▶️ Replay</h3>
+          <p style="font-size:12px;opacity:.75;">Select an archive to load & replay; control playback speed.</p>
+          <div data-replay-host class="replay-list" style="border:1px solid #222;background:#141414;padding:8px 10px;border-radius:6px;min-height:120px;">
+            <div class="loading" style="font-size:11px;opacity:.6;">Loading replay options…</div>
+          </div>
+          <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+            <button type="button" class="btn btn-secondary" data-replay-pause>Pause</button>
+            <button type="button" class="btn btn-secondary" data-replay-resume>Resume</button>
+            <button type="button" class="btn btn-secondary" data-replay-stop>Stop</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Insight Tab -->
+      <div class="tab-content" data-tab-content="ai" style="display:none;">
+        <div class="section" style="max-height:60vh;overflow:auto;">
+          <h3 class="section-title">🧠 AI Insight</h3>
+          <p style="font-size:12px;opacity:.75;">Live AI decision tree explorer. Updates as AI evaluates rolls.</p>
+          <div data-ai-tree-host style="border:1px solid #222;background:#141414;padding:6px 8px;border-radius:6px;min-height:180px;position:relative;">
+            <div class="loading" style="font-size:11px;opacity:.6;">Mounting AI decision tree…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dev Tools Tab -->
+      <div class="tab-content" data-tab-content="devtools" style="display:none;">
+        <div class="section" style="max-height:60vh;overflow:auto;">
+          <h3 class="section-title">🛠 Developer Tools</h3>
+          <p style="font-size:12px;opacity:.75;">Utilities for debugging & rapid iteration. Toggle floating panel or use in-modal actions.</p>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px;align-items:center;">
+            <label class="field-checkbox" style="margin:0;">
+              <input type="checkbox" name="enableFloatingDevPanel" />
+              <span class="checkbox-label">Enable Floating Dev Panel</span>
+            </label>
+            <label class="field-checkbox" style="margin:0;">
+              <input type="checkbox" name="enableDecisionTreeCapture" />
+              <span class="checkbox-label">Capture AI Decision Data</span>
+            </label>
+          </div>
+          <div data-devtools-actions style="border:1px solid #222;background:#141414;padding:6px 8px;border-radius:6px;display:flex;flex-wrap:wrap;gap:6px;">
+            <button type="button" class="btn btn-secondary" data-dev-reset-positions>Reset Positions</button>
+            <button type="button" class="btn btn-secondary" data-dev-log-positions>Log Positions</button>
+            <button type="button" class="btn btn-secondary" data-dev-log-dice>Log Dice</button>
+            <button type="button" class="btn btn-secondary" data-dev-log-effects>Log Effects</button>
+            <button type="button" class="btn btn-secondary" data-dev-archive-game>Archive Game</button>
+            <button type="button" class="btn btn-secondary" data-dev-archive-aidt>Archive AIDT</button>
+          </div>
+          <div style="font-size:10px;opacity:.6;margin-top:6px;">Certain actions require #dev hash for full detail.</div>
+        </div>
+      </div>
     </form>
     <div class="modal-actions">
       <button type="button" class="btn btn-primary save-btn" disabled>Save Settings</button>
@@ -282,33 +359,169 @@ export function createSettingsModal() {
       host.innerHTML = `<em style='color:#a55;'>Failed to load scenarios UI (${err?.message||'error'}).</em>`;
     });
   }
+  // Lazy mount AI decision tree inside settings tab
+  let aiTreeMounted = false;
+  async function ensureAIMounted(){
+    if (aiTreeMounted) return;
+    const host = content.querySelector('[data-ai-tree-host]');
+    if (!host) return;
+    aiTreeMounted = true;
+    try {
+      const mod = await import('../components/ai-decision-tree/ai-decision-tree.component.js');
+      const inst = mod.buildAIDecisionTree();
+      host.innerHTML='';
+      host.appendChild(inst.root);
+    } catch(e){
+      host.innerHTML = `<div style="color:#c55;font-size:12px;">Failed to load AI Decision Tree: ${e.message}</div>`;
+    }
+  }
+
+  // Archive / Replay data loaders (lightweight stubs using archiveManagementService & replayService)
+  let archivesLoaded = false;
+  async function loadArchives(){
+    const host = content.querySelector('[data-archives-host]');
+    if (!host) return;
+    host.innerHTML = '<div style="font-size:11px;opacity:.6;">Loading archives…</div>';
+    try {
+      const { archiveManager } = await import('../services/archiveManagementService.js');
+      const list = archiveManager.getAllArchives();
+      if (!list.length){ host.innerHTML = '<div style="font-size:11px;opacity:.5;">No archives found.</div>'; return; }
+      host.innerHTML = `<ul style='list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;'>${list.slice(0,100).map(a=>{
+        const ts = a.ts||a.timestamp; const d = ts? new Date(ts).toLocaleString():'';
+        return `<li style='background:#1c1c1c;padding:6px 8px;border:1px solid #2a2a2a;border-radius:4px;display:flex;flex-direction:column;gap:4px;'>
+          <div style='display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;'>
+            <span style='font-size:11px;opacity:.85;'>${a.name||a.id||'Archive'} <span style='opacity:.5;'>${a.category||a.type||''}</span></span>
+            <span style='font-size:10px;opacity:.5;'>${d}</span>
+          </div>
+          <div style='display:flex;gap:6px;flex-wrap:wrap;'>
+            <button type='button' class='btn btn-secondary' data-archive-replay='${a.id}'>Load & Replay</button>
+            <button type='button' class='btn btn-secondary' data-archive-export='${a.id}'>Export</button>
+            <button type='button' class='btn btn-secondary' data-archive-delete='${a.id}'>Delete</button>
+          </div>
+        </li>`;}).join('')}</ul>`;
+    } catch(e){
+      host.innerHTML = `<div style='color:#c55;font-size:11px;'>Failed to load archives: ${e.message}</div>`;
+    }
+  }
+
+  function attachArchiveHandlers(){
+    content.addEventListener('click', async (e)=>{
+      const btn = e.target.closest('[data-archive-replay],[data-archive-export],[data-archive-delete]');
+      if (!btn) return;
+      const id = btn.getAttribute('data-archive-replay')||btn.getAttribute('data-archive-export')||btn.getAttribute('data-archive-delete');
+      if (!id) return;
+      if (btn.hasAttribute('data-archive-replay')){
+        try {
+          const { archiveManager } = await import('../services/archiveManagementService.js');
+            const { startReplay } = await import('../services/replayService.js');
+            const list = archiveManager.getAllArchives();
+            const meta = list.find(a=> (a.id===id));
+            if (!meta) { console.warn('[archives] not found', id); return; }
+            const snapshot = await archiveManager.loadArchive(meta);
+            startReplay(window.__KOT_NEW__.store, snapshot, {});
+        } catch(err){ console.warn('[archive replay] failed', err); }
+      } else if (btn.hasAttribute('data-archive-export')){
+        try {
+          const { archiveManager } = await import('../services/archiveManagementService.js');
+          const list = archiveManager.getAllArchives();
+          const meta = list.find(a=> a.id===id);
+          if (!meta) return;
+          const snapshot = await archiveManager.loadArchive(meta);
+          const blob = new Blob([JSON.stringify(snapshot,null,2)], {type:'application/json'});
+          const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`archive-${id}.json`; a.click(); setTimeout(()=> URL.revokeObjectURL(url), 2000);
+        } catch(err){ console.warn('[archive export] failed', err); }
+      } else if (btn.hasAttribute('data-archive-delete')){
+        if (!confirm('Delete this archive?')) return;
+        try {
+          const { archiveManager } = await import('../services/archiveManagementService.js');
+          archiveManager.deleteArchive?.(id); // if method exists
+          loadArchives();
+        } catch(err){ console.warn('[archive delete] failed', err); }
+      }
+    });
+  }
+  attachArchiveHandlers();
+
+  // Replay controls referencing active replay
+  function attachReplayControls(){
+    content.addEventListener('click', async (e)=>{
+      const btn = e.target.closest('[data-replay-pause],[data-replay-resume],[data-replay-stop]');
+      if (!btn) return;
+      const mod = await import('../services/replayService.js');
+      if (btn.hasAttribute('data-replay-pause')) mod.pauseReplay();
+      else if (btn.hasAttribute('data-replay-resume')) mod.resumeReplay();
+      else if (btn.hasAttribute('data-replay-stop')) mod.stopReplay();
+    });
+  }
+  attachReplayControls();
+
+  // Dev tools actions inside tab
+  function attachDevToolsActions(){
+    content.addEventListener('click', async (e)=>{
+      const btn = e.target.closest('[data-dev-reset-positions],[data-dev-log-positions],[data-dev-log-dice],[data-dev-log-effects],[data-dev-archive-game],[data-dev-archive-aidt]');
+      if (!btn) return;
+      const store = window.__KOT_NEW__?.store;
+      if (!store) return;
+      const { eventBus } = await import('../core/eventBus.js');
+      if (btn.hasAttribute('data-dev-reset-positions')) eventBus.emit('ui/positions/reset');
+      else if (btn.hasAttribute('data-dev-log-positions')) console.log('UI Positions', store.getState().ui.positions);
+      else if (btn.hasAttribute('data-dev-log-dice')) {
+        const st = store.getState();
+        const order = st.players.order; let activeMods={};
+        if (order.length){ const activeId = order[st.meta.activePlayerIndex % order.length]; activeMods = st.players.byId[activeId]?.modifiers||{}; }
+        console.log('Dice State', st.dice, 'Active Player Mods', activeMods);
+      }
+      else if (btn.hasAttribute('data-dev-log-effects')) console.log('Effect Queue', store.getState().effectQueue);
+      else if (btn.hasAttribute('data-dev-archive-game')) { const { archiveGameLog } = await import('../services/logArchiveService.js'); archiveGameLog(store,'Manual Snapshot'); }
+      else if (btn.hasAttribute('data-dev-archive-aidt')) { const { archiveAIDT } = await import('../services/logArchiveService.js'); archiveAIDT(store,'Manual Snapshot'); }
+    });
+  }
+  attachDevToolsActions();
   
+  // Accessibility: roving tabindex and arrow key navigation
+  tabButtons.forEach((btn,i)=>{ btn.setAttribute('role','tab'); btn.setAttribute('tabindex', i===0? '0':'-1'); });
+  tabContents.forEach(tc=> tc.setAttribute('role','tabpanel'));
+
+  function activateTab(button){
+    const targetTab = button.getAttribute('data-tab');
+    try { localStorage.setItem(LS_LAST_TAB, targetTab); } catch(_) {}
+    tabButtons.forEach(btn => {
+      btn.classList.remove('active');
+      btn.style.color = '#999';
+      btn.style.borderBottomColor = 'transparent';
+      btn.setAttribute('tabindex','-1');
+      btn.setAttribute('aria-selected','false');
+    });
+    button.classList.add('active');
+    button.style.color = '#e4e4e4';
+    button.style.borderBottomColor = '#6c5ce7';
+    button.setAttribute('tabindex','0');
+    button.setAttribute('aria-selected','true');
+    tabContents.forEach(c => { c.style.display='none'; c.classList.remove('active'); });
+    const targetContent = content.querySelector(`[data-tab-content="${targetTab}"]`);
+    if (targetContent){ targetContent.style.display = 'block'; targetContent.classList.add('active'); }
+    if (targetTab === 'scenarios') ensureScenariosMounted();
+    if (targetTab === 'ai') ensureAIMounted();
+    if (targetTab === 'archives' && !archivesLoaded){ loadArchives(); archivesLoaded=true; }
+  }
+
   tabButtons.forEach(button => {
     button.addEventListener('click', () => {
-      const targetTab = button.getAttribute('data-tab');
-      try { localStorage.setItem(LS_LAST_TAB, targetTab); } catch(_) {}
-      
-      // Update button states
-      tabButtons.forEach(btn => {
-        btn.classList.remove('active');
-        btn.style.color = '#999';
-        btn.style.borderBottomColor = 'transparent';
-      });
-      button.classList.add('active');
-      button.style.color = '#e4e4e4';
-      button.style.borderBottomColor = '#6c5ce7';
-      
-      // Update content visibility
-      tabContents.forEach(content => {
-        content.style.display = 'none';
-        content.classList.remove('active');
-      });
-      const targetContent = content.querySelector(`[data-tab-content="${targetTab}"]`);
-      if (targetContent) {
-        targetContent.style.display = 'block';
-        targetContent.classList.add('active');
+      activateTab(button);
+    });
+    button.addEventListener('keydown', (e)=>{
+      const idx = Array.from(tabButtons).indexOf(button);
+      let targetIdx = null;
+      if (e.key==='ArrowRight') targetIdx = (idx+1) % tabButtons.length;
+      else if (e.key==='ArrowLeft') targetIdx = (idx-1+tabButtons.length) % tabButtons.length;
+      else if (e.key==='Home') targetIdx = 0;
+      else if (e.key==='End') targetIdx = tabButtons.length-1;
+      if (targetIdx!=null){
+        e.preventDefault();
+        const nextBtn = tabButtons[targetIdx];
+        activateTab(nextBtn);
+        nextBtn.focus();
       }
-      if (targetTab === 'scenarios') ensureScenariosMounted();
     });
   });
 
@@ -406,7 +619,9 @@ export function createSettingsModal() {
       // Advanced settings
       autoStartInTest: form.querySelector('input[name="autoStartInTest"]')?.checked || false,
       debugMode: form.querySelector('input[name="debugMode"]')?.checked || false,
-      showPerformanceMetrics: form.querySelector('input[name="showPerformanceMetrics"]')?.checked || false
+      showPerformanceMetrics: form.querySelector('input[name="showPerformanceMetrics"]')?.checked || false,
+      enableDecisionTreeCapture: form.querySelector('input[name="enableDecisionTreeCapture"]')?.checked || false,
+      enableFloatingDevPanel: form.querySelector('input[name="enableFloatingDevPanel"]')?.checked || false
     };
   }
 
@@ -600,6 +815,11 @@ export function createSettingsModal() {
     const dialogSystem = settings.dialogSystem || 'legacy';
     content.querySelectorAll('input[name="dialogSystem"]').forEach(r => r.checked = r.value === dialogSystem);
     updateThemePreview(powerCardTheme);
+    // Dev tool flags
+    const dtCap = content.querySelector('input[name="enableDecisionTreeCapture"]');
+    if (dtCap) dtCap.checked = !!settings.enableDecisionTreeCapture;
+    const floatDev = content.querySelector('input[name="enableFloatingDevPanel"]');
+    if (floatDev) floatDev.checked = !!settings.enableFloatingDevPanel;
   }
 
   // Load current settings initially

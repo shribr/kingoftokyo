@@ -491,3 +491,11 @@ select.field-input:hover {
   transform: translateY(-2px);
   filter: brightness(1.1);
 }
+
+/* Archives / Replay / AI Insight containers */
+.archives-list ul li:hover { border-color:#333; background:#202020; }
+.replay-list button { font-size:11px; padding:6px 10px; }
+[data-ai-tree-host] { max-height:50vh; overflow:auto; }
+[data-ai-tree-host]::-webkit-scrollbar { width:8px; }
+[data-ai-tree-host]::-webkit-scrollbar-track { background:#111; }
+[data-ai-tree-host]::-webkit-scrollbar-thumb { background:#333; border-radius:4px; }
