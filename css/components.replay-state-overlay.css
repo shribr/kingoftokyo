@@ -95,6 +95,25 @@
   transform: translateY(-1px);
 }
 
+.replay-close-btn {
+  background: rgba(220, 53, 69, 0.8);
+  border: 1px solid rgba(220, 53, 69, 0.6);
+  border-radius: 6px;
+  padding: 4px 6px;
+  cursor: pointer;
+  color: #fff;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+}
+
+.replay-close-btn:hover {
+  background: rgba(220, 53, 69, 1);
+  transform: translateY(-1px);
+}
+
 .replay-progress {
   margin-bottom: 8px;
 }

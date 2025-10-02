@@ -36,6 +36,11 @@ export function createReplayStateOverlay() {
             <path d="M2 6H10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
           </svg>
         </button>
+        <button class="replay-close-btn" data-close title="Close overlay">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M3 3L9 9M9 3L3 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
       </div>
       <div class="replay-progress">
         <div class="replay-entry-info">
@@ -253,6 +258,7 @@ export function createReplayStateOverlay() {
       const speedBtn = overlay.querySelector('[data-replay-action="speed"]');
       const speedControls = overlay.querySelector('[data-speed-controls]');
       const minimizeBtn = overlay.querySelector('[data-minimize]');
+      const closeBtn = overlay.querySelector('[data-close]');
       
       let currentSpeed = 1;
       let aidtThoughtBubble = null;
@@ -268,6 +274,13 @@ export function createReplayStateOverlay() {
           } else {
             this.minimize();
           }
+        });
+      }
+      
+      // Close functionality
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+          this.hide();
         });
       }
       

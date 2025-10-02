@@ -452,6 +452,32 @@ select.field-input:hover {
   box-shadow: none !important;
 }
 
+/* Small button variant for dev tools and replay controls */
+.btn-sm {
+  font-size: 0.75rem;
+  padding: 4px 12px;
+  line-height: 1.2;
+  background: #2a2a2a;
+  color: #e4e4e4;
+  border: 1px solid #444;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 500;
+}
+
+.btn-sm:hover {
+  background: #333;
+  border-color: #555;
+  transform: translateY(-1px);
+}
+
+.btn-sm:active {
+  transform: translateY(0);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
+}
+
 /* Button groups */
 .field > div:has(.btn) {
   display: flex;
@@ -494,7 +520,7 @@ select.field-input:hover {
 
 /* Archives / Replay / AI Insight containers */
 .archives-list ul li:hover { border-color:#333; background:#202020; }
-.replay-list button { font-size:11px; padding:6px 10px; }
+.replay-list { font-size: 0.875rem; }
 [data-ai-tree-host] { max-height:50vh; overflow:auto; }
 [data-ai-tree-host]::-webkit-scrollbar { width:8px; }
 [data-ai-tree-host]::-webkit-scrollbar-track { background:#111; }

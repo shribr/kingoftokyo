@@ -11,31 +11,31 @@ export function createSettingsModal() {
     <!-- Tab Navigation -->
     <div class="settings-tabs" style="display: flex; border-bottom: 2px solid #333; margin-bottom: 20px; background: #1a1a1a; border-radius: 6px 6px 0 0;" role="tablist">
       <button type="button" class="tab-button active" data-tab="gameplay" style="flex: 1; background: none; border: none; color: #e4e4e4; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s;">
-        🎮 Gameplay
+        <span style="margin-right: 8px;">🎮</span>Gameplay
       </button>
       <button type="button" class="tab-button" data-tab="interface" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s;">
-        🎨 Interface
+        <span style="margin-right: 8px;">🎨</span>Interface
       </button>
       <button type="button" class="tab-button" data-tab="themes" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s;">
-        🌈 Themes
+        <span style="margin-right: 8px;">🌈</span>Themes
       </button>
       <button type="button" class="tab-button" data-tab="advanced" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s;">
-        ⚙️ Advanced
+        <span style="margin-right: 8px;">⚙️</span>Advanced
       </button>
       <button type="button" class="tab-button" data-tab="scenarios" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s;">
-        🧪 Scenarios
+        <span style="margin-right: 8px;">🧪</span>Scenarios
       </button>
       <button type="button" class="tab-button" data-tab="archives" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s;">
-        🗂 Archives
+        <span style="margin-right: 8px;">🗂</span>Archives
       </button>
       <button type="button" class="tab-button" data-tab="replay" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s;">
-        ▶️ Replay
+        <span style="margin-right: 8px;">▶️</span>Replay
       </button>
       <button type="button" class="tab-button" data-tab="ai" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s;">
-        🧠 AI Insight
+        <span style="margin-right: 8px;">🧠</span>AI Insight
       </button>
       <button type="button" class="tab-button" data-tab="devtools" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s;">
-        🛠 Dev Tools
+        <span style="margin-right: 8px;">🛠</span>Dev Tools
       </button>
     </div>
 
@@ -261,7 +261,7 @@ export function createSettingsModal() {
       <div class="tab-content" data-tab-content="scenarios" style="display:none;">
         <div class="section" style="max-height:60vh;overflow:auto;">
           <h3 class="section-title">🧪 Scenario Configuration</h3>
-          <p style="font-size:12px;opacity:.75;line-height:1.4;">Configure scenario assignments and either apply them to the live game or generate a fresh auto-seeded run.</p>
+          <p style="font-size:13px;opacity:.85;line-height:1.5;margin-bottom:16px;">Configure scenario assignments and either apply them to the live game or generate a fresh auto-seeded run.</p>
           <div data-scenarios-host style="border:1px solid #222;background:#141414;padding:10px 12px;border-radius:6px;min-height:140px;position:relative;">
             <div class="loading" style="font-size:11px;opacity:.6;">Loading scenario tools…</div>
           </div>
@@ -270,38 +270,109 @@ export function createSettingsModal() {
 
       <!-- Archives Tab -->
       <div class="tab-content" data-tab-content="archives" style="display:none;">
-        <div class="section" style="max-height:60vh;overflow:auto;">
-          <h3 class="section-title">🗂 Archives</h3>
-          <p style="font-size:12px;opacity:.75;">Browse archived game logs and AI decision snapshots.</p>
-          <div data-archives-host class="archives-list" style="border:1px solid #222;background:#141414;padding:8px 10px;border-radius:6px;min-height:120px;">
-            <div class="loading" style="font-size:11px;opacity:.6;">Listing archives…</div>
+        <div class="section">
+          <h3 class="section-title">🗂 Archive Management</h3>
+          <p style="font-size:13px;opacity:.85;line-height:1.5;margin-bottom:16px;">
+            Access the full-featured Archive Manager with comprehensive analytics, filtering, and bulk operations.
+          </p>
+          
+          <div class="field">
+            <label class="field-label">Quick Actions</label>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;">
+              <button type="button" class="btn btn-secondary" data-launch-archive-manager>
+                🗂 Open Archive Manager
+              </button>
+              <button type="button" class="btn btn-secondary" data-launch-analytics>
+                📊 View Analytics Dashboard
+              </button>
+            </div>
+            <div style="font-size:11px;opacity:.6;margin-top:8px;">
+              Archive Manager provides grid/list views, advanced filtering, bulk operations, and comprehensive analytics.
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label">Archive Settings</label>
+            <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;">
+              <label class="field-checkbox" style="margin:0;">
+                <input type="checkbox" name="autoArchiveGameLogs" />
+                <span class="checkbox-label">Auto-archive Game Logs</span>
+              </label>
+              <label class="field-checkbox" style="margin:0;">
+                <input type="checkbox" name="autoArchiveAIDTLogs" />
+                <span class="checkbox-label">Auto-archive AI Decision Trees</span>
+              </label>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Replay Tab -->
       <div class="tab-content" data-tab-content="replay" style="display:none;">
-        <div class="section" style="max-height:60vh;overflow:auto;">
-          <h3 class="section-title">▶️ Replay</h3>
-          <p style="font-size:12px;opacity:.75;">Select an archive to load & replay; control playback speed.</p>
-          <div data-replay-host class="replay-list" style="border:1px solid #222;background:#141414;padding:8px 10px;border-radius:6px;min-height:120px;">
-            <div class="loading" style="font-size:11px;opacity:.6;">Loading replay options…</div>
+        <div class="section">
+          <h3 class="section-title">▶️ Replay System</h3>
+          <p style="font-size:13px;opacity:.85;line-height:1.5;margin-bottom:16px;">
+            Launch the professional replay overlay with speed controls, progress tracking, and rich visualizations.
+          </p>
+          
+          <div class="field">
+            <label class="field-label">Replay Actions</label>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;">
+              <button type="button" class="btn btn-secondary" data-launch-replay-from-archive>
+                ▶️ Start Replay from Archive
+              </button>
+              <button type="button" class="btn btn-secondary" data-show-replay-overlay>
+                📼 Show Replay Overlay
+              </button>
+            </div>
+            <div style="font-size:11px;opacity:.6;margin-top:8px;">
+              Full replay system includes speed controls (0.5x-4x), minimize/maximize, keyboard shortcuts, and AI decision integration.
+            </div>
           </div>
-          <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
-            <button type="button" class="btn btn-secondary" data-replay-pause>Pause</button>
-            <button type="button" class="btn btn-secondary" data-replay-resume>Resume</button>
-            <button type="button" class="btn btn-secondary" data-replay-stop>Stop</button>
+
+          <div class="field">
+            <label class="field-label">Current Replay Status</label>
+            <div style="padding:12px;background:#1a1a1a;border:1px solid #333;border-radius:6px;margin-top:8px;">
+              <div style="font-size:12px;" data-replay-status-text>No active replay</div>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- AI Insight Tab -->
       <div class="tab-content" data-tab-content="ai" style="display:none;">
-        <div class="section" style="max-height:60vh;overflow:auto;">
-          <h3 class="section-title">🧠 AI Insight</h3>
-          <p style="font-size:12px;opacity:.75;">Live AI decision tree explorer. Updates as AI evaluates rolls.</p>
-          <div data-ai-tree-host style="border:1px solid #222;background:#141414;padding:6px 8px;border-radius:6px;min-height:180px;position:relative;">
-            <div class="loading" style="font-size:11px;opacity:.6;">Mounting AI decision tree…</div>
+        <div class="section">
+          <h3 class="section-title">🧠 AI Decision Analysis</h3>
+          <p style="font-size:13px;opacity:.85;line-height:1.5;margin-bottom:16px;">
+            Access the comprehensive AI Decision Tree explorer with live updates, filtering, and export capabilities.
+          </p>
+          
+          <div class="field">
+            <label class="field-label">AI Analysis Tools</label>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;">
+              <button type="button" class="btn btn-secondary" data-launch-ai-modal>
+                🧠 Open AI Decision Tree
+              </button>
+              <button type="button" class="btn btn-secondary" data-export-ai-decisions>
+                📤 Export AI Data
+              </button>
+            </div>
+            <div style="font-size:11px;opacity:.6;margin-top:8px;">
+              Full AI explorer includes collapsible rounds/turns/rolls, verbose/concise modes, tag filtering, and JSON export.
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label">AI Capture Settings</label>
+            <div style="margin-top:8px;">
+              <label class="field-checkbox" style="margin:0;">
+                <input type="checkbox" name="enableDecisionTreeCapture" />
+                <span class="checkbox-label">Enable AI Decision Tree Capture</span>
+              </label>
+              <div style="font-size:11px;opacity:.6;margin-top:4px;">
+                Captures detailed AI reasoning for analysis (may impact performance)
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -311,25 +382,42 @@ export function createSettingsModal() {
         <div class="section" style="max-height:60vh;overflow:auto;">
           <h3 class="section-title">🛠 Developer Tools</h3>
           <p style="font-size:12px;opacity:.75;">Utilities for debugging & rapid iteration. Toggle floating panel or use in-modal actions.</p>
-          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px;align-items:center;">
-            <label class="field-checkbox" style="margin:0;">
-              <input type="checkbox" name="enableFloatingDevPanel" />
-              <span class="checkbox-label">Enable Floating Dev Panel</span>
-            </label>
-            <label class="field-checkbox" style="margin:0;">
-              <input type="checkbox" name="enableDecisionTreeCapture" />
-              <span class="checkbox-label">Capture AI Decision Data</span>
-            </label>
+          
+          <div class="field">
+            <label class="field-label">Options</label>
+            <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;">
+              <label class="field-checkbox" style="margin:0;">
+                <input type="checkbox" name="enableFloatingDevPanel" />
+                <span class="checkbox-label">Enable Floating Dev Panel</span>
+              </label>
+              <label class="field-checkbox" style="margin:0;">
+                <input type="checkbox" name="enableDecisionTreeCapture" />
+                <span class="checkbox-label">Capture AI Decision Data</span>
+              </label>
+            </div>
           </div>
-          <div data-devtools-actions style="border:1px solid #222;background:#141414;padding:6px 8px;border-radius:6px;display:flex;flex-wrap:wrap;gap:6px;">
-            <button type="button" class="btn btn-secondary" data-dev-reset-positions>Reset Positions</button>
-            <button type="button" class="btn btn-secondary" data-dev-log-positions>Log Positions</button>
-            <button type="button" class="btn btn-secondary" data-dev-log-dice>Log Dice</button>
-            <button type="button" class="btn btn-secondary" data-dev-log-effects>Log Effects</button>
-            <button type="button" class="btn btn-secondary" data-dev-archive-game>Archive Game</button>
-            <button type="button" class="btn btn-secondary" data-dev-archive-aidt>Archive AIDT</button>
+
+          <div class="field">
+            <label class="field-label">UI Actions</label>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
+              <button type="button" class="btn btn-sm" data-dev-reset-positions>Reset Positions</button>
+              <button type="button" class="btn btn-sm" data-dev-log-positions>Log Positions</button>
+              <button type="button" class="btn btn-sm" data-dev-log-dice>Log Dice</button>
+              <button type="button" class="btn btn-sm" data-dev-log-effects>Log Effects</button>
+            </div>
           </div>
-          <div style="font-size:10px;opacity:.6;margin-top:6px;">Certain actions require #dev hash for full detail.</div>
+
+          <div class="field">
+            <label class="field-label">Archive Actions</label>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
+              <button type="button" class="btn btn-sm" data-dev-archive-game>Archive Game</button>
+              <button type="button" class="btn btn-sm" data-dev-archive-ai>Archive AI Tree</button>
+            </div>
+          </div>
+
+          <div style="font-size:10px;opacity:.6;margin-top:12px;font-style:italic;">
+            Some actions require #dev hash for full detail. Archive actions store snapshots in localStorage.
+          </div>
         </div>
       </div>
     </form>
@@ -404,53 +492,66 @@ export function createSettingsModal() {
     }
   }
 
-  function attachArchiveHandlers(){
+  // Archive / Replay / AI launcher handlers
+  function attachLauncherHandlers(){
     content.addEventListener('click', async (e)=>{
-      const btn = e.target.closest('[data-archive-replay],[data-archive-export],[data-archive-delete]');
+      const btn = e.target.closest('[data-launch-archive-manager],[data-launch-analytics],[data-launch-replay-from-archive],[data-show-replay-overlay],[data-launch-ai-modal],[data-export-ai-decisions]');
       if (!btn) return;
-      const id = btn.getAttribute('data-archive-replay')||btn.getAttribute('data-archive-export')||btn.getAttribute('data-archive-delete');
-      if (!id) return;
-      if (btn.hasAttribute('data-archive-replay')){
-        try {
-          const { archiveManager } = await import('../services/archiveManagementService.js');
-            const { startReplay } = await import('../services/replayService.js');
-            const list = archiveManager.getAllArchives();
-            const meta = list.find(a=> (a.id===id));
-            if (!meta) { console.warn('[archives] not found', id); return; }
-            const snapshot = await archiveManager.loadArchive(meta);
-            startReplay(window.__KOT_NEW__.store, snapshot, {});
-        } catch(err){ console.warn('[archive replay] failed', err); }
-      } else if (btn.hasAttribute('data-archive-export')){
-        try {
-          const { archiveManager } = await import('../services/archiveManagementService.js');
-          const list = archiveManager.getAllArchives();
-          const meta = list.find(a=> a.id===id);
-          if (!meta) return;
-          const snapshot = await archiveManager.loadArchive(meta);
-          const blob = new Blob([JSON.stringify(snapshot,null,2)], {type:'application/json'});
-          const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`archive-${id}.json`; a.click(); setTimeout(()=> URL.revokeObjectURL(url), 2000);
-        } catch(err){ console.warn('[archive export] failed', err); }
-      } else if (btn.hasAttribute('data-archive-delete')){
-        if (!confirm('Delete this archive?')) return;
-        try {
-          const { archiveManager } = await import('../services/archiveManagementService.js');
-          archiveManager.deleteArchive?.(id); // if method exists
-          loadArchives();
-        } catch(err){ console.warn('[archive delete] failed', err); }
+      
+      try {
+        if (btn.hasAttribute('data-launch-archive-manager')) {
+          const { showArchiveManager } = await import('../ui/components/archiveManagerComponent.js');
+          showArchiveManager();
+        }
+        else if (btn.hasAttribute('data-launch-analytics')) {
+          const { showArchiveManager } = await import('../ui/components/archiveManagerComponent.js');
+          const manager = showArchiveManager();
+          // Switch to analytics view
+          setTimeout(() => {
+            const analyticsBtn = manager.container?.querySelector('[data-view="analytics"]');
+            if (analyticsBtn) analyticsBtn.click();
+          }, 100);
+        }
+        else if (btn.hasAttribute('data-launch-replay-from-archive')) {
+          const { showArchiveManager } = await import('../ui/components/archiveManagerComponent.js');
+          showArchiveManager();
+          // Note: User can select archive and start replay from there
+        }
+        else if (btn.hasAttribute('data-show-replay-overlay')) {
+          const { createReplayStateOverlay } = await import('../ui/components/replayStateOverlay.js');
+          const overlay = createReplayStateOverlay();
+          overlay.show();
+        }
+        else if (btn.hasAttribute('data-launch-ai-modal')) {
+          // Use existing AI modal from new-modals.js
+          const aiModal = createAIDecisionModal();
+          newModalSystem.showModal('aiDecision');
+        }
+        else if (btn.hasAttribute('data-export-ai-decisions')) {
+          const { getAIDecisionTree } = await import('../services/aiDecisionService.js');
+          const tree = getAIDecisionTree();
+          const blob = new Blob([JSON.stringify(tree, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `ai-decisions-${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.json`;
+          a.click();
+          setTimeout(() => URL.revokeObjectURL(url), 2000);
+        }
+      } catch (err) {
+        console.warn('[Settings] Failed to launch component:', err);
       }
     });
   }
-  attachArchiveHandlers();
+  attachLauncherHandlers();
 
-  // Replay controls referencing active replay
+  // Replay controls referencing active replay (simplified)
   function attachReplayControls(){
     content.addEventListener('click', async (e)=>{
       const btn = e.target.closest('[data-replay-pause],[data-replay-resume],[data-replay-stop]');
       if (!btn) return;
-      const mod = await import('../services/replayService.js');
-      if (btn.hasAttribute('data-replay-pause')) mod.pauseReplay();
-      else if (btn.hasAttribute('data-replay-resume')) mod.resumeReplay();
-      else if (btn.hasAttribute('data-replay-stop')) mod.stopReplay();
+      // Note: These are now handled by the full replay overlay
+      // This is kept for any basic controls if needed
     });
   }
   attachReplayControls();
@@ -458,7 +559,7 @@ export function createSettingsModal() {
   // Dev tools actions inside tab
   function attachDevToolsActions(){
     content.addEventListener('click', async (e)=>{
-      const btn = e.target.closest('[data-dev-reset-positions],[data-dev-log-positions],[data-dev-log-dice],[data-dev-log-effects],[data-dev-archive-game],[data-dev-archive-aidt]');
+      const btn = e.target.closest('[data-dev-reset-positions],[data-dev-log-positions],[data-dev-log-dice],[data-dev-log-effects],[data-dev-archive-game],[data-dev-archive-ai]');
       if (!btn) return;
       const store = window.__KOT_NEW__?.store;
       if (!store) return;
@@ -473,7 +574,7 @@ export function createSettingsModal() {
       }
       else if (btn.hasAttribute('data-dev-log-effects')) console.log('Effect Queue', store.getState().effectQueue);
       else if (btn.hasAttribute('data-dev-archive-game')) { const { archiveGameLog } = await import('../services/logArchiveService.js'); archiveGameLog(store,'Manual Snapshot'); }
-      else if (btn.hasAttribute('data-dev-archive-aidt')) { const { archiveAIDT } = await import('../services/logArchiveService.js'); archiveAIDT(store,'Manual Snapshot'); }
+      else if (btn.hasAttribute('data-dev-archive-ai')) { const { archiveAIDT } = await import('../services/logArchiveService.js'); archiveAIDT(store,'Manual Snapshot'); }
     });
   }
   attachDevToolsActions();
@@ -620,8 +721,14 @@ export function createSettingsModal() {
       autoStartInTest: form.querySelector('input[name="autoStartInTest"]')?.checked || false,
       debugMode: form.querySelector('input[name="debugMode"]')?.checked || false,
       showPerformanceMetrics: form.querySelector('input[name="showPerformanceMetrics"]')?.checked || false,
+      
+      // Dev Tools settings
       enableDecisionTreeCapture: form.querySelector('input[name="enableDecisionTreeCapture"]')?.checked || false,
-      enableFloatingDevPanel: form.querySelector('input[name="enableFloatingDevPanel"]')?.checked || false
+      enableFloatingDevPanel: form.querySelector('input[name="enableFloatingDevPanel"]')?.checked || false,
+      
+      // Archive settings
+      autoArchiveGameLogs: form.querySelector('input[name="autoArchiveGameLogs"]')?.checked || false,
+      autoArchiveAIDTLogs: form.querySelector('input[name="autoArchiveAIDTLogs"]')?.checked || false
     };
   }
 
@@ -820,6 +927,11 @@ export function createSettingsModal() {
     if (dtCap) dtCap.checked = !!settings.enableDecisionTreeCapture;
     const floatDev = content.querySelector('input[name="enableFloatingDevPanel"]');
     if (floatDev) floatDev.checked = !!settings.enableFloatingDevPanel;
+    // Archive settings
+    const autoArchiveGame = content.querySelector('input[name="autoArchiveGameLogs"]');
+    if (autoArchiveGame) autoArchiveGame.checked = !!settings.autoArchiveGameLogs;
+    const autoArchiveAI = content.querySelector('input[name="autoArchiveAIDTLogs"]');
+    if (autoArchiveAI) autoArchiveAI.checked = !!settings.autoArchiveAIDTLogs;
   }
 
   // Load current settings initially
@@ -828,7 +940,7 @@ export function createSettingsModal() {
     applySettingsToForm(state.settings || {});
   }
 
-  const __settingsModal = newModalSystem.createModal('settings', '⚙️ Game Settings', content, { width: '900px' });
+  const __settingsModal = newModalSystem.createModal('settings', '⚙️ Game Settings', content, { width: '1200px', height: '700px' });
   try { __settingsModal.setAttribute('data-modal-id','settings'); } catch(_) {}
 
   // Establish baseline AFTER loading initial settings values
