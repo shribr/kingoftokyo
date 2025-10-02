@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Test - King of Tokyo</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/components.modals.css">
+    <link rel="stylesheet" href="css/components.archive-manager.css">
+    <style>
+        body {
+            padding: 20px;
+            background: #1a1a1a;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .test-button {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        .test-button:hover {
+            background: #5a6fd8;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 style="color: #f8f9fa; text-align: center;">Archive Analytics Test</h1>
+        
+        <div style="text-align: center; margin-bottom: 30px;">
+            <button class="test-button" onclick="openArchiveManager()">Open Archive Manager</button>
+            <button class="test-button" onclick="testAnalytics()">Test Analytics Dashboard</button>
+        </div>
+
+        <div id="archive-manager-container"></div>
+        
+        <!-- Test Analytics Display -->
+        <div id="test-analytics" style="display: none;">
+            <div class="advanced-analytics-container">
+                <div class="analytics-header">
+                    <div class="analytics-title">
+                        <h3>📊 Archive Analytics Dashboard</h3>
+                        <div class="analytics-subtitle">Generated on 12/19/2024, 3:30:15 PM</div>
+                    </div>
+                    <div class="analytics-actions">
+                        <button class="analytics-btn">📤 Export Report</button>
+                        <button class="analytics-btn">🔄 Refresh</button>
+                    </div>
+                </div>
+
+                <div class="analytics-section overview-section">
+                    <h4>🎯 Overview</h4>
+                    <div class="overview-grid">
+                        <div class="overview-card">
+                            <div class="card-value">47</div>
+                            <div class="card-label">Total Archives</div>
+                        </div>
+                        <div class="overview-card">
+                            <div class="card-value">142</div>
+                            <div class="card-label">Games Analyzed</div>
+                        </div>
+                        <div class="overview-card">
+                            <div class="card-value">1,283</div>
+                            <div class="card-label">AI Decisions</div>
+                        </div>
+                        <div class="overview-card">
+                            <div class="card-value">8</div>
+                            <div class="card-label">Unique Players</div>
+                        </div>
+                        <div class="overview-card">
+                            <div class="card-value">23min</div>
+                            <div class="card-label">Avg Game Length</div>
+                        </div>
+                        <div class="overview-card">
+                            <div class="card-value">14</div>
+                            <div class="card-label">Days Tracked</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analytics-section performance-section">
+                    <h4>🏆 Game Performance</h4>
+                    <div class="performance-grid">
+                        <div class="performance-card">
+                            <h5>Top Players</h5>
+                            <div class="player-rankings">
+                                <div class="player-rank-item">
+                                    <div class="rank-position">1</div>
+                                    <div class="rank-info">
+                                        <div class="rank-name">Alice</div>
+                                        <div class="rank-stats">12/20 games (60.0%)</div>
+                                    </div>
+                                    <div class="rank-bar">
+                                        <div class="rank-fill" style="width: 60%"></div>
+                                    </div>
+                                </div>
+                                <div class="player-rank-item">
+                                    <div class="rank-position">2</div>
+                                    <div class="rank-info">
+                                        <div class="rank-name">Bob</div>
+                                        <div class="rank-stats">9/18 games (50.0%)</div>
+                                    </div>
+                                    <div class="rank-bar">
+                                        <div class="rank-fill" style="width: 50%"></div>
+                                    </div>
+                                </div>
+                                <div class="player-rank-item">
+                                    <div class="rank-position">3</div>
+                                    <div class="rank-info">
+                                        <div class="rank-name">Charlie</div>
+                                        <div class="rank-stats">7/19 games (36.8%)</div>
+                                    </div>
+                                    <div class="rank-bar">
+                                        <div class="rank-fill" style="width: 36.8%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="performance-card">
+                            <h5>Victory Conditions</h5>
+                            <div class="victory-chart">
+                                <div class="victory-item">
+                                    <div class="victory-icon">🏆</div>
+                                    <div class="victory-info">
+                                        <div class="victory-name">Points Victory</div>
+                                        <div class="victory-count">45 games (65.2%)</div>
+                                    </div>
+                                </div>
+                                <div class="victory-item">
+                                    <div class="victory-icon">🗾</div>
+                                    <div class="victory-info">
+                                        <div class="victory-name">Tokyo Victory</div>
+                                        <div class="victory-count">18 games (26.1%)</div>
+                                    </div>
+                                </div>
+                                <div class="victory-item">
+                                    <div class="victory-icon">💥</div>
+                                    <div class="victory-info">
+                                        <div class="victory-name">Destruction Victory</div>
+                                        <div class="victory-count">6 games (8.7%)</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analytics-section ai-section">
+                    <h4>🤖 AI Analysis</h4>
+                    <div class="ai-stats-summary">
+                        <div class="ai-stat">
+                            <span class="ai-stat-label">Average Confidence:</span>
+                            <span class="ai-stat-value">73.2%</span>
+                        </div>
+                    </div>
+                    <div class="ai-analysis-grid">
+                        <div class="ai-card">
+                            <h5>Decision Patterns</h5>
+                            <div class="decision-patterns">
+                                <div class="pattern-item">
+                                    <div class="pattern-action">Keep Dice</div>
+                                    <div class="pattern-bar">
+                                        <div class="pattern-fill" style="width: 42%"></div>
+                                    </div>
+                                    <div class="pattern-stats">385 (42%)</div>
+                                </div>
+                                <div class="pattern-item">
+                                    <div class="pattern-action">Reroll</div>
+                                    <div class="pattern-bar">
+                                        <div class="pattern-fill" style="width: 35%"></div>
+                                    </div>
+                                    <div class="pattern-stats">320 (35%)</div>
+                                </div>
+                                <div class="pattern-item">
+                                    <div class="pattern-action">Buy Card</div>
+                                    <div class="pattern-bar">
+                                        <div class="pattern-fill" style="width: 15%"></div>
+                                    </div>
+                                    <div class="pattern-stats">138 (15%)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ai-card">
+                            <h5>Confidence Distribution</h5>
+                            <div class="confidence-chart">
+                                <div class="confidence-item">
+                                    <div class="conf-level">Very High</div>
+                                    <div class="conf-bar">
+                                        <div class="conf-fill conf-very-high" style="width: 35%"></div>
+                                    </div>
+                                    <div class="conf-count">321</div>
+                                </div>
+                                <div class="confidence-item">
+                                    <div class="conf-level">High</div>
+                                    <div class="conf-bar">
+                                        <div class="conf-fill conf-high" style="width: 28%"></div>
+                                    </div>
+                                    <div class="conf-count">254</div>
+                                </div>
+                                <div class="confidence-item">
+                                    <div class="conf-level">Medium</div>
+                                    <div class="conf-bar">
+                                        <div class="conf-fill conf-medium" style="width: 25%"></div>
+                                    </div>
+                                    <div class="conf-count">228</div>
+                                </div>
+                                <div class="confidence-item">
+                                    <div class="conf-level">Low</div>
+                                    <div class="conf-bar">
+                                        <div class="conf-fill conf-low" style="width: 12%"></div>
+                                    </div>
+                                    <div class="conf-count">109</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ai-card">
+                            <h5>Strategy Analysis</h5>
+                            <div class="strategy-breakdown">
+                                <div class="strategy-item">
+                                    <div class="strategy-icon">⚔️</div>
+                                    <div class="strategy-info">
+                                        <div class="strategy-name">Aggressive</div>
+                                        <div class="strategy-percentage">38%</div>
+                                    </div>
+                                    <div class="strategy-count">347 decisions</div>
+                                </div>
+                                <div class="strategy-item">
+                                    <div class="strategy-icon">⚖️</div>
+                                    <div class="strategy-info">
+                                        <div class="strategy-name">Balanced</div>
+                                        <div class="strategy-percentage">31%</div>
+                                    </div>
+                                    <div class="strategy-count">283 decisions</div>
+                                </div>
+                                <div class="strategy-item">
+                                    <div class="strategy-icon">🛡️</div>
+                                    <div class="strategy-info">
+                                        <div class="strategy-name">Defensive</div>
+                                        <div class="strategy-percentage">24%</div>
+                                    </div>
+                                    <div class="strategy-count">219 decisions</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analytics-section insights-section">
+                    <h4>💡 Insights</h4>
+                    <div class="insights-grid">
+                        <div class="insight-card info">
+                            <div class="insight-header">
+                                <span class="insight-icon">📊</span>
+                                <span class="insight-title">Consistent Performance</span>
+                            </div>
+                            <div class="insight-message">Win rates have remained stable across the last 14 days, indicating balanced gameplay.</div>
+                            <div class="insight-type">PERFORMANCE</div>
+                        </div>
+                        <div class="insight-card success">
+                            <div class="insight-header">
+                                <span class="insight-icon">🤖</span>
+                                <span class="insight-title">High AI Confidence</span>
+                            </div>
+                            <div class="insight-message">AI decisions show 73% average confidence, suggesting effective decision-making patterns.</div>
+                            <div class="insight-type">AI BEHAVIOR</div>
+                        </div>
+                        <div class="insight-card warning">
+                            <div class="insight-header">
+                                <span class="insight-icon">⚖️</span>
+                                <span class="insight-title">Strategy Diversity</span>
+                            </div>
+                            <div class="insight-message">Good variety in AI strategy usage promotes engaging and unpredictable gameplay.</div>
+                            <div class="insight-type">STRATEGY</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import services -->
+    <script src="src/services/archiveManagementService.js"></script>
+    <script src="src/services/archiveAnalyticsService.js"></script>
+    <script src="src/ui/components/archiveManagerComponent.js"></script>
+
+    <script>
+        let archiveManagerComponent = null;
+
+        function openArchiveManager() {
+            if (!archiveManagerComponent) {
+                archiveManagerComponent = new ArchiveManagerComponent();
+            }
+            archiveManagerComponent.show();
+        }
+
+        function testAnalytics() {
+            const testDiv = document.getElementById('test-analytics');
+            if (testDiv.style.display === 'none') {
+                testDiv.style.display = 'block';
+                document.querySelector('button[onclick="testAnalytics()"]').textContent = 'Hide Analytics Test';
+            } else {
+                testDiv.style.display = 'none';
+                document.querySelector('button[onclick="testAnalytics()"]').textContent = 'Test Analytics Dashboard';
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('Analytics test page loaded');
+        });
+    </script>
+</body>
+</html>
