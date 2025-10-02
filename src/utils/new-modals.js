@@ -257,12 +257,7 @@ export function createSettingsModal() {
       </div>
     </form>
     <div class="modal-actions">
-      <button type="button" class="btn btn-primary save-btn">
-        <span>💾</span> Save Settings
-      </button>
-      <button type="button" class="btn btn-secondary close-btn">
-        <span>✕</span> Close
-      </button>
+      <button type="button" class="btn btn-primary save-btn" disabled>Save Settings</button>
     </div>
   `;
 
@@ -387,62 +382,90 @@ export function createSettingsModal() {
     }
   };
   
-  form.addEventListener('change', async (e) => {
-    // Handle power card theme preview
-    if (e.target.name === 'powerCardTheme') {
-      const themeValue = e.target.value;
-      updateThemePreview(themeValue);
-      
-      // Apply to actual panel too
-      const powerCardsPanel = document.getElementById('power-cards-panel');
-      if (powerCardsPanel) {
-        if (themeValue !== 'original') {
-          powerCardsPanel.setAttribute('data-theme', themeValue);
-        } else {
-          powerCardsPanel.removeAttribute('data-theme');
-        }
-      }
-    }
+  // --- Dirty Tracking & Manual Save Implementation ---
+  const saveBtn = content.querySelector('.save-btn');
+
+  function collectSettingsFromForm() {
     const formData = new FormData(form);
-    const settings = {
+    return {
       // Gameplay settings
       cpuSpeed: formData.get('cpuSpeed'),
       showThoughtBubbles: form.querySelector('input[name="showThoughtBubbles"]')?.checked || false,
       soundMuted: form.querySelector('input[name="soundMuted"]')?.checked || false,
       autoActivateMonsters: form.querySelector('input[name="autoActivateMonsters"]')?.checked || false,
-      
+
       // Interface settings
       playerCardLayoutMode: formData.get('playerCardLayoutMode'),
       actionMenuMode: formData.get('actionMenuMode'),
       persistPositions: form.querySelector('input[name="persistPositions"]')?.checked || false,
-      
+
       // Theme settings
       powerCardTheme: formData.get('powerCardTheme'),
       dialogSystem: formData.get('dialogSystem'),
-      
+
       // Advanced settings
       autoStartInTest: form.querySelector('input[name="autoStartInTest"]')?.checked || false,
       debugMode: form.querySelector('input[name="debugMode"]')?.checked || false,
       showPerformanceMetrics: form.querySelector('input[name="showPerformanceMetrics"]')?.checked || false
     };
-    
-    // Update settings in store if available
-    if (window.__KOT_NEW__?.store) {
-      try {
-        const actions = await import('../core/actions.js');
-        window.__KOT_NEW__.store.dispatch(actions.settingsUpdated(settings));
-        console.log('[NEW-SETTINGS] Settings updated:', settings);
-      } catch (e) {
-        console.error('[NEW-SETTINGS] Failed to update settings:', e);
+  }
+
+  function shallowEqual(a, b) {
+    const aKeys = Object.keys(a);
+    const bKeys = Object.keys(b);
+    if (aKeys.length !== bKeys.length) return false;
+    for (const k of aKeys) {
+      if (a[k] !== b[k]) return false;
+    }
+    return true;
+  }
+
+  let baselineSettings = null;
+
+  function establishBaseline() {
+    baselineSettings = collectSettingsFromForm();
+    if (saveBtn) saveBtn.disabled = true;
+  }
+
+  function handlePotentialDirty(e) {
+    // Theme preview side-effect (does not persist until save)
+    if (e && e.target && e.target.name === 'powerCardTheme') {
+      const themeValue = e.target.value;
+      updateThemePreview(themeValue);
+      // Apply preview to actual panel (visual only before save)
+      const powerCardsPanel = document.getElementById('power-cards-panel');
+      if (powerCardsPanel) {
+        if (themeValue !== 'original') powerCardsPanel.setAttribute('data-theme', themeValue);
+        else powerCardsPanel.removeAttribute('data-theme');
       }
     }
-  });
+    const current = collectSettingsFromForm();
+    const dirty = !shallowEqual(current, baselineSettings);
+    if (saveBtn) saveBtn.disabled = !dirty;
+  }
 
-  // Save button (same as auto-save on change)
-  content.querySelector('.save-btn').addEventListener('click', () => {
-    // Trigger a change event to save current state
-    form.dispatchEvent(new Event('change'));
-  });
+  form.addEventListener('change', handlePotentialDirty);
+  form.addEventListener('input', handlePotentialDirty);
+
+  if (saveBtn) {
+    saveBtn.addEventListener('click', async () => {
+      if (!baselineSettings) return; // safety
+      const newSettings = collectSettingsFromForm();
+      const dirty = !shallowEqual(newSettings, baselineSettings);
+      if (!dirty) return; // nothing to do
+      if (window.__KOT_NEW__?.store) {
+        try {
+          const actions = await import('../core/actions.js');
+          window.__KOT_NEW__.store.dispatch(actions.settingsUpdated(newSettings));
+          console.log('[NEW-SETTINGS] Settings saved:', newSettings);
+          baselineSettings = newSettings; // reset baseline
+          saveBtn.disabled = true;
+        } catch (err) {
+          console.error('[NEW-SETTINGS] Failed to save settings:', err);
+        }
+      }
+    });
+  }
 
   // Advanced button handlers
   const exportBtn = content.querySelector('.export-settings-btn');
@@ -481,9 +504,10 @@ export function createSettingsModal() {
             if (window.__KOT_NEW__?.store) {
               const actions = await import('../core/actions.js');
               window.__KOT_NEW__.store.dispatch(actions.settingsUpdated(importedSettings));
-              // Reload the modal to reflect imported settings
-              newModalSystem.closeModal('settings');
-              setTimeout(() => createSettingsModal(), 100);
+              // Apply imported settings to form fields directly then reset baseline
+              applySettingsToForm(importedSettings);
+              baselineSettings = collectSettingsFromForm();
+              if (saveBtn) saveBtn.disabled = true;
             }
           } catch (err) {
             alert('Invalid settings file. Please select a valid JSON file.');
@@ -516,9 +540,9 @@ export function createSettingsModal() {
           try {
             const actions = await import('../core/actions.js');
             window.__KOT_NEW__.store.dispatch(actions.settingsUpdated(defaultSettings));
-            // Reload the modal to reflect reset settings
-            newModalSystem.closeModal('settings');
-            setTimeout(() => createSettingsModal(), 100);
+            applySettingsToForm(defaultSettings);
+            baselineSettings = collectSettingsFromForm();
+            if (saveBtn) saveBtn.disabled = true;
           } catch (e) {
             console.error('Failed to reset settings:', e);
           }
@@ -544,77 +568,51 @@ export function createSettingsModal() {
     });
   }
 
-  // Close button
-  content.querySelector('.close-btn').addEventListener('click', () => {
-    newModalSystem.closeModal('settings');
-  });
+  // No bottom close button; overlay / ESC handles close
 
-  // Load current settings
-  if (window.__KOT_NEW__?.store) {
-    const state = window.__KOT_NEW__.store.getState();
-    const settings = state.settings || {};
-    
-    // Load gameplay settings
+  function applySettingsToForm(settings) {
+    // Gameplay
     const cpuSelect = content.querySelector('select[name="cpuSpeed"]');
-    if (cpuSelect && settings.cpuSpeed) cpuSelect.value = settings.cpuSpeed;
-    
+    if (cpuSelect) cpuSelect.value = settings.cpuSpeed || 'normal';
     const thoughtBubbles = content.querySelector('input[name="showThoughtBubbles"]');
     if (thoughtBubbles) thoughtBubbles.checked = !!settings.showThoughtBubbles;
-    
     const soundMuted = content.querySelector('input[name="soundMuted"]');
     if (soundMuted) soundMuted.checked = !!settings.soundMuted;
-    
     const autoActivate = content.querySelector('input[name="autoActivateMonsters"]');
     if (autoActivate) autoActivate.checked = !!settings.autoActivateMonsters;
-
-    // Load interface settings
+    // Interface
     const persistPositions = content.querySelector('input[name="persistPositions"]');
     if (persistPositions) persistPositions.checked = !!settings.persistPositions;
-    
-    // Load advanced settings
+    // Advanced
     const autoStart = content.querySelector('input[name="autoStartInTest"]');
     if (autoStart) autoStart.checked = !!settings.autoStartInTest;
-    
     const debugMode = content.querySelector('input[name="debugMode"]');
     if (debugMode) debugMode.checked = !!settings.debugMode;
-    
     const performanceMetrics = content.querySelector('input[name="showPerformanceMetrics"]');
     if (performanceMetrics) performanceMetrics.checked = !!settings.showPerformanceMetrics;
-
-    // Load player card layout mode
+    // Radio groups
     const cardLayoutMode = settings.playerCardLayoutMode || (settings.stackedPlayerCards === false ? 'list' : 'stacked');
-    const cardLayoutRadios = content.querySelectorAll('input[name="playerCardLayoutMode"]');
-    cardLayoutRadios.forEach(radio => {
-      radio.checked = radio.value === cardLayoutMode;
-    });
-
-    // Load action menu mode
+    content.querySelectorAll('input[name="playerCardLayoutMode"]').forEach(r => r.checked = r.value === cardLayoutMode);
     const actionMode = settings.actionMenuMode || 'hybrid';
-    const actionRadios = content.querySelectorAll('input[name="actionMenuMode"]');
-    actionRadios.forEach(radio => {
-      radio.checked = radio.value === actionMode;
-    });
-
-    // Load power card theme
+    content.querySelectorAll('input[name="actionMenuMode"]').forEach(r => r.checked = r.value === actionMode);
     const powerCardTheme = settings.powerCardTheme || 'original';
-    const themeRadios = content.querySelectorAll('input[name="powerCardTheme"]');
-    themeRadios.forEach(radio => {
-      radio.checked = radio.value === powerCardTheme;
-    });
-    
-    // Load dialog system
+    content.querySelectorAll('input[name="powerCardTheme"]').forEach(r => r.checked = r.value === powerCardTheme);
     const dialogSystem = settings.dialogSystem || 'legacy';
-    const dialogRadios = content.querySelectorAll('input[name="dialogSystem"]');
-    dialogRadios.forEach(radio => {
-      radio.checked = radio.value === dialogSystem;
-    });
-    
-    // Initialize theme preview
+    content.querySelectorAll('input[name="dialogSystem"]').forEach(r => r.checked = r.value === dialogSystem);
     updateThemePreview(powerCardTheme);
+  }
+
+  // Load current settings initially
+  if (window.__KOT_NEW__?.store) {
+    const state = window.__KOT_NEW__.store.getState();
+    applySettingsToForm(state.settings || {});
   }
 
   const __settingsModal = newModalSystem.createModal('settings', '⚙️ Game Settings', content, { width: '900px' });
   try { __settingsModal.setAttribute('data-modal-id','settings'); } catch(_) {}
+
+  // Establish baseline AFTER loading initial settings values
+  establishBaseline();
   return __settingsModal;
 }
 
@@ -657,15 +655,8 @@ export function createGameLogModal() {
     </div>
     
     <div class="modal-actions">
-      <button type="button" class="btn btn-secondary clear-btn">
-        <span>🗑️</span> Clear Log
-      </button>
-      <button type="button" class="btn btn-primary export-btn">
-        <span>💾</span> Export
-      </button>
-      <button type="button" class="btn btn-secondary close-btn">
-        <span>✕</span> Close
-      </button>
+      <button type="button" class="btn btn-secondary clear-btn">🗑️ Clear Log</button>
+      <button type="button" class="btn btn-primary export-btn">💾 Export</button>
     </div>
   `;
 
@@ -774,10 +765,7 @@ export function createGameLogModal() {
     }
   });
 
-  // Close button
-  content.querySelector('.close-btn').addEventListener('click', () => {
-    newModalSystem.closeModal('gameLog');
-  });
+  // No explicit Close button; overlay / ESC handles close
 
   // Initial load
   updateLogContent();
@@ -888,17 +876,10 @@ export function createHelpModal() {
         </ul>
       </div>
     </div>
-    <div class="modal-actions">
-      <button type="button" class="btn btn-secondary close-btn">
-        <span>✕</span> Close
-      </button>
-    </div>
+    <!-- No bottom close button: modal can be closed via overlay / ESC -->
   `;
 
-  // Close button
-  content.querySelector('.close-btn').addEventListener('click', () => {
-    newModalSystem.closeModal('help');
-  });
+  // No bottom close button; overlay / ESC handles close
 
   const __helpModal = newModalSystem.createModal('help', '❓ Help & Instructions', content, { width: '600px' });
   try { __helpModal.setAttribute('data-modal-id','help'); } catch(_) {}
@@ -972,17 +953,10 @@ export function createAboutModal() {
         <div class="status-indicator info">📋 Dark Edition</div>
       </div>
     </div>
-    <div class="modal-actions">
-      <button type="button" class="btn btn-secondary close-btn">
-        <span>✕</span> Close
-      </button>
-    </div>
+    <!-- No bottom close button: modal can be closed via overlay / ESC -->
   `;
 
-  // Close button
-  content.querySelector('.close-btn').addEventListener('click', () => {
-    newModalSystem.closeModal('about');
-  });
+  // No bottom close button; overlay / ESC handles close
 
   const __aboutModal = newModalSystem.createModal('about', 'ℹ️ About King of Tokyo', content, { width: '500px' });
   try { __aboutModal.setAttribute('data-modal-id','about'); } catch(_) {}
