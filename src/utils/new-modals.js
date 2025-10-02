@@ -613,7 +613,9 @@ export function createSettingsModal() {
     updateThemePreview(powerCardTheme);
   }
 
-  return newModalSystem.createModal('settings', '⚙️ Game Settings', content, { width: '900px' });
+  const __settingsModal = newModalSystem.createModal('settings', '⚙️ Game Settings', content, { width: '900px' });
+  try { __settingsModal.setAttribute('data-modal-id','settings'); } catch(_) {}
+  return __settingsModal;
 }
 
 export function createGameLogModal() {
@@ -780,7 +782,9 @@ export function createGameLogModal() {
   // Initial load
   updateLogContent();
 
-  return newModalSystem.createModal('gameLog', '📜 Game Log', content, { width: '700px' });
+  const __gameLogModal = newModalSystem.createModal('gameLog', '📜 Game Log', content, { width: '700px' });
+  try { __gameLogModal.setAttribute('data-modal-id','gameLog'); } catch(_) {}
+  return __gameLogModal;
 }
 
 function renderLogEntries(entries) {
@@ -896,7 +900,9 @@ export function createHelpModal() {
     newModalSystem.closeModal('help');
   });
 
-  return newModalSystem.createModal('help', '❓ Help & Instructions', content, { width: '600px' });
+  const __helpModal = newModalSystem.createModal('help', '❓ Help & Instructions', content, { width: '600px' });
+  try { __helpModal.setAttribute('data-modal-id','help'); } catch(_) {}
+  return __helpModal;
 }
 
 export function createAIDecisionModal() {
@@ -978,5 +984,7 @@ export function createAboutModal() {
     newModalSystem.closeModal('about');
   });
 
-  return newModalSystem.createModal('about', 'ℹ️ About King of Tokyo', content, { width: '500px' });
+  const __aboutModal = newModalSystem.createModal('about', 'ℹ️ About King of Tokyo', content, { width: '500px' });
+  try { __aboutModal.setAttribute('data-modal-id','about'); } catch(_) {}
+  return __aboutModal;
 }

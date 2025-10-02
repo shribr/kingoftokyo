@@ -224,6 +224,70 @@ select.field-input:hover {
   padding-top: 16px;
   border-top: 1px solid #444;
 }
+/* Enhanced action bar clarity and button prominence */
+.modal-actions {
+  position: relative;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(0,0,0,0.35) 100%);
+  border-radius: 0 0 4px 4px;
+  padding-bottom: 4px;
+}
+
+/* Primary save button variant – gradient retro arcade style */
+.modal-actions .btn-primary.save-btn,
+.btn-primary.save-btn {
+  background: linear-gradient(90deg,#e9655b 0%, #d88c7f 30%, #5ccfc9 100%);
+  color: #fff;
+  font-family: var(--font-family-brand,'Bangers',cursive);
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+  padding: 10px 28px;
+  box-shadow: 4px 4px 0 #000, 0 0 0 2px #000 inset;
+  border: 2px solid #111;
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
+.modal-actions .btn-primary.save-btn:hover {
+  filter: brightness(1.05);
+  transform: translate(2px,2px);
+  box-shadow: 2px 2px 0 #000, 0 0 0 2px #000 inset;
+}
+.modal-actions .btn-primary.save-btn:active {
+  transform: translate(3px,3px);
+  box-shadow: 1px 1px 0 #000, 0 0 0 2px #000 inset;
+}
+
+/* Close button ghost style for better contrast + separation */
+.modal-actions .btn.close-btn,
+.btn.close-btn {
+  background: #161616;
+  color: #fff;
+  border: 2px solid #111;
+  font-family: var(--font-family-brand,'Bangers',cursive);
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  padding: 10px 20px;
+  box-shadow: 4px 4px 0 #000, 0 0 0 2px #000 inset;
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
+.modal-actions .btn.close-btn:hover { background:#1f1f1f; transform: translate(2px,2px); }
+.modal-actions .btn.close-btn:active { transform: translate(3px,3px); }
+
+/* Ensure standard buttons inside other modals (log/help/about) stay compact */
+.new-modal:not([data-modal-id="settings"]) .modal-actions .btn-primary.save-btn,
+.new-modal:not([data-modal-id="settings"]) .modal-actions .btn.close-btn {
+  font-size: 0.75rem;
+  padding: 8px 16px;
+  font-family: inherit;
+  text-shadow: none;
+  box-shadow: 2px 2px 0 #000;
+  background: #2a2a2a;
+  border: 1px solid #333;
+}
+
+/* Focus ring accessibility */
+.modal-actions .btn:focus-visible {
+  outline: 3px solid #6c5ce7;
+  outline-offset: 2px;
+}
 
 /* Unified Button System */
 .btn {
