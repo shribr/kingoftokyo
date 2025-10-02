@@ -40,6 +40,7 @@ export function build({ selector }) {
       // Close action menu if open to avoid overlay conflicts
       try { window.dispatchEvent(new CustomEvent('ui.actionMenu.forceClose')); } catch(_){ }
       createSettingsModal();
+      newModalSystem.showModal('settings');
       return;
     }
     if (a === 'scenarios') {
@@ -48,13 +49,14 @@ export function build({ selector }) {
       // Persist desired tab first so createSettingsModal restoration picks it up
       try { localStorage.setItem('KOT_SETTINGS_LAST_TAB','scenarios'); } catch(_) {}
       createSettingsModal();
+      newModalSystem.showModal('settings');
       // Fallback: explicit click after render frames (two attempts in case of async mount)
       let attempts = 0;
       const tryActivate = () => {
         attempts++;
         try {
-          const tabBtn = document.querySelector('.cmp-settings-modal .tab-button[data-tab="scenarios"], .cmp-settings-modal [data-tab-btn="scenarios"]');
-          if (tabBtn && !tabBtn.classList.contains('active') && !tabBtn.classList.contains('is-active')) {
+          const tabBtn = document.querySelector('.nm-modal .tab-button[data-tab="scenarios"]');
+          if (tabBtn && !tabBtn.classList.contains('active')) {
             tabBtn.click();
           }
         } catch(_) {}
