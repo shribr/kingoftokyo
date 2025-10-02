@@ -3,9 +3,9 @@
  * Provides professional interface for managing game logs and AIDT archives
  */
 
-import { archiveManager } from '../services/archiveManagementService.js';
-import { archiveAnalytics } from '../services/archiveAnalyticsService.js';
-import { startReplay } from '../services/replayService.js';
+import { archiveManager } from '../../services/archiveManagementService.js';
+import { archiveAnalytics } from '../../services/archiveAnalyticsService.js';
+import { startReplay } from '../../services/replayService.js';
 import { createReplayStateOverlay } from './replayStateOverlay.js';
 
 export class ArchiveManagerComponent {
@@ -1116,12 +1116,24 @@ export class ArchiveManagerComponent {
   }
 
   renderArchiveFrequencyChart(frequency) {
-    if (!frequency || frequency.length === 0) {
+    if (!frequency) {
       return '<div class="chart-no-data">No frequency data available</div>';
     }
-    
-    const maxCount = Math.max(...frequency.map(f => f.count));
-    return frequency.slice(-7).map(f => `
+    // Normalize to an array of { date, count }
+    let data = [];
+    if (Array.isArray(frequency)) {
+      data = frequency;
+    } else if (typeof frequency === 'object') {
+      data = Object.entries(frequency).map(([date, count]) => ({ date, count }));
+    }
+    if (!data.length) {
+      return '<div class="chart-no-data">No frequency data available</div>';
+    }
+    // Sort by date ascending and take the most recent 7
+    data.sort((a, b) => new Date(a.date) - new Date(b.date));
+    const recent = data.slice(-7);
+    const maxCount = Math.max(...recent.map(f => f.count), 1);
+    return recent.map(f => `
       <div class="frequency-item">
         <div class="freq-bar" style="height: ${(f.count / maxCount * 100)}%"></div>
         <div class="freq-label">${new Date(f.date).toLocaleDateString()}</div>
@@ -1131,33 +1143,70 @@ export class ArchiveManagerComponent {
   }
 
   renderPlayerActivityTrends(trends) {
-    if (!trends || trends.length === 0) {
+    if (!trends) {
       return '<div class="chart-no-data">No activity trends available</div>';
     }
-    
-    return trends.slice(0, 5).map(trend => `
-      <div class="activity-trend-item">
-        <div class="trend-player">${trend.player}</div>
-        <div class="trend-direction ${trend.direction}">
-          ${trend.direction === 'increasing' ? '📈' : trend.direction === 'decreasing' ? '📉' : '➡️'}
+    // Normalize: service currently returns an object keyed by month with { games, uniquePlayers }
+    let data = [];
+    if (Array.isArray(trends)) {
+      data = trends;
+    } else if (typeof trends === 'object') {
+      data = Object.entries(trends).map(([period, v]) => ({ period, games: v.games, uniquePlayers: v.uniquePlayers }));
+    }
+    if (!data.length) {
+      return '<div class="chart-no-data">No activity trends available</div>';
+    }
+    const looksOriginal = !!data[0] && ('player' in data[0] || 'direction' in data[0] || 'gamesThisPeriod' in data[0]);
+    if (looksOriginal) {
+      return data.slice(0, 5).map(trend => `
+        <div class="activity-trend-item">
+          <div class="trend-player">${trend.player}</div>
+          <div class="trend-direction ${trend.direction}">
+            ${trend.direction === 'increasing' ? '📈' : trend.direction === 'decreasing' ? '📉' : '➡️'}
+          </div>
+          <div class="trend-value">${trend.gamesThisPeriod} games</div>
         </div>
-        <div class="trend-value">${trend.gamesThisPeriod} games</div>
+      `).join('');
+    }
+    // Fallback simplified rendering for period-based data
+    // Sort by period and show the last 5
+    data.sort((a, b) => (a.period > b.period ? 1 : -1));
+    return data.slice(-5).map(item => `
+      <div class="activity-trend-item">
+        <div class="trend-player">${item.period}</div>
+        <div class="trend-direction neutral">➡️</div>
+        <div class="trend-value">${item.games} games • ${item.uniquePlayers ?? 0} players</div>
       </div>
     `).join('');
   }
 
   renderGamePerformanceTrends(trends) {
-    if (!trends || trends.length === 0) {
+    if (!trends) {
       return '<div class="chart-no-data">No performance trends available</div>';
     }
-    
-    return trends.slice(0, 5).map(trend => `
-      <div class="perf-trend-item">
-        <div class="trend-metric">${trend.metric}</div>
-        <div class="trend-change ${trend.direction}">
-          ${trend.direction === 'increasing' ? '📈' : trend.direction === 'decreasing' ? '📉' : '➡️'}
-          ${trend.change}
+    let data = Array.isArray(trends) ? trends.slice() : [];
+    if (!data.length) {
+      return '<div class="chart-no-data">No performance trends available</div>';
+    }
+    const looksOriginal = !!data[0] && ('metric' in data[0] || 'direction' in data[0] || 'change' in data[0]);
+    if (looksOriginal) {
+      return data.slice(0, 5).map(trend => `
+        <div class="perf-trend-item">
+          <div class="trend-metric">${trend.metric}</div>
+          <div class="trend-change ${trend.direction}">
+            ${trend.direction === 'increasing' ? '📈' : trend.direction === 'decreasing' ? '📉' : '➡️'}
+            ${trend.change}
+          </div>
         </div>
+      `).join('');
+    }
+    // Fallback simplified rendering using { gameIndex, duration, playerCount, date }
+    data.sort((a, b) => (new Date(a.date) - new Date(b.date)));
+    const recent = data.slice(-5);
+    return recent.map(trend => `
+      <div class="perf-trend-item">
+        <div class="trend-metric">Game ${trend.gameIndex} – ${new Date(trend.date).toLocaleDateString()}</div>
+        <div class="trend-change neutral">⏱️ ${Math.round(trend.duration)} min • 👥 ${trend.playerCount} players</div>
       </div>
     `).join('');
   }

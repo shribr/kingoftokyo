@@ -413,6 +413,40 @@ export function createTurnService(store, logger, rng = Math.random) {
     // Refresh card affordability after dice resolution
     eventBus.emit('ui/cards/refreshAffordability');
     
+    // Winner check & transition (perform early to avoid being blocked by pending yield decisions)
+    try {
+      const maybeWinner = checkGameOver(store, logger);
+      if (maybeWinner) {
+        try { store.dispatch(metaWinnerSet(maybeWinner)); } catch(_) {}
+        markPhaseEnd('RESOLVE');
+        logger.system('Phase: GAME_OVER', { kind:'phase' });
+        try { (async () => { const mod = await import('./autoArchiveTempService.js'); mod.autoArchiveOnGameOver(store); })(); } catch(_){ }
+        await waitUnlessPaused(store, 2000);
+        if (usePhaseMachine && phaseMachine) phaseMachine.event('GAME_OVER'); else phaseCtrl.event('PLAYER_WON');
+        return;
+      }
+    } catch(_) {}
+    
+    // If yield decisions are pending, stop here and let the YIELD_DECISION phase own progression.
+    // This prevents advancing to BUY/CLEANUP before humans decide to stay/leave Tokyo.
+    try {
+      const stAfterResolve = store.getState();
+      const hasPendingYield = !!stAfterResolve.yield?.prompts?.some(p => p.decision == null);
+      if (stAfterResolve.phase === Phases.YIELD_DECISION || hasPendingYield) {
+        // Ensure phase is YIELD_DECISION when required
+        if (hasPendingYield && stAfterResolve.phase !== Phases.YIELD_DECISION) {
+          if (usePhaseMachine && phaseMachine) {
+            phaseMachine.event('NEEDS_YIELD_DECISION');
+          } else {
+            phaseCtrl.event('NEEDS_YIELD_DECISION');
+          }
+        }
+        // End RESOLVE timing span now; subsequent phases will be handled by YIELD_DECISION watcher
+        markPhaseEnd('RESOLVE');
+        return;
+      }
+    } catch(_) {}
+    
     // End-of-turn Tokyo entry: if Tokyo is empty after dice resolution, active player must enter
     const postResolution = store.getState();
     const order = postResolution.players.order;

@@ -328,9 +328,32 @@ export function attachReasoningHandlers(container, gameConfig = null) {
           timestamp: new Date().toLocaleTimeString()
         };
         
-        // Get player name from parent turn
+        // Get player name from parent turn. Prefer data attribute to preserve multi-word names (e.g., "The King").
         const turnEl = rollEl.closest('.adt-std-turn');
-        const playerName = turnEl?.querySelector('.adt-std-turn-header')?.textContent?.split(' ')[1] || 'AI Player';
+        let playerName = 'AI Player';
+        if (turnEl) {
+          // Standard view sets data-player-id to the full player/monster name
+          const fromAttr = turnEl.getAttribute('data-player-id');
+          if (fromAttr && fromAttr.trim()) {
+            playerName = fromAttr.trim();
+          } else {
+            // Fallback: derive from header text by excluding the meta span
+            const headerEl = turnEl.querySelector('.adt-std-turn-header');
+            if (headerEl) {
+              // Clone node to safely strip meta content
+              const clone = headerEl.cloneNode(true);
+              clone.querySelector('.adt-std-turn-meta')?.remove();
+              const raw = (clone.textContent || '').trim();
+              // Header pattern: "🐲 <name>" -> remove leading non-alphanumeric symbols and extra spaces
+              playerName = raw.replace(/^[^A-Za-z0-9]+\s*/, '').trim();
+              // If still empty, fallback to original minimal split
+              if (!playerName) {
+                const parts = (headerEl.textContent || '').trim().split(/\s+/);
+                if (parts.length > 1) playerName = parts[1];
+              }
+            }
+          }
+        }
         
         showReasoningInfoModal(rollData, playerName, gameConfig);
       } catch (err) {
