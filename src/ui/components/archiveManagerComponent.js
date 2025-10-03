@@ -4,7 +4,6 @@
  */
 
 import { archiveManager } from '../../services/archiveManagementService.js';
-import { archiveAnalytics } from '../../services/archiveAnalyticsService.js';
 import { startReplay } from '../../services/replayService.js';
 import { createReplayStateOverlay } from './replayStateOverlay.js';
 
@@ -14,7 +13,7 @@ export class ArchiveManagerComponent {
     this.isVisible = false;
     this.refreshInterval = null;
     this.archives = [];
-    this.currentView = 'grid'; // 'grid', 'list', 'analytics'
+    this.currentView = 'grid'; // 'grid', 'list'
     
     this.initializeComponent();
     this.bindEvents();
@@ -34,7 +33,22 @@ export class ArchiveManagerComponent {
     // Initial data load
     this.refreshArchives();
     
-    console.log('[ArchiveManagerComponent] Initialized');
+    // Escalate z-index above any existing high stacks dynamically
+    try {
+      const computedMax = this.computeMaxZIndex();
+      const targetZ = Math.max(computedMax + 10, 120000); // push well above highest observed (monster selection ~15050, roll-for-first 100000)
+      this.container.style.zIndex = String(targetZ);
+      this.container.dataset.escalatedZ = String(targetZ);
+      if (!document.getElementById('archive-manager-z-failsafe')) {
+        const style = document.createElement('style');
+        style.id = 'archive-manager-z-failsafe';
+        style.textContent = `.archive-manager-modal[data-escalated-z] { position:fixed !important; inset:0 !important; }`;
+        document.head.appendChild(style);
+      }
+      console.log('[ArchiveManagerComponent] Initialized (dynamic z-index escalation)', { computedMax, applied: targetZ });
+    } catch(e){
+      console.warn('[ArchiveManagerComponent] Failed dynamic z-index escalation', e);
+    }
   }
 
   /**
@@ -55,9 +69,8 @@ export class ArchiveManagerComponent {
             </div>
             <div class="header-right">
               <div class="view-toggle" data-view-toggle>
-                <button class="view-btn active" data-view="grid" title="Grid View">⊞</button>
-                <button class="view-btn" data-view="list" title="List View">☰</button>
-                <button class="view-btn" data-view="analytics" title="Analytics">📊</button>
+                <button class="view-btn active" data-view="grid" title="Grid View">Grid</button>
+                <button class="view-btn" data-view="list" title="List View">List</button>
               </div>
               <button class="close-btn" data-action="close">×</button>
             </div>
@@ -144,12 +157,6 @@ export class ArchiveManagerComponent {
                     <!-- Archive rows populated dynamically -->
                   </tbody>
                 </table>
-              </div>
-            </div>
-
-            <div class="archive-view archive-analytics-view" data-view-content="analytics" style="display: none;">
-              <div class="analytics-dashboard" data-analytics-dashboard>
-                <div class="analytics-loading">📊 Calculating analytics...</div>
               </div>
             </div>
           </div>
@@ -283,9 +290,10 @@ export class ArchiveManagerComponent {
 
   /**
    * Switch between views
-   * @param {string} viewType - View type ('grid', 'list', 'analytics')
+   * @param {string} viewType - View type ('grid', 'list')
    */
   switchView(viewType) {
+    const prevView = this.currentView;
     this.currentView = viewType;
 
     // Update view buttons
@@ -301,17 +309,8 @@ export class ArchiveManagerComponent {
     });
 
     // Load view-specific content
-    switch (viewType) {
-      case 'grid':
-        this.renderGridView();
-        break;
-      case 'list':
-        this.renderListView();
-        break;
-      case 'analytics':
-        this.renderAnalyticsView();
-        break;
-    }
+    if (viewType === 'grid') this.renderGridView();
+    else if (viewType === 'list') this.renderListView();
   }
 
   /**
@@ -386,17 +385,8 @@ export class ArchiveManagerComponent {
    * Render current view
    */
   renderCurrentView() {
-    switch (this.currentView) {
-      case 'grid':
-        this.renderGridView();
-        break;
-      case 'list':
-        this.renderListView();
-        break;
-      case 'analytics':
-        this.renderAnalyticsView();
-        break;
-    }
+    if (this.currentView === 'grid') this.renderGridView();
+    else if (this.currentView === 'list') this.renderListView();
   }
 
   /**
@@ -602,38 +592,12 @@ export class ArchiveManagerComponent {
   }
 
   /**
-   * Render analytics view
+   * Render analytics view - TEMPORARILY DISABLED
    */
-  async renderAnalyticsView() {
-    const dashboard = this.container.querySelector('[data-analytics-dashboard]');
-    if (!dashboard) return;
-
-    // Show loading
-    dashboard.innerHTML = `
-      <div class="analytics-loading">
-        <div class="loading-spinner">📊</div>
-        <div class="loading-text">Analyzing archives...</div>
-        <div class="loading-subtitle">This may take a moment for large datasets</div>
-      </div>
-    `;
-
-    try {
-      console.log('[ArchiveManager] Calculating comprehensive analytics...');
-      const analytics = await archiveAnalytics.calculateCompleteAnalytics();
-      console.log('[ArchiveManager] Analytics calculated:', analytics);
-      
-      dashboard.innerHTML = this.renderAdvancedAnalyticsDashboard(analytics);
-    } catch (error) {
-      dashboard.innerHTML = `
-        <div class="analytics-error">
-          <div class="error-icon">⚠️</div>
-          <div class="error-title">Analytics Error</div>
-          <div class="error-message">Failed to calculate analytics: ${error.message}</div>
-          <button class="retry-btn" onclick="location.reload()">Retry</button>
-        </div>
-      `;
-      console.error('Analytics error:', error);
-    }
+  async renderAnalyticsView(force=false) {
+    // Analytics functionality temporarily disabled - will be moved to separate component
+    console.log('[ArchiveManager] Analytics view disabled - analytics should be separate from archive management');
+    return;
   }
 
   /**
@@ -1226,8 +1190,8 @@ export class ArchiveManagerComponent {
   }
 
   refreshAnalytics() {
-    // Refresh the analytics view
-    this.renderAnalyticsView();
+    // Refresh only if analytics view visible
+    this.renderAnalyticsView(true);
   }
 
   /**
@@ -1500,8 +1464,8 @@ export class ArchiveManagerComponent {
           
           <div class="toolbar-section actions-section">
             <div class="view-toggle">
-              <button data-view="grid" class="view-btn active" title="Grid View">⊞</button>
-              <button data-view="list" class="view-btn" title="List View">☰</button>
+              <button data-view="grid" class="view-btn active" title="Grid View">Grid</button>
+              <button data-view="list" class="view-btn" title="List View">List</button>
               <button data-view="analytics" class="view-btn" title="Analytics">📊</button>
             </div>
             <div class="bulk-actions" style="display:none;">
@@ -1898,8 +1862,22 @@ export class ArchiveManagerComponent {
   }
 
   showSettings() {
-    // TODO: Implement settings dialog
-    console.log('Show settings');
+    // Close the archive manager and return to settings
+    this.hide();
+    
+    // Show the settings modal
+    setTimeout(() => {
+      try {
+        // Import and use the modal system to show settings
+        import('../../../utils/new-modal-system.js').then(({ newModalSystem }) => {
+          newModalSystem.showModal('settings');
+        }).catch(e => {
+          console.warn('[ArchiveManager] Failed to show settings modal', e);
+        });
+      } catch (e) {
+        console.warn('[ArchiveManager] Error opening settings', e);
+      }
+    }, 100); // Small delay to ensure archive manager closes first
   }
 
   handleKeyboard(event) {
@@ -1948,13 +1926,52 @@ export class ArchiveManagerComponent {
     
     console.log('[ArchiveManagerComponent] Destroyed');
   }
+
+  /**
+   * Compute maximum z-index currently in DOM (shallow scan of elements with inline or computed z-index > 0)
+   */
+  computeMaxZIndex() {
+    let maxZ = 0;
+    try {
+      const elements = document.querySelectorAll('body *');
+      for (const el of elements) {
+        // Skip if not displayed
+        const style = getComputedStyle(el);
+        if (style.display === 'none' || style.position === 'static') continue;
+        let z = style.zIndex;
+        if (z === 'auto') continue;
+        const zi = parseInt(z, 10);
+        if (!isNaN(zi) && zi > maxZ) maxZ = zi;
+      }
+    } catch(_) {}
+    return maxZ;
+  }
 }
 
 // Export function to create and show archive manager
 export function showArchiveManager() {
-  if (!window.archiveManagerInstance) {
-    window.archiveManagerInstance = new ArchiveManagerComponent();
+  try {
+    if (!window.archiveManagerInstance) {
+      console.log('[ArchiveManager][Diag] Instantiating new ArchiveManagerComponent');
+      window.archiveManagerInstance = new ArchiveManagerComponent();
+    } else {
+      // Log a lightweight diagnostic only once per session when re-showing existing instance
+      if (!window.archiveManagerInstance.__diagLoggedReuse) {
+        console.log('[ArchiveManager][Diag] Reusing existing ArchiveManagerComponent instance');
+        window.archiveManagerInstance.__diagLoggedReuse = true;
+      }
+    }
+    const now = performance.now();
+    if (window.archiveManagerInstance.__lastShow && now - window.archiveManagerInstance.__lastShow < 120) {
+      console.log('[ArchiveManager][Diag] Suppressing duplicate show() within 120ms');
+    } else {
+      window.archiveManagerInstance.__lastShow = now;
+      console.log('[ArchiveManager][Diag] showArchiveManager invoked; calling .show()');
+      window.archiveManagerInstance.show();
+    }
+    return window.archiveManagerInstance;
+  } catch (e) {
+    console.warn('[ArchiveManager][Diag] showArchiveManager failed', e);
+    throw e;
   }
-  window.archiveManagerInstance.show();
-  return window.archiveManagerInstance;
 }

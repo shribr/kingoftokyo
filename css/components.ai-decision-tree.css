@@ -42,6 +42,53 @@
 .cmp-ai-decision-tree .adt-btn:active { transform:translateY(1px); }
 .cmp-ai-decision-tree .adt-btn:focus-visible { outline:2px solid var(--adt-focus); outline-offset:2px; }
 
+/* Fixed widths for toggle buttons to prevent layout shift */
+.cmp-ai-decision-tree .adt-btn[data-action="toggle-view"] { min-width: 105px; }
+.cmp-ai-decision-tree .adt-btn[data-action="toggle-mode"] { min-width: 105px; }
+
+/* Embedded version styling for Settings modal */
+.ai-decision-tree-embedded .cmp-ai-decision-tree {
+  height: 100%;
+  font-size: 11px;
+  background: #f9f9f9;
+  border-radius: 4px;
+}
+
+.ai-decision-tree-embedded .cmp-ai-decision-tree .adt-toolbar {
+  background: #e9e9e9;
+  border: 1px solid #ddd;
+  border-radius: 4px 4px 0 0;
+  padding: 4px 6px;
+}
+
+.ai-decision-tree-embedded .cmp-ai-decision-tree .adt-btn {
+  padding: 3px 8px;
+  font-size: 10px;
+  background: #fff;
+  border: 1px solid #ccc;
+  color: #333;
+}
+
+.ai-decision-tree-embedded .cmp-ai-decision-tree .adt-btn:hover {
+  background: #f0f0f0;
+  border-color: #999;
+}
+
+.ai-decision-tree-embedded .cmp-ai-decision-tree .adt-tree-scroll {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+}
+
+.ai-decision-tree-embedded .cmp-ai-decision-tree input[type=text] {
+  background: #fff;
+  border: 1px solid #ccc;
+  color: #333;
+  font-size: 10px;
+  min-width: 120px;
+}
+
 /* Inputs */
 .cmp-ai-decision-tree input[type=text] { background:#101317; border:1px solid var(--adt-border); color:var(--adt-text); padding:4px 6px; border-radius:var(--adt-radius-sm); font-size:12px; min-width:170px; }
 .cmp-ai-decision-tree input[type=text]:focus { outline:2px solid var(--adt-accent); outline-offset:1px; }

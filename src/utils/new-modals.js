@@ -10,31 +10,31 @@ export function createSettingsModal() {
   content.innerHTML = `
     <!-- Tab Navigation -->
     <div class="settings-tabs" style="display: flex; border-bottom: 2px solid #333; margin-bottom: 20px; background: #1a1a1a; border-radius: 6px 6px 0 0;" role="tablist">
-      <button type="button" class="tab-button active" data-tab="gameplay" style="flex: 1; background: none; border: none; color: #e4e4e4; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s;">
+      <button type="button" class="tab-button active" data-tab="gameplay" style="flex: 1; background: none; border: none; color: #e4e4e4; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;">
         <span style="margin-right: 8px;">🎮</span>Gameplay
       </button>
-      <button type="button" class="tab-button" data-tab="interface" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s;">
+      <button type="button" class="tab-button" data-tab="interface" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;">
         <span style="margin-right: 8px;">🎨</span>Interface
       </button>
-      <button type="button" class="tab-button" data-tab="themes" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s;">
+      <button type="button" class="tab-button" data-tab="themes" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;">
         <span style="margin-right: 8px;">🌈</span>Themes
       </button>
-      <button type="button" class="tab-button" data-tab="advanced" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s;">
+      <button type="button" class="tab-button" data-tab="advanced" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;">
         <span style="margin-right: 8px;">⚙️</span>Advanced
       </button>
-      <button type="button" class="tab-button" data-tab="scenarios" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s;">
+      <button type="button" class="tab-button" data-tab="scenarios" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;">
         <span style="margin-right: 8px;">🧪</span>Scenarios
       </button>
-      <button type="button" class="tab-button" data-tab="archives" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s;">
+      <button type="button" class="tab-button" data-tab="archives" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;">
         <span style="margin-right: 8px;">🗂</span>Archives
       </button>
-      <button type="button" class="tab-button" data-tab="replay" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s;">
+      <button type="button" class="tab-button" data-tab="replay" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;">
         <span style="margin-right: 8px;">▶️</span>Replay
       </button>
-      <button type="button" class="tab-button" data-tab="ai" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s;">
-        <span style="margin-right: 8px;">🧠</span>AI Insight
+      <button type="button" class="tab-button" data-tab="ai" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;">
+        <span style="margin-right: 8px;">📊</span>Analytics & Insights
       </button>
-      <button type="button" class="tab-button" data-tab="devtools" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s;">
+      <button type="button" class="tab-button" data-tab="devtools" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;">
         <span style="margin-right: 8px;">🛠</span>Dev Tools
       </button>
     </div>
@@ -273,21 +273,30 @@ export function createSettingsModal() {
         <div class="section">
           <h3 class="section-title">🗂 Archive Management</h3>
           <p style="font-size:13px;opacity:.85;line-height:1.5;margin-bottom:16px;">
-            Access the full-featured Archive Manager with comprehensive analytics, filtering, and bulk operations.
+            Manage your saved game archives, AI decision trees, and performance data.
           </p>
-          
+
           <div class="field">
-            <label class="field-label">Quick Actions</label>
-            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;">
-              <button type="button" class="btn btn-secondary" data-launch-archive-manager>
-                🗂 Open Archive Manager
-              </button>
-              <button type="button" class="btn btn-secondary" data-launch-analytics>
-                📊 View Analytics Dashboard
-              </button>
+            <label class="field-label">Search & Filter</label>
+            <div style="display:flex;gap:8px;margin-top:8px;margin-bottom:12px;">
+              <input type="text" id="settings-archive-search" placeholder="Search archives..." 
+                     style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:12px;">
+              <select id="settings-archive-filter" style="padding:8px;border:1px solid #ddd;border-radius:4px;font-size:12px;">
+                <option value="all">All Types</option>
+                <option value="game">Game Logs</option>
+                <option value="aidt">AI Decisions</option>
+                <option value="auto">Auto Archives</option>
+              </select>
+              <button type="button" id="settings-archive-refresh" class="btn btn-secondary" style="padding:8px 12px;">🔄</button>
             </div>
-            <div style="font-size:11px;opacity:.6;margin-top:8px;">
-              Archive Manager provides grid/list views, advanced filtering, bulk operations, and comprehensive analytics.
+          </div>
+
+          <div class="field">
+            <label class="field-label">Archives</label>
+            <div id="settings-archive-list" style="margin-top:8px;max-height:300px;overflow-y:auto;border:1px solid #ddd;border-radius:4px;background:#f9f9f9;">
+              <div style="padding:20px;text-align:center;color:#666;font-size:12px;">
+                Loading archives...
+              </div>
             </div>
           </div>
 
@@ -339,26 +348,86 @@ export function createSettingsModal() {
         </div>
       </div>
 
-      <!-- AI Insight Tab -->
+      <!-- Analytics & Insights Tab -->
       <div class="tab-content" data-tab-content="ai" style="display:none;">
         <div class="section">
-          <h3 class="section-title">🧠 AI Decision Analysis</h3>
+          <h3 class="section-title">📊 Game Analytics</h3>
           <p style="font-size:13px;opacity:.85;line-height:1.5;margin-bottom:16px;">
-            Access the comprehensive AI Decision Tree explorer with live updates, filtering, and export capabilities.
+            Real-time game statistics, performance metrics, and analytical insights.
           </p>
           
           <div class="field">
-            <label class="field-label">AI Analysis Tools</label>
-            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;">
-              <button type="button" class="btn btn-secondary" data-launch-ai-modal>
-                🧠 Open AI Decision Tree
+            <label class="field-label">Analytics Overview</label>
+            <div id="settings-analytics-overview" style="margin-top:8px;padding:12px;border:1px solid #ddd;border-radius:4px;background:#f9f9f9;">
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;text-align:center;">
+                <div style="padding:8px;background:white;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+                  <div style="font-size:18px;font-weight:bold;color:#333;" id="analytics-total-games">0</div>
+                  <div style="font-size:11px;color:#666;">Total Games</div>
+                </div>
+                <div style="padding:8px;background:white;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+                  <div style="font-size:18px;font-weight:bold;color:#333;" id="analytics-avg-duration">0min</div>
+                  <div style="font-size:11px;color:#666;">Avg Duration</div>
+                </div>
+                <div style="padding:8px;background:white;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+                  <div style="font-size:18px;font-weight:bold;color:#333;" id="analytics-ai-decisions">0</div>
+                  <div style="font-size:11px;color:#666;">AI Decisions</div>
+                </div>
+                <div style="padding:8px;background:white;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+                  <div style="font-size:18px;font-weight:bold;color:#333;" id="analytics-unique-players">0</div>
+                  <div style="font-size:11px;color:#666;">Players</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label">Performance Insights</label>
+            <div id="settings-analytics-performance" style="margin-top:8px;max-height:200px;overflow-y:auto;border:1px solid #ddd;border-radius:4px;background:#f9f9f9;padding:12px;">
+              <div style="text-align:center;color:#666;font-size:12px;padding:20px;">
+                Game performance data will appear here after games are played...
+              </div>
+            </div>
+          </div>
+
+          <div class="field" style="margin-top:16px;">
+            <div style="display:flex;gap:12px;flex-wrap:wrap;">
+              <button type="button" id="settings-refresh-analytics" class="btn btn-secondary">
+                🔄 Refresh Analytics
               </button>
-              <button type="button" class="btn btn-secondary" data-export-ai-decisions>
-                📤 Export AI Data
+              <button type="button" id="settings-export-analytics" class="btn btn-secondary">
+                📤 Export Data
               </button>
             </div>
-            <div style="font-size:11px;opacity:.6;margin-top:8px;">
-              Full AI explorer includes collapsible rounds/turns/rolls, verbose/concise modes, tag filtering, and JSON export.
+          </div>
+        </div>
+
+        <div class="section">
+          <h3 class="section-title">🧠 AI Decision Analysis</h3>
+          <p style="font-size:13px;opacity:.85;line-height:1.5;margin-bottom:16px;">
+            Live AI decision tree with reasoning patterns and strategic insights.
+          </p>
+          
+          <div class="field">
+            <label class="field-label">Decision Tree Viewer</label>
+            <div id="settings-ai-tree-embedded" class="ai-decision-tree-embedded" style="margin-top:8px;height:400px;border:1px solid #ddd;border-radius:4px;background:#f9f9f9;overflow:hidden;">
+              <div style="padding:20px;text-align:center;color:#666;font-size:12px;">
+                Loading AI Decision Tree...
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label">AI Analysis Tools</label>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;">
+              <button type="button" id="settings-ai-modal" class="btn btn-secondary">
+                🧠 Open Full Tree Modal
+              </button>
+              <button type="button" id="settings-ai-export" class="btn btn-secondary">
+                📤 Export AI Data
+              </button>
+              <button type="button" id="settings-ai-clear" class="btn btn-secondary">
+                🗑 Clear Tree
+              </button>
             </div>
           </div>
 
@@ -492,27 +561,14 @@ export function createSettingsModal() {
     }
   }
 
-  // Archive / Replay / AI launcher handlers
+  // Archive / Replay / AI launcher handlers  
   function attachLauncherHandlers(){
     content.addEventListener('click', async (e)=>{
-      const btn = e.target.closest('[data-launch-archive-manager],[data-launch-analytics],[data-launch-replay-from-archive],[data-show-replay-overlay],[data-launch-ai-modal],[data-export-ai-decisions]');
+      const btn = e.target.closest('[data-launch-replay-from-archive],[data-show-replay-overlay],[data-launch-ai-modal],[data-export-ai-decisions]');
       if (!btn) return;
       
       try {
-        if (btn.hasAttribute('data-launch-archive-manager')) {
-          const { showArchiveManager } = await import('../ui/components/archiveManagerComponent.js');
-          showArchiveManager();
-        }
-        else if (btn.hasAttribute('data-launch-analytics')) {
-          const { showArchiveManager } = await import('../ui/components/archiveManagerComponent.js');
-          const manager = showArchiveManager();
-          // Switch to analytics view
-          setTimeout(() => {
-            const analyticsBtn = manager.container?.querySelector('[data-view="analytics"]');
-            if (analyticsBtn) analyticsBtn.click();
-          }, 100);
-        }
-        else if (btn.hasAttribute('data-launch-replay-from-archive')) {
+        if (btn.hasAttribute('data-launch-replay-from-archive')) {
           const { showArchiveManager } = await import('../ui/components/archiveManagerComponent.js');
           showArchiveManager();
           // Note: User can select archive and start replay from there
@@ -540,10 +596,201 @@ export function createSettingsModal() {
         }
       } catch (err) {
         console.warn('[Settings] Failed to launch component:', err);
+        inlineSettingsError('Failed: ' + (err?.message || err));
       }
     });
   }
   attachLauncherHandlers();
+
+  // Handlers for embedded archive and analytics content
+  function attachEmbeddedHandlers() {
+    // Archive search and refresh
+    const archiveSearch = content.querySelector('#settings-archive-search');
+    const archiveFilter = content.querySelector('#settings-archive-filter');
+    const archiveRefresh = content.querySelector('#settings-archive-refresh');
+    const archiveList = content.querySelector('#settings-archive-list');
+    
+    if (archiveRefresh) {
+      archiveRefresh.addEventListener('click', async () => {
+        try {
+          archiveList.innerHTML = '<div style="padding:20px;text-align:center;color:#666;font-size:12px;">Loading archives...</div>';
+          
+          const { archiveManager } = await import('../services/archiveManagementService.js');
+          const archives = archiveManager.getAllArchives();
+          
+          if (!archives.length) {
+            archiveList.innerHTML = '<div style="padding:20px;text-align:center;color:#666;font-size:12px;">No archives found.</div>';
+            return;
+          }
+          
+          archiveList.innerHTML = archives.slice(0, 20).map(archive => `
+            <div style="padding:8px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div style="font-size:12px;font-weight:bold;">${archive.name || archive.id || 'Archive'}</div>
+                <div style="font-size:11px;color:#666;">${archive.type || 'Unknown'} • ${new Date(archive.timestamp).toLocaleDateString()}</div>
+              </div>
+              <div style="display:flex;gap:4px;">
+                <button onclick="window.openArchive?.('${archive.id}')" style="padding:4px 8px;font-size:10px;border:1px solid #ddd;border-radius:3px;background:white;cursor:pointer;">View</button>
+                <button onclick="window.deleteArchive?.('${archive.id}')" style="padding:4px 8px;font-size:10px;border:1px solid #ddd;border-radius:3px;background:#fee;cursor:pointer;">Delete</button>
+              </div>
+            </div>
+          `).join('');
+        } catch (error) {
+          archiveList.innerHTML = `<div style="padding:20px;text-align:center;color:#c55;font-size:12px;">Error loading archives: ${error.message}</div>`;
+        }
+      });
+    }
+    
+    // Analytics refresh and export
+    const analyticsRefresh = content.querySelector('#settings-refresh-analytics');
+    const analyticsExport = content.querySelector('#settings-export-analytics');
+    
+    if (analyticsRefresh) {
+      analyticsRefresh.addEventListener('click', async () => {
+        try {
+          // Update analytics overview
+          content.querySelector('#analytics-total-games').textContent = '0';
+          content.querySelector('#analytics-avg-duration').textContent = '0min';
+          content.querySelector('#analytics-ai-decisions').textContent = '0';
+          content.querySelector('#analytics-unique-players').textContent = '0';
+          
+          // Show placeholder message
+          const performanceDiv = content.querySelector('#settings-analytics-performance');
+          performanceDiv.innerHTML = '<div style="text-align:center;color:#666;font-size:12px;padding:20px;">Analytics functionality is being refactored. Enhanced analytics will be available soon!</div>';
+        } catch (error) {
+          console.warn('[Settings] Analytics refresh error:', error);
+        }
+      });
+    }
+    
+    // AI Decision Tree handlers
+    const aiModal = content.querySelector('#settings-ai-modal');
+    const aiExport = content.querySelector('#settings-ai-export');
+    const aiClear = content.querySelector('#settings-ai-clear');
+    const aiTreeEmbedded = content.querySelector('#settings-ai-tree-embedded');
+    
+    // Load embedded AI decision tree
+    let embeddedTreeLoaded = false;
+    async function loadEmbeddedAITree() {
+      if (embeddedTreeLoaded || !aiTreeEmbedded) return;
+      embeddedTreeLoaded = true;
+      
+      try {
+        const mod = await import('../components/ai-decision-tree/ai-decision-tree.component.js');
+        const { root, dispose } = mod.buildAIDecisionTree();
+        
+        // Style the embedded tree differently (more compact)
+        root.style.height = '100%';
+        root.style.fontSize = '11px';
+        
+        aiTreeEmbedded.innerHTML = '';
+        aiTreeEmbedded.appendChild(root);
+        aiTreeEmbedded._treeDispose = dispose;
+      } catch (error) {
+        aiTreeEmbedded.innerHTML = `<div style="padding:20px;text-align:center;color:#c55;font-size:12px;">Error loading AI Decision Tree: ${error.message}</div>`;
+      }
+    }
+    
+    if (aiModal) {
+      aiModal.addEventListener('click', () => {
+        // Open the full modal version
+        createAIDecisionModal();
+        newModalSystem.showModal('aiDecision');
+      });
+    }
+    
+    if (aiClear) {
+      aiClear.addEventListener('click', () => {
+        if (aiTreeEmbedded._treeDispose) {
+          aiTreeEmbedded._treeDispose();
+        }
+        embeddedTreeLoaded = false;
+        aiTreeEmbedded.innerHTML = '<div style="padding:20px;text-align:center;color:#666;font-size:12px;">AI decision tree cleared.</div>';
+      });
+    }
+    
+    // Load embedded tree when Analytics & Insights tab is activated
+    function loadTreeOnTabActivation() {
+      const aiTab = content.querySelector('[data-tab="ai"]');
+      if (aiTab && aiTab.classList.contains('active')) {
+        loadEmbeddedAITree();
+      }
+    }
+    
+    // Hook into tab switching to load tree when needed
+    content.addEventListener('click', (e) => {
+      const tabBtn = e.target.closest('[data-tab="ai"]');
+      if (tabBtn) {
+        setTimeout(loadTreeOnTabActivation, 100);
+      }
+    });
+    
+    // Load initial data
+    if (archiveRefresh) archiveRefresh.click();
+    if (analyticsRefresh) analyticsRefresh.click();
+  }
+  attachEmbeddedHandlers();
+
+  // Provide a small inline error area within archives tab (non-intrusive)
+  function inlineSettingsError(msg){
+    try {
+      const tab = content.querySelector('[data-tab-content="archives"] .section');
+      if (!tab) return;
+      let area = tab.querySelector('.archives-inline-error');
+      if (!area){
+        area = document.createElement('div');
+        area.className = 'archives-inline-error';
+        area.style.cssText = 'margin-top:8px;font-size:11px;color:#ff7675;background:#2a1111;padding:6px 8px;border:1px solid #922;border-radius:4px;display:flex;gap:8px;align-items:center;';
+        tab.appendChild(area);
+      }
+      area.textContent = msg;
+      setTimeout(()=>{ if(area && area.parentNode) area.parentNode.removeChild(area); }, 6000);
+    } catch(_){ /* ignore */ }
+  }
+
+  // Pre-warm archive manager module after first tab activation to reduce click latency
+  let archiveModulePreloadStarted = false;
+  function maybePrewarmArchiveModule(){
+    if (archiveModulePreloadStarted) return;
+    archiveModulePreloadStarted = true;
+    import('../ui/components/archiveManagerComponent.js')
+      .then((m)=> { if (window.__KOT_DEBUG_ARCHIVES) console.log('[Settings][Prewarm] Archive Manager module preloaded'); })
+      .catch(e=> { if (window.__KOT_DEBUG_ARCHIVES) console.warn('[Settings][Prewarm] Archive Manager preload failed', e); });
+  }
+
+  // Hook into tab activation to prewarm when user first views archives tab
+  const originalActivateTab = activateTab;
+  activateTab = function(button){
+    originalActivateTab(button);
+    if (button.getAttribute('data-tab') === 'archives') {
+      maybePrewarmArchiveModule();
+      // One-time deep diagnostics when user first enters archives tab to understand click failure chain
+      if (window.__KOT_DEBUG_ARCHIVES && !window.__KOT_ARCHIVES_DIAG_ONCE__) {
+        window.__KOT_ARCHIVES_DIAG_ONCE__ = true;
+        console.log('[Settings][ArchivesDiag] First activation of Archives tab – installing MutationObserver');
+        try {
+          const host = document.querySelector('[data-tab-content="archives"] .section');
+          if (host) {
+            const mo = new MutationObserver((mutations)=>{
+              let relevant = false;
+              for (const m of mutations){
+                if ([...m.addedNodes].some(n=> n.querySelector?.('#archives-open-manager,#archives-open-analytics')) ||
+                    [...m.removedNodes].some(n=> n.querySelector?.('#archives-open-manager,#archives-open-analytics'))) {
+                  relevant = true; break;
+                }
+              }
+              if (relevant) {
+                console.log('[Settings][ArchivesDiag][MO] Button subtree mutated – re-binding direct handlers');
+                try { bindArchiveButtonsDirect(); } catch(_){}
+              }
+            });
+            mo.observe(host, { childList:true, subtree:true });
+            window.__KOT_ARCHIVES_MO__ = mo;
+          }
+        } catch(e){ console.warn('[Settings][ArchivesDiag] Failed to install MutationObserver', e); }
+      }
+    }
+  };
 
   // Replay controls referencing active replay (simplified)
   function attachReplayControls(){
@@ -940,7 +1187,7 @@ export function createSettingsModal() {
     applySettingsToForm(state.settings || {});
   }
 
-  const __settingsModal = newModalSystem.createModal('settings', '⚙️ Game Settings', content, { width: '1200px', height: '700px' });
+  const __settingsModal = newModalSystem.createModal('settings', '⚙️ Game Settings', content, { width: '1400px', height: '700px' });
   try { __settingsModal.setAttribute('data-modal-id','settings'); } catch(_) {}
 
   // Establish baseline AFTER loading initial settings values

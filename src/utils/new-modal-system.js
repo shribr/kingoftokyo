@@ -52,7 +52,7 @@ class NewModalSystem {
       font-family: 'Nunito', system-ui, sans-serif;
       width: 100%;
       max-width: ${options.width || '600px'};
-      max-height: 90vh;
+      ${options.height ? `height: ${options.height}; max-height: ${options.height};` : 'max-height: 90vh;'}
       display: flex;
       flex-direction: column;
       overflow: hidden;

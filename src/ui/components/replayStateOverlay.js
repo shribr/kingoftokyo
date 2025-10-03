@@ -1,26 +1,138 @@
 /** replayStateOverlay.js
- * Visual overlay component that display      <div class="replay-panel players-panel">
-        <div class="panel-header">
-          <h4>👹 Player Stats</h4>
-          <span class="panel-badge" data-player-count>0</span>
-        </div>
-        <div class="replay-players-grid" data-players-grid>
-          <!-- Player stat cards populated dynamically -->
-        </div>
-      </div>
-      
-      <div class="replay-panel phase-panel">
-        <div class="panel-header">
-          <h4>⚡ Game Phase</h4>
-          <span class="panel-badge" data-turn-count>Turn 1</span>
-        </div>
-        <div class="replay-phase-display">
-          <div class="current-phase" data-current-phase>Setup</div>
-          <div class="active-player" data-active-player>No active player</div>
-        </div>
-      </div> state during replay
+ * Visual overlay component that displays state during replay
  * Shows dice faces, player stats, Tokyo occupancy, and replay progress
  */
+
+// Helper function to create a mini confirmation modal
+function createMiniConfirm(message, onConfirm, onCancel) {
+  const modal = document.createElement('div');
+  modal.className = 'mini-confirm-modal';
+  modal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease-out;
+  `;
+  
+  const dialog = document.createElement('div');
+  dialog.style.cssText = `
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+    border: 2px solid #ffcf33;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 400px;
+    min-width: 300px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+    color: white;
+    font-family: 'Nunito', sans-serif;
+    text-align: center;
+    animation: slideIn 0.3s ease-out;
+  `;
+  
+  dialog.innerHTML = `
+    <div style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #ffcf33;">
+      🤔 Confirm Action
+    </div>
+    <div style="font-size: 14px; line-height: 1.5; margin-bottom: 24px; color: #ecf0f1;">
+      ${message}
+    </div>
+    <div style="display: flex; gap: 12px; justify-content: center;">
+      <button class="mini-confirm-btn cancel" style="
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+      ">Cancel</button>
+      <button class="mini-confirm-btn confirm" style="
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        border: 1px solid #c0392b;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+      ">Close Replay</button>
+    </div>
+  `;
+  
+  // Add CSS animations
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes slideIn {
+      from { transform: scale(0.8) translateY(-20px); opacity: 0; }
+      to { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    .mini-confirm-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    .mini-confirm-btn.cancel:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    .mini-confirm-btn.confirm:hover {
+      background: linear-gradient(135deg, #c0392b, #a93226);
+    }
+  `;
+  document.head.appendChild(style);
+  
+  modal.appendChild(dialog);
+  document.body.appendChild(modal);
+  
+  // Event handlers
+  const confirmBtn = dialog.querySelector('.confirm');
+  const cancelBtn = dialog.querySelector('.cancel');
+  
+  const cleanup = () => {
+    modal.remove();
+    style.remove();
+  };
+  
+  confirmBtn.addEventListener('click', () => {
+    cleanup();
+    if (onConfirm) onConfirm();
+  });
+  
+  cancelBtn.addEventListener('click', () => {
+    cleanup();
+    if (onCancel) onCancel();
+  });
+  
+  // Close on overlay click
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      cleanup();
+      if (onCancel) onCancel();
+    }
+  });
+  
+  // Close on Escape key
+  const escapeHandler = (e) => {
+    if (e.key === 'Escape') {
+      cleanup();
+      document.removeEventListener('keydown', escapeHandler);
+      if (onCancel) onCancel();
+    }
+  };
+  document.addEventListener('keydown', escapeHandler);
+}
 
 export function createReplayStateOverlay() {
   const overlay = document.createElement('div');
@@ -127,7 +239,12 @@ export function createReplayStateOverlay() {
   overlay.style.display = 'none';
   document.body.appendChild(overlay);
   
-  return {
+  // Attach basic UI event handlers immediately (independent of wireReplayControls)
+  const minimizeBtn = overlay.querySelector('[data-minimize]');
+  const closeBtn = overlay.querySelector('[data-close]');
+  
+  // Create the returned object
+  const overlayObject = {
     show() {
       overlay.style.display = 'block';
       document.body.classList.add('replay-overlay-visible');
@@ -257,32 +374,12 @@ export function createReplayStateOverlay() {
       const stopBtn = overlay.querySelector('[data-replay-action="stop"]');
       const speedBtn = overlay.querySelector('[data-replay-action="speed"]');
       const speedControls = overlay.querySelector('[data-speed-controls]');
-      const minimizeBtn = overlay.querySelector('[data-minimize]');
-      const closeBtn = overlay.querySelector('[data-close]');
       
       let currentSpeed = 1;
       let aidtThoughtBubble = null;
       
       // Initialize AIDT integration
       this.initializeAIDTIntegration(replayService);
-      
-      // Minimize/maximize functionality
-      if (minimizeBtn) {
-        minimizeBtn.addEventListener('click', () => {
-          if (overlay.classList.contains('minimized')) {
-            this.maximize();
-          } else {
-            this.minimize();
-          }
-        });
-      }
-      
-      // Close functionality
-      if (closeBtn) {
-        closeBtn.addEventListener('click', () => {
-          this.hide();
-        });
-      }
       
       // Speed control functionality
       if (speedBtn) {
@@ -601,6 +698,40 @@ export function createReplayStateOverlay() {
       document.body.classList.remove('replay-overlay-visible');
     }
   };
+  
+  // Attach basic UI event handlers (close and minimize) immediately
+  if (minimizeBtn) {
+    minimizeBtn.addEventListener('click', () => {
+      if (overlay.classList.contains('minimized')) {
+        overlayObject.maximize();
+      } else {
+        overlayObject.minimize();
+      }
+    });
+  }
+  
+  if (closeBtn) {
+    closeBtn.addEventListener('click', async () => {
+      try {
+        createMiniConfirm(
+          'Close the replay overlay? This will stop the current replay session.',
+          async () => {
+            // User confirmed - close the overlay
+            try {
+              const { stopReplay } = await import('../../services/replayService.js');
+              stopReplay();
+            } catch(e){ console.warn('[ReplayOverlay] Failed to stop replay on close', e); }
+            overlayObject.hide();
+          },
+          () => {
+            // User cancelled - do nothing
+          }
+        );
+      } catch(e){ overlayObject.hide(); }
+    });
+  }
+  
+  return overlayObject;
 }
 
 function getDiceSymbol(value) {
