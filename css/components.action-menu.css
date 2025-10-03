@@ -174,7 +174,7 @@
 /* Power Cards Menu Styles */
 .power-cards-menu-container {
   position: relative;
-  width: 100%;
+  width: auto;
 }
 
 .power-cards-btn {
@@ -182,7 +182,7 @@
   align-items: center;
   justify-content: space-between;
   position: relative;
-  width: 100%;
+  width: auto;
   background: linear-gradient(135deg, #2c5234, #1a3d20) !important;
   border-color: #4a7c59 !important;
 }
@@ -395,10 +395,10 @@
   /* Mobile: anchor from bottom corners and expand upward, consistent width and full-width buttons */
   .cmp-action-menu {
     position: fixed;
-    top: auto; left: auto; right: auto;
+    top: auto; left: auto; right: 16px; /* Align right edge with some padding from screen edge */
     /* bottom is computed dynamically from the triggering button via JS */
     width: max-content;
-    max-width: calc(100vw - 16px);
+    max-width: calc(100vw - 80px); /* Leave room for action menu button and padding */
     /* removed min-width to allow natural shrink */
   flex-direction: column;
     align-items: stretch;
@@ -427,9 +427,10 @@
     .cmp-action-menu button { 
       --am-mobile-scale: .70; /* stronger shrink so change is unmistakable */
       background:#e6e6e6 !important; 
-      color:#111 !important; 
+      color:#fff !important; 
       border:none !important; 
       box-shadow:none !important; 
+      text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000 !important;
       font-size: calc(18px * var(--am-mobile-scale)) !important; 
       line-height:1.05 !important; 
       padding: 4px 10px 6px !important; 
@@ -441,8 +442,8 @@
     .cmp-action-menu button[data-action="end"],
     .cmp-action-menu button[data-action="flush"] { 
       background:#e6e6e6 !important; 
-      color:#111 !important; 
-      text-shadow:none !important; 
+      color:#fff !important; 
+      text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000 !important;
       border:none !important; 
       box-shadow:none !important; 
       font-size: calc(16px * var(--am-mobile-scale)) !important;
