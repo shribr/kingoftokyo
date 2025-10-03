@@ -104,7 +104,7 @@ if (typeof window !== 'undefined') {
       try {
         const st = store.getState();
         if (st.phase === 'SETUP') {
-          console.error('[failsafe] 6s elapsed still in SETUP; forcing PHASE_TRANSITION and manual startTurn');
+          console.warn('[failsafe] 6s elapsed still in SETUP; forcing PHASE_TRANSITION and manual startTurn');
           store.dispatch({ type:'PHASE_TRANSITION', payload:{ from:'SETUP', to:'ROLL', reason:'failsafe_6s', ts: Date.now() }});
           const ts = window.__KOT_NEW__?.turnService;
           if (ts && typeof ts.startTurn === 'function') {

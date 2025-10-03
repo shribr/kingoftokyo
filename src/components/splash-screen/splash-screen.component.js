@@ -86,7 +86,13 @@ function splashMarkup() {
     <div class="polaroids-left" data-polaroids-left></div>
     <div class="splash-center-content">
       <img src="images/king-of-tokyo-logo.png" alt="King of Tokyo" class="splash-logo-image" />
-      <div id="enter-battle-btn" class="splash-subtitle clickable">Enter the battle for Tokyo!</div>
+      <div id="enter-battle-btn" class="splash-subtitle clickable" role="button" tabindex="0" aria-label="Enter the Battle for Tokyo">
+        <span class="desktop-text">Enter the battle for Tokyo!</span>
+        <div class="mobile-text">
+          <div class="mobile-line">Enter the Battle</div>
+          <div class="mobile-line">For Tokyo</div>
+        </div>
+      </div>
     </div>
     <div class="polaroids-right" data-polaroids-right></div>
   </div>

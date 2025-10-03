@@ -37,17 +37,20 @@
  .cmp-roll-for-first.rff-modal .rff-skip:hover { color:#fff; opacity:1; }
 @media (max-width:640px) { .cmp-roll-for-first.rff-modal .rff-frame { padding:22px 20px 30px; } .cmp-roll-for-first.rff-modal .rff-title { font-size:2.2rem; } .cmp-roll-for-first.rff-modal .rff-btn { font-size:1.05rem; padding:8px 16px 10px; } .cmp-roll-for-first.rff-modal .rff-footer { gap:12px; padding:12px 6px 4px; } }
 
-/* Mobile-first adaptations */
+/* Mobile-first adaptations - Full screen modal */
 @media (max-width: 720px) {
 	.cmp-roll-for-first.rff-modal { align-items: stretch; padding-top: 0; }
-	.cmp-roll-for-first.rff-modal .rff-frame { width: 100vw; max-width: 100vw; height: 100vh; max-height: 100vh; border-width: 2px; border-radius: 0; padding: 16px 12px 46px; }
-	.cmp-roll-for-first.rff-modal .rff-title { font-size: 1.9rem; }
-	.cmp-roll-for-first.rff-modal .rff-broadcast { min-height: 110px; font-size: 1rem; }
+	.cmp-roll-for-first.rff-modal .rff-frame { width: 100vw; max-width: 100vw; height: 100vh; max-height: 100vh; border-width: 0; border-radius: 0; padding: 16px 12px 46px; }
+	.cmp-roll-for-first.rff-modal .rff-title { font-size: 1.6rem; }
+	.cmp-roll-for-first.rff-modal .rff-broadcast { min-height: 80px; font-size: 1rem; padding: 2px; }
 	.cmp-roll-for-first.rff-modal .rff-rolls { grid-template-columns: 1fr 64px; }
 	.cmp-roll-for-first.rff-modal .rff-footer { position: sticky; bottom: 0; flex-wrap: wrap; gap: 10px; padding: 10px 6px 6px; }
 	.cmp-roll-for-first.rff-modal .rff-btn { padding: 8px 14px 10px; font-size: 1rem; }
 }
-@media (max-width: 480px) { .cmp-roll-for-first.rff-modal .rff-title { font-size: 1.6rem; } }
+@media (max-width: 480px) { 
+	.cmp-roll-for-first.rff-modal .rff-title { font-size: 1.4rem; }
+	.cmp-roll-for-first.rff-modal .rff-broadcast { padding: 2px; min-height: 70px; }
+}
 
 /* Animated dice (legacy-inspired) */
 .cmp-roll-for-first .rff-anim-dice { display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 4px; }
