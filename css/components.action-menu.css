@@ -1,13 +1,13 @@
 /* components.action-menu.css
  * Extracted from legacy .action-menu + button cluster styling.
  */
-:root {
+ :root {
   --action-menu-bg: linear-gradient(145deg,#2a2d31,#181a1c 65%); /* lighter legacy-inspired */
   --action-menu-border: 3px solid #000;
   --action-menu-inner-border: 0 0 0 2px #353a40 inset;
   --action-menu-radius: 6px;
-  --action-menu-gap: 8px;
-  --action-menu-padding: 12px 14px 14px;
+  --action-menu-gap: 3px; /* tighter vertical gap */
+  --action-menu-padding: 6px 12px 8px; /* more compact */
   --action-menu-title-color: var(--accent-monsters,#ffcf33);
   --action-menu-shadow: 4px 4px 0 #000, 0 0 0 2px #222 inset;
 }
@@ -148,12 +148,12 @@
 .cmp-action-menu .am-content {
   transition: max-height 0.3s ease, opacity 0.2s ease;
   overflow: hidden;
-  margin-top: 0; /* Remove any extra spacing */
-  padding-top: 0; /* Remove any extra spacing */
+  margin-top: 2px; /* tiny separation for readability */
+  padding-top: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--action-menu-gap); /* Maintain gap between buttons */
-  transform-origin: top; /* Collapse from top down */
+  gap: var(--action-menu-gap);
+  transform-origin: top; /* grow upward when expanding */
 }
 
 .cmp-action-menu .am-content[data-collapsed="true"] {

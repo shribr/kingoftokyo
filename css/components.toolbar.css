@@ -4,8 +4,10 @@
   --toolbar-btn-gradient: linear-gradient(180deg,#f7b449,#d47924 60%, #b45d12);
   --toolbar-btn-gradient-hover: linear-gradient(180deg,#ffc768,#e58a2d 60%, #c66818);
   /* Avoid pure black outlines when buttons render black text */
-  --toolbar-btn-border: #333;
-  --toolbar-btn-shadow: 3px 3px 0 #333, 0 0 0 2px #222 inset, 0 6px 14px -6px rgba(0,0,0,.55);
+  /* Updated to remove unintended gray rim: use pure black border & cleaner shadow */
+  --toolbar-btn-border: #000;
+  /* Shadow layers: outer offset, subtle ambient, no inset ring (removed #222 inset) */
+  --toolbar-btn-shadow: 3px 3px 0 #000, 0 6px 14px -6px rgba(0,0,0,.65);
   --toolbar-btn-size: 46px;
   --toolbar-gap: 10px;
   --toolbar-radius: 10px;
@@ -21,10 +23,64 @@ body:not(.game-active) .cmp-toolbar .toolbar-btn { opacity:.9; }
 .cmp-toolbar.is-hidden { opacity:0; pointer-events:none; transform:translateY(-4px); }
 
 .cmp-toolbar .toolbar-btn { position:relative; width:var(--toolbar-btn-size); height:var(--toolbar-btn-size); font-family:var(--toolbar-font); letter-spacing:1px; font-size:0; color:#000; background:var(--toolbar-btn-gradient); border:3px solid var(--toolbar-btn-border); border-radius:var(--toolbar-radius); display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:var(--toolbar-btn-shadow); transition:transform .15s ease, background .2s ease, box-shadow .2s ease; }
+
+/* Ensure toolbar buttons maintain their styling even in dark mode */
+body.dark-mode .cmp-toolbar .toolbar-btn, 
+body.dark-mode .cmp-toolbar button.toolbar-btn,
+body.dark-mode button[class*="toolbar-btn"] { 
+  background:var(--toolbar-btn-gradient) !important; 
+  border:3px solid var(--toolbar-btn-border) !important; 
+  border-color: var(--toolbar-btn-border) !important;
+  color:#000 !important; 
+  box-shadow:var(--toolbar-btn-shadow) !important;
+}
+body.dark-mode .cmp-toolbar .toolbar-btn:hover,
+body.dark-mode .cmp-toolbar button.toolbar-btn:hover,
+body.dark-mode button[class*="toolbar-btn"]:hover { 
+  background:var(--toolbar-btn-gradient-hover) !important; 
+  border:3px solid var(--toolbar-btn-border) !important; 
+  border-color: var(--toolbar-btn-border) !important;
+}
+/* ------------------------------------------------------------------
+   High-specificity overrides to isolate modern toolbar styling.
+   Legacy CSS (e.g. legacy/modals.css) defines a global .toolbar-btn selector
+   which bleeds into the modern toolbar and introduces unintended border/shadow.
+   We reassert the intended appearance here with minimal !important usage
+   only on properties known to be overridden by legacy/global rules.
+------------------------------------------------------------------- */
+.cmp-toolbar > .toolbar-btn,
+.cmp-toolbar .toolbar-btn.toolbar-btn { /* doubled class for extra specificity */
+  background: var(--toolbar-btn-gradient) !important;
+  border: 3px solid var(--toolbar-btn-border) !important;
+  box-shadow: var(--toolbar-btn-shadow) !important;
+  color:#000 !important;
+  padding:0 !important;
+  line-height:1 !important;
+  position:relative;
+  isolation:isolate; /* prevent blending with parent backdrop */
+}
+/* Hover & active reasserted */
+.cmp-toolbar > .toolbar-btn:hover,
+.cmp-toolbar .toolbar-btn.toolbar-btn:hover { background:var(--toolbar-btn-gradient-hover) !important; }
+.cmp-toolbar > .toolbar-btn:active,
+.cmp-toolbar .toolbar-btn.toolbar-btn:active { box-shadow:2px 2px 0 #000, 0 4px 10px -6px rgba(0,0,0,.6) !important; }
+
+/* Dark mode: keep identical look (do NOT flatten borders) */
+body.dark-mode .cmp-toolbar > .toolbar-btn,
+body.dark-mode .cmp-toolbar .toolbar-btn.toolbar-btn { background:var(--toolbar-btn-gradient) !important; }
+body.dark-mode .cmp-toolbar > .toolbar-btn:hover,
+body.dark-mode .cmp-toolbar .toolbar-btn.toolbar-btn:hover { background:var(--toolbar-btn-gradient-hover) !important; }
+
 .cmp-toolbar .toolbar-btn .ico { width:28px; height:28px; pointer-events:none; }
 .cmp-toolbar .toolbar-btn .vh { position:absolute; width:1px; height:1px; margin:-1px; border:0; padding:0; clip:rect(0 0 0 0); overflow:hidden; white-space:nowrap; }
 .cmp-toolbar .toolbar-btn:hover { background:var(--toolbar-btn-gradient-hover); transform:translateY(-2px); }
-.cmp-toolbar .toolbar-btn:active { transform:translateY(1px); box-shadow:2px 2px 0 #333, 0 0 0 2px #222 inset; }
+.cmp-toolbar .toolbar-btn:active { transform:translateY(1px); box-shadow:2px 2px 0 #000, 0 4px 10px -6px rgba(0,0,0,.6); }
+
+/* Debug helpers: add body class 'toolbar-debug' in console to isolate visual layers */
+body.toolbar-debug .cmp-toolbar { background:#111 !important; box-shadow:none !important; }
+body.toolbar-debug .cmp-toolbar .toolbar-btn { background:#ffeb3b !important; filter:none !important; }
+body.toolbar-debug .cmp-toolbar .toolbar-btn:hover { outline:2px solid #f00 !important; }
+body.toolbar-debug .cmp-toolbar .toolbar-btn::after { content:''; position:absolute; inset:0; border:1px dashed magenta; pointer-events:none; }
 .cmp-toolbar .toolbar-btn:focus-visible { outline:2px solid #fff; outline-offset:2px; }
 .cmp-toolbar .toolbar-btn.is-muted { background:linear-gradient(180deg,#777,#444); color:#eee; }
 .cmp-toolbar .toolbar-btn.is-muted:hover { background:linear-gradient(180deg,#888,#555); }

@@ -200,7 +200,7 @@ export function build({ selector }) {
     
     if (!toggleBtn || !content) return;
     
-    // Load collapsed state from localStorage if persist positions is enabled
+  // Load collapsed state from localStorage if persist positions is enabled
     const settings = store.getState().settings;
     const shouldPersist = settings?.persistPositions;
     let isCollapsed = false;
@@ -212,25 +212,132 @@ export function build({ selector }) {
       } catch(_) {}
     }
     
-    // Apply initial state
-    updateCollapseState(isCollapsed);
-    
+    // Behavior v3:
+    // Collapse: move menu so its TOP aligns with toolbar TOP; shrink content (menu height == header height).
+    // Expand: (arrow up) slide entire menu upward so its BOTTOM aligns with toolbar TOP and simultaneously grow content upward.
+    // If floating (hybrid) when initiating collapse or expand, fade -> dock -> animate.
+    let collapsedTop = null;     // toolbar top (document space) used for collapse alignment
+    let headerHeight = null;     // cached header height
+
+    function computePositions() {
+      const rect = root.getBoundingClientRect();
+      const scrollY = window.scrollY || 0;
+      const headerEl = root.querySelector('.am-label');
+      headerHeight = headerEl ? headerEl.getBoundingClientRect().height : 40;
+      // Compute collapsedTop based on toolbar
+      const toolbar = document.getElementById('toolbar-menu');
+      if (toolbar) {
+        const tRect = toolbar.getBoundingClientRect();
+        collapsedTop = tRect.top + scrollY; // align menu top with toolbar top
+      } else {
+        collapsedTop = rect.top + scrollY; // fallback: no movement
+      }
+    }
+    function ensurePositions() { if (collapsedTop == null || headerHeight == null) computePositions(); }
+
+    function measureHeights() {
+      // Temporarily ensure expanded to measure
+      const wasCollapsed = content.getAttribute('data-collapsed') === 'true';
+      if (wasCollapsed) {
+        content.style.maxHeight = '500px';
+        content.style.opacity = '1';
+      }
+      const totalH = root.getBoundingClientRect().height;
+      const headerEl = root.querySelector('.am-label');
+      const headerH = headerEl ? headerEl.getBoundingClientRect().height : 40;
+      if (wasCollapsed) {
+        content.style.maxHeight = '0px';
+        content.style.opacity = '0';
+      }
+      return { totalH, headerH };
+    }
+
     function updateCollapseState(collapsed) {
-      content.style.transition = 'max-height 0.3s ease, opacity 0.2s ease';
+      ensurePositions();
+      content.style.transition = 'max-height 0.28s ease, opacity 0.18s ease';
       content.setAttribute('data-collapsed', collapsed.toString());
-      
+      toggleBtn.setAttribute('aria-expanded', (!collapsed).toString());
+
       if (collapsed) {
+        const isDocked = root.dataset.amDockState === 'docked';
+        if (isDocked) {
+          // Capture fresh positions before animating (in case of prior drag/resize)
+          computePositions();
+          const docScroll = window.scrollY || 0;
+          const newTop = collapsedTop - docScroll;
+          // Lock current horizontal placement
+          const computed = window.getComputedStyle(root);
+          if (!root.style.left && computed.left && computed.left !== 'auto') root.style.left = computed.left;
+          if (!root.style.right && computed.right && computed.right !== 'auto') root.style.right = computed.right;
+          root.style.transition = 'top 0.28s ease';
+          root.style.top = newTop + 'px';
+        }
         content.style.maxHeight = '0px';
         content.style.opacity = '0';
         content.style.overflow = 'hidden';
         arrowUp.style.opacity = '1';
         arrowDown.style.opacity = '0';
       } else {
-        content.style.maxHeight = '500px'; // Large enough to show all content
-        content.style.opacity = '1';
-        content.style.overflow = 'visible';
-        arrowUp.style.opacity = '0';
-        arrowDown.style.opacity = '1';
+        // EXPANSION: slide upward so bottom aligns with toolbar bottom.
+        const isDocked = root.dataset.amDockState === 'docked';
+        if (isDocked) {
+          computePositions();
+          // Measure natural expanded menu height by temporarily expanding content off-screen influence
+          const docScroll = window.scrollY || 0;
+          const prevMax = content.style.maxHeight;
+          const prevOpacity = content.style.opacity;
+          content.style.maxHeight = '800px'; // generous cap to measure
+          content.style.opacity = '0';
+          content.style.overflow = 'visible';
+          // Force reflow
+          const expandedTotalH = root.getBoundingClientRect().height;
+          // Restore collapsed visuals before animating
+          content.style.maxHeight = '0px';
+          content.style.opacity = '0';
+          content.style.overflow = 'hidden';
+          // Get toolbar bottom for alignment target
+          const toolbar = document.getElementById('toolbar-menu');
+          let toolbarBottom = collapsedTop; // fallback
+          if (toolbar) {
+            const tRect = toolbar.getBoundingClientRect();
+            toolbarBottom = (tRect.bottom + (window.scrollY || 0));
+          }
+          // Calculate Y coordinate shift: move UP by content height to reveal entire menu above current position
+          const currentCollapsedTop = collapsedTop - docScroll;
+          const contentHeight = Math.max(0, expandedTotalH - headerHeight);
+          const targetTop = currentCollapsedTop - contentHeight;
+          const minTop = 10; // minimum distance from top of viewport
+          const clampedTargetTop = Math.max(targetTop, minTop);
+          
+          // Ensure current top is collapsedTop - docScroll (anchor); if not, set it instantly
+          const collapsedTopPx = (collapsedTop - docScroll) + 'px';
+          if (root.style.top !== collapsedTopPx) {
+            root.style.transition = 'none';
+            root.style.top = collapsedTopPx;
+          }
+          // Animate
+          requestAnimationFrame(() => {
+            root.style.transition = 'top 0.32s ease';
+            root.style.top = clampedTargetTop + 'px';
+            // Animate content growth upward (since bottom anchored visually)
+            requestAnimationFrame(() => {
+              content.style.transition = 'max-height 0.32s ease, opacity 0.18s ease';
+              const contentGrow = Math.max(0, expandedTotalH - headerHeight);
+              content.style.maxHeight = contentGrow + 'px';
+              content.style.opacity = '1';
+              content.style.overflow = 'visible';
+              arrowUp.style.opacity = '0';
+              arrowDown.style.opacity = '1';
+            });
+          });
+        } else {
+          // Floating: just expand content in place
+          content.style.maxHeight = '600px';
+          content.style.opacity = '1';
+          content.style.overflow = 'visible';
+          arrowUp.style.opacity = '0';
+          arrowDown.style.opacity = '1';
+        }
       }
       
       // Save state if persist positions is currently enabled
@@ -246,32 +353,87 @@ export function build({ selector }) {
     toggleBtn.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
-      
-      // If collapsing and menu is not in its docked position, smoothly move it there first
-      if (!isCollapsed) {
-        const mode = store.getState().settings?.actionMenuMode || 'hybrid';
-        const isDocked = root.dataset.amDockState === 'docked';
-        const shouldReposition = (mode === 'docked' || (mode === 'hybrid' && !root._userMoved));
-        
-        if (shouldReposition && !isDocked) {
-          // Add smooth transition for repositioning
-          root.style.transition = 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-          
-          // Move to docked position
-          anchorActionMenu(root);
-          root.dataset.amDockState = 'docked';
-          
-          // Wait for repositioning animation to complete before collapsing
-          await new Promise(resolve => setTimeout(resolve, 400));
-          
-          // Remove transition so collapse animation works properly
-          root.style.transition = '';
-        }
+
+      const mode = store.getState().settings?.actionMenuMode || 'hybrid';
+      const isDocked = root.dataset.amDockState === 'docked';
+      // Auto-docking on collapse caused lateral jump (right shift) in hybrid mode.
+      // Restrict repositioning to explicit 'docked' mode only.
+      const needsRepositioning = (!isDocked && !isCollapsed && mode === 'docked');
+
+      // Floating fade-reposition for expand (hybrid): if floating and expanding, fade out, dock, then expand
+      if (!isDocked && isCollapsed && mode === 'hybrid') {
+        root.style.transition = 'opacity 0.25s ease';
+        root.style.opacity = '0';
+        await new Promise(r => setTimeout(r, 250));
+        anchorActionMenu(root);
+        root.dataset.amDockState = 'docked';
+        computePositions();
+        const docScroll = window.scrollY || 0;
+        const collapsedPosTop = collapsedTop - docScroll;
+        root.style.top = collapsedPosTop + 'px';
+        root.style.transition = 'opacity 0.25s ease';
+        root.style.opacity = '1';
+        await new Promise(r => setTimeout(r, 250));
+        root.style.transition = '';
       }
-      
+
+      // Floating fade-reposition (hybrid): if floating and collapsing, fade out, dock near toolbar aligned to toolbar top, then collapse
+      if (!isDocked && !isCollapsed && mode === 'hybrid') {
+        // Record original floating transform / position so we can restore on expand
+        if (!root._floatingReturn) {
+          const rect = root.getBoundingClientRect();
+          root._floatingReturn = { left: rect.left, top: rect.top + (window.scrollY||0) };
+        }
+        // Fade out in place (no movement during fade)
+        root.style.transition = 'opacity 0.25s ease';
+        root.style.opacity = '0';
+        await new Promise(r => setTimeout(r, 250));
+        // While invisible, relocate to toolbar position
+        anchorActionMenu(root); // this will place it docked above toolbar (expanded position)
+        root.dataset.amDockState = 'docked';
+        // Force recompute positions with new docked location before collapse
+        computePositions();
+        // Move directly to collapsedTop before showing (so fade-in reveals it already aligned with toolbar top)
+        const docScroll = window.scrollY || 0;
+        const collapsedPosTop = collapsedTop - docScroll;
+        root.style.top = collapsedPosTop + 'px';
+        root.style.transition = 'opacity 0.25s ease';
+        root.style.opacity = '1';
+        await new Promise(r => setTimeout(r, 250));
+        root.style.transition = '';
+      }
+
+      // If about to collapse and not docked -> reposition first so collapse animation is consistent (still allowed)
+      if (needsRepositioning) {
+        root.style.transition = 'opacity 0.18s ease';
+        root.style.opacity = '0';
+        await new Promise(r => setTimeout(r, 180));
+        anchorActionMenu(root);
+        root.dataset.amDockState = 'docked';
+        root.style.opacity = '1';
+        await new Promise(r => setTimeout(r, 160));
+        root.style.transition = '';
+        // After docking, recompute positions
+        computePositions();
+      }
+
       isCollapsed = !isCollapsed;
       updateCollapseState(isCollapsed);
+
+      // If expanding from docked but we have a stored floating return position (hybrid flow), fade back to float position after expansion
+      // Removed return-to-floating on expand; menu remains docked unless user drags again.
     });
+
+    // If user starts dragging while collapsed and translated, reset translation so drag origin is correct
+    root.addEventListener('pointerdown', (ev) => {
+      if (ev.target.closest('.am-collapse-toggle')) return;
+      // Invalidate stored positions so next toggle recomputes accurate expanded/collapsed targets
+      collapsedTop = null; headerHeight = null;
+    }, { capture: true });
+    window.addEventListener('resize', () => { collapsedTop = null; headerHeight = null; });
+
+    // Finally apply initial collapsed/expanded state now that variables exist
+    updateCollapseState(isCollapsed);
   };
   
   setupCollapseToggle();
