@@ -9,6 +9,12 @@ import { store } from '../../bootstrap/index.js';
 import { nextTurn, diceSetAllKept } from '../../core/actions.js';
 import { createPositioningService } from '../../services/positioningService.js';
 
+// When the mobile action menu is opened (toggled visible), shift it 100px further left
+// to satisfy requirement: "x coordinates of the menu should decrease by 100px".
+// We measure post-layout and then convert from right-anchored positioning to an explicit left value
+// so width remains unchanged (pure translation) and we clamp to viewport (>= 0px).
+const MOBILE_MENU_OPEN_SHIFT_X = 160; // px (updated per requirement to shift further left)
+
 export function build({ selector }) {
   const checkMobile = () => {
     const width = window.innerWidth;
@@ -57,8 +63,14 @@ export function build({ selector }) {
   const setupMobile = () => {
     const isMobile = checkMobile();
     if (isMobile) {
-      // Hide the main action menu initially and disable dragging
-      root.style.display = 'none';
+      // Remove the actions label entirely so it cannot display in mobile
+      const labelEl = root.querySelector('.am-label');
+      if (labelEl) {
+        if (!root._storedAmLabelHTML) root._storedAmLabelHTML = labelEl.outerHTML;
+        labelEl.remove();
+      }
+  // Hide the main action menu initially and disable dragging (mobile collapsed by default)
+  root.style.display = 'none';
       root.setAttribute('data-draggable','false');
       // Remove any existing toggle
       const existingBtn = document.getElementById('action-menu-mobile-btn');
@@ -66,27 +78,142 @@ export function build({ selector }) {
       const btn = document.createElement('div');
       btn.id = 'action-menu-mobile-btn';
       btn.className = 'action-menu-mobile-btn';
-      btn.innerHTML = '\u2630';
-      btn.setAttribute('aria-label','Toggle Action Menu');
+      btn.innerHTML = '◀'; // left arrow indicates menu will expand to left
+      btn.setAttribute('aria-label','Expand Action Menu');
       Object.assign(btn.style, {
-        position:'fixed', bottom:'20px', right:'20px', width:'50px', height:'50px', background:'linear-gradient(135deg,#ffcf33 0%, #ffb300 100%)', border:'3px solid #333', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24px', cursor:'pointer', boxShadow:'0 4px 12px rgba(0,0,0,0.3)', zIndex:'1500', transition:'transform 0.2s ease'
+        position:'fixed', bottom:'20px', right:'20px', width:'50px', height:'50px', background:'linear-gradient(135deg,#ffcf33 0%, #ffb300 100%)', border:'3px solid #333', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24px', cursor:'pointer', boxShadow:'0 4px 12px rgba(0,0,0,0.3)', zIndex:'7500', transition:'transform 0.2s ease'
       });
       btn.addEventListener('click', () => {
         const open = root.style.display !== 'none';
         if (open) {
+          // Collapse (hide) and restore fonts
           root.style.display = 'none';
           btn.style.transform = 'scale(1)';
           document.body.removeAttribute('data-action-menu-open');
+          root.classList.remove('mobile-bottom-horizontal');
+          const scaled = root.querySelectorAll('[data-mobile-font-scaled]');
+          scaled.forEach(el => {
+            const orig = el.getAttribute('data-orig-font-size');
+            if (orig) el.style.fontSize = orig;
+            el.removeAttribute('data-mobile-font-scaled');
+            el.removeAttribute('data-orig-font-size');
+          });
+          if (root._mobileFitHandler) window.removeEventListener('resize', root._mobileFitHandler);
+          btn.innerHTML = '◀';
+          btn.setAttribute('aria-label','Expand Action Menu');
         } else {
+          const gap = 8; // px gap between menu and button
+          const buttonWidth = 50; // consistent with style
+          // Base layout
           root.style.display = 'flex';
+          root.style.flexDirection = 'row';
           root.style.position = 'fixed';
-          root.style.bottom = '80px';
-          root.style.right = '20px';
+          // Align top of menu with top of circular button
+          const btnRect = btn.getBoundingClientRect();
+          const topPos = Math.max(0, btnRect.top); // button top in viewport
+          root.style.top = topPos + 'px';
+          root.style.bottom = 'auto';
           root.style.left = 'auto';
-          root.style.top = 'auto';
           root.style.transform = 'none';
-          root.style.zIndex = '7000';
+          root.style.zIndex = '7400';
+          root.style.flexWrap = 'nowrap';
+          // Use full available width from a small left margin up to the left of the circular button
+          const vw = window.innerWidth;
+          const rightOffset = 20 + buttonWidth + gap; // distance from right edge (button + spacing)
+          let maxWidth = vw - rightOffset - 8; // leave small safety padding from extreme left edge visually if design permits
+          if (maxWidth < 100) maxWidth = vw * 0.65; // safety fallback for ultra-narrow
+          root.style.maxWidth = Math.floor(maxWidth) + 'px';
+          root.style.left = 'auto'; // do not force anchor to absolute left
+          // Position from right
+          root.style.right = rightOffset + 'px';
+          // After initial layout, shift menu 100px left (decrease x coordinate) while preserving width
+          requestAnimationFrame(() => {
+            try {
+              const rect = root.getBoundingClientRect();
+              let newLeft = rect.left - MOBILE_MENU_OPEN_SHIFT_X;
+              if (newLeft < 0) newLeft = 0; // clamp so it never goes off-screen left
+              root.style.left = newLeft + 'px';
+              root.style.right = 'auto'; // switch to left-anchored positioning after shift
+            } catch(_) {}
+          });
+          // Compact padding for mobile horizontal mode
+          root.style.padding = '4px 6px 6px';
+          // Horizontal content setup
+          const content = root.querySelector('.am-content');
+          if (content) {
+            content.style.display = 'flex';
+            content.style.flexDirection = 'row';
+            content.style.flexWrap = 'nowrap';
+            content.style.alignItems = 'center';
+            content.style.gap = '8px';
+            content.style.maxHeight = 'none';
+            content.style.opacity = '1';
+            content.style.overflowX = 'hidden'; // we attempt fit first
+            content.style.overflowY = 'hidden';
+            content.style.maxWidth = '100%';
+            content.style.paddingRight = '2px';
+            content.classList.add('mobile-bottom-horizontal');
+            content.style.scrollbarWidth = 'none';
+            content.style.msOverflowStyle = 'none';
+          }
+          root.classList.add('mobile-bottom-horizontal');
+          // Enforce button widths auto (not 100%)
+          const allBtns = root.querySelectorAll('button');
+          allBtns.forEach(b => { b.style.width=''; b.style.flex='0 0 auto'; });
+          // Auto-fit: shrink fonts so all buttons fit within maxWidth; fallback to overflow-x:auto if min font hit
+          const buttons = [...root.querySelectorAll('button')];
+          // Defensive: remove any lingering min-width constraints in mobile horizontal state
+          buttons.forEach(b => { b.style.minWidth = 'auto'; });
+          buttons.forEach(b => {
+            if (!b.getAttribute('data-orig-font-size')) b.setAttribute('data-orig-font-size', window.getComputedStyle(b).fontSize);
+          });
+          const attemptFit = () => {
+            if (!root.isConnected) return;
+            // restore fonts
+            buttons.forEach(b => {
+              const orig = b.getAttribute('data-orig-font-size');
+              if (orig) b.style.fontSize = orig;
+            });
+            const total = buttons.reduce((acc, b) => acc + b.getBoundingClientRect().width, 0);
+            const containerWidth = root.getBoundingClientRect().width - 4; // small buffer
+            if (total <= containerWidth) return; // fits already
+            // scale attempt
+            const scale = containerWidth / total;
+            buttons.forEach(b => {
+              const origPx = parseFloat(b.getAttribute('data-orig-font-size')) || 18;
+              let newSize = Math.max(12, Math.floor(origPx * scale));
+              b.style.fontSize = newSize + 'px';
+              b.setAttribute('data-mobile-font-scaled','true');
+            });
+            // Re-measure: if still overflow and we hit min, allow horizontal scroll
+            const newTotal = buttons.reduce((acc, b) => acc + b.getBoundingClientRect().width, 0);
+            if (newTotal > containerWidth && content) {
+              content.style.overflowX = 'auto';
+            }
+          };
+          setTimeout(attemptFit, 0);
+          root._mobileFitHandler = () => {
+            const bRect = btn.getBoundingClientRect();
+            root.style.top = Math.max(0, bRect.top) + 'px';
+            // Recompute width fully available again
+            const vw2 = window.innerWidth;
+            let newMax = vw2 - rightOffset - 8;
+            if (newMax < 100) newMax = vw2 * 0.65;
+            root.style.maxWidth = Math.floor(newMax) + 'px';
+            setTimeout(attemptFit, 60);
+          };
+          window.addEventListener('resize', root._mobileFitHandler);
+          // Inject upward submenu style (once)
+          const styleId = 'am-mobile-submenu-upward';
+            if (!document.getElementById(styleId)) {
+              const st = document.createElement('style');
+              st.id = styleId;
+              st.textContent = `@media (max-width:760px){ .mobile-bottom-horizontal .power-cards-submenu { top:auto !important; bottom:100% !important; margin-bottom:6px !important; max-height:40vh; overflow:auto; } }`;
+              document.head.appendChild(st);
+            }
           btn.style.transform = 'scale(0.9)';
+          btn.innerHTML = '▶'; // right arrow indicates collapse direction
+          btn.setAttribute('aria-label','Collapse Action Menu');
           document.body.setAttribute('data-action-menu-open','true');
         }
       });
@@ -101,33 +228,39 @@ export function build({ selector }) {
         bubble.className = 'active-player-bubble';
         bubble.innerHTML = `<div class="apb-avatar" aria-label="Active Player"></div><div class="apb-name" data-apb-name></div>`;
         Object.assign(bubble.style, {
-          position:'fixed', bottom:'20px', right:'88px', /* 50px button + 18px gap */
+          position:'fixed', top:'10px', left:'10px', transform:'none',
           display:'flex', flexDirection:'row', alignItems:'center', gap:'10px',
           padding:'6px 10px 6px 6px', background:'linear-gradient(135deg,#2d3436,#1b1f20)',
-          border:'3px solid #000', borderRadius:'40px', boxShadow:'0 4px 12px rgba(0,0,0,0.35)', zIndex:'1500',
+          border:'3px solid #000', borderRadius:'40px', boxShadow:'0 4px 12px rgba(0,0,0,0.35)', zIndex:'7500',
           fontFamily:'Bangers,cursive', letterSpacing:'1px', cursor:'pointer'
         });
         const avatarEl = bubble.querySelector('.apb-avatar');
         Object.assign(avatarEl.style, {
-          width:'48px', height:'48px', borderRadius:'50%', background:'#222 center/cover no-repeat',
-          border:'3px solid #000', boxShadow:'2px 2px 0 #000'
+          width:'48px', height:'48px', borderRadius:'50%',
+          /* White background behind monster/player image */
+          background:'#fff center/cover no-repeat',
+          border:'3px solid #000', boxShadow:'2px 2px 0 #000',
+          overflow:'hidden', position:'relative'
         });
         const nameEl = bubble.querySelector('[data-apb-name]');
         Object.assign(nameEl.style, { color:'#fff', fontSize:'18px', maxWidth:'120px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' });
         document.body.appendChild(bubble);
 
-        // Modal for full player card
-        const showFullCardModal = () => {
+        // Toggle modal for full player card (open if closed, close if open)
+        const toggleFullCardModal = () => {
           try {
-            if (document.getElementById('apb-player-card-modal')) return; // already open
+            const existing = document.getElementById('apb-player-card-modal');
+            if (existing) { existing.remove(); return; }
             const activeCard = document.querySelector('.cmp-player-profile-card.is-active, .cmp-player-profile-card[data-in-active-dock="true"]');
             if (!activeCard) return;
             const overlay = document.createElement('div');
             overlay.id = 'apb-player-card-modal';
             overlay.setAttribute('data-apb-modal','');
+            overlay.setAttribute('role','dialog');
+            overlay.setAttribute('aria-modal','true');
+            overlay.setAttribute('aria-label','Active Player Card');
             Object.assign(overlay.style, { position:'fixed', inset:'0', background:'rgba(0,0,0,0.65)', zIndex:'9000', display:'flex', alignItems:'center', justifyContent:'center', padding:'30px' });
             const cardClone = activeCard.cloneNode(true);
-            // Remove any transform used for docking
             cardClone.style.transform = 'scale(.95)';
             cardClone.style.position = 'static';
             cardClone.style.left = cardClone.style.top = '';
@@ -138,10 +271,19 @@ export function build({ selector }) {
             document.body.appendChild(overlay);
           } catch(_) {}
         };
-        bubble.addEventListener('click', showFullCardModal);
+        bubble.addEventListener('click', toggleFullCardModal);
       }
     } else {
       // Desktop: restore visibility & dragging
+      // Restore label if it was removed while in mobile
+      if (!root.querySelector('.am-label') && root._storedAmLabelHTML) {
+        try {
+          const temp = document.createElement('div');
+          temp.innerHTML = root._storedAmLabelHTML;
+          const restored = temp.firstElementChild;
+          if (restored) root.insertBefore(restored, root.firstChild);
+        } catch(_){ }
+      }
       root.style.display = 'flex';
       root.style.position = '';
       root.style.bottom = '';
@@ -193,6 +335,8 @@ export function build({ selector }) {
   
   // Setup collapse/expand functionality
   const setupCollapseToggle = () => {
+    // Disable collapse/expand mechanics entirely on mobile view
+    try { if (checkMobile()) return; } catch(_) {}
     const toggleBtn = root.querySelector('.am-collapse-toggle');
     const content = root.querySelector('.am-content');
     const arrowUp = root.querySelector('.arrow-up');
@@ -437,6 +581,19 @@ export function build({ selector }) {
   };
   
   setupCollapseToggle();
+  // Re-evaluate collapse toggle availability when transitioning from mobile to desktop
+  window.addEventListener('resize', () => {
+    try {
+      if (!checkMobile()) {
+        // If collapse toggle not wired (arrow listeners absent) try again
+        const toggleBtn = root.querySelector('.am-collapse-toggle');
+        if (toggleBtn && !toggleBtn._desktopWired) {
+          setupCollapseToggle();
+          toggleBtn._desktopWired = true;
+        }
+      }
+    } catch(_) {}
+  });
   
   // Ensure proper positioning for desktop after initial render
   setTimeout(() => {
@@ -471,7 +628,35 @@ export function build({ selector }) {
     const action = btn.getAttribute('data-action');
     // Clean click handling without verbose diagnostics
     switch(action){
-      case 'roll': eventBus.emit('ui/dice/rollRequested'); break;
+      case 'roll': {
+        // Mobile enhancement: ensure dice tray is visible before rolling
+        if (checkMobile()) {
+          try {
+            const tray = document.querySelector('.cmp-dice-tray');
+            if (tray) {
+              const collapsed = tray.getAttribute('data-collapsed') === 'left';
+              if (collapsed) {
+                // Expand tray first
+                tray.setAttribute('data-collapsed','none');
+                // Attempt to apply its mobile offset recalculation if available
+                if (tray._applyMobileOffset) {
+                  try { tray._applyMobileOffset(); } catch(_) {}
+                }
+                // Delay roll emit just past tray transition (~320ms configured) for smoother UX
+                if (!root._pendingMobileRoll) {
+                  root._pendingMobileRoll = true;
+                  setTimeout(() => {
+                    eventBus.emit('ui/dice/rollRequested');
+                    root._pendingMobileRoll = false;
+                  }, 340);
+                }
+                break; // exit switch early, don't emit immediately
+              }
+            }
+          } catch(_) {}
+        }
+        eventBus.emit('ui/dice/rollRequested');
+        break; }
       case 'keep': {
         // Behavior: when in ROLL phase with resolved dice, mark all dice as kept (visual shift up)
         if (st.phase === 'ROLL' && st.dice?.phase === 'resolved' && (st.dice.faces?.length||0) > 0) {
@@ -885,10 +1070,18 @@ export function update(root) {
   // Mobile/touch: horizontal layout and hamburger toggle behavior
   const isTouch = matchMedia('(pointer: coarse)').matches || window.innerWidth <= 760;
   if (isTouch) {
-    root.setAttribute('data-layout','horizontal');
+  root.setAttribute('data-layout','horizontal');
+  // Hide collapse toggle & label explicitly in mobile view (defensive)
+  const collapseToggle = root.querySelector('.am-collapse-toggle');
+  if (collapseToggle) collapseToggle.style.display = 'none';
+  const labelEl = root.querySelector('.am-label');
+  if (labelEl) { labelEl.style.display = 'none'; labelEl.setAttribute('data-force-hidden','true'); }
+  // Defensive: hide any ms-label (if present from other components) in mobile view
+  const msLabel = root.querySelector('.ms-label');
+  if (msLabel) { msLabel.style.display = 'none'; msLabel.setAttribute('data-force-hidden','true'); }
     // Position as a top-left drawer; hidden by default until hamburger toggles
     if (!root._hbWired) {
-      root._hbWired = true;
+  root._hbWired = true;
       // Ensure backdrop element exists for outside-click close
       let backdrop = document.querySelector('.action-menu-backdrop');
       if (!backdrop) {

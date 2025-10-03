@@ -33,6 +33,13 @@ export function build({ selector, emit }) {
   const setupMobile = () => {
     const isMobile = checkMobile();
     if (isMobile) {
+      // Ensure tray-outer remains visible (undo previous hide logic)
+      try {
+        const outer = root.querySelector('[data-tray-outer]');
+        if (outer && outer.style.display === 'none') {
+          outer.style.display = outer._origDisplay || '';
+        }
+      } catch(_) {}
       // Use attribute-driven approach consistent with CSS (data-collapsed="left" hides off-screen)
       const firstInit = !root.hasAttribute('data-mobile-init');
       root.setAttribute('data-mobile-init','true');
@@ -70,16 +77,17 @@ export function build({ selector, emit }) {
         try {
           const rect = toggleBtn.getBoundingClientRect();
           const gap = 8; // desired clearance past button's right edge
-            const offset = Math.round(rect.left + rect.width + gap);
+          const offset = Math.round(rect.left + rect.width + gap);
           root.style.left = offset + 'px';
-          root.style.width = `calc(100vw - ${offset}px)`;
+          // Reduce current expansion by additional 10px per request
+          root.style.width = `calc(100vw - ${offset + 10}px)`;
           // Recompute current transform based on collapsed state
           const collapsed = root.getAttribute('data-collapsed') === 'left';
           root.style.transform = collapsed ? 'translateX(-100%)' : 'translateX(0)';
         } catch(_) {
           // Fallback: full width if measurement fails
           root.style.left = '0';
-          root.style.width = '100vw';
+          root.style.width = 'calc(100vw - 10px)';
         }
       };
       toggleBtn.addEventListener('click', () => {
@@ -103,7 +111,7 @@ export function build({ selector, emit }) {
       window.addEventListener('resize', applyMobileOffset, { once:false });
       root._applyMobileOffset = applyMobileOffset;
     } else {
-      // Clean up mobile state
+      // Clean up mobile state (tray-outer already visible)
       const existingBtn = document.getElementById('dice-toggle-btn');
       if (existingBtn) existingBtn.remove();
       root.removeAttribute('data-mobile-init');

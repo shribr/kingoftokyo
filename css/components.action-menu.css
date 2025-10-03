@@ -290,7 +290,6 @@
   color: #fff !important;
   text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000 !important;
   min-height: 48px !important;
-  width: 100% !important;
   padding: 8px 12px !important;
   border: 2px solid #000 !important;
   border-radius: 6px !important;
@@ -311,7 +310,7 @@
   color: #fff !important;
 }
 .cmp-action-menu[data-layout="vertical"] { flex-direction:column; flex-wrap:nowrap; width:260px; }
-.cmp-action-menu button { flex:0 0 auto; width:100%; max-width:100%; }
+.cmp-action-menu[data-layout="vertical"] button { width:100%; max-width:100%; }
 .cmp-action-menu { row-gap:12px; }
 .cmp-action-menu button {
   --btn-bg:#ffdf3d; /* brighter gold */
@@ -391,14 +390,16 @@
 
 /* --- Mobile/touch layout: menu is fully hidden until opened (no slide animation) --- */
 @media (max-width: 760px) {
+  /* Force-hide actions label in mobile regardless of earlier flex display */
+  .cmp-action-menu .am-label { display:none !important; width:0 !important; height:0 !important; overflow:hidden !important; padding:0 !important; margin:0 !important; }
   /* Mobile: anchor from bottom corners and expand upward, consistent width and full-width buttons */
   .cmp-action-menu {
     position: fixed;
-    top: auto; left: 8px; right: auto;
+    top: auto; left: auto; right: auto;
     /* bottom is computed dynamically from the triggering button via JS */
     width: max-content;
     max-width: calc(100vw - 16px);
-    min-width: 160px;
+    /* removed min-width to allow natural shrink */
   flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
@@ -453,10 +454,12 @@
   .cmp-action-menu .am-label { display:none; }
   /* Auto-size to longest item; keep a reasonable min-width */
   .cmp-action-menu { width: max-content; max-width: calc(100vw - 16px); padding:10px 10px 12px; }
-  .cmp-action-menu button { width: auto; flex: 0 0 auto; min-width: 140px; }
+  .cmp-action-menu button { width: auto; flex: 0 0 auto; min-width: 0; }
   .cmp-action-menu[data-draggable="true"] { cursor: default; }
   /* Tighten vertical spacing further when scroll engaged */
   .cmp-action-menu button + button { margin-top:2px; }
+  /* Ensure expanded action menu content has a consistent min width on mobile */
+  .cmp-action-menu .am-content[data-collapsed="false"] { min-width:480px; }
   /* Power cards submenu adjustments for cramped space */
   .power-cards-submenu { 
     padding:6px; 

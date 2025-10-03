@@ -546,3 +546,8 @@
 }
 @keyframes ppcRipple { 0% { box-shadow:0 0 0 0 rgba(255,255,255,.6); opacity:1; } 45% { box-shadow:0 0 0 14px rgba(255,255,255,.25); opacity:.9; } 100% { box-shadow:0 0 0 26px rgba(255,255,255,0); opacity:0; } }
 
+/* Mobile floor: ensure player/monster name never smaller than CPU label (>=20px) */
+@media (max-width: 760px), (pointer: coarse) {
+  .cmp-player-profile-card .ppc-name { font-size:20px !important; }
+}
+
