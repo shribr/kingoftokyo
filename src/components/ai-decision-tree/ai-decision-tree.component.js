@@ -564,7 +564,7 @@ function renderModernView(root, tree, container) {
   const roundHTML = tree.rounds.map(r=>{
     const rKey = String(r.round);
     const openR = localState.openRounds.has(rKey);
-    const turnsHTML = openR ? r.turns.map(t=>{
+    const turnsHTML = openR ? r.turns.map((t, tIndex)=>{
       const tKey = `${r.round}:${t.turn}`;
       const openT = localState.openTurns.has(tKey);
       const rollsFilteredStage = t.rolls.filter(roll => {
@@ -577,9 +577,11 @@ function renderModernView(root, tree, container) {
       const consideredRolls = t.rolls.filter(rr => localState.includeHuman || rr.isCpu);
       const actualCount = consideredRolls.filter(rr=> rr.stage !== 'pre').length;
       const preCount = consideredRolls.filter(rr=> rr.stage === 'pre').length;
+      // Calculate turn number within the round (1-based)
+      const turnInRound = tIndex + 1;
       return `<div class="adt-turn">
         <div class="adt-turn-header" data-turn-header data-turn-key="${tKey}">
-          <span class="caret ${openT?'open':''}"></span> Turn ${t.turn + 1} <span class="meta">(${actualCount} roll${actualCount!==1?'s':''}${localState.mode==='verbose' && preCount?`, +${preCount} pre`:''})</span>
+          <span class="caret ${openT?'open':''}"></span> Turn ${turnInRound} <span class="meta">(${actualCount} roll${actualCount!==1?'s':''}${localState.mode==='verbose' && preCount?`, +${preCount} pre`:''})</span>
         </div>
         <div class="adt-rolls">${rollsHTML}</div>
       </div>`;

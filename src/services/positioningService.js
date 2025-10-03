@@ -156,6 +156,86 @@ export function createPositioningService(store) {
   function resetPositions() {
     try { localStorage.removeItem(STORAGE_KEY); } catch(_) {}
     store.dispatch(uiPositionsReset());
+    
+    // Clear all draggable element transforms first
+    const draggableElements = document.querySelectorAll('[data-draggable="true"]');
+    draggableElements.forEach(el => {
+      el.style.transform = '';
+      el.style.left = '';
+      el.style.top = '';
+      el.style.right = '';
+      el.style.bottom = '';
+      el.style.position = '';
+    });
+    
+    // Function to position elements relative to toolbar
+    function positionRelativeToToolbar() {
+      const toolbar = document.querySelector('.cmp-toolbar');
+      const pauseButton = toolbar?.querySelector('[data-action="pause"]');
+      const diceBox = document.querySelector('.cmp-dice-tray');
+      const actionMenu = document.querySelector('.cmp-action-menu');
+      
+      if (toolbar && pauseButton && diceBox) {
+        const toolbarRect = toolbar.getBoundingClientRect();
+        const pauseRect = pauseButton.getBoundingClientRect();
+        const diceRect = diceBox.getBoundingClientRect();
+        
+        // Calculate dice tray position relative to toolbar
+        const padding = 20; // Space between toolbar and dice tray
+        const diceY = toolbarRect.top - diceRect.height - padding;
+        const diceX = pauseRect.left - diceRect.width; // Right edge of dice aligns with left edge of pause
+        
+        // Position dice tray
+        diceBox.style.position = 'fixed';
+        diceBox.style.left = `${diceX}px`;
+        diceBox.style.top = `${diceY}px`;
+        diceBox.style.transform = 'none';
+        
+        // Position action menu relative to toolbar (not absolute coordinates)
+        if (actionMenu) {
+          const actionRect = actionMenu.getBoundingClientRect();
+          
+          // Find the active player card to align with
+          const activePlayerCard = document.querySelector('.cmp-player-profile-card.is-active, .player-profile-card.is-active');
+          
+          let menuX;
+          if (activePlayerCard) {
+            const activeCardRect = activePlayerCard.getBoundingClientRect();
+            // Left edge of action menu aligns with left edge of active player card
+            menuX = activeCardRect.left;
+          } else {
+            // Fallback: use toolbar + half button width if no active player card found
+            const toolbarButton = toolbar.querySelector('.toolbar-btn');
+            const buttonWidth = toolbarButton ? toolbarButton.getBoundingClientRect().width : 50;
+            menuX = toolbarRect.right + (buttonWidth / 2);
+          }
+          
+          // Y: Bottom of action menu aligns with bottom of toolbar (moves with toolbar)
+          const menuY = toolbarRect.bottom - actionRect.height;
+          
+          actionMenu.style.position = 'fixed';
+          actionMenu.style.left = `${menuX}px`;
+          actionMenu.style.top = `${menuY}px`;
+          actionMenu.style.right = 'auto';
+          actionMenu.style.transform = 'none';
+        }
+      }
+    }
+    
+    // Position elements initially
+    positionRelativeToToolbar();
+    
+    // Re-position on window resize to keep elements in sync
+    const resizeHandler = () => positionRelativeToToolbar();
+    window.addEventListener('resize', resizeHandler);
+    
+    // Store the handler so we can remove it if needed
+    if (window.__KOT_RESIZE_HANDLER__) {
+      window.removeEventListener('resize', window.__KOT_RESIZE_HANDLER__);
+    }
+    window.__KOT_RESIZE_HANDLER__ = resizeHandler;
+    
+    console.log(`[PositioningService] Reset positions relative to toolbar with resize sync`);
   }
 
   function applyTransform(el, x, y) {
@@ -194,8 +274,10 @@ export function createPositioningService(store) {
       return obj && obj[name] ? { x: obj[name].x, y: obj[name].y } : null;
     } catch(_) { return null; }
   };
+  
   // Listen for global reset event
-  eventBus.on('ui/positions/resetRequested', () => resetPositions());
+  eventBus.on('ui/positions/reset', () => resetPositions());
+  
   if (typeof window !== 'undefined') {
     window.__KOT_NEW_POSITIONS__ = singleton;
   }

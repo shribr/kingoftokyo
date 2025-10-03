@@ -82,9 +82,5 @@ export function bindUIEventBridges(store) {
   });
   // Subscribe to store to detect dice sequence completion for phase advancement
   store.subscribe(maybeAdvancePhase);
-  // Handle UI reset positions event (emitted by dev or future control)
-  eventBus.on('ui/positions/reset', () => {
-    const ps = createPositioningService(store);
-    ps.resetPositions();
-  });
+  // Position reset is now handled directly by positioningService
 }
