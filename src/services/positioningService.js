@@ -265,6 +265,27 @@ export function createPositioningService(store) {
   }
 
   singleton = { makeDraggable, hydrate, resetPositions };
+  // On first creation, perform an initial layout reset BEFORE components become visible if persistence disabled
+  try {
+    const st = store.getState();
+    const persist = !!st.settings?.persistPositions;
+    if (!persist) {
+      // Temporarily hide dice tray & action menu to avoid flicker during reset
+      const dice = document.querySelector('.cmp-dice-tray');
+      const menu = document.querySelector('.cmp-action-menu');
+      if (dice) dice.style.visibility = 'hidden';
+      if (menu) menu.style.visibility = 'hidden';
+      // Defer reset slightly so DOM elements from other components mount first
+      requestAnimationFrame(() => {
+        try { resetPositions(); } catch(_) {}
+        // Reveal after positioning applied
+        requestAnimationFrame(() => {
+          if (dice) dice.style.visibility = '';
+          if (menu) menu.style.visibility = '';
+        });
+      });
+    }
+  } catch(_) {}
   // Non-breaking convenience for components needing to check stored positions
   singleton.getPersistedPosition = function(name) {
     try {

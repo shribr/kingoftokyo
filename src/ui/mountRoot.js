@@ -1,5 +1,6 @@
 /** ui/mountRoot.js */
 import { eventBus } from '../core/eventBus.js';
+import { store } from '../bootstrap/index.js';
 import { selectActivePlayer, selectEffectQueueState } from '../core/selectors.js';
 
 // Registry for built components
@@ -164,7 +165,13 @@ function ensureAppRoot() {
     const shell = document.createElement('div');
     shell.className = 'game-layout-shell';
     shell.innerHTML = `
-  <header class="gl-header"><h1 class="gl-title" data-game-title>King of Tokyo</h1><div class="ai-thinking-banner" data-ai-thinking hidden><span class="label">AI Thinking</span><span class="dots" aria-hidden="true"></span></div></header>
+  <header class="gl-header">
+    <div class="gl-head-spacer gl-head-left" data-gl-head-left></div>
+    <h1 class="gl-title" data-game-title>King of Tokyo</h1>
+    <div class="gl-head-spacer gl-head-right" data-gl-head-right>
+      <div class="ai-thinking-banner" data-ai-thinking hidden><span class="label">AI Thinking</span><span class="dots" aria-hidden="true"></span></div>
+    </div>
+  </header>
       <div class="gl-main">
         <div class="gl-left" data-gl-left></div>
         <div class="gl-center" data-gl-center>
@@ -199,6 +206,15 @@ export function setAIThinking(isThinking) {
     console.log('❌ AI thinking banner not found');
     return;
   }
+  // Only show when active player is CPU (ai flags)
+  try {
+    const st = store.getState();
+    const active = selectActivePlayer(st);
+    const isCpu = !!(active && (active.isCPU || active.isAi || active.isAI || active.type === 'ai'));
+    if (!isCpu) {
+      isThinking = false; // force hide if human turn
+    }
+  } catch(_) {}
   
   // Check if should be in footer (width < 1100px or mobile touch)
   const shouldBeInFooter = window.innerWidth < 1100 || matchMedia('(pointer: coarse)').matches;
@@ -213,35 +229,55 @@ export function setAIThinking(isThinking) {
     footerExists: !!footer
   });
   
-  if (shouldBeInFooter && footer && banner.parentElement?.classList.contains('gl-header')) {
-    // Move banner to footer area between mobile buttons
-    console.log('📍 Moving AI banner to footer');
+  const moveToFooter = () => {
+    if (!footer) return;
+    if (banner.classList.contains('footer-positioned')) return; // already
+    banner.classList.add('footer-enter');
     footer.appendChild(banner);
-    banner.classList.add('footer-positioned');
-  } else if (!shouldBeInFooter && banner.parentElement === footer) {
-    // Move banner back to header for desktop
-    console.log('📍 Moving AI banner back to header');
-    const header = document.querySelector('.gl-header');
-    if (header) {
-      header.appendChild(banner);
-      banner.classList.remove('footer-positioned');
-    }
-  }
+    requestAnimationFrame(() => {
+      banner.classList.add('footer-positioned','footer-enter-active');
+      banner.addEventListener('transitionend', () => {
+        banner.classList.remove('footer-enter','footer-enter-active');
+      }, { once:true });
+    });
+  };
+  const moveToHeader = () => {
+    if (!banner.classList.contains('footer-positioned')) return; // already header
+    banner.classList.add('footer-exit');
+    // animate while still in footer, then move
+    banner.classList.add('footer-exit-active');
+    banner.addEventListener('transitionend', () => {
+      const rightSpacer = document.querySelector('.gl-head-right');
+      if (rightSpacer) {
+        rightSpacer.appendChild(banner);
+        banner.classList.remove('footer-positioned','footer-exit','footer-exit-active');
+      }
+    }, { once:true });
+  };
+  if (shouldBeInFooter) moveToFooter(); else moveToHeader();
   
-  if (isThinking) {
-    if (banner.hasAttribute('hidden')) banner.removeAttribute('hidden');
-    // Ensure dot element has three phases (using ::before, ::after plus span)
+  const applyActiveState = () => {
     if (!banner.querySelector('.dots span')) {
       const span = document.createElement('span');
       banner.querySelector('.dots')?.appendChild(span);
     }
-    banner.classList.remove('out');
-  } else {
-    banner.classList.add('out');
-    banner.addEventListener('animationend', () => {
-      if (banner.classList.contains('out')) banner.setAttribute('hidden','');
-    }, { once:true });
-  }
+    banner.classList.add('is-active');
+    banner.classList.remove('out','leaving');
+    banner.removeAttribute('hidden');
+  };
+  const applyInactiveState = () => {
+    banner.classList.add('leaving');
+    banner.classList.remove('is-active');
+    const onDone = () => {
+      if (!banner.classList.contains('is-active')) {
+        banner.setAttribute('hidden','');
+      }
+      banner.removeEventListener('transitionend', onDone);
+      banner.classList.remove('leaving');
+    };
+    banner.addEventListener('transitionend', onDone);
+  };
+  if (isThinking) applyActiveState(); else applyInactiveState();
 }
 
 async function resolveComponent(buildRef, updateRef) {

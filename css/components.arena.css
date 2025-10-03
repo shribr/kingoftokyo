@@ -4,8 +4,47 @@
   /* Local tokens */
   --arena-gap: 16px;
   --slot-min-w: 240px;
-  --slot-min-h: 180px;
-  --slot-border: 3px dashed rgba(255, 255, 255, 0.30);
+  --slot-min-h: 180px/* Active player card positioning and animation - override all previous positioning */
+.cmp-player-profile-card[data-active-player="true"] {
+  position: fixed !important;
+  top: 80px !important;
+  right: 20px !important;
+  left: auto !important;
+  bottom: auto !important;
+  z-index: 6700 !important;
+  transform: scale(0.65) !important;
+  transform-origin: top right !important;
+  transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+  pointer-events: auto !important;
+  margin: 0 !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+/* Override any old slot-based positioning for active cards */
+#active-player-card-slot .cmp-player-profile-card[data-active-player="true"] {
+  position: fixed !important;
+  top: 80px !important;
+  right: 20px !important;
+  left: auto !important;
+  transform: scale(0.65) !important;
+  transform-origin: top right !important;
+}
+
+/* Glow effect when active card arrives */
+.cmp-player-profile-card[data-active-player="true"].active-glow {
+  box-shadow: 0 0 20px rgba(255, 212, 0, 0.8), 0 0 40px rgba(255, 212, 0, 0.4) !important;
+  animation: activePlayerGlow 2s ease-out forwards !important;
+}
+
+@keyframes activePlayerGlow {
+  0% { 
+    box-shadow: 0 0 20px rgba(255, 212, 0, 0.8), 0 0 40px rgba(255, 212, 0, 0.4);
+  }
+  100% { 
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+}  --slot-border: 3px dashed rgba(255, 255, 255, 0.30);
   --slot-bg: rgba(255, 255, 255, 0.03);
   --slot-radius: 12px;
   --active-scale: 0.82;
@@ -36,33 +75,22 @@
 .cmp-arena .city-slot,
 .cmp-arena .bay-slot {
   position: relative;
-  /* Match EXACT player profile card footprint */
+  /* Constrain to parent width; allow shrink without overflow */
   --card-w: 320px;
   --card-h: 200px;
-  min-width: var(--card-w);
-  min-height: var(--card-h);
+  width: 100%;
+  max-width: var(--card-w);
+  height: var(--card-h);
   border: 3px dashed rgba(255, 255, 255, 0.40);
   border-radius: 10px;
   background: rgba(0,0,0,0.35);
   box-shadow: 0 0 0 1px rgba(0,0,0,0.35) inset, 0 6px 14px rgba(0,0,0,0.25) inset;
-  overflow: visible;
+  overflow: hidden; /* prevent interior extending beyond dashed guide */
+  box-sizing:border-box;
 }
 
 /* Active Player area (right) */
-.cmp-arena .active-player-slot {
-  /* Match scaled player profile card footprint + 2px padding on each side (no stretching). */
-  --card-w: 260px;
-  --card-h: 180px;
-  /* The slot itself is scaled via transform; keep layout size at card size + padding */
-  width: calc(var(--card-w) + 4px);
-  height: calc(var(--card-h) + 4px);
-  position: relative;
-  border: 3px dashed rgba(255,212,0,.55);
-  border-radius: 10px;
-  background: rgba(0,0,0,.35);
-  display: flex; align-items: center; justify-content: center; box-sizing: border-box; overflow: visible;
-  z-index: 6500;
-}
+/* Active player slot infrastructure removed - card animates directly from monsters panel */
 
 /* When a card is docked, hide the dashed guide to avoid yellow peeking at edges */
 .cmp-arena .active-player-slot[data-occupied="true"] { border-color: transparent; }
@@ -81,8 +109,10 @@
   transform: translate(-50%, -50%);
   transform-origin: center center;
   margin: 0;
-  /* Neutralize any rotational accents while in the active dock */
   --tokyo-bay-rot: 0deg;
+  overflow: hidden; /* ensure interior content doesn't bleed out */
+  box-sizing: border-box;
+  /* Removed max-width and max-height constraints to allow free scaling */
 }
 
 /* Subtle glow when docking (triggered by JS by toggling .dock-glow) – white glow per request */
@@ -127,7 +157,7 @@
     grid-template-columns: 1fr 1fr;
     gap: 10px;
   }
-  .cmp-arena { --slot-min-w: 220px; --slot-min-h: 170px; --active-scale: 0.74; }
+  .cmp-arena { --slot-min-w: 220px; --slot-min-h: 170px; --active-scale: 0.66; }
   /* Ensure active area remains a fixed dotted box with centered scaled card */
   /* Active slot keeps fixed footprint; scaling is applied to dock element only */
   /* Slot centering handled by JS; avoid CSS transforms here to prevent 1px drift */
@@ -165,10 +195,30 @@
   --tokyo-tile-width: clamp(220px, 18vw, 320px);
 }
 .cmp-arena [data-arena-section="bay"],
-.cmp-arena [data-arena-section="city"],
-.cmp-arena [data-arena-section="active"] { flex:0 1 var(--tokyo-tile-width); max-width:var(--tokyo-tile-width); background:var(--arena-panel-bg); border:2px solid #333; padding:14px 14px 16px; border-radius:8px; text-align:center; position:relative; transform-origin:center center; }
+.cmp-arena [data-arena-section="city"] { 
+  flex: 0 0 auto; 
+  width: fit-content; 
+  height: fit-content;
+  background: var(--arena-panel-bg); 
+  border: 2px solid #333; 
+  padding: 12px; 
+  border-radius: 8px; 
+  text-align: center; 
+  position: relative; 
+  transform-origin: center center; 
+}
+/* Active section container removed - card positioned directly */
 .cmp-arena .city-slot,
-.cmp-arena .bay-slot { height:var(--arena-slot-height); border:var(--arena-slot-border); border-radius:6px; margin-top:12px; display:flex; align-items:center; justify-content:center; }
+.cmp-arena .bay-slot { 
+  width: 140px; 
+  height: 140px; 
+  border: var(--arena-slot-border); 
+  border-radius: 6px; 
+  margin: 12px auto; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+}
 
 .cmp-arena [data-round-indicator] { position:absolute; top:6px; left:6px; display:flex; flex-direction:row; align-items:center; gap:8px; padding:4px 12px 6px; background:var(--arena-round-color); border:3px solid #000; border-radius:40px; box-shadow:3px 3px 0 #000,0 0 0 2px #222 inset; z-index:10; }
 .cmp-arena [data-round-indicator] .round-indicator-label { font-family:'Bangers',cursive; font-size:1.05rem; letter-spacing:1px; color:#000; white-space:nowrap; display:flex; gap:6px; }
@@ -183,11 +233,13 @@
 
 /* Float the active player tile in the arena’s top-right corner with a bit of padding */
 .cmp-arena [data-arena-section="active"] { position:absolute; top:12px; right:12px; left:auto; bottom:auto; width:auto; }
-.cmp-arena [data-arena-section="active"] .active-player-slot { position:relative; border:3px dashed rgba(255,212,0,.55); border-radius:10px; background:rgba(0,0,0,.35); min-width:220px; min-height:170px; padding:0; display:flex; align-items:center; justify-content:center; box-sizing:border-box; overflow:visible; }
+/* Active player slot now uses fixed dimensions from CSS custom properties - no min-width/min-height */
+@media (max-width:760px), (pointer:coarse) {
+  /* Removed min-width/min-height overrides - slot uses fixed CSS custom property dimensions */
+}
 
 /* Make the docked card a bit smaller specifically when inside the active dock */
-/* Scale is applied on the dock container via JS so centering isn't broken; don't scale the card here. */
-[data-active-card-dock] .cmp-player-profile-card[data-in-active-dock="true"] { transform: translate(-50%, -50%); transform-origin:center center; }
+/* Scale is applied via JS in the transform, don't override it here */
 
 /* Attribute-based highlight states */
 .cmp-arena [data-arena-section][data-active="true"] { box-shadow:0 0 0 2px var(--accent-glow, rgba(0,200,255,0.4)); }
@@ -209,12 +261,13 @@
 .cmp-arena .bay-slot > *[data-active="true"] { transform:scale(1.05); filter:drop-shadow(0 0 6px rgba(0,200,255,0.6)); }
 
 /* Ensure Tokyo city/bay show the exact same player card UI, just scaled smaller */
+/* Tokyo city/bay embedded card scaling (desktop) */
 .cmp-arena .city-slot .cmp-player-profile-card,
 .cmp-arena .bay-slot .cmp-player-profile-card {
   width: 100%;
-  /* Remove forced full slot height so card can shrink to content */
   height: auto;
-  transform: scale(0.8);
+  /* Slightly smaller than active dock scale for contrast */
+  transform: scale(.75);
   transform-origin: center center;
 }
 /* Mini variant explicit sizing (clone in Tokyo) */
@@ -236,24 +289,28 @@
 /* Prevent legacy CSS from overriding slot/card sizing */
 .cmp-arena .city-slot,
 .cmp-arena .bay-slot,
-.cmp-arena .active-player-slot { all: revert-layer; }
+/* Reset layer override removed for active-player-slot to keep intended base sizing */
 .cmp-arena .city-slot,
-.cmp-arena .bay-slot,
-.cmp-arena .active-player-slot { /* re-apply our scoped rules after revert */
-  position: relative;
-}
+.cmp-arena .bay-slot { position: relative; }
 /* Entry flourish when card docks into Tokyo */
 /* Remove CSS-based settle animation; JS handles arrival glow and settle */
 .cmp-arena [data-active-card-dock] .cmp-player-profile-card.in-place { animation:none; }
 
 /* Mobile: keep City and Bay side-by-side, remove rotation */
 @media (max-width: 760px), (pointer: coarse) {
-  .cmp-arena [data-tokyo] { position:relative; top:auto; left:auto; transform:none; width:100%; flex-direction:row; flex-wrap:nowrap; justify-content:center; align-items:center; gap:16px; padding:10px 0; }
-  .cmp-arena { padding-bottom: 90px; }
+  /* Bring Tokyo tiles closer to top while retaining a small breathing space */
+  .cmp-arena { padding-top:12px; padding-bottom: 80px; }
+  .cmp-arena [data-round-indicator] { top:4px; }
+  .cmp-arena [data-tokyo] { position:relative; top:auto; left:auto; transform:none; width:100%; flex-direction:row; flex-wrap:nowrap; justify-content:center; align-items:flex-start; gap:14px; padding:2px 0 6px; margin-top:4px; }
   .cmp-arena [data-arena-section="city"],
   .cmp-arena [data-arena-section="bay"],
   .cmp-arena [data-arena-section="active"] { transform:rotate(0deg) scale(1); }
-  .cmp-arena [data-arena-section="active"] .active-player-slot { min-width:200px; }
+  /* Removed min-width override - slot uses fixed CSS custom property dimensions */
   /* Remove any CSS transform targeting the dock on mobile; JS sets precise centering */
   #active-player-card-slot[data-active-card-dock] { transform: none; }
+
+  /* Avatar Bubble Mode: hide the docked active card & slot; replaced by fixed bubble (in JS) */
+  /* Mobile only hide of active player slot/card */
+  .cmp-arena [data-arena-section="active"] .active-player-slot { opacity:0 !important; pointer-events:none !important; width:0 !important; height:0 !important; overflow:hidden !important; margin:0 !important; padding:0 !important; border:0 !important; }
+  /* Removed mobile hide rules - cards now position directly with CSS */
 }

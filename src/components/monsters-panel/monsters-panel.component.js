@@ -14,7 +14,7 @@ export function build({ selector, emit }) {
   root.setAttribute('data-draggable','true');
   root.innerHTML = panelTemplate();
   const instances = new Map();
-  ensureActiveDock();
+  // Remove ensureActiveDock() call - cards position directly now
   // Arrow logic: When expanded we want a glyph pointing toward the collapse direction (to the RIGHT edge -> ◄).
   // When collapsed (tab at right edge) we want arrow pointing back into viewport (►) to indicate expand.
   // Reverted arrow configuration (step back):
@@ -29,8 +29,21 @@ export function build({ selector, emit }) {
   
   // Set default view based on device type and handle responsive changes
   function setDefaultView() {
-    const isMobile = matchMedia('(max-width: 760px), (pointer: coarse)').matches;
+    const isMobile = (typeof window !== 'undefined' && typeof matchMedia === 'function') ? matchMedia('(max-width: 760px), (pointer: coarse)').matches : false;
     const currentView = root.getAttribute('data-view');
+    // Hide view toggle button on mobile (list-only)
+    try {
+      const toggle = root.querySelector('[data-view-toggle]');
+      if (toggle) {
+        if (isMobile) {
+          toggle.style.display = 'none';
+          toggle.setAttribute('aria-hidden','true');
+        } else {
+          toggle.style.display = '';
+          toggle.removeAttribute('aria-hidden');
+        }
+      }
+    } catch(_) {}
     // Only set default if no view is currently set
     if (!currentView) {
       if (isMobile) {
@@ -47,8 +60,10 @@ export function build({ selector, emit }) {
   setDefaultView();
   
   // Listen for viewport changes
-  const mobileQuery = matchMedia('(max-width: 760px), (pointer: coarse)');
-  mobileQuery.addEventListener('change', setDefaultView);
+  try {
+    const mobileQuery = matchMedia('(max-width: 760px), (pointer: coarse)');
+    mobileQuery.addEventListener('change', setDefaultView);
+  } catch(_) {}
   
   // Add view toggle event handler - cycles through list → tiled → stacked
   const toggleBtn = root.querySelector('[data-view-toggle]');
@@ -103,6 +118,8 @@ export function update(root, instances) {
   const state = store.getState();
   const order = selectPlayerOrder(state);
   const active = selectActivePlayer(state);
+  // Determine if currently in mobile mode (unified breakpoint logic)
+  const isMobile = matchMedia('(max-width: 760px), (pointer: coarse)').matches;
   
   // Cache expensive operations - only recalculate when relevant state changes
   const layoutCacheKey = JSON.stringify({
@@ -117,8 +134,12 @@ export function update(root, instances) {
     return;
   }
   root._lastLayoutCacheKey = layoutCacheKey;
-  // Determine layout mode (stacked | condensed | list)
-  const mode = state.settings?.playerCardLayoutMode || (state.settings?.stackedPlayerCards === false ? 'list' : 'stacked');
+  // Determine layout mode (stacked | condensed | list) - FORCE list on mobile
+  let mode = state.settings?.playerCardLayoutMode || (state.settings?.stackedPlayerCards === false ? 'list' : 'stacked');
+  if (isMobile && mode !== 'list') {
+    // Override to list view on mobile for usability (single column scroll)
+    mode = 'list';
+  }
   root.dataset.cardLayout = mode;
   const stacked = mode === 'stacked' || mode === 'condensed';
   root.classList.toggle('is-stacked', stacked); // retain legacy selector support
@@ -185,119 +206,58 @@ export function update(root, instances) {
   if (shouldDock) {
     const activeInst = instances.get(active.id);
     if (activeInst) {
-      const slot = ensureActiveDock();
-      // If a different player's card currently occupies the slot, move it back to the stack before docking the new one
+      // No more slot needed - card positions directly
+      const cardEl = activeInst.root;
+      // Clear any previous active player cards
       try {
-        const prev = slot.firstElementChild;
-        if (prev && prev !== activeInst.root) {
-          // Identify which player this card belongs to
-          const prevId = prev.getAttribute('data-player-id');
-          // Ensure any dock-only styles are cleared so it renders normally back in the stack
-          const cleanupFromDock = (el) => {
-            try {
-              el.style.visibility = '';
-              el.style.transition = '';
-              el.classList.remove('dock-glow','turn-pulse','attack-pulse','in-place');
-              el.removeAttribute('data-transitioning');
-              el.removeAttribute('data-in-active-dock');
-            } catch(_) {}
-          };
-          if (prevId && instances.has(prevId)) {
-            const prevInst = instances.get(prevId);
-            cleanupFromDock(prevInst.root);
-            // Make sure the instance is properly tracked
-            instances.set(prevId, prevInst);
-            // Insert the previous card back into the container at its canonical order position
-            const idx = order.indexOf(prevId);
-            if (idx >= 0) {
-              if (container.children[idx] !== prevInst.root) {
-                container.insertBefore(prevInst.root, container.children[idx] || null);
-              }
-            } else {
-              container.appendChild(prevInst.root);
-            }
-          } else {
-            // Fallback: append unknown node at end (should not happen)
-            cleanupFromDock(prev);
-            container.appendChild(prev);
+        const prevActiveCards = document.querySelectorAll('.cmp-player-profile-card[data-active-player="true"]');
+        prevActiveCards.forEach(prev => {
+          if (prev !== cardEl) {
+            const prevId = prev.getAttribute('data-player-id');
+            // Clean up previous active card
+            prev.removeAttribute('data-active-player');
+            prev.removeAttribute('data-in-active-dock');
+            prev.classList.remove('active-glow', 'dock-glow', 'turn-pulse', 'attack-pulse', 'in-place');
           }
-        }
-      } catch(_) {}
-      // If the active card is still in the list container, move it into the slot with travel animation
-      if (activeInst.root.parentElement === container) {
-        console.log(`🎴 Moving ${active.name} card to active dock`);
-        // Capture starting rect BEFORE moving DOM
-        const startRect = activeInst.root.getBoundingClientRect();
-        // Strip any existing animations/decorations immediately upon becoming active
-        try {
-          activeInst.root.classList.remove('dock-glow','attack-pulse','turn-pulse','in-place');
-          activeInst.root.style.animation = 'none';
-          // force reflow to clear animations
-          void activeInst.root.offsetWidth;
-        } catch(_) {}
-        // Create a transient fade placeholder at original location to smooth visual removal
-        try {
-          const ph = document.createElement('div');
-          ph.className = 'ppc-fade-placeholder';
-          ph.style.left = startRect.left + 'px';
-          ph.style.top = startRect.top + 'px';
-          ph.style.width = startRect.width + 'px';
-          ph.style.height = startRect.height + 'px';
-          document.body.appendChild(ph);
-          setTimeout(()=>ph.remove(), 520);
-        } catch(_){/* ignore */}
-        activeInst.root.setAttribute('data-transitioning','');
-  // Ensure slot is empty (previous occupant already returned to stack above)
-  slot.innerHTML = '';
-        slot.appendChild(activeInst.root);
-        // Immediately position (no hidden gap) to avoid flicker
-        requestAnimationFrame(() => {
-          positionActiveSlot(slot, activeInst.root, active);
-          // Small arrival glow; remove transitioning flag quickly
-          try {
-            activeInst.root.removeAttribute('data-transitioning');
-            activeInst.root.classList.add('in-place','dock-glow');
-            setTimeout(()=>activeInst.root.classList.remove('dock-glow'), 900);
-          } catch(_) {}
-          console.log(`🎴 ${active.name} card docked (instant, no travel animation)`);
         });
-      } else {
-        // Already docked: only re-assert positioning when something material changed to avoid flicker
-        try {
-          const st = store.getState();
-          const isCity = st.tokyo?.city === active.id;
-          const isBay = st.tokyo?.bay === active.id;
-          const target = document.querySelector('[data-active-player-slot]') || document.querySelector('[data-city-slot]') || document.querySelector('[data-bay-slot]');
-          const tRect = target ? target.getBoundingClientRect() : null;
-          const sig = JSON.stringify({ a: active.id, c: !!isCity, b: !!isBay, w: tRect?.width|0, h: tRect?.height|0, vw: window.innerWidth, vh: window.innerHeight });
-          if (root._lastDockSig !== sig) {
-            positionActiveSlot(slot, activeInst.root, active);
-            root._lastDockSig = sig;
-          }
-        } catch(_) {}
+      } catch(_) {}
+      
+      // Position the active card with the new approach
+      try {
+        positionActiveSlot(null, cardEl, active);
+      } catch(e) {
+        console.warn('Failed to position active card:', e);
       }
     }
   } else {
-    // If no active determined, ensure any floating card returns to panel
-    const slot = document.getElementById('active-player-card-slot');
-    if (slot && slot.firstChild) {
-      const card = slot.firstChild;
+    // If no active determined, ensure any active card returns to normal state
+    const activeCards = document.querySelectorAll('.cmp-player-profile-card[data-active-player="true"]');
+    activeCards.forEach(card => {
       const playerId = card.getAttribute('data-player-id');
-      // Clean up dock-specific styling
+      // Clean up active player styling
       try {
-        card.style.visibility = '';
-        card.style.transition = '';
-        card.classList.remove('dock-glow','turn-pulse','attack-pulse','in-place');
-        card.removeAttribute('data-transitioning');
+        card.removeAttribute('data-active-player');
         card.removeAttribute('data-in-active-dock');
+        card.classList.remove('active-glow', 'dock-glow', 'turn-pulse', 'attack-pulse', 'in-place');
+        card.removeAttribute('data-transitioning');
+        
+        // Restore previous draggable state if it was persisted
+        if (card._prevDraggableState) {
+          card.setAttribute('data-draggable', card._prevDraggableState);
+          if (card._prevDraggableState === 'true') {
+            // Re-init draggable if positioning service exists and wasn't already applied
+            try { positioning.makeDraggable && positioning.makeDraggable(card, `playerCard_${playerId}`); } catch(_){ }
+          }
+          delete card._prevDraggableState;
+        }
       } catch(_) {}
+      
       // Ensure the instance is properly tracked
       if (playerId && instances.has(playerId)) {
         const inst = instances.get(playerId);
         instances.set(playerId, inst);
       }
-      container.appendChild(card);
-    }
+    });
   }
   
   // Mark that initial layout is complete
@@ -363,86 +323,50 @@ function wireMobileSlideBehavior(cardEl, panelRoot) {
 
 function positionActiveSlot(slot, cardEl, activePlayer) {
   try {
-    // Dock into the appropriate arena tile (city or bay) based on current occupants
-    const arena = document.querySelector('.cmp-arena');
-    if (!arena) return;
-    const st = store.getState();
-  const isCity = st.tokyo?.city === activePlayer.id;
-  const isBay = st.tokyo?.bay === activePlayer.id;
-  // Always snap active player card to the dedicated Active Player tile to the right of Tokyo
-  const target = document.querySelector('[data-active-player-slot]') || document.querySelector('[data-city-slot]') || document.querySelector('[data-bay-slot]') || arena;
-    if (!target) return;
-    slot.removeAttribute('data-mini');
-    slot.style.position = 'relative';
-    slot.style.left = 'auto';
-    slot.style.right = 'auto';
-    slot.style.top = 'auto';
-    slot.style.bottom = 'auto';
-    // Ensure slot exists then append near the monster slot (overlay on top)
-    if (!slot.parentElement || slot.parentElement !== target.parentElement) {
-      target.parentElement.appendChild(slot);
+    // On mobile we suppress full-card docking; avatar bubble handles representation
+    const mobile = matchMedia('(max-width:760px), (pointer: coarse)').matches;
+    if (mobile) {
+      if (cardEl) {
+        cardEl.removeAttribute('data-active-player');
+        cardEl.removeAttribute('data-in-active-dock');
+      }
+      return;
     }
-    // Position over the monster slot (relative to the section container)
-    slot.style.position = 'absolute';
-    const tRect = target.getBoundingClientRect();
-    const pRect = target.parentElement ? target.parentElement.getBoundingClientRect() : arena.getBoundingClientRect();
-    // If docking into the dedicated active player slot, center the card within the slot
-    if (target.hasAttribute('data-active-player-slot')) {
-      // Append slot directly into the dotted area and center it precisely
-      target.appendChild(slot);
-      slot.style.position = 'absolute';
-      slot.style.left = '50%';
-      slot.style.top = '50%';
-      // Center without extra nudge; scale is applied here from CSS var --active-scale
-      slot.style.transform = 'translate(-50%, -50%) scale(var(--active-scale))';
-      // Adjust the active slot footprint to match the scaled card size + 2px padding per side
-      try {
-        // Use untransformed layout metrics to avoid double-scaling in calculations
-        const baseW = cardEl.offsetWidth || cardEl.getBoundingClientRect().width;
-        const baseH = cardEl.offsetHeight || cardEl.getBoundingClientRect().height;
-        const cs = getComputedStyle(slot);
-        const s = parseFloat(cs.getPropertyValue('--active-scale')) || 1;
-        const pad = 4; // 2px per side
-        const ts = getComputedStyle(target);
-        const bl = parseFloat(ts.borderLeftWidth) || 0;
-        const br = parseFloat(ts.borderRightWidth) || 0;
-        const bt = parseFloat(ts.borderTopWidth) || 0;
-        const bb = parseFloat(ts.borderBottomWidth) || 0;
-        const shadowAllowance = 10; // account for outer shadows/glow so the card never overflows
-        const w = Math.ceil(baseW * s) + pad + Math.ceil(bl + br) + shadowAllowance;
-        const h = Math.ceil(baseH * s) + pad + Math.ceil(bt + bb) + shadowAllowance;
-        // Only apply when values actually change to prevent layout thrash/flicker
-        const prevW = parseFloat(target.getAttribute('data-last-w') || '0');
-        const prevH = parseFloat(target.getAttribute('data-last-h') || '0');
-        if (Math.abs(w - prevW) > 0.5) { target.style.width = w + 'px'; target.setAttribute('data-last-w', String(w)); }
-        if (Math.abs(h - prevH) > 0.5) { target.style.height = h + 'px'; target.setAttribute('data-last-h', String(h)); }
-        target.style.boxSizing = 'border-box';
-        target.setAttribute('data-occupied','true');
-      } catch(_) {}
-    } else {
-      const left = (tRect.left - pRect.left) + 6;
-      const top = (tRect.top - pRect.top) + 6;
-      slot.style.left = left + 'px';
-      slot.style.top = top + 'px';
-      slot.style.transform = '';
+
+    // NEW APPROACH: Mark the card as active and let CSS handle the animation
+    if (cardEl) {
+      // Remove from any previous active state
+      document.querySelectorAll('.cmp-player-profile-card[data-active-player]').forEach(card => {
+        if (card !== cardEl) {
+          card.removeAttribute('data-active-player');
+          card.classList.remove('active-glow');
+        }
+      });
+
+      // Mark this card as the active player
+      cardEl.setAttribute('data-active-player', 'true');
+      cardEl.setAttribute('data-in-active-dock', 'true');
+      
+      // Disable dragging while active
+      if (!cardEl._prevDraggableState) {
+        cardEl._prevDraggableState = cardEl.getAttribute('data-draggable') || '';
+      }
+      cardEl.setAttribute('data-draggable', 'false');
+
+      // Add glow effect after animation completes
+      setTimeout(() => {
+        cardEl.classList.add('active-glow');
+        // Remove glow after 2 seconds
+        setTimeout(() => {
+          cardEl.classList.remove('active-glow');
+        }, 2000);
+      }, 600); // Match the CSS transition duration
     }
-    slot.style.zIndex = 6610;
-    // Mark card for active dock scale when placed here
-    try { if (cardEl) cardEl.setAttribute('data-in-active-dock','true'); } catch(_){ }
+
   } catch(_) {}
 }
 
-function ensureActiveDock() {
-  let dock = document.getElementById('active-player-card-slot');
-  if (dock) return dock;
-  dock = document.createElement('div');
-  dock.id = 'active-player-card-slot';
-  dock.setAttribute('data-active-card-dock','true');
-  // Attach to header active slot on mobile
-  const headerSlot = document.querySelector('[data-active-header]');
-  if (headerSlot) headerSlot.appendChild(dock); else (document.body.appendChild(dock));
-  return dock;
-}
+// ensureActiveDock function removed - cards position directly with CSS
 
 let lastActiveCardId = null;
 // smoothTravelToDock removed to eliminate flicker caused by visibility hiding; instant docking now used.

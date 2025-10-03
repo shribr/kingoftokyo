@@ -111,8 +111,9 @@ body[data-panels-force-overlay] .cmp-side-panel[data-side="right"][data-collapse
 [data-collapsed="true"] > .k-panel__body { display:none; }
 
 /* Monsters panel overrides */
-.cmp-monsters-panel.k-panel { background:linear-gradient(180deg,#2b3035,#1b1d1f); }
-.cmp-monsters-panel .mp-title { font-size:24px; }
+/* Monsters panel now uses same visual treatment as power cards panel */
+.cmp-monsters-panel.k-panel { background:linear-gradient(180deg,#30353a,#1d1f21); border-color:#222; box-shadow:2px 2px 0 #000,0 0 0 1px #222 inset; }
+.cmp-monsters-panel .mp-title { font-size:24px; color:#ffd400; display:flex; flex-direction:row; align-items:center; gap:8px; }
 .cmp-monsters-panel .mp-player-cards { font-family:system-ui,sans-serif; }
 
 /* Power Cards panel overrides (restored after card-shop removal) */
@@ -124,23 +125,8 @@ body[data-panels-force-overlay] .cmp-side-panel[data-side="right"][data-collapse
 .cmp-power-cards-panel.k-panel { background:linear-gradient(180deg,#30353a,#1d1f21); border-color:#222; box-shadow:2px 2px 0 #000,0 0 0 1px #222 inset; }
 
 /* Full-height side panels with scrolling */
-[data-gl-right] .cmp-monsters-panel {
-  /* Allow natural height unless it would exceed viewport; when too tall, scroll inside. */
-  max-height: calc(100vh - 140px);
-  height: auto; /* remove rigid fixed height that was visually cutting off content when internal layout changed */
-  overflow-y: auto;
-  /* Custom scrollbar for Firefox */
-  scrollbar-width: thin; /* For Firefox */
-}
-/* Custom scrollbar for WebKit browsers (Chrome, Safari, Edge) */
-[data-gl-right] .cmp-monsters-panel::-webkit-scrollbar { width:8px; }
-[data-gl-right] .cmp-monsters-panel::-webkit-scrollbar-thumb { background:#333; border-radius:4px; }
-[data-gl-right] .cmp-monsters-panel::-webkit-scrollbar-track { background:#222; border-radius:4px; }
-/* Fallback for browsers that do not support scrollbar-width */
-/* Removed unsupported scrollbar-color for better cross-browser compatibility */
-[data-gl-right] .cmp-monsters-panel::-webkit-scrollbar { width:8px; } /* For WebKit browsers */
-[data-gl-right] .cmp-monsters-panel::-webkit-scrollbar-thumb { background:#333; border-radius:4px; }
-[data-gl-right] .cmp-monsters-panel::-webkit-scrollbar-track { background:#222; border-radius:4px; }
+/* Monsters panel: no interior scroll; allow outer layout to handle overflow */
+[data-gl-right] .cmp-monsters-panel { max-height:none; height:auto; overflow:visible; }
 
 /* Generic collapse handling */
 [data-collapsed="true"] > .k-panel__body { display:none; }

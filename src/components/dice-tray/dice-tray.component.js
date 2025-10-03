@@ -14,106 +14,112 @@ export function build({ selector, emit }) {
   root.id = 'dice-tray';
   root.className = 'cmp-dice-tray';
   root.setAttribute('data-draggable','true');
-  // Tray outer + inner frame + dice row (legacy-style white container around dark tray)
+  // Tray outer + inner frame + dice row
   root.innerHTML = `<div class="tray-outer" data-tray-outer>
       <div class="tray-frame" data-tray-frame>
         <div class="dice" data-dice aria-label="Dice Tray"></div>
       </div>
     </div>`;
-  
 
-  
-  // Track previous diceSlots to animate expansions
-  root._prevDiceSlots = 6;
-
-  // Add mobile dice toggle button - always check for mobile
+  // Utility: determine mobile / touch mode (same heuristic used elsewhere)
   const checkMobile = () => {
     const width = window.innerWidth;
     const height = window.innerHeight;
     const isMobileWidth = width <= 760;
     const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     const isLandscapeMobile = (width <= 1024 && height <= 768 && isTouchDevice);
-    // Show mobile buttons when narrow OR touch device (matching CSS media query logic)
     return isMobileWidth || isTouchDevice || (isLandscapeMobile && width < 900);
   };
-  
   const setupMobile = () => {
     const isMobile = checkMobile();
-    
     if (isMobile) {
-      // Set mobile positioning for dice tray
+      // Use attribute-driven approach consistent with CSS (data-collapsed="left" hides off-screen)
+      const firstInit = !root.hasAttribute('data-mobile-init');
+      root.setAttribute('data-mobile-init','true');
       root.style.position = 'fixed';
-      root.style.bottom = '0';
-      root.style.left = '-80%';
+      root.style.bottom = '0'; // CSS media query may offset further if needed
+      // We'll set left/width after ensuring toggle button exists (dynamic offset so tray clears button)
+      root.style.right = 'auto';
       root.style.top = 'auto';
-      root.style.transform = 'none';
-      root.style.transition = 'left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-      root.style.width = '100vw';
-      root.style.zIndex = '6600';
-      
-      // Remove any existing toggle button first
+      root.style.transform = 'translateX(0)';
+      root.style.transition = 'transform 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+      // On first mobile init force collapsed
+      if (firstInit) {
+        root.removeAttribute('data-collapsed');
+        root.setAttribute('data-collapsed','left');
+        root.classList.remove('expanded');
+        root.style.transform = 'translateX(-100%)';
+      } else {
+        // Preserve previous expanded/collapsed state via attribute
+        const collapsed = root.getAttribute('data-collapsed') === 'left';
+        root.style.transform = collapsed ? 'translateX(-100%)' : 'translateX(0)';
+      }
+      // Toggle button
       const existingBtn = document.getElementById('dice-toggle-btn');
       if (existingBtn) existingBtn.remove();
-      
       const toggleBtn = document.createElement('div');
       toggleBtn.id = 'dice-toggle-btn';
       toggleBtn.className = 'dice-toggle-btn';
-      toggleBtn.innerHTML = '🎲';
-      toggleBtn.setAttribute('aria-label', 'Toggle Dice Tray');
-      
-      // Set styles directly to ensure they apply
+      toggleBtn.innerHTML = '\uD83C\uDFB2';
+      toggleBtn.setAttribute('aria-label','Toggle Dice Tray');
       Object.assign(toggleBtn.style, {
-        position: 'fixed',
-        bottom: '20px',
-        left: '20px',
-        width: '50px',
-        height: '50px',
-        background: '#ffcf33',
-        border: '3px solid #333',
-        borderRadius: '50%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: '24px',
-        cursor: 'pointer',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-        zIndex: '6700',
-        transition: 'transform 0.2s ease'
+        position:'fixed', bottom:'20px', left:'20px', width:'50px', height:'50px', background:'#ffcf33', border:'3px solid #333', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24px', cursor:'pointer', boxShadow:'0 4px 12px rgba(0,0,0,0.3)', zIndex:'6700', transition:'transform 0.2s ease'
       });
-      
-      document.body.appendChild(toggleBtn);
-      
-      // Initialize the dice tray as collapsed (matching its visual position)
-      root.classList.remove('expanded');
-      
-      // Toggle functionality
+      // Helper to apply dynamic offset so tray's left edge sits just to the right of the toggle button
+      const applyMobileOffset = () => {
+        try {
+          const rect = toggleBtn.getBoundingClientRect();
+          const gap = 8; // desired clearance past button's right edge
+            const offset = Math.round(rect.left + rect.width + gap);
+          root.style.left = offset + 'px';
+          root.style.width = `calc(100vw - ${offset}px)`;
+          // Recompute current transform based on collapsed state
+          const collapsed = root.getAttribute('data-collapsed') === 'left';
+          root.style.transform = collapsed ? 'translateX(-100%)' : 'translateX(0)';
+        } catch(_) {
+          // Fallback: full width if measurement fails
+          root.style.left = '0';
+          root.style.width = '100vw';
+        }
+      };
       toggleBtn.addEventListener('click', () => {
-        console.log('Dice toggle clicked!');
-        root.classList.toggle('expanded');
-        const isExpanded = root.classList.contains('expanded');
-        console.log('Dice tray expanded:', isExpanded);
-        
-        // Update dice tray position
-        root.style.left = isExpanded ? '0' : '-80%';
-        toggleBtn.style.transform = isExpanded ? 'scale(0.9)' : 'scale(1)';
+        const collapsedNow = root.getAttribute('data-collapsed') === 'left';
+        if (collapsedNow) {
+          root.setAttribute('data-collapsed','none');
+          // Expanded: ensure offset maintained
+          applyMobileOffset();
+          toggleBtn.style.transform = 'scale(0.9)';
+        } else {
+          root.setAttribute('data-collapsed','left');
+          root.style.transform = 'translateX(-100%)';
+          toggleBtn.style.transform = 'scale(1)';
+        }
       });
-      
-      // Store reference for cleanup
+      document.body.appendChild(toggleBtn);
       root._toggleBtn = toggleBtn;
-
+      // Apply offset once appended (layout now known)
+      requestAnimationFrame(applyMobileOffset);
+      // Also adjust on resize/orientation changes
+      window.addEventListener('resize', applyMobileOffset, { once:false });
+      root._applyMobileOffset = applyMobileOffset;
     } else {
-      // Desktop: remove mobile button if it exists and reset positioning
+      // Clean up mobile state
       const existingBtn = document.getElementById('dice-toggle-btn');
       if (existingBtn) existingBtn.remove();
-      
-      // Reset mobile-specific styles
+      root.removeAttribute('data-mobile-init');
+      root.removeAttribute('data-collapsed');
       root.style.position = '';
       root.style.bottom = '';
       root.style.left = '';
+      root.style.right = '';
+      root.style.top = '';
       root.style.width = '';
+      root.style.transform = '';
       root.style.transition = '';
-      root.style.zIndex = '';
-      root.classList.remove('expanded');
+      if (root._applyMobileOffset) {
+        window.removeEventListener('resize', root._applyMobileOffset);
+        delete root._applyMobileOffset;
+      }
     }
   };
   
@@ -134,24 +140,22 @@ export function build({ selector, emit }) {
 
   // If user has not manually moved tray (no stored position), align its left edge with arena's left edge.
   function autoAlignIfNotUserMoved() {
+    // Skip auto-align entirely on mobile/touch (not draggable there)
+    if (checkMobile()) return;
     const persisted = positioning.getPersistedPosition?.('diceTray');
     if (persisted) return; // user customized position; don't override
     const arena = document.querySelector('.cmp-arena');
     if (!arena) return;
     const aRect = arena.getBoundingClientRect();
-    // Desired: default position directly below the arena. Keep previous left alignment with arena's left edge.
     const GAP_Y = 24;
-    const GAP_X = 0; // maintain left edge alignment; adjust if we later add centering option
-    root.style.left = (aRect.left + GAP_X) + 'px';
+    root.style.left = (aRect.left) + 'px';
     root.style.transform = 'translateX(0)';
-    // Clear any bottom anchoring and set top just below arena (clamped to viewport)
     root.style.bottom = '';
     let proposedTop = aRect.bottom + GAP_Y + (window.scrollY || 0);
     const trayH = root.offsetHeight || 0;
     const maxTop = (window.innerHeight - trayH - 16) + (window.scrollY || 0);
     if (trayH && proposedTop > maxTop) proposedTop = Math.max(10, maxTop);
     root.style.top = proposedTop + 'px';
-    // Notify listeners (e.g., action menu) that tray alignment finalized for this frame.
     window.dispatchEvent(new CustomEvent('diceTrayAutoAligned', { detail: { left: aRect.left } }));
   }
   // Align on next frame (after arena laid out) and on resize
@@ -205,6 +209,7 @@ export function update(root, { state }) {
   const valuesChanged = faces.length && (faces.length !== prevFaces.length || faces.some((f,i) => !prevFaces[i] || prevFaces[i].value !== f.value));
   const keepsChanged = faces.length && prevFaces.length === faces.length && faces.some((f,i) => prevFaces[i] && prevFaces[i].kept !== f.kept);
   const facesChanged = valuesChanged || keepsChanged;
+  const prefersReduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
   // Only rebuild DOM when faces or slot count changed (prevents wiping rolling animation on unrelated state changes)
   const needInitialRender = diceContainer.childElementCount === 0;
   const prevSlots = root._prevDiceSlots || 6;
@@ -235,11 +240,14 @@ export function update(root, { state }) {
     diceContainer.innerHTML = rendered.join('');
   }
   // Trigger rolling animation only when face values changed (a roll occurred), not on keep toggles
-  if (valuesChanged) {
+  if (valuesChanged && !prefersReduced) {
     const DURATION = DICE_ANIM_MS;
     const totalSlots = 8; // Always animate up to 8 slots like legacy
     // Defer to next frame to ensure DOM paint before starting animation
     requestAnimationFrame(() => {
+      // Temporarily disable pointer interactions during roll to avoid keep toggles mid-animation
+      const prevPointer = root.style.pointerEvents;
+      root.style.pointerEvents = 'none';
       for (let i = 0; i < totalSlots; i++) {
         const face = faces[i];
         const dieEl = diceContainer.querySelector(`[data-die-index="${i}"]`);
@@ -256,10 +264,23 @@ export function update(root, { state }) {
             dieEl.classList.remove('rolling');
             dieEl.classList.remove('reveal-pending');
             try { dieEl.textContent = symbolFor(face.value); } catch(_) {}
+            if (i === totalSlots - 1) {
+              // Re-enable pointer events after last die resolves
+              root.style.pointerEvents = prevPointer;
+            }
           }, DURATION);
         } else {
           dieEl.classList.remove('rolling');
         }
+      }
+    });
+  } else if (valuesChanged && prefersReduced) {
+    // Directly reveal values with no animation
+    faces.forEach((face, i) => {
+      const dieEl = diceContainer.querySelector(`[data-die-index="${i}"]`);
+      if (dieEl && face && !face.kept) {
+        dieEl.textContent = symbolFor(face.value);
+        dieEl.classList.remove('rolling','reveal-pending');
       }
     });
   }

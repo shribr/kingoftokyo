@@ -10,17 +10,31 @@ import { nextTurn, diceSetAllKept } from '../../core/actions.js';
 import { createPositioningService } from '../../services/positioningService.js';
 
 export function build({ selector }) {
+  const checkMobile = () => {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    const isMobileWidth = width <= 760;
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const isLandscapeMobile = (width <= 1024 && height <= 768 && isTouchDevice);
+    return isMobileWidth || isTouchDevice || (isLandscapeMobile && width < 900);
+  };
   const root = document.createElement('div');
   root.id = 'action-menu';
   root.className = 'cmp-action-menu cmp-panel-root';
   root.setAttribute('data-am-root','true');
   root.setAttribute('data-panel','action-menu');
   root.setAttribute('data-draggable','true');
-  // Default layout now vertical (single column buttons); hybrid docking support
   root.setAttribute('data-layout','vertical');
-  root.dataset.amDockState = 'docked'; // internal: docked | floating (for hybrid behavior)
+  root.dataset.amDockState = 'docked';
   root.innerHTML = `
-    <div class="am-label" aria-hidden="true">ACTIONS</div>
+    <div class="am-label" aria-hidden="true">
+      <span>ACTIONS</span>
+      <button class="am-collapse-toggle" aria-label="Expand/Collapse Actions" type="button">
+        <span class="arrow-up">▲</span>
+        <span class="arrow-down">▼</span>
+      </button>
+    </div>
+    <div class="am-content" data-collapsed="false">
     <button id="roll-btn" data-action="roll" class="k-btn k-btn--primary">ROLL</button>
     <button id="keep-btn" data-action="keep" class="k-btn k-btn--secondary" disabled>KEEP ALL</button>
     <button id="accept-dice-btn" data-action="accept-dice" class="k-btn k-btn--secondary" disabled>ACCEPT DICE RESULTS</button>
@@ -31,126 +45,236 @@ export function build({ selector }) {
         <span class="arrow-right">▶</span>
       </button>
       <div class="power-cards-submenu" data-submenu hidden>
-  <button id="show-my-cards-btn" data-action="show-my-cards" class="k-btn k-btn--xs">MY CARDS<span class="my-cards-count" data-my-cards-count></span></button>
+        <button id="show-my-cards-btn" data-action="show-my-cards" class="k-btn k-btn--xs">MY CARDS<span class="my-cards-count" data-my-cards-count></span></button>
         <button id="flush-btn" data-action="flush" class="k-btn k-btn--xs" disabled>FLUSH CARDS (2⚡)</button>
       </div>
     </div>
-    <button id="end-turn-btn" data-action="end" class="k-btn k-btn--secondary" disabled>END TURN</button>`;
-  // Add mobile setup
-  const checkMobile = () => {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-    const isMobileWidth = width <= 760;
-    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    const isLandscapeMobile = (width <= 1024 && height <= 768 && isTouchDevice);
-    // Show mobile buttons when narrow OR touch device (matching CSS media query logic)
-    return isMobileWidth || isTouchDevice || (isLandscapeMobile && width < 900);
-  };
-  
-  // Add game-active class to make action menu visible (required by legacy CSS)
-  root.classList.add('game-active');
-  
+    <button id="end-turn-btn" data-action="end" class="k-btn k-btn--secondary" disabled>END TURN</button>
+    </div>`;
+  // Cache frequently accessed elements to reduce querySelector churn
+  const __refs = new Map();
+  function $(sel) { if (__refs.has(sel)) return __refs.get(sel); const el = root.querySelector(sel); __refs.set(sel, el); return el; }
   const setupMobile = () => {
     const isMobile = checkMobile();
-    
     if (isMobile) {
-      // Hide the main action menu initially in mobile
+      // Hide the main action menu initially and disable dragging
       root.style.display = 'none';
-      
-      // Mark as mobile mode and disable dragging
-      root._wasMobile = true;
-      root.setAttribute('data-draggable', 'false');
-      
-      // Remove any existing mobile toggle button first
+      root.setAttribute('data-draggable','false');
+      // Remove any existing toggle
       const existingBtn = document.getElementById('action-menu-mobile-btn');
       if (existingBtn) existingBtn.remove();
-      
-      const mobileBtn = document.createElement('div');
-      mobileBtn.id = 'action-menu-mobile-btn';
-      mobileBtn.className = 'action-menu-mobile-btn';
-      mobileBtn.innerHTML = '☰'; // Hamburger menu icon
-      mobileBtn.setAttribute('aria-label', 'Toggle Action Menu');
-      
-      // Set styles directly to ensure they apply
-      Object.assign(mobileBtn.style, {
-        position: 'fixed',
-        bottom: '20px',
-        left: 'calc(100vw - 70px)',
-        width: '50px',
-        height: '50px',
-        background: 'linear-gradient(135deg, #ffcf33 0%, #ffb300 100%)',
-        border: '3px solid #333',
-        borderRadius: '50%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: '24px',
-        cursor: 'pointer',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-        zIndex: '1500',
-        transition: 'transform 0.2s ease'
+      const btn = document.createElement('div');
+      btn.id = 'action-menu-mobile-btn';
+      btn.className = 'action-menu-mobile-btn';
+      btn.innerHTML = '\u2630';
+      btn.setAttribute('aria-label','Toggle Action Menu');
+      Object.assign(btn.style, {
+        position:'fixed', bottom:'20px', right:'20px', width:'50px', height:'50px', background:'linear-gradient(135deg,#ffcf33 0%, #ffb300 100%)', border:'3px solid #333', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24px', cursor:'pointer', boxShadow:'0 4px 12px rgba(0,0,0,0.3)', zIndex:'1500', transition:'transform 0.2s ease'
       });
-      
-      document.body.appendChild(mobileBtn);
-      
-      // Toggle functionality
-      mobileBtn.addEventListener('click', () => {
-        const isVisible = root.style.display !== 'none';
-        
-        if (isVisible) {
-          // Hide menu
+      btn.addEventListener('click', () => {
+        const open = root.style.display !== 'none';
+        if (open) {
           root.style.display = 'none';
-          mobileBtn.style.transform = 'scale(1)';
+          btn.style.transform = 'scale(1)';
+          document.body.removeAttribute('data-action-menu-open');
         } else {
-          // Show menu directly above the mobile button, right-aligned
           root.style.display = 'flex';
           root.style.position = 'fixed';
-          root.style.bottom = '80px'; // Above the mobile button (20px + 50px + 10px gap)
-          root.style.right = '20px'; // Right-align with button's right edge
+          root.style.bottom = '80px';
+          root.style.right = '20px';
           root.style.left = 'auto';
+          root.style.top = 'auto';
           root.style.transform = 'none';
-          root.style.zIndex = '7000'; // Higher than monsters panel (1400)
-          root.setAttribute('data-draggable', 'false'); // Disable dragging in mobile
-          mobileBtn.style.transform = 'scale(0.9)';
+          root.style.zIndex = '7000';
+          btn.style.transform = 'scale(0.9)';
+          document.body.setAttribute('data-action-menu-open','true');
         }
       });
-      
-      // Store reference for cleanup
-      root._mobileBtn = mobileBtn;
+      document.body.appendChild(btn);
+      root._mobileBtn = btn;
 
+      // Ensure active player bubble (avatar + name) exists to the left of the action menu button
+      let bubble = document.getElementById('active-player-bubble');
+      if (!bubble) {
+        bubble = document.createElement('div');
+        bubble.id = 'active-player-bubble';
+        bubble.className = 'active-player-bubble';
+        bubble.innerHTML = `<div class="apb-avatar" aria-label="Active Player"></div><div class="apb-name" data-apb-name></div>`;
+        Object.assign(bubble.style, {
+          position:'fixed', bottom:'20px', right:'88px', /* 50px button + 18px gap */
+          display:'flex', flexDirection:'row', alignItems:'center', gap:'10px',
+          padding:'6px 10px 6px 6px', background:'linear-gradient(135deg,#2d3436,#1b1f20)',
+          border:'3px solid #000', borderRadius:'40px', boxShadow:'0 4px 12px rgba(0,0,0,0.35)', zIndex:'1500',
+          fontFamily:'Bangers,cursive', letterSpacing:'1px', cursor:'pointer'
+        });
+        const avatarEl = bubble.querySelector('.apb-avatar');
+        Object.assign(avatarEl.style, {
+          width:'48px', height:'48px', borderRadius:'50%', background:'#222 center/cover no-repeat',
+          border:'3px solid #000', boxShadow:'2px 2px 0 #000'
+        });
+        const nameEl = bubble.querySelector('[data-apb-name]');
+        Object.assign(nameEl.style, { color:'#fff', fontSize:'18px', maxWidth:'120px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' });
+        document.body.appendChild(bubble);
+
+        // Modal for full player card
+        const showFullCardModal = () => {
+          try {
+            if (document.getElementById('apb-player-card-modal')) return; // already open
+            const activeCard = document.querySelector('.cmp-player-profile-card.is-active, .cmp-player-profile-card[data-in-active-dock="true"]');
+            if (!activeCard) return;
+            const overlay = document.createElement('div');
+            overlay.id = 'apb-player-card-modal';
+            overlay.setAttribute('data-apb-modal','');
+            Object.assign(overlay.style, { position:'fixed', inset:'0', background:'rgba(0,0,0,0.65)', zIndex:'9000', display:'flex', alignItems:'center', justifyContent:'center', padding:'30px' });
+            const cardClone = activeCard.cloneNode(true);
+            // Remove any transform used for docking
+            cardClone.style.transform = 'scale(.95)';
+            cardClone.style.position = 'static';
+            cardClone.style.left = cardClone.style.top = '';
+            cardClone.removeAttribute('data-in-active-dock');
+            overlay.appendChild(cardClone);
+            const close = (ev) => { if (ev.target === overlay) { overlay.removeEventListener('click', close); overlay.remove(); } };
+            overlay.addEventListener('click', close);
+            document.body.appendChild(overlay);
+          } catch(_) {}
+        };
+        bubble.addEventListener('click', showFullCardModal);
+      }
     } else {
-      // Desktop: show the menu normally, remove mobile button, reset position
-      root.style.display = 'flex'; // Show on desktop
+      // Desktop: restore visibility & dragging
+      root.style.display = 'flex';
       root.style.position = '';
       root.style.bottom = '';
-      root.style.left = '';
       root.style.right = '';
+      root.style.left = '';
+      root.style.top = '';
       root.style.transform = '';
       root.style.zIndex = '';
-      root.setAttribute('data-draggable', 'true');
-      
-      // Reset to default desktop position
-      root.style.top = '';
-      root.style.right = '';
-      
-      // Initialize or re-enable dragging positioning service
-      if (!root._positioning) {
-        // First time desktop setup - initialize positioning service
-        root._positioning = createPositioningService(store);
-      }
-      if (root._positioning) {
-        root._positioning.makeDraggable(root, 'actionMenu', { snapEdges: true, snapThreshold: 12 });
-        root._wasMobile = false;
-      }
-      
+      root.setAttribute('data-draggable','true');
+      if (!root._positioning) root._positioning = createPositioningService(store);
+      if (root._positioning) root._positioning.makeDraggable(root,'actionMenu',{ snapEdges:true, snapThreshold:12 });
       const existingBtn = document.getElementById('action-menu-mobile-btn');
       if (existingBtn) existingBtn.remove();
+    }
+
+    // Attach (or re-attach) global outside click handler once (idempotent)
+    if (!window.__globalOutsidePanelCloser) {
+      window.__globalOutsidePanelCloser = (ev) => {
+        try {
+          const panels = document.querySelectorAll('#monsters-panel[data-expanded], #power-cards-panel[data-expanded]');
+          if (!panels.length) return;
+          const target = ev.target;
+            let clickedInside = false;
+            panels.forEach(p => { if (p.contains(target)) clickedInside = true; });
+          if (clickedInside) return;
+          panels.forEach(p => { p.removeAttribute('data-expanded'); p.classList.remove('is-expanded'); p.removeAttribute('inert'); });
+          // Remove any blackout/dim overlays accidentally left behind
+          const overlays = document.querySelectorAll('.blackout-overlay, .dim-overlay, [data-blackout]');
+          overlays.forEach(o => { o.remove(); });
+        } catch(_) {}
+      };
+      document.addEventListener('pointerdown', window.__globalOutsidePanelCloser, true);
+    }
+    // Blackout freeze mitigation: periodically strip stray blackout overlays
+    if (!window.__blackoutMitigator) {
+      window.__blackoutMitigator = setInterval(() => {
+        const stray = document.querySelectorAll('.blackout-overlay, .dim-overlay, [data-blackout]');
+        stray.forEach(el => {
+          const activeModals = document.querySelectorAll('[data-apb-modal], .modal, .peek-modal, .card-detail-modal');
+          if (!activeModals.length) el.remove();
+        });
+      }, 4000);
     }
   };
   
   // Setup mobile immediately and on resize
   setupMobile();
   window.addEventListener('resize', setupMobile);
+  
+  // Setup collapse/expand functionality
+  const setupCollapseToggle = () => {
+    const toggleBtn = root.querySelector('.am-collapse-toggle');
+    const content = root.querySelector('.am-content');
+    const arrowUp = root.querySelector('.arrow-up');
+    const arrowDown = root.querySelector('.arrow-down');
+    
+    if (!toggleBtn || !content) return;
+    
+    // Load collapsed state from localStorage if persist positions is enabled
+    const settings = store.getState().settings;
+    const shouldPersist = settings?.persistPositions;
+    let isCollapsed = false;
+    
+    if (shouldPersist) {
+      try {
+        const saved = localStorage.getItem('kot_action_menu_collapsed');
+        isCollapsed = saved === 'true';
+      } catch(_) {}
+    }
+    
+    // Apply initial state
+    updateCollapseState(isCollapsed);
+    
+    function updateCollapseState(collapsed) {
+      content.style.transition = 'max-height 0.3s ease, opacity 0.2s ease';
+      content.setAttribute('data-collapsed', collapsed.toString());
+      
+      if (collapsed) {
+        content.style.maxHeight = '0px';
+        content.style.opacity = '0';
+        content.style.overflow = 'hidden';
+        arrowUp.style.opacity = '1';
+        arrowDown.style.opacity = '0';
+      } else {
+        content.style.maxHeight = '500px'; // Large enough to show all content
+        content.style.opacity = '1';
+        content.style.overflow = 'visible';
+        arrowUp.style.opacity = '0';
+        arrowDown.style.opacity = '1';
+      }
+      
+      // Save state if persist positions is currently enabled
+      const currentSettings = store.getState().settings;
+      const shouldPersistNow = currentSettings?.persistPositions;
+      if (shouldPersistNow) {
+        try {
+          localStorage.setItem('kot_action_menu_collapsed', collapsed.toString());
+        } catch(_) {}
+      }
+    }
+    
+    toggleBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // If collapsing and menu is not in its docked position, smoothly move it there first
+      if (!isCollapsed) {
+        const mode = store.getState().settings?.actionMenuMode || 'hybrid';
+        const isDocked = root.dataset.amDockState === 'docked';
+        const shouldReposition = (mode === 'docked' || (mode === 'hybrid' && !root._userMoved));
+        
+        if (shouldReposition && !isDocked) {
+          // Add smooth transition for repositioning
+          root.style.transition = 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+          
+          // Move to docked position
+          anchorActionMenu(root);
+          root.dataset.amDockState = 'docked';
+          
+          // Wait for repositioning animation to complete before collapsing
+          await new Promise(resolve => setTimeout(resolve, 400));
+          
+          // Remove transition so collapse animation works properly
+          root.style.transition = '';
+        }
+      }
+      
+      isCollapsed = !isCollapsed;
+      updateCollapseState(isCollapsed);
+    });
+  };
+  
+  setupCollapseToggle();
   
   // Ensure proper positioning for desktop after initial render
   setTimeout(() => {
@@ -386,6 +510,8 @@ export function build({ selector }) {
     if (root._mobileBtn) {
       root._mobileBtn.remove();
     }
+      const bubble = document.getElementById('active-player-bubble');
+      if (bubble) bubble.remove();
     window.removeEventListener('resize', setupMobile);
     root.remove();
   } };
@@ -473,6 +599,22 @@ export function update(root) {
     const activeId = order[st.meta.activePlayerIndex % order.length];
     active = st.players.byId[activeId];
   }
+  // Update mobile avatar bubble if present
+  try {
+    const bubble = document.getElementById('active-player-bubble');
+    if (bubble && active) {
+      const avatar = bubble.querySelector('.apb-avatar');
+      const nameEl = bubble.querySelector('[data-apb-name]');
+      if (nameEl) nameEl.textContent = active.monster?.name || active.name || 'ACTIVE';
+      // Attempt to source image from player profile card avatar background
+      if (avatar) {
+        // Look for existing active card avatar element to copy background-image
+        const cardAvatar = document.querySelector(`.cmp-player-profile-card[data-player-id="${active.id}"] .ppc-avatar`);
+        const bg = cardAvatar ? getComputedStyle(cardAvatar).backgroundImage : '';
+        if (bg && bg !== 'none') avatar.style.backgroundImage = bg;
+      }
+    }
+  } catch(_) {}
   // Update My Cards button count
   try {
     const countEl = root.querySelector('[data-my-cards-count]');

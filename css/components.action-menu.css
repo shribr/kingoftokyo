@@ -45,7 +45,129 @@
   bottom: auto;
 }
 .app-toolbar, .game-toolbar, [data-toolbar] { margin-bottom:12px; }
-.cmp-action-menu .am-label { display:block; position:static; margin:0 0 8px 0; background:transparent; color:#fff; padding:2px 6px 4px; font-size:24px; line-height:1; border:none; box-shadow:none; letter-spacing:1.2px; text-align:center; text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; }
+.cmp-action-menu .am-label { 
+  display:flex !important; 
+  align-items: center;
+  justify-content: space-between;
+  position:static; 
+  margin:0; /* Remove bottom margin since flex gap handles spacing */
+  background:transparent !important; 
+  color:#fff; 
+  padding:2px 6px 4px; 
+  font-size:24px; 
+  line-height:1; 
+  border:none !important; 
+  box-shadow:none !important; 
+  letter-spacing:1.2px; 
+  text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000;
+  border-radius: 0 !important;
+  outline: none !important;
+  width: 100%;
+}
+
+/* Collapse/Expand Toggle Container */
+.cmp-action-menu .am-collapse-toggle {
+  /* Reset all possible inherited button styles */
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  cursor: pointer;
+  color: #fff !important;
+  opacity: 1;
+  transition: opacity 0.2s ease, transform 0.1s ease;
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  border-radius: 0 !important;
+  width: auto;
+  height: 20px;
+  position: relative;
+  padding: 2px;
+}
+
+.cmp-action-menu .am-collapse-toggle:hover {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #fff !important;
+}
+
+.cmp-action-menu .am-collapse-toggle:hover .arrow-up,
+.cmp-action-menu .am-collapse-toggle:hover .arrow-down {
+  transform: translateY(-50%) scale(1.1);
+}
+
+.cmp-action-menu .am-collapse-toggle:focus {
+  outline: none;
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.cmp-action-menu .am-collapse-toggle:active {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.cmp-action-menu .am-collapse-toggle .arrow-up,
+.cmp-action-menu .am-collapse-toggle .arrow-down {
+  font-size: 14px;
+  font-weight: bold;
+  color: #fff !important;
+  text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000;
+  transition: opacity 0.2s ease;
+  position: absolute;
+  right: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none; /* Ensure clicks go to parent button */
+}
+
+.cmp-action-menu .am-collapse-toggle .arrow-up {
+  opacity: 0; /* Hidden by default (collapsed state) */
+}
+
+.cmp-action-menu .am-collapse-toggle .arrow-down {
+  opacity: 1; /* Visible by default (expanded state) */
+}
+
+.cmp-action-menu .am-collapse-toggle svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+  border: none !important;
+  box-shadow: none !important;
+  background: none !important;
+  outline: none !important;
+}
+
+/* Content Container Collapse Styles */
+.cmp-action-menu .am-content {
+  transition: max-height 0.3s ease, opacity 0.2s ease;
+  overflow: hidden;
+  margin-top: 0; /* Remove any extra spacing */
+  padding-top: 0; /* Remove any extra spacing */
+  display: flex;
+  flex-direction: column;
+  gap: var(--action-menu-gap); /* Maintain gap between buttons */
+  transform-origin: top; /* Collapse from top down */
+}
+
+.cmp-action-menu .am-content[data-collapsed="true"] {
+  max-height: 0px !important;
+  opacity: 0 !important;
+  overflow: hidden !important;
+}
+
+.cmp-action-menu .am-content[data-collapsed="false"] {
+  max-height: 500px !important;
+  opacity: 1 !important;
+  overflow: visible !important;
+}
+
 .cmp-action-menu[data-layout="horizontal"] { flex-direction:row; flex-wrap:wrap; align-items:flex-start; }
 .cmp-action-menu[data-layout="horizontal"] .am-label { margin-bottom:6px; }
 
@@ -280,25 +402,73 @@
   flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
-    gap: 10px;
+    gap: 6px; /* tighter vertical rhythm */
     /* Fully hidden by default on mobile; becomes visible only when opened */
     display: none;
   transform: none;
     transition: none;
+    max-height: calc(55vh); /* allow more vertical space savings */
+    overflow-y: auto; /* internal scroll instead of pushing layout */
+    overscroll-behavior: contain;
   }
+  .cmp-action-menu::-webkit-scrollbar { width:0; height:0; }
   /* Hide label on mobile */
   .cmp-action-menu .am-label { display:none; }
+  /* Hide collapse toggle on mobile since mobile has its own hamburger menu system */
+  .cmp-action-menu .am-collapse-toggle { display:none; }
+  /* Reset content collapse on mobile */
+  .cmp-action-menu .am-content {
+    max-height: none !important;
+    opacity: 1 !important;
+    overflow: visible !important;
+  }
     /* Make buttons look like Tools menu entries on mobile: flat light buttons */
-    .cmp-action-menu button { background:#e6e6e6; color:#111; border:none; box-shadow:none; }
+    .cmp-action-menu button { 
+      --am-mobile-scale: .70; /* stronger shrink so change is unmistakable */
+      background:#e6e6e6 !important; 
+      color:#111 !important; 
+      border:none !important; 
+      box-shadow:none !important; 
+      font-size: calc(18px * var(--am-mobile-scale)) !important; 
+      line-height:1.05 !important; 
+      padding: 4px 10px 6px !important; 
+      min-height: 34px !important; 
+      letter-spacing:.5px !important;
+      width:auto !important;
+    }
     .cmp-action-menu button[data-action="keep"],
-    .cmp-action-menu button[data-action="end"] { background:#e6e6e6; color:#111; text-shadow:none; border:none; box-shadow:none; }
+    .cmp-action-menu button[data-action="end"],
+    .cmp-action-menu button[data-action="flush"] { 
+      background:#e6e6e6 !important; 
+      color:#111 !important; 
+      text-shadow:none !important; 
+      border:none !important; 
+      box-shadow:none !important; 
+      font-size: calc(16px * var(--am-mobile-scale)) !important;
+      min-height: 34px !important;
+    }
+    .cmp-action-menu button[data-action="flush"] { min-height:32px !important; font-size: calc(15px * var(--am-mobile-scale)) !important; }
   .cmp-action-menu[data-hamburger-corner="left"] { left: 8px; right: auto; }
   .cmp-action-menu[data-hamburger-open] { display:flex; }
   .cmp-action-menu .am-label { display:none; }
   /* Auto-size to longest item; keep a reasonable min-width */
-  .cmp-action-menu { width: max-content; max-width: calc(100vw - 16px); }
-  .cmp-action-menu button { width: auto; flex: 0 0 auto; min-width: 160px; }
+  .cmp-action-menu { width: max-content; max-width: calc(100vw - 16px); padding:10px 10px 12px; }
+  .cmp-action-menu button { width: auto; flex: 0 0 auto; min-width: 140px; }
   .cmp-action-menu[data-draggable="true"] { cursor: default; }
+  /* Tighten vertical spacing further when scroll engaged */
+  .cmp-action-menu button + button { margin-top:2px; }
+  /* Power cards submenu adjustments for cramped space */
+  .power-cards-submenu { 
+    padding:6px; 
+    gap:4px; 
+    min-width:150px; 
+    transform-origin: top left; 
+  }
+  .power-cards-submenu button { 
+    font-size:12px; 
+    padding:4px 8px; 
+    min-height:28px; 
+  }
 }
 
 /* Invisible backdrop to allow outside-click closing on mobile when menu is open */

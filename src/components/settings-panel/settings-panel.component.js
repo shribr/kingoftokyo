@@ -16,6 +16,9 @@ export function build({ selector }) {
       if (!checked) {
         // If turning off, also clear stored localStorage key used by positioningService
         try { localStorage.removeItem('kot_new_ui_positions_v1'); } catch(_) {}
+      } else {
+        // When enabling, ensure dice tray remains visible (guard against style side-effects)
+        try { const dice = document.querySelector('.cmp-dice-tray'); if (dice) dice.style.visibility = ''; } catch(_) {}
       }
     } else if (e.target.matches('[name="playerCardLayoutMode"]')) {
       const val = e.target.value;
@@ -26,17 +29,25 @@ export function build({ selector }) {
     }
   });
   sync(root);
+  // Re-sync on viewport breakpoint changes to enforce/relax mobile list mode
+  try {
+    const mq = window.matchMedia('(max-width: 760px), (pointer: coarse)');
+    const handler = () => sync(root);
+    mq.addEventListener('change', handler);
+    // Store for potential future destroy cleanup
+    root._mqList = { mq, handler };
+  } catch(_) {}
   return { root, update: () => sync(root) };
 }
 
 function template() {
   return `<div class="k-panel__header"><h2 class="k-panel__title">Settings</h2></div>
   <div class="k-panel__body">
-    <label style="display:flex;align-items:center;gap:8px;font-family:system-ui,sans-serif;font-size:14px;">
+    <label style="display:flex;align-items:center;gap:8px;font-family:system-ui,sans-serif;font-size:14px;" title="When enabled, panel positions and collapsed/expanded states will be restored on reload.">
       <input type="checkbox" data-setting="persistPositions" />
-      Remember window positions between sessions
+      Remember layout & panel positions
     </label>
-    <p style="margin:8px 0 12px;font-size:12px;opacity:.75;font-family:system-ui,sans-serif;">When off (default), panels and menus reset to their default layout every reload.</p>
+  <p style="margin:8px 0 12px;font-size:12px;opacity:.75;font-family:system-ui,sans-serif;">When off (default), panels reset to their default layout and state every reload.</p>
     <fieldset style="border:1px solid #333;padding:8px 10px 10px;margin:0 0 10px;font-family:system-ui,sans-serif;">
       <legend style="padding:0 6px;font-size:13px;letter-spacing:.5px;">Player Card Layout</legend>
       <label style="display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:4px;">
@@ -68,12 +79,31 @@ function template() {
 
 function sync(root) {
   const st = store.getState();
+  const isMobile = typeof window !== 'undefined' && (window.matchMedia('(max-width: 760px), (pointer: coarse)').matches);
   const persist = !!st.settings?.persistPositions;
   const cb = root.querySelector('[data-setting="persistPositions"]');
   if (cb) cb.checked = persist;
-  const mode = st.settings?.playerCardLayoutMode || (st.settings?.stackedPlayerCards === false ? 'list' : 'stacked');
+  let mode = st.settings?.playerCardLayoutMode || (st.settings?.stackedPlayerCards === false ? 'list' : 'stacked');
+  if (isMobile) mode = 'list'; // Force list on mobile
   const radios = root.querySelectorAll('[name="playerCardLayoutMode"]');
-  radios.forEach(r => { r.checked = (r.value === mode); });
+  radios.forEach(r => {
+    r.checked = (r.value === mode);
+    if (isMobile) {
+      // Disable non-list options for clarity on mobile enforced layout
+      r.disabled = r.value !== 'list';
+      if (r.value !== 'list') {
+        r.parentElement.style.opacity = '.4';
+        r.parentElement.title = 'Only list layout available on mobile';
+      } else {
+        r.parentElement.style.opacity = '1';
+        r.parentElement.title = '';
+      }
+    } else {
+      r.disabled = false;
+      r.parentElement.style.opacity = '1';
+      r.parentElement.title = '';
+    }
+  });
   const amMode = st.settings?.actionMenuMode || 'hybrid';
   root.querySelectorAll('[name="actionMenuMode"]').forEach(r => { r.checked = (r.value === amMode); });
 }

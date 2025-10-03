@@ -28,7 +28,7 @@
   }
   
   .cmp-monsters-panel .cmp-player-profile-card .ppc-name { 
-    font-size:18px; line-height:1.2; white-space:nowrap; overflow:hidden; 
+    font-size:16px; line-height:1.15; white-space:nowrap; overflow:hidden; 
     text-overflow:ellipsis; margin:0; flex: 1;
   }
   
@@ -47,31 +47,42 @@
 
   /* Expanded state: show full card, expand vertically in place */
   .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] {
-    width: 100%; max-width: 100%; padding:12px;
+    width: 100%; max-width: 100%; padding:10px 12px;
     transform: none;
     z-index: 6600;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.5), 0 0 0 3px var(--ppc-accent, #2d3436);
+    box-shadow: 0 3px 14px rgba(0,0,0,0.55), 0 0 0 2px var(--ppc-accent, #2d3436);
   }
   
   .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-avatar { 
-    width: 58px; 
-    height: 58px;
+    width: 50px; 
+    height: 50px;
   }
   
   .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-header {
-    margin: 0 0 14px;
-    gap: 10px;
+    margin: 0 0 10px;
+    gap: 8px;
   }
+  /* Further shrink stats blocks & owned cards text */
+  .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-stats { font-size:12px; }
+  .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-owned-cards { font-size:12px; }
   
   .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-status-line { display:flex; }
   .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-stats,
   .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-owned-cards,
   .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-health-block { display:block; }
+  /* Keep stats horizontal and prevent wrapping when expanded */
+  .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-stats { 
+    display:flex !important; 
+    flex-direction:row !important; 
+    flex-wrap:nowrap !important; 
+    width:100%; 
+  }
+  .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-stats .ppc-stat { flex:1 1 0; min-width:0; }
 }
 /* components.monsters-panel.css */
-.cmp-monsters-panel { background:rgba(15,15,22,0.7); border:2px solid #222; border-radius:8px; padding:10px 14px 16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 18px -4px rgba(0,0,0,.6); }
+.cmp-monsters-panel { background:linear-gradient(180deg,#30353a,#1d1f21); border:2px solid #222; border-radius:8px; padding:10px 14px 16px; display:flex; flex-direction:column; gap:12px; box-shadow:2px 2px 0 #000,0 0 0 1px #222 inset; }
 .cmp-monsters-panel .mp-header { display:flex; align-items:center; justify-content:space-between; }
-.cmp-monsters-panel .mp-title { font-family:'Bangers',cursive; font-size:32px; letter-spacing:1px; color:#ffcf33; text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; margin:0; --accent-monsters:#ffcf33; }
+.cmp-monsters-panel .mp-title { font-family:'Bangers',cursive; font-size:32px; letter-spacing:1px; color:#ffd400; text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; margin:0; --accent-monsters:#ffd400; background:transparent; }
 
 /* View Toggle Button */
 .cmp-monsters-panel .mp-view-toggle {
@@ -137,6 +148,7 @@
 .cmp-monsters-panel[data-view="stacked"] .mp-view-toggle .stack-icon {
   opacity: 0;
 }
+
 .cmp-monsters-panel .mp-body { display:flex; flex-direction:column; gap:14px; }
 .cmp-monsters-panel .mp-player-cards { display:flex; flex-direction:column; gap:12px; }
 @media (min-width: 761px) and (pointer: fine) {

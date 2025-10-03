@@ -131,9 +131,9 @@ export function createSettingsModal() {
           <div class="field">
             <label class="field-checkbox">
               <input type="checkbox" name="persistPositions">
-              <span class="checkbox-label">Remember Panel Positions</span>
+              <span class="checkbox-label">Remember Layout & Positions</span>
             </label>
-            <div class="field-help">Save draggable panel positions between game sessions</div>
+            <div class="field-help">Save draggable panel positions and collapsed/expanded states between game sessions</div>
           </div>
         </div>
       </div>

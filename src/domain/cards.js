@@ -66,6 +66,7 @@ export function buildBaseCatalog() {
 
 export function shuffle(array, rng = Math.random) {
   const a = array.slice();
+  // Use Fisher-Yates shuffle with better randomization
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
     [a[i], a[j]] = [a[j], a[i]];
@@ -73,8 +74,27 @@ export function shuffle(array, rng = Math.random) {
   return a;
 }
 
-export function buildDeck(catalog, rng) {
-  return shuffle(catalog, rng);
+export function buildDeck(catalog, rng = Math.random) {
+  // Create deck with proper duplicates based on official specification
+  const deck = [];
+  
+  catalog.forEach(card => {
+    // According to official FAQ: only 2 cards are in double (Extra Head and Evacuation Orders)
+    if (card.id === 'extra-head' || card.id === 'evacuation-orders') {
+      deck.push(card, { ...card }); // Add two copies
+    } else {
+      deck.push(card); // Single copy for all other cards
+    }
+  });
+  
+  // Use enhanced shuffling with multiple passes for better randomization
+  let shuffled = shuffle(deck, rng);
+  // Additional shuffle passes to ensure better distribution
+  for (let pass = 0; pass < 3; pass++) {
+    shuffled = shuffle(shuffled, rng);
+  }
+  
+  return shuffled;
 }
 
 export function draw(deck, count = 1) {

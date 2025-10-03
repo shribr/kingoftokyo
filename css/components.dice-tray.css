@@ -141,17 +141,24 @@ body:not(.splash-visible) .cmp-dice-tray { visibility:visible; opacity:1; }
 
 /* Responsive downscale for narrower viewports */
 @media (max-width:980px) {
-  :root { --dice-size:48px; --dice-font-size:24px; --dice-gap:8px; --dice-tray-padding:16px 20px 18px; }
-  .cmp-dice-tray .tray-label { top:-20px; font-size:18px; padding:3px 12px 5px; }
-}
-@media (max-width:760px) {
-  :root { --dice-size:42px; --dice-font-size:22px; --dice-gap:6px; --dice-tray-padding:14px 16px 16px; }
+  :root { --dice-size:28px; --dice-font-size:14px; --dice-gap:3px; --dice-tray-padding:6px 8px 8px; }
+  .cmp-dice-tray .tray-outer { padding:8px 10px; gap:8px; }
+  .cmp-dice-tray .tray-frame { padding:6px 0; }
+  .cmp-dice-tray [data-dice] { padding-left:8px; padding-right:8px; gap:4px; }
+  /* Hide extra (7th & 8th) dice slots entirely on very small layouts */
+  .cmp-dice-tray .die.extra-die { display:none !important; }
+  :root { --dice-size:32px; --dice-font-size:16px; --dice-gap:4px; --dice-tray-padding:8px 10px 10px; }
+  .cmp-dice-tray .tray-outer { padding:10px 12px; gap:10px; }
+  .cmp-dice-tray .tray-frame { padding:8px 0; }
+  .cmp-dice-tray [data-dice] { padding-left:10px; padding-right:10px; gap:6px; }
   .cmp-dice-tray .die:after { display:none; }
   /* Hide the DICE label on mobile for a cleaner compact UI */
   .cmp-dice-tray .tray-label { display:none; }
-  /* Position tray above action menu bar on mobile */
-  .cmp-dice-tray { left:50%; right:auto; top:auto; bottom:74px; transform:translateX(-50%); }
+  /* Position tray docked to bottom full-width; actual transform controlled via JS */
+  .cmp-dice-tray { left:0; right:0; top:auto; bottom:70px; transform:translateX(0); }
   .cmp-dice-tray[data-draggable="true"] { cursor: default; }
-  /* Collapsed to left: fully slide off-screen (toggled via dice button) */
-  .cmp-dice-tray[data-collapsed="left"] { left:0; right:auto; transform: translateX(-100%); }
+  /* Collapsed (off-canvas to left) */
+  .cmp-dice-tray[data-collapsed="left"] { transform:translateX(-100%); }
+  /* Slight visual compression when collapsed */
+  .cmp-dice-tray[data-collapsed="left"] .tray-frame { opacity:.85; filter:brightness(.9) contrast(.95); }
 }

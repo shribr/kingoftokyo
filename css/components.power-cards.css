@@ -135,8 +135,8 @@
   transform: rotate(2.5deg);
   transform-origin: center center;
 }
-.cmp-power-cards-panel .pc-card__name { text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; line-height:1.3; flex:1; padding-top:2px; display:flex; align-items:center; }
-.cmp-power-cards-panel .pc-card-name { text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; line-height:1.3; flex:1; padding-top:2px; padding-left:8px; display:flex; align-items:center; justify-content:space-between; }
+.cmp-power-cards-panel .pc-card__name { text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; line-height:1.3; flex:1; padding-top:2px; display:flex; align-items:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cmp-power-cards-panel .pc-card-name { text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; line-height:1.3; flex:1; padding-top:2px; padding-left:8px; display:flex; align-items:center; justify-content:space-between; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
 .cmp-power-cards-panel .pc-card-info-btn {
   background: #fff;
@@ -236,6 +236,52 @@
   .cmp-power-cards-panel .pc-card__cost { font-size:14px; padding:3px 8px 5px; }
 }
 
+/* Primary mobile shrink (phones & narrow tablets) */
+@media (max-width:760px){
+  /* Force single column stacking on mobile to match original vertical layout */
+  .cmp-power-cards-panel .pc-shop-cards { display:flex !important; flex-direction:column !important; gap:10px !important; }
+  .cmp-power-cards-panel .pc-shop-cards > * { width:100% !important; }
+  .cmp-power-cards-panel .pc-card { padding:7px 8px 9px !important; gap:6px !important; }
+  .cmp-power-cards-panel .pc-card__header, 
+  .cmp-power-cards-panel .pc-card-header { font-size:14px !important; margin:-4px -4px 0 !important; padding:4px 5px 5px !important; letter-spacing:.5px !important; }
+  .cmp-power-cards-panel .pc-card__cost, 
+  .cmp-power-cards-panel .pc-card-cost { font-size:12px !important; min-width:38px !important; padding:3px 8px 5px !important; margin-right:6px !important; }
+  .cmp-power-cards-panel .pc-card__body, 
+  .cmp-power-cards-panel .pc-card-description { font-size:12px !important; line-height:1.28 !important; }
+  .cmp-power-cards-panel .pc-card__count { font-size:10px !important; padding:2px 5px !important; bottom:6px !important; right:6px !important; }
+  .cmp-power-cards-panel .pc-card-cost--footer { bottom:6px !important; left:6px !important; }
+  .cmp-power-cards-panel .pc-card-info-btn { width:16px !important; height:16px !important; font-size:11px !important; margin-left:4px !important; }
+  .cmp-power-cards-panel .pc-card:hover { transform:translate(-3px,-3px) !important; box-shadow:4px 4px 0 #000,0 0 0 2px #222 inset,0 8px 18px rgba(0,0,0,.5) !important; }
+  .cmp-power-cards-panel .pc-card:active { box-shadow:2px 2px 0 #000,0 0 0 2px #222 inset !important; }
+  .cmp-power-cards-panel .power-card-deck { min-height:90px !important; }
+  .cmp-power-cards-panel .deck-logo { width:64px !important; }
+  .cmp-power-cards-panel .deck-label { font-size:22px !important; }
+  .cmp-power-cards-panel .pc-hint { font-size:11px !important; }
+  .cmp-power-cards-panel .pc-empty-frame { padding:14px 14px 16px !important; }
+  .cmp-power-cards-panel .pc-empty-frame h3 { font-size:22px !important; }
+  .cmp-power-cards-panel .pc-empty-frame p { font-size:12px !important; }
+}
+
+/* Ultra-compact mobile (very narrow phones) */
+@media (max-width:520px){
+  .cmp-power-cards-panel .pc-shop-cards { display:flex !important; flex-direction:column !important; gap:8px !important; }
+  .cmp-power-cards-panel .pc-card { padding:6px 7px 8px !important; }
+  .cmp-power-cards-panel .pc-card__header, 
+  .cmp-power-cards-panel .pc-card-header { font-size:13px !important; padding:3px 5px 4px !important; }
+  .cmp-power-cards-panel .pc-card__cost, 
+  .cmp-power-cards-panel .pc-card-cost { font-size:11px !important; min-width:34px !important; padding:3px 7px 4px !important; }
+  .cmp-power-cards-panel .pc-card__body, 
+  .cmp-power-cards-panel .pc-card-description { font-size:11px !important; line-height:1.25 !important; }
+  .cmp-power-cards-panel .pc-card__count { font-size:9px !important; }
+  .cmp-power-cards-panel .power-card-deck { min-height:82px !important; }
+  .cmp-power-cards-panel .deck-logo { width:56px !important; }
+  .cmp-power-cards-panel .deck-label { font-size:20px !important; }
+  .cmp-power-cards-panel .pc-card-info-btn { width:15px !important; height:15px !important; font-size:10px !important; }
+  .cmp-power-cards-panel .pc-empty-frame { padding:12px 12px 14px !important; }
+  .cmp-power-cards-panel .pc-empty-frame h3 { font-size:20px !important; }
+  .cmp-power-cards-panel .pc-empty-frame p { font-size:11px !important; }
+}
+
 /* Compact layout for very narrow widths */
 @media (max-width:640px) {
   .cmp-power-cards-panel .pc-shop-cards { grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); }
@@ -245,3 +291,9 @@
 /* Entrance animation (can be triggered later when cards load) */
 .cmp-power-cards-panel .pc-card[data-enter] { animation:pcCardIn .5s cubic-bezier(.25,.46,.45,.94); }
 @keyframes pcCardIn { 0% { opacity:0; transform:translateY(14px) scale(.95); } 100% { opacity:1; transform:translateY(0) scale(1); } }
+/* Safeguard: ensure no reversion to grid on mobile due to late-loading styles or legacy injections */
+@media (max-width:760px){
+  .cmp-power-cards-panel .pc-shop-cards[style],
+  .cmp-power-cards-panel .pc-shop-cards { display:flex !important; flex-direction:column !important; gap:10px !important; grid-template-columns:none !important; }
+  .cmp-power-cards-panel .pc-shop-cards > * { width:100% !important; }
+}

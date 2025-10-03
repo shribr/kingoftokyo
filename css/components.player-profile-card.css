@@ -7,34 +7,42 @@
 /* Header */
 .cmp-player-profile-card .ppc-header { display:flex; align-items:flex-start; margin:0 0 14px; position:relative; }
 .cmp-player-profile-card .ppc-avatar { width:58px; height:58px; border:3px solid #000; border-radius:50%; background:#fff center var(--ppc-avatar-pos-y)/cover no-repeat; box-shadow:2px 2px 0 #000; margin-right:10px; cursor:pointer; transition:transform 0.2s ease, box-shadow 0.2s ease; }
+.cmp-player-profile-card .ppc-avatar { aspect-ratio:1 / 1; object-fit:cover; flex:0 0 58px; }
+/* Anti-warp reinforcement: any scaling container must not distort avatar */
+.cmp-player-profile-card .ppc-avatar img, .cmp-player-profile-card .ppc-avatar picture, .cmp-player-profile-card .ppc-avatar canvas { width:100%; height:100%; object-fit:cover; border-radius:50%; display:block; }
+/* Reset accidental width/height overrides that break circle (legacy cascades) */
+.cmp-player-profile-card .ppc-avatar[style*="width:"][style*="height:"] { aspect-ratio:1/1; }
+/* Mini / panel variants still enforce 1:1 */
+.cmp-monsters-panel .cmp-player-profile-card .ppc-avatar,
+.cmp-player-profile-card.cmp-player-profile-card--mini .ppc-avatar { aspect-ratio:1/1; }
 .cmp-player-profile-card .ppc-avatar:hover { transform:scale(1.05); box-shadow:3px 3px 0 #000, 0 0 0 2px #ffd400; }
 .cmp-player-profile-card .ppc-meta { flex:1; }
 
 /* Expand/collapse toggle for list view */
 .cmp-player-profile-card .ppc-expand-toggle {
-  position: static; /* Use normal document flow */
   display: none; /* Hidden by default, shown only in list view */
-  margin: 8px auto 0;
-  background: none;
-  border: none;
-  color: #fff;
-  width: auto;
-  height: auto;
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 32px;
+  height: 32px;
   cursor: pointer;
-  transition: opacity 0.2s ease;
-  z-index: 10;
+  z-index: 100;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 4px !important;
   padding: 4px;
+  transition: opacity 0.2s ease;
   opacity: 0.8;
 }
 
-/* In list view, show the arrow and create a dedicated arrow container after header */
-.cmp-monsters-panel:not(.is-stacked):not(.is-tiled) .cmp-player-profile-card .ppc-expand-toggle {
-  display: block;
+/* In list view, show the arrow positioned in top-right corner */
+.cmp-monsters-panel:not(.is-stacked):not(.is-tiled) .cmp-player-profile-card {
+  position: relative; /* Enable absolute positioning for arrow */
 }
 
-/* Reset header margin in list view since arrow now has its own space */
-.cmp-monsters-panel:not(.is-stacked):not(.is-tiled) .cmp-player-profile-card .ppc-header {
-  margin-bottom: 14px; /* Normal spacing */
+.cmp-monsters-panel:not(.is-stacked):not(.is-tiled) .cmp-player-profile-card .ppc-expand-toggle {
+  display: block !important;
 }
 
 .cmp-player-profile-card .ppc-expand-toggle:hover {
@@ -44,9 +52,41 @@
 .cmp-player-profile-card .ppc-expand-icon {
   display: block;
   transition: transform 0.2s ease;
-  filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.5));
+  color: #fff;
+  width: 16px;
+  height: 10px;
+  filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.8));
 }
-.cmp-player-profile-card .ppc-name { font-size:30px; line-height:1; margin:0 0 6px; text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; }
+
+/* Standard header margin in list view */
+.cmp-monsters-panel:not(.is-stacked):not(.is-tiled) .cmp-player-profile-card .ppc-header {
+  margin-bottom: 12px;
+  padding-right: 20px; /* Reduced from 40px - just enough room for arrow */
+}
+
+/* Shift player name more to the left in list view */
+.cmp-monsters-panel:not(.is-stacked):not(.is-tiled) .cmp-player-profile-card .ppc-name {
+  margin-left: -4px; /* Shift name to the left */
+  padding-right: 4px; /* Reduced from 8px - minimal buffer */
+  font-size: 24px; /* Smaller than default 30px */
+  line-height: 1.1; /* Slightly tighter line height */
+}
+
+/* Make status indicators (CPU, etc.) slightly smaller in list view */
+.cmp-monsters-panel:not(.is-stacked):not(.is-tiled) .cmp-player-profile-card .ppc-status-line {
+  font-size: 11px; /* Smaller than default 12px */
+}
+
+
+
+/* Ensure stats stay horizontal in list view */
+.cmp-monsters-panel:not(.is-stacked):not(.is-tiled) .cmp-player-profile-card .ppc-stats {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+}
+
+.cmp-player-profile-card .ppc-name { font-size:30px; line-height:1; margin:0 0 6px; text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; position:relative; display:inline-flex; flex-wrap:wrap; align-items:flex-start; }
 .cmp-player-profile-card .ppc-name small { font-size:14px; opacity:.65; margin-left:6px; letter-spacing:0; }
 
 /* Tokyo status indicator */
@@ -122,6 +162,48 @@
   }
 }
 
+/* Strong mobile shrink overrides (must appear after base + generic responsive to win cascade) */
+@media (max-width:760px), (pointer: coarse) {
+  .cmp-monsters-panel .cmp-player-profile-card.cmp-player-profile-card { 
+    width:100% !important; max-width:100% !important; padding:6px 10px 8px !important; border-width:2px !important; box-shadow:3px 3px 0 #000,0 0 0 2px #222 inset !important; 
+  }
+  .cmp-monsters-panel .cmp-player-profile-card .ppc-header { margin:0 0 8px !important; align-items:center !important; }
+  .cmp-monsters-panel .cmp-player-profile-card .ppc-avatar { width:40px !important; height:40px !important; border-width:2px !important; margin-right:8px !important; }
+  .cmp-monsters-panel .cmp-player-profile-card .ppc-name { font-size:18px !important; line-height:1.05 !important; margin:0 0 2px !important; }
+  .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] { padding:9px 11px 11px !important; box-shadow:0 3px 12px rgba(0,0,0,0.5),0 0 0 2px var(--ppc-accent,#333) !important; }
+  .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-avatar { width:50px !important; height:50px !important; }
+  .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-stats { gap:6px !important; margin:0 0 8px !important; }
+  .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-stat { padding:6px 2px 4px !important; border-width:2px !important; }
+  .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-stat .value { font-size:22px !important; }
+  .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-owned-cards { padding:6px 6px 8px !important; border-width:2px !important; }
+  .cmp-monsters-panel .cmp-player-profile-card .ppc-card-mini { font-size:11px !important; max-width:70px !important; }
+  /* Active dock scaling assist: reduce base width so scale calc ends smaller */
+  #active-player-card-slot .cmp-player-profile-card[data-in-active-dock="true"] { width:200px !important; }
+
+  /* Ultra-compact adjustments for very narrow widths */
+  @media (max-width:520px) {
+    .cmp-monsters-panel .cmp-player-profile-card.cmp-player-profile-card { padding:5px 8px 6px !important; }
+    .cmp-monsters-panel .cmp-player-profile-card .ppc-avatar { width:36px !important; height:36px !important; }
+    .cmp-monsters-panel .cmp-player-profile-card .ppc-name { font-size:16px !important; }
+    .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] { padding:7px 9px 9px !important; }
+    .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-avatar { width:44px !important; height:44px !important; }
+    .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-stats { gap:5px !important; }
+    .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-stat { padding:5px 2px 4px !important; }
+    .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-stat .value { font-size:20px !important; }
+    .cmp-monsters-panel .cmp-player-profile-card .ppc-card-mini { font-size:10px !important; max-width:62px !important; }
+  }
+
+  /* Additional deep shrink for non-expanded list view cards */
+  .cmp-monsters-panel[data-card-layout="list"] .cmp-player-profile-card:not([data-expanded="true"]) { padding:5px 8px 6px !important; }
+  .cmp-monsters-panel[data-card-layout="list"] .cmp-player-profile-card:not([data-expanded="true"]) .ppc-avatar { width:34px !important; height:34px !important; }
+  .cmp-monsters-panel[data-card-layout="list"] .cmp-player-profile-card:not([data-expanded="true"]) .ppc-name { font-size:15px !important; }
+  @media (max-width:520px) {
+    .cmp-monsters-panel[data-card-layout="list"] .cmp-player-profile-card:not([data-expanded="true"]) { padding:4px 7px 5px !important; }
+    .cmp-monsters-panel[data-card-layout="list"] .cmp-player-profile-card:not([data-expanded="true"]) .ppc-avatar { width:32px !important; height:32px !important; }
+    .cmp-monsters-panel[data-card-layout="list"] .cmp-player-profile-card:not([data-expanded="true"]) .ppc-name { font-size:14px !important; }
+  }
+}
+
 /* ------------------------------------------------------------------ */
 /* Legacy stack & rotation parity for non-active cards (visual haphazard pile)
  * Applies only within the monsters panel container. Active card floats clean.
@@ -176,11 +258,6 @@
 }
 .cmp-monsters-panel:not(.is-stacked):not(.is-tiled) .mp-player-cards .cmp-player-profile-card:last-child { margin-bottom:0; }
 
-/* Show expand toggle in list view */
-.cmp-monsters-panel:not(.is-stacked):not(.is-tiled) .cmp-player-profile-card .ppc-expand-toggle {
-  display: flex;
-}
-
 /* Hide stats and health sections in list view by default */
 .cmp-monsters-panel:not(.is-stacked):not(.is-tiled) .cmp-player-profile-card .ppc-stats,
 .cmp-monsters-panel:not(.is-stacked):not(.is-tiled) .cmp-player-profile-card .ppc-health-block,
@@ -205,16 +282,36 @@
 #active-player-card-slot { position:absolute; pointer-events:none; top:40%; left:50%; z-index:6700; transition: left .45s cubic-bezier(.25,.46,.45,.94), top .45s cubic-bezier(.25,.46,.45,.94); margin:0; padding:0; transform:translate(-50%, -50%); display:block; }
 #active-player-card-slot .cmp-player-profile-card { position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); transform-origin:center center; pointer-events:auto; }
 
-/* Mobile: keep active player card normal dimensions */
+/* Contained mode: when the slot is appended inside the dedicated active player tile, remove viewport-centered offsets */
+[data-active-player-slot] > #active-player-card-slot { top:50%; left:50%; width:100%; height:100%; position:absolute; }
+[data-active-player-slot] > #active-player-card-slot .cmp-player-profile-card { position:absolute; top:50%; left:50%; /* Removed max-width and max-height constraints to allow free scaling */ }
+/* Ensure no unintended scaling persists on slot itself (scaling now applied to card element) */
+[data-active-player-slot] > #active-player-card-slot { transform:translate(-50%, -50%); }
+
+/* Mobile: allow intrinsic width and avoid forced scale that produced vertical stretching */
 @media (max-width: 760px), (pointer: coarse) {
   #active-player-card-slot .cmp-player-profile-card {
-    width: 260px !important;
-    min-width: 260px !important;
-    max-width: 260px !important;
-    transform: translate(-50%, -50%) scale(0.85) !important;
+    width:auto !important;
+    min-width:0 !important;
+    max-width:100% !important;
+    transform:translate(-50%, -50%) !important; /* scale applied dynamically in JS */
+  }
+  #active-player-card-slot .cmp-player-profile-card .ppc-header { margin-top:4px !important; }
+  /* Ensure stats remain a single horizontal row when visible */
+  .cmp-monsters-panel .cmp-player-profile-card .ppc-stats { flex-wrap:nowrap !important; white-space:nowrap !important; gap:6px !important; }
+  .cmp-monsters-panel .cmp-player-profile-card .ppc-stat { padding:6px 2px 4px !important; border-width:2px !important; }
+  .cmp-monsters-panel .cmp-player-profile-card .ppc-stat .label { font-size:11px !important; }
+  .cmp-monsters-panel .cmp-player-profile-card .ppc-stat .value { font-size:22px !important; }
+  /* Deep shrink for non-expanded list view: hide stats unless expanded to save vertical space */
+  .cmp-monsters-panel[data-card-layout="list"] .cmp-player-profile-card:not([data-expanded="true"]) .ppc-stats { display:none !important; }
+  .cmp-monsters-panel[data-card-layout="list"] .cmp-player-profile-card[data-expanded="true"] .ppc-stats { display:flex !important; }
+  @media (max-width:520px) {
+    .cmp-monsters-panel .cmp-player-profile-card .ppc-stats { gap:4px !important; }
+    .cmp-monsters-panel .cmp-player-profile-card .ppc-stat { padding:5px 2px 4px !important; }
+    .cmp-monsters-panel .cmp-player-profile-card .ppc-stat .value { font-size:20px !important; }
   }
 }
-#active-player-card-slot[data-active-card-dock] { min-width:260px; min-height:180px; position:absolute; }
+#active-player-card-slot[data-active-card-dock] { min-width:260px; /* removed min-height constraint to allow card scaling */ position:absolute; }
 
 /* Mini active dock variation */
 /* Mini dock dimensions and centering */
@@ -267,6 +364,15 @@
 /* Transition when docking/undocking */
 .cmp-player-profile-card[data-transitioning] { opacity:.0; transform:scale(.9); transition:opacity .25s ease, transform .3s ease; }
 .cmp-player-profile-card[data-transitioning].in-place { opacity:1; transform:scale(1); }
+/* Smooth active-dock shrink animation */
+.cmp-player-profile-card.docking-active {
+  will-change: transform;
+  transition: transform 260ms cubic-bezier(.25,.6,.35,1);
+}
+/* Slight spring settle after docking */
+.cmp-player-profile-card.docking-active.settled {
+  transition: transform 320ms cubic-bezier(.25,1.4,.35,1);
+}
 
 /* Active turn pulse animation */
 @keyframes ppcActivePulse {
@@ -308,21 +414,32 @@
  * Scoped tightly to player profile card to avoid bleeding into other CPU labels.
  */
 .cmp-player-profile-card .ppc-name .ppc-cpu {
-	display:inline-block;
-	font-size:20px;
-	line-height:1;
-	font-weight:900;
-	letter-spacing:1px;
-	font-family:'Bangers',cursive;
-	color:#fff;
-	text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000;
-	margin-left:8px;
-	position:relative;
-	top:-1px;
-	/* Transparent background & no border per request */
-	background:transparent;
-	border:none;
-	padding:0 4px; /* retain a touch of spacing so outline isn't cramped */
+  display:inline-block;
+  font-size:20px;
+  line-height:1;
+  font-weight:900;
+  letter-spacing:1px;
+  font-family:'Bangers',cursive;
+  color:#fff;
+  text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000;
+  margin-left:8px;
+  position:relative;
+  top:-1px;
+  background:transparent;
+  border:none;
+  padding:0 4px;
+  white-space:normal; /* allow wrapping */
+}
+/* When space is constrained (mobile panels / narrow widths) allow CPU label to drop below name to prevent overflow */
+@media (max-width: 760px), (pointer: coarse) {
+  .cmp-player-profile-card .ppc-name { white-space:normal; overflow:visible; text-overflow:clip; }
+  .cmp-player-profile-card .ppc-name .ppc-cpu { display:block; width:100%; margin-left:0; margin-top:4px; top:0; padding:0; }
+}
+
+/* Safety: if container width becomes too small anywhere (e.g., panel constraints), allow wrap globally */
+@supports (overflow-wrap: anywhere) {
+  .cmp-player-profile-card .ppc-name.wrap-cpu { white-space:normal; overflow:visible; text-overflow:clip; }
+  .cmp-player-profile-card .ppc-name.wrap-cpu .ppc-cpu { display:block; width:100%; margin-left:0; margin-top:4px; top:0; padding:0; }
 }
 
 /* High-contrast mode or bright accent cards could optionally opt-in to a brighter CPU pill */
