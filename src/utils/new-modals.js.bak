@@ -521,8 +521,8 @@ export function createSettingsModal() {
                   </select>
                 </div>
                 <div class="filter-group">
-                  <button type="button" class="field-input" id="dev-clear-log-btn" style="cursor:pointer;padding:4px 8px;font-size:0.75rem;white-space:nowrap;border:1px solid #1e242b;">Clear Log</button>
-                  <button type="button" class="field-input" id="dev-export-log-btn" style="cursor:pointer;padding:4px 8px;font-size:0.75rem;white-space:nowrap;border:1px solid #1e242b;">Export</button>
+                  <button type="button" class="btn btn-sm" id="dev-clear-log-btn">🗑️ Clear Log</button>
+                  <button type="button" class="btn btn-sm" id="dev-export-log-btn">💾 Export</button>
                 </div>
                 <div class="filter-group">
                   <label class="field-checkbox" style="margin: 0;">
@@ -539,6 +539,10 @@ export function createSettingsModal() {
                 </div>
               </div>
               
+              <div style="display:flex;gap:8px;margin-top:8px;">
+                <button type="button" class="btn btn-sm" id="dev-clear-log-btn">🗑️ Clear Log</button>
+                <button type="button" class="btn btn-sm" id="dev-export-log-btn">� Export</button>
+              </div>
             </div>
           </div>
 
@@ -1712,14 +1716,10 @@ export function openWinOddsQuickModal(){
   wrapper.id = 'mini-win-odds-floating';
   wrapper.className = 'win-odds-mini-floating';
   const stored = (()=>{ try { return JSON.parse(localStorage.getItem('KOT_WIN_ODDS_MINI_SIZE')||'null'); } catch(_) { return null; } })();
-  const width = Math.min(600, Math.max(240, stored?.width || stored?.size || 340));
-  const height = Math.min(600, Math.max(200, stored?.height || stored?.size || 340));
-  // Center on screen by default if no stored position
-  const defaultTop = (window.innerHeight - height) / 2;
-  const defaultRight = (window.innerWidth - width) / 2;
-  const pos = stored?.pos || { top: defaultTop, right: defaultRight };
+  const size = Math.min(600, Math.max(240, stored?.size || 340));
+  const pos = stored?.pos || { top: 120, right: 440 };
   // Elevated z-index above active player dock (6601) and typical overlays but below any traveling portal clone (~6900+)
-  wrapper.style.cssText = `position:fixed;top:${pos.top}px;right:${pos.right}px;width:${width}px;height:${height}px;z-index:6905;display:flex;flex-direction:column;user-select:none;`;
+  wrapper.style.cssText = `position:fixed;top:${pos.top}px;right:${pos.right}px;width:${size}px;height:${size}px;z-index:6905;display:flex;flex-direction:column;user-select:none;`;
   wrapper.innerHTML = `
     <div class="mini-wo-chrome">
       <div class="mini-wo-header" data-drag-handle>
@@ -1752,10 +1752,6 @@ export function openWinOddsQuickModal(){
       <div class="mini-wo-resize handle-ne" data-resize="ne"></div>
       <div class="mini-wo-resize handle-sw" data-resize="sw"></div>
       <div class="mini-wo-resize handle-se" data-resize="se"></div>
-      <div class="mini-wo-resize handle-n" data-resize="n"></div>
-      <div class="mini-wo-resize handle-s" data-resize="s"></div>
-      <div class="mini-wo-resize handle-e" data-resize="e"></div>
-      <div class="mini-wo-resize handle-w" data-resize="w"></div>
     </div>`;
   document.body.appendChild(wrapper);
   // Dragging (header only)
@@ -1765,63 +1761,15 @@ export function openWinOddsQuickModal(){
     handle.addEventListener('mousedown', e=>{ dragging=true; sx=e.clientX; sy=e.clientY; const rect=wrapper.getBoundingClientRect(); startTop=rect.top; startRight = window.innerWidth - rect.right; document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', stop); e.preventDefault(); });
     function onMove(e){ if(!dragging) return; const dy=e.clientY-sy; const dx=e.clientX-sx; let newTop = startTop+dy; let newRight = startRight-dx; newTop=Math.max(40, Math.min(window.innerHeight-120, newTop)); newRight=Math.max(40, Math.min(window.innerWidth-120, newRight)); wrapper.style.top=newTop+'px'; wrapper.style.right=newRight+'px'; persist(); }
     function stop(){ dragging=false; document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', stop); }
-    function persist(){ try { const rect=wrapper.getBoundingClientRect(); const top=rect.top; const right=window.innerWidth-rect.right; const width=rect.width; const height=rect.height; localStorage.setItem('KOT_WIN_ODDS_MINI_SIZE', JSON.stringify({ width, height, pos:{ top, right } })); } catch(_) {} }
+    function persist(){ try { const rect=wrapper.getBoundingClientRect(); const top=rect.top; const right=window.innerWidth-rect.right; const size=rect.width; localStorage.setItem('KOT_WIN_ODDS_MINI_SIZE', JSON.stringify({ size, pos:{ top, right } })); } catch(_) {} }
     wrapper._persist = persist;
   })();
-  // Resizing (all directions)
+  // Resizing (square only)
   (function enableResize(){
-    let startWidth=0, startHeight=0, startTop=0, startRight=0, originX=0, originY=0, resizing=false, dir='se';
-    function onDown(e){ 
-      const h=e.target.closest('.mini-wo-resize'); 
-      if(!h) return; 
-      resizing=true; 
-      dir=h.dataset.resize; 
-      const rect=wrapper.getBoundingClientRect(); 
-      startWidth=rect.width; 
-      startHeight=rect.height; 
-      startTop=rect.top; 
-      startRight=window.innerWidth - rect.right; 
-      originX=e.clientX; 
-      originY=e.clientY; 
-      document.addEventListener('mousemove', onMove); 
-      document.addEventListener('mouseup', onUp); 
-      e.preventDefault(); 
-      e.stopPropagation(); 
-    }
-    function onMove(e){ 
-      if(!resizing) return; 
-      const dx=e.clientX-originX; 
-      const dy=e.clientY-originY; 
-      let newWidth = startWidth;
-      let newHeight = startHeight;
-      let newTop = startTop;
-      let newRight = startRight;
-      
-      // Handle horizontal resizing
-      if(dir.includes('e')) newWidth = startWidth + dx;
-      if(dir.includes('w')) { newWidth = startWidth - dx; newRight = startRight - dx; }
-      
-      // Handle vertical resizing
-      if(dir.includes('s')) newHeight = startHeight + dy;
-      if(dir.includes('n')) { newHeight = startHeight - dy; newTop = startTop + dy; }
-      
-      // Apply constraints
-      newWidth = Math.max(220, Math.min(800, newWidth));
-      newHeight = Math.max(180, Math.min(800, newHeight));
-      newTop = Math.max(0, Math.min(window.innerHeight - 100, newTop));
-      newRight = Math.max(0, Math.min(window.innerWidth - 100, newRight));
-      
-      wrapper.style.width = newWidth + 'px';
-      wrapper.style.height = newHeight + 'px';
-      wrapper.style.top = newTop + 'px';
-      wrapper.style.right = newRight + 'px';
-      wrapper._persist?.(); 
-    }
-    function onUp(){ 
-      resizing=false; 
-      document.removeEventListener('mousemove', onMove); 
-      document.removeEventListener('mouseup', onUp); 
-    }
+    let startSize=0, originX=0, originY=0, resizing=false, dir='se';
+    function onDown(e){ const h=e.target.closest('.mini-wo-resize'); if(!h) return; resizing=true; dir=h.dataset.resize; const rect=wrapper.getBoundingClientRect(); startSize=rect.width; originX=e.clientX; originY=e.clientY; document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onUp); e.preventDefault(); e.stopPropagation(); }
+    function onMove(e){ if(!resizing) return; const dx=e.clientX-originX; const dy=e.clientY-originY; const delta = Math.abs(Math.abs(dx) > Math.abs(dy) ? dx : dy); const sign = (dir==='nw'||dir==='sw')? -1 : 1; let newSize = startSize + (delta*sign); newSize = Math.max(220, Math.min(620, newSize)); wrapper.style.width = wrapper.style.height = newSize+'px'; wrapper._persist?.(); }
+    function onUp(){ resizing=false; document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); }
     wrapper.addEventListener('mousedown', onDown);
   })();
   const mini = {

@@ -15,7 +15,7 @@
 .cmp-action-menu {
   position:fixed;
   top:110px; /* desktop default: near top */
-  right:48px; /* desktop default */
+  right:420px; /* desktop default - aligned with active player card */
   display:flex;
   flex-direction:column;
   flex-wrap:nowrap;
@@ -32,12 +32,10 @@
   max-width:260px;
   min-width:260px;
   align-items:stretch;
+  overflow:visible; /* Allow drag handle to extend outside menu bounds */
   filter:none;
   -webkit-backdrop-filter:none;
   backdrop-filter:none;
-  /* Added horizontal breathing room */
-  margin-left:40px;
-  margin-right:40px;
 }
 
 /* Mobile / touch adjustments */
@@ -60,38 +58,23 @@
   .cmp-action-menu .power-cards-menu-container { flex: 1 1 100%; }
 }
 
-/* Drag grip redesign (collapsed: only dots visible; expands on hover) */
-.cmp-action-menu .am-header-row { display:flex; align-items:center; gap:4px; position:relative; overflow:visible; }
+/* Drag grip removed - menu is now draggable from any open space */
+.cmp-action-menu .am-header-row { 
+  display:flex; 
+  align-items:center; 
+  gap:4px; 
+  position:relative; 
+  overflow:visible;
+  cursor: grab;
+}
+.cmp-action-menu .am-header-row:active {
+  cursor: grabbing;
+}
+/* Grip styles hidden - no longer used
 .cmp-action-menu .am-drag-grip.am-grip-left {
-  position:absolute;
-  top:8px; /* align near top inside header */
-  left:-10px; /* slight protrusion so dots are visible */
-  width:18px; /* collapsed width just enough for 2 columns of dots */
-  padding:4px 4px 6px;
-  background:transparent; /* appear hidden behind menu */
-  border:0; border-right:none; border-radius:6px 0 0 6px;
-  display:grid;
-  grid-template-columns:repeat(2,6px);
-  grid-auto-rows:6px;
-  gap:4px 3px;
-  box-shadow:none;
-  cursor:grab;
-  z-index:1;
-  transition:left .28s ease, width .28s ease, padding .28s ease, background .25s ease, box-shadow .25s ease;
+  display: none;
 }
-.cmp-action-menu .am-drag-grip.am-grip-left .grip-dot { 
-  width:6px; height:6px; background:#d5d5d5; border-radius:50%; box-shadow:0 0 0 1px rgba(0,0,0,.4);
-}
-.cmp-action-menu .am-drag-grip.am-grip-left:hover,
-.cmp-action-menu .am-drag-grip.am-grip-left:focus {
-  left:-44px; /* slide further out */
-  width:46px; /* expanded tab width */
-  padding:8px 8px 10px 10px;
-  background:linear-gradient(135deg,#52565c,#232527);
-  border:2px solid #000; border-right:none;
-  box-shadow:2px 2px 0 #000, 0 0 0 1px #222 inset;
-}
-.cmp-action-menu .am-drag-grip.am-grip-left:active { cursor:grabbing; }
+*/
 
 /* When draggable and has transform applied, allow free positioning */
 .cmp-action-menu[data-draggable="true"][style*="transform"] {

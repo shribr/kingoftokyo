@@ -64,8 +64,9 @@
 .gl-center-bottom .cmp-action-menu { order:2; }
 .gl-center-bottom .cmp-action-menu { transition: margin .3s ease; }
 /* If either side panel expanded (heuristic: body has class panels-expanded-left/right added via JS later) */
-body.panels-expanded-left .gl-center-bottom .cmp-action-menu { margin-left: 40px; }
-body.panels-expanded-right .gl-center-bottom .cmp-action-menu { margin-right: 40px; }
+/* Margins removed - action menu positioned with fixed right value to avoid monsters panel */
+body.panels-expanded-left .gl-center-bottom .cmp-action-menu { margin-left: 0; }
+body.panels-expanded-right .gl-center-bottom .cmp-action-menu { margin-right: 0; }
 .gl-footer .cmp-toolbar { width:auto; margin-bottom:40px; }
 
 /* Shop ordering and stacking with effect panels */

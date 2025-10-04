@@ -34,12 +34,6 @@ export function build({ selector }) {
   root.dataset.amDockState = 'docked';
   root.innerHTML = `
     <div class="am-header-row">
-      <!-- Gripper temporarily disabled
-      <div class="am-drag-grip drag-grip am-grip-left" data-am-drag-handle tabindex="0" role="button" aria-label="Drag Action Menu" title="Drag Action Menu" aria-hidden="false">
-        <span class="grip-dot"></span><span class="grip-dot"></span><span class="grip-dot"></span>
-        <span class="grip-dot"></span><span class="grip-dot"></span><span class="grip-dot"></span>
-      </div>
-      -->
       <div class="am-label" aria-hidden="true">
       <span>ACTIONS</span>
       <button class="am-collapse-toggle" aria-label="Expand/Collapse Actions" type="button">
@@ -302,7 +296,7 @@ export function build({ selector }) {
       root.style.zIndex = '';
       root.setAttribute('data-draggable','true');
       if (!root._positioning) root._positioning = createPositioningService(store);
-      if (root._positioning) root._positioning.makeDraggable(root,'actionMenu',{ snapEdges:true, snapThreshold:12, handleSelector:'[data-am-drag-handle]' });
+      if (root._positioning) root._positioning.makeDraggable(root,'actionMenu',{ snapEdges:true, snapThreshold:12 });
       const existingBtn = document.getElementById('action-menu-mobile-btn');
       if (existingBtn) existingBtn.remove();
     }
@@ -413,6 +407,10 @@ export function build({ selector }) {
       if (collapsed) {
         const isDocked = root.dataset.amDockState === 'docked';
         if (isDocked) {
+          // Save current top position before collapsing so we can restore it on expand
+          const currentTop = root.style.top || '514px'; // default to 514px if no explicit top set
+          root._originalExpandedTop = currentTop;
+          
           // Capture fresh positions before animating (in case of prior drag/resize)
           computePositions();
           const docScroll = window.scrollY || 0;
@@ -430,7 +428,7 @@ export function build({ selector }) {
         arrowUp.style.opacity = '1';
         arrowDown.style.opacity = '0';
       } else {
-        // EXPANSION: slide upward so bottom aligns with toolbar bottom.
+        // EXPANSION: return to original expanded position (514px or user's custom position)
         const isDocked = root.dataset.amDockState === 'docked';
         if (isDocked) {
           computePositions();
@@ -447,28 +445,10 @@ export function build({ selector }) {
           content.style.maxHeight = '0px';
           content.style.opacity = '0';
           content.style.overflow = 'hidden';
-          // Get toolbar bottom for alignment target
-          const toolbar = document.getElementById('toolbar-menu');
-          let toolbarBottom = collapsedTop; // fallback
-          if (toolbar) {
-            const tRect = toolbar.getBoundingClientRect();
-            toolbarBottom = (tRect.bottom + (window.scrollY || 0));
-          }
-          // Calculate Y coordinate shift: move UP by content height to reveal entire menu above current position
-          const currentCollapsedTop = collapsedTop - docScroll;
-          const contentHeight = Math.max(0, expandedTotalH - headerHeight);
-          let targetTop = currentCollapsedTop - contentHeight;
-          // Provide additional lift so menu clears overlapping elements (toolbar shadows etc.)
-          targetTop -= 12; // extra upward offset
-          const minTop = 4; // allow closer to very top now
-          // If viewport is short and menu would extend below bottom, lift further
-          const vpH = window.innerHeight || document.documentElement.clientHeight || 800;
-          const projectedBottom = targetTop + expandedTotalH;
-          if (projectedBottom > vpH - 12) {
-            const overflow = projectedBottom - (vpH - 12);
-            targetTop -= overflow;
-          }
-          const clampedTargetTop = Math.max(targetTop, minTop);
+          
+          // Use saved original expanded position or default to 514px
+          const originalTop = root._originalExpandedTop || '514px';
+          let targetTop = parseInt(originalTop);
           
           // Ensure current top is collapsedTop - docScroll (anchor); if not, set it instantly
           const collapsedTopPx = (collapsedTop - docScroll) + 'px';
@@ -479,7 +459,7 @@ export function build({ selector }) {
           // Animate
           requestAnimationFrame(() => {
             root.style.transition = 'top 0.32s ease';
-            root.style.top = clampedTargetTop + 'px';
+            root.style.top = targetTop + 'px';
             // Animate content growth upward (since bottom anchored visually)
             requestAnimationFrame(() => {
               content.style.transition = 'max-height 0.32s ease, opacity 0.18s ease';
@@ -769,8 +749,8 @@ export function build({ selector }) {
 
     }
     if (root.getAttribute('data-draggable') !== 'false') {
-      // Restrict drag initiation to grip on desktop
-      positioning.makeDraggable(root, 'actionMenu', { snapEdges: true, snapThreshold: 12, handleSelector: '[data-am-drag-handle]' });
+      // Enable dragging from anywhere on the menu
+      positioning.makeDraggable(root, 'actionMenu', { snapEdges: true, snapThreshold: 12 });
     }
     // Track drag to switch hybrid -> floating
     let dragTransformStart = null;

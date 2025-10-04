@@ -162,6 +162,14 @@ export function createPositioningService(store) {
     try { localStorage.removeItem(STORAGE_KEY); } catch(_) {}
     store.dispatch(uiPositionsReset());
     
+    // Close any open floating modals and clear their stored positions
+    const winOddsModal = document.getElementById('mini-win-odds-floating');
+    if (winOddsModal) {
+      winOddsModal.remove();
+    }
+    // Clear Win Odds modal stored size/position to recenter on next open
+    try { localStorage.removeItem('KOT_WIN_ODDS_MINI_SIZE'); } catch(_) {}
+    
     // Clear all draggable element transforms first
     const draggableElements = document.querySelectorAll('[data-draggable="true"]');
     draggableElements.forEach(el => {

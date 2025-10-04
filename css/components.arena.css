@@ -305,7 +305,7 @@
 .cmp-arena [data-active-card-dock] .cmp-player-profile-card.in-place { animation:none; }
 
 /* Desktop / default: apply vertical offset AND rotation to tiles (cards inherit visual rotation) */
-.cmp-arena [data-arena-section="city"] { transform: translateY(14px) rotate(-4deg); transform-origin: top left; }
+.cmp-arena [data-arena-section="city"] { transform: translate(-20px, 14px) rotate(-4deg); transform-origin: top left; }
 .cmp-arena [data-arena-section="bay"]  { transform: translateY(18px) rotate(5deg);  transform-origin: top left; }
 
 /* Mobile: keep City and Bay side-by-side, remove rotation */
