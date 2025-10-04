@@ -1,3 +1,4 @@
+// REFERENCE-ONLY: This legacy file exists for reference and is NOT part of the active solution. Do not modify or import.
 /**
  * AI Decision Engine (Clean Rewrite)
  * Pipeline: state -> goal -> scoring -> set EV -> decision -> invariants.

@@ -40,22 +40,61 @@
 
 /* Mobile / touch adjustments */
 @media (max-width: 760px), (pointer: coarse) {
+  /* Position the action menu at the bottom-right and extend it to the left of the circular FAB */
   .cmp-action-menu { 
-    top: 120px; 
-    right: 20px; 
-    left: auto; 
-    width: 85vw; 
-    max-width: 85vw; 
-    min-width: 0; 
-    padding: 8px 10px 10px; 
-    gap: 6px; 
+    position: fixed !important;
+    bottom: 20px !important; 
+    right: 80px !important; /* leave space for the 50px FAB + margins */
+    left: auto !important; 
+    top: auto !important; 
+    width: calc(100vw - 100px) !important; /* nearly full width, accounting for FAB space */
+    max-width: calc(100vw - 100px) !important;
+    min-width: 0 !important; 
+    padding: 8px 10px 10px !important; 
+    gap: 8px !important; 
+    flex-direction: row !important; 
+    flex-wrap: nowrap !important; 
+    align-items: center !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    transform: translateX(110%) !important; /* hidden off-screen to the right by default */
+    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+    z-index: 6600 !important; /* Align with dice tray z-index */
   }
+  /* When open, slide into view */
   body[data-action-menu-open] .cmp-action-menu { 
-    display: flex !important; 
+    transform: translateX(0) !important; 
   }
-  .cmp-action-menu .am-content { flex-direction: row; flex-wrap: wrap; }
-  .cmp-action-menu button { flex: 1 1 auto; min-width: 42%; }
-  .cmp-action-menu .power-cards-menu-container { flex: 1 1 100%; }
+  .cmp-action-menu .am-label, 
+  .cmp-action-menu .am-collapse-toggle { 
+    display: none !important; /* No expand/collapse arrow on mobile */
+  }
+  .cmp-action-menu .am-content { 
+    display: flex !important; 
+    flex-direction: row !important; 
+    flex-wrap: nowrap !important; 
+    gap: 8px !important; 
+    margin: 0 !important; 
+    padding: 0 !important; 
+    max-height: none !important; 
+    opacity: 1 !important; 
+    overflow: visible !important; 
+  }
+  .cmp-action-menu .am-content > * { flex: 0 0 auto !important; }
+  .cmp-action-menu button { 
+    flex: 0 0 auto !important; 
+    min-width: auto !important; 
+    width: auto !important; 
+    white-space: nowrap !important; 
+  }
+  .cmp-action-menu .power-cards-menu-container { flex: 0 0 auto !important; position: relative !important; }
+  /* Submenu should drop upward or left/right based on space; keep default absolute logic */
+}
+
+/* Never draggable in mobile: neutralize cursor hint */
+@media (max-width: 760px), (pointer: coarse) {
+  .cmp-action-menu[data-draggable="false"] { cursor: default !important; }
+  .cmp-action-menu .am-header-row { cursor: default !important; }
 }
 
 /* Drag grip removed - menu is now draggable from any open space */
@@ -481,9 +520,9 @@
     bottom: 20px !important; /* Same as dice tray */
     top: auto !important;
     left: auto !important;
-    right: 0 !important;
-    width: calc(100vw - 90px) !important; /* Leave room for action menu button + padding */
-    max-width: calc(100vw - 90px) !important;
+    right: 80px !important; /* Leave space for 50px FAB + margins */
+    width: calc(100vw - 100px) !important; /* Nearly full width accounting for FAB space */
+    max-width: calc(100vw - 100px) !important;
     height: 60px !important; /* Fixed height for container */
     display: flex !important; /* Always flex, visibility controlled by transform */
     flex-direction: row !important; /* Force horizontal layout */
@@ -497,12 +536,12 @@
     border-radius: 12px !important;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(255, 207, 51, 0.3) inset !important;
     /* Hidden by default - slides in from right when opened */
-    transform: translateX(100%) !important; /* Hidden to the right by default */
+    transform: translateX(110%) !important; /* Hidden to the right by default */
     transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
     overflow-x: auto !important;
     overflow-y: visible !important;
     overscroll-behavior: contain;
-    z-index: 7400 !important; /* Above dice tray (6600) but below buttons (7500) */
+    z-index: 6600 !important; /* Same as dice tray */
   }
   
   /* When opened, slide in from right */

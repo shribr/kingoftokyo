@@ -1,3 +1,4 @@
+// REFERENCE-ONLY: This legacy file exists for reference and is NOT part of the active solution. Do not modify or import.
 /** FOR FUTURE LEGACY REMOVAL: Full legacy snapshot of ai-decisions.js */
 /* Duplicated from ../../js/ai-decisions.js so new code references a centralized legacy copy. */
 /* DO NOT author new features here; migrate logic into modular services before deleting. */

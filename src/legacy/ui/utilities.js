@@ -1,3 +1,4 @@
+// REFERENCE-ONLY: This legacy file exists for reference and is NOT part of the active solution. Do not modify or import.
 /**
  * UI Utilities Module
  * Handles common UI utility functions including colors, messages, and screen management

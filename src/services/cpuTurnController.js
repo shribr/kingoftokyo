@@ -118,9 +118,14 @@ export function createCpuTurnController(store, engine, logger = console, options
       else decisionPromise = Promise.resolve(rawDecision);
       
       const decision = await withTimeout(decisionPromise, settings.decisionTimeoutMs, () => {
-        const currentRerollsForFallback = st.dice.rerollsRemaining ?? 0;
+        let currentRerollsForFallback = 0;
+        try {
+          const now = store.getState();
+          currentRerollsForFallback = now?.dice?.rerollsRemaining ?? 0;
+        } catch(_) {}
         console.warn(`[cpuController] Decision timeout, using fallback with rerolls=${currentRerollsForFallback}`);
-        return { action: currentRerollsForFallback>0?'reroll':'endRoll', keepDice: [], confidence:0.2, reason:'timeout fallback'};
+        // Prefer to reroll on timeout if we have rerolls left
+        return { action: currentRerollsForFallback>0 ? 'reroll' : 'endRoll', keepDice: [], confidence:0.2, reason:'timeout fallback'};
       });
 
       console.log(`[cpuController] AI decision for roll ${rollNumber}:`, { 

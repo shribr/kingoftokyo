@@ -1,5 +1,7 @@
 # CSS Architecture Overview
 
+> REFERENCE-ONLY: Files in this folder are retained for reference and historical context. They are NOT part of the active solution and should not be modified or imported into current builds.
+
 This document explains the layering and conventions introduced for improved maintainability.
 
 ## Layer Order (Load Sequence in `index.html`)

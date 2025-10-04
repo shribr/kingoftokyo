@@ -1,5 +1,7 @@
 # Legacy JS (Reference Zone)
 
+> REFERENCE-ONLY: Files in this folder are retained for reference and historical context. They are NOT part of the active solution and should not be modified or imported into current builds.
+
 Centralized repository of legacy or monolithic logic copied from outside `new/` for the purpose of:
 - Analyzing existing behavior while rewriting features into modular services/components.
 - Preventing accidental edits to the **real** legacy implementation that still powers the original game outside `new/`.

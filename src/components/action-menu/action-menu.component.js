@@ -65,6 +65,18 @@ export function build({ selector }) {
   const setupMobile = () => {
     const isMobile = checkMobile();
     if (isMobile) {
+      // Signal that the FAB-slide design is active so legacy hamburger logic becomes a no-op
+      try { window.__AM_MOBILE_DESIGN = 'fab-slide'; } catch(_) {}
+      // Debug: entering mobile setup path
+      try {
+        console.log('[AM][setupMobile] mobile detected', {
+          innerWidth: window.innerWidth,
+          innerHeight: window.innerHeight,
+          coarsePointer: matchMedia('(pointer: coarse)').matches,
+          existingFab: !!document.getElementById('action-menu-mobile-btn'),
+          bodyOpen: document.body.hasAttribute('data-action-menu-open')
+        });
+      } catch(_) {}
       // Remove the actions label entirely so it cannot display in mobile
       const labelEl = root.querySelector('.am-label');
       if (labelEl) {
@@ -76,8 +88,16 @@ export function build({ selector }) {
       // CSS now handles all styling with !important, so we just ensure collapsed state
       // Don't set position, bottom, etc. - let CSS handle it completely
       
-      // Set initial collapsed state (hidden to the right)
-      root.style.transform = 'translateX(100%)';
+  // Initial state: hidden (CSS controls transform via body[data-action-menu-open])
+  document.body.removeAttribute('data-action-menu-open');
+      try {
+        const cs = getComputedStyle(root);
+        const r = root.getBoundingClientRect();
+        console.log('[AM][setupMobile] initial menu state', {
+          transform: cs.transform,
+          rect: { x: r.x, y: r.y, w: r.width, h: r.height }
+        });
+      } catch(_) {}
       
       // Mark that mobile setup is complete
       root.setAttribute('data-mobile-ready', 'true');
@@ -101,10 +121,19 @@ export function build({ selector }) {
       // Menu is always rendered (CSS has display: flex !important)
       // Just ensure it starts collapsed (hidden to the right via transform)
       root.setAttribute('data-draggable','false');
+      try { console.log('[AM][setupMobile] set data-draggable=false for mobile'); } catch(_) {}
       
       // Remove any existing toggle button
       const existingBtn = document.getElementById('action-menu-mobile-btn');
-      if (existingBtn) existingBtn.remove();
+      if (existingBtn) {
+        try { console.log('[AM][setupMobile] removing existing mobile FAB to re-create'); } catch(_) {}
+        existingBtn.remove();
+      }
+      // Remove legacy backdrop (from hamburger flow) if present
+      try {
+        const oldBackdrop = document.querySelector('.action-menu-backdrop');
+        if (oldBackdrop) { oldBackdrop.remove(); console.log('[AM][setupMobile] removed legacy hamburger backdrop'); }
+      } catch(_) {}
       const btn = document.createElement('div');
       btn.id = 'action-menu-mobile-btn';
       btn.className = 'action-menu-mobile-btn';
@@ -113,27 +142,36 @@ export function build({ selector }) {
       Object.assign(btn.style, {
         position:'fixed', bottom:'20px', right:'20px', width:'50px', height:'50px', background:'linear-gradient(135deg,#ffcf33 0%, #ffb300 100%)', border:'3px solid #333', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24px', cursor:'pointer', boxShadow:'0 4px 12px rgba(0,0,0,0.3)', zIndex:'7500', transition:'transform 0.2s ease'
       });
+      const debugMobileState = (label) => {
+        try {
+          const cs = getComputedStyle(root);
+          const r = root.getBoundingClientRect();
+          console.log(`[AM][mobile] ${label}`, {
+            bodyOpen: document.body.hasAttribute('data-action-menu-open'),
+            transform: cs.transform,
+            rect: { x: r.x, y: r.y, w: r.width, h: r.height }
+          });
+        } catch(_) {}
+      };
       btn.addEventListener('click', () => {
-        // Check if menu is currently visible (translateX is 0)
-        const isExpanded = root.style.transform === 'translateX(0px)' || root.style.transform === 'translateX(0)';
-        
-        if (isExpanded) {
-          // Collapse - slide out to right
-          root.style.transform = 'translateX(100%)';
-          btn.style.transform = 'scale(1)';
+        const isOpen = document.body.hasAttribute('data-action-menu-open');
+        try { console.log('[AM][mobileBtn] click', { wasOpen: isOpen, togglingTo: !isOpen }); } catch(_) {}
+        if (isOpen) {
           document.body.removeAttribute('data-action-menu-open');
+          btn.style.transform = 'scale(1)';
           btn.innerHTML = '◀';
           btn.setAttribute('aria-label','Expand Action Menu');
+          debugMobileState('after-close');
         } else {
-          // Expand - slide in from right
-          root.style.transform = 'translateX(0)';
-          btn.style.transform = 'scale(0.9)';
-          btn.innerHTML = '▶'; // right arrow indicates collapse direction
-          btn.setAttribute('aria-label','Collapse Action Menu');
           document.body.setAttribute('data-action-menu-open','true');
+          btn.style.transform = 'scale(0.9)';
+          btn.innerHTML = '▶';
+          btn.setAttribute('aria-label','Collapse Action Menu');
+          debugMobileState('after-open');
         }
       });
       document.body.appendChild(btn);
+      try { console.log('[AM][setupMobile] mobile FAB appended'); } catch(_) {}
       root._mobileBtn = btn;
 
       // Ensure active player bubble (avatar + name) exists to the left of the action menu button
@@ -191,6 +229,7 @@ export function build({ selector }) {
       }
     } else {
       // Desktop: restore visibility & dragging
+      try { console.log('[AM][setupMobile] desktop detected; removing mobile FAB if present'); } catch(_) {}
       // Restore label if it was removed while in mobile
       if (!root.querySelector('.am-label') && root._storedAmLabelHTML) {
         try {
@@ -200,6 +239,8 @@ export function build({ selector }) {
           if (restored) root.insertBefore(restored, root.firstChild);
         } catch(_){ }
       }
+      // Desktop re-enables standard behavior
+      try { window.__AM_MOBILE_DESIGN = ''; } catch(_) {}
       root.style.display = 'flex';
       root.style.position = '';
       root.style.bottom = '';
@@ -263,61 +304,19 @@ export function build({ selector }) {
   // Load collapsed state from localStorage if persist positions is enabled
     const settings = store.getState().settings;
     const shouldPersist = settings?.persistPositions;
-    let isCollapsed = false;
-    
-    if (shouldPersist) {
-      try {
-        const saved = localStorage.getItem('kot_action_menu_collapsed');
-        isCollapsed = saved === 'true';
-      } catch(_) {}
-    }
-    
-    // Behavior v3:
-    // Collapse: move menu so its TOP aligns with toolbar TOP; shrink content (menu height == header height).
-    // Expand: (arrow up) slide entire menu upward so its BOTTOM aligns with toolbar TOP and simultaneously grow content upward.
-    // If floating (hybrid) when initiating collapse or expand, fade -> dock -> animate.
-    let collapsedTop = null;     // toolbar top (document space) used for collapse alignment
-    let headerHeight = null;     // cached header height
-
-    function computePositions() {
-      const rect = root.getBoundingClientRect();
-      const scrollY = window.scrollY || 0;
-      const headerEl = root.querySelector('.am-label');
-      headerHeight = headerEl ? headerEl.getBoundingClientRect().height : 40;
-      // Compute collapsedTop based on toolbar
-      const toolbar = document.getElementById('toolbar-menu');
-      if (toolbar) {
-        const tRect = toolbar.getBoundingClientRect();
-        collapsedTop = tRect.top + scrollY; // align menu top with toolbar top
-      } else {
-        collapsedTop = rect.top + scrollY; // fallback: no movement
-      }
-    }
-    function ensurePositions() { if (collapsedTop == null || headerHeight == null) computePositions(); }
-
-    function measureHeights() {
-      // Temporarily ensure expanded to measure
-      const wasCollapsed = content.getAttribute('data-collapsed') === 'true';
-      if (wasCollapsed) {
-        content.style.maxHeight = '500px';
-        content.style.opacity = '1';
-      }
-      const totalH = root.getBoundingClientRect().height;
-      const headerEl = root.querySelector('.am-label');
-      const headerH = headerEl ? headerEl.getBoundingClientRect().height : 40;
-      if (wasCollapsed) {
-        content.style.maxHeight = '0px';
-        content.style.opacity = '0';
-      }
-      return { totalH, headerH };
-    }
-
-    function updateCollapseState(collapsed) {
-      ensurePositions();
-      content.style.transition = 'max-height 0.28s ease, opacity 0.18s ease';
-      content.setAttribute('data-collapsed', collapsed.toString());
-      toggleBtn.setAttribute('aria-expanded', (!collapsed).toString());
-
+    if (isTouch) {
+      // FAB-slide mobile design: ensure horizontal layout, no collapse arrows, not draggable, and no hamburger/backdrop wiring
+      root.setAttribute('data-layout','horizontal');
+      root.setAttribute('data-draggable','false');
+      const collapseToggle = root.querySelector('.am-collapse-toggle');
+      if (collapseToggle) collapseToggle.style.display = 'none';
+      const labelEl = root.querySelector('.am-label');
+      if (labelEl) { labelEl.style.display = 'none'; labelEl.setAttribute('data-force-hidden','true'); }
+      const msLabel = root.querySelector('.ms-label');
+      if (msLabel) { msLabel.style.display = 'none'; msLabel.setAttribute('data-force-hidden','true'); }
+      // Remove any lingering legacy backdrop
+      try { const b = document.querySelector('.action-menu-backdrop'); if (b) b.remove(); } catch(_) {}
+    } else {
       if (collapsed) {
         const isDocked = root.dataset.amDockState === 'docked';
         if (isDocked) {
@@ -653,14 +652,7 @@ export function build({ selector }) {
   const isTouch = matchMedia('(pointer: coarse)').matches || window.innerWidth <= 600;
     if (isTouch) {
       root.setAttribute('data-draggable','false');
-      // Force mobile positioning for action menu
-      root.style.position = 'fixed';
-      root.style.bottom = '20px';
-      root.style.left = '80%';
-      root.style.top = 'auto';
-      root.style.right = 'auto';
-      root.style.transform = 'none';
-
+      // Let CSS handle mobile positioning and slide-in/out; avoid inline overrides here.
     }
     if (root.getAttribute('data-draggable') !== 'false') {
       // Enable dragging from anywhere on the menu
@@ -689,18 +681,9 @@ export function build({ selector }) {
     });
     // Re-clamp on resize so it never drifts off-screen after viewport changes
     const clampIntoView = () => {
-      // Check if mobile mode should be applied
+      // On mobile, CSS governs positioning/transform; skip clamping.
       const isMobileNow = matchMedia('(pointer: coarse)').matches || window.innerWidth <= 760;
-      if (isMobileNow) {
-        // Force mobile positioning
-        root.style.position = 'fixed';
-        root.style.bottom = '5%';
-        root.style.left = '80%';
-        root.style.top = 'auto';
-        root.style.right = 'auto';
-        root.style.transform = 'none';
-        return;
-      }
+      if (isMobileNow) return;
       
       const rect = root.getBoundingClientRect();
       const maxLeft = window.innerWidth - rect.width - 4;
@@ -1027,7 +1010,11 @@ export function update(root) {
     }
   } catch(_) {}
 
-  enforceVerticalLayout(root);
+  // Only enforce vertical layout on non-mobile so the mobile horizontal variant can apply via CSS
+  try {
+    const isTouch = matchMedia('(pointer: coarse)').matches || window.innerWidth <= 760;
+    if (!isTouch) enforceVerticalLayout(root);
+  } catch(_) { enforceVerticalLayout(root); }
 
   // Mobile/touch: horizontal layout and hamburger toggle behavior
   const isTouch = matchMedia('(pointer: coarse)').matches || window.innerWidth <= 760;

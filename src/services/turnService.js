@@ -515,8 +515,32 @@ export function createTurnService(store, logger, rng = Math.random) {
       const stPre = store.getState();
       const activeIdLog = forcedActiveId || (stPre.players.order[stPre.meta.activePlayerIndex % stPre.players.order.length]);
   try { console.log('[turnService] playCpuTurn invoked for', activeIdLog); } catch(_) {}
-      const controller = createCpuTurnController(store, enhancedEngineProxy(), store._logger || console, {});
-      controller.start();
+      // Ensure only one CPU controller instance runs per turnCycleId
+      try {
+        if (typeof window !== 'undefined') {
+          window.__KOT_NEW__ = window.__KOT_NEW__ || {};
+          const ref = window.__KOT_NEW__.cpuControllerRef;
+          const currentTurnId = stPre.meta?.turnCycleId;
+          if (ref && ref.turnCycleId === currentTurnId && ref.controller && typeof ref.controller.isActive === 'function' && ref.controller.isActive()) {
+            try { console.log('[turnService] CPU controller already active for this turn, skipping duplicate start'); } catch(_) {}
+            return; // already running for this turn
+          }
+          // If some stale controller exists but for a different turn, cancel it defensively
+          if (ref && ref.controller && typeof ref.controller.cancel === 'function') {
+            try { ref.controller.cancel(); } catch(_) {}
+          }
+          const controller = createCpuTurnController(store, enhancedEngineProxy(), store._logger || console, {});
+          window.__KOT_NEW__.cpuControllerRef = { controller, turnCycleId: currentTurnId };
+          controller.start();
+        } else {
+          const controller = createCpuTurnController(store, enhancedEngineProxy(), store._logger || console, {});
+          controller.start();
+        }
+      } catch(inner) {
+        // Fallback: try to start a fresh controller if guard logic failed
+        const controller = createCpuTurnController(store, enhancedEngineProxy(), store._logger || console, {});
+        controller.start();
+      }
       setTimeout(()=> {
         try {
           const ds = store.getState().dice;

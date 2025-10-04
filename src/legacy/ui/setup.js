@@ -1,3 +1,4 @@
+// REFERENCE-ONLY: This legacy file exists for reference and is NOT part of the active solution. Do not modify or import.
 // Setup Manager - Handles game setup, player configuration, and monster selection
 class SetupManager {
     constructor(uiUtilities) {

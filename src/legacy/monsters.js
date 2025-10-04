@@ -1,3 +1,4 @@
+// REFERENCE-ONLY: This legacy file exists for reference and is NOT part of the active solution. Do not modify or import.
 // Monster definitions for King of Tokyo
 let MONSTERS = {
     gigazaur: {

@@ -1,3 +1,4 @@
+// REFERENCE-ONLY: This legacy file exists for reference and is NOT part of the active solution. Do not modify or import.
 // Dice system for King of Tokyo
 let DICE_FACES = {
     '1': { symbol: '1', value: 1, type: 'number' },

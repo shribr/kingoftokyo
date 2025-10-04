@@ -1,3 +1,4 @@
+// REFERENCE-ONLY: This legacy file exists for reference and is NOT part of the active solution. Do not modify or import.
 // Main game engine for King of Tokyo
 
 // Hierarchical Game Log Tree Structure

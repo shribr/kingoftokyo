@@ -1,3 +1,4 @@
+// REFERENCE-ONLY: This legacy file exists for reference and is NOT part of the active solution. Do not modify or import.
 // Backup of previous ai-decisions.js prior to rewrite.
 // Timestamp: 2025-09-21
 // NOTE: This file is not loaded by the game; kept only for reference and potential cherry-picks.
