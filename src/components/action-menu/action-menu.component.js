@@ -755,7 +755,8 @@ export function build({ selector }) {
     root._positioning = positioning; // Store reference for mobile/desktop transitions
     positioning.hydrate();
     // Disable dragging on touch/mobile (coarse pointer) or narrow viewports
-    const isTouch = matchMedia('(pointer: coarse)').matches || window.innerWidth <= 760;
+  // Disable desktop dragging only for true touch / very small viewports
+  const isTouch = matchMedia('(pointer: coarse)').matches || window.innerWidth <= 600;
     if (isTouch) {
       root.setAttribute('data-draggable','false');
       // Force mobile positioning for action menu
@@ -926,13 +927,6 @@ function updateSubmenuPosition(root) {
 
 export function update(root) {
   const st = store.getState();
-  // Global initialization gating: only enable roll after initial game-active and phase detection
-  const initializing = !window.__KOT_ACTION_MENU_READY;
-  if (initializing) {
-    // Force all buttons disabled except roll (which is enabled only if phase is ROLL and dice idle with no faces yet)
-    const btns = root.querySelectorAll('button[data-action]');
-    btns.forEach(b => { if (b.getAttribute('data-action') !== 'roll') b.disabled = true; });
-  }
   const isPaused = !!st.game?.isPaused;
   
   const rollBtn = root.querySelector('[data-action="roll"]');
@@ -952,6 +946,20 @@ export function update(root) {
   const faces = dice.faces || [];
   const hasAnyFaces = faces.length > 0;
   const keptCount = faces.reduce((n,f)=> n + (f && f.kept ? 1 : 0), 0);
+  // Global initialization gating (revised): gate ONLY until the very first roll has produced faces.
+  // Previously a logic bug prevented readiness flag from ever flipping, causing reroll to remain disabled.
+  let initializing = !window.__KOT_ACTION_MENU_READY;
+  if (initializing) {
+    const preFirstRoll = dice.phase === 'idle' && faces.length === 0; // true before any faces shown
+    if (preFirstRoll) {
+      const btns = root.querySelectorAll('button[data-action]');
+      btns.forEach(b => { if (b.getAttribute('data-action') !== 'roll') b.disabled = true; });
+    } else {
+      // First roll has occurred; release gating so rerolls & other actions can enable normally
+      window.__KOT_ACTION_MENU_READY = true;
+      initializing = false;
+    }
+  }
   // New dice state model: phase: 'idle' | 'rolling' | 'resolved' | 'sequence-complete'
   // rerollsRemaining tracks how many rerolls still available (after first roll).
   const isIdle = dice.phase === 'idle';
@@ -966,6 +974,8 @@ export function update(root) {
   const defensiveInitial = phaseName === 'ROLL' && isIdle && (!dice.faces || dice.faces.length === 0);
   const canRoll = phaseName === 'ROLL' && (canInitialRoll || canReroll || defensiveInitial) && dice.phase !== 'rolling';
   const order = st.players.order;
+  // Final roll condition: no rerolls remaining OR dice phase sequence-complete
+  const isFinalRoll = dice.rerollsRemaining === 0 || dice.phase === 'sequence-complete';
   let active = null;
   if (order.length) {
     const activeId = order[st.meta.activePlayerIndex % order.length];
@@ -999,23 +1009,22 @@ export function update(root) {
 
   const accepted = !!dice.accepted;
   if (rollBtn) {
-    const allowInitial = phaseName === 'ROLL' && dice.phase === 'idle' && (!dice.faces || dice.faces.length === 0);
-    rollBtn.disabled = isCPU ? true : initializing ? !allowInitial : (!canRoll || accepted);
+    rollBtn.disabled = isCPU || accepted || !canRoll;
     rollBtn.textContent = hasFirstRoll ? 'RE-ROLL UNSELECTED' : 'ROLL';
   }
   if (keepBtn && !initializing) {
     const allKept = hasAnyFaces && faces.every(f => !!f.kept);
-    const canKeepAll = st.phase === 'ROLL' && hasAnyFaces && dice.phase === 'resolved' && !isCPU && !allKept && !accepted;
+    // Disable KEEP ALL if final roll reached (no point; results are effectively locked) or already accepted
+    const canKeepAll = st.phase === 'ROLL' && hasAnyFaces && dice.phase === 'resolved' && !isCPU && !allKept && !accepted && !isFinalRoll;
     keepBtn.disabled = !canKeepAll;
     keepBtn.textContent = 'KEEP ALL';
   }
   if (acceptBtn && !initializing) {
     const anyKept = faces.some(f => f && f.kept);
-  const isFinalRoll = dice.rerollsRemaining === 0;
-  // Accept still only available before final automatic application; once final roll reached we no longer need alternate label
-  const canAccept = st.phase === 'ROLL' && (dice.phase === 'resolved' || dice.phase === 'sequence-complete') && hasAnyFaces && anyKept && !isCPU && !accepted && !isFinalRoll;
-  acceptBtn.disabled = !canAccept;
-  acceptBtn.textContent = accepted ? 'DICE ACCEPTED' : 'ACCEPT DICE RESULTS';
+    // Accept only meaningful before final automatic resolution; disable on final roll
+    const canAccept = st.phase === 'ROLL' && (dice.phase === 'resolved' || dice.phase === 'sequence-complete') && hasAnyFaces && anyKept && !isCPU && !accepted && !isFinalRoll;
+    acceptBtn.disabled = !canAccept;
+    acceptBtn.textContent = accepted ? 'DICE ACCEPTED' : 'ACCEPT DICE RESULTS';
   }
   if (flushBtn && !initializing) {
     // Enable flush button during RESOLVE/BUY phases when player has the energy cost available
@@ -1152,10 +1161,7 @@ export function update(root) {
     root._hamburgerOpen = false;
     root.removeAttribute('data-hamburger-open');
   }
-  // Mark ready after first full update pass post game activation
-  if (!initializing && !window.__KOT_ACTION_MENU_READY) {
-    window.__KOT_ACTION_MENU_READY = true;
-  }
+  // (Readiness flag now set immediately upon first roll completion in gating block above.)
 }
 
 // ------------------------------

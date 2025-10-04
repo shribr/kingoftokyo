@@ -35,6 +35,9 @@
   filter:none;
   -webkit-backdrop-filter:none;
   backdrop-filter:none;
+  /* Added horizontal breathing room */
+  margin-left:40px;
+  margin-right:40px;
 }
 
 /* Drag grip redesign (collapsed: only dots visible; expands on hover) */

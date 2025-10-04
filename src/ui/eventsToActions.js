@@ -64,7 +64,35 @@ export function bindUIEventBridges(store) {
 
   function maybeAdvancePhase() {
     const st = store.getState();
-    // Do not auto-resolve; End Turn triggers full resolution. We still expose sequence-complete via dice slice for UI gating.
+    // Auto-evaluate dice AFTER the player's final roll so stats (VP/health/energy) update immediately.
+    // Accept button is now optional UX; this ensures player cards reflect gains before End Turn.
+    try {
+      const dice = st.dice || {};
+      // Final roll detected: phase sequence-complete OR (resolved with rerollsRemaining 0) and not yet accepted.
+      const finalRoll = (dice.phase === 'sequence-complete' || (dice.phase === 'resolved' && dice.rerollsRemaining === 0));
+      if (st.phase === 'ROLL' && finalRoll && !dice.accepted) {
+        // Guard so we schedule only once per sequence id (first rollHistory snapshot ts heuristically identifies sequence)
+        const seqId = dice.rollHistory?.[0]?.ts || st.meta?.turnCycleId || Date.now();
+        if (maybeAdvancePhase._scheduledSeqId !== seqId) {
+          maybeAdvancePhase._scheduledSeqId = seqId;
+          // Defer accept to allow health/energy bar fills + kept toggles to finish applying
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+            setTimeout(() => {
+              try {
+                const post = store.getState();
+                const d2 = post.dice || {};
+                if (post.phase === 'ROLL' && (d2.phase === 'sequence-complete' || (d2.phase === 'resolved' && d2.rerollsRemaining === 0)) && !d2.accepted) {
+                  if (typeof window !== 'undefined' && window.__KOT_NEW__?.turnService?.acceptDiceResults) {
+                    window.__KOT_NEW__.turnService.acceptDiceResults();
+                    maybeAdvancePhase._autoAcceptedTs = Date.now();
+                  }
+                }
+              } catch(_) {}
+            }, 40); // slight delay (~2 frames at 60fps)
+          }));
+        }
+      }
+    } catch(_) {}
   }
 
   // Wire events

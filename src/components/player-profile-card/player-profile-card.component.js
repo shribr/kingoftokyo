@@ -153,10 +153,11 @@ function baseTemplate() {
     <div class="ppc-header">
       <div class="ppc-avatar" data-avatar data-ignore-flip title="View monster profile"></div>
       <div class="ppc-meta">
-        <div class="ppc-name" data-name></div>
+        <div class="ppc-name" data-name>
+          <span class="ppc-name-text" data-name-text></span>
+        </div>
         <div class="ppc-status-line">
           <span class="ppc-active-indicator" data-active-indicator></span>
-          <span class="ppc-tokyo-indicator" data-tokyo></span>
         </div>
       </div>
     </div>
@@ -226,8 +227,12 @@ export function update(root, { playerId }) {
 
   // Basic fields
   root.setAttribute('data-monster-id', player.monsterId || '');
-  root.querySelector('[data-name]').textContent = player.name;
-  // CPU indicator appended after name (idempotent)
+  // Name text isolated in its own span so layout of badge/indicator cannot stretch container
+  const nameTextEl = root.querySelector('[data-name-text]');
+  if (nameTextEl && nameTextEl.textContent !== player.name) {
+    nameTextEl.textContent = player.name;
+  }
+  // CPU indicator appended after name text (idempotent)
   try {
     const nameEl = root.querySelector('[data-name]');
     if (nameEl) {
@@ -294,26 +299,36 @@ export function update(root, { playerId }) {
   }
 
   const tokyoEl = root.querySelector('[data-tokyo]');
-  if (player.inTokyo) {
-    // Determine which Tokyo slot: City or Bay
-    const cityOccupant = state.tokyo?.city;
-    const bayOccupant = state.tokyo?.bay;
-    let tokyoLabel = 'IN TOKYO';
-    
-    if (cityOccupant === playerId) {
-      tokyoLabel = 'IN TOKYO CITY';
-    } else if (bayOccupant === playerId) {
-      tokyoLabel = 'IN TOKYO BAY';
+  // Dynamic Tokyo badge creation/removal to eliminate layout stretching issues
+  try {
+    let tokyoEl = root.querySelector('[data-tokyo-badge]');
+    if (player.inTokyo) {
+      if (!tokyoEl) {
+        tokyoEl = document.createElement('div');
+        tokyoEl.setAttribute('data-tokyo-badge','');
+        tokyoEl.className = 'ppc-tokyo-indicator';
+        const meta = root.querySelector('.ppc-meta');
+        if (meta) meta.appendChild(tokyoEl);
+      }
+      const cityOccupant = state.tokyo?.city;
+      const bayOccupant = state.tokyo?.bay;
+      let tokyoLabel = '';
+      if (cityOccupant === playerId) tokyoLabel = 'in tokyo city';
+      else if (bayOccupant === playerId) tokyoLabel = 'in tokyo bay';
+      if (!tokyoLabel) tokyoLabel = 'in tokyo city';
+      if (tokyoEl.textContent !== tokyoLabel) tokyoEl.textContent = tokyoLabel;
+      root.setAttribute('data-in-tokyo','true');
+      // Debug: log bounding box to investigate stretching
+      try {
+        const rect = tokyoEl.getBoundingClientRect();
+        console.log('[TokyoBadgeDebug] size', { h: rect.height, w: rect.width, text: tokyoEl.textContent, player: playerId });
+      } catch(_) {}
+      tokyoEl.classList.add('is-in');
+    } else if (tokyoEl) {
+      tokyoEl.remove();
+      root.removeAttribute('data-in-tokyo');
     }
-    
-    tokyoEl.textContent = tokyoLabel;
-    tokyoEl.classList.add('is-in');
-    root.setAttribute('data-in-tokyo', 'true');
-  } else {
-    tokyoEl.textContent = '';
-    tokyoEl.classList.remove('is-in');
-    root.removeAttribute('data-in-tokyo');
-  }
+  } catch(_) {}
 
   // Active indicator (placeholder: will style via .is-active later)
   const activeIndicator = root.querySelector('[data-active-indicator]');

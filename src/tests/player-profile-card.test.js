@@ -32,6 +32,6 @@ export function runPlayerProfileCardTest() {
   assert('VP updated to 5', root.querySelector('[data-vp-value]').textContent === '5');
   store.dispatch(playerEnteredTokyo('P1'));
   updateCard(root, { playerId: 'P1' });
-  assert('Tokyo indicator shown', root.querySelector('[data-tokyo]').textContent === 'TOKYO');
+  assert('Tokyo indicator shown', /in tokyo (city|bay)/.test(root.querySelector('[data-tokyo-badge]').textContent));
   console.log('Player Profile Card component tests complete');
 }

@@ -178,6 +178,10 @@
   padding:20px 0 40px;
 }
 .cmp-arena [data-tokyo] { position:absolute; top:80px; left:50%; transform:translateX(-56%); width:70%; min-height:300px; display:flex; flex-wrap:nowrap; gap:calc(var(--arena-gap) + 8px); justify-content:center; }
+/* Override: match Tokyo tiles to player card width */
+.cmp-arena { --tokyo-tile-width:260px; }
+.cmp-arena [data-arena-section="city"],
+.cmp-arena [data-arena-section="bay"] { width:260px !important; max-width:260px !important; flex:0 0 260px !important; }
 /* Responsive variables (final block) */
 :root {
   --arena-bg: rgba(0,0,0,0.4);

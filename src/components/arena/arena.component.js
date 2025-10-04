@@ -160,7 +160,7 @@ function renderOccupant(playerId, state) {
         
         // Ensure Tokyo status is shown
         cloneCard.setAttribute('data-in-tokyo', 'true');
-        const tokyoEl = cloneCard.querySelector('[data-tokyo]');
+        const tokyoEl = cloneCard.querySelector('[data-tokyo-badge]');
         if (tokyoEl) {
           tokyoEl.textContent = 'TOKYO';
           tokyoEl.classList.add('is-in');
