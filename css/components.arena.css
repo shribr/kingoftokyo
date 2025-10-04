@@ -61,8 +61,11 @@
    display: flex;
    align-items: stretch;
    justify-content: center;
-   width: var(--tokyo-slot-default-width, 260px);
-   height: var(--tokyo-slot-default-height, 200px);
+   /* Card scales to .85 inside, so slot needs to accommodate: 260 * .85 = 221 + padding */
+   width: var(--tokyo-slot-default-width, 280px);
+   min-width: 280px;
+   height: var(--tokyo-slot-default-height, 320px);
+   min-height: 320px;
    padding: 0;
    border: 3px dashed rgba(255, 255, 255, 0.35);
    border-radius: 14px;
@@ -249,12 +252,18 @@
 
 /* Real card in Tokyo: optionally scale via attribute for spatial fit */
 /* Generic in-Tokyo baseline (overridden by specific city/bay rotation rules) */
+/* Center cards horizontally and vertically inside Tokyo slots while retaining scale */
+.cmp-arena .city-slot,
+.cmp-arena .bay-slot { 
+  display: flex; 
+  justify-content: center; 
+  align-items: center; /* Changed from flex-start to center for vertical centering */
+}
 .cmp-arena .city-slot .cmp-player-profile-card[data-in-tokyo-slot],
 .cmp-arena .bay-slot .cmp-player-profile-card[data-in-tokyo-slot] {
-  width:100%;
-  height:auto;
-  transform:scale(.85);
-  transform-origin:top left;
+  transform: scale(.85);
+  transform-origin: center center; /* Changed from top center to center center */
+  margin: 0;
 }
 /* Specific orientation per tile */
 /* Card inside Tokyo scales only; rotation supplied by parent tile transform to avoid double rotation */
@@ -262,6 +271,20 @@
 .cmp-arena .bay-slot  .cmp-player-profile-card[data-in-tokyo-slot="bay"]  { transform: scale(.85); }
 /* FLIP animation class (inline styles set start transform; we only ensure easing fairness here if fallback) */
 .cmp-player-profile-card.tokyo-flip-anim { will-change: transform; }
+
+/* Disable all animations during portal animation to prevent conflicts with transform */
+.cmp-player-profile-card.tokyo-portal-animating {
+  animation: none !important;
+}
+
+/* Disable all child transitions during portal animation to prevent children from moving separately */
+.cmp-player-profile-card.tokyo-portal-animating *,
+.cmp-player-profile-card.tokyo-portal-animating *::before,
+.cmp-player-profile-card.tokyo-portal-animating *::after {
+  transition: none !important;
+  animation: none !important;
+}
+
 /* Portal travel clone */
 .tokyo-travel-clone { box-shadow:4px 4px 0 #000,0 0 0 2px #ff6b35 inset,0 0 18px rgba(255,107,53,.6); border:3px solid #000; border-radius:4px; }
 .tokyo-travel-glow { animation:tokyoTravelGlow 0.6s ease-in-out alternate infinite; }

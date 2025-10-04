@@ -332,11 +332,14 @@
 #active-player-card-slot .cmp-player-profile-card { position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); transform-origin:center center; pointer-events:auto; }
 [data-city-slot] .cmp-player-profile-card[data-in-tokyo-slot],
 [data-bay-slot] .cmp-player-profile-card[data-in-tokyo-slot] {
-  position:static !important;
-  top:auto !important;
-  left:auto !important;
-  transform:none !important;
-  width:100% !important; /* allow slot sizing logic to govern */
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  /* Allow transform for scaling - removed transform:none */
+  margin: 0 auto;
+  /* Let the card maintain its natural size, scaled by parent slot rules */
 }
 
 /* Contained mode: when the slot is appended inside the dedicated active player tile, remove viewport-centered offsets */

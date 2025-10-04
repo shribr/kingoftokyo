@@ -182,7 +182,10 @@ export function update(root, instances) {
     }
     // Ensure the card is in the right position in the container (unless it's in active dock)
     const isInActiveDock = inst.root.parentElement?.id === 'active-player-card-slot';
-    if (!isInActiveDock && container.children[idx] !== inst.root) {
+    const isInTokyoSlot = inst.root.hasAttribute('data-in-tokyo-slot');
+    const isAnimatingPortal = inst.root.hasAttribute('data-animating-portal');
+    // If the card is currently occupying a Tokyo slot, we do NOT yank it back into the panel stack.
+    if (!isInActiveDock && !isInTokyoSlot && !isAnimatingPortal && container.children[idx] !== inst.root) {
       container.insertBefore(inst.root, container.children[idx] || null);
     }
     inst.update({ playerId: id });
@@ -207,29 +210,32 @@ export function update(root, instances) {
     const activeInst = instances.get(active.id);
     if (activeInst) {
       const cardEl = activeInst.root;
-      // Ensure arena dock exists
-      const arenaDock = document.querySelector('.cmp-arena [data-active-player-dock]');
-      if (arenaDock) {
-        // If this card is not already docked, move it
-        if (cardEl.parentElement !== arenaDock) {
-          // Restore any previously docked card back to the panel (using placeholder position)
-          const existingDocked = arenaDock.querySelector('.cmp-player-profile-card');
-          if (existingDocked && existingDocked !== cardEl) {
-            // Return previously docked card to the end of the list (natural consolidation)
-            container.appendChild(existingDocked);
-            existingDocked.removeAttribute('data-in-active-dock');
-            existingDocked.removeAttribute('data-active-player');
+      const isInTokyoSlot = cardEl.hasAttribute('data-in-tokyo-slot');
+      if (isInTokyoSlot) {
+        // Card is in Tokyo; keep it physically in the Tokyo slot but still mark as active (no active dock relocation)
+        cardEl.setAttribute('data-active-player', 'true');
+        cardEl.removeAttribute('data-in-active-dock');
+      } else {
+        // Normal docking behavior
+        const arenaDock = document.querySelector('.cmp-arena [data-active-player-dock]');
+        if (arenaDock) {
+          if (cardEl.parentElement !== arenaDock) {
+            const existingDocked = arenaDock.querySelector('.cmp-player-profile-card');
+            if (existingDocked && existingDocked !== cardEl) {
+              container.appendChild(existingDocked);
+              existingDocked.removeAttribute('data-in-active-dock');
+              existingDocked.removeAttribute('data-active-player');
+            }
+            arenaDock.innerHTML = '';
+            arenaDock.appendChild(cardEl);
+            cardEl.setAttribute('data-active-player', 'true');
+            cardEl.setAttribute('data-in-active-dock', 'true');
+            try {
+              cardEl.classList.remove('active-dock-reflow');
+              void cardEl.offsetWidth;
+              cardEl.classList.add('active-dock-reflow');
+            } catch(_) {}
           }
-          arenaDock.innerHTML = ''; // Clear dock
-          arenaDock.appendChild(cardEl);
-          cardEl.setAttribute('data-active-player', 'true');
-          cardEl.setAttribute('data-in-active-dock', 'true');
-          // Retrigger animation if card was previously active (remove & re-add attribute sequence)
-          try {
-            cardEl.classList.remove('active-dock-reflow');
-            void cardEl.offsetWidth; // force reflow
-            cardEl.classList.add('active-dock-reflow');
-          } catch(_) {}
         }
       }
     }
