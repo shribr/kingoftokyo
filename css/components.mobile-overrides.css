@@ -1,0 +1,103 @@
+/* components.mobile-overrides.css
+ * Consolidated modern responsive overrides using component (.cmp-*) + data-* selectors only.
+ * Purpose: Normalize scattered legacy/mobile rules, remove dependence on deprecated structural classes,
+ * and provide a single predictable cascade target loaded LAST.
+ * NOTE: Avoid editing scattered responsive rules; migrate future tweaks here when possible.
+ */
+
+:root {
+  /* Scales used for progressive compaction */
+  --scale-large: 1;
+  --scale-mid: .92;
+  --scale-small: .85;
+}
+
+/* === Breakpoint Map (source-of-truth) ===
+ * 1200px: Tighten large layout spacing.
+ * 980px: Begin single-column setup layouts; moderate control scaling.
+ * 760px (or pointer:coarse): Mobile game interaction model (floating menus, stacked panels).
+ * 520px: Ultra-compact; hide secondary chrome.
+ * 400px: Emergency compression for very narrow devices.
+ */
+
+/* 1) Large screens just below desktop wide */
+@media (max-width:1200px) {
+  .cmp-arena [data-arena-section="tokyo"] { gap:28px; }
+  .cmp-toolbar { --toolbar-btn-size:46px; }
+}
+
+/* 2) Tablet / crossover adjustments */
+@media (max-width:980px) {
+  /* Monster selection frame already handles internal grid via its own file; ensure arena scales */
+  .cmp-arena [data-arena-section="tokyo"] { flex-wrap:wrap; }
+  .cmp-arena [data-tokyo="city"],
+  .cmp-arena [data-tokyo="bay"] { flex:1 1 240px; }
+  .cmp-player-profile-cards { left:30px; gap:10px; }
+  .cmp-dice-tray .die { font-size:calc(var(--dice-font-size) * .9); }
+}
+
+/* 3) Core mobile mode trigger */
+@media (max-width:760px), (pointer:coarse) {
+  /* Stacking / repositioning */
+  .cmp-player-profile-cards { position:fixed; top:auto; bottom:150px; left:12px; right:12px; flex-direction:row; flex-wrap:wrap; justify-content:center; width:auto; }
+  .cmp-player-profile-card { width:190px; font-size:.75rem; }
+  .cmp-player-profile-card .ppc-stats { gap:6px; }
+  
+  /* Arena compaction */
+  .cmp-arena [data-arena-section="tokyo"] { position:static; width:100%; min-height:0; gap:20px; }
+  .cmp-arena [data-tokyo="city"],
+  .cmp-arena [data-tokyo="bay"] { padding:8px 10px; }
+  .cmp-arena .monster-slot { height:120px; }
+
+  /* Floating action menu (if present) ensure width clamp */
+  .cmp-action-menu { max-width:260px; }
+  .cmp-action-menu[data-layout="vertical"] { width:240px; }
+
+  /* Dice tray slide baseline (redundant with existing file but unified): use data-collapsed attr rather than class */
+  .cmp-dice-tray { left:0 !important; right:0; bottom:70px; top:auto; transform:translateX(0); }
+  .cmp-dice-tray[data-collapsed="left"],
+  .cmp-dice-tray[data-collapsed="true"],
+  .cmp-dice-tray[data-collapsed="1"] { transform:translateX(-100%); }
+  .cmp-dice-tray .tray-label { display:none; }
+
+  /* Toolbar hide (a mobile toggle is expected elsewhere) */
+  body.mobile-toolbar-hidden .cmp-toolbar { display:none !important; }
+}
+
+/* 4) Ultra-compact phones */
+@media (max-width:520px) {
+  .cmp-player-profile-card { width:46%; min-width:150px; }
+  .cmp-player-profile-card .ppc-owned-cards-strip { display:none; }
+  .cmp-action-menu { width:220px; }
+  .cmp-dice-tray [data-dice] { gap:4px; }
+  .cmp-dice-tray .die { width:calc(var(--dice-size) * .9); height:calc(var(--dice-size) * .9); }
+  .cmp-toolbar { --toolbar-btn-size:38px; padding:8px 10px; }
+}
+
+/* 5) Very narrow emergency compression */
+@media (max-width:400px) {
+  .cmp-player-profile-card { width:100%; }
+  .cmp-action-menu { width:200px; }
+  .cmp-dice-tray .die { width:calc(var(--dice-size) * .82); height:calc(var(--dice-size) * .82); }
+}
+
+/* 6) Touch / reduced motion synergy (prefer composition over duplication) */
+@media (pointer:coarse) and (prefers-reduced-motion:reduce) {
+  .cmp-action-menu button,
+  .cmp-toolbar .toolbar-btn,
+  .cmp-dice-tray .die { transition:none !important; animation:none !important; }
+}
+
+/* 7) High-contrast assist (piggyback if OS requests + narrow) */
+@media (prefers-contrast: more) and (max-width:760px) {
+  .cmp-player-profile-card { box-shadow:0 0 0 3px #fff, 0 0 0 5px #000; }
+  .cmp-action-menu { box-shadow:0 0 0 3px #fff, 0 0 0 5px #000; }
+}
+
+/* 8) Data attribute based drag affordance removal (visual) */
+[cdata-drag-placeholder] { display:none; }
+[cdata-drag-handle] { cursor:move; }
+[data-draggable="false"] { cursor:default !important; }
+
+/* 9) Safe guard: if any legacy class slips in, neutralize (defensive, to remove later) */
+[class^="game-board"], [class*=" game-board"], .game-board { /* deprecated sentinel to detect accidental legacy usage */ outline:0 !important; }
