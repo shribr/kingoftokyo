@@ -453,7 +453,18 @@ export function createTurnService(store, logger, rng = Math.random) {
     const activeId = order[postResolution.meta.activePlayerIndex % order.length];
     const cityOcc = selectTokyoCityOccupant(postResolution);
     const bayOcc = selectTokyoBayOccupant(postResolution);
-    // (playCpuTurn defined outside resolve)
+    const activePlayer = postResolution.players.byId[activeId];
+    
+    // If Tokyo is empty and active player is not already in Tokyo, they must enter
+    if (!cityOcc && !bayOcc && activePlayer && !activePlayer.inTokyo && activePlayer.status.alive) {
+      const playerCount = postResolution.players.order.length;
+      store.dispatch(playerEnteredTokyo(activeId));
+      store.dispatch(tokyoOccupantSet(activeId, playerCount));
+      logger.system(`${activeId} enters Tokyo City (automatic)`, { kind:'tokyo', slot:'city' });
+      store.dispatch(playerVPGained(activeId, 1, 'enterTokyo'));
+      store.dispatch(uiVPFlash(activeId, 1));
+      logger.info(`${activeId} gains 1 VP for entering Tokyo`);
+    }
 
     // Winner check & transition (retained from legacy path)
     const winner = checkGameOver(store, logger);

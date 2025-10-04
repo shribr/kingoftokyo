@@ -54,11 +54,14 @@ export function update(root, instances, positioning) {
       wrapper.insertBefore(inst.root, wrapper.children[idx] || null);
     }
     inst.update({ playerId });
-    // Attack pulse application
-    if (pulse && pulse.playerIds && pulse.playerIds.includes(playerId)) {
-      inst.root.classList.add('attack-pulse');
-      // Remove after animation duration (~2s) to allow re-trigger
-      setTimeout(() => inst.root.classList.remove('attack-pulse'), 2000);
+    // Attack pulse application - only apply if timestamp changed
+    if (pulse && pulse.playerIds && pulse.playerIds.includes(playerId) && pulse.ts > 0) {
+      if (!inst._lastAttackPulse || inst._lastAttackPulse !== pulse.ts) {
+        inst._lastAttackPulse = pulse.ts;
+        inst.root.classList.add('attack-pulse');
+        // Remove after animation duration (~2s) to allow re-trigger
+        setTimeout(() => inst.root.classList.remove('attack-pulse'), 2000);
+      }
     }
     // VP flash animation
     if (vpFlash && vpFlash.playerId === playerId && vpFlash.ts > 0) {

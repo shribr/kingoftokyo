@@ -131,10 +131,12 @@ export function createCpuTurnController(store, engine, logger = console, options
         store.dispatch(diceRollCompleted());
       }
 
-      // Early stop conditions
-      const stop = normalizedAction !== 'reroll' || rerollsRemaining <= 0 || !(store.getState().dice.faces||[]).some(f=> f && !f.kept);
+      // Early stop conditions - check current state for rerolls remaining
+      const currentState = store.getState();
+      const currentRerolls = currentState.dice.rerollsRemaining ?? 0;
+      const stop = normalizedAction !== 'reroll' || currentRerolls <= 0 || !(currentState.dice.faces||[]).some(f=> f && !f.kept);
       if (stop || rollNumber >= settings.maxRolls) {
-        logger.debug && logger.debug('[cpuController] stopping after roll', { rollNumber, action: normalizedAction });
+        logger.debug && logger.debug('[cpuController] stopping after roll', { rollNumber, action: normalizedAction, currentRerolls });
         break;
       }
       // Next roll pacing
