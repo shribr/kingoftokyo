@@ -38,6 +38,32 @@
 
 /* 3) Core mobile mode trigger */
 @media (max-width:760px), (pointer:coarse) {
+  /* Hide active player card dock in mobile - replaced by active-player-bubble */
+  #active-player-card-slot,
+  #active-player-card-slot[data-active-card-dock],
+  .arena-active-player-dock {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+  
+  /* Scale Tokyo tiles to be shorter for mobile viewport */
+  .cmp-arena .city-slot,
+  .cmp-arena .bay-slot {
+    width: 140px !important;
+    min-width: 140px !important;
+    height: 180px !important;
+    min-height: 180px !important;
+    --tokyo-slot-default-width: 140px;
+    --tokyo-slot-default-height: 180px;
+  }
+  
+  /* Scale down cards inside Tokyo slots */
+  .cmp-arena .city-slot .cmp-player-profile-card,
+  .cmp-arena .bay-slot .cmp-player-profile-card {
+    transform: translate(-50%, -50%) scale(0.55) !important;
+  }
+  
   /* Stacking / repositioning */
   .cmp-player-profile-cards { position:fixed; top:auto; bottom:150px; left:12px; right:12px; flex-direction:row; flex-wrap:wrap; justify-content:center; width:auto; }
   .cmp-player-profile-card { width:190px; font-size:.75rem; }
@@ -53,15 +79,79 @@
   .cmp-action-menu { max-width:260px; }
   .cmp-action-menu[data-layout="vertical"] { width:240px; }
 
-  /* Dice tray slide baseline (redundant with existing file but unified): use data-collapsed attr rather than class */
-  .cmp-dice-tray { left:0 !important; right:0; bottom:70px; top:auto; transform:translateX(0); }
+  /* Mobile: Dice tray and action menu at same position, sliding from opposite sides */
+  /* Dice tray: slides from LEFT, positioned at bottom */
+  .cmp-dice-tray { 
+    position: fixed !important;
+    left: 0 !important; 
+    right: auto !important;
+    bottom: 10px !important; /* Lowered to align top edge with dice button (which is at bottom: 20px, height: 50px) */
+    top: auto !important; 
+    width: calc(100vw - 20px) !important; /* Extend almost full width, just 20px gap on right */
+    max-width: calc(100vw - 20px) !important;
+    transform: translateX(-100%) !important; /* Hidden to the left by default */
+    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+    z-index: 6600 !important;
+  }
+  
+  /* When expanded, slide in from left */
+  .cmp-dice-tray:not([data-collapsed="left"]):not([data-collapsed="true"]):not([data-collapsed="1"]),
+  .cmp-dice-tray.expanded,
+  .cmp-dice-tray[data-expanded="true"] { 
+    transform: translateX(60px) !important; /* Slide in from left, offset 60px to the right */
+  }
+  
+  /* Collapsed state - slide out to left (default) */
   .cmp-dice-tray[data-collapsed="left"],
   .cmp-dice-tray[data-collapsed="true"],
-  .cmp-dice-tray[data-collapsed="1"] { transform:translateX(-100%); }
-  .cmp-dice-tray .tray-label { display:none; }
+  .cmp-dice-tray[data-collapsed="1"] { 
+    transform: translateX(-100%) !important; 
+  }
+  
+  /* Adjust dice container padding - extra right padding for dice button clearance */
+  .cmp-dice-tray [data-dice] {
+    padding-right: 80px !important; /* Extra space on right for dice button */
+    padding-left: 10px !important;
+  }
+  
+  /* Hide outer white container (.tray-outer) in mobile - show only inner dark tray */
+  .cmp-dice-tray .tray-outer {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    transform: none !important;
+  }
+  
+  /* Hide extra dice slots (7th, 8th) in mobile unless player has power cards */
+  .cmp-dice-tray .die.extra-die {
+    display: none !important;
+  }
+  
+  /* Shrink dice size and containers for mobile */
+  .cmp-dice-tray .die {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 22px !important;
+  }
+  
+  .cmp-dice-tray .tray-frame {
+    padding: 8px 0 !important;
+    width: fit-content !important;
+    border-width: 3px !important;
+    box-shadow: 4px 4px 0px #000, 6px 6px 15px rgba(0, 0, 0, 0.4) !important;
+  }
+  
+  .cmp-dice-tray [data-dice] {
+    gap: 6px !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+  
+  .cmp-dice-tray .tray-label { display: none; }
 
   /* Toolbar hide (a mobile toggle is expected elsewhere) */
-  body.mobile-toolbar-hidden .cmp-toolbar { display:none !important; }
+  body.mobile-toolbar-hidden .cmp-toolbar { display: none !important; }
 }
 
 /* 4) Ultra-compact phones */

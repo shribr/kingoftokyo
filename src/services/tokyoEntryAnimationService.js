@@ -77,7 +77,94 @@ export function bindTokyoEntryAnimation(store, logger = console) {
 
   function animateTokyoEntry(playerId, slot, done) {
     try {
-  // New source: active card resides in arena dock (.arena-active-player-dock)
+  // Check if mobile
+  const isMobile = window.matchMedia && (window.matchMedia('(max-width: 760px)').matches || window.matchMedia('(pointer: coarse)').matches);
+  
+  // In mobile: animate active-player-bubble to Tokyo slot, then transform to profile card
+  if (isMobile) {
+    const bubble = document.getElementById('active-player-bubble');
+    const targetSlot = document.querySelector(slot === 'city' ? '[data-city-slot]' : '[data-bay-slot]');
+    if (!bubble || !targetSlot) { done && done(); return; }
+    
+    // Get or create the profile card for this player (may be in monsters panel)
+    let profileCard = document.querySelector(`.cmp-player-profile-card[data-player-id="${playerId}"]`);
+    if (!profileCard) { done && done(); return; }
+    
+    // Step 1: Detach bubble from current position and add as direct child of body
+    const bubbleOriginalParent = bubble.parentElement;
+    if (bubbleOriginalParent) {
+      document.body.appendChild(bubble);
+    }
+    
+    // Step 2: Get start and end positions
+    const startRect = bubble.getBoundingClientRect();
+    const endRect = targetSlot.getBoundingClientRect();
+    
+    // Set bubble to fixed positioning at current location
+    Object.assign(bubble.style, {
+      position: 'fixed',
+      left: startRect.left + 'px',
+      top: startRect.top + 'px',
+      width: startRect.width + 'px',
+      height: startRect.height + 'px',
+      margin: '0',
+      transition: 'all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+      zIndex: '9000'
+    });
+    
+    // Step 3: Animate bubble to Tokyo slot position
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const dx = endRect.left + (endRect.width / 2) - (startRect.left + (startRect.width / 2));
+        const dy = endRect.top + (endRect.height / 2) - (startRect.top + (startRect.height / 2));
+        bubble.style.transform = `translate(${dx}px, ${dy}px)`;
+      });
+    });
+    
+    // Step 4: After animation, flash and transform into profile card
+    setTimeout(() => {
+      // Flash effect
+      bubble.style.transition = 'opacity 0.15s ease-in-out';
+      bubble.style.opacity = '0';
+      
+      setTimeout(() => {
+        bubble.style.opacity = '1';
+        setTimeout(() => {
+          bubble.style.opacity = '0';
+          
+          setTimeout(() => {
+            // Step 5: Hide bubble and insert scaled profile card into Tokyo slot
+            bubble.style.display = 'none';
+            bubble.setAttribute('data-hidden-until-next-turn', 'true');
+            
+            // Clone the profile card and insert into Tokyo slot
+            const cardClone = profileCard.cloneNode(true);
+            cardClone.removeAttribute('data-in-active-dock');
+            cardClone.classList.remove('is-active');
+            cardClone.setAttribute('data-in-tokyo', 'true');
+            cardClone.setAttribute('data-live-in-tokyo-slot', slot);
+            cardClone.style.transform = 'scale(0.65)'; // Scaled down for Tokyo slot
+            
+            targetSlot.innerHTML = '';
+            targetSlot.appendChild(cardClone);
+            
+            // Glow effect
+            cardClone.setAttribute('data-entry-glow', 'true');
+            setTimeout(() => { try { cardClone.removeAttribute('data-entry-glow'); } catch(_) {} }, 950);
+            
+            // Announce
+            announceTokyoEntry(playerId, slot);
+            
+            done && done();
+          }, 150);
+        }, 150);
+      }, 150);
+    }, 500); // Wait for slide animation to complete
+    
+    return; // Exit early for mobile
+  }
+  
+  // Desktop version: active card resides in arena dock (.arena-active-player-dock)
   const arenaDock = document.querySelector('.arena-active-player-dock');
   const activeCard = arenaDock ? arenaDock.querySelector(`.cmp-player-profile-card[data-player-id="${playerId}"]`) : null;
   if (!activeCard) { done && done(); return; }

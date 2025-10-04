@@ -71,10 +71,38 @@ export function build({ selector }) {
         if (!root._storedAmLabelHTML) root._storedAmLabelHTML = labelEl.outerHTML;
         labelEl.remove();
       }
-  // Hide the main action menu initially and disable dragging (mobile collapsed by default)
-  root.style.display = 'none';
+      
+      // Apply horizontal layout immediately for mobile
+      // CSS now handles all styling with !important, so we just ensure collapsed state
+      // Don't set position, bottom, etc. - let CSS handle it completely
+      
+      // Set initial collapsed state (hidden to the right)
+      root.style.transform = 'translateX(100%)';
+      
+      // Mark that mobile setup is complete
+      root.setAttribute('data-mobile-ready', 'true');
+      
+      // Remove content setup - CSS handles layout
+      // Just ensure content is visible (CSS sets flex layout)
+      const content = root.querySelector('.am-content');
+      if (content) {
+        content.style.opacity = '1';
+        content.classList.add('mobile-bottom-horizontal');
+      }
+      
+      // Set all buttons to auto width
+      const allBtns = root.querySelectorAll('button');
+      allBtns.forEach(b => { 
+        b.style.width = 'auto'; 
+        b.style.flex = '0 0 auto';
+        b.style.minWidth = 'auto';
+      });
+      
+      // Menu is always rendered (CSS has display: flex !important)
+      // Just ensure it starts collapsed (hidden to the right via transform)
       root.setAttribute('data-draggable','false');
-      // Remove any existing toggle
+      
+      // Remove any existing toggle button
       const existingBtn = document.getElementById('action-menu-mobile-btn');
       if (existingBtn) existingBtn.remove();
       const btn = document.createElement('div');
@@ -86,133 +114,19 @@ export function build({ selector }) {
         position:'fixed', bottom:'20px', right:'20px', width:'50px', height:'50px', background:'linear-gradient(135deg,#ffcf33 0%, #ffb300 100%)', border:'3px solid #333', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24px', cursor:'pointer', boxShadow:'0 4px 12px rgba(0,0,0,0.3)', zIndex:'7500', transition:'transform 0.2s ease'
       });
       btn.addEventListener('click', () => {
-        const open = root.style.display !== 'none';
-        if (open) {
-          // Collapse (hide) and restore fonts
-          root.style.display = 'none';
+        // Check if menu is currently visible (translateX is 0)
+        const isExpanded = root.style.transform === 'translateX(0px)' || root.style.transform === 'translateX(0)';
+        
+        if (isExpanded) {
+          // Collapse - slide out to right
+          root.style.transform = 'translateX(100%)';
           btn.style.transform = 'scale(1)';
           document.body.removeAttribute('data-action-menu-open');
-          root.classList.remove('mobile-bottom-horizontal');
-          const scaled = root.querySelectorAll('[data-mobile-font-scaled]');
-          scaled.forEach(el => {
-            const orig = el.getAttribute('data-orig-font-size');
-            if (orig) el.style.fontSize = orig;
-            el.removeAttribute('data-mobile-font-scaled');
-            el.removeAttribute('data-orig-font-size');
-          });
-          if (root._mobileFitHandler) window.removeEventListener('resize', root._mobileFitHandler);
           btn.innerHTML = '◀';
           btn.setAttribute('aria-label','Expand Action Menu');
         } else {
-          const gap = 8; // px gap between menu and button
-          const buttonWidth = 50; // consistent with style
-          // Base layout
-          root.style.display = 'flex';
-          root.style.flexDirection = 'row';
-          root.style.position = 'fixed';
-          // Align top of menu with top of circular button
-          const FIXED_EXPAND_TOP = 120; // restored hard-coded vertical anchor for expanded menu
-          root.style.top = FIXED_EXPAND_TOP + 'px';
-          root.style.bottom = 'auto';
-          root.style.left = 'auto';
-          root.style.transform = 'none';
-          root.style.zIndex = '7400';
-          root.style.flexWrap = 'nowrap';
-          // Use full available width from a small left margin up to the left of the circular button
-          const vw = window.innerWidth;
-          const rightOffset = 20 + buttonWidth + gap; // distance from right edge (button + spacing)
-          let maxWidth = vw - rightOffset - 8; // leave small safety padding from extreme left edge visually if design permits
-          if (maxWidth < 100) maxWidth = vw * 0.65; // safety fallback for ultra-narrow
-          root.style.maxWidth = Math.floor(maxWidth) + 'px';
-          root.style.left = 'auto'; // do not force anchor to absolute left
-          // Position from right
-          root.style.right = rightOffset + 'px';
-          // After initial layout, shift menu 100px left (decrease x coordinate) while preserving width
-          requestAnimationFrame(() => {
-            try {
-              const rect = root.getBoundingClientRect();
-              let newLeft = rect.left - MOBILE_MENU_OPEN_SHIFT_X;
-              if (newLeft < 0) newLeft = 0; // clamp so it never goes off-screen left
-              root.style.left = newLeft + 'px';
-              root.style.right = 'auto'; // switch to left-anchored positioning after shift
-            } catch(_) {}
-          });
-          // Compact padding for mobile horizontal mode
-          root.style.padding = '4px 6px 6px';
-          // Horizontal content setup
-          const content = root.querySelector('.am-content');
-          if (content) {
-            content.style.display = 'flex';
-            content.style.flexDirection = 'row';
-            content.style.flexWrap = 'nowrap';
-            content.style.alignItems = 'center';
-            content.style.gap = '8px';
-            content.style.maxHeight = 'none';
-            content.style.opacity = '1';
-            content.style.overflowX = 'hidden'; // we attempt fit first
-            content.style.overflowY = 'hidden';
-            content.style.maxWidth = '100%';
-            content.style.paddingRight = '2px';
-            content.classList.add('mobile-bottom-horizontal');
-            content.style.scrollbarWidth = 'none';
-            content.style.msOverflowStyle = 'none';
-          }
-          root.classList.add('mobile-bottom-horizontal');
-          // Enforce button widths auto (not 100%)
-          const allBtns = root.querySelectorAll('button');
-          allBtns.forEach(b => { b.style.width=''; b.style.flex='0 0 auto'; });
-          // Auto-fit: shrink fonts so all buttons fit within maxWidth; fallback to overflow-x:auto if min font hit
-          const buttons = [...root.querySelectorAll('button')];
-          // Defensive: remove any lingering min-width constraints in mobile horizontal state
-          buttons.forEach(b => { b.style.minWidth = 'auto'; });
-          buttons.forEach(b => {
-            if (!b.getAttribute('data-orig-font-size')) b.setAttribute('data-orig-font-size', window.getComputedStyle(b).fontSize);
-          });
-          const attemptFit = () => {
-            if (!root.isConnected) return;
-            // restore fonts
-            buttons.forEach(b => {
-              const orig = b.getAttribute('data-orig-font-size');
-              if (orig) b.style.fontSize = orig;
-            });
-            const total = buttons.reduce((acc, b) => acc + b.getBoundingClientRect().width, 0);
-            const containerWidth = root.getBoundingClientRect().width - 4; // small buffer
-            if (total <= containerWidth) return; // fits already
-            // scale attempt
-            const scale = containerWidth / total;
-            buttons.forEach(b => {
-              const origPx = parseFloat(b.getAttribute('data-orig-font-size')) || 18;
-              let newSize = Math.max(12, Math.floor(origPx * scale));
-              b.style.fontSize = newSize + 'px';
-              b.setAttribute('data-mobile-font-scaled','true');
-            });
-            // Re-measure: if still overflow and we hit min, allow horizontal scroll
-            const newTotal = buttons.reduce((acc, b) => acc + b.getBoundingClientRect().width, 0);
-            if (newTotal > containerWidth && content) {
-              content.style.overflowX = 'auto';
-            }
-          };
-          setTimeout(attemptFit, 0);
-          root._mobileFitHandler = () => {
-            // Maintain fixed vertical anchor on resize
-            const FIXED_EXPAND_TOP = 120;
-            root.style.top = FIXED_EXPAND_TOP + 'px';
-            // Recompute width fully available again
-            const vw2 = window.innerWidth;
-            let newMax = vw2 - rightOffset - 8;
-            if (newMax < 100) newMax = vw2 * 0.65;
-            root.style.maxWidth = Math.floor(newMax) + 'px';
-            setTimeout(attemptFit, 60);
-          };
-          window.addEventListener('resize', root._mobileFitHandler);
-          // Inject upward submenu style (once)
-          const styleId = 'am-mobile-submenu-upward';
-            if (!document.getElementById(styleId)) {
-              const st = document.createElement('style');
-              st.id = styleId;
-              st.textContent = `@media (max-width:760px){ .mobile-bottom-horizontal .power-cards-submenu { top:auto !important; bottom:100% !important; margin-bottom:6px !important; max-height:40vh; overflow:auto; } }`;
-              document.head.appendChild(st);
-            }
+          // Expand - slide in from right
+          root.style.transform = 'translateX(0)';
           btn.style.transform = 'scale(0.9)';
           btn.innerHTML = '▶'; // right arrow indicates collapse direction
           btn.setAttribute('aria-label','Collapse Action Menu');
@@ -965,6 +879,22 @@ export function update(root) {
   try {
     const bubble = document.getElementById('active-player-bubble');
     if (bubble && active) {
+      // If bubble was hidden due to Tokyo entry, show it again for the new active player
+      if (bubble.hasAttribute('data-hidden-until-next-turn')) {
+        bubble.removeAttribute('data-hidden-until-next-turn');
+        bubble.style.display = 'flex';
+        bubble.style.position = 'fixed';
+        bubble.style.top = '10px';
+        bubble.style.left = '10px';
+        bubble.style.transform = 'none';
+        bubble.style.transition = '';
+        bubble.style.opacity = '1';
+        bubble.style.width = '';
+        bubble.style.height = '';
+        bubble.style.margin = '';
+        bubble.style.zIndex = '7500';
+      }
+      
       const avatar = bubble.querySelector('.apb-avatar');
       const nameEl = bubble.querySelector('[data-apb-name]');
       if (nameEl) nameEl.textContent = active.monster?.name || active.name || 'ACTIVE';

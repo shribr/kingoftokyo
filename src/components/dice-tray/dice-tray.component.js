@@ -230,8 +230,9 @@ export function update(root, { state }) {
   if (shouldRebuild) {
     // Build full list including placeholders for unrolled extra dice
     const rendered = [];
-    // Always show 8 compartments like legacy (6 regular + 2 empty)
-    const totalSlots = 8;
+    // Show slots based on player's modifiers (6 standard + extra from power cards)
+    // Only show extra slots (7th, 8th) if player has power cards granting them
+    const totalSlots = Math.max(diceSlots, 6); // At minimum show 6, max 8 if player has extra dice
     for (let i = 0; i < totalSlots; i++) {
       const face = faces[i];
       const isExtra = i >= 6;
@@ -255,7 +256,7 @@ export function update(root, { state }) {
   // Trigger rolling animation only when face values changed (a roll occurred), not on keep toggles
   if (valuesChanged && !prefersReduced) {
     const DURATION = DICE_ANIM_MS;
-    const totalSlots = 8; // Always animate up to 8 slots like legacy
+    const totalSlots = Math.max(diceSlots, 6); // Animate only the slots that are shown
     // Defer to next frame to ensure DOM paint before starting animation
     requestAnimationFrame(() => {
       // Temporarily disable pointer interactions during roll to avoid keep toggles mid-animation

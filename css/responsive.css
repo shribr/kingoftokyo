@@ -100,11 +100,12 @@ body, .btn, .card-text { font-size:var(--body-size); }
 		min-width: 100%;
 	}
 	
-	/* Dice tray toggle button */
+	/* Dice tray toggle button - positioned on right side */
 	#dice-toggle-btn {
 		position: fixed;
 		bottom: 20px;
-		left: 20px;
+		right: 20px; /* Changed from left to right */
+		left: auto;
 		width: 50px;
 		height: 50px;
 		background: var(--dice-tray-label-bg, #ffcf33);
@@ -126,11 +127,12 @@ body, .btn, .card-text { font-size:var(--body-size); }
 		transform: scale(0.95) !important;
 	}
 
-	/* Mobile action menu button */
+	/* Mobile action menu button - positioned to the left of dice button */
 	#action-menu-mobile-btn {
 		position: fixed;
 		bottom: 20px;
-		left: calc(100vw - 70px);
+		right: 80px; /* Positioned to the left of dice button */
+		left: auto;
 		width: 50px;
 		height: 50px;
 		background: linear-gradient(135deg, #ffcf33 0%, #ffb300 100%);

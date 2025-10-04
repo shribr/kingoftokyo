@@ -10,6 +10,28 @@ import { createPositioningService } from '../services/positioningService.js';
 // Bind UI events to store actions after store is created to avoid circular imports
 export function bindUIEventBridges(store) {
   function handleRollRequested() {
+    // Auto-expand dice tray in mobile if collapsed
+    try {
+      const isMobile = window.matchMedia('(max-width: 760px)').matches || window.matchMedia('(pointer: coarse)').matches;
+      if (isMobile) {
+        const diceTray = document.querySelector('.cmp-dice-tray');
+        if (diceTray) {
+          const isCollapsed = diceTray.getAttribute('data-collapsed') === 'left' || 
+                             diceTray.getAttribute('data-collapsed') === 'true' || 
+                             diceTray.getAttribute('data-collapsed') === '1';
+          if (isCollapsed) {
+            // Expand the dice tray
+            diceTray.removeAttribute('data-collapsed');
+            diceTray.setAttribute('data-expanded', 'true');
+            diceTray.classList.add('expanded');
+            diceTray.classList.remove('collapsed');
+          }
+        }
+      }
+    } catch(e) {
+      console.warn('[eventsToActions] Failed to auto-expand dice tray:', e);
+    }
+    
     // Minimal guard: ensure blackout not blocking UI
     try { window.__KOT_BLACKOUT__?.hide(); document.querySelector('.post-splash-blackout')?.remove(); } catch(_) {}
     const stAll = store.getState();

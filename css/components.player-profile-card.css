@@ -217,11 +217,30 @@
     width:100% !important; max-width:100% !important; padding:6px 10px 8px !important; border-width:2px !important; box-shadow:3px 3px 0 #000,0 0 0 2px #222 inset !important; 
   }
   .cmp-monsters-panel .cmp-player-profile-card .ppc-header { margin:0 0 8px !important; align-items:center !important; }
-  .cmp-monsters-panel .cmp-player-profile-card .ppc-avatar { width:40px !important; height:40px !important; border-width:2px !important; margin-right:8px !important; }
+  /* Enforce circular avatar with aspect-ratio and flex-shrink:0 to prevent squashing */
+  .cmp-monsters-panel .cmp-player-profile-card .ppc-avatar { 
+    width:40px !important; 
+    height:40px !important; 
+    aspect-ratio:1/1 !important; 
+    flex:0 0 40px !important; 
+    border-width:2px !important; 
+    margin-right:8px !important; 
+  }
   .cmp-monsters-panel .cmp-player-profile-card .ppc-name { font-size:18px !important; line-height:1.05 !important; margin:0 0 2px !important; }
   .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] { padding:9px 11px 11px !important; box-shadow:0 3px 12px rgba(0,0,0,0.5),0 0 0 2px var(--ppc-accent,#333) !important; }
-  .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-avatar { width:50px !important; height:50px !important; }
-  .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-stats { gap:6px !important; margin:0 0 8px !important; }
+  /* Enforce circular avatar when expanded */
+  .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-avatar { 
+    width:50px !important; 
+    height:50px !important; 
+    aspect-ratio:1/1 !important; 
+    flex:0 0 50px !important; 
+  }
+  /* Ensure stats DISPLAY when expanded in mobile */
+  .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-stats { 
+    display:flex !important; 
+    gap:6px !important; 
+    margin:0 0 8px !important; 
+  }
   .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-stat { padding:6px 2px 4px !important; border-width:2px !important; }
   .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-stat .value { font-size:22px !important; }
   .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-owned-cards { padding:6px 6px 8px !important; border-width:2px !important; }
@@ -232,10 +251,22 @@
   /* Ultra-compact adjustments for very narrow widths */
   @media (max-width:520px) {
     .cmp-monsters-panel .cmp-player-profile-card.cmp-player-profile-card { padding:5px 8px 6px !important; }
-    .cmp-monsters-panel .cmp-player-profile-card .ppc-avatar { width:36px !important; height:36px !important; }
+    /* Enforce circular avatar at ultra-compact size */
+    .cmp-monsters-panel .cmp-player-profile-card .ppc-avatar { 
+      width:36px !important; 
+      height:36px !important; 
+      aspect-ratio:1/1 !important; 
+      flex:0 0 36px !important; 
+    }
     .cmp-monsters-panel .cmp-player-profile-card .ppc-name { font-size:16px !important; }
     .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] { padding:7px 9px 9px !important; }
-    .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-avatar { width:44px !important; height:44px !important; }
+    /* Enforce circular avatar when expanded at ultra-compact */
+    .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-avatar { 
+      width:44px !important; 
+      height:44px !important; 
+      aspect-ratio:1/1 !important; 
+      flex:0 0 44px !important; 
+    }
     .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-stats { gap:5px !important; }
     .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-stat { padding:5px 2px 4px !important; }
     .cmp-monsters-panel .cmp-player-profile-card[data-expanded="true"] .ppc-stat .value { font-size:20px !important; }
@@ -244,11 +275,23 @@
 
   /* Additional deep shrink for non-expanded list view cards */
   .cmp-monsters-panel[data-card-layout="list"] .cmp-player-profile-card:not([data-expanded="true"]) { padding:5px 8px 6px !important; }
-  .cmp-monsters-panel[data-card-layout="list"] .cmp-player-profile-card:not([data-expanded="true"]) .ppc-avatar { width:34px !important; height:34px !important; }
+  /* Enforce circular avatar in list view */
+  .cmp-monsters-panel[data-card-layout="list"] .cmp-player-profile-card:not([data-expanded="true"]) .ppc-avatar { 
+    width:34px !important; 
+    height:34px !important; 
+    aspect-ratio:1/1 !important; 
+    flex:0 0 34px !important; 
+  }
   .cmp-monsters-panel[data-card-layout="list"] .cmp-player-profile-card:not([data-expanded="true"]) .ppc-name { font-size:15px !important; }
   @media (max-width:520px) {
     .cmp-monsters-panel[data-card-layout="list"] .cmp-player-profile-card:not([data-expanded="true"]) { padding:4px 7px 5px !important; }
-    .cmp-monsters-panel[data-card-layout="list"] .cmp-player-profile-card:not([data-expanded="true"]) .ppc-avatar { width:32px !important; height:32px !important; }
+    /* Enforce circular avatar in list view at ultra-compact */
+    .cmp-monsters-panel[data-card-layout="list"] .cmp-player-profile-card:not([data-expanded="true"]) .ppc-avatar { 
+      width:32px !important; 
+      height:32px !important; 
+      aspect-ratio:1/1 !important; 
+      flex:0 0 32px !important; 
+    }
     .cmp-monsters-panel[data-card-layout="list"] .cmp-player-profile-card:not([data-expanded="true"]) .ppc-name { font-size:14px !important; }
   }
 }

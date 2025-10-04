@@ -461,90 +461,137 @@
 .cmp-action-menu button:not(:disabled):hover { box-shadow:5px 5px 0 #000,0 0 0 2px #222 inset; }
 .cmp-action-menu button:not(:disabled):active { box-shadow:2px 2px 0 #000,0 0 0 2px #222 inset; }
 
-/* --- Mobile/touch layout: menu is fully hidden until opened (no slide animation) --- */
+/* --- Mobile/touch layout: horizontal button bar extending from bottom-right --- */
 @media (max-width: 760px) {
-  /* Force-hide actions label in mobile regardless of earlier flex display */
-  .cmp-action-menu .am-label { display:none !important; width:0 !important; height:0 !important; overflow:hidden !important; padding:0 !important; margin:0 !important; }
-  /* Mobile: anchor from bottom corners and expand upward, consistent width and full-width buttons */
-  .cmp-action-menu {
-    position: fixed;
-    top: auto; left: auto; right: 16px; /* Align right edge with some padding from screen edge */
-    /* bottom is computed dynamically from the triggering button via JS */
-    width: max-content;
-    max-width: calc(100vw - 80px); /* Leave room for action menu button and padding */
-    /* removed min-width to allow natural shrink */
-  flex-direction: column;
-    align-items: stretch;
-    justify-content: flex-start;
-    gap: 6px; /* tighter vertical rhythm */
-    /* Fully hidden by default on mobile; becomes visible only when opened */
-    display: none;
-  transform: none;
-    transition: none;
-    max-height: calc(55vh); /* allow more vertical space savings */
-    overflow-y: auto; /* internal scroll instead of pushing layout */
-    overscroll-behavior: contain;
+  /* Force-hide actions label and arrows in mobile */
+  .cmp-action-menu .am-label,
+  .cmp-action-menu .am-collapse-toggle,
+  .cmp-action-menu .am-header-row { 
+    display:none !important; 
+    width:0 !important; 
+    height:0 !important; 
+    overflow:hidden !important; 
+    padding:0 !important; 
+    margin:0 !important; 
   }
+  
+  /* Mobile: horizontal bar sliding from RIGHT, at same position as dice tray */
+  .cmp-action-menu {
+    position: fixed !important;
+    bottom: 20px !important; /* Same as dice tray */
+    top: auto !important;
+    left: auto !important;
+    right: 0 !important;
+    width: calc(100vw - 90px) !important; /* Leave room for action menu button + padding */
+    max-width: calc(100vw - 90px) !important;
+    height: 60px !important; /* Fixed height for container */
+    display: flex !important; /* Always flex, visibility controlled by transform */
+    flex-direction: row !important; /* Force horizontal layout */
+    align-items: center !important;
+    justify-content: flex-start !important; /* Align buttons to the left */
+    gap: 8px !important; /* Space between buttons */
+    padding: 8px 12px !important; /* Padding inside container */
+    /* Visible container background */
+    background: linear-gradient(135deg, rgba(45, 52, 54, 0.98), rgba(27, 31, 32, 0.98)) !important;
+    border: 3px solid #000 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(255, 207, 51, 0.3) inset !important;
+    /* Hidden by default - slides in from right when opened */
+    transform: translateX(100%) !important; /* Hidden to the right by default */
+    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    overscroll-behavior: contain;
+    z-index: 7400 !important; /* Above dice tray (6600) but below buttons (7500) */
+  }
+  
+  /* When opened, slide in from right */
+  .cmp-action-menu[data-hamburger-open],
+  body[data-action-menu-open] .cmp-action-menu {
+    transform: translateX(0) !important; /* Slide in from right */
+  }
+  
   .cmp-action-menu::-webkit-scrollbar { width:0; height:0; }
-  /* Hide label on mobile */
-  .cmp-action-menu .am-label { display:none; }
-  /* Hide collapse toggle on mobile since mobile has its own hamburger menu system */
-  .cmp-action-menu .am-collapse-toggle { display:none; }
+  
   /* Reset content collapse on mobile */
   .cmp-action-menu .am-content {
     max-height: none !important;
     opacity: 1 !important;
     overflow: visible !important;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 8px;
+    align-items: center;
+    padding: 0 !important; /* Remove all padding to eliminate empty space */
+    margin: 0 !important;
   }
-    /* Make buttons look like Tools menu entries on mobile: flat light buttons */
-    .cmp-action-menu button { 
-      --am-mobile-scale: .70; /* stronger shrink so change is unmistakable */
-      background:#e6e6e6 !important; 
-      color:#fff !important; 
-      border:none !important; 
-      box-shadow:none !important; 
-      text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000 !important;
-      font-size: calc(18px * var(--am-mobile-scale)) !important; 
-      line-height:1.05 !important; 
-      padding: 4px 10px 6px !important; 
-      min-height: 34px !important; 
-      letter-spacing:.5px !important;
-      width:auto !important;
-    }
-    .cmp-action-menu button[data-action="keep"],
-    .cmp-action-menu button[data-action="end"],
-    .cmp-action-menu button[data-action="flush"] { 
-      background:#e6e6e6 !important; 
-      color:#fff !important; 
-      text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000 !important;
-      border:none !important; 
-      box-shadow:none !important; 
-      font-size: calc(16px * var(--am-mobile-scale)) !important;
-      min-height: 34px !important;
-    }
-    .cmp-action-menu button[data-action="flush"] { min-height:32px !important; font-size: calc(15px * var(--am-mobile-scale)) !important; }
+  
+  /* Mobile buttons: compact circular style */
+  .cmp-action-menu button { 
+    --am-mobile-scale: 1;
+    background: linear-gradient(135deg, #ffcf33 0%, #ffb300 100%) !important;
+    color: #fff !important;
+    border: 3px solid #333 !important;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.3) !important;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000 !important;
+    font-size: 12px !important;
+    line-height: 1.1 !important;
+    padding: 8px 12px !important;
+    min-height: 44px !important;
+    min-width: 70px !important;
+    letter-spacing: 0.5px !important;
+    width: auto !important;
+    border-radius: 8px !important;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  
+  .cmp-action-menu button:disabled {
+    opacity: 0.5 !important;
+    background: #666 !important;
+  }
+  
+  .cmp-action-menu button[data-action="keep"],
+  .cmp-action-menu button[data-action="end"],
+  .cmp-action-menu button[data-action="flush"] { 
+    background: linear-gradient(135deg, #ffcf33 0%, #ffb300 100%) !important;
+    color: #fff !important;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000 !important;
+    border: 3px solid #333 !important;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.3) !important;
+    font-size: 11px !important;
+    min-height: 44px !important;
+    min-width: 60px !important;
+  }
+  
+  .cmp-action-menu button[data-action="flush"] { 
+    min-height: 44px !important; 
+    font-size: 10px !important;
+    min-width: 55px !important;
+  }
+  
   .cmp-action-menu[data-hamburger-corner="left"] { left: 8px; right: auto; }
-  .cmp-action-menu[data-hamburger-open] { display:flex; }
-  .cmp-action-menu .am-label { display:none; }
-  /* Auto-size to longest item; keep a reasonable min-width */
-  .cmp-action-menu { width: max-content; max-width: calc(100vw - 16px); padding:10px 10px 12px; }
-  .cmp-action-menu button { width: auto; flex: 0 0 auto; min-width: 0; }
+  .cmp-action-menu[data-hamburger-open] { display: flex !important; }
+  
+  /* Auto-size to content */
+  .cmp-action-menu { width: auto; max-width: calc(100vw - 100px); padding: 0; }
+  .cmp-action-menu button { flex: 0 0 auto; }
   .cmp-action-menu[data-draggable="true"] { cursor: default; }
-  /* Tighten vertical spacing further when scroll engaged */
-  .cmp-action-menu button + button { margin-top:2px; }
-  /* Ensure expanded action menu content has a consistent min width on mobile */
-  .cmp-action-menu .am-content[data-collapsed="false"] { min-width:480px; }
+  
+  /* Remove spacing between buttons since gap handles it */
+  .cmp-action-menu button + button { margin-top: 0; }
+  
   /* Power cards submenu adjustments for cramped space */
   .power-cards-submenu { 
-    padding:6px; 
-    gap:4px; 
-    min-width:150px; 
+    padding: 6px; 
+    gap: 4px; 
+    min-width: 150px; 
     transform-origin: top left; 
   }
   .power-cards-submenu button { 
-    font-size:12px; 
-    padding:4px 8px; 
-    min-height:28px; 
+    font-size: 12px; 
+    padding: 4px 8px; 
+    min-height: 28px; 
   }
 }
 
