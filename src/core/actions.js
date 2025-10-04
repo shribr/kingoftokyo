@@ -213,7 +213,7 @@ export const metaPhaseSpanUpdate = (spans) => ({ type: META_PHASE_SPAN_UPDATE, p
 // Yield prompt actions
 // Yield prompt now supports optional damage (for UI projection) and advisory meta ({ suggestion, reason, seed? })
 // DEPRECATED (migration): Prefer unified batch actions YIELD_PROMPTS_CREATED / YIELD_ALL_RESOLVED
-export const yieldPromptShown = (defenderId, attackerId, slot, expiresAt, damage = null, advisory = null) => ({ type: YIELD_PROMPT_SHOWN, payload: { defenderId, attackerId, slot, expiresAt, damage, advisory } });
+export const yieldPromptShown = (defenderId, attackerId, slot, expiresAt, damage = null, advisory = null, originalHealth = null) => ({ type: YIELD_PROMPT_SHOWN, payload: { defenderId, attackerId, slot, expiresAt, damage, advisory, originalHealth } });
 // DEPRECATED (migration): Human decision path will transition to unified terminal resolution
 export const yieldPromptDecided = (defenderId, attackerId, slot, decision) => ({ type: YIELD_PROMPT_DECIDED, payload: { defenderId, attackerId, slot, decision } });
 // Unified yield action creators

@@ -39,6 +39,7 @@ import { SCENARIO_APPLY_REQUEST } from '../core/actions.js';
 import { bindTokyoEntryAnimation } from '../services/tokyoEntryAnimationService.js';
 import { createYieldModal } from '../ui/components/YieldModal.js';
 import { mountEndBuyButton } from '../ui/components/EndBuyButton.js';
+import '../ui/mobileToolbarToggle.js';
 
 // Placeholder reducers until implemented
 function placeholderReducer(state = {}, _action) { return state; }
@@ -235,6 +236,26 @@ if (typeof window !== 'undefined') {
         window.__KOT_GAME_STARTED = true;
         const blk = document.querySelector('.post-splash-blackout');
         if (blk) { blk.classList.add('is-hidden'); setTimeout(()=>{ try { blk.remove(); } catch(_){} }, 320); }
+        // Also trigger game-ready + notification if gating is effectively bypassed
+        if (!document.body.classList.contains('game-ready')) {
+          document.body.classList.add('game-ready');
+          if (!window.__KOT_GAME_START_TOAST__) {
+            const note = document.createElement('div');
+            note.className = 'center-notification game-start-toast visible';
+            note.setAttribute('role','status');
+            note.setAttribute('aria-live','polite');
+            note.innerHTML = `
+              <div class="gst-inner" aria-hidden="true">
+                <div class="gst-icon-wrap"><span class="gst-icon">🏙️</span><span class="gst-flare" aria-hidden="true"></span></div>
+                <h2 class="gst-title">GAME START</h2>
+                <div class="gst-sub">Monsters unleashed in Tokyo!</div>
+                <div class="gst-energy-bar" aria-hidden="true"><span class="gst-energy-fill"></span></div>
+              </div>`;
+            document.body.appendChild(note);
+            window.__KOT_GAME_START_TOAST__ = true;
+            try { orchestrateGameStartToast(note); } catch(e) { console.warn('orchestrateGameStartToast failed', e); }
+          }
+        }
       } catch(_) {}
       try {
         // If scenario config present, apply after game started
@@ -277,26 +298,50 @@ if (typeof window !== 'undefined') {
         // Direct start path: don't open RFF when skipping intro
         if (st.phase === 'SETUP') turnService.startGameIfNeeded();
       } else {
-        if (!profilesOpen && st.players.order.length > 0 && !(rff && (rff.open || rff.resolved))) {
+        if (!profilesOpen && st.players.order.length >= 2 && !(rff && (rff.open || rff.resolved))) {
           store.dispatch(uiRollForFirstOpen());
           ensurePostSplashBlackout();
-        } else if (rff && rff.resolved) {
-          if (st.phase === 'SETUP') turnService.startGameIfNeeded();
+        } else if (rff && rff.resolved && st.players.order.length >= 2) {
+          // Do not start game here; wait for unified gating below
         }
         // removed diagnostic re-dispatch
       }
     }
-    // If roll-for-first just resolved (open false, resolved true) and phase still SETUP, start game.
-    if (rff && rff.resolved && st.phase === 'SETUP') {
+    // Unified gating: start game only when >=2 players AND RFF resolved.
+    const enoughPlayers = st.players.order.length >= 2;
+    if (st.phase === 'SETUP' && enoughPlayers && rff && rff.resolved) {
       turnService.startGameIfNeeded();
     }
     // (Removed) previous subscription-based CPU auto-roll kick; logic centralized in turnService.startTurn
     // no per-tick tracing
     // When phase leaves SETUP (i.e., game actually starts) mark body active and fade out blackout
-    if (st.phase !== 'SETUP' && !document.body.classList.contains('game-active')) {
-      document.body.classList.add('game-active');
+    if (st.phase !== 'SETUP' && !document.body.classList.contains('game-ready')) {
+      // Mark game ready only after gating satisfied (phase advanced)
+      document.body.classList.add('game-ready');
+      // Remove blackout now (both conditions inherently met because phase advanced via gating logic)
       const blk = document.querySelector('.post-splash-blackout');
       if (blk) { blk.classList.add('is-hidden'); setTimeout(()=>blk.remove(), 520); }
+      // Central notification: Game officially underway
+      try {
+        if (!window.__KOT_GAME_START_TOAST__) {
+          const note = document.createElement('div');
+          note.className = 'center-notification game-start-toast visible';
+          note.setAttribute('role','status');
+          note.setAttribute('aria-live','polite');
+          note.innerHTML = `
+            <div class="gst-inner" aria-hidden="true">
+              <div class="gst-icon-wrap"><span class="gst-icon">🏙️</span><span class="gst-flare" aria-hidden="true"></span></div>
+              <h2 class="gst-title">GAME START</h2>
+              <div class="gst-sub">Monsters unleashed in Tokyo!</div>
+              <div class="gst-energy-bar" aria-hidden="true"><span class="gst-energy-fill"></span></div>
+            </div>`;
+          document.body.appendChild(note);
+          window.__KOT_GAME_START_TOAST__ = true;
+          try { orchestrateGameStartToast(note); } catch(e) { console.warn('orchestrateGameStartToast failed', e); }
+        }
+        // Force overlay service to clear any lingering references
+        try { window.__KOT_OVERLAY__?.forceHide(); } catch(_) {}
+      } catch(_) {}
     }
     prevSelectionOpen = selectionOpen;
 
@@ -329,7 +374,7 @@ if (typeof window !== 'undefined') {
 
     // removed selection visibility watchdog
   });
-  // Game Activation Watchdog (ensures play area appears even if phase start races occur)
+  // Game Activation Watchdog (reduced scope: no longer forces premature UI; logs only)
   if (!window.__KOT_GAME_ACTIVATION_WATCHDOG__) {
     window.__KOT_GAME_ACTIVATION_WATCHDOG__ = true;
     let runs = 0;
@@ -337,35 +382,25 @@ if (typeof window !== 'undefined') {
     const pulse = () => {
       try {
         const st = store.getState();
-        const playersReady = (st.players?.order?.length || 0) > 0;
+  const playersReady = (st.players?.order?.length || 0) > 0;
         const selectionOpen = !!st.ui?.monsterSelection?.open;
         const rff = st.ui?.rollForFirst;
-        // Further relaxed: as soon as players exist, attempt start (ignore selection state entirely)
-        const shouldAttemptStart = playersReady;
+  // Only attempt start when >=2 players AND RFF resolved (strict gating)
+  const shouldAttemptStart = (st.players?.order?.length || 0) >= 2 && rff && rff.resolved;
         if (runs < 6) {
           try { console.log('[watchdog:pulse]', { run: runs, phase: st.phase, playersReady, selectionOpen, rffState: rff && { open:rff.open, resolved:rff.resolved } }); } catch(_) {}
         }
         if (shouldAttemptStart) {
           if (st.phase === 'SETUP' && !window.__KOT_GAME_STARTED) {
-            console.log('[watchdog] Triggering startGameIfNeeded (playersReady, selectionClosed, phase SETUP)');
+            console.log('[watchdog] Triggering gated startGameIfNeeded');
             try { window.__KOT_NEW__?.turnService?.startGameIfNeeded?.(); } catch(e) { console.warn('[watchdog] startGameIfNeeded error', e); }
-          }
-          if (st.phase === 'SETUP') {
-            // Attempt normal path first
-            try { window.__KOT_NEW__?.turnService?.startGameIfNeeded?.(); } catch(e) { console.warn('[watchdog] startGameIfNeeded error (second attempt)', e); }
-            // Force fallback if still stuck next tick
-          }
-          // Ensure UI visibility
-          if (st.phase !== 'SETUP' && !document.body.classList.contains('game-active')) {
-            console.log('[watchdog] Forcing game-active class (UI still hidden).');
-            try { document.body.classList.add('game-active'); } catch(_) {}
           }
           // Cleanup lingering blackout
           try {
             const blk = document.querySelector('.post-splash-blackout');
             if (blk) { blk.classList.add('is-hidden'); setTimeout(()=>{ try { blk.remove(); } catch(_){} }, 400); }
           } catch(_) {}
-          if (st.phase !== 'SETUP' && document.body.classList.contains('game-active')) return; // success -> stop
+          if (st.phase !== 'SETUP' && document.body.classList.contains('game-ready')) return; // success -> stop
         }
       } catch(_) {}
       runs++;
@@ -417,6 +452,64 @@ if (typeof window !== 'undefined') {
     })
     .then(cfg => {
       // no manual fallback mount for selection
+      try {
+        // Querystring-driven modal opener (testing convenience)
+        const params = new URLSearchParams(window.location.search);
+        const modalParam = params.get('modal') || params.get('modals');
+        if (modalParam) {
+          const tokens = modalParam.split(/[;,]/).map(s=>s.trim().toLowerCase()).filter(Boolean);
+          const actions = [];
+          const openSplash = tokens.includes('splash');
+          const openSelection = tokens.includes('selection') || tokens.includes('monsterselection') || tokens.includes('monster-select');
+          const openProfiles = tokens.includes('profiles') || tokens.includes('monsterprofiles') || tokens.includes('profile');
+          const openRff = tokens.includes('rff') || tokens.includes('rollforfirst') || tokens.includes('roll-for-first');
+          // If skipintro also present, ignore modal param (intro gating bypassed) unless explicit override flag
+          const overrideWithIntro = params.get('forceIntro') === '1';
+          if (skipIntro && !overrideWithIntro) {
+            console.info('[modalQuery] skipIntro active; ignoring modal query parameters');
+          } else {
+            if (openSplash) {
+              try { if (store.getState().ui?.splash?.visible === false) store.dispatch({ type:'UI_SPLASH_SHOW' }); } catch(_) {}
+            }
+            // Ensure splash hidden if not explicitly requested but selection/rff requested
+            if (!openSplash) {
+              try { store.dispatch(uiSplashHide()); } catch(_) {}
+            }
+            if (openSelection) {
+              try { store.dispatch({ type:'UI_MONSTER_SELECTION_OPEN' }); ensurePostSplashBlackout(); } catch(e){ console.warn('Failed to open selection via query', e); }
+            }
+            if (openProfiles) {
+              try { store.dispatch({ type:'UI_MONSTER_PROFILES_OPEN', payload:{ source:'query' }}); ensurePostSplashBlackout(); } catch(e){ console.warn('Failed to open profiles via query', e); }
+            }
+            if (openRff) {
+              try { store.dispatch(uiRollForFirstOpen()); ensurePostSplashBlackout(); } catch(e){ console.warn('Failed to open RFF via query', e); }
+            }
+          }
+        }
+        // Allow forcing game start toast re-display for testing via ?forceToast=1
+        try {
+          const forceToast = params.get('forceToast') === '1';
+          if (forceToast) {
+            // Clear guard flag then (re)emit toast if game already started or becomes ready shortly.
+            delete window.__KOT_GAME_START_TOAST__;
+            const show = () => {
+              if (window.__KOT_GAME_START_TOAST__) return;
+              const note = document.createElement('div');
+              note.className = 'center-notification game-start-toast visible';
+              note.setAttribute('role','status');
+              note.setAttribute('aria-live','polite');
+              note.innerHTML = `\n                <div class="gst-inner" aria-hidden="true">\n                  <div class="gst-icon-wrap"><span class="gst-icon">🏙️</span><span class="gst-flare" aria-hidden="true"></span></div>\n                  <h2 class="gst-title">GAME START</h2>\n                  <div class="gst-sub">Monsters unleashed in Tokyo!</div>\n                  <div class="gst-energy-bar" aria-hidden="true"><span class="gst-energy-fill"></span></div>\n                </div>`;
+              document.body.appendChild(note);
+              window.__KOT_GAME_START_TOAST__ = true;
+              try { orchestrateGameStartToast(note); } catch(e) { console.warn('orchestrateGameStartToast failed', e); }
+            };
+            // If game already past SETUP or body has game-ready, show immediately; else wait a bit.
+            const stNow = store.getState();
+            if (stNow.phase !== 'SETUP' || document.body.classList.contains('game-ready')) show();
+            else setTimeout(show, 1200);
+          }
+        } catch(_) {}
+      } catch(e) { console.warn('[modalQuery] processing error', e); }
     })
     .catch(e => {
       console.error('[bootstrap] Failed to load components.config.json', e);
@@ -453,8 +546,8 @@ function seedRandomPlayers(store, monsters, logger) {
 }
 
 function ensurePostSplashBlackout() {
-  // Do not add blackout once the game is active
-  if (document.body.classList.contains('game-active')) return;
+  // Do not add blackout once the game is ready (or legacy active class present)
+  if (document.body.classList.contains('game-ready') || document.body.classList.contains('game-active')) return;
   if (document.querySelector('.post-splash-blackout')) return;
   const div = document.createElement('div');
   div.className = 'post-splash-blackout';
@@ -522,3 +615,124 @@ window.addEventListener('beforeunload', () => {
     localStorage.setItem('KOT_LAST_SCENARIO_SNAPSHOT', JSON.stringify(snap));
   } catch(_) {}
 });
+
+// Orchestrates progressive shake phases and explosion for the game start toast.
+// CSS timings: energy fill animation: 2s duration + .25s delay (total 2250ms till 100%).
+// Keyframe checkpoints (approx based on @keyframes gstEnergyFill percentages):
+// 0%: 0ms, 25%: ~500ms, 55%: ~1100ms, 100%: 2000ms ( + initial 250ms delay).
+// We map phases: phase1 after ~350ms, phase2 after ~850ms, phase3 after ~1350ms, phase4 near ~1850ms, explosion at fill completion (~2250ms total).
+function orchestrateGameStartToast(note) {
+  if (!note) return;
+  try {
+    const cfg = (window.__KOT_GAME_START_CFG__ ||= {
+      enableShake:true,
+      enableParticles:true,
+      enableSparks:true,
+      enableShockwave:true,
+      colorBandMode:'pulse', // 'none' | 'pulse'
+      timings:{
+        energyDelay:250, // ms (CSS must match)
+        energyDuration:2000,
+        phase1:350,
+        phase2:850,
+        phase3:1350,
+        phase4:1850,
+        explosionOffset:2250, // delay+duration
+  removalDelay:2600 // after explosion trigger (extended for slower explosion & longer particles)
+      }
+    });
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) {
+      // Respect reduced motion: schedule a simple fade dismiss similar to prior behavior.
+      try { note.removeAttribute('data-color-band'); } catch(_){}
+      setTimeout(() => { if (!note.isConnected) return; note.classList.add('dismiss'); setTimeout(()=>{ try { note.remove(); } catch(_){} }, 600); }, 2200);
+      return;
+    }
+    // Progressive phases
+    if (cfg.enableShake) {
+      const phaseTimings = [cfg.timings.phase1, cfg.timings.phase2, cfg.timings.phase3, cfg.timings.phase4];
+      phaseTimings.forEach((t, idx) => {
+        setTimeout(() => {
+          if (!note.isConnected || note.classList.contains('exploding')) return;
+          note.setAttribute('data-shake-phase', String(idx+1));
+        }, t + 10);
+      });
+    }
+    if (cfg.colorBandMode && cfg.colorBandMode !== 'none') {
+      note.setAttribute('data-color-band', cfg.colorBandMode);
+    }
+    // Explosion trigger after fill completion (fill delay .25s + 2000ms duration = 2250ms)
+    const EXPLOSION_AT = cfg.timings.explosionOffset;
+    setTimeout(() => {
+      if (!note.isConnected) return;
+      note.removeAttribute('data-shake-phase');
+      note.classList.add('exploding');
+      try { if (cfg.enableShockwave) spawnGameStartShockwave(note); } catch(e){ console.warn('shockwave spawn failed', e); }
+      try { if (cfg.enableParticles) spawnGameStartParticles(note, cfg); } catch(e){ console.warn('spawnGameStartParticles failed', e);}      
+      // Removal after configured additional delay (allows fade tail & particles)
+      setTimeout(() => { if (!note.isConnected) return; try { note.remove(); } catch(_){}; }, cfg.timings.removalDelay);
+    }, EXPLOSION_AT);
+  } catch(e) {
+    console.warn('orchestrateGameStartToast internal error', e);
+    // Fallback: prior simple dismiss
+    setTimeout(() => { if (!note.isConnected) return; note.classList.add('dismiss'); setTimeout(()=>{ try { note.remove(); } catch(_){} }, 600); }, 2500);
+  }
+}
+
+function spawnGameStartParticles(note, cfg) {
+  if (!note) return;
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (prefersReduced) return;
+  const CORE_COUNT = cfg?.coreParticleCount || 18;
+  for (let i=0;i<CORE_COUNT;i++) {
+    const p = document.createElement('span');
+    p.className = 'gst-particle';
+    const angle = (Math.PI * 2) * (i / CORE_COUNT) + (Math.random()*0.6 - 0.3);
+    const radius = 55 + Math.random()*55;
+    const dx = Math.cos(angle) * radius;
+    const dy = Math.sin(angle) * radius;
+    const hue = 34 + Math.floor(Math.random()*18);
+    const variant = (Math.random() < 0.25) ? 3 : (Math.random() < 0.55 ? 2 : 1);
+    p.style.setProperty('--dx', dx.toFixed(1)+'px');
+    p.style.setProperty('--dy', dy.toFixed(1)+'px');
+    p.style.setProperty('--h', hue.toString());
+    if (variant !== 1) p.setAttribute('data-variant', String(variant));
+    const delay = (Math.random()*120)|0;
+    p.style.animationDelay = delay + 'ms';
+    note.appendChild(p);
+    setTimeout(()=>{ try { p.remove(); } catch(_){} }, 1300 + delay);
+  }
+  // Long-travel sparks (a few that fly further out and fade)
+  if (!cfg?.enableSparks) return;
+  const SPARKS = cfg.sparkCount || 6;
+  for (let s=0;s<SPARKS;s++) {
+    const sp = document.createElement('span');
+    sp.className = 'gst-particle';
+    sp.setAttribute('data-spark','1');
+    const angleDeg = (360/SPARKS)*s + (Math.random()*40 - 20);
+    const angleRad = angleDeg * Math.PI/180;
+    const radiusFar = 140 + Math.random()*110; // further
+    const dx2 = Math.cos(angleRad) * radiusFar;
+    const dy2 = Math.sin(angleRad) * radiusFar;
+    const hue = 30 + Math.floor(Math.random()*25);
+    sp.style.setProperty('--dx2', dx2.toFixed(1)+'px');
+    sp.style.setProperty('--dy2', dy2.toFixed(1)+'px');
+    sp.style.setProperty('--h', hue.toString());
+    sp.style.setProperty('--ang', angleDeg.toFixed(1)+'deg');
+    const delay = 80 + (Math.random()*160|0);
+    sp.style.animationDelay = delay + 'ms';
+    note.appendChild(sp);
+    setTimeout(()=>{ try { sp.remove(); } catch(_){} }, 1700 + delay);
+  }
+}
+
+function spawnGameStartShockwave(note) {
+  try {
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) return;
+    const ring = document.createElement('span');
+    ring.className = 'gst-shockwave';
+    note.appendChild(ring);
+    setTimeout(()=>{ try { ring.remove(); } catch(_){} }, 1600);
+  } catch(e) { console.warn('spawnGameStartShockwave failed', e); }
+}

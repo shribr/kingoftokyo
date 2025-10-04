@@ -158,7 +158,7 @@ function beginHideSequence(dispatch, root) {
 }
 
 function ensureBlackout() {
-  if (document.body.classList.contains('game-active')) return;
+  if (document.body.classList.contains('game-ready') || document.body.classList.contains('game-active')) return;
   if (!document.querySelector('.post-splash-blackout')) {
     const div = document.createElement('div');
     div.className = 'post-splash-blackout';

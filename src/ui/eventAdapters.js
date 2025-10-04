@@ -46,10 +46,11 @@ export function bindUIEventAdapters(store) {
           console.error('[eventAdapters] Fallback game start failed', e);
         }
       }
-      // Ensure body shows main layout even if phase transition is delayed
+      // Ensure body reflects readiness (strict gating handled elsewhere). Add legacy class for compatibility.
       try {
-        if (store.getState().phase !== 'SETUP' && !document.body.classList.contains('game-active')) {
-          document.body.classList.add('game-active');
+        if (store.getState().phase !== 'SETUP' && !document.body.classList.contains('game-ready')) {
+          document.body.classList.add('game-ready');
+          if (!document.body.classList.contains('game-active')) document.body.classList.add('game-active');
         }
       } catch(_) {}
     });

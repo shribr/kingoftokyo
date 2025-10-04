@@ -206,27 +206,31 @@ export function update(root, instances) {
   if (shouldDock) {
     const activeInst = instances.get(active.id);
     if (activeInst) {
-      // No more slot needed - card positions directly
       const cardEl = activeInst.root;
-      // Clear any previous active player cards
-      try {
-        const prevActiveCards = document.querySelectorAll('.cmp-player-profile-card[data-active-player="true"]');
-        prevActiveCards.forEach(prev => {
-          if (prev !== cardEl) {
-            const prevId = prev.getAttribute('data-player-id');
-            // Clean up previous active card
-            prev.removeAttribute('data-active-player');
-            prev.removeAttribute('data-in-active-dock');
-            prev.classList.remove('active-glow', 'dock-glow', 'turn-pulse', 'attack-pulse', 'in-place');
+      // Ensure arena dock exists
+      const arenaDock = document.querySelector('.cmp-arena [data-active-player-dock]');
+      if (arenaDock) {
+        // If this card is not already docked, move it
+        if (cardEl.parentElement !== arenaDock) {
+          // Restore any previously docked card back to the panel (using placeholder position)
+          const existingDocked = arenaDock.querySelector('.cmp-player-profile-card');
+          if (existingDocked && existingDocked !== cardEl) {
+            // Return previously docked card to the end of the list (natural consolidation)
+            container.appendChild(existingDocked);
+            existingDocked.removeAttribute('data-in-active-dock');
+            existingDocked.removeAttribute('data-active-player');
           }
-        });
-      } catch(_) {}
-      
-      // Position the active card with the new approach
-      try {
-        positionActiveSlot(null, cardEl, active);
-      } catch(e) {
-        console.warn('Failed to position active card:', e);
+          arenaDock.innerHTML = ''; // Clear dock
+          arenaDock.appendChild(cardEl);
+          cardEl.setAttribute('data-active-player', 'true');
+          cardEl.setAttribute('data-in-active-dock', 'true');
+          // Retrigger animation if card was previously active (remove & re-add attribute sequence)
+          try {
+            cardEl.classList.remove('active-dock-reflow');
+            void cardEl.offsetWidth; // force reflow
+            cardEl.classList.add('active-dock-reflow');
+          } catch(_) {}
+        }
       }
     }
   } else {

@@ -1,5 +1,6 @@
 /** roll-for-first.component.js */
 import { phaseChanged, metaActivePlayerSet, uiRollForFirstResolved } from '../../core/actions.js';
+import { acquire as acquireOverlay, release as releaseOverlay } from '../../services/overlayService.js';
 import { eventBus } from '../../core/eventBus.js';
 
 export function build({ selector, dispatch, getState }) {
@@ -9,11 +10,6 @@ export function build({ selector, dispatch, getState }) {
   // built
   root.addEventListener('click', (e) => {
     const t = e.target;
-    if (t.matches('[data-action="close"]')) {
-      hide(root);
-      maybeClearBlackout();
-      try { window.__KOT_BLACKOUT__?.hide(); } catch(_) {}
-    }
     if (t.matches('[data-action="roll"]')) {
       const stObj = ensureStateObject(root, getState);
       if (stObj.winnerDecided) return;
@@ -39,7 +35,6 @@ export function build({ selector, dispatch, getState }) {
 
 function markup() {
   return `<div class="modal rff-frame" role="dialog" aria-modal="true" aria-label="Roll For First Player">
-    <button class="rff-close" data-action="close" aria-label="Close">✕</button>
     <h2 class="rff-title">ROLL FOR FIRST</h2>
     <div class="rff-broadcast" data-commentary>Welcome to the opening roll! Click Roll Dice when you're ready.</div>
     <div class="modal-body rff-body" data-body>
@@ -58,7 +53,7 @@ export function update(ctx, root, dispatch, getState) {
   const open = rff?.open;
   if (!open) { hide(root); return; }
   show(root);
-  ensureBlackout();
+  if (!root._overlayAcquired) { acquireOverlay('rollForFirst'); root._overlayAcquired = true; }
   const stObj = ensureStateObject(root, getState);
   if (!stObj.tableBuilt) buildInitialTable(root, getState);
   // Auto dev shortcut still supported
@@ -263,29 +258,8 @@ function evaluateRound(dispatch, getState, root) {
         <div class="rff-winner-text">${winnerName.toUpperCase()}</div>
         <div class="rff-winner-sub">Will Take The First Turn</div>
       </div>`;
-      // Append a visible numeric countdown to game start (3 → 2 → 1 → 0 then start)
-      const cdWrap = document.createElement('div');
-      cdWrap.className = 'rff-countdown';
-      cdWrap.innerHTML = `Starting game in <span data-count>3</span>`;
-      commentary.appendChild(cdWrap);
-      try {
-        let n = 3;
-        const so = ensureStateObject(root, getState);
-        const tick = () => {
-          const span = cdWrap.querySelector('[data-count]');
-          if (span) span.textContent = String(n);
-          if (n <= 0) {
-            if (so._countdownTimer) { clearInterval(so._countdownTimer); so._countdownTimer = null; }
-            // On countdown end, finalize RFF and start the game immediately
-            finalizeAndStartGame(dispatch, getState, root);
-            return;
-          }
-          n -= 1;
-        };
-        // Prime UI immediately, then tick down each second
-        tick();
-        so._countdownTimer = setInterval(tick, 1000);
-      } catch(_) {}
+      // Short pause (1s) allowing players to read winner before game start
+      setTimeout(() => finalizeAndStartGame(dispatch, getState, root), 1000);
     }
     // Remove all non-winner rows from the table per request
     try {
@@ -362,8 +336,6 @@ function skipAndAssign(dispatch, getState, root) {
   } catch(e) { console.warn('[RFF.skipAndAssign] startGameIfNeeded direct call failed', e); }
   // Reset first CPU roll guard so bootstrap subscription can auto-roll if CPU chosen first
   try { delete window.__KOT_FIRST_CPU_ROLL_TRIGGERED; } catch(_) {}
-  // Immediate UI fallback: mark game-active so main layout becomes visible even if phase transition stalls.
-  try { document.body.classList.add('game-active'); window.__KOT_GAME_STARTED = true; } catch(_) {}
   // Schedule a micro + delayed fallback to ensure phase leaves SETUP; if still SETUP after 300ms, force once more
   setTimeout(() => {
     try {
@@ -375,6 +347,9 @@ function skipAndAssign(dispatch, getState, root) {
     } catch(_) {}
   }, 300);
   hide(root);
+  try { releaseOverlay('rollForFirst'); root._overlayAcquired = false; } catch(_) {}
+  // In case start triggers phase advance immediately, ensure overlay fully hidden
+  try { if (window.__KOT_NEW__?.store?.getState()?.phase !== 'SETUP') { releaseOverlay('rollForFirst'); } } catch(_) {}
 }
 
 // (Removed prior multi-player simultaneous functions in favor of sequential system.)
@@ -382,16 +357,7 @@ function skipAndAssign(dispatch, getState, root) {
 function show(root) { root.classList.remove('hidden'); root.style.pointerEvents = 'auto'; }
 function hide(root) { root.classList.add('hidden'); }
 
-function ensureBlackout() {
-  if (document.body.classList.contains('game-active')) return;
-  if (document.querySelector('.post-splash-blackout')) return;
-  const div = document.createElement('div');
-  div.className = 'post-splash-blackout';
-  document.body.appendChild(div);
-}
-function maybeClearBlackout() {
-  // Now blackout lifecycle managed by bootstrap after game start; keep as no-op fallback.
-}
+function maybeClearBlackout() { /* replaced by overlayService */ }
 
 // Dev hash flag: #autorollfirst => automatically roll once modal opens, keep re-rolling ties until resolved
 function maybeAutoDevRoll(dispatch, getState, root, rff, stObj) {
@@ -433,26 +399,7 @@ function displayRollingFace(dieEl, face) {
 }
 
 // Auto close
-function scheduleAutoClose(dispatch, getState, root) {
-  const stObj = ensureStateObject(root, getState);
-  if (stObj._closeScheduled) return;
-  stObj._closeScheduled = true;
-  const dismiss = () => {
-    finalizeAndStartGame(dispatch, getState, root);
-    document.removeEventListener('mousedown', onDocClick, true);
-  };
-  // Defer dismissal to allow the original click (e.g., toolbar/settings) to complete without being disrupted
-  const onDocClick = (e) => {
-    if (!root.contains(e.target)) {
-      // Don't block default or propagation; schedule close next frame
-      requestAnimationFrame(dismiss);
-    }
-  };
-  document.addEventListener('mousedown', onDocClick, true);
-  // Save so we can remove it if countdown triggers finalize
-  stObj._onDocClick = onDocClick;
-  setTimeout(dismiss, 3000);
-}
+function scheduleAutoClose(dispatch, getState, root) { /* No-op (legacy placeholder) */ }
 
 // Ensures RFF is resolved, phase advances, modal hides, and blackout is removed
 function finalizeAndStartGame(dispatch, getState, root) {
@@ -466,12 +413,10 @@ function finalizeAndStartGame(dispatch, getState, root) {
   hide(root);
   // Aggressive blackout cleanup: hide via controller and remove the node if still present
   try { window.__KOT_BLACKOUT__?.hide(); } catch(_) {}
-  try {
-    const blk = document.querySelector('.post-splash-blackout');
-    if (blk) { blk.classList.add('is-hidden'); setTimeout(()=>{ try { blk.remove(); } catch(_){} }, 120); }
-  } catch(_) {}
+  // Blackout removal now deferred to bootstrap subscription once phase transitions.
+  // Release overlay if still active
+  if (root._overlayAcquired) { try { releaseOverlay('rollForFirst'); root._overlayAcquired = false; } catch(_) {} }
   // Ensure body is marked active immediately to prevent any re-ensure paths from recreating blackout
-  try { document.body.classList.add('game-active'); } catch(_) {}
   // Remove any outside-click listener that may have been set by scheduleAutoClose
   try {
     const handler = stObj._onDocClick;

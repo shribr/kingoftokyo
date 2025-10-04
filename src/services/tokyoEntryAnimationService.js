@@ -77,11 +77,10 @@ export function bindTokyoEntryAnimation(store, logger = console) {
 
   function animateTokyoEntry(playerId, slot, done) {
     try {
-      const activeCardSlot = document.getElementById('active-player-card-slot');
-      if (!activeCardSlot) { done && done(); return; }
-      const activeCard = activeCardSlot.querySelector(`.cmp-player-profile-card[data-player-id="${playerId}"]`);
-      // If player's card not currently in active slot, skip (maybe already moved)
-      if (!activeCard) { done && done(); return; }
+  // New source: active card resides in arena dock (.arena-active-player-dock)
+  const arenaDock = document.querySelector('.arena-active-player-dock');
+  const activeCard = arenaDock ? arenaDock.querySelector(`.cmp-player-profile-card[data-player-id="${playerId}"]`) : null;
+  if (!activeCard) { done && done(); return; }
   const targetSlot = document.querySelector(slot === 'city' ? '[data-city-slot]' : '[data-bay-slot]');
   if (!targetSlot) { done && done(); return; }
       // Target Tokyo visual anchor (fallback: tokyo city element else arena center)
@@ -107,7 +106,7 @@ export function bindTokyoEntryAnimation(store, logger = console) {
       activeCard.setAttribute('data-flight-hidden','true');
       // Proactively clear the active dock so next active player (if turn advances quickly) can mount without waiting for animation end.
       try {
-        if (activeCardSlot.firstChild === activeCard) {
+  if (arenaDock && arenaDock.firstChild === activeCard) {
           // Leave placeholder to prevent layout shift (optional minimal stub)
           const ph = document.createElement('div');
           ph.style.width = activeCard.style.width || activeCard.getBoundingClientRect().width + 'px';

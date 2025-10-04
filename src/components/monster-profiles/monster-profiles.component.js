@@ -70,6 +70,17 @@ export function update(root) {
   try { window.__KOT_BLACKOUT__?.hide(); } catch(_) {}
   try { document.querySelector('.post-splash-blackout')?.remove(); } catch(_) {}
   const monsters = selectMonsters(state);
+  // SAFEGUARD: If images were not present on initial baseline capture (e.g., late-loaded config) and now exist, force baseline reset
+  try {
+    if (root._baseline && root._baseline.length && monsters.length === root._baseline.length) {
+      const hadMissing = root._baseline.some(b => !b.ref?.image);
+      const nowHasAll = monsters.every(m => !!m.image);
+      if (hadMissing && nowHasAll) {
+        // Reset baseline so subsequent logic re-captures with images
+        root._baseline = null;
+      }
+    }
+  } catch(_) {}
   // capture baseline once per open session
   if (!root._baseline) {
     root._baseline = monsters.map(m => ({ id: m.id, personality: { ...m.personality }, ref: m }));

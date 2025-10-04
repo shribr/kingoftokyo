@@ -86,10 +86,18 @@ export function createGameLogViewer(store){
     const { data, meta } = payload;
     const header = `<div style="padding:6px;font-size:12px;">Loaded <strong>${meta.name||'Auto Archive'}</strong> (${data.length} entries)</div>`;
     const replayBar = `<div class='replay-controls'>
-      <button data-replay-start class='toolbar-btn'>Start Game Replay</button>
-      <button data-replay-pause class='toolbar-btn' disabled>Pause</button>
-      <button data-replay-resume class='toolbar-btn' disabled>Resume</button>
-      <button data-replay-stop class='toolbar-btn' disabled>Stop</button>
+      <button data-replay-start class='toolbar-btn' title='Start Replay (G)'>
+        <svg viewBox='0 0 24 24' width='16' height='16' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polygon points='6 4 20 12 6 20 6 4'/></svg> Start
+      </button>
+      <button data-replay-pause class='toolbar-btn' disabled title='Pause (P)'>
+        <svg viewBox='0 0 24 24' width='16' height='16' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='6' y='4' width='4' height='16'/><rect x='14' y='4' width='4' height='16'/></svg>
+      </button>
+      <button data-replay-resume class='toolbar-btn' disabled title='Resume (R)'>
+        <svg viewBox='0 0 24 24' width='16' height='16' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polygon points='6 4 20 12 6 20 6 4'/></svg>
+      </button>
+      <button data-replay-stop class='toolbar-btn' disabled title='Stop (S)'>
+        <svg viewBox='0 0 24 24' width='16' height='16' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='6' y='6' width='12' height='12' rx='2'/></svg>
+      </button>
       <span data-replay-status style='font-size:11px;opacity:.7;'>Idle</span>
     </div>`;
     const entriesHtml = data.map(e => {

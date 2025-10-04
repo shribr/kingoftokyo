@@ -134,6 +134,19 @@
 
 /* Attack pulse animation */
 .cmp-player-profile-card.attack-pulse { animation:ppcPulse 2s ease; }
+
+/* Active Dock Entrance Animation */
+.cmp-player-profile-card[data-in-active-dock="true"] {
+  animation: activeDockIn 0.55s cubic-bezier(.25,.9,.35,1.15);
+}
+@keyframes activeDockIn {
+  0% { transform: translate(40px,-30px) scale(.65) rotate(4deg); opacity:0; filter:brightness(1.3); }
+  55% { transform: translate(-6px,4px) scale(1.04) rotate(-2deg); opacity:1; }
+  75% { transform: translate(3px,-2px) scale(.98) rotate(1deg); }
+  100% { transform: translate(0,0) scale(1) rotate(0deg); opacity:1; filter:brightness(1); }
+}
+
+.cmp-player-profile-card.active-dock-reflow[data-in-active-dock="true"] { animation: activeDockIn 0.55s cubic-bezier(.25,.9,.35,1.15); }
 @keyframes ppcPulse { 0%,100% { box-shadow:4px 4px 0 #000,0 0 0 2px #222 inset; } 50% { box-shadow:0 0 0 3px #ffd400,0 0 12px 4px #ffdb4d; } }
 
 /* VP flash animation */
@@ -534,6 +547,10 @@
 /* Ensure Tokyo slot wrapper doesn't stretch because of line-height or hidden content */
 .tokyo-occupant { display:flex; align-items:center; justify-content:center; padding:2px 0; }
 .tokyo-occupant > .cmp-player-profile-card--mini { margin:0 !important; }
+/* Prevent smushing of mini player cards when inside Tokyo City/Bay */
+.tokyo-occupant .cmp-player-profile-card--mini { flex:0 0 auto; width:auto; max-width:190px; }
+.tokyo-occupant .cmp-player-profile-card--mini .ppc-header { flex-wrap:nowrap; }
+.tokyo-occupant .cmp-player-profile-card--mini .ppc-avatar { width:42px; height:42px; object-fit:contain; }
 
 #active-player-card-slot[data-mini="true"] .cmp-player-profile-card .ppc-meta { display:none; }
 #active-player-card-slot[data-mini="true"] .cmp-player-profile-card .ppc-avatar { width:58px; height:58px; }

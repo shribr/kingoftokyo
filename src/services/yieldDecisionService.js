@@ -28,7 +28,7 @@ function buildAdvisory(state, defenderId, damage, slot, decisionIndex) {
 let __yieldDecisionCounter = 0; // reset per turnCycleId externally by consumer if needed (lightweight)
 
 /** Begin unified yield flow. Returns number of prompts created. */
-export function beginYieldFlow(store, logger, attackerId, clawDamage, playerCount, bayAllowed) {
+export function beginYieldFlow(store, logger, attackerId, clawDamage, playerCount, bayAllowed, preDamageHP = null) {
   if (clawDamage <= 0) return 0;
   const state = store.getState();
   const cityOcc = selectTokyoCityOccupant(state);
@@ -37,7 +37,8 @@ export function beginYieldFlow(store, logger, attackerId, clawDamage, playerCoun
   const add = (pid, slot) => {
     if (!pid) return; const p = store.getState().players.byId[pid]; if (!p || !p.status.alive) return;
     const advisory = buildAdvisory(store.getState(), pid, clawDamage, slot, __yieldDecisionCounter);
-    prompts.push({ defenderId: pid, slot, damage: clawDamage, advisory });
+    const originalHealth = preDamageHP && Object.prototype.hasOwnProperty.call(preDamageHP, pid) ? preDamageHP[pid] : null;
+    prompts.push({ defenderId: pid, slot, damage: clawDamage, advisory, originalHealth });
   };
   if (cityOcc) add(cityOcc, 'city');
   if (bayAllowed && bayOcc) add(bayOcc, 'bay');
@@ -46,7 +47,7 @@ export function beginYieldFlow(store, logger, attackerId, clawDamage, playerCoun
   store.dispatch(yieldPromptsCreated(attackerId, prompts, turnCycleId));
   const promptListStr = prompts.map(p=>p.defenderId+':'+p.slot).join(', ');
   logger.info(`Unified yield prompts created for attacker ${attackerId} -> ${promptListStr}`);
-  eventBus.emit('yield.prompts.created', { attackerId, prompts: prompts.map(p=>({ defenderId:p.defenderId, slot:p.slot, damage:p.damage, advisory:p.advisory })), turnCycleId, ts: Date.now() });
+  eventBus.emit('yield.prompts.created', { attackerId, prompts: prompts.map(p=>({ defenderId:p.defenderId, slot:p.slot, damage:p.damage, advisory:p.advisory, originalHealth:p.originalHealth })), turnCycleId, ts: Date.now() });
   // AI immediate decision pass (could be staged; here we decide synchronously for deterministic simplicity)
   const decisions = [];
   for (const pr of prompts) {

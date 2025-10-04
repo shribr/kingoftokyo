@@ -21,7 +21,7 @@
   flex-wrap:nowrap;
   gap:var(--action-menu-gap);
   background:var(--action-menu-bg);
-  padding:var(--action-menu-padding);
+  padding:6px 20px 8px; /* restored horizontal padding (20px) */
   border:var(--action-menu-border);
   border-radius:var(--action-menu-radius);
   box-shadow:var(--action-menu-shadow);
@@ -36,6 +36,39 @@
   -webkit-backdrop-filter:none;
   backdrop-filter:none;
 }
+
+/* Drag grip redesign (collapsed: only dots visible; expands on hover) */
+.cmp-action-menu .am-header-row { display:flex; align-items:center; gap:4px; position:relative; overflow:visible; }
+.cmp-action-menu .am-drag-grip.am-grip-left {
+  position:absolute;
+  top:8px; /* align near top inside header */
+  left:-10px; /* slight protrusion so dots are visible */
+  width:18px; /* collapsed width just enough for 2 columns of dots */
+  padding:4px 4px 6px;
+  background:transparent; /* appear hidden behind menu */
+  border:0; border-right:none; border-radius:6px 0 0 6px;
+  display:grid;
+  grid-template-columns:repeat(2,6px);
+  grid-auto-rows:6px;
+  gap:4px 3px;
+  box-shadow:none;
+  cursor:grab;
+  z-index:1;
+  transition:left .28s ease, width .28s ease, padding .28s ease, background .25s ease, box-shadow .25s ease;
+}
+.cmp-action-menu .am-drag-grip.am-grip-left .grip-dot { 
+  width:6px; height:6px; background:#d5d5d5; border-radius:50%; box-shadow:0 0 0 1px rgba(0,0,0,.4);
+}
+.cmp-action-menu .am-drag-grip.am-grip-left:hover,
+.cmp-action-menu .am-drag-grip.am-grip-left:focus {
+  left:-44px; /* slide further out */
+  width:46px; /* expanded tab width */
+  padding:8px 8px 10px 10px;
+  background:linear-gradient(135deg,#52565c,#232527);
+  border:2px solid #000; border-right:none;
+  box-shadow:2px 2px 0 #000, 0 0 0 1px #222 inset;
+}
+.cmp-action-menu .am-drag-grip.am-grip-left:active { cursor:grabbing; }
 
 /* When draggable and has transform applied, allow free positioning */
 .cmp-action-menu[data-draggable="true"][style*="transform"] {
@@ -312,15 +345,11 @@
 .cmp-action-menu[data-layout="vertical"] { flex-direction:column; flex-wrap:nowrap; width:260px; }
 .cmp-action-menu[data-layout="vertical"] button { width:100%; max-width:100%; }
 .cmp-action-menu { row-gap:12px; }
+/* Base reset for buttons (we'll color per action) */
 .cmp-action-menu button {
-  --btn-bg:#ffdf3d; /* brighter gold */
-  --btn-bg-alt:#2d95ff;
   --btn-bg-muted:#c5c5c5;
-  background:var(--btn-bg);
-  background-image:linear-gradient(180deg,rgba(255,255,255,.38),rgba(0,0,0,.18));
-  /* For black-text buttons, remove black border and shadows by default */
-  border:none;
-  box-shadow:none;
+  border:3px solid #000;
+  box-shadow:3px 3px 0 #000,0 0 0 2px #222 inset;
   font-family:'Bangers',cursive;
   letter-spacing:.5px;
   padding:8px 16px 10px;
@@ -328,28 +357,72 @@
   line-height:1;
   cursor:pointer;
   position:relative;
-  /* Remove heavy black text-outline for black text */
+  color:#fff;
+  text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000;
+  transition:transform .18s cubic-bezier(.25,.46,.45,.94), box-shadow .18s ease, filter .2s ease, background .25s ease;
+}
+
+/* ROLL = Yellow */
+.cmp-action-menu button[data-action="roll"] {
+  background:linear-gradient(135deg,#ffe066,#ffb400);
+  color:#222;
   text-shadow:none;
-  color:#111; /* contrasts with brighter gold */
-  transition:transform .18s cubic-bezier(.25,.46,.45,.94), box-shadow .18s ease, filter .2s ease;
+  border-color:#111;
 }
-.cmp-action-menu button[data-action="keep"],
-.cmp-action-menu button[data-action="flush"],
-.cmp-action-menu button[data-action="end"] { background:var(--btn-bg-alt); color:#fff; text-shadow:-1px -1px 0 #06212c,1px -1px 0 #06212c,-1px 1px 0 #06212c,1px 1px 0 #06212c,0 0 5px rgba(0,0,0,.5); }
-/* Special styling for flush button */
-.cmp-action-menu button[data-action="flush"] { 
-  background:linear-gradient(135deg, #d4a017, #b8860b);
-  border: 2px solid #8b7355;
-  font-size: 16px;
+.cmp-action-menu button[data-action="roll"]:not(:disabled):hover { filter:brightness(1.08); transform:translate(-2px,-3px); }
+.cmp-action-menu button[data-action="roll"]:not(:disabled):active { transform:translate(0,0); }
+
+/* KEEP ALL = Blue */
+.cmp-action-menu button[data-action="keep"] {
+  background:linear-gradient(135deg,#1f6ed4,#084c99);
+  border-color:#052d57;
 }
-.cmp-action-menu button[data-action="flush"]:not(:disabled):hover {
-  background:linear-gradient(135deg, #f4c430, #d4a017);
-  transform: translateY(-2px);
+.cmp-action-menu button[data-action="keep"]:not(:disabled):hover { background:linear-gradient(135deg,#2c7fe6,#0a5bab); }
+
+/* ACCEPT DICE RESULTS = Orange */
+.cmp-action-menu button[data-action="accept-dice"] {
+  background:linear-gradient(135deg,#ffb347,#ff7a18);
+  border-color:#b35400;
 }
-.cmp-action-menu button:disabled { background:var(--btn-bg-muted); color:#333; text-shadow:none; border:none; box-shadow:none; }
-/* Do not add shadows/borders on hover/active for black-text buttons */
-.cmp-action-menu button:not([data-action="keep"]):not([data-action="end"]):not(:disabled):hover { transform:translate(-2px,-3px); box-shadow:none; filter:brightness(1.08); }
-.cmp-action-menu button:not([data-action="keep"]):not([data-action="end"]):not(:disabled):active { transform:translate(0,0); box-shadow:none; }
+.cmp-action-menu button[data-action="accept-dice"]:not(:disabled):hover { background:linear-gradient(135deg,#ffc162,#ff8a32); }
+
+/* POWER CARDS = Green (button already has custom class, keep override) */
+.cmp-action-menu button[data-action="power-cards"] {
+  background:linear-gradient(135deg,#2c5234,#1a3d20) !important;
+  border-color:#4a7c59 !important;
+}
+.cmp-action-menu button[data-action="power-cards"]:not(:disabled):hover { background:linear-gradient(135deg,#345a3b,#1f4524) !important; }
+
+/* MY CARDS + FLUSH inside submenu (inherit smaller variant) */
+.cmp-action-menu button[data-action="show-my-cards"],
+.cmp-action-menu button[data-action="flush"] { font-size:16px; }
+
+/* FLUSH keep gold accent */
+.cmp-action-menu button[data-action="flush"] { background:linear-gradient(135deg,#d4a017,#b8860b); border-color:#8b7355; color:#111; text-shadow:none; }
+.cmp-action-menu button[data-action="flush"]:not(:disabled):hover { background:linear-gradient(135deg,#f4c430,#d4a017); }
+
+/* END TURN = Red */
+.cmp-action-menu button[data-action="end"] {
+  background:linear-gradient(135deg,#8b2c2c,#5c1a1a);
+  border-color:#a64545;
+}
+.cmp-action-menu button[data-action="end"]:not(:disabled):hover { background:linear-gradient(135deg,#9d3333,#661f1f); }
+.cmp-action-menu button:disabled {
+  /* Preserve original background & border but visually mute */
+  opacity:1; /* keep structural presence */
+  filter:grayscale(.55) brightness(.82) saturate(.6);
+  cursor:not-allowed;
+  position:relative;
+  box-shadow:2px 2px 0 #000,0 0 0 2px #222 inset;
+}
+/* Subtle hatch overlay for disabled state (non-intrusive) */
+.cmp-action-menu button:disabled::after {
+  content:"";
+  position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+  background:repeating-linear-gradient(135deg, rgba(255,255,255,0.08) 0 6px, rgba(0,0,0,0.08) 6px 12px);
+  mix-blend-mode:overlay; opacity:.35;
+}
+.cmp-action-menu button:not(:disabled):active { transform:translate(0,0); }
 .cmp-action-menu button:focus-visible { outline:3px solid #fff; outline-offset:2px; }
 .cmp-action-menu[data-draggable="true"] { cursor:move; }
 .cmp-action-menu.cpu-rolling { filter:grayscale(1); transform:scale(.95); transition:filter .3s ease, transform .3s ease, opacity .3s ease; }
@@ -378,15 +451,9 @@
 @keyframes cpu-flash-border { 0% { box-shadow:0 0 0 0 #fff; } 25% { box-shadow:0 0 8px 3px #fff; } 55% { box-shadow:0 0 10px 4px rgba(255,255,255,.85); } 100% { box-shadow:none; } }
 
 /* Restore borders/shadows for non-black text variants (keep/end) */
-.cmp-action-menu button[data-action="keep"],
-.cmp-action-menu button[data-action="end"] {
-  border:3px solid #000;
-  box-shadow:3px 3px 0 #000,0 0 0 2px #222 inset;
-}
-.cmp-action-menu button[data-action="keep"]:not(:disabled):hover,
-.cmp-action-menu button[data-action="end"]:not(:disabled):hover { box-shadow:5px 5px 0 #000,0 0 0 2px #222 inset; }
-.cmp-action-menu button[data-action="keep"]:not(:disabled):active,
-.cmp-action-menu button[data-action="end"]:not(:disabled):active { box-shadow:2px 2px 0 #000,0 0 0 2px #222 inset; }
+/* Hover shadow lift for enabled buttons */
+.cmp-action-menu button:not(:disabled):hover { box-shadow:5px 5px 0 #000,0 0 0 2px #222 inset; }
+.cmp-action-menu button:not(:disabled):active { box-shadow:2px 2px 0 #000,0 0 0 2px #222 inset; }
 
 /* --- Mobile/touch layout: menu is fully hidden until opened (no slide animation) --- */
 @media (max-width: 760px) {

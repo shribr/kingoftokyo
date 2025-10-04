@@ -7,9 +7,11 @@ import { newModalSystem } from './new-modal-system.js';
 
 export function createSettingsModal() {
   const content = document.createElement('div');
+  content.classList.add('settings-modal-root');
+  // Optionally add 'settings-light' class later based on user preference
   content.innerHTML = `
     <!-- Tab Navigation -->
-    <div class="settings-tabs" style="display: flex; border-bottom: 2px solid #333; margin-bottom: 20px; background: #1a1a1a; border-radius: 6px 6px 0 0;" role="tablist">
+  <div class="settings-tabs" style="display:flex; border-bottom:2px solid #333; margin-bottom:20px; background:#1a1a1a; border-radius:6px 6px 0 0; position:sticky; top:0; z-index:50; box-shadow:0 2px 6px -2px rgba(0,0,0,.7);" role="tablist">
       <button type="button" class="tab-button active" data-tab="gameplay" style="flex: 1; background: none; border: none; color: #e4e4e4; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;">
         <span style="margin-right: 8px;">🎮</span>Gameplay
       </button>
@@ -47,7 +49,7 @@ export function createSettingsModal() {
           
           <div class="field">
             <label class="field-label">AI Decision Speed</label>
-            <select name="cpuSpeed" class="field-input">
+            <select name="cpuSpeed" class="field-input" style="width:auto;min-width:0;display:inline-block;">
               <option value="slow">Slow - Watch AI think through decisions</option>
               <option value="normal">Normal - Balanced timing for readability</option>
               <option value="fast">Fast - Quick AI actions</option>
@@ -135,6 +137,15 @@ export function createSettingsModal() {
             </label>
             <div class="field-help">Save draggable panel positions and collapsed/expanded states between game sessions</div>
           </div>
+          <div class="field" style="margin-top:16px;">
+            <label class="field-label">UI Actions</label>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
+              <button type="button" class="btn btn-sm" data-dev-reset-positions>Reset Positions</button>
+              <button type="button" class="btn btn-sm" data-dev-log-positions>Log Positions</button>
+              <button type="button" class="btn btn-sm" data-dev-log-dice>Log Dice</button>
+              <button type="button" class="btn btn-sm" data-dev-log-effects>Log Effects</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -143,40 +154,16 @@ export function createSettingsModal() {
         <div class="section">
           <h3 class="section-title">🃏 Power Card Themes</h3>
           
-          <div class="field">
-            <label class="field-label">Visual Style</label>
-            <div class="radio-group">
-              <label class="radio-option">
-                <input type="radio" name="powerCardTheme" value="original">
-                <span>Original - Classic dark sci-fi design</span>
-              </label>
-              <label class="radio-option">
-                <input type="radio" name="powerCardTheme" value="mystical">
-                <span>Mystical - Ancient scrolls with magical aura</span>
-              </label>
-              <label class="radio-option">
-                <input type="radio" name="powerCardTheme" value="tech">
-                <span>Tech - Futuristic holographic interface</span>
-              </label>
+          <div class="field" style="margin-top:18px;">
+            <label class="field-label">Debug Console</label>
+            <div id="dev-debug-console" style="margin-top:8px;max-height:220px;overflow:auto;font-family:monospace;font-size:11px;line-height:1.4;background:#0d1417;border:1px solid #222;border-radius:6px;padding:8px;">
+              <div style="opacity:.5;">Debug output will appear here...</div>
             </div>
-            <div class="field-help">Choose the visual style for power card displays</div>
-          </div>
-
-          <!-- Theme Preview -->
-          <div class="field">
-            <label class="field-label">Live Preview</label>
-            <div class="theme-preview-container" style="padding: 20px; background: #1a1a1a; border-radius: 8px; border: 1px solid #444; text-align: center;">
-              <div class="mini-power-card" id="theme-preview-card" style="width: 200px; height: 100px; border-radius: 6px; padding: 12px; font-family: 'Comic Neue', cursive; font-size: 12px; background: linear-gradient(135deg, #2d3436 0%, #1b1f20 78%); border: 2px solid #222; color: #ececec; position: relative; display: inline-block;">
-                <div style="font-family: 'Bangers', cursive; font-size: 14px; color: #ffcf33; margin-bottom: 6px; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;">Sample Power Card</div>
-                <div style="font-size: 10px; line-height: 1.3;">This card demonstrates the selected theme with special abilities and visual effects.</div>
-                <div style="position: absolute; top: 8px; right: 8px; background: #111; color: #ffcf33; padding: 3px 8px; border-radius: 12px; font-family: 'Bangers', cursive; font-size: 12px;">5⚡</div>
-              </div>
+            <div style="margin-top:6px;display:flex;gap:8px;">
+              <button type="button" class="btn btn-sm" id="dev-debug-clear">Clear</button>
+              <button type="button" class="btn btn-sm" id="dev-debug-pause" data-paused="false">Pause</button>
             </div>
           </div>
-        </div>
-
-        <div class="section">
-          <h3 class="section-title">💬 Dialog System</h3>
           
           <div class="field">
             <label class="field-label">Dialog Style</label>
@@ -313,6 +300,15 @@ export function createSettingsModal() {
               </label>
             </div>
           </div>
+
+          <div class="field">
+            <label class="field-label">Quick Actions</label>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
+              <button type="button" class="btn btn-sm" data-dev-archive-game>Archive Game</button>
+              <button type="button" class="btn btn-sm" data-dev-archive-ai>Archive AI Tree</button>
+            </div>
+            <div style="font-size:11px;opacity:.55;margin-top:6px;">Creates point-in-time snapshots in localStorage for analysis or replay.</div>
+          </div>
         </div>
       </div>
 
@@ -444,6 +440,32 @@ export function createSettingsModal() {
             </div>
           </div>
         </div>
+
+        <div class="section" style="margin-top:20px;">
+          <h3 class="section-title">🎲 Player Win Odds</h3>
+          <div class="field" style="margin-top:6px;">
+            <div style="font-size:11px;opacity:.65;margin-bottom:6px;line-height:1.4;">Heuristic distribution (VP, health, energy, Tokyo control, momentum).</div>
+            <div id="dev-win-odds-panel" style="background:#101317;border:1px solid #222;border-radius:8px;overflow:hidden;display:flex;flex-direction:column;">
+              <div class="win-odds-header" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid #1e242b;background:linear-gradient(90deg,#13181f,#181f27);">
+                  <button type="button" id="dev-win-odds-mode" title="Cycle view (V)" style="display:inline-flex;align-items:center;justify-content:center;width:50px;height:50px;background:#1d232c;border:2px solid #2c3440;color:#cbd5e1;font-size:14px;border-radius:10px;line-height:1;cursor:pointer;box-shadow:0 0 0 1px #000 inset,0 2px 6px -2px #000;"></button>
+                  <div style="flex:1;text-align:center;font-size:26px;font-weight:800;letter-spacing:2px;color:#e2e8f0;font-family:'Bangers',cursive;text-shadow:0 3px 6px #000,2px 2px 0 #000;">PLAYER WIN ODDS</div>
+                  <button type="button" id="dev-win-odds-refresh" title="Refresh now (R)" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;background:#1d232c;border:1px solid #2c3440;color:#cbd5e1;font-size:12px;border-radius:8px;line-height:1;cursor:pointer;box-shadow:0 0 0 1px #000 inset,0 2px 4px -2px #000;">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path><path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path></svg>
+                </button>
+              </div>
+              <div class="win-odds-body" id="dev-win-odds-chart" style="padding:8px 10px;display:flex;flex-direction:column;gap:8px;min-height:150px;height:200px;overflow:hidden;">
+                <div style="font-size:11px;opacity:.5;">Waiting for data...</div>
+              </div>
+              <div class="win-odds-footer" style="display:flex;align-items:center;gap:6px;padding:6px 8px;border-top:1px solid #1e242b;background:#13181f;">
+                <label style="font-size:10px;display:flex;align-items:center;gap:4px;margin:0;white-space:nowrap;">
+                  <input type="checkbox" id="dev-win-odds-auto" checked /> Auto
+                </label>
+                <div id="dev-win-odds-trend" style="flex:1;font-size:9px;opacity:.6;line-height:1.3;text-align:center;">–</div>
+                <button type="button" id="dev-win-odds-clear" title="Clear history" style="background:#1d232c;border:1px solid #2c3440;color:#cbd5e1;padding:3px 6px;font-size:10px;border-radius:4px;line-height:1;cursor:pointer;">🗑</button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Dev Tools Tab -->
@@ -475,12 +497,29 @@ export function createSettingsModal() {
               <button type="button" class="btn btn-sm" data-dev-log-effects>Log Effects</button>
             </div>
           </div>
-
-          <div class="field">
-            <label class="field-label">Archive Actions</label>
-            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
-              <button type="button" class="btn btn-sm" data-dev-archive-game>Archive Game</button>
-              <button type="button" class="btn btn-sm" data-dev-archive-ai>Archive AI Tree</button>
+          <div class="field" style="margin-top:18px;">
+            <div style="font-size:11px;opacity:.65;margin-bottom:6px;line-height:1.4;">Win Odds Diagnostics <span style="font-size:10px;font-weight:normal;opacity:.6;">(Heuristic)</span> – live approximate probability distribution (VP, health, energy, Tokyo control, momentum).</div>
+            <div id="dev-win-odds-panel" style="background:#101317;border:1px solid #222;border-radius:8px;overflow:hidden;display:flex;flex-direction:column;">
+              <div class="win-odds-header" style="display:flex;align-items:center;gap:14px;padding:10px 12px;border-bottom:1px solid #1e242b;background:linear-gradient(90deg,#13181f,#181f27);">
+                <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px;">
+                  <button type="button" id="dev-win-odds-mode" title="Cycle view (V)" style="display:inline-flex;align-items:center;justify-content:center;width:50px;height:50px;background:#1d232c;border:2px solid #2c3440;color:#cbd5e1;font-size:14px;border-radius:10px;line-height:1;cursor:pointer;box-shadow:0 0 0 1px #000 inset,0 2px 6px -2px #000;"></button>
+                  <span id="dev-win-odds-mode-label" style="font-size:11px;font-weight:600;opacity:.75;letter-spacing:.5px;">BARS</span>
+                </div>
+                <div style="flex:1;text-align:center;font-size:26px;font-weight:800;letter-spacing:2px;color:#e2e8f0;font-family:'Bangers',cursive;text-shadow:0 3px 6px #000,2px 2px 0 #000;">PLAYER WIN ODDS</div>
+                <button type="button" id="dev-win-odds-refresh" title="Refresh now (R)" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;background:#1d232c;border:1px solid #2c3440;color:#cbd5e1;font-size:12px;border-radius:8px;line-height:1;cursor:pointer;box-shadow:0 0 0 1px #000 inset,0 2px 4px -2px #000;">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path><path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path></svg>
+                </button>
+              </div>
+              <div class="win-odds-body" id="dev-win-odds-chart" style="padding:10px 12px;display:flex;flex-direction:column;gap:10px;min-height:150px;height:210px;overflow:hidden;">
+                <div style="font-size:11px;opacity:.5;">Waiting for data...</div>
+              </div>
+              <div class="win-odds-footer" style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-top:1px solid #1e242b;background:#13181f;">
+                <label style="font-size:11px;display:flex;align-items:center;gap:4px;margin:0;white-space:nowrap;">
+                  <input type="checkbox" id="dev-win-odds-auto" checked /> Auto
+                </label>
+                <div id="dev-win-odds-trend" style="flex:1;font-size:10px;opacity:.6;line-height:1.3;text-align:center;">–</div>
+                <button type="button" id="dev-win-odds-clear" title="Clear history" style="background:#1d232c;border:1px solid #2c3440;color:#cbd5e1;padding:4px 8px;font-size:11px;border-radius:4px;line-height:1;cursor:pointer;">🗑</button>
+              </div>
             </div>
           </div>
 
@@ -490,8 +529,8 @@ export function createSettingsModal() {
         </div>
       </div>
     </form>
-    <div class="modal-actions">
-      <button type="button" class="btn btn-primary save-btn" disabled>Save Settings</button>
+    <div class="modal-actions" style="padding-right:14px;">
+      <button type="button" class="btn btn-primary save-btn" style="padding-right:14px;" disabled>Save Settings</button>
     </div>
   `;
 
@@ -825,6 +864,303 @@ export function createSettingsModal() {
     });
   }
   attachDevToolsActions();
+
+  // --- Win Odds Diagnostics -----------------------------------------------------------
+  const winOdds = {
+    history: [], // each entry: { ts, odds: { playerId: { percent, parts } } }
+    maxHistory: 40,
+    mode: (()=>{ try { return localStorage.getItem('KOT_DEV_WIN_ODDS_MODE') || 'bars'; } catch(_) { return 'bars'; } })(), // 'bars' | 'table' | 'compact' | 'stacked'
+    compute(state){
+      if (!state || !state.players) return {};
+      const order = state.players.order || [];
+      const byId = state.players.byId || {};
+      const alive = order.filter(id => !byId[id].eliminated && !byId[id].isEliminated);
+      if (!alive.length) return {};
+      const features = alive.map(id => {
+        const p = byId[id];
+        const vp = p.vp ?? p.victoryPoints ?? 0;
+        const health = p.health ?? 0;
+        const energy = p.energy ?? 0;
+        const inTokyo = !!p.inTokyo;
+        const momentum = (p._recentVpGain || 0) + (p._recentEnergyGain || 0);
+        return { id, vp, health, energy, inTokyo, momentum };
+      });
+      const maxVP = Math.max(...features.map(f=>f.vp), 0);
+      const vpWeight = maxVP >= 15 ? 1.35 : (maxVP >= 10 ? 1.15 : 1.0);
+      const healthWeight = 0.9;
+      const energyWeight = 0.55;
+      const tokyoWeight = 1.1;
+      const momentumWeight = 0.4;
+      let total = 0;
+      const rawScores = {};
+      features.forEach(f => {
+        const tokyoBonus = f.inTokyo ? (tokyoWeight * (f.vp >= 10 ? 1.15 : 1)) : 0;
+        const parts = {
+          vp: f.vp * vpWeight,
+          health: f.health * healthWeight,
+            energy: f.energy * energyWeight,
+          tokyo: tokyoBonus,
+          momentum: f.momentum * momentumWeight
+        };
+        const score = parts.vp + parts.health + parts.energy + parts.tokyo + parts.momentum;
+        rawScores[f.id] = { score, parts };
+        total += score;
+      });
+      if (total <= 0) {
+        const pct = (100 / features.length);
+        const uniform = {}; features.forEach(f => uniform[f.id] = { percent: pct, parts: { vp:0,health:0,energy:0,tokyo:0,momentum:0 } });
+        return uniform;
+      }
+      const odds = {};
+      Object.keys(rawScores).forEach(id => { odds[id] = { percent: (rawScores[id].score / total) * 100, parts: rawScores[id].parts }; });
+      return odds;
+    },
+    push(odds){
+      // Deep clone minimal
+      const cloned = {}; Object.keys(odds).forEach(id => { const o = odds[id]; cloned[id] = { percent: o.percent, parts: { ...o.parts } }; });
+      this.history.push({ ts: Date.now(), odds: cloned });
+      if (this.history.length > this.maxHistory) this.history.shift();
+    },
+    trend(prev, current){
+      if (prev == null) return 0;
+      const delta = current - prev;
+      const mag = Math.abs(delta);
+      if (mag < 0.3) return 0;
+      return delta;
+    }
+  };
+
+  function adaptSnapshotOdds(snapshotOdds){
+    // Backward compatibility if older numeric entries exist
+    Object.keys(snapshotOdds).forEach(id => {
+      const val = snapshotOdds[id];
+      if (typeof val === 'number') snapshotOdds[id] = { percent: val, parts: { vp:0,health:0,energy:0,tokyo:0,momentum:0 } };
+    });
+    return snapshotOdds;
+  }
+
+  function renderWinOdds(useLast = false) {
+    const chart = content.querySelector('#dev-win-odds-chart');
+    if (!chart) return;
+    const trendDiv = content.querySelector('#dev-win-odds-trend');
+    const state = window.__KOT_NEW__?.store?.getState?.();
+    if (!state) { chart.innerHTML = '<div style="font-size:11px;opacity:.5;">No state</div>'; return; }
+    let odds;
+    if (useLast && winOdds.history.length) {
+      odds = adaptSnapshotOdds(JSON.parse(JSON.stringify(winOdds.history[winOdds.history.length-1].odds)));
+    } else {
+      odds = winOdds.compute(state);
+      if (!Object.keys(odds).length) { chart.innerHTML = '<div style="font-size:11px;opacity:.45;">No active players</div>'; return; }
+      winOdds.push(odds);
+    }
+    const latestHist = winOdds.history;
+    const prev = latestHist.length > 1 ? adaptSnapshotOdds(JSON.parse(JSON.stringify(latestHist[latestHist.length-2].odds))) : {};
+    // Build rows
+    const players = state.players.order.map(id => state.players.byId[id]).filter(p => !p.eliminated && !p.isEliminated);
+    // Sparkline prep
+    const SPARK_N = 12;
+    const recent = winOdds.history.slice(-SPARK_N).map(h => adaptSnapshotOdds(h.odds));
+    const sparkData = {};
+    players.forEach(p => { sparkData[p.id] = recent.map(r => (r[p.id]?.percent) || 0); });
+    let bodyHtml = '';
+  const modeLabelEl = null; // label removed per simplification
+    // Player color mapping - prefer monster theme by name, fallback palette
+    const baseColors = ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#0ea5e9','#14b8a6','#ec4899'];
+    function monsterColor(p, idx){
+      const name = (p.monster || p.monsterName || p.character || p.name || '').toLowerCase();
+      const map = {
+  // Alienoid distinct teal (adjusted to avoid collision with Space Penguin light blue)
+  'alienoid':'#1496b4',
+        'cyber bunny':'#f472b6',
+        'cyber kitty':'#ec4899',
+        'gigazaur':'#22c55e',
+        'kraken':'#3b82f6',
+        'meka dragon':'#a3a3a3',
+        'space penguin':'#38bdf8',
+        'the king':'#f59e0b',
+        'king':'#f59e0b'
+      };
+      for (const k in map){ if (name.includes(k)) return map[k]; }
+      return baseColors[idx % baseColors.length];
+    }
+    function rowCommon(p) {
+      const pct = odds[p.id]?.percent || 0;
+      const prevPct = prev[p.id]?.percent;
+      const delta = winOdds.trend(prevPct, pct);
+      const arrow = delta > 0 ? `<span style='color:#4ade80;font-weight:bold;'>▲</span>` : (delta < 0 ? `<span style='color:#f87171;font-weight:bold;'>▼</span>` : '');
+      const deltaStr = prevPct != null ? ((delta>0?'+':'') + delta.toFixed(1)+'%') : '';
+      const parts = odds[p.id]?.parts || { vp:0,health:0,energy:0,tokyo:0,momentum:0 };
+      const partSum = Object.values(parts).reduce((a,b)=>a+b,0) || 1;
+      const breakdown = Object.entries(parts).map(([k,v]) => `${k}:${(v/partSum*100).toFixed(0)}%`).join(' ');
+      const tooltip = `title="${breakdown}"`;
+      const sVals = sparkData[p.id];
+      const maxS = Math.max(1, ...sVals);
+      const spark = `<span style='display:inline-flex;align-items:flex-end;gap:1px;height:12px;'>${sVals.map(v=>`<i style='display:block;width:3px;height:${Math.max(2,Math.round(v/maxS*12))}px;background:${v===sVals[sVals.length-1]?'#818cf8':'#4f46e5'};opacity:${0.35+(v/maxS*0.65)}'></i>`).join('')}</span>`;
+      return { pct, prevPct, delta, arrow, deltaStr, tooltip, spark };
+    }
+  if (winOdds.mode === 'bars') {
+      bodyHtml = players.map((p,idx) => {
+        const { pct, arrow, deltaStr, tooltip, spark } = rowCommon(p);
+        const barW = Math.max(2, Math.min(100, pct)).toFixed(1);
+        const c = monsterColor(p, idx);
+        const grad = `linear-gradient(90deg, ${c}, ${c}cc)`;
+        return `<div style='display:flex;flex-direction:column;gap:4px;'>
+          <div style='display:flex;justify-content:space-between;align-items:center;font-size:11px;'>
+            <span style='display:flex;align-items:center;gap:6px;' ${tooltip}>${arrow}<i style='width:8px;height:8px;border-radius:50%;background:${c};box-shadow:0 0 4px ${c}aa;display:inline-block;'></i><strong style='letter-spacing:.5px;'>${p.name||p.id}</strong> ${spark}</span>
+            <span style='font-variant-numeric:tabular-nums;' ${tooltip}>${pct.toFixed(1)}% <span style='opacity:.55;'>${deltaStr}</span></span>
+          </div>
+          <div style='background:#1d232c;border:1px solid #2c3440;border-radius:4px;height:10px;position:relative;overflow:hidden;'>
+            <div style='position:absolute;left:0;top:0;bottom:0;width:${barW}%;background:${grad};box-shadow:0 0 6px ${c}66;transition:width .4s ease;'></div>
+          </div>
+        </div>`;
+      }).join('');
+    } else if (winOdds.mode === 'table') {
+      bodyHtml = `<table style='width:100%;border-collapse:collapse;font-size:11px;'>
+        <thead><tr style='text-align:left;'>
+          <th style='padding:4px 6px;border-bottom:1px solid #222;'>Player</th>
+          <th style='padding:4px 6px;border-bottom:1px solid #222;'>Odds %</th>
+          <th style='padding:4px 6px;border-bottom:1px solid #222;'>Δ</th>
+          <th style='padding:4px 6px;border-bottom:1px solid #222;'>Trend</th>
+        </tr></thead>
+        <tbody>
+        ${players.map((p,idx) => { const { pct, arrow, deltaStr, tooltip, spark } = rowCommon(p); const c = monsterColor(p, idx); return `<tr>
+          <td style='padding:4px 6px;' ${tooltip}><span style='display:inline-flex;align-items:center;gap:6px;'><i style="width:8px;height:8px;border-radius:50%;background:${c};box-shadow:0 0 4px ${c}aa;display:inline-block;"></i>${p.name||p.id}</span></td>
+          <td style='padding:4px 6px;font-variant-numeric:tabular-nums;' ${tooltip}>${pct.toFixed(1)}%</td>
+          <td style='padding:4px 6px;'>${arrow} <span style='opacity:.65;'>${deltaStr}</span></td>
+          <td style='padding:4px 6px;'>${spark}</td>
+        </tr>`; }).join('')}
+        </tbody></table>`;
+    } else if (winOdds.mode === 'compact') {
+      bodyHtml = `<div style='display:flex;flex-wrap:wrap;gap:10px;font-size:11px;'>${players.map((p,idx) => { const { pct, arrow, tooltip } = rowCommon(p); const c = monsterColor(p, idx); return `<span style='display:inline-flex;align-items:center;gap:6px;padding:4px 6px;background:#1d232c;border:1px solid #2c3440;border-radius:4px;' ${tooltip}>${arrow}<i style='width:8px;height:8px;border-radius:50%;background:${c};box-shadow:0 0 4px ${c}aa;'></i><strong>${p.name||p.id}</strong> ${pct.toFixed(1)}%</span>`; }).join('')}</div>`;
+    } else if (winOdds.mode === 'stacked') {
+      const segs = players.map((p,idx) => { const { pct, tooltip } = rowCommon(p); const w = pct.toFixed(2); const c = monsterColor(p, idx); return `<div ${tooltip} style='flex:0 0 ${w}%;background:linear-gradient(135deg,${c},${c}cc 60%);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;position:relative;'>
+          <span style='pointer-events:none;text-shadow:0 1px 2px #000;font-weight:600;'>${p.name||p.id} ${pct.toFixed(1)}%</span>
+        </div>`; }).join('');
+      bodyHtml = `<div style='display:flex;width:100%;height:42px;border:1px solid #2c3440;border-radius:6px;overflow:hidden;'>${segs}</div>`;
+    } else if (winOdds.mode === 'monitor') {
+  // Simple uniform grid (original sizing) – no major/minor emphasis
+  const CELL = 30;
+  const COLS = 10;
+  const ROWS = 4;
+  const W = CELL * COLS;
+  const H = CELL * ROWS;
+      const MAX_POINTS = 40;
+      const hist = winOdds.history.slice(-MAX_POINTS);
+      const gridLines = [];
+  for (let y=0;y<=ROWS;y++){ const gy = (H - (y/ROWS)*H).toFixed(2); gridLines.push(`<line x1='0' y1='${gy}' x2='${W}' y2='${gy}' stroke='rgba(255,255,255,.07)' stroke-width='1' />`); }
+  for (let x=0;x<=COLS;x++){ const gx = (x/COLS)*W; gridLines.push(`<line x1='${gx}' y1='0' x2='${gx}' y2='${H}' stroke='rgba(255,255,255,.05)' stroke-width='1' />`); }
+      const paths = players.map((p,idx)=>{
+        const c = monsterColor(p, idx);
+        let d='';
+        hist.forEach((h,i)=>{
+          const po = adaptSnapshotOdds(h.odds);
+          const v = po[p.id]?.percent ?? 0;
+          const x = (i/(hist.length-1||1))*W;
+          const y = H - (v/100)*H;
+          d += (i===0?`M ${x.toFixed(2)} ${y.toFixed(2)}`:` L ${x.toFixed(2)} ${y.toFixed(2)}`);
+        });
+        return `<path d='${d}' fill='none' stroke='${c}' stroke-width='2' vector-effect='non-scaling-stroke' stroke-linejoin='round' stroke-linecap='round' />`;
+      }).join('');
+      const legend = players.map((p,idx)=>{ const c = monsterColor(p, idx); const cur = odds[p.id]?.percent||0; return `<span style='display:inline-flex;align-items:center;gap:4px;font-size:10px;'>
+        <i style='width:10px;height:10px;border-radius:2px;background:${c};box-shadow:0 0 6px ${c}aa;'></i>${p.name||p.id} ${cur.toFixed(1)}%
+      </span>`; }).join('<span style="opacity:.3;">|</span>');
+      bodyHtml = `<div style='display:flex;flex-direction:column;gap:6px;'>
+        <div style='background:#000;border:1px solid #222;border-radius:6px;padding:6px;position:relative;'>
+          <svg viewBox='0 0 ${W} ${H}' preserveAspectRatio='xMidYMid meet' style='width:100%;aspect-ratio:${W}/${H};display:block;background:#000;'>
+            <g>${gridLines.join('')}</g>
+            <g>${paths}</g>
+          </svg>
+        </div>
+        <div style='display:flex;flex-wrap:wrap;gap:10px;justify-content:center;'>${legend}</div>
+      </div>`;
+    }
+    chart.innerHTML = bodyHtml;
+  // mode label removed
+    // Render compact trend summary
+    if (trendDiv) {
+      const summary = players.map(p => {
+        const pct = odds[p.id]?.percent||0;
+        return `${p.name||p.id}: ${pct.toFixed(1)}%`;
+      }).join(' • ');
+      trendDiv.innerHTML = summary;
+    }
+  }
+
+  function setupWinOddsHandlers(){
+    const autoCb = content.querySelector('#dev-win-odds-auto');
+    const refreshBtn = content.querySelector('#dev-win-odds-refresh');
+    const clearBtn = content.querySelector('#dev-win-odds-clear');
+    const modeBtn = content.querySelector('#dev-win-odds-mode');
+    if (!autoCb || !refreshBtn || !clearBtn) return;
+    refreshBtn.addEventListener('click', ()=>renderWinOdds());
+    clearBtn.addEventListener('click', ()=>{ winOdds.history.length=0; renderWinOdds(); });
+    if (modeBtn) {
+      const modes = ['bars','table','compact','stacked','monitor'];
+      const icons = {
+        bars: `<svg viewBox='0 0 24 24' width='22' height='22' aria-hidden='true'><rect x='4' y='10' width='3' height='10' fill='currentColor'/><rect x='10.5' y='6' width='3' height='14' fill='currentColor'/><rect x='17' y='3' width='3' height='17' fill='currentColor'/></svg>` ,
+        table: `<svg viewBox='0 0 24 24' width='22' height='22' aria-hidden='true'><rect x='3' y='4' width='18' height='4' fill='currentColor'/><rect x='3' y='10' width='18' height='4' fill='currentColor'/><rect x='3' y='16' width='18' height='4' fill='currentColor'/></svg>`,
+        compact: `<svg viewBox='0 0 24 24' width='22' height='22' aria-hidden='true'><rect x='4' y='5' width='16' height='3' fill='currentColor'/><rect x='4' y='10.5' width='10' height='3' fill='currentColor'/><rect x='4' y='16' width='14' height='3' fill='currentColor'/></svg>`,
+        stacked: `<svg viewBox='0 0 24 24' width='22' height='22' aria-hidden='true'><rect x='3' y='5' width='18' height='2.5' fill='currentColor'/><rect x='3' y='10.5' width='15' height='2.5' fill='currentColor'/><rect x='3' y='16' width='12' height='2.5' fill='currentColor'/></svg>`,
+        monitor: `<svg viewBox='0 0 24 24' width='22' height='22' aria-hidden='true'><path d='M4 5h16v10H4z' stroke='currentColor' stroke-width='2' fill='none'/><path d='M6 13l3-4 3 2 2-3 4 5' fill='none' stroke='currentColor' stroke-width='2' stroke-linejoin='round' stroke-linecap='round'/><rect x='9' y='17' width='6' height='2' fill='currentColor'/></svg>`
+      };
+      function updateModeIcon(){
+        modeBtn.innerHTML = icons[winOdds.mode] || icons.bars;
+      }
+      updateModeIcon();
+      modeBtn.addEventListener('click', () => {
+        const curIdx = modes.indexOf(winOdds.mode);
+        winOdds.mode = modes[(curIdx + 1) % modes.length];
+        try { localStorage.setItem('KOT_DEV_WIN_ODDS_MODE', winOdds.mode); } catch(_) {}
+        updateModeIcon();
+        renderWinOdds(true);
+      });
+  // mode label removed
+    }
+    // Subscribe to store changes for auto mode
+    const store = window.__KOT_NEW__?.store;
+    if (store) {
+      store.subscribe(()=>{ if (autoCb.checked) renderWinOdds(); });
+    }
+    // Initial render if tab already active
+    if (content.querySelector('[data-tab-content="devtools"]').classList.contains('active')) {
+      setTimeout(renderWinOdds, 50);
+    }
+    // Hook into tab activation
+    content.addEventListener('click', (e)=>{
+      const btn = e.target.closest('.tab-button[data-tab="devtools"]');
+      if (btn) setTimeout(renderWinOdds, 120);
+    });
+  }
+  setupWinOddsHandlers();
+  // mini modal logic relocated to global function below
+  // Initialize debug console capture (after DOM content injected)
+  (function initDebugConsoleCapture(){
+    const panel = content.querySelector('#dev-debug-console');
+    if (!panel) return;
+    const clearBtn = content.querySelector('#dev-debug-clear');
+    const pauseBtn = content.querySelector('#dev-debug-pause');
+    let paused = false;
+    if (clearBtn) clearBtn.addEventListener('click',()=>{ panel.innerHTML=''; });
+    if (pauseBtn) pauseBtn.addEventListener('click',()=>{ paused = !paused; pauseBtn.textContent = paused? 'Resume':'Pause'; });
+    const originalDebug = console.debug ? console.debug.bind(console) : null;
+    console.debug = function(...args){
+      if (originalDebug) originalDebug(...args);
+      if (paused) return;
+      appendRow(args,'debug');
+    };
+    function appendRow(args, level){
+      const row = document.createElement('div');
+      row.style.padding='2px 0';
+      const ts = new Date().toLocaleTimeString();
+      const color = level==='debug'? '#7dd3fc':'#a5b4fc';
+      row.innerHTML = `<span style="opacity:.35;color:${color}">[${ts}]</span> ${args.map(a=>format(a)).join(' ')}`;
+      panel.appendChild(row);
+      panel.scrollTop = panel.scrollHeight;
+      if (panel.childNodes.length > 600) panel.removeChild(panel.firstChild);
+    }
+    function format(a){ if (typeof a==='object'){ try { return `<code>${escapeHtml(JSON.stringify(a))}</code>`; } catch(e){ return '[Object]'; } } return escapeHtml(String(a)); }
+    function escapeHtml(str){ return str.replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;' }[c])); }
+  })();
   
   // Accessibility: roving tabindex and arrow key navigation
   tabButtons.forEach((btn,i)=>{ btn.setAttribute('role','tab'); btn.setAttribute('tabindex', i===0? '0':'-1'); });
@@ -1193,6 +1529,88 @@ export function createSettingsModal() {
   // Establish baseline AFTER loading initial settings values
   establishBaseline();
   return __settingsModal;
+}
+
+// --- Quick Win Odds Mini Modal (independent of settings modal) ---
+export function openWinOddsQuickModal(){
+  // If already open, bring to front
+  const existing = document.getElementById('mini-win-odds-floating');
+  if (existing) { existing.style.zIndex = '6001'; return; }
+  const wrapper = document.createElement('div');
+  wrapper.id = 'mini-win-odds-floating';
+  wrapper.className = 'win-odds-mini-floating';
+  const stored = (()=>{ try { return JSON.parse(localStorage.getItem('KOT_WIN_ODDS_MINI_SIZE')||'null'); } catch(_) { return null; } })();
+  const size = Math.min(600, Math.max(240, stored?.size || 340));
+  const pos = stored?.pos || { top: 120, right: 440 };
+  wrapper.style.cssText = `position:fixed;top:${pos.top}px;right:${pos.right}px;width:${size}px;height:${size}px;z-index:6001;display:flex;flex-direction:column;user-select:none;`;
+  wrapper.innerHTML = `
+    <div class="mini-wo-chrome">
+      <div class="mini-wo-header" data-drag-handle>
+        <div class="mini-wo-title">WIN ODDS</div>
+        <div class="mini-wo-header-tools">
+          <button class="mini-wo-btn" id="mini-win-odds-mode" title="Cycle view (V)">🔁</button>
+          <button class="mini-wo-btn" id="mini-win-odds-close" title="Close">×</button>
+        </div>
+      </div>
+      <div class="mini-wo-body">
+        <div id="mini-win-odds-chart" class="mini-wo-chart"><div style="opacity:.55;font-size:11px;">Loading...</div></div>
+      </div>
+      <div class="mini-wo-footer">
+        <label class="mini-wo-auto"><input type="checkbox" id="mini-win-odds-auto" checked /> Auto</label>
+        <div id="mini-win-odds-trend" class="mini-wo-trend">–</div>
+        <button class="mini-wo-btn" id="mini-win-odds-refresh" title="Refresh now (R)">↻</button>
+      </div>
+      <div class="mini-wo-resize handle-nw" data-resize="nw"></div>
+      <div class="mini-wo-resize handle-ne" data-resize="ne"></div>
+      <div class="mini-wo-resize handle-sw" data-resize="sw"></div>
+      <div class="mini-wo-resize handle-se" data-resize="se"></div>
+    </div>`;
+  document.body.appendChild(wrapper);
+  // Dragging (header only)
+  (function enableDrag(){
+    let sx=0, sy=0, startTop=0, startRight=0, dragging=false;
+    const handle = wrapper.querySelector('[data-drag-handle]');
+    handle.addEventListener('mousedown', e=>{ dragging=true; sx=e.clientX; sy=e.clientY; const rect=wrapper.getBoundingClientRect(); startTop=rect.top; startRight = window.innerWidth - rect.right; document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', stop); e.preventDefault(); });
+    function onMove(e){ if(!dragging) return; const dy=e.clientY-sy; const dx=e.clientX-sx; let newTop = startTop+dy; let newRight = startRight-dx; newTop=Math.max(40, Math.min(window.innerHeight-120, newTop)); newRight=Math.max(40, Math.min(window.innerWidth-120, newRight)); wrapper.style.top=newTop+'px'; wrapper.style.right=newRight+'px'; persist(); }
+    function stop(){ dragging=false; document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', stop); }
+    function persist(){ try { const rect=wrapper.getBoundingClientRect(); const top=rect.top; const right=window.innerWidth-rect.right; const size=rect.width; localStorage.setItem('KOT_WIN_ODDS_MINI_SIZE', JSON.stringify({ size, pos:{ top, right } })); } catch(_) {} }
+    wrapper._persist = persist;
+  })();
+  // Resizing (square only)
+  (function enableResize(){
+    let startSize=0, originX=0, originY=0, resizing=false, dir='se';
+    function onDown(e){ const h=e.target.closest('.mini-wo-resize'); if(!h) return; resizing=true; dir=h.dataset.resize; const rect=wrapper.getBoundingClientRect(); startSize=rect.width; originX=e.clientX; originY=e.clientY; document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onUp); e.preventDefault(); e.stopPropagation(); }
+    function onMove(e){ if(!resizing) return; const dx=e.clientX-originX; const dy=e.clientY-originY; const delta = Math.abs(Math.abs(dx) > Math.abs(dy) ? dx : dy); const sign = (dir==='nw'||dir==='sw')? -1 : 1; let newSize = startSize + (delta*sign); newSize = Math.max(220, Math.min(620, newSize)); wrapper.style.width = wrapper.style.height = newSize+'px'; wrapper._persist?.(); }
+    function onUp(){ resizing=false; document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); }
+    wrapper.addEventListener('mousedown', onDown);
+  })();
+  const mini = {
+    modeBtn: wrapper.querySelector('#mini-win-odds-mode'),
+    refreshBtn: wrapper.querySelector('#mini-win-odds-refresh'),
+    closeBtn: wrapper.querySelector('#mini-win-odds-close'),
+    autoCb: wrapper.querySelector('#mini-win-odds-auto'),
+    chart: wrapper.querySelector('#mini-win-odds-chart'),
+    trend: wrapper.querySelector('#mini-win-odds-trend')
+  };
+  function renderMini(force){
+    try { renderWinOdds(force); } catch(_) {}
+    const mainChart = document.querySelector('#dev-win-odds-chart');
+    if (mainChart && mini.chart) mini.chart.innerHTML = mainChart.innerHTML;
+    const mainTrend = document.querySelector('#dev-win-odds-trend');
+    if (mainTrend && mini.trend) mini.trend.textContent = mainTrend.textContent;
+  }
+  mini.refreshBtn.addEventListener('click', ()=>renderMini(true));
+  // Clear button removed per spec (history retained until page/session reset)
+  mini.modeBtn.addEventListener('click', ()=>{ const btn = document.querySelector('#dev-win-odds-mode'); if (btn) btn.click(); else { const modes=['bars','table','compact','stacked','monitor']; const cur=winOdds.mode; winOdds.mode=modes[(modes.indexOf(cur)+1)%modes.length]; } setTimeout(()=>renderMini(true), 40); });
+  mini.closeBtn.addEventListener('click', ()=> wrapper.remove());
+  const storeRef = window.__KOT_NEW__?.store;
+  if (storeRef) storeRef.subscribe(()=>{ if (mini.autoCb.checked) renderMini(); });
+  setTimeout(()=>renderMini(true), 60);
+}
+
+if (!window.__KOT_WIN_ODDS_QUICK_BOUND__) {
+  window.__KOT_WIN_ODDS_QUICK_BOUND__ = true;
+  window.addEventListener('open-win-odds-modal', openWinOddsQuickModal);
 }
 
 export function createGameLogModal() {

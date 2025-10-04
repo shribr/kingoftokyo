@@ -219,18 +219,14 @@ select.field-input:hover {
 .modal-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 16px;
   margin-top: 24px;
   padding-top: 16px;
+  padding-bottom: 16px; /* ensure equal vertical padding */
   border-top: 1px solid #444;
-}
-/* Enhanced action bar clarity and button prominence */
-.modal-actions {
   position: relative;
   background: rgba(0,0,0,0.25);
   border-radius: 0 0 4px 4px;
-  padding-bottom: 4px;
-  gap: 16px; /* increased spacing */
 }
 
 /* Primary save button variant – gradient retro arcade style */

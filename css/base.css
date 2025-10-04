@@ -5,6 +5,82 @@
 /* Default to white text given predominantly dark game surfaces; light UIs should override locally */
 body { font-family:'Nunito',sans-serif; background:#000; color:#fff; overflow-x:hidden; overflow-y:visible; height:100vh; }
 
+/* Theming Variables */
+:root {
+    --color-bg-body: #000;
+    --color-text: #fff;
+    --panel-bg: #121a1e;
+    --panel-bg-alt: #1e2b30;
+    --panel-surface: #0b1012;
+    --panel-border: #333;
+    --panel-border-soft: #222;
+    --panel-accent: #264653;
+    --panel-accent-hover: #2a5d6d;
+    --panel-danger-bg: #512f2f;
+    --panel-danger-bg-hover: #6d3b3b;
+    --panel-danger: #ff6b6b;
+    --panel-muted: #8899a6;
+    --settings-tabs-bg: #1a1a1a;
+    --settings-tab-active: #2d3b42;
+    --settings-tab-inactive: #999;
+    --replay-overlay-bg: rgba(10,14,16,.9);
+    --replay-btn-bg: #203038;
+    --replay-btn-border: #35525d;
+    --replay-btn-hover: #30505a;
+}
+
+/* Light variant for settings modal (not stark white) */
+.settings-light {
+    --panel-bg: #f1f3f5;
+    --panel-bg-alt: #e5e9ed;
+    --panel-surface: #ffffff;
+    --panel-border: #c9d2da;
+    --panel-border-soft: #d5dde3;
+    --panel-accent: #2563eb;
+    --panel-accent-hover: #1d4ed8;
+    --panel-danger-bg: #dc2626;
+    --panel-danger-bg-hover: #b91c1c;
+    --panel-danger: #b91c1c;
+    --panel-muted: #4b5563;
+    --settings-tabs-bg: #e4e7eb;
+    --settings-tab-active: #ffffff;
+    --settings-tab-inactive: #6b7280;
+    --replay-overlay-bg: rgba(250,252,255,.9);
+    --replay-btn-bg: #e2e8f0;
+    --replay-btn-border: #cbd5e1;
+    --replay-btn-hover: #d1dce7;
+    color:#222;
+}
+
+/* Apply theming to common structures (override inline where possible) */
+.settings-light .settings-tabs { background: var(--settings-tabs-bg) !important; }
+.settings-light .tab-button { color: var(--settings-tab-inactive) !important; }
+.settings-light .tab-button.active { color:#111 !important; background:var(--settings-tab-active) !important; }
+.settings-light .section-title { color:#111 !important; }
+.settings-light .field-label, .settings-light .checkbox-label { color:#222 !important; }
+.settings-light input, .settings-light select, .settings-light button.btn, .settings-light .btn { color:#111; }
+
+/* Dark mode overrides for analytics + decision tree panels */
+body.dark-mode #settings-analytics-performance { background: var(--panel-bg) !important; border-color: var(--panel-border) !important; color: var(--panel-muted) !important; }
+body.dark-mode #settings-analytics-performance .metric { color:#e0e6eb; }
+body.dark-mode .ai-decision-tree, body.dark-mode .ai-decision-tree-panel { background: var(--panel-bg); color:#e5e5e5; }
+body.dark-mode .ai-decision-tree-panel .node { background: #1c262b; border-color:#2a343a; }
+body.dark-mode .ai-decision-tree-panel .node:hover { background:#24333a; }
+
+/* Replay overlay themeable buttons */
+.replay-controls-overlay { background: var(--replay-overlay-bg); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.replay-controls-overlay .replay-btn { background: var(--replay-btn-bg); border:1px solid var(--replay-btn-border); color:#e2e8f0; display:inline-flex; align-items:center; justify-content:center; width:42px; height:42px; border-radius:10px; transition:background .2s, transform .15s; }
+.replay-controls-overlay .replay-btn:hover:not(:disabled) { background: var(--replay-btn-hover); transform:translateY(-2px); }
+.replay-controls-overlay .replay-btn:active:not(:disabled) { transform:translateY(0); }
+.settings-light .replay-controls-overlay .replay-btn { color:#1e293b; }
+
+/* Win Odds panel button hover states */
+#dev-win-odds-mode:hover, #dev-win-odds-refresh:hover { filter:brightness(1.2); }
+#dev-win-odds-mode:active, #dev-win-odds-refresh:active { filter:brightness(.9); }
+
+/* Keyboard shortcut hint tooltip style (uses title attr automatically) */
+.kbd-hint { font-size:10px; padding:2px 4px; background:#222; color:#eee; border-radius:4px; }
+
 /* Text Shadow Utilities */
 :root {
     --ts-comic-heavy: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 4px 4px 8px rgba(0,0,0,.8);
@@ -93,6 +169,8 @@ button:disabled, .btn:disabled, .die.disabled, .power-card.disabled, input:disab
 
 /* Accessibility utilities */
 .visually-hidden { position:absolute; height:1px; width:1px; overflow:hidden; clip:rect(1px,1px,1px,1px); white-space:nowrap; border:0; padding:0; margin:0; }
+/* Generic visually hidden alias (toolbar had a scoped .vh earlier) */
+.vh { position:absolute; width:1px; height:1px; margin:-1px; border:0; padding:0; clip:rect(0 0 0 0); overflow:hidden; white-space:nowrap; }
 
 /* Transient toast below active player card on turn start */
 .active-start-toast {

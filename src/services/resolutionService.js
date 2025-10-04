@@ -29,6 +29,8 @@ export function resolveDice(store, logger) {
   const faces = state.dice.faces;
   if (!faces.length) return;
   const tally = tallyFaces(faces);
+  // Pre-damage health snapshot map (populated only if claws present)
+  let preDamageHP = null;
   // 1. Numeric triples scoring
   const triples = extractTriples(tally);
   for (const t of triples) {
@@ -62,6 +64,21 @@ export function resolveDice(store, logger) {
     const attacker = current.players.byId[activeId];
     const cityOcc = selectTokyoCityOccupant(current);
     const bayOcc = selectTokyoBayOccupant(current);
+    // Capture original health BEFORE applying claw damage so yield UI shows correct transition
+    preDamageHP = {};
+    if (attacker.inTokyo) {
+      current.players.order.forEach(pid => {
+        if (pid !== activeId) {
+          const target = current.players.byId[pid];
+          if (!target.inTokyo && target.status.alive) {
+            preDamageHP[pid] = target.health;
+          }
+        }
+      });
+    } else {
+      if (cityOcc) { const t = current.players.byId[cityOcc]; if (t) preDamageHP[cityOcc] = t.health; }
+      if (bayOcc) { const t = current.players.byId[bayOcc]; if (t) preDamageHP[bayOcc] = t.health; }
+    }
     const damaged = [];
     if (attacker.inTokyo) {
       current.players.order.forEach(pid => {
@@ -112,7 +129,7 @@ export function resolveDice(store, logger) {
         store.dispatch(uiVPFlash(activeId, 1));
         logger.info(`${activeId} gains 1 VP for entering Tokyo`);
       } else if (anyOccupied) {
-        const created = beginYieldFlow(store, logger, activeId, tally.claw, playerCount, bayAllowed);
+        const created = beginYieldFlow(store, logger, activeId, tally.claw, playerCount, bayAllowed, preDamageHP);
         yieldPromptsCreated = created > 0;
       }
     }
@@ -213,7 +230,9 @@ function handleYieldAndPotentialTakeover(store, logger, activeId, clawDamage, pl
           }
         } catch(_) {}
         // Legacy AI prompt creation removed (unified yield pipeline supersedes this path)
-        store.dispatch(yieldPromptShown(pid, activeId, slot, null, damage, advisory));
+        // Legacy path: approximate original health by adding damage back (since we didn't snapshot pre-damage here)
+        const originalHealth = (p && typeof p.health === 'number' && typeof damage === 'number') ? p.health + damage : null;
+        store.dispatch(yieldPromptShown(pid, activeId, slot, null, damage, advisory, originalHealth));
         logger.info(`${pid} prompted to yield Tokyo ${slot} (legacy path - will be deprecated)`, { kind:'tokyo', slot, attacker: activeId });
         prompts.push({ defenderId: pid, slot });
       };

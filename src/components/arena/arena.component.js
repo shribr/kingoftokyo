@@ -10,7 +10,7 @@
  *   4. Purge matching selector blocks from css/legacy/*.css after no other references remain.
  */
 import { store } from '../../bootstrap/index.js';
-import { selectPlayerById } from '../../core/selectors.js';
+import { selectPlayerById, selectActivePlayer } from '../../core/selectors.js';
 
 export function build({ selector }) {
   const root = document.createElement('div');
@@ -35,6 +35,7 @@ export function build({ selector }) {
     <div data-active data-arena-section="active">
       <div class="active-player-slot" data-active-player-slot></div>
     </div>
+    <div class="arena-active-player-dock" data-active-player-dock aria-label="Active player overview"></div>
   `;
 
   // DISABLED: ResizeObserver temporarily disabled for troubleshooting
@@ -118,6 +119,10 @@ export function update(root) {
       if (tokyo.bay) baySection.setAttribute('data-active','true'); else baySection.removeAttribute('data-active');
     }
   } catch(_) {}
+
+  // Active player dock (clone card into arena top-right)
+  // Cloning logic removed – actual card is now physically moved by monsters-panel.component
+  // This component intentionally leaves the dock empty; relocation handled upstream.
 }
 
 function renderOccupant(playerId, state) {

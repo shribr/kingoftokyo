@@ -10,12 +10,12 @@ const initial = { prompts: [], flow: null };
 export function yieldDecisionReducer(state = initial, action) {
   switch (action.type) {
     case YIELD_PROMPT_SHOWN: {
-      const { defenderId, attackerId, slot, expiresAt, damage, advisory } = action.payload;
+      const { defenderId, attackerId, slot, expiresAt, damage, advisory, originalHealth } = action.payload;
       // Avoid duplicate prompt for same defender in same resolution window.
       if (state.prompts.some(p => p.defenderId === defenderId && p.attackerId === attackerId && p.slot === slot && p.decision == null)) {
         return state;
       }
-      return { ...state, prompts: [...state.prompts, { defenderId, attackerId, slot, expiresAt, damage, advisory, decision: null }] };
+      return { ...state, prompts: [...state.prompts, { defenderId, attackerId, slot, expiresAt, damage, advisory, originalHealth: originalHealth ?? null, decision: null }] };
     }
     case YIELD_PROMPT_DECIDED: {
       const { defenderId, attackerId, slot, decision } = action.payload;
@@ -37,7 +37,7 @@ export function yieldDecisionReducer(state = initial, action) {
       // Filter out any duplicate active prompts (defensive)
       const incoming = prompts.filter(pr => !state.prompts.some(p => p.defenderId === pr.defenderId && p.attackerId === attackerId && p.slot === pr.slot && p.decision == null));
       if (incoming.length === 0) return state;
-      const enriched = incoming.map(pr => ({ ...pr, attackerId, decision: null }));
+      const enriched = incoming.map(pr => ({ ...pr, attackerId, originalHealth: pr.originalHealth ?? null, decision: null }));
       return {
         ...state,
         prompts: [...state.prompts, ...enriched],

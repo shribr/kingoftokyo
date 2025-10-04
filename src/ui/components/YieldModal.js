@@ -65,8 +65,11 @@ export function createYieldModal(store, mountEl=document.body){
     root.setAttribute('aria-modal','true');
     root.setAttribute('aria-labelledby','yield-modal-title');
     const slotName = prompt.slot === 'city' ? 'Tokyo City' : 'Tokyo Bay';
-    const projectedHP = typeof defender.health === 'number' && typeof damage === 'number'
-      ? Math.max(0, defender.health - damage)
+    const originalHealth = prompt.originalHealth != null
+      ? prompt.originalHealth
+      : (typeof defender.health === 'number' && typeof damage === 'number' ? defender.health + damage : null);
+    const projectedHP = (originalHealth != null && typeof damage === 'number')
+      ? Math.max(0, originalHealth - damage)
       : null;
     root.innerHTML = `
       <div class="modal-content" style="max-width:640px" data-yield-modal>
@@ -79,7 +82,7 @@ export function createYieldModal(store, mountEl=document.body){
           <div class="damage-preview" aria-live="polite">
             ${projectedHP!=null ? `
               <div class="damage-line"><span class="label">Damage:</span> <span class="value damage">${damage}</span></div>
-              <div class="health-line"><span class="label">Health:</span> <span class="value health">${defender.health} → ${projectedHP}</span></div>
+              <div class="health-line"><span class="label">Health:</span> <span class="value health">${originalHealth} → ${projectedHP}</span></div>
             ` : ''}
           </div>
           ${advisory ? `<div class="advisory" data-advisory><em>Suggestion:</em> ${advisory.suggestion === 'yield' ? 'Yield' : 'Stay'} – ${advisory.reason || ''}${advisory.seed ? `<br/><small>seed:${advisory.seed}</small>`:''}</div>`:''}

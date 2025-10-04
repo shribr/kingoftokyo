@@ -42,11 +42,16 @@ export function createPositioningService(store) {
 
     let dragging = false;
     const activateDistance = typeof opts.activateDistance === 'number' ? opts.activateDistance : 4; // px threshold
-    const noDragSelector = opts.noDragSelector || '[data-nodrag],[data-action],button,input,textarea,select';
+  const noDragSelector = opts.noDragSelector || '[data-nodrag],[data-action],button,input,textarea,select';
+  const handleSelector = opts.handleSelector; // if provided, only initiate drag when pointerdown originates inside handle
 
     function onPointerDown(e) {
       if (pointerId !== null) return; // already tracking
       if (e.target.closest(noDragSelector)) return; // interactive zone – let click happen
+      if (handleSelector) {
+        const handleMatch = e.target.closest(handleSelector);
+        if (!handleMatch || !el.contains(handleMatch)) return; // require handle for drag start
+      }
       pointerId = e.pointerId;
       el.setPointerCapture(pointerId);
       start = currentTransform(el);

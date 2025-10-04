@@ -1,0 +1,33 @@
+/* util.drag-grip.css
+ * Shared drag grip styling for draggable components (desktop / fine pointer only).
+ * Usage: Add an element with class `drag-grip` (and optional data-* handle attribute)
+ * inside a component with data-draggable="true". Component should pass handleSelector
+ * to positioningService.makeDraggable.
+ */
+
+.drag-grip { 
+  display:flex; 
+  flex-wrap:wrap; 
+  width:38px; 
+  padding:5px 6px 3px; 
+  gap:3px; 
+  background:linear-gradient(135deg,#3a3f44,#1d1f21); 
+  border:2px solid #000; 
+  box-shadow:3px 3px 0 #000,0 0 0 2px #222 inset; 
+  cursor:grab; 
+  border-radius:6px; 
+  -webkit-user-select:none; 
+  user-select:none; 
+  touch-action:none; 
+}
+.drag-grip:active { cursor:grabbing; }
+.drag-grip .grip-dot { width:6px; height:6px; background:#bbb; border-radius:50%; box-shadow:0 0 0 1px #000; }
+
+/* Focus ring (keyboard accessibility) */
+.drag-grip:focus-visible { outline:2px solid #fff; outline-offset:2px; }
+
+/* Hidden when parent not draggable */
+[data-draggable="false"] .drag-grip { display:none !important; }
+
+/* Coarse pointer / mobile: hide grips */
+@media (pointer: coarse), (max-width:760px) { .drag-grip { display:none !important; } }

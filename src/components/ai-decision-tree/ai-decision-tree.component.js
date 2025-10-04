@@ -52,11 +52,11 @@ function layout() {
   return `
     <div class="adt-toolbar">
       <div class="adt-left-tools">
-        <button data-action="toggle-view" class="adt-btn">View: <span data-view-label>Standard</span></button>
-        <button data-action="toggle-mode" class="adt-btn">Mode: <span data-mode-label>Verbose</span></button>
-        <button data-action="collapse-all" class="adt-btn">Collapse All</button>
-        <button data-action="expand-all" class="adt-btn">Expand All</button>
-        <button data-action="export-json" class="adt-btn">Export JSON</button>
+  <button type="button" data-action="toggle-view" class="adt-btn">View: <span data-view-label>Standard</span></button>
+  <button type="button" data-action="toggle-mode" class="adt-btn">Mode: <span data-mode-label>Verbose</span></button>
+  <button type="button" data-action="collapse-all" class="adt-btn">Collapse All</button>
+  <button type="button" data-action="expand-all" class="adt-btn">Expand All</button>
+  <button type="button" data-action="export-json" class="adt-btn">Export JSON</button>
         <label class="adt-toggle-humans"><input type="checkbox" data-include-humans /> Include Human Rolls</label>
       </div>
       <div class="adt-right-tools">

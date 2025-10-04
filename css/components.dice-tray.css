@@ -26,6 +26,8 @@
 }
 
 .cmp-dice-tray { position:fixed; left:50%; transform:translateX(-50%); z-index:6600; }
+/* Tray drag grip (shared base styles from util.drag-grip.css) */
+.cmp-dice-tray .tray-drag-grip { position:absolute; top:-14px; left:12px; width:38px; }
 .cmp-dice-tray .tray-outer {
   position: relative;
   background:

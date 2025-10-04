@@ -6,6 +6,7 @@
  *  - Provide random fill & count selection
  */
 import { selectMonsters } from '../../core/selectors.js';
+import { acquire as acquireOverlay, release as releaseOverlay } from '../../services/overlayService.js';
 import { uiMonsterSelectionClose, uiMonsterProfilesOpen, playerJoined } from '../../core/actions.js';
 import { createPlayer } from '../../domain/player.js';
 
@@ -135,8 +136,14 @@ export function update(ctx) {
   const inst = ctx.inst || { root, _local: { selected: new Set(), slots: [], playerCount: 4, _initialized: false } };
   // Robust show/hide with no debug noise
   if (!st || !st.ui || !st.ui.monsterSelection) { /* slice not ready yet */ }
-  if (!open) { root.classList.add('hidden'); inst._local._initialized = false; return; }
+  if (!open) { 
+    root.classList.add('hidden'); 
+    inst._local._initialized = false; 
+    if (root._overlayAcquired) { try { releaseOverlay('monsterSelection'); } catch(_) {} root._overlayAcquired = false; }
+    return; 
+  }
   root.classList.remove('hidden');
+  if (!root._overlayAcquired) { acquireOverlay('monsterSelection'); root._overlayAcquired = true; }
   // Ensure we are not demoted when (re)showing
   root.classList.remove('demoted');
   // Hide global blackout when showing selection (selection has its own backdrop)

@@ -225,6 +225,7 @@ export function update(root, { playerId }) {
   } catch(_) {}
 
   // Basic fields
+  root.setAttribute('data-monster-id', player.monsterId || '');
   root.querySelector('[data-name]').textContent = player.name;
   // CPU indicator appended after name (idempotent)
   try {

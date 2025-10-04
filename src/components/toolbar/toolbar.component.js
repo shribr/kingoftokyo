@@ -21,8 +21,10 @@ export function build({ selector }) {
     ${iconBtn('log', 'Game Log', listIcon())}
     ${iconBtn('ai-decision', 'AI Decision Tree', sparkleIcon())}
     ${iconBtn('scenarios', 'Scenarios', beakerIcon())}
+  ${iconBtn('win-odds', 'Player Win Odds', `<svg viewBox='0 0 24 24' width='24' height='24' aria-hidden='true'><path d='M4 5h16v10H4z' stroke='currentColor' stroke-width='2' fill='none'/><path d='M6 13l3-4 3 2 2-3 4 5' fill='none' stroke='currentColor' stroke-width='2' stroke-linejoin='round' stroke-linecap='round'/><rect x='9' y='17' width='6' height='2' fill='currentColor'/></svg>`)}
     ${iconBtn('pause', 'Pause Game', pauseIcon())}
     ${iconBtn('sound', 'Toggle Sound (M)', soundIcon())}
+    ${iconBtn('dark-mode', 'Toggle Dark Mode', darkModeIcon())}
   ${iconBtn('help', 'Help / Instructions', helpIcon())}
     ${iconBtn('restart', 'Restart Game', restartIcon())}
     ${iconBtn('reset-positions', 'Reset Layout', layoutIcon())}
@@ -70,12 +72,17 @@ export function build({ selector }) {
       newModalSystem.showModal('gameLog');
       return; 
     }
+    if (a === 'win-odds') {
+      import('../../utils/new-modals.js').then(m => m.openWinOddsQuickModal());
+      return;
+    }
     if (a === 'ai-decision') {
       createAIDecisionModal();
       newModalSystem.showModal('aiDecision');
       return;
     }
     if (a === 'sound') { toggleSound(store, btn); return; }
+  if (a === 'dark-mode') { toggleDarkMode(btn); return; }
     if (a === 'pause') { togglePause(store, btn); return; }
     if (a === 'help') { 
       createHelpModal();
@@ -141,6 +148,9 @@ function syncToolbarState(root) {
         `${pauseIcon()}<span class="vh">Pause Game</span>`;
       pauseBtn.title = paused ? 'Resume Game' : 'Pause Game';
     }
+    // Dark mode pressed state
+    const darkBtn = root.querySelector('[data-action="dark-mode"]');
+    if (darkBtn) darkBtn.classList.toggle('is-active', document.body.classList.contains('dark-mode'));
   } catch(_){ }
 }
 
@@ -221,6 +231,19 @@ function pauseIcon() {
 function playIcon() {
   return `<svg viewBox="0 0 24 24" class="ico" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>`;
 }
+function darkModeIcon(){
+  return `<svg viewBox="0 0 24 24" class="ico" aria-hidden="true"><path fill="currentColor" d="M12 2c1.31 0 2.56.32 3.65.88A8 8 0 0112 22a8 8 0 01-3.65-15.12A8 8 0 0112 2Zm0 2a6 6 0 100 12 6 6 0 000-12Z" opacity=".4"/><path fill="currentColor" d="M11 4c.34 0 .68.02 1 .07A8 8 0 0011 20c-.34 0-.68-.02-1-.07A6 6 0 0111 4Z"/></svg>`;
+}
+function toggleDarkMode(btn){
+  try {
+    const enabled = document.body.classList.toggle('dark-mode');
+    btn.classList.toggle('is-active', enabled);
+    btn.setAttribute('aria-pressed', String(enabled));
+    try { localStorage.setItem('KOT_DARK_MODE', enabled? '1':'0'); } catch(_) {}
+  } catch(_) {}
+}
+// On load, apply persisted dark mode
+try { if (localStorage.getItem('KOT_DARK_MODE') === '1') document.body.classList.add('dark-mode'); } catch(_) {}
 function beakerIcon() {
   return `<svg viewBox="0 0 24 24" class="ico" aria-hidden="true"><path fill="currentColor" d="M6 2h12v2h-1v5.59l3.36 6.72A3 3 0 0117.64 20H6.36a3 3 0 01-2.72-3.69L7 9.59V4H6V2zm3 2v6.41l-3.14 6.28a1 1 0 00.9 1.31h11.28a1 1 0 00.9-1.31L15 10.41V4H9zm1.5 9a1.5 1.5 0 013 0c0 .83-.67 1.5-1.5 1.5S10.5 13.83 10.5 13z"/></svg>`;
 }

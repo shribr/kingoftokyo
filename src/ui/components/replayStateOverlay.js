@@ -138,6 +138,10 @@ export function createReplayStateOverlay() {
   const overlay = document.createElement('div');
   overlay.id = 'replay-state-overlay';
   overlay.className = 'replay-state-overlay';
+  overlay.style.position = 'fixed';
+  overlay.style.top = '60px';
+  overlay.style.left = '60px';
+  overlay.style.zIndex = '9500';
   overlay.innerHTML = `
     <div class="replay-overlay-header">
       <div class="replay-title">
@@ -221,9 +225,15 @@ export function createReplayStateOverlay() {
         <button class="replay-btn speed-btn" data-replay-action="speed" title="Replay Speed">
           <span data-speed-text>1x</span>
         </button>
-        <button class="replay-btn" data-replay-action="pause">⏸️</button>
-        <button class="replay-btn" data-replay-action="resume" disabled>▶️</button>
-        <button class="replay-btn" data-replay-action="stop">⏹️</button>
+        <button class="replay-btn" data-replay-action="pause" title="Pause (P)">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        </button>
+        <button class="replay-btn" data-replay-action="resume" disabled title="Resume (R)">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+        </button>
+        <button class="replay-btn" data-replay-action="stop" title="Stop (S)">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+        </button>
       </div>
       <div class="replay-speed-controls" data-speed-controls style="display: none;">
         <button class="speed-option" data-speed="0.5">0.5x</button>
@@ -698,6 +708,32 @@ export function createReplayStateOverlay() {
       document.body.classList.remove('replay-overlay-visible');
     }
   };
+
+  // Drag capability
+  (function enableDrag(){
+    const header = overlay.querySelector('.replay-overlay-header');
+    if (!header) return;
+    let drag = null;
+    header.style.cursor = 'move';
+    header.addEventListener('mousedown', (e)=>{
+      if (e.button !== 0) return;
+      drag = { startX: e.clientX, startY: e.clientY, origX: overlay.offsetLeft, origY: overlay.offsetTop };
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp, { once:true });
+      e.preventDefault();
+    });
+    function onMove(e){
+      if (!drag) return;
+      const dx = e.clientX - drag.startX;
+      const dy = e.clientY - drag.startY;
+      overlay.style.left = Math.max(0, drag.origX + dx) + 'px';
+      overlay.style.top = Math.max(0, drag.origY + dy) + 'px';
+    }
+    function onUp(){
+      document.removeEventListener('mousemove', onMove);
+      drag = null;
+    }
+  })();
   
   // Attach basic UI event handlers (close and minimize) immediately
   if (minimizeBtn) {

@@ -33,19 +33,27 @@ export function build({ selector }) {
   root.setAttribute('data-layout','vertical');
   root.dataset.amDockState = 'docked';
   root.innerHTML = `
-    <div class="am-label" aria-hidden="true">
+    <div class="am-header-row">
+      <!-- Gripper temporarily disabled
+      <div class="am-drag-grip drag-grip am-grip-left" data-am-drag-handle tabindex="0" role="button" aria-label="Drag Action Menu" title="Drag Action Menu" aria-hidden="false">
+        <span class="grip-dot"></span><span class="grip-dot"></span><span class="grip-dot"></span>
+        <span class="grip-dot"></span><span class="grip-dot"></span><span class="grip-dot"></span>
+      </div>
+      -->
+      <div class="am-label" aria-hidden="true">
       <span>ACTIONS</span>
       <button class="am-collapse-toggle" aria-label="Expand/Collapse Actions" type="button">
         <span class="arrow-up">▲</span>
         <span class="arrow-down">▼</span>
       </button>
+      </div>
     </div>
     <div class="am-content" data-collapsed="false">
     <button id="roll-btn" data-action="roll" class="k-btn k-btn--primary">ROLL</button>
     <button id="keep-btn" data-action="keep" class="k-btn k-btn--secondary" disabled>KEEP ALL</button>
     <button id="accept-dice-btn" data-action="accept-dice" class="k-btn k-btn--secondary" disabled>ACCEPT DICE RESULTS</button>
     <div class="power-cards-menu-container">
-      <button id="power-cards-btn" data-action="power-cards" class="k-btn k-btn--secondary power-cards-btn">
+  <button id="power-cards-btn" data-action="power-cards" class="k-btn k-btn--secondary power-cards-btn" disabled>
         <span class="arrow-left">◀</span>
         <span class="btn-text">POWER CARDS</span>
         <span class="arrow-right">▶</span>
@@ -55,7 +63,7 @@ export function build({ selector }) {
         <button id="flush-btn" data-action="flush" class="k-btn k-btn--xs" disabled>FLUSH CARDS (2⚡)</button>
       </div>
     </div>
-    <button id="end-turn-btn" data-action="end" class="k-btn k-btn--secondary" disabled>END TURN</button>
+  <button id="end-turn-btn" data-action="end" class="k-btn k-btn--secondary" style="border:none;box-shadow:none;" disabled>END TURN</button>
     </div>`;
   // Cache frequently accessed elements to reduce querySelector churn
   const __refs = new Map();
@@ -109,9 +117,8 @@ export function build({ selector }) {
           root.style.flexDirection = 'row';
           root.style.position = 'fixed';
           // Align top of menu with top of circular button
-          const btnRect = btn.getBoundingClientRect();
-          const topPos = Math.max(0, btnRect.top); // button top in viewport
-          root.style.top = topPos + 'px';
+          const FIXED_EXPAND_TOP = 120; // restored hard-coded vertical anchor for expanded menu
+          root.style.top = FIXED_EXPAND_TOP + 'px';
           root.style.bottom = 'auto';
           root.style.left = 'auto';
           root.style.transform = 'none';
@@ -193,8 +200,9 @@ export function build({ selector }) {
           };
           setTimeout(attemptFit, 0);
           root._mobileFitHandler = () => {
-            const bRect = btn.getBoundingClientRect();
-            root.style.top = Math.max(0, bRect.top) + 'px';
+            // Maintain fixed vertical anchor on resize
+            const FIXED_EXPAND_TOP = 120;
+            root.style.top = FIXED_EXPAND_TOP + 'px';
             // Recompute width fully available again
             const vw2 = window.innerWidth;
             let newMax = vw2 - rightOffset - 8;
@@ -294,7 +302,7 @@ export function build({ selector }) {
       root.style.zIndex = '';
       root.setAttribute('data-draggable','true');
       if (!root._positioning) root._positioning = createPositioningService(store);
-      if (root._positioning) root._positioning.makeDraggable(root,'actionMenu',{ snapEdges:true, snapThreshold:12 });
+      if (root._positioning) root._positioning.makeDraggable(root,'actionMenu',{ snapEdges:true, snapThreshold:12, handleSelector:'[data-am-drag-handle]' });
       const existingBtn = document.getElementById('action-menu-mobile-btn');
       if (existingBtn) existingBtn.remove();
     }
@@ -449,8 +457,17 @@ export function build({ selector }) {
           // Calculate Y coordinate shift: move UP by content height to reveal entire menu above current position
           const currentCollapsedTop = collapsedTop - docScroll;
           const contentHeight = Math.max(0, expandedTotalH - headerHeight);
-          const targetTop = currentCollapsedTop - contentHeight;
-          const minTop = 10; // minimum distance from top of viewport
+          let targetTop = currentCollapsedTop - contentHeight;
+          // Provide additional lift so menu clears overlapping elements (toolbar shadows etc.)
+          targetTop -= 12; // extra upward offset
+          const minTop = 4; // allow closer to very top now
+          // If viewport is short and menu would extend below bottom, lift further
+          const vpH = window.innerHeight || document.documentElement.clientHeight || 800;
+          const projectedBottom = targetTop + expandedTotalH;
+          if (projectedBottom > vpH - 12) {
+            const overflow = projectedBottom - (vpH - 12);
+            targetTop -= overflow;
+          }
           const clampedTargetTop = Math.max(targetTop, minTop);
           
           // Ensure current top is collapsedTop - docScroll (anchor); if not, set it instantly
@@ -751,8 +768,8 @@ export function build({ selector }) {
 
     }
     if (root.getAttribute('data-draggable') !== 'false') {
-      // Remove bounds to allow dragging anywhere, including over the toolbar
-      positioning.makeDraggable(root, 'actionMenu', { snapEdges: true, snapThreshold: 12 });
+      // Restrict drag initiation to grip on desktop
+      positioning.makeDraggable(root, 'actionMenu', { snapEdges: true, snapThreshold: 12, handleSelector: '[data-am-drag-handle]' });
     }
     // Track drag to switch hybrid -> floating
     let dragTransformStart = null;
@@ -909,6 +926,13 @@ function updateSubmenuPosition(root) {
 
 export function update(root) {
   const st = store.getState();
+  // Global initialization gating: only enable roll after initial game-active and phase detection
+  const initializing = !window.__KOT_ACTION_MENU_READY;
+  if (initializing) {
+    // Force all buttons disabled except roll (which is enabled only if phase is ROLL and dice idle with no faces yet)
+    const btns = root.querySelectorAll('button[data-action]');
+    btns.forEach(b => { if (b.getAttribute('data-action') !== 'roll') b.disabled = true; });
+  }
   const isPaused = !!st.game?.isPaused;
   
   const rollBtn = root.querySelector('[data-action="roll"]');
@@ -933,7 +957,8 @@ export function update(root) {
   const isIdle = dice.phase === 'idle';
   const hasFirstRoll = !isIdle && (dice.faces?.length > 0);
   const anyUnkept = faces.some(f => f && !f.kept);
-  const canReroll = dice.phase === 'resolved' && dice.rerollsRemaining > 0 && anyUnkept;
+  // Allow reroll as long as there are rerolls remaining after a resolved roll, even if all dice are currently kept
+  const canReroll = dice.phase === 'resolved' && dice.rerollsRemaining > 0; // removed anyUnkept requirement
   const canInitialRoll = isIdle;
   // Phase value may be plain string or object (phase machine). Support both.
   const phaseName = (st.phase && typeof st.phase === 'object' && st.phase.name) ? st.phase.name : st.phase;
@@ -974,34 +999,32 @@ export function update(root) {
 
   const accepted = !!dice.accepted;
   if (rollBtn) {
-    // Temporary diagnostic: log when roll button disabled while we expect it to be enabled
-    if (!isCPU && !accepted && phaseName === 'ROLL' && dice.phase === 'idle' && (!dice.faces || dice.faces.length === 0) && rollBtn.disabled) {
-      console.debug('[action-menu] Roll button unexpectedly disabled', { phaseName, dicePhase: dice.phase, faces: dice.faces?.length, canInitialRoll, canReroll });
-    }
-    rollBtn.disabled = isCPU ? true : (!canRoll || accepted); // cannot roll after accepting results
+    const allowInitial = phaseName === 'ROLL' && dice.phase === 'idle' && (!dice.faces || dice.faces.length === 0);
+    rollBtn.disabled = isCPU ? true : initializing ? !allowInitial : (!canRoll || accepted);
     rollBtn.textContent = hasFirstRoll ? 'RE-ROLL UNSELECTED' : 'ROLL';
   }
-  if (keepBtn) {
+  if (keepBtn && !initializing) {
     const allKept = hasAnyFaces && faces.every(f => !!f.kept);
     const canKeepAll = st.phase === 'ROLL' && hasAnyFaces && dice.phase === 'resolved' && !isCPU && !allKept && !accepted;
     keepBtn.disabled = !canKeepAll;
     keepBtn.textContent = 'KEEP ALL';
   }
-  if (acceptBtn) {
+  if (acceptBtn && !initializing) {
     const anyKept = faces.some(f => f && f.kept);
-    const isFinalRoll = dice.rerollsRemaining === 0; // after final roll we auto-apply effects; button stays disabled
-    const canAccept = st.phase === 'ROLL' && (dice.phase === 'resolved' || dice.phase === 'sequence-complete') && hasAnyFaces && anyKept && !isCPU && !accepted && !isFinalRoll;
-    acceptBtn.disabled = !canAccept;
-    acceptBtn.textContent = accepted ? 'DICE ACCEPTED' : (isFinalRoll ? 'FINAL ROLL' : 'ACCEPT DICE RESULTS');
+  const isFinalRoll = dice.rerollsRemaining === 0;
+  // Accept still only available before final automatic application; once final roll reached we no longer need alternate label
+  const canAccept = st.phase === 'ROLL' && (dice.phase === 'resolved' || dice.phase === 'sequence-complete') && hasAnyFaces && anyKept && !isCPU && !accepted && !isFinalRoll;
+  acceptBtn.disabled = !canAccept;
+  acceptBtn.textContent = accepted ? 'DICE ACCEPTED' : 'ACCEPT DICE RESULTS';
   }
-  if (flushBtn) {
+  if (flushBtn && !initializing) {
     // Enable flush button during RESOLVE/BUY phases when player has the energy cost available
     const flushPhaseAllowed = st.phase === 'RESOLVE' || st.phase === 'BUY';
     const hasEnergy = active && active.energy >= 2;
     const canFlush = !isCPU && hasEnergy && flushPhaseAllowed;
     flushBtn.disabled = !canFlush;
   }
-  if (endBtn) {
+  if (endBtn && !initializing) {
     // New gating: During ROLL, End Turn allowed only if dice results already accepted OR rerolls exhausted (sequence complete)
     const isRollPhase = st.phase === 'ROLL';
     const diceReady = dice.phase === 'resolved' || dice.phase === 'sequence-complete';
@@ -1128,6 +1151,10 @@ export function update(root) {
     root.removeAttribute('data-collapsed');
     root._hamburgerOpen = false;
     root.removeAttribute('data-hamburger-open');
+  }
+  // Mark ready after first full update pass post game activation
+  if (!initializing && !window.__KOT_ACTION_MENU_READY) {
+    window.__KOT_ACTION_MENU_READY = true;
   }
 }
 

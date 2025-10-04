@@ -64,11 +64,13 @@ export function build({ selector, emit }) {
       // Toggle button
       const existingBtn = document.getElementById('dice-toggle-btn');
       if (existingBtn) existingBtn.remove();
-      const toggleBtn = document.createElement('div');
-      toggleBtn.id = 'dice-toggle-btn';
-      toggleBtn.className = 'dice-toggle-btn';
-      toggleBtn.innerHTML = '\uD83C\uDFB2';
-      toggleBtn.setAttribute('aria-label','Toggle Dice Tray');
+  const toggleBtn = document.createElement('button');
+  toggleBtn.type = 'button';
+  toggleBtn.id = 'dice-toggle-btn';
+  toggleBtn.className = 'dice-toggle-btn';
+  toggleBtn.innerHTML = '<span class="vh">Toggle Dice Tray</span>\uD83C\uDFB2';
+  toggleBtn.setAttribute('aria-label','Toggle Dice Tray');
+  toggleBtn.setAttribute('aria-expanded','false');
       Object.assign(toggleBtn.style, {
         position:'fixed', bottom:'20px', left:'20px', width:'50px', height:'50px', background:'#ffcf33', border:'3px solid #333', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24px', cursor:'pointer', boxShadow:'0 4px 12px rgba(0,0,0,0.3)', zIndex:'6700', transition:'transform 0.2s ease'
       });
@@ -94,13 +96,14 @@ export function build({ selector, emit }) {
         const collapsedNow = root.getAttribute('data-collapsed') === 'left';
         if (collapsedNow) {
           root.setAttribute('data-collapsed','none');
-          // Expanded: ensure offset maintained
           applyMobileOffset();
           toggleBtn.style.transform = 'scale(0.9)';
+          toggleBtn.setAttribute('aria-expanded','true');
         } else {
           root.setAttribute('data-collapsed','left');
           root.style.transform = 'translateX(-100%)';
           toggleBtn.style.transform = 'scale(1)';
+          toggleBtn.setAttribute('aria-expanded','false');
         }
       });
       document.body.appendChild(toggleBtn);
@@ -140,7 +143,7 @@ export function build({ selector, emit }) {
   positioning.hydrate(); // ensure positions loaded (idempotent)
   const isTouch = matchMedia('(pointer: coarse)').matches || window.innerWidth <= 760;
   if (!isTouch) {
-    // Exclude dice items from drag gesture so clicks toggle keeps reliably
+    // Exclude dice items from drag gesture so clicks toggle keeps reliably; without a handle we restrict drag start to tray frame background
     positioning.makeDraggable(root, 'diceTray', { snapEdges: true, snapThreshold: 12, noDragSelector: '[data-dice], [data-dice] *' });
   } else {
     root.setAttribute('data-draggable','false');
@@ -185,7 +188,9 @@ export function build({ selector, emit }) {
         const activeId = order.length ? order[st.meta.activePlayerIndex % order.length] : null;
         const active = activeId ? st.players.byId[activeId] : null;
         const isCpu = !!(active && (active.isCPU || active.isAi || active.isAI || active.type === 'ai'));
-        if (st.phase !== 'ROLL' || st.dice.phase !== 'resolved' || isCpu) return;
+        const dicePhase = st.dice?.phase;
+        const keepablePhase = dicePhase === 'resolved' || dicePhase === 'sequence-complete';
+        if (st.phase !== 'ROLL' || !keepablePhase || isCpu) return;
       } catch(_) { /* fallback: allow if uncertain */ }
       emit('ui/dice/keptToggled', { index: idx });
     }
@@ -256,11 +261,13 @@ export function update(root, { state }) {
       // Temporarily disable pointer interactions during roll to avoid keep toggles mid-animation
       const prevPointer = root.style.pointerEvents;
       root.style.pointerEvents = 'none';
+      let anyAnimated = false;
       for (let i = 0; i < totalSlots; i++) {
         const face = faces[i];
         const dieEl = diceContainer.querySelector(`[data-die-index="${i}"]`);
         if (!dieEl) continue;
         if (face && !face.kept) {
+          anyAnimated = true;
           dieEl.classList.remove('rolling'); // restart if previously applied
           // Force reflow to reset animation state
           void dieEl.offsetWidth; // eslint-disable-line no-unused-expressions
@@ -272,15 +279,13 @@ export function update(root, { state }) {
             dieEl.classList.remove('rolling');
             dieEl.classList.remove('reveal-pending');
             try { dieEl.textContent = symbolFor(face.value); } catch(_) {}
-            if (i === totalSlots - 1) {
-              // Re-enable pointer events after last die resolves
-              root.style.pointerEvents = prevPointer;
-            }
           }, DURATION);
         } else {
           dieEl.classList.remove('rolling');
         }
       }
+      // Guaranteed restoration fallback after duration even if last slot not animated
+      setTimeout(() => { if (root.style.pointerEvents === 'none') root.style.pointerEvents = prevPointer; }, DURATION + 30);
     });
   } else if (valuesChanged && prefersReduced) {
     // Directly reveal values with no animation
@@ -307,6 +312,12 @@ export function update(root, { state }) {
   }
   root._prevDiceSlots = diceSlots;
   root._prevFaces = faces.map(f => ({ value: f.value, kept: f.kept }));
+  // Safety: if animation finished but pointer events stuck off (e.g. interrupted render), restore when dice resolved
+  try {
+    if (root.style.pointerEvents === 'none' && diceState.phase === 'resolved') {
+      root.style.pointerEvents = '';
+    }
+  } catch(_) {}
   // Removed count & rerolls textual UI per request
 
   // Mobile/touch collapse behavior

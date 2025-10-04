@@ -211,6 +211,110 @@ body[data-panels-force-overlay] .players-area { display:none; }
 @media (max-width:768px){ .ai-turn-header { flex-direction:column; align-items:flex-start; gap:10px; } .ai-turn-player-info { text-align:left; } .ai-turn-stats { flex-wrap:wrap; gap:10px; } .ai-roll-header { flex-direction:column; align-items:flex-start; gap:8px; } .improvement-item { flex-wrap:wrap; } .ai-confidence-meter { flex-wrap:wrap; } }
 .center-notification { position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:6500; background:rgba(255,255,255,.9); color:#333; padding:20px 30px; border-radius:8px; border:2px solid #333; font-size:18px; font-weight:normal; text-align:center; opacity:0; visibility:hidden; transition:all .3s ease; max-width:80%; word-wrap:break-word; }
 .center-notification.visible { opacity:1; visibility:visible; }
+/* Game Start Toast Enhancements */
+.game-start-toast { 
+	background: radial-gradient(circle at 30% 25%, rgba(255,215,0,0.25), rgba(0,0,0,0.85) 60%) , linear-gradient(145deg,#1d1f21,#101112 65%);
+	color:#FFD700; 
+	border:3px solid #000; 
+	padding:34px 46px 38px; 
+	box-shadow:0 0 0 2px #333, 0 0 14px rgba(255,200,0,.35), 0 0 60px rgba(255,140,0,.25);
+	font-family:'Bangers',cursive;
+	letter-spacing:2px;
+	overflow:visible;
+	--gst-accent:#ffcf33;
+	--gst-accent-glow:rgba(255,207,51,0.8);
+	--gst-pulse:rgba(255,160,0,0.55);
+	animation: gstEnter .65s cubic-bezier(.22,1.4,.32,1) forwards;
+}
+.game-start-toast.dismiss { animation: gstExit .5s ease forwards; }
+.game-start-toast .gst-inner { position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; gap:10px; }
+.game-start-toast .gst-icon-wrap { position:relative; width:84px; height:84px; display:flex; align-items:center; justify-content:center; background:radial-gradient(circle at 40% 35%, #ffb300, #ff6b00); border:3px solid #000; border-radius:50%; box-shadow:0 0 0 2px #222,0 0 18px rgba(255,170,0,.5); /* animation removed */ }
+.game-start-toast .gst-icon { font-size:46px; filter:drop-shadow(0 0 6px rgba(0,0,0,.8)); transform:translateY(2px); }
+.game-start-toast .gst-flare { position:absolute; inset:-6px; background:conic-gradient(from 0deg, rgba(255,255,255,0.0) 0deg, rgba(255,215,0,0.55) 35deg, rgba(255,140,0,0.0) 140deg, rgba(255,255,255,0) 360deg); mix-blend-mode:screen; filter:blur(6px) brightness(1.1); /* spin removed */ border-radius:inherit; pointer-events:none; }
+/* Revised per request: white font with black drop shadow */
+.game-start-toast .gst-title { 
+	margin:4px 0 0; font-size:56px; line-height:.9; 
+	letter-spacing:4px; 
+	color:#fff; /* solid white text */
+	background:none; -webkit-background-clip:initial; background-clip:initial; 
+	text-shadow:0 0 2px rgba(0,0,0,.9), 0 2px 4px rgba(0,0,0,.85), 0 0 14px rgba(0,0,0,.75);
+	filter:none;
+	animation: none; /* remove prior glow to keep crisp white per spec */
+}
+.game-start-toast .gst-sub { 
+	font-size:20px; letter-spacing:1px; color:#fff; 
+	text-shadow:0 1px 2px rgba(0,0,0,.85), 0 0 6px rgba(0,0,0,.6);
+	animation: gstSubFade .9s ease .2s both; 
+}
+.game-start-toast .gst-energy-bar { position:relative; width:240px; height:12px; background:linear-gradient(180deg,#151515,#202224); border:2px solid #000; border-radius:8px; overflow:hidden; box-shadow:0 0 0 1px #333 inset,0 0 8px rgba(255,200,0,.25); margin-top:4px; }
+.game-start-toast .gst-energy-fill { position:absolute; left:0; top:0; bottom:0; width:0%; background:linear-gradient(90deg,#ff9c00,#ffcf33,#ffe8a3); box-shadow:0 0 8px rgba(255,180,0,.6),0 0 16px rgba(255,140,0,.35); animation: gstEnergyFill 2s cubic-bezier(.55,.12,.25,1) .25s forwards; }
+
+/* Particle sparks */
+.game-start-toast::before, .game-start-toast::after { content:""; position:absolute; inset:0; pointer-events:none; background-repeat:no-repeat; mix-blend-mode:screen; opacity:.75; }
+.game-start-toast::before { background-image:radial-gradient(circle at 20% 30%, rgba(255,200,0,.9) 0, rgba(255,200,0,0) 60%), radial-gradient(circle at 80% 65%, rgba(255,120,0,.85) 0, rgba(255,120,0,0) 55%); filter:blur(12px); animation: gstSparks 3.8s ease-in-out infinite; }
+.game-start-toast::after { background-image:radial-gradient(circle at 35% 70%, rgba(255,255,255,.35) 0, rgba(255,255,255,0) 55%), radial-gradient(circle at 70% 25%, rgba(255,255,255,.25) 0, rgba(255,255,255,0) 55%); filter:blur(4px); animation: gstSparks2 4.4s ease-in-out infinite; }
+
+@keyframes gstEnter { 0% { transform:translate(-50%, -50%) scale(.6) rotateX(25deg); opacity:0; } 55% { opacity:1; transform:translate(-50%, -50%) scale(1.04) rotateX(0deg); } 80% { transform:translate(-50%, -50%) scale(.97); } 100% { transform:translate(-50%, -50%) scale(1); opacity:1; } }
+@keyframes gstExit { 0% { transform:translate(-50%, -50%) scale(1); opacity:1; } 60% { transform:translate(-50%, -50%) scale(.85) translateY(-6px); opacity:0.25; } 100% { transform:translate(-50%, -50%) scale(.8) translateY(-10px); opacity:0; } }
+/* Removed icon pulse and flare spin animations */
+@keyframes gstTitleGlow { 0%,100% { filter:drop-shadow(0 0 6px rgba(255,200,0,.65)); } 50% { filter:drop-shadow(0 0 14px rgba(255,210,60,.9)); } }
+@keyframes gstSubFade { 0% { opacity:0; transform:translateY(8px);} 100% { opacity:1; transform:translateY(0);} }
+@keyframes gstEnergyFill { 0% { width:0%; } 25% { width:35%; } 55% { width:78%; } 100% { width:100%; } }
+@keyframes gstSparks { 0%,100% { opacity:.7; transform:scale(1);} 50% { opacity:.35; transform:scale(1.15);} }
+@keyframes gstSparks2 { 0%,100% { opacity:.45; transform:scale(1);} 50% { opacity:.8; transform:scale(1.05);} }
+
+/* Reduced motion preference: simplify animations */
+@media (prefers-reduced-motion: reduce) {
+	.game-start-toast { animation: fadeInSimple .4s ease forwards; }
+	.game-start-toast.dismiss { animation: fadeOutSimple .35s ease forwards; }
+	.game-start-toast .gst-icon-wrap, .game-start-toast::before, .game-start-toast::after, .game-start-toast .gst-energy-fill { animation:none !important; }
+	.game-start-toast .gst-title { animation:none; }
+}
+@keyframes fadeInSimple { from { opacity:0; transform:translate(-50%, -50%) scale(.92);} to { opacity:1; transform:translate(-50%, -50%) scale(1);} }
+@keyframes fadeOutSimple { from { opacity:1; transform:translate(-50%, -50%) scale(1);} to { opacity:0; transform:translate(-50%, -50%) scale(.94);} }
+
+/* Progressive shake phases and explosion finale */
+.game-start-toast[data-shake-phase="1"] { animation: gstShake1 .25s linear infinite; }
+.game-start-toast[data-shake-phase="2"] { animation: gstShake2 .2s linear infinite; }
+.game-start-toast[data-shake-phase="3"] { animation: gstShake3 .14s linear infinite; }
+.game-start-toast[data-shake-phase="4"] { animation: gstShake4 .1s linear infinite; }
+.game-start-toast.exploding { animation: gstExplode 1.45s cubic-bezier(.55,.08,.42,1.05) forwards; }
+
+@keyframes gstShake1 { 0%,100% { transform:translate(-50%, -50%) rotate(0deg); } 25% { transform:translate(calc(-50% - 2px), calc(-50% + 1px)) rotate(-0.6deg); } 50% { transform:translate(calc(-50% + 2px), calc(-50% - 1px)) rotate(0.6deg); } 75% { transform:translate(calc(-50% - 1px), calc(-50% - 1px)) rotate(-0.4deg); } }
+@keyframes gstShake2 { 0%,100% { transform:translate(-50%, -50%) rotate(0deg); } 20% { transform:translate(calc(-50% - 3px), calc(-50% + 2px)) rotate(-1deg); } 40% { transform:translate(calc(-50% + 3px), calc(-50% - 2px)) rotate(1deg); } 60% { transform:translate(calc(-50% - 2px), calc(-50% + 1px)) rotate(-0.8deg); } 80% { transform:translate(calc(-50% + 2px), calc(-50% - 1px)) rotate(0.8deg); } }
+@keyframes gstShake3 { 0%,100% { transform:translate(-50%, -50%) rotate(0deg); } 20% { transform:translate(calc(-50% - 4px), calc(-50% + 2px)) rotate(-1.4deg); } 40% { transform:translate(calc(-50% + 4px), calc(-50% - 2px)) rotate(1.4deg); } 60% { transform:translate(calc(-50% - 3px), calc(-50% + 1px)) rotate(-1deg); } 80% { transform:translate(calc(-50% + 3px), calc(-50% - 1px)) rotate(1deg); } }
+@keyframes gstShake4 { 0%,100% { transform:translate(-50%, -50%) rotate(0deg); } 10% { transform:translate(calc(-50% - 5px), calc(-50% + 2px)) rotate(-2deg); } 30% { transform:translate(calc(-50% + 5px), calc(-50% - 2px)) rotate(2deg); } 50% { transform:translate(calc(-50% - 4px), calc(-50% + 1px)) rotate(-1.6deg); } 70% { transform:translate(calc(-50% + 4px), calc(-50% - 1px)) rotate(1.6deg); } 90% { transform:translate(calc(-50% - 3px), calc(-50% + 1px)) rotate(-1.2deg); } }
+@keyframes gstExplode { 
+	0% { transform:translate(-50%, -50%) scale(1); opacity:1; filter:none; }
+	22% { transform:translate(-50%, -50%) scale(1.09); filter:brightness(1.16); }
+	44% { transform:translate(-50%, -50%) scale(0.99); box-shadow:0 0 22px rgba(255,255,255,.5),0 0 90px rgba(255,170,0,.48); }
+	60% { transform:translate(-50%, -50%) scale(1.32); opacity:.98; filter:brightness(1.42) contrast(1.18); }
+	72% { transform:translate(-50%, -50%) scale(1.02) rotate(2deg); opacity:.78; filter:blur(.4px) brightness(1.36); }
+	84% { transform:translate(-50%, -50%) scale(.78) rotate(5deg); opacity:.54; filter:blur(1.2px) brightness(1.34); }
+	92% { transform:translate(-50%, -50%) scale(.52) rotate(8deg); opacity:.3; filter:blur(2.2px) brightness(1.36); }
+	100% { transform:translate(-50%, -50%) scale(.26) rotate(11deg); opacity:0; filter:blur(3.8px) brightness(1.42); }
+}
+
+/* Particle burst elements (spawned via JS at explosion) */
+.game-start-toast .gst-particle { position:absolute; top:50%; left:50%; width:7px; height:7px; background:hsl(var(--h,42) 100% 55%); border-radius:50%; pointer-events:none; box-shadow:0 0 6px rgba(255,180,0,.85), 0 0 14px rgba(255,150,0,.55); opacity:0; animation: gstParticle 1.25s cubic-bezier(.55,.1,.48,1) forwards; transform:translate(-50%, -50%) scale(.65); }
+.game-start-toast .gst-particle[data-variant="2"] { width:5px; height:5px; filter:brightness(1.2) saturate(1.2); animation-duration:1.35s; }
+.game-start-toast .gst-particle[data-variant="3"] { width:9px; height:9px; box-shadow:0 0 8px rgba(255,210,60,.9),0 0 18px rgba(255,170,0,.5); animation-duration:1.42s; }
+/* Spark (long-travel) variant */
+.game-start-toast .gst-particle[data-spark="1"] { width:4px; height:14px; border-radius:40%; transform:translate(-50%, -50%) rotate(var(--ang,0deg)) scale(.7); background:linear-gradient(180deg, hsl(var(--h,42) 100% 65%), hsl(var(--h,42) 100% 45%)); box-shadow:0 0 10px rgba(255,200,60,.85), 0 0 18px rgba(255,160,0,.55); animation: gstParticleSpark 1.6s cubic-bezier(.55,.1,.48,1) forwards; opacity:0; }
+@keyframes gstParticle { 0% { opacity:1; transform:translate(-50%, -50%) scale(.65); } 58% { opacity:1; transform:translate(calc(-50% + var(--dx,0px)), calc(-50% + var(--dy,0px))) scale(.55); } 82% { opacity:.85; transform:translate(calc(-50% + var(--dx,0px)), calc(-50% + var(--dy,0px))) scale(.32); } 100% { opacity:0; transform:translate(calc(-50% + var(--dx,0px)), calc(-50% + var(--dy,0px))) scale(.15); filter:blur(2.3px) brightness(1.45); } }
+@keyframes gstParticleSpark { 0% { opacity:1; transform:translate(-50%, -50%) rotate(var(--ang,0deg)) scale(.7); } 55% { opacity:1; transform:translate(calc(-50% + var(--dx2,0px)), calc(-50% + var(--dy2,0px))) rotate(var(--ang,0deg)) scale(.58); } 78% { opacity:.75; transform:translate(calc(-50% + var(--dx2,0px)), calc(-50% + var(--dy2,0px))) rotate(var(--ang,0deg)) scale(.38); } 100% { opacity:0; transform:translate(calc(-50% + var(--dx2,0px)), calc(-50% + var(--dy2,0px))) rotate(var(--ang,0deg)) scale(.28); filter:blur(3.2px) brightness(1.55); } }
+
+@media (prefers-reduced-motion: reduce) { .game-start-toast .gst-particle { display:none; animation:none !important; } }
+
+/* Shockwave ring (optional) */
+.game-start-toast .gst-shockwave { position:absolute; top:50%; left:50%; width:40px; height:40px; border:4px solid rgba(255,210,60,.85); border-radius:50%; transform:translate(-50%, -50%) scale(.2); opacity:0; pointer-events:none; mix-blend-mode:screen; animation: gstShockwave 1.2s ease-out forwards; box-shadow:0 0 12px rgba(255,200,50,.8), 0 0 28px rgba(255,160,0,.5); }
+@keyframes gstShockwave { 0% { transform:translate(-50%, -50%) scale(.2); opacity:.75; filter:blur(0); } 40% { opacity:.9; } 70% { opacity:.4; } 100% { transform:translate(-50%, -50%) scale(5.5); opacity:0; filter:blur(2px); } }
+
+/* Color band variation (applies subtle hue cycling) */
+/* Apply hue cycle to inner wrapper so root can keep shake/explosion animations */
+.game-start-toast[data-color-band="pulse"] .gst-inner { animation: gstHueCycle 5.5s linear infinite; }
+@keyframes gstHueCycle { 0% { filter:hue-rotate(0deg); } 50% { filter:hue-rotate(32deg) saturate(1.15); } 100% { filter:hue-rotate(0deg); } }
+@media (prefers-reduced-motion: reduce) { .game-start-toast[data-color-band="pulse"] { animation: fadeInSimple .4s ease forwards; filter:none; } }
 
 /* End of transplanted layout.css */
 
@@ -257,7 +361,30 @@ body[data-panels-force-overlay] .players-area { display:none; }
 /* Fallback arena visuals (rewrite) */
 .cmp-arena.game-board { position:relative; min-height:60vh; border:2px solid #222; background:rgba(0,0,0,.4); box-shadow:0 0 20px rgba(0,0,0,.6) inset; }
 .cmp-arena .tokyo-area { position:absolute; top:20px; left:50%; transform:translateX(-50%); width:60%; min-height:300px; display:flex; gap:40px; justify-content:center; }
-.cmp-arena .tokyo-bay, .cmp-arena .tokyo-city { flex:1; background:rgba(0,0,0,.55); border:2px solid #333; padding:10px; border-radius:6px; text-align:center; }
+/* Responsive scaling for Tokyo tiles: scale with viewport while preserving min legibility */
+.cmp-arena .tokyo-bay, .cmp-arena .tokyo-city {
+	flex:1 1 auto;
+	background:rgba(0,0,0,.55);
+	border:2px solid #333; padding:12px; border-radius:8px; text-align:center;
+	--tokyo-base-min: 200px;
+	--tokyo-base-max: 380px;
+	width:clamp(var(--tokyo-base-min), 24vw, var(--tokyo-base-max));
+	min-height:clamp(200px, 30vh, 420px);
+	display:flex; flex-direction:column; gap:10px; align-items:center; justify-content:flex-start;
+	transition:width .35s ease, min-height .35s ease, padding .25s ease;
+}
+/* Slightly reduce gap on narrower viewports */
+@media (max-width: 1400px) {
+	.cmp-arena .tokyo-area { gap:28px; width:72%; }
+}
+@media (max-width: 1100px) {
+	.cmp-arena .tokyo-area { gap:20px; width:80%; }
+	.cmp-arena .tokyo-bay, .cmp-arena .tokyo-city { width:clamp(160px, 34vw, 300px); min-height:clamp(150px, 30vh, 300px); }
+}
+@media (max-width: 880px) {
+	.cmp-arena .tokyo-area { flex-wrap:wrap; width:94%; position:static; transform:none; }
+	.cmp-arena .tokyo-bay, .cmp-arena .tokyo-city { flex:1 1 240px; width:clamp(200px, 44vw, 280px); }
+}
 .cmp-arena .monster-slot { height:140px; border:2px dashed #555; border-radius:4px; margin-top:10px; }
 .cmp-arena .round-indicator-container { position:absolute; top:-10px; right:-120px; }
 
@@ -278,10 +405,28 @@ body.splash-visible .cmp-dice-tray { visibility:hidden; opacity:0; transition:op
 body:not(.splash-visible) .cmp-dice-tray { visibility:visible; opacity:1; }
 /* Fully hide underlying layout content while splash visible to prevent early peek */
 /* Completely hide game layout (not just opacity) until game-active class set (after player selection + first player decided) */
+/* Legacy gating (retained for compatibility) */
 body:not(.game-active) .game-layout-shell { visibility:hidden; opacity:0; pointer-events:none; }
 body.game-active .game-layout-shell { visibility:visible; opacity:1; transition: opacity .45s ease; }
-/* Also hide standalone player profile cards container until game active (if mounted early) */
-body:not(.game-active) .cmp-player-profile-cards { visibility:hidden !important; /* stylelint-disable-line declaration-no-important */ opacity:0 !important; /* stylelint-disable-line declaration-no-important */ }
+/* New gating: prefer .game-ready (stricter) – added once >=2 players chosen & RFF resolved */
+body:not(.game-ready) .game-layout-shell .in-game-panel,
+body:not(.game-ready) .power-card-shop,
+body:not(.game-ready) .card-shop-panel,
+body:not(.game-ready) .players-area,
+body:not(.game-ready) .cmp-player-profile-cards,
+body:not(.game-ready) .cmp-action-menu,
+body:not(.game-ready) .cmp-dice-tray,
+body:not(.game-ready) .cmp-toolbar,
+body:not(.game-ready) .round-indicator-container,
+body:not(.game-ready) .rolloff-scoreboard-container:not(.is-active) /* scoreboard only during RFF */ {
+	visibility:hidden !important; /* stylelint-disable-line declaration-no-important */
+	opacity:0 !important; /* stylelint-disable-line declaration-no-important */
+	pointer-events:none !important; /* stylelint-disable-line declaration-no-important */
+}
+/* Standalone player profile cards container until game ready (if mounted early) */
+body:not(.game-ready) .cmp-player-profile-cards { visibility:hidden !important; opacity:0 !important; }
+/* When game-ready (post gating), also add game-active for legacy selectors if absent */
+body.game-ready .game-layout-shell { visibility:visible; opacity:1; transition: opacity .45s ease; }
 /* Keep legacy splash blur (redundant now but retained for transition aesthetics) */
 body.splash-visible .game-layout-shell > .gl-main,
 body.splash-visible .game-layout-shell > .gl-footer,
@@ -294,6 +439,10 @@ body.game-active:not(.splash-visible) .game-layout-shell > .gl-header { opacity:
 /* Post-splash blackout overlay (persists until Roll For First resolved) */
 .post-splash-blackout { position:fixed; inset:0; background:#000; opacity:1; z-index:7000; transition: opacity .5s ease; pointer-events:auto; }
 .post-splash-blackout.is-hidden { opacity:0; pointer-events:none; }
+
+/* Unified global blackout overlay (ref-counted) */
+.global-blackout-overlay { position:fixed; inset:0; background:rgba(0,0,0,.78); opacity:0; pointer-events:none; z-index:8200; transition:opacity .3s ease; }
+.global-blackout-overlay.is-active { opacity:1; pointer-events:auto; }
 
 /* Player profile cards rail (basic) */
 .cmp-player-profile-cards { position:fixed; left:50px; top:120px; display:flex; flex-direction:column; gap:12px; z-index:3000; }
