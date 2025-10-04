@@ -21,6 +21,7 @@ export function diceReducer(state = initial, action) {
         }
       } catch (_) {}
   const rerollsRemaining = state.baseRerolls + bonus;
+  console.log(`[dice.reducer] DICE_ROLL_STARTED (new sequence): rerollsRemaining set to ${rerollsRemaining} (base: ${state.baseRerolls}, bonus: ${bonus})`);
   return { ...state, phase: 'rolling', rerollsRemaining, accepted: false };
     }
     case DICE_ROLLED: {
@@ -55,6 +56,7 @@ export function diceReducer(state = initial, action) {
       // When a non-initial roll finishes (faces resolved), decrement rerollsRemaining
       if (state.phase !== 'resolved') return state; // only process once dice resolved
       const remaining = Math.max(0, state.rerollsRemaining - 1);
+      console.log(`[dice.reducer] DICE_ROLL_COMPLETED: ${state.rerollsRemaining} -> ${remaining}`);
       return { ...state, rerollsRemaining: remaining };
     }
     case DICE_ROLL_RESOLVED: {

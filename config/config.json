@@ -14,7 +14,7 @@
 			"image": "images/characters/king_of_tokyo_alienoid.png",
 			"description": "A mysterious being from the stars.",
 			"personality": { "aggression": 3, "strategy": 4, "risk": 2, "economic": 3 },
-		"color": "#1496b4"
+		"color": "#c7d84a"
 		},
 		"kraken": {
 			"id": "kraken",

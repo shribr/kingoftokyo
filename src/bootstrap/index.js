@@ -163,7 +163,7 @@ if (typeof window !== 'undefined') {
       console.warn('[bootstrap] config.json contained no monsters; using internal default set.');
       monsters = [
         { id: 'the_king', name: 'The King', image: 'images/characters/king_of_tokyo_the_king.png', description: 'A mighty ape unleashing chaos.', personality: { aggression:5, strategy:2, risk:3, economic:2 }, color: '#c49b3a' },
-        { id: 'alienoid', name: 'Alienoid', image: 'images/characters/king_of_tokyo_alienoid.png', description: 'A mysterious being from the stars.', personality: { aggression:3, strategy:4, risk:2, economic:3 }, color: '#6ac2d8' },
+        { id: 'alienoid', name: 'Alienoid', image: 'images/characters/king_of_tokyo_alienoid.png', description: 'A mysterious being from the stars.', personality: { aggression:3, strategy:4, risk:2, economic:3 }, color: '#c7d84a' },
         { id: 'kraken', name: 'Kraken', image: 'images/characters/king_of_tokyo_kraken.png', description: 'Terror from the deep seas.', personality: { aggression:4, strategy:3, risk:3, economic:2 }, color: '#2e8cba' }
       ];
     }

@@ -2,7 +2,7 @@
  * Orchestrates deck build & initial / refill shop.
  */
 import { buildBaseCatalog, buildDeck, draw } from '../domain/cards.js';
-import { cardsDeckBuilt, cardsShopFilled, cardPurchased, playerSpendEnergy, playerCardGained, cardDiscarded, cardShopFlushed, uiPeekShow, uiPeekHide } from '../core/actions.js';
+import { cardsDeckBuilt, cardsShopFilled, cardPurchased, playerSpendEnergy, playerCardGained, cardDiscarded, cardShopFlushed, uiPeekShow, uiPeekHide, uiEnergyFlash } from '../core/actions.js';
 import { Phases } from '../core/phaseFSM.js';
 import { createPhaseController } from '../core/phaseController.js';
 import { createEffectEngine } from './effectEngine.js';
@@ -47,6 +47,7 @@ export function purchaseCard(store, logger, playerId, cardId) {
   const player = state.players.byId[playerId];
   if (!player || player.energy < card.cost) return false;
   store.dispatch(playerSpendEnergy(playerId, card.cost));
+  store.dispatch(uiEnergyFlash(playerId, -card.cost)); // Negative to show energy spent
   store.dispatch(cardPurchased(playerId, card));
   const effectEngine = typeof window !== 'undefined' ? window.__KOT_NEW__?.effectEngine : null;
   let followUp = false;

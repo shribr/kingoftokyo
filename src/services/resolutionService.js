@@ -270,11 +270,14 @@ function attemptTokyoTakeover(store, logger, attackerId, playerCount, bayAllowed
 export function awardStartOfTurnTokyoVP(store, logger) {
   const state = store.getState();
   const activeId = selectActivePlayerId(state);
-  if (!activeId) return;
+  if (!activeId) {
+    console.log('🏙️ Tokyo VP Check: No active player ID found');
+    return;
+  }
   const cityOcc = selectTokyoCityOccupant(state);
   const bayOcc = selectTokyoBayOccupant(state);
   const playerCount = state.players.order.length;
-  console.log(`🏙️ Tokyo VP Check: ${activeId} - City: ${cityOcc}, Bay: ${bayOcc}`);
+  console.log(`🏙️ Tokyo VP Check: Active=${activeId} - City=${cityOcc}, Bay=${bayOcc}, Phase=${state.phase}`);
   const bayAllowed = playerCount >= 5;
   // Official: City occupant gains 2 VP; Bay occupant (only in 5-6 player games) gains 1 VP at start of their turn if they remain.
   if (cityOcc === activeId) {

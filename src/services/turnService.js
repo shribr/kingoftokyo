@@ -385,8 +385,7 @@ export function createTurnService(store, logger, rng = Math.random) {
     if (after.dice.rerollsRemaining === 0) {
       // sequence complete will trigger resolve externally or via explicit call
     }
-    // Decrement reroll count exactly once per completed reroll (faces now resolved)
-    store.dispatch(diceRollCompleted());
+    // diceRollCompleted is dispatched by eventsToActions.js handleRollRequested
   }
 
   async function resolve() {

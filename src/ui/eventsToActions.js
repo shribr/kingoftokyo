@@ -52,7 +52,7 @@ export function bindUIEventBridges(store) {
     const faces = rollDice({ count, currentFaces: diceState.faces });
     store.dispatch(diceRolled(faces));
     if (!isFirstRoll) {
-      // Mark reroll usage (legacy no-op for state) then complete to decrement once faces are resolved
+      // Mark reroll usage and complete to decrement rerollsRemaining
       store.dispatch(diceRerollUsed());
       store.dispatch(diceRollCompleted());
     }

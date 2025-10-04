@@ -64,9 +64,13 @@ export function createCpuTurnController(store, engine, logger = console, options
     while (!cancelled && rollNumber < settings.maxRolls) {
       rollNumber++;
       const initial = rollNumber === 1;
+      console.log(`[cpuController] Starting roll ${rollNumber}/${settings.maxRolls}, initial=${initial}`);
+      
       // Perform roll
       const preState = store.getState();
       const diceFacesBefore = preState.dice.faces;
+      console.log(`[cpuController] Pre-roll state: rerolls=${preState.dice.rerollsRemaining}, faces=${diceFacesBefore.length}`);
+      
       store.dispatch(diceRollStarted());
       // Determine dice slots (# of dice) from active player's modifiers
       let count = 6;
@@ -94,11 +98,19 @@ export function createCpuTurnController(store, engine, logger = console, options
       let rawDecision;
       try {
         rawDecision = engine.makeRollDecision(canonical, st.dice.rerollsRemaining, { ...player, monster: player.monster||{}, powerCards: player.cards||[] }, gameState);
+        console.log(`[cpuController] Engine returned decision:`, rawDecision);
       } catch(e) {
+        console.warn('[cpuController] engine decision error sync, fallback', e);
         logger.warn('[cpuController] engine decision error sync, fallback', e);
       }
       if (rawDecision && typeof rawDecision.then === 'function') decisionPromise = rawDecision; else decisionPromise = Promise.resolve(rawDecision);
-      const decision = await withTimeout(decisionPromise, settings.decisionTimeoutMs, () => ({ action: rerollsRemaining>0?'reroll':'endRoll', keepDice: [], confidence:0.2, reason:'timeout fallback'}));
+      const decision = await withTimeout(decisionPromise, settings.decisionTimeoutMs, () => {
+        const currentRerollsForFallback = st.dice.rerollsRemaining ?? 0;
+        console.warn(`[cpuController] Decision timeout, using fallback with rerolls=${currentRerollsForFallback}`);
+        return { action: currentRerollsForFallback>0?'reroll':'endRoll', keepDice: [], confidence:0.2, reason:'timeout fallback'};
+      });
+
+      console.log(`[cpuController] AI decision for roll ${rollNumber}:`, { action: decision.action, keepDice: decision.keepDice, rerollsRemaining });
 
       // Normalize decision
       const normalizedAction = (d=> {
@@ -127,6 +139,7 @@ export function createCpuTurnController(store, engine, logger = console, options
 
       // Decrement reroll counter after non-initial rolls
       if (!initial) {
+        console.log(`[cpuController] Decrementing reroll counter (roll ${rollNumber})`);
         store.dispatch({ type: 'DICE_REROLL_USED' }); // noop for legacy compatibility
         store.dispatch(diceRollCompleted());
       }
@@ -134,11 +147,15 @@ export function createCpuTurnController(store, engine, logger = console, options
       // Early stop conditions - check current state for rerolls remaining
       const currentState = store.getState();
       const currentRerolls = currentState.dice.rerollsRemaining ?? 0;
-      const stop = normalizedAction !== 'reroll' || currentRerolls <= 0 || !(currentState.dice.faces||[]).some(f=> f && !f.kept);
+      const hasUnkeptDice = !!(currentState.dice.faces||[]).some(f=> f && !f.kept);
+      console.log(`[cpuController] Stop check: action=${normalizedAction}, currentRerolls=${currentRerolls}, hasUnkeptDice=${hasUnkeptDice}`);
+      
+      const stop = normalizedAction !== 'reroll' || currentRerolls <= 0 || !hasUnkeptDice;
       if (stop || rollNumber >= settings.maxRolls) {
-        logger.debug && logger.debug('[cpuController] stopping after roll', { rollNumber, action: normalizedAction, currentRerolls });
+        console.log(`[cpuController] Stopping after roll ${rollNumber}:`, { stop, rollNumber, maxRolls: settings.maxRolls, reason: stop ? 'stop condition met' : 'max rolls reached' });
         break;
       }
+      console.log(`[cpuController] Continuing to next roll...`);
       // Next roll pacing
       await wait(settings.nextRollDelayMs + settings.decisionThinkingMs);
     }

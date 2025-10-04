@@ -15,6 +15,13 @@ import { extractEngineInputs } from '../ai/perception/stateView.js';
 
 const enhancedEngine = new AIDecisionEngine();
 
+// Expose engine globally for cpuTurnController to access
+if (typeof window !== 'undefined') {
+  window.__KOT_NEW__ = window.__KOT_NEW__ || {};
+  window.__KOT_NEW__.enhancedEngine = enhancedEngine;
+  console.log('[aiDecisionService] Enhanced AI engine initialized and exposed');
+}
+
 let latestTree = { rounds: [] };
 let lastRollNodeId = null;
 let nextNodeId = 1;

@@ -977,19 +977,39 @@ export function update(root) {
       }
     }
   } catch(_) {}
-  // Update My Cards button count
+  // Update My Cards button count and disabled state
   try {
     const countEl = root.querySelector('[data-my-cards-count]');
+    const myCardsBtn = root.querySelector('[data-action="show-my-cards"]');
     if (countEl) {
       const c = active?.cards?.length || 0;
       countEl.textContent = c ? ` (${c})` : '';
+    }
+    if (myCardsBtn) {
+      const hasCards = active?.cards?.length > 0;
+      myCardsBtn.disabled = !hasCards;
     }
   } catch(_) {}
   const isCPU = !!(active && (active.isCPU || active.isAi || active.type === 'ai'));
 
   const accepted = !!dice.accepted;
   if (rollBtn) {
-    rollBtn.disabled = isCPU || accepted || !canRoll;
+    const canRollBtn = !isCPU && !accepted && canRoll;
+    if (!canRollBtn && !isCPU) {
+      console.log('🚫 Roll Button Disabled - Debug Info:', {
+        phase: phaseName,
+        dicePhase: dice.phase,
+        accepted,
+        canRoll,
+        canInitialRoll,
+        canReroll,
+        defensiveInitial,
+        rerollsRemaining: dice.rerollsRemaining,
+        hasFirstRoll,
+        isIdle
+      });
+    }
+    rollBtn.disabled = !canRollBtn;
     rollBtn.textContent = hasFirstRoll ? 'RE-ROLL UNSELECTED' : 'ROLL';
   }
   if (keepBtn && !initializing) {
