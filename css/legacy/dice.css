@@ -14,6 +14,9 @@
     align-items: center;
     gap: 15px;
     width: fit-content; /* Only stretch to fit content */
+    margin-top: 24px; /* ensure separation from arena after layout refactor */
+    position: relative;
+    z-index: 5; /* keep below fixed active player card (z 6700) but above board background */
     
     /* Comic book halftone pattern */
     background-image: 

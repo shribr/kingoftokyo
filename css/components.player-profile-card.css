@@ -130,6 +130,18 @@
   height:auto;
 }
 
+/* When an active player card is moved into Tokyo, remove its fixed active positioning styling so it sits naturally in the slot */
+.cmp-player-profile-card[data-in-tokyo-slot][data-active-player="true"] {
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+  left: auto !important;
+  bottom: auto !important;
+  transform: none !important; /* base slot scaling applies via parent rule */
+  width: 100% !important;
+  height: auto !important;
+}
+
 /* Attribute-based badge (defensive reset) */
 .cmp-player-profile-card [data-tokyo-badge] {
   min-height:0 !important;
@@ -318,6 +330,14 @@
 /* Active card slot: act as a centering container for the docked PPC */
 #active-player-card-slot { position:absolute; pointer-events:none; top:40%; left:50%; z-index:6700; transition: left .45s cubic-bezier(.25,.46,.45,.94), top .45s cubic-bezier(.25,.46,.45,.94); margin:0; padding:0; transform:translate(-50%, -50%); display:block; }
 #active-player-card-slot .cmp-player-profile-card { position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); transform-origin:center center; pointer-events:auto; }
+[data-city-slot] .cmp-player-profile-card[data-in-tokyo-slot],
+[data-bay-slot] .cmp-player-profile-card[data-in-tokyo-slot] {
+  position:static !important;
+  top:auto !important;
+  left:auto !important;
+  transform:none !important;
+  width:100% !important; /* allow slot sizing logic to govern */
+}
 
 /* Contained mode: when the slot is appended inside the dedicated active player tile, remove viewport-centered offsets */
 [data-active-player-slot] > #active-player-card-slot { top:50%; left:50%; width:100%; height:100%; position:absolute; }

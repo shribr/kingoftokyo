@@ -37,143 +37,206 @@ export function build({ selector }) {
     </div>
     <div class="arena-active-player-dock" data-active-player-dock aria-label="Active player overview"></div>
   `;
-
-  // DISABLED: ResizeObserver temporarily disabled for troubleshooting
-  // TODO: Re-enable when animation issues are resolved
-  /*
-  const activePlayerSlot = root.querySelector('[data-active-player-slot]');
-  if (activePlayerSlot && window.ResizeObserver) {
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const { width, height } = entry.contentRect;
-        console.log('🏟️ ARENA SLOT Resize Detected:');
-        console.log('  📍 Source: Active Player Slot Container');
-        console.log('  📐 Dimensions:', { width, height });
-        console.log('  ⏰ Time:', new Date().toISOString());
-        console.log('  🎯 Element:', entry.target);
-        console.log('  📊 Stack trace:', new Error().stack);
-        
-        // Additional debugging info
-        const styles = getComputedStyle(entry.target);
-        console.log('  🎨 Computed styles:', {
-          position: styles.position,
-          display: styles.display,
-          transform: styles.transform,
-          width: styles.width,
-          height: styles.height
-        });
-      }
-    });
-    
-    resizeObserver.observe(activePlayerSlot);
-    
-    // Store observer for cleanup if needed
-    root._resizeObserver = resizeObserver;
-  }
-  */
-
   return { root, update: () => update(root) };
 }
 
 export function update(root) {
   const state = store.getState();
-  // Round: derive from log length or a future dedicated phase tracker; fallback 1
-  // Round indicator restored (distinct from game log)
   const metaRound = state.meta?.round || 1;
   const span = root.querySelector('[data-round-counter]');
   if (span) span.textContent = metaRound;
-  // Tokyo occupancy
+
+  // Tokyo occupancy (real card relocation)
   const { tokyo } = state;
   const citySlot = root.querySelector('[data-city-slot]');
   const baySlot = root.querySelector('[data-bay-slot]');
-  if (citySlot) {
-    const existingLive = citySlot.querySelector('.cmp-player-profile-card[data-live-in-tokyo-slot="city"]');
-    if (!existingLive) citySlot.innerHTML = renderOccupant(tokyo.city, state);
-  }
-  if (baySlot) {
-    const existingLive = baySlot.querySelector('.cmp-player-profile-card[data-live-in-tokyo-slot="bay"]');
-    if (!existingLive) baySlot.innerHTML = renderOccupant(tokyo.bay, state);
-  }
+  if (!root._tokyoOriginMap) root._tokyoOriginMap = new Map();
+  const originMap = root._tokyoOriginMap; // Map<HTMLElement,{parent:HTMLElement,index:number}>
 
-  // Disable Bay if fewer than 5 players (standard rule) – mark attribute for styling
+  const ensureCardInSlot = (playerId, slotEl, slotName) => {
+    if (!slotEl) return;
+    if (!playerId) {
+      if (!slotEl.firstElementChild) slotEl.innerHTML = '<div class="slot-empty">Empty</div>';
+      return;
+    }
+    const alreadyHere = slotEl.querySelector(`.cmp-player-profile-card[data-player-id="${playerId}"]`);
+    if (alreadyHere) return;
+    const liveCard = document.querySelector(`.cmp-player-profile-card[data-player-id="${playerId}"]:not([data-in-tokyo-slot])`);
+    if (!liveCard) return;
+    // If a portal animation is already running for this player, bail
+    if (root._tokyoPortalAnimating === playerId) return;
+    // Start portal (two-phase: animate clone, then relocate real card)
+    startTokyoPortal({ root, playerId, slotEl, slotName, liveCard, originMap });
+  };
+
+  ensureCardInSlot(tokyo.city, citySlot, 'city');
+  ensureCardInSlot(tokyo.bay, baySlot, 'bay');
+
+  // Restore cards leaving Tokyo
+  document.querySelectorAll('.cmp-player-profile-card[data-in-tokyo-slot]').forEach(card => {
+    const slotName = card.getAttribute('data-in-tokyo-slot');
+    const pid = card.getAttribute('data-player-id');
+    const still = (slotName === 'city' && tokyo.city === pid) || (slotName === 'bay' && tokyo.bay === pid);
+    if (still) return;
+    // FLIP animation for exit: measure first (current) rect, then move, then animate
+    const firstRect = card.getBoundingClientRect();
+    const meta = originMap.get(card);
+    card.removeAttribute('data-in-tokyo-slot');
+    card.removeAttribute('data-in-tokyo');
+    if (meta && meta.parent) {
+      const { parent, index } = meta;
+      const kids = Array.from(parent.children);
+      if (index >= 0 && index < kids.length) parent.insertBefore(card, kids[index]); else parent.appendChild(card);
+      try {
+        const lastRect = card.getBoundingClientRect();
+        const dx = firstRect.left - lastRect.left;
+        const dy = firstRect.top - lastRect.top;
+        const sx = firstRect.width / (lastRect.width || 1);
+        const sy = firstRect.height / (lastRect.height || 1);
+        card.classList.add('tokyo-flip-anim');
+        card.style.willChange = 'transform';
+        card.style.transition = 'none';
+        card.style.transformOrigin = 'top left';
+        card.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
+        void card.offsetWidth;
+        card.style.transition = 'transform 500ms cubic-bezier(.25,.9,.35,1.15)';
+        card.style.transform = '';
+        const cleanup = () => {
+          card.style.willChange = '';
+          card.classList.remove('tokyo-flip-anim');
+          card.removeEventListener('transitionend', cleanup);
+        };
+        card.addEventListener('transitionend', cleanup);
+      } catch(_) {}
+    }
+  });
+
+  // Default sizing sample (unchanged)
+  try {
+    if (!root._defaultCardSizeApplied) {
+      const sampleCard = document.querySelector('.cmp-player-profile-card:not(.cmp-player-profile-card--mini)');
+      if (sampleCard) {
+        const rect = sampleCard.getBoundingClientRect();
+        root.style.setProperty('--player-card-width', Math.ceil(rect.width) + 'px');
+        root.style.setProperty('--player-card-height', Math.ceil(rect.height) + 'px');
+        root._defaultCardSizeApplied = true;
+      }
+    }
+  } catch(_) {}
+
+  // Bay enable/disable
   try {
     const totalPlayers = state.players?.order?.length || 0;
     const baySection = root.querySelector('[data-arena-section="bay"]');
     if (baySection) {
-      if (totalPlayers < 5) {
-        baySection.setAttribute('data-disabled','true');
-      } else {
-        baySection.removeAttribute('data-disabled');
-      }
+      if (totalPlayers < 5) baySection.setAttribute('data-disabled','true'); else baySection.removeAttribute('data-disabled');
     }
   } catch(_) {}
 
-  // Highlight active occupancy on section elements
+  // Active flags
   try {
     const citySection = root.querySelector('[data-arena-section="city"]');
     const baySection = root.querySelector('[data-arena-section="bay"]');
-    if (citySection) {
-      if (tokyo.city) citySection.setAttribute('data-active','true'); else citySection.removeAttribute('data-active');
-    }
-    if (baySection) {
-      if (tokyo.bay) baySection.setAttribute('data-active','true'); else baySection.removeAttribute('data-active');
-    }
+    if (citySection) { if (tokyo.city) citySection.setAttribute('data-active','true'); else citySection.removeAttribute('data-active'); }
+    if (baySection) { if (tokyo.bay) baySection.setAttribute('data-active','true'); else baySection.removeAttribute('data-active'); }
   } catch(_) {}
 
-  // Active player dock (clone card into arena top-right)
-  // Cloning logic removed – actual card is now physically moved by monsters-panel.component
-  // This component intentionally leaves the dock empty; relocation handled upstream.
+  // Removed dynamic ResizeObserver sizing (initial size applied pre-move to avoid flicker).
 }
 
-function renderOccupant(playerId, state) {
-  if (!playerId) return '<div class="slot-empty">Empty</div>';
-  const p = state.players.byId[playerId];
-  if (!p) return '<div class="slot-empty">?</div>';
-  // Clone the player's actual profile card markup so visuals are identical; apply a "mini" wrapper for scale
+/**
+ * Portal / travel animation for a card entering Tokyo.
+ * Creates a fixed-position clone that animates to the slot. On arrival, real card is inserted.
+ */
+function startTokyoPortal({ root, playerId, slotEl, slotName, liveCard, originMap }) {
   try {
-    const liveCard = document.querySelector(`.cmp-player-profile-card[data-player-id="${playerId}"]`);
-    if (liveCard) {
-      const html = liveCard.outerHTML
-        .replace('class="cmp-player-profile-card"', 'class="cmp-player-profile-card cmp-player-profile-card--mini"')
-        .replace('data-in-active-dock="true"', '')
-        .replace(/data-player-id="[^"]*"/, `data-player-id="${playerId}" data-tokyo-clone="true"`);
-      
-      // Force update the clone with current player stats
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = html;
-      const cloneCard = tempDiv.querySelector('.cmp-player-profile-card');
-      
-      if (cloneCard) {
-        // Update stats in the clone
-        const energyEl = cloneCard.querySelector('[data-energy-value]');
-        const vpEl = cloneCard.querySelector('[data-vp-value]');
-        const hpEl = cloneCard.querySelector('[data-hp-value]');
-        const hpFill = cloneCard.querySelector('[data-health-fill]');
-        
-        if (energyEl) energyEl.textContent = p.energy;
-        if (vpEl) vpEl.textContent = p.victoryPoints;
-        if (hpEl) hpEl.textContent = p.health;
-        if (hpFill) hpFill.style.width = `${(p.health / 10) * 100}%`;
-  // Card count (owned power cards)
-  const cardsCountEl = cloneCard.querySelector('[data-cards-count]');
-  if (cardsCountEl) cardsCountEl.textContent = (p.cards?.length||0);
-        
-        // Ensure Tokyo status is shown
-        cloneCard.setAttribute('data-in-tokyo', 'true');
-        const tokyoEl = cloneCard.querySelector('[data-tokyo-badge]');
-        if (tokyoEl) {
-          tokyoEl.textContent = 'TOKYO';
-          tokyoEl.classList.add('is-in');
-        }
+    const firstRect = liveCard.getBoundingClientRect();
+    // Record original placement for restoration later
+    if (!originMap.has(liveCard)) {
+      const parent = liveCard.parentElement;
+      if (parent) {
+        const siblings = Array.from(parent.children);
+        originMap.set(liveCard, { parent, index: siblings.indexOf(liveCard) });
       }
-      
-      return `<div class="tokyo-occupant" data-player-id="${playerId}" data-active="true">${tempDiv.innerHTML}</div>`;
     }
-  } catch(_) {}
-  // Fallback: minimal info if card not in DOM yet
-  return `<div class="tokyo-occupant" data-player-id="${playerId}" data-active="true">
-    <span class="name">${p.name}</span>
-    <span class="hp">HP ${p.health}</span>
-    <span class="vp">★ ${p.victoryPoints}</span>
-  </div>`;
+    // Prepare destination sizing early
+    const sectionEl = slotEl.closest('[data-arena-section]');
+    if (sectionEl) {
+      // Only set slot width; avoid mutating section sizing custom properties (prevent layout jumps)
+      slotEl.style.width = Math.ceil(firstRect.width) + 'px';
+      sectionEl.setAttribute('data-initial-sized','true');
+    }
+    // Destination rect (center of slot)
+    const slotRect = slotEl.getBoundingClientRect();
+    // Create traveling clone
+    const clone = liveCard.cloneNode(true);
+    clone.classList.add('tokyo-travel-clone', 'tokyo-travel-glow');
+    // Remove IDs or attributes that could conflict
+    clone.removeAttribute('id');
+    // Style clone
+    Object.assign(clone.style, {
+      position: 'fixed',
+      top: firstRect.top + 'px',
+      left: firstRect.left + 'px',
+      width: firstRect.width + 'px',
+      height: firstRect.height + 'px',
+      margin: '0',
+      zIndex: '6900',
+      transformOrigin: 'top left',
+      pointerEvents: 'none',
+      transition: 'transform 620ms cubic-bezier(.25,.9,.35,1.1), box-shadow 300ms ease'
+    });
+    document.body.appendChild(clone);
+    // Hide real card during flight (keep layout)
+    liveCard.style.visibility = 'hidden';
+    root._tokyoPortalAnimating = playerId;
+    // Compute transform delta
+    const targetScale = 0.85; // final inside slot scale
+    const targetWidth = firstRect.width * targetScale;
+    // Center scaled card inside slot
+    const targetCenterX = slotRect.left + slotRect.width / 2;
+    const targetCenterY = slotRect.top + slotRect.height / 2;
+    const startCenterX = firstRect.left + firstRect.width / 2;
+    const startCenterY = firstRect.top + firstRect.height / 2;
+  let finalDx = targetCenterX - startCenterX;
+  let finalDy = targetCenterY - startCenterY;
+  // Compensate for scale shrinking around top-left so final visual center aligns with slot center
+  const correctionX = (firstRect.width * (1 - targetScale)) / 2;
+  const correctionY = (firstRect.height * (1 - targetScale)) / 2;
+  finalDx += correctionX;
+  finalDy += correctionY;
+    // Initial transform (identity) already implied; animate next frame
+    requestAnimationFrame(() => {
+      clone.style.transform = `translate(${finalDx}px, ${finalDy}px) scale(${targetScale})`;
+    });
+    const onEnd = () => {
+      clone.removeEventListener('transitionend', onEnd);
+      // Clean clone
+      clone.remove();
+      // Relocate real card
+      slotEl.innerHTML = '';
+  liveCard.setAttribute('data-in-tokyo-slot', slotName);
+      liveCard.setAttribute('data-in-tokyo', 'true');
+      liveCard.removeAttribute('data-in-active-dock');
+      slotEl.appendChild(liveCard);
+      liveCard.style.visibility = '';
+      // Glow pulse to emphasize arrival
+      liveCard.classList.add('tokyo-arrival-glow');
+      setTimeout(() => liveCard.classList.remove('tokyo-arrival-glow'), 900);
+      delete root._tokyoPortalAnimating;
+    };
+    clone.addEventListener('transitionend', onEnd);
+  } catch (e) {
+    console.warn('Tokyo portal animation failed, falling back to direct move', e);
+    // Fallback: direct append if failure
+    slotEl.innerHTML = '';
+    liveCard.setAttribute('data-in-tokyo-slot', slotName);
+    liveCard.setAttribute('data-in-tokyo', 'true');
+    liveCard.removeAttribute('data-in-active-dock');
+    slotEl.appendChild(liveCard);
+    liveCard.style.visibility = '';
+    delete root._tokyoPortalAnimating;
+  }
 }
+
+// renderOccupant removed – real cards are relocated; no cloning.

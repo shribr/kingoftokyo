@@ -40,6 +40,26 @@
   margin-right:40px;
 }
 
+/* Mobile / touch adjustments */
+@media (max-width: 760px), (pointer: coarse) {
+  .cmp-action-menu { 
+    top: 120px; 
+    right: 20px; 
+    left: auto; 
+    width: 85vw; 
+    max-width: 85vw; 
+    min-width: 0; 
+    padding: 8px 10px 10px; 
+    gap: 6px; 
+  }
+  body[data-action-menu-open] .cmp-action-menu { 
+    display: flex !important; 
+  }
+  .cmp-action-menu .am-content { flex-direction: row; flex-wrap: wrap; }
+  .cmp-action-menu button { flex: 1 1 auto; min-width: 42%; }
+  .cmp-action-menu .power-cards-menu-container { flex: 1 1 100%; }
+}
+
 /* Drag grip redesign (collapsed: only dots visible; expands on hover) */
 .cmp-action-menu .am-header-row { display:flex; align-items:center; gap:4px; position:relative; overflow:visible; }
 .cmp-action-menu .am-drag-grip.am-grip-left {

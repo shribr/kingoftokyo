@@ -78,11 +78,11 @@ export function build({ selector, emit }) {
       const applyMobileOffset = () => {
         try {
           const rect = toggleBtn.getBoundingClientRect();
-          const gap = 8; // desired clearance past button's right edge
+          const gap = 16; // increased clearance so dice not blocked by button
           const offset = Math.round(rect.left + rect.width + gap);
           root.style.left = offset + 'px';
-          // Reduce current expansion by additional 10px per request
-          root.style.width = `calc(100vw - ${offset + 10}px)`;
+          // Expand width a bit more now that gap increased; retain 10px safety
+          root.style.width = `calc(100vw - ${offset + 6}px)`;
           // Recompute current transform based on collapsed state
           const collapsed = root.getAttribute('data-collapsed') === 'left';
           root.style.transform = collapsed ? 'translateX(-100%)' : 'translateX(0)';
