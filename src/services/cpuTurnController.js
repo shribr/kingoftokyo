@@ -13,7 +13,7 @@ import { selectActivePlayerId } from '../core/selectors.js';
 import { enhancedEngineGuard } from './internal/engineGuard.js'; // (future-proof placeholder if needed)
 import { immediateAIDiceSelection } from './aiDecisionService.js';
 import { extractEngineInputs } from '../ai/perception/stateView.js';
-import { rollDice } from '../domain/dice.js';
+import { rollDice, tallyFaces } from '../domain/dice.js';
 import { DICE_ANIM_MS, AI_POST_ANIM_DELAY_MS } from '../constants/uiTimings.js';
 
 function wait(ms){ return new Promise(res=> setTimeout(res, ms)); }
@@ -130,12 +130,14 @@ export function createCpuTurnController(store, engine, logger = console, options
         reason: decision.reason 
       });
 
-      // Normalize decision action
+      // Normalize decision action:
+      // - Treat 'keep' as intent to continue rolling (after locking desired dice)
+      // - Only 'endRoll' (and synonyms) should terminate the roll cycle
       const normalizedAction = (d=> {
         if (!d || !d.action) return 'endRoll';
-        const a = d.action.toLowerCase();
-        if (a === 'endroll') return 'endRoll';
-        if (['reroll','keep','endroll','end','stop'].includes(a)) return a==='stop'?'endRoll':a;
+        const a = String(d.action).toLowerCase();
+        if (a === 'endroll' || a === 'end' || a === 'stop') return 'endRoll';
+        if (a === 'keep' || a === 'reroll') return 'reroll';
         return 'endRoll';
       })(decision);
 
@@ -163,6 +165,19 @@ export function createCpuTurnController(store, engine, logger = console, options
               console.log(`[cpuController] Kept die ${idx} (${d.value})`);
             }
           });
+          // If AI intends to reroll but accidentally kept all dice, release one low-value die so reroll is possible
+          try {
+            const afterKeeps = store.getState();
+            const allKept = (afterKeeps.dice.faces||[]).every(f=> f && f.kept);
+            const willReroll = normalizedAction === 'reroll' && (afterKeeps.dice.rerollsRemaining ?? 0) > 0;
+            if (willReroll && allKept) {
+              const releaseIdx = pickReleaseIndex(afterKeeps, playerId);
+              if (releaseIdx != null) {
+                store.dispatch({ type:'DICE_TOGGLE_KEEP', payload:{ index: releaseIdx }});
+                console.log(`[cpuController] Released die ${releaseIdx} to allow reroll`);
+              }
+            }
+          } catch(_) {}
         } else {
           // Fallback to simple heuristic if no specific dice provided
           console.log(`[cpuController] No specific keeps, using fallback heuristic`);
@@ -175,7 +190,7 @@ export function createCpuTurnController(store, engine, logger = console, options
       // Reroll counter management handled in the stop conditions logic
 
       // Early stop conditions - check current state for rerolls remaining
-      const currentState = store.getState();
+  const currentState = store.getState();
       const currentRerolls = currentState.dice.rerollsRemaining ?? 0;
       const hasUnkeptDice = !!(currentState.dice.faces||[]).some(f=> f && !f.kept);
       
@@ -184,7 +199,8 @@ export function createCpuTurnController(store, engine, logger = console, options
       
       console.log(`[cpuController] Stop check: action=${normalizedAction}, currentRerolls=${currentRerolls}, effectiveRerolls=${effectiveRerolls}, hasUnkeptDice=${hasUnkeptDice}, initial=${initial}`);
       
-      const stop = normalizedAction !== 'reroll' || effectiveRerolls <= 0 || !hasUnkeptDice;
+  // Stop only when explicitly ending, out of rerolls, or nothing left to reroll
+  const stop = normalizedAction === 'endRoll' || effectiveRerolls <= 0 || !hasUnkeptDice;
       if (stop || rollNumber >= settings.maxRolls) {
         console.log(`[cpuController] Stopping after roll ${rollNumber}:`, { stop, rollNumber, maxRolls: settings.maxRolls, reason: stop ? 'stop condition met' : 'max rolls reached' });
         break;
@@ -214,17 +230,43 @@ export function createCpuTurnController(store, engine, logger = console, options
       store.dispatch(diceRollResolved());
     }
 
-    // CPU should immediately apply dice effects including Tokyo entry VP
-    try {
-      logger.debug && logger.debug('[cpuController] applying dice effects (including Tokyo entry)');
-      // Import and call acceptDiceResults to trigger resolution logic
-      if (typeof window !== 'undefined' && window.__KOT_NEW__?.turnService?.acceptDiceResults) {
-        await window.__KOT_NEW__.turnService.acceptDiceResults();
-      }
-    } catch(e) {
-      logger.warn('[cpuController] failed to apply dice effects:', e);
-    }
+    // Resolution will be handled centrally by turnService in response to DICE_ROLL_RESOLVED.
   }
 
   return { start, cancel, isActive: ()=> active && !cancelled };
+}
+
+// Choose a die index to release (un-keep) when AI wants to reroll but all dice are kept.
+// Simple heuristic:
+//  - If in Tokyo: prefer releasing a 'heal' (hearts can't heal in Tokyo)
+//  - Else: prefer releasing a numeric that isn't part of a pair/triple (singles, lower number first)
+//  - Else: release an energy
+//  - Else: release the last die
+function pickReleaseIndex(state, playerId) {
+  try {
+    const faces = state.dice.faces || [];
+    if (!faces.length) return null;
+    const player = state.players.byId[playerId];
+    const t = tallyFaces(faces);
+    // 1) In Tokyo -> hearts are least valuable (can't heal)
+    if (player?.inTokyo) {
+      const idx = faces.findIndex(f => f.value === 'heal' || f.value === 'heart');
+      if (idx !== -1) return idx;
+    }
+    // 2) Numeric singles (not contributing to pair/triple), prefer lower numbers
+    const numOrder = ['1','2','3'];
+    for (const n of numOrder) {
+      if ((t[n]||0) === 1) {
+        const idx = faces.findIndex(f => String(f.value) === n);
+        if (idx !== -1) return idx;
+      }
+    }
+    // 3) Energy
+    {
+      const idx = faces.findIndex(f => f.value === 'energy' || f.value === '⚡');
+      if (idx !== -1) return idx;
+    }
+    // 4) Fallback: last die
+    return faces.length - 1;
+  } catch(_) { return null; }
 }
