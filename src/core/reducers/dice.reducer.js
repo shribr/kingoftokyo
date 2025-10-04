@@ -1,6 +1,6 @@
 import { DICE_ROLL_STARTED, DICE_ROLLED, DICE_TOGGLE_KEEP, DICE_REROLL_USED, DICE_SET_ALL_KEPT, DICE_ROLL_RESOLVED, DICE_ROLL_COMPLETED, DICE_RESULTS_ACCEPTED } from '../actions.js';
 
-const initial = { faces: [], rerollsRemaining: 0, baseRerolls: 2, phase: 'idle', accepted: false, rollHistory: [] };
+const initial = { faces: [], rerollsRemaining: 0, baseRerolls: 3, phase: 'idle', accepted: false, rollHistory: [] };
 
 export function diceReducer(state = initial, action) {
   switch (action.type) {
@@ -76,7 +76,7 @@ export function diceReducer(state = initial, action) {
     case 'PHASE_TRANSITION': {
       const to = action.payload?.to;
       if (to === 'ROLL') {
-        const baseRerolls = (state && typeof state.baseRerolls === 'number') ? state.baseRerolls : 2;
+        const baseRerolls = (state && typeof state.baseRerolls === 'number') ? state.baseRerolls : 3;
         return { faces: [], rerollsRemaining: 0, baseRerolls, phase: 'idle', accepted: false, rollHistory: [] };
       }
       return state;
@@ -86,7 +86,7 @@ export function diceReducer(state = initial, action) {
       try {
         const nextPhase = action.payload?.phase;
         if (nextPhase === 'ROLL') {
-          const baseRerolls = (state && typeof state.baseRerolls === 'number') ? state.baseRerolls : 2;
+          const baseRerolls = (state && typeof state.baseRerolls === 'number') ? state.baseRerolls : 3;
           return { faces: [], rerollsRemaining: 0, baseRerolls, phase: 'idle', accepted: false, rollHistory: [] };
         }
       } catch(_) {}
