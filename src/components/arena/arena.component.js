@@ -207,7 +207,8 @@ function startTokyoPortal({ root, playerId, slotEl, slotName, liveCard, originMa
   finalDy += correctionY;
     // Initial transform (identity) already implied; animate next frame
     requestAnimationFrame(() => {
-      clone.style.transform = `translate(${finalDx}px, ${finalDy}px) scale(${targetScale})`;
+  const rotation = slotName === 'city' ? 'rotate(-4deg)' : (slotName === 'bay' ? 'rotate(5deg)' : '');
+  clone.style.transform = `translate(${finalDx}px, ${finalDy}px) ${rotation} scale(${targetScale})`;
     });
     const onEnd = () => {
       clone.removeEventListener('transitionend', onEnd);
@@ -215,7 +216,7 @@ function startTokyoPortal({ root, playerId, slotEl, slotName, liveCard, originMa
       clone.remove();
       // Relocate real card
       slotEl.innerHTML = '';
-  liveCard.setAttribute('data-in-tokyo-slot', slotName);
+      liveCard.setAttribute('data-in-tokyo-slot', slotName);
       liveCard.setAttribute('data-in-tokyo', 'true');
       liveCard.removeAttribute('data-in-active-dock');
       slotEl.appendChild(liveCard);
@@ -223,6 +224,8 @@ function startTokyoPortal({ root, playerId, slotEl, slotName, liveCard, originMa
       // Glow pulse to emphasize arrival
       liveCard.classList.add('tokyo-arrival-glow');
       setTimeout(() => liveCard.classList.remove('tokyo-arrival-glow'), 900);
+      // Ensure no stale inline transform from previous exit remains (tile provides rotation/offset)
+      liveCard.style.transform = '';
       delete root._tokyoPortalAnimating;
     };
     clone.addEventListener('transitionend', onEnd);

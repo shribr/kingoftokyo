@@ -257,8 +257,9 @@
   transform-origin:top left;
 }
 /* Specific orientation per tile */
-.cmp-arena .city-slot .cmp-player-profile-card[data-in-tokyo-slot="city"] { transform: rotate(-4deg) scale(.85); }
-.cmp-arena .bay-slot  .cmp-player-profile-card[data-in-tokyo-slot="bay"]  { transform: rotate(5deg) scale(.85); }
+/* Card inside Tokyo scales only; rotation supplied by parent tile transform to avoid double rotation */
+.cmp-arena .city-slot .cmp-player-profile-card[data-in-tokyo-slot="city"],
+.cmp-arena .bay-slot  .cmp-player-profile-card[data-in-tokyo-slot="bay"]  { transform: scale(.85); }
 /* FLIP animation class (inline styles set start transform; we only ensure easing fairness here if fallback) */
 .cmp-player-profile-card.tokyo-flip-anim { will-change: transform; }
 /* Portal travel clone */
@@ -279,6 +280,10 @@
 /* Entry flourish when card docks into Tokyo */
 /* Remove CSS-based settle animation; JS handles arrival glow and settle */
 .cmp-arena [data-active-card-dock] .cmp-player-profile-card.in-place { animation:none; }
+
+/* Desktop / default: apply vertical offset AND rotation to tiles (cards inherit visual rotation) */
+.cmp-arena [data-arena-section="city"] { transform: translateY(14px) rotate(-4deg); transform-origin: top left; }
+.cmp-arena [data-arena-section="bay"]  { transform: translateY(18px) rotate(5deg);  transform-origin: top left; }
 
 /* Mobile: keep City and Bay side-by-side, remove rotation */
 @media (max-width: 760px), (pointer: coarse) {

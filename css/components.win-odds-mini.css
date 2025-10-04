@@ -1,5 +1,5 @@
 /* Floating Win Odds mini modal (no global blackout) */
-#mini-win-odds-floating.win-odds-mini-floating { box-sizing:border-box; }
+#mini-win-odds-floating.win-odds-mini-floating { box-sizing:border-box; z-index:6905; }
 .win-odds-mini-floating { background:#101317; border:2px solid #000; box-shadow:6px 6px 0 #000,0 0 0 2px #1e242b inset, 0 10px 24px -10px rgba(0,0,0,.7); border-radius:12px; font-family:'Nunito',system-ui,sans-serif; }
 .win-odds-mini-floating .mini-wo-chrome { position:relative; display:flex; flex-direction:column; width:100%; height:100%; }
 .mini-wo-header { display:flex; align-items:center; gap:8px; padding:6px 8px; background:#13181f; border-bottom:1px solid #1e242b; cursor:move; }

@@ -445,7 +445,7 @@ export function createSettingsModal() {
           <h3 class="section-title">🎲 Player Win Odds</h3>
           <div class="field" style="margin-top:6px;">
             <div style="font-size:11px;opacity:.65;margin-bottom:6px;line-height:1.4;">Heuristic distribution (VP, health, energy, Tokyo control, momentum).</div>
-            <div id="dev-win-odds-panel" style="background:#101317;border:1px solid #222;border-radius:8px;overflow:hidden;display:flex;flex-direction:column;">
+            <div id="dev-win-odds-panel" style="background:#101317;border:1px solid #222;border-radius:8px;overflow:hidden;display:flex;flex-direction:column;position:relative;z-index:6905;">
               <div class="win-odds-header" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid #1e242b;background:linear-gradient(90deg,#13181f,#181f27);">
                   <button type="button" id="dev-win-odds-mode" title="Cycle view (V)" style="display:inline-flex;align-items:center;justify-content:center;width:50px;height:50px;background:#1d232c;border:2px solid #2c3440;color:#cbd5e1;font-size:14px;border-radius:10px;line-height:1;cursor:pointer;box-shadow:0 0 0 1px #000 inset,0 2px 6px -2px #000;"></button>
                   <div style="flex:1;text-align:center;font-size:26px;font-weight:800;letter-spacing:2px;color:#e2e8f0;font-family:'Bangers',cursive;text-shadow:0 3px 6px #000,2px 2px 0 #000;">PLAYER WIN ODDS</div>
@@ -1535,20 +1535,28 @@ export function createSettingsModal() {
 export function openWinOddsQuickModal(){
   // If already open, bring to front
   const existing = document.getElementById('mini-win-odds-floating');
-  if (existing) { existing.style.zIndex = '6001'; return; }
+  if (existing) { existing.style.zIndex = '6905'; return; }
   const wrapper = document.createElement('div');
   wrapper.id = 'mini-win-odds-floating';
   wrapper.className = 'win-odds-mini-floating';
   const stored = (()=>{ try { return JSON.parse(localStorage.getItem('KOT_WIN_ODDS_MINI_SIZE')||'null'); } catch(_) { return null; } })();
   const size = Math.min(600, Math.max(240, stored?.size || 340));
   const pos = stored?.pos || { top: 120, right: 440 };
-  wrapper.style.cssText = `position:fixed;top:${pos.top}px;right:${pos.right}px;width:${size}px;height:${size}px;z-index:6001;display:flex;flex-direction:column;user-select:none;`;
+  // Elevated z-index above active player dock (6601) and typical overlays but below any traveling portal clone (~6900+)
+  wrapper.style.cssText = `position:fixed;top:${pos.top}px;right:${pos.right}px;width:${size}px;height:${size}px;z-index:6905;display:flex;flex-direction:column;user-select:none;`;
   wrapper.innerHTML = `
     <div class="mini-wo-chrome">
       <div class="mini-wo-header" data-drag-handle>
         <div class="mini-wo-title">WIN ODDS</div>
         <div class="mini-wo-header-tools">
-          <button class="mini-wo-btn" id="mini-win-odds-mode" title="Cycle view (V)">🔁</button>
+          <button class="mini-wo-btn" id="mini-win-odds-mode" title="Cycle view (V)" aria-label="Cycle win odds view">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="23 4 23 10 17 10"></polyline>
+              <polyline points="1 20 1 14 7 14"></polyline>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
+              <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path>
+            </svg>
+          </button>
           <button class="mini-wo-btn" id="mini-win-odds-close" title="Close">×</button>
         </div>
       </div>
@@ -1558,7 +1566,14 @@ export function openWinOddsQuickModal(){
       <div class="mini-wo-footer">
         <label class="mini-wo-auto"><input type="checkbox" id="mini-win-odds-auto" checked /> Auto</label>
         <div id="mini-win-odds-trend" class="mini-wo-trend">–</div>
-        <button class="mini-wo-btn" id="mini-win-odds-refresh" title="Refresh now (R)">↻</button>
+        <button class="mini-wo-btn" id="mini-win-odds-refresh" title="Refresh now (R)" aria-label="Refresh win odds">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
+            <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path>
+          </svg>
+        </button>
       </div>
       <div class="mini-wo-resize handle-nw" data-resize="nw"></div>
       <div class="mini-wo-resize handle-ne" data-resize="ne"></div>
