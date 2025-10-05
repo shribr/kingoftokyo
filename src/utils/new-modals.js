@@ -11,7 +11,7 @@ export function createSettingsModal() {
   // Optionally add 'settings-light' class later based on user preference
   content.innerHTML = `
     <!-- Tab Navigation -->
-  <div class="settings-tabs" style="display:flex; border-bottom:2px solid #333; margin-bottom:20px; background:#1a1a1a; border-radius:6px 6px 0 0; position:sticky; top:0; z-index:50; box-shadow:0 2px 6px -2px rgba(0,0,0,.7);" role="tablist">
+  <div class="settings-tabs" style="display:flex; border-bottom:2px solid #333; margin-bottom:0; background:#1c1c1c; border-radius:6px 6px 0 0; position:sticky; top:0; z-index:50; box-shadow:0 2px 6px -2px rgba(0,0,0,.7); padding-bottom:2px;" role="tablist">
       <button type="button" class="tab-button active" data-tab="gameplay" style="flex: 1; background: none; border: none; color: #e4e4e4; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;">
         <span style="margin-right: 8px;">🎮</span>Gameplay
       </button>
@@ -41,7 +41,7 @@ export function createSettingsModal() {
       </button>
     </div>
 
-    <form class="unified-modal-form">
+    <form class="unified-modal-form" style="padding: 16px;">
       <!-- Gameplay Tab -->
       <div class="tab-content active" data-tab-content="gameplay">
         <div class="section">
@@ -548,8 +548,10 @@ export function createSettingsModal() {
         </div>
       </div>
     </form>
-    <div class="modal-actions" style="padding-right:14px;">
-      <button type="button" class="btn btn-primary save-btn" style="padding-right:14px;" disabled>Save Settings</button>
+
+    <!-- Save Bar - Fixed at bottom -->
+    <div class="modal-actions" style="position:sticky;bottom:0;background:#1c1c1c;padding:14px 20px 0 20px;display:flex;justify-content:flex-end;border-top:2px solid #333;box-shadow:0 -4px 8px rgba(0,0,0,0.5);z-index:50;">
+      <button type="button" class="btn btn-primary save-btn" style="font-family:'Bangers',cursive;font-size:14px;padding:8px 24px;background:#2a2a2a;color:#e4e4e4;border:2px solid #444;box-shadow:2px 2px 0 #000;margin-bottom:14px;" disabled>Save Settings</button>
     </div>
   `;
 
@@ -1697,6 +1699,19 @@ export function createSettingsModal() {
 
   const __settingsModal = newModalSystem.createModal('settings', '⚙️ Game Settings', content, { width: '1400px', height: '700px' });
   try { __settingsModal.setAttribute('data-modal-id','settings'); } catch(_) {}
+
+  // Remove max-height to prevent gap below sticky footer
+  try {
+    __settingsModal.style.maxHeight = 'none';
+  } catch(_) {}
+
+  // Remove padding from modal body to prevent gap below sticky footer
+  try {
+    const modalBody = __settingsModal.querySelector('.new-modal-body');
+    if (modalBody) {
+      modalBody.style.padding = '0';
+    }
+  } catch(_) {}
 
   // Establish baseline AFTER loading initial settings values
   establishBaseline();
