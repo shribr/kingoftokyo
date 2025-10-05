@@ -131,6 +131,13 @@ export function update(root, instances) {
   
   if (root._lastLayoutCacheKey === layoutCacheKey && root._hasInitialLayout) {
     // Skip expensive layout recalculations if nothing relevant changed
+    // But still update player cards with latest state (VP, energy, HP changes)
+    order.forEach((id) => {
+      const inst = instances.get(id);
+      if (inst) {
+        inst.update({ playerId: id });
+      }
+    });
     return;
   }
   root._lastLayoutCacheKey = layoutCacheKey;
