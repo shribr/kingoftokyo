@@ -37,7 +37,13 @@ export function initSidePanel(root, {
       root.setAttribute('data-collapsed','true');
     } else {
       root.removeAttribute('data-collapsed');
+      // Force a reflow before clearing height to prevent rendering corruption
+      void root.offsetHeight;
       root.style.height = '';
+      // Trigger repaint
+      requestAnimationFrame(() => {
+        root.style.height = '';
+      });
     }
     setArrow();
     if (header) header.setAttribute('aria-expanded', collapsing ? 'false':'true');
@@ -65,6 +71,48 @@ export function initSidePanel(root, {
   setArrow();
   updateBodyState();
   root.setAttribute('data-initialized','true');
+
+  // Handle window resize: auto-expand panels when transitioning from mobile to desktop
+  let wasMobile = isMobile;
+  const handleResize = () => {
+    const isNowMobile = window.matchMedia('(max-width: 760px), (pointer: coarse)').matches;
+    
+    // Transitioning from mobile to desktop - auto-expand if collapsed
+    if (wasMobile && !isNowMobile) {
+      const isCollapsed = root.getAttribute('data-collapsed') === 'true';
+      if (isCollapsed) {
+        root.removeAttribute('data-collapsed');
+        // Force height clear and repaint
+        void root.offsetHeight;
+        root.style.height = '';
+        requestAnimationFrame(() => {
+          root.style.height = '';
+        });
+        setArrow();
+        if (header) header.setAttribute('aria-expanded', 'true');
+        updateBodyState();
+        if (onToggle) onToggle(false);
+      }
+    }
+    // Transitioning from desktop to mobile - auto-collapse
+    else if (!wasMobile && isNowMobile) {
+      const isCollapsed = root.getAttribute('data-collapsed') === 'true';
+      if (!isCollapsed) {
+        root.style.height = root.offsetHeight + 'px';
+        root.setAttribute('data-collapsed','true');
+        setArrow();
+        if (header) header.setAttribute('aria-expanded', 'false');
+        updateBodyState();
+        if (onToggle) onToggle(true);
+      }
+    }
+    
+    wasMobile = isNowMobile;
+  };
+  
+  if (typeof window !== 'undefined') {
+    window.addEventListener('resize', handleResize);
+  }
 
   // dev parity logging removed
 

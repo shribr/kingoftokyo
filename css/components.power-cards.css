@@ -38,17 +38,63 @@
 .cmp-power-cards-panel .power-card-deck-title { font-family:'Bangers',cursive; font-size:18px; letter-spacing:.75px; color:var(--pc-card-accent); text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; padding-left:8px; margin-bottom:8px; }
 .cmp-power-cards-panel .power-card-deck { 
   min-height:160px; 
-  background:linear-gradient(135deg,#2c5234,#1a3d20); 
+  background:
+    radial-gradient(circle at 2px 2px, rgba(0,0,0,.12) 1px, transparent 0),
+    radial-gradient(ellipse at center, rgba(255,207,51,0.08) 0%, transparent 50%),
+    linear-gradient(135deg, rgba(255,255,255,.08) 0%, transparent 40%, transparent 60%, rgba(0,0,0,.15) 100%),
+    linear-gradient(135deg,#2c5234,#1a3d20); 
+  background-size: 8px 8px, 60% 80%, 100% 100%, 100% 100%;
+  background-position: 0 0, center center, 0 0, 0 0;
   border:3px solid #000; 
   border-radius:8px; 
   display:flex; 
   align-items:center; 
   justify-content:center; 
-  box-shadow:inset 0 0 20px rgba(0,0,0,0.3); 
+  box-shadow:
+    inset 0 0 20px rgba(0,0,0,0.3),
+    inset -2px -2px 8px rgba(0,0,0,0.4),
+    inset 2px 2px 8px rgba(255,255,255,0.05),
+    5px 5px 0 #000; 
   position: relative;
   transform: translateZ(0) rotate(1.5deg);
-  transition: box-shadow 0.3s ease;
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
   z-index: 3;
+  overflow: hidden;
+  animation: deckWave 4s ease-in-out infinite;
+}
+
+@keyframes deckWave {
+  0%, 100% {
+    transform: translateZ(0) rotate(1.5deg) translateY(0) rotateX(0deg);
+  }
+  25% {
+    transform: translateZ(0) rotate(1.3deg) translateY(-2px) rotateX(1deg);
+  }
+  50% {
+    transform: translateZ(0) rotate(1.5deg) translateY(0) rotateX(0deg);
+  }
+  75% {
+    transform: translateZ(0) rotate(1.7deg) translateY(-2px) rotateX(-1deg);
+  }
+}
+
+.cmp-power-cards-panel .power-card-deck:hover {
+  box-shadow:
+    inset 0 0 20px rgba(0,0,0,0.3),
+    inset -2px -2px 8px rgba(0,0,0,0.4),
+    inset 2px 2px 8px rgba(255,255,255,0.08),
+    6px 6px 0 #000,
+    0 0 20px rgba(44,82,52,0.4);
+  animation: deckWaveHover 2s ease-in-out infinite;
+}
+
+@keyframes deckWaveHover {
+  0%, 100% {
+    transform: translateZ(0) rotate(1.5deg) translateY(-1px) rotateX(0deg);
+  }
+  50% {
+    transform: translateZ(0) rotate(1.5deg) translateY(-3px) rotateX(2deg);
+  }
 }
 
 .cmp-power-cards-panel .deck-logo {
@@ -56,9 +102,19 @@
   width: 100px;
   height: auto;
   opacity: 0.8;
-  filter: drop-shadow(-2px -2px 0 #000) drop-shadow(2px -2px 0 #000) drop-shadow(-2px 2px 0 #000) drop-shadow(2px 2px 0 #000);
+  filter: drop-shadow(-2px -2px 0 #000) drop-shadow(2px -2px 0 #000) drop-shadow(-2px 2px 0 #000) drop-shadow(2px 2px 0 #000) drop-shadow(0 0 8px rgba(255,207,51,0.3));
   z-index: 2;
   transform-origin: center center;
+  animation: deckLogoGlow 3s ease-in-out infinite;
+}
+
+@keyframes deckLogoGlow {
+  0%, 100% {
+    filter: drop-shadow(-2px -2px 0 #000) drop-shadow(2px -2px 0 #000) drop-shadow(-2px 2px 0 #000) drop-shadow(2px 2px 0 #000) drop-shadow(0 0 8px rgba(255,207,51,0.3));
+  }
+  50% {
+    filter: drop-shadow(-2px -2px 0 #000) drop-shadow(2px -2px 0 #000) drop-shadow(-2px 2px 0 #000) drop-shadow(2px 2px 0 #000) drop-shadow(0 0 16px rgba(255,207,51,0.5));
+  }
 }
 
 .cmp-power-cards-panel .deck-label {
@@ -105,6 +161,45 @@
   }
 }
 
+/* Additional corner accents using deck-logo pseudo-elements */
+.cmp-power-cards-panel .power-card-deck .deck-logo::before,
+.cmp-power-cards-panel .power-card-deck .deck-logo::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255,255,255,0.15);
+  pointer-events: none;
+}
+
+.cmp-power-cards-panel .power-card-deck .deck-logo::before {
+  top: -60px;
+  left: -60px;
+  border-right: none;
+  border-bottom: none;
+  border-top-left-radius: 6px;
+}
+
+.cmp-power-cards-panel .power-card-deck .deck-logo::after {
+  bottom: -60px;
+  right: -60px;
+  border-left: none;
+  border-top: none;
+  border-bottom-right-radius: 6px;
+}
+
+@media (max-width: 768px) {
+  .cmp-power-cards-panel .power-card-deck .deck-logo::before {
+    top: -40px;
+    left: -80px;
+  }
+  
+  .cmp-power-cards-panel .power-card-deck .deck-logo::after {
+    bottom: -40px;
+    right: -80px;
+  }
+}
+
 .cmp-power-cards-panel .power-card-deck::before {
   content: '';
   position: absolute;
@@ -112,11 +207,16 @@
   left: 2px;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg,#234429,#15301a);
+  background:
+    radial-gradient(circle at 2px 2px, rgba(0,0,0,.1) 1px, transparent 0),
+    linear-gradient(135deg,#234429,#15301a);
+  background-size: 8px 8px, 100% 100%;
   border: 3px solid #000;
   border-radius: 8px;
   z-index: -1;
-  box-shadow: inset 0 0 15px rgba(0,0,0,0.2);
+  box-shadow:
+    inset 0 0 15px rgba(0,0,0,0.2),
+    4px 4px 0 #000;
   transform: rotate(-2deg);
   transform-origin: center center;
 }
@@ -128,11 +228,16 @@
   left: -1px;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg,#1a3520,#0e2314);
+  background:
+    radial-gradient(circle at 2px 2px, rgba(0,0,0,.08) 1px, transparent 0),
+    linear-gradient(135deg,#1a3520,#0e2314);
+  background-size: 8px 8px, 100% 100%;
   border: 3px solid #000;
   border-radius: 8px;
   z-index: -2;
-  box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+  box-shadow:
+    inset 0 0 10px rgba(0,0,0,0.3),
+    3px 3px 0 #000;
   transform: rotate(2.5deg);
   transform-origin: center center;
 }
@@ -241,7 +346,7 @@
 .cmp-power-cards-panel [data-refresh] { opacity:.85; }
 .cmp-power-cards-panel [data-refresh]:disabled { cursor:not-allowed; opacity:.55; }
 
-@media (max-width:900px){
+@media (min-width:761px) and (max-width:900px){
   .cmp-power-cards-panel .pc-shop-cards { grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:12px; }
   .cmp-power-cards-panel .pc-card { padding:10px 12px 12px; }
   .cmp-power-cards-panel .pc-card__header { font-size:16px; }
@@ -292,12 +397,6 @@
   .cmp-power-cards-panel .pc-empty-frame { padding:12px 12px 14px !important; }
   .cmp-power-cards-panel .pc-empty-frame h3 { font-size:20px !important; }
   .cmp-power-cards-panel .pc-empty-frame p { font-size:11px !important; }
-}
-
-/* Compact layout for very narrow widths */
-@media (max-width:640px) {
-  .cmp-power-cards-panel .pc-shop-cards { grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); }
-  .cmp-power-cards-panel .pc-card { padding:8px 10px 10px; }
 }
 
 /* Entrance animation (can be triggered later when cards load) */
