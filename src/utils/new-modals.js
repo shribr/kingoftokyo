@@ -1532,18 +1532,205 @@ export function createSettingsModal() {
       const newSettings = collectSettingsFromForm();
       const dirty = !shallowEqual(newSettings, baselineSettings);
       if (!dirty) return; // nothing to do
-      if (window.__KOT_NEW__?.store) {
-        try {
-          const actions = await import('../core/actions.js');
-          window.__KOT_NEW__.store.dispatch(actions.settingsUpdated(newSettings));
-          console.log('[NEW-SETTINGS] Settings saved:', newSettings);
-          baselineSettings = newSettings; // reset baseline
-          saveBtn.disabled = true;
-        } catch (err) {
-          console.error('[NEW-SETTINGS] Failed to save settings:', err);
+      
+      // Build list of changes
+      const changes = [];
+      for (const key of Object.keys(newSettings)) {
+        if (newSettings[key] !== baselineSettings[key]) {
+          changes.push({
+            setting: key,
+            oldValue: baselineSettings[key],
+            newValue: newSettings[key]
+          });
         }
       }
+      
+      // Show confirmation modal with changes table
+      const confirmContent = document.createElement('div');
+      confirmContent.innerHTML = `
+        <div style="padding: 16px;">
+          <p style="margin-bottom: 16px;">Select which settings to save:</p>
+          <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+            <thead>
+              <tr style="border-bottom: 2px solid #333;">
+                <th style="padding: 8px; text-align: left; font-family: 'Bangers', cursive;">Setting</th>
+                <th style="padding: 8px; text-align: left; font-family: 'Bangers', cursive;">Old Value</th>
+                <th style="padding: 8px; text-align: left; font-family: 'Bangers', cursive;">New Value</th>
+                <th style="padding: 8px; text-align: center; font-family: 'Bangers', cursive; width: 80px;">Include</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${changes.map((change, index) => `
+                <tr class="change-row" data-setting="${change.setting}" style="border-bottom: 1px solid #222; transition: opacity 0.2s ease;">
+                  <td class="setting-name" style="padding: 8px; font-size: 13px;">${formatSettingName(change.setting)}</td>
+                  <td class="old-value" style="padding: 8px; font-size: 13px; color: #f88;">${formatValue(change.oldValue)}</td>
+                  <td class="new-value" style="padding: 8px; font-size: 13px; color: #8f8;">${formatValue(change.newValue)}</td>
+                  <td style="padding: 8px; text-align: center;">
+                    <input type="checkbox" class="change-checkbox" data-setting="${change.setting}" checked style="width: 18px; height: 18px; cursor: pointer;">
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <div style="display: flex; gap: 12px; justify-content: space-between; align-items: center;">
+            <button class="select-all-btn" style="font-family: 'Bangers', cursive; font-size: 12px; padding: 6px 16px; background: #2a2a2a; color: #e4e4e4; border: 2px solid #444; border-radius: 4px; cursor: pointer; box-shadow: 2px 2px 0 #000;">Toggle All</button>
+            <div style="display: flex; gap: 12px;">
+              <button class="confirm-cancel-btn" style="font-family: 'Bangers', cursive; font-size: 14px; padding: 8px 24px; background: #2a2a2a; color: #e4e4e4; border: 2px solid #444; border-radius: 4px; cursor: pointer; box-shadow: 2px 2px 0 #000;">Cancel</button>
+              <button class="confirm-save-btn" style="font-family: 'Bangers', cursive; font-size: 14px; padding: 8px 24px; background: #4a9eff; color: #fff; border: 2px solid #6bb0ff; border-radius: 4px; cursor: pointer; box-shadow: 2px 2px 0 #000;">Save Selected</button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Helper functions for formatting
+      function formatSettingName(key) {
+        return key
+          .replace(/([A-Z])/g, ' $1')
+          .replace(/^./, str => str.toUpperCase())
+          .trim();
+      }
+      
+      function formatValue(val) {
+        if (typeof val === 'boolean') return val ? 'Enabled' : 'Disabled';
+        if (val === null || val === undefined) return 'None';
+        return String(val);
+      }
+      
+      // Create and show confirmation modal
+      const confirmModal = newModalSystem.createModal('settings-confirm', '⚠️ Confirm Settings Changes', confirmContent, { width: '700px' });
+      
+      const cancelBtn = confirmContent.querySelector('.confirm-cancel-btn');
+      const confirmBtn = confirmContent.querySelector('.confirm-save-btn');
+      const selectAllBtn = confirmContent.querySelector('.select-all-btn');
+      const checkboxes = confirmContent.querySelectorAll('.change-checkbox');
+      
+      // Add checkbox change listeners for visual feedback
+      checkboxes.forEach(cb => {
+        cb.addEventListener('change', () => {
+          const row = cb.closest('.change-row');
+          if (row) {
+            if (cb.checked) {
+              row.style.opacity = '1';
+              row.style.textDecoration = 'none';
+            } else {
+              row.style.opacity = '0.4';
+              row.style.textDecoration = 'line-through';
+            }
+          }
+        });
+      });
+      
+      // Toggle all checkboxes
+      if (selectAllBtn) {
+        selectAllBtn.addEventListener('click', () => {
+          const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+          checkboxes.forEach(cb => {
+            cb.checked = !allChecked;
+            // Trigger change event to update visual state
+            cb.dispatchEvent(new Event('change'));
+          });
+        });
+      }
+      
+      cancelBtn.addEventListener('click', () => {
+        newModalSystem.closeModal('settings-confirm');
+      });
+      
+      confirmBtn.addEventListener('click', async () => {
+        // Build settings object with only checked changes
+        const settingsToSave = { ...baselineSettings };
+        checkboxes.forEach(cb => {
+          if (cb.checked) {
+            const settingKey = cb.getAttribute('data-setting');
+            settingsToSave[settingKey] = newSettings[settingKey];
+          }
+        });
+        
+        if (window.__KOT_NEW__?.store) {
+          try {
+            const actions = await import('../core/actions.js');
+            window.__KOT_NEW__.store.dispatch(actions.settingsUpdated(settingsToSave));
+            console.log('[NEW-SETTINGS] Settings saved:', settingsToSave);
+            baselineSettings = settingsToSave; // reset baseline to what was saved
+            
+            // Update form to reflect baseline (uncheck changes revert to baseline)
+            checkboxes.forEach(cb => {
+              if (!cb.checked) {
+                const settingKey = cb.getAttribute('data-setting');
+                const input = form.querySelector(`[name="${settingKey}"]`);
+                if (input) {
+                  if (input.type === 'checkbox') {
+                    input.checked = baselineSettings[settingKey];
+                  } else {
+                    input.value = baselineSettings[settingKey];
+                  }
+                }
+              }
+            });
+            
+            saveBtn.disabled = true;
+            newModalSystem.closeModal('settings-confirm');
+            
+            // Close settings modal
+            newModalSystem.closeModal('settings');
+            
+            // Show success notification
+            showNotification('✓ Settings saved successfully', 'success');
+          } catch (err) {
+            console.error('[NEW-SETTINGS] Failed to save settings:', err);
+            showNotification('✗ Failed to save settings', 'error');
+          }
+        }
+      });
+      
+      newModalSystem.showModal('settings-confirm');
     });
+  }
+  
+  // Notification helper function
+  function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: ${type === 'success' ? '#2d5016' : '#5c1616'};
+      color: ${type === 'success' ? '#90ee90' : '#ffb3b3'};
+      border: 2px solid ${type === 'success' ? '#4a7c2c' : '#8b3a3a'};
+      border-radius: 6px;
+      padding: 12px 20px;
+      font-family: 'Nunito', system-ui, sans-serif;
+      font-size: 14px;
+      box-shadow: 3px 3px 0 #000, 0 4px 12px rgba(0,0,0,0.5);
+      z-index: 10000;
+      animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s;
+      pointer-events: none;
+    `;
+    notification.textContent = message;
+    
+    // Add animation keyframes if not already present
+    if (!document.getElementById('notification-animations')) {
+      const style = document.createElement('style');
+      style.id = 'notification-animations';
+      style.textContent = `
+        @keyframes slideIn {
+          from { transform: translateX(-100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+          from { opacity: 1; }
+          to { opacity: 0; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    
+    document.body.appendChild(notification);
+    
+    // Remove after animation
+    setTimeout(() => {
+      notification.remove();
+    }, 3000);
   }
 
   // Advanced button handlers
