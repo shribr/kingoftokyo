@@ -155,6 +155,13 @@
 .cmp-player-profile-card .ppc-stat .label { display:block; font-size:12px; letter-spacing:.5px; color:#222; margin:0 0 2px; }
 .cmp-player-profile-card .ppc-stat .value { font-size:28px; color:var(--ppc-accent-text,#ffd400); text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000; line-height:1; }
 
+/* Cards stat tile - clickable when player has cards */
+.cmp-player-profile-card .ppc-stat[data-cards] { cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.cmp-player-profile-card .ppc-stat[data-cards]:hover { transform: translateY(-2px); box-shadow: 3px 3px 0 #000, 0 0 0 2px #ffd400; }
+.cmp-player-profile-card .ppc-stat[data-cards][data-cards-count="0"] { cursor: default; }
+.cmp-player-profile-card .ppc-stat[data-cards][data-cards-count="0"]:hover { transform: none; box-shadow: 2px 2px 0 #000; }
+
+
 /* Owned cards lane */
 .cmp-player-profile-card .ppc-owned-cards { background:#1c2123; border:3px solid #000; padding:8px 8px 10px; box-shadow:2px 2px 0 #000; }
 .cmp-player-profile-card .ppc-owned-cards-label { font-size:14px; color:#ffd400; margin:0 0 4px; }

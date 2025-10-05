@@ -1095,9 +1095,13 @@ export function update(root) {
     // Initial roll conditions:
     // 1. dice.phase === 'idle' (clean start)
     // 2. OR dice.accepted === true (leftover from previous player's turn - should be ignored)
-    const isInitialRoll = dice.phase === 'idle' || (phaseName === 'ROLL' && dice.accepted);
+    // 3. OR (phaseName === 'ROLL' && no faces yet) - defensive for human player at turn start
+    const isInitialRoll = dice.phase === 'idle' || (phaseName === 'ROLL' && dice.accepted) || (phaseName === 'ROLL' && faces.length === 0);
     const acceptedBlocksRoll = accepted && !isInitialRoll;
-    const canRollBtn = !isCPU && !acceptedBlocksRoll && canRoll;
+    
+    // CRITICAL: For human players in ROLL phase with no faces, ALWAYS allow roll (override all other blocks)
+    const humanNeedFirstRoll = !isCPU && phaseName === 'ROLL' && faces.length === 0 && dice.phase !== 'rolling';
+    const canRollBtn = humanNeedFirstRoll || (!isCPU && !acceptedBlocksRoll && canRoll);
     const wasDisabled = rollBtn.disabled;
     
     console.log('🎲 ROLL BUTTON UPDATE:', {
@@ -1108,6 +1112,7 @@ export function update(root) {
       facesLength: faces.length,
       isInitialRoll,
       acceptedBlocksRoll,
+      humanNeedFirstRoll,
       canRoll,
       canRollBtn,
       'will set disabled to': !canRollBtn,

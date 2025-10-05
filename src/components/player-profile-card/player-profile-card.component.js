@@ -14,7 +14,7 @@
  */
 import { store } from '../../bootstrap/index.js';
 import { selectPlayerById, selectActivePlayer, selectPlayerPowerCards, selectMonsterById } from '../../core/selectors.js';
-import { uiCardDetailOpen } from '../../core/actions.js';
+import { uiCardDetailOpen, uiPlayerPowerCardsOpen } from '../../core/actions.js';
 import { uiPeekShow } from '../../core/actions.js';
 import { createPositioningService } from '../../services/positioningService.js';
 
@@ -27,6 +27,19 @@ export function build({ selector, playerId }) {
   root.innerHTML = baseTemplate();
   // Handle card interactions
   root.addEventListener('click', (e) => {
+    // Cards stat tile click -> open player power cards modal
+    const cardsStat = e.target.closest('[data-cards]');
+    if (cardsStat) {
+      e.preventDefault();
+      e.stopPropagation();
+      const state = store.getState();
+      const player = selectPlayerById(state, playerId);
+      if (player && player.cards && player.cards.length > 0) {
+        try { store.dispatch(uiPlayerPowerCardsOpen(playerId)); } catch(_) {}
+      }
+      return;
+    }
+    
     // Owned card mini click -> open card detail modal (new unified path)
     const mini = e.target.closest('.ppc-card-mini[data-card-id]');
     if (mini) {
@@ -167,7 +180,7 @@ function baseTemplate() {
       </svg>
     </button>
     <div class="ppc-stats" data-stats>
-      <div class="ppc-stat hp" data-cards><span class="label">CARDS</span><span class="value" data-cards-count>0</span></div>
+      <div class="ppc-stat cards" data-cards><span class="label">CARDS</span><span class="value" data-cards-count>0</span></div>
       <div class="ppc-stat energy" data-energy data-kind="energy">
         <span class="label">ENERGY</span>
         <span class="value" data-energy-value></span>
@@ -353,10 +366,15 @@ export function update(root, { playerId }) {
 
   // Owned cards miniature lane
   const cards = selectPlayerPowerCards(state, playerId) || [];
-  const cardsCountEl = root.querySelector('[data-cards-count]');
+  const cardsStat = root.querySelector('[data-cards]');
+  const cardsCountEl = cardsStat ? cardsStat.querySelector('.value[data-cards-count]') : null;
   if (cardsCountEl) {
     const prevCount = parseInt(cardsCountEl.textContent||'0',10);
     cardsCountEl.textContent = cards.length;
+    // Update data attribute on parent tile for CSS styling (0 cards = dimmed/not clickable)
+    if (cardsStat) {
+      cardsStat.setAttribute('data-cards-count', cards.length);
+    }
     if (cards.length > prevCount) {
       announceA11y(`${player.name} acquired a power card. Now owns ${cards.length}.`);
     }
