@@ -1060,14 +1060,22 @@ export function update(root) {
     }
     if (myCardsBtn) {
       const hasCards = active?.cards?.length > 0;
+      const wasDisabled = myCardsBtn.disabled;
       myCardsBtn.disabled = !hasCards;
+      if (wasDisabled && !myCardsBtn.disabled) {
+        console.log('🎴 Power Cards button enabled (cards count:', active?.cards?.length, ')');
+      }
     }
     
     // Update horizontal menu power cards button
     const hPowerCardsBtn = document.getElementById('h-power-cards-btn');
     if (hPowerCardsBtn) {
       const hasCards = active?.cards?.length > 0;
+      const wasDisabled = hPowerCardsBtn.disabled;
       hPowerCardsBtn.disabled = !hasCards;
+      if (wasDisabled && !hPowerCardsBtn.disabled) {
+        console.log('🎴 Horizontal Power Cards button enabled (cards count:', active?.cards?.length, ')');
+      }
     }
   } catch(_) {}
   const isCPU = !!(active && (active.isCPU || active.isAi || active.type === 'ai'));

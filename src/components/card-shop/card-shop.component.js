@@ -12,7 +12,7 @@
  */
 import { store } from '../../bootstrap/index.js';
 import { selectShopCards, selectActivePlayer } from '../../core/selectors.js';
-import { uiCardDetailOpen } from '../../core/actions.js';
+import { uiCardDetailOpen, uiConfirmOpen } from '../../core/actions.js';
 import { purchaseCard, flushShop, peekTopCard } from '../../services/cardsService.js';
 import { logger } from '../../bootstrap/index.js';
 import { initSidePanel } from '../side-panel/side-panel.js';
@@ -44,6 +44,19 @@ export function build({ selector }) {
 
   // Removed independent rotation toggles; collapsed state now uses writing-mode vertical layout.
 
+  // Store pending purchase for confirmation handling
+  let pendingPurchase = null;
+
+  // Listen for confirmation events
+  window.addEventListener('ui.confirm.accepted', (e) => {
+    if (e.detail.confirmId === 'purchase-card' && pendingPurchase) {
+      const { playerId, cardId } = pendingPurchase;
+      console.log('✅ Card purchase confirmed:', { playerId, cardId });
+      purchaseCard(store, logger, playerId, cardId);
+      pendingPurchase = null;
+    }
+  });
+
   root.addEventListener('click', (e) => {
     const cardEl = e.target.closest('[data-card-id]');
     if (cardEl && e.target.matches('[data-action="detail"]')) {
@@ -52,7 +65,17 @@ export function build({ selector }) {
     } else if (cardEl && e.target.matches('[data-action="buy"]')) {
       const id = cardEl.getAttribute('data-card-id');
       const active = selectActivePlayer(store.getState());
-      if (active) purchaseCard(store, logger, active.id, id);
+      if (active) {
+        // Get card details for confirmation message
+        const state = store.getState();
+        const card = selectShopCards(state).find(c => c.id === id);
+        if (card) {
+          pendingPurchase = { playerId: active.id, cardId: id };
+          const message = `Purchase "${card.name}" for ${card.cost}⚡?\n\n${formatCardText(card.effect)}`;
+          console.log('💳 Opening purchase confirmation modal:', { cardName: card.name, cost: card.cost });
+          store.dispatch(uiConfirmOpen('purchase-card', message, 'Buy Card', 'Cancel'));
+        }
+      }
     } else if (e.target.matches('[data-action="flush-shop"]')) {
       const active = selectActivePlayer(store.getState());
       if (active) flushShop(store, logger, active.id, 2);
