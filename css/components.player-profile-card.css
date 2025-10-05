@@ -357,8 +357,10 @@
   display: none;
 }
 
-/* Show stats and health when expanded in list view */
-.cmp-monsters-panel:not(.is-stacked):not(.is-tiled) .cmp-player-profile-card[data-expanded] .ppc-stats,
+/* Show stats and health when expanded in list view - MUST use flex for stats, block for others */
+.cmp-monsters-panel:not(.is-stacked):not(.is-tiled) .cmp-player-profile-card[data-expanded] .ppc-stats {
+  display: flex !important;
+}
 .cmp-monsters-panel:not(.is-stacked):not(.is-tiled) .cmp-player-profile-card[data-expanded] .ppc-health-block,
 .cmp-monsters-panel:not(.is-stacked):not(.is-tiled) .cmp-player-profile-card[data-expanded] .ppc-owned-cards {
   display: block;

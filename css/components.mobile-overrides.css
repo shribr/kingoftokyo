@@ -52,10 +52,10 @@
   .cmp-arena .bay-slot {
     width: 140px !important;
     min-width: 140px !important;
-    height: 180px !important;
-    min-height: 180px !important;
+    height: 140px !important;
+    min-height: 140px !important;
     --tokyo-slot-default-width: 140px;
-    --tokyo-slot-default-height: 180px;
+    --tokyo-slot-default-height: 140px;
   }
   
   /* Scale down cards inside Tokyo slots */

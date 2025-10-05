@@ -144,7 +144,7 @@ body, .btn, .card-text { font-size:var(--body-size); }
 		font-size: 24px;
 		cursor: pointer;
 		box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-		z-index: 1500;
+		z-index: 7500;
 		transition: transform 0.2s ease;
 	}
 
