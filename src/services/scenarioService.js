@@ -13,12 +13,21 @@ export function applyScenarios(store, config) {
   const byId = state.players.byId;
   const globalScenarios = new Set();
   config.assignments.forEach(assign => {
-    const player = byId[assign.playerId];
+    // Get fresh state for each assignment to ensure we have latest player data
+    const freshState = store.getState();
+    const freshById = freshState.players.byId;
+    const player = freshById[assign.playerId];
     if (!player) {
       console.warn('⚠️ Player not found for assignment:', assign.playerId);
       return;
     }
     console.log(`🎯 Applying scenarios to player ${player.name} (${player.id}):`, assign.scenarioIds);
+    console.log(`  📊 Current player state:`, { 
+      health: player.health, 
+      energy: player.energy, 
+      vp: player.victoryPoints, 
+      cards: player.cards?.length || 0 
+    });
     (assign.scenarioIds || []).forEach(scId => {
       const sc = getScenario(scId);
       if (!sc) {

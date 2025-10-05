@@ -168,6 +168,11 @@ export function update(root, instances) {
     instances.clear();
     return;
   }
+  // Clear empty state message if it exists
+  const emptyBtn = container.querySelector('[data-empty]');
+  if (emptyBtn) {
+    emptyBtn.remove();
+  }
   // Remove stale
   [...instances.keys()].forEach(id => { if (!order.includes(id)) { instances.get(id).root.remove(); instances.delete(id); } });
   // Ensure + order

@@ -344,13 +344,9 @@ export function update(root, { playerId }) {
     console.log(`👤 Human player ${player.name} stat update - Energy: ${player.energy}, VP: ${player.victoryPoints}`);
     if (energyEl) {
       energyEl.textContent = player.energy;
-      energyEl.style.color = 'yellow'; // Visual flash
-      setTimeout(() => energyEl.style.color = '', 300);
     }
     if (vpEl) {
       vpEl.textContent = player.victoryPoints;
-      vpEl.style.color = 'gold'; // Visual flash
-      setTimeout(() => vpEl.style.color = '', 300);
     }
     
     // Multiple delayed updates to overcome any race conditions

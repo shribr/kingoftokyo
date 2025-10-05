@@ -259,26 +259,34 @@ if (typeof window !== 'undefined') {
           }
         }
       } catch(_) {}
-      try {
-        // If scenario config present, apply after game started
-        const stNow = store.getState();
-        const pre = stNow.settings?.scenarioConfig?.assignments;
-        if (pre && pre.length) {
-          const appliedList = resolveScenarioDynamicTargets(store, pre);
-          applyScenarios(store, { assignments: appliedList });
-          showScenarioToast(appliedList);
-        }
-        // If this boot was triggered by the scenario generator, clear its transient flags so future reloads are clean
+      // Delay scenario application to ensure all player stats are fully initialized first
+      // Without this delay, scenario patches may be overwritten by subsequent initialization
+      setTimeout(() => {
         try {
-          if (localStorage.getItem('KOT_SCENARIO_GENERATOR') === '1') {
-            localStorage.removeItem('KOT_SCENARIO_GENERATOR');
-            // Remove skip intro only if it was not explicitly present in URL (so user param wins)
-            const w = window.location;
-            const explicit = w.hash.includes('skipintro') || w.search.includes('skipintro=1');
-            if (!explicit) localStorage.removeItem('KOT_SKIP_INTRO');
+          console.log('🎬 [bootstrap:skipIntro] Delayed scenario application starting...');
+          // If scenario config present, apply after game started
+          const stNow = store.getState();
+          const pre = stNow.settings?.scenarioConfig?.assignments;
+          if (pre && pre.length) {
+            console.log('🎯 [bootstrap:skipIntro] Found scenarios to apply:', pre);
+            const appliedList = resolveScenarioDynamicTargets(store, pre);
+            applyScenarios(store, { assignments: appliedList });
+            showScenarioToast(appliedList);
+          } else {
+            console.log('⚠️ [bootstrap:skipIntro] No scenarios found in config');
           }
-        } catch(_) {}
-      } catch(e) { console.warn('Scenario pre-application failed', e); }
+          // If this boot was triggered by the scenario generator, clear its transient flags so future reloads are clean
+          try {
+            if (localStorage.getItem('KOT_SCENARIO_GENERATOR') === '1') {
+              localStorage.removeItem('KOT_SCENARIO_GENERATOR');
+              // Remove skip intro only if it was not explicitly present in URL (so user param wins)
+              const w = window.location;
+              const explicit = w.hash.includes('skipintro') || w.search.includes('skipintro=1');
+              if (!explicit) localStorage.removeItem('KOT_SKIP_INTRO');
+            }
+          } catch(_) {}
+        } catch(e) { console.warn('Scenario pre-application failed', e); }
+      }, 250); // 250ms delay ensures players are fully initialized before scenarios apply
     }, 0);
   }
 
@@ -327,6 +335,24 @@ if (typeof window !== 'undefined') {
     if (st.phase !== 'SETUP' && !document.body.classList.contains('game-ready')) {
       // Mark game ready only after gating satisfied (phase advanced)
       document.body.classList.add('game-ready');
+      // Apply scenarios immediately after game starts (normal flow)
+      // Small delay to ensure all initialization is complete
+      setTimeout(() => {
+        try {
+          console.log('🎬 [bootstrap:normalFlow] Delayed scenario application starting...');
+          const settings = window.__KOT_NEW__?.configLoader?.getConfig?.();
+          const scenarioConfig = settings?.scenarioConfig || {};
+          const assignments = scenarioConfig.assignments || [];
+          if (assignments.length > 0) {
+            console.log('� [bootstrap:normalFlow] Found scenarios to apply:', assignments);
+            const resolvedAssignments = resolveScenarioDynamicTargets(store, assignments);
+            console.log('🔧 [bootstrap:normalFlow] Resolved dynamic targets:', resolvedAssignments);
+            applyScenarios(store, { assignments: resolvedAssignments });
+          } else {
+            console.log('⚠️ [bootstrap:normalFlow] No scenarios found in config');
+          }
+        } catch(e) { console.warn('Scenario post-start application failed (normal flow)', e); }
+      }, 250); // 250ms delay ensures players are fully initialized before scenarios apply
       // Remove blackout now (both conditions inherently met because phase advanced via gating logic)
       const blk = document.querySelector('.post-splash-blackout');
       if (blk) { 
