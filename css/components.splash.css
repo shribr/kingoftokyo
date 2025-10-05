@@ -89,13 +89,21 @@
 	.cmp-splash .polaroids-left, .cmp-splash .polaroids-right { width:160px; } 
 	.cmp-splash .polaroid { width:140px; height:180px; padding:12px 12px 40px 12px; } 
 	.cmp-splash .polaroid img { width:116px; height:116px; } 
-	.cmp-splash .polaroid-caption { font-size:12px; bottom:15px; } 
+	.cmp-splash .polaroid-caption { font-size:12px; bottom:15px; }
+	/* Constrain center content to force text wrapping and avoid polaroid overlap */
+	.cmp-splash .splash-center-content { width: 280px; max-width: 85%; }
 }
 
-/* Desktop breakpoint: show single-line, hide stacked */
-@media (min-width: 701px) {
+/* Desktop breakpoint: show single-line above 900px, force stacked below to avoid polaroid obstruction */
+@media (min-width: 900px) {
 	.cmp-splash .splash-subtitle .desktop-text { display: inline-flex; }
 	.cmp-splash .splash-subtitle .mobile-text { display: none; }
+}
+
+/* Below 900px: force stacked text to avoid polaroid obstruction */
+@media (max-width: 899px) {
+	.cmp-splash .splash-subtitle .desktop-text { display: none; }
+	.cmp-splash .splash-subtitle .mobile-text { display: flex; }
 }
 
 @media (max-width: 768px) { 

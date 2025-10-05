@@ -176,9 +176,9 @@
 .cmp-monsters-panel.is-stacked .mp-player-cards { position:relative; }
 .cmp-monsters-panel.is-stacked .mp-player-cards::after { content:""; display:block; height:110px; } /* spacer so the last overlapped card is reachable */
 .cmp-monsters-panel.is-stacked .mp-player-cards .cmp-player-profile-card:last-child:not(.is-active) { margin-bottom:22px; }
-/* Stronger pivot for the last card to lift further into view */
+/* Stronger pivot for the last card to lift further into view and shift left to show full stats */
 .cmp-monsters-panel.is-stacked .mp-player-cards .cmp-player-profile-card:last-child:not(.is-active):hover {
-  transform:perspective(1000px) rotateX(-12deg) rotateY(0deg) rotateZ(0deg) translateY(-40px) scale(1.06);
+  transform:perspective(1000px) rotateX(-12deg) rotateY(0deg) rotateZ(0deg) translateY(-40px) translateX(-30px) scale(1.06);
   margin-bottom:40px;
   z-index:3060;
 }

@@ -286,7 +286,14 @@ if (typeof window !== 'undefined') {
     const st = store.getState();
     const lastAction = store.getLastAction?.();
     if (lastAction && lastAction.type === SCENARIO_APPLY_REQUEST) {
-      try { applyScenarios(store, { assignments: lastAction.payload.assignments }); } catch(e) { console.warn('Scenario apply failed', e); }
+      try { 
+        applyScenarios(store, { assignments: lastAction.payload.assignments }); 
+        // Show success notification
+        showScenarioAppliedNotification(lastAction.payload.assignments);
+      } catch(e) { 
+        console.warn('Scenario apply failed', e); 
+        showScenarioErrorNotification();
+      }
     }
   const selectionOpen = !!st.ui?.monsterSelection?.open;
     if (selectionOpen && !selectionWasOpened) selectionWasOpened = true;
@@ -614,6 +621,93 @@ function showScenarioToast(appliedList){
     setTimeout(()=>{ div.classList.add('fade'); div.style.transition='opacity .6s'; div.style.opacity='0'; setTimeout(()=>div.remove(), 700); }, 4000);
   } catch(_) {}
 }
+
+// Show notification when scenarios are applied from settings modal
+function showScenarioAppliedNotification(assignments) {
+  try {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: #2d5016;
+      color: #90ee90;
+      border: 2px solid #4a7c2c;
+      border-radius: 6px;
+      padding: 12px 20px;
+      font-family: 'Nunito', system-ui, sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: 3px 3px 0 #000, 0 4px 12px rgba(0,0,0,0.5);
+      z-index: 10000;
+      animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s;
+      pointer-events: none;
+    `;
+    
+    const uniqueScenarios = new Set();
+    assignments.forEach(a => (a.scenarioIds||[]).forEach(id => uniqueScenarios.add(id)));
+    const count = uniqueScenarios.size;
+    
+    notification.innerHTML = `✓ Scenarios Applied Successfully <span style="opacity:0.8;font-weight:normal;">(${count} scenario${count !== 1 ? 's' : ''})</span>`;
+    
+    // Add animation keyframes if not already present
+    if (!document.getElementById('notification-animations')) {
+      const style = document.createElement('style');
+      style.id = 'notification-animations';
+      style.textContent = `
+        @keyframes slideIn {
+          from { transform: translateX(-100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+          from { opacity: 1; }
+          to { opacity: 0; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.remove();
+    }, 3000);
+  } catch(e) {
+    console.warn('Failed to show scenario notification:', e);
+  }
+}
+
+// Show error notification if scenario application fails
+function showScenarioErrorNotification() {
+  try {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: #5c1616;
+      color: #ffb3b3;
+      border: 2px solid #8b3a3a;
+      border-radius: 6px;
+      padding: 12px 20px;
+      font-family: 'Nunito', system-ui, sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: 3px 3px 0 #000, 0 4px 12px rgba(0,0,0,0.5);
+      z-index: 10000;
+      animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s;
+      pointer-events: none;
+    `;
+    
+    notification.textContent = '✗ Failed to Apply Scenarios';
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.remove();
+    }, 3000);
+  } catch(_) {}
+}
+
 
 // Persist last scenario snapshot for deeper test loops (optional)
 window.addEventListener('beforeunload', () => {

@@ -6,6 +6,7 @@ import { buildBaseCatalog } from '../domain/cards.js';
 
 export function applyScenarios(store, config) {
   // config: { assignments: [{ playerId, scenarioIds: [], paramsByScenario?: { [id]: {..} }, replace?:boolean }], mode?:'stack'|'replace' }
+  console.log('🎬 applyScenarios called with config:', config);
   if (!config || !Array.isArray(config.assignments)) return;
   const catalog = buildBaseCatalog();
   const state = store.getState();
@@ -13,35 +14,53 @@ export function applyScenarios(store, config) {
   const globalScenarios = new Set();
   config.assignments.forEach(assign => {
     const player = byId[assign.playerId];
-    if (!player) return;
+    if (!player) {
+      console.warn('⚠️ Player not found for assignment:', assign.playerId);
+      return;
+    }
+    console.log(`🎯 Applying scenarios to player ${player.name} (${player.id}):`, assign.scenarioIds);
     (assign.scenarioIds || []).forEach(scId => {
       const sc = getScenario(scId);
-      if (!sc) return;
+      if (!sc) {
+        console.warn('⚠️ Scenario not found:', scId);
+        return;
+      }
+      console.log(`  📋 Applying scenario "${sc.label}" (${scId})`);
       if (sc.global) globalScenarios.add(scId);
       const params = (assign.paramsByScenario && assign.paramsByScenario[scId]) || undefined;
       const patch = sc.apply(player, { catalog, store }, params);
+      console.log(`  🔧 Patch returned:`, patch);
       if (!patch) return;
       // Translate patch into actions; direct state mutation avoided.
       if (patch.victoryPoints != null) {
         const delta = patch.victoryPoints - player.victoryPoints;
+        console.log(`  ⭐ VP delta: ${delta} (current: ${player.victoryPoints}, target: ${patch.victoryPoints})`);
         if (delta > 0) store.dispatch(playerVPGained(player.id, delta, 'scenario:'+scId));
       }
       if (patch.energy != null) {
         const delta = patch.energy - player.energy;
+        console.log(`  ⚡ Energy delta: ${delta} (current: ${player.energy}, target: ${patch.energy})`);
         if (delta > 0) store.dispatch(playerGainEnergy(player.id, delta));
       }
       if (patch.health != null) {
         const delta = patch.health - player.health;
+        console.log(`  ❤️ Health delta: ${delta} (current: ${player.health}, target: ${patch.health})`);
         if (delta < 0) store.dispatch(applyPlayerDamage(player.id, -delta));
         else if (delta > 0) store.dispatch(healPlayerAction(player.id, delta));
       }
       if (Array.isArray(patch.cards)) {
         // Add each card (skip duplicates)
         const existing = new Set((player.cards||[]).map(c=>c.id));
-        patch.cards.forEach(c => { if (!existing.has(c.id)) store.dispatch(playerCardGained(player.id, c)); });
+        const newCards = patch.cards.filter(c => !existing.has(c.id));
+        console.log(`  🃏 Cards: ${newCards.length} new cards to add (total in patch: ${patch.cards.length}, existing: ${existing.size})`);
+        newCards.forEach((c, idx) => {
+          console.log(`    📇 Adding card ${idx + 1}/${newCards.length}: "${c.name}" (${c.id})`);
+          store.dispatch(playerCardGained(player.id, c));
+        });
       }
       if (Array.isArray(patch._queueEffects)) {
         // Enqueue effects without a card context (synthetic scenarios), using pseudo card ids for logging
+        console.log(`  🔮 Queueing ${patch._queueEffects.length} effects`);
         patch._queueEffects.forEach((eff, idx) => {
           const entry = { id: 'scfx_'+player.id+'_'+idx+'_'+Date.now(), playerId: player.id, cardId: 'scenario-'+scId, effect: eff, status: 'queued', queuedAt: Date.now() };
           store.dispatch(cardEffectEnqueued(entry));

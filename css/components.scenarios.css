@@ -2,7 +2,310 @@
   font-family: system-ui, sans-serif;
   color: #ddd;
 }
-.cmp-scenarios-tab h3 { font-size:14px; text-transform:uppercase; letter-spacing:.75px; }
-.cmp-scenarios-tab .scenario-list label { background:#141414; padding:6px 8px; border:1px solid #2b2b2b; border-radius:4px; }
-.cmp-scenarios-tab .scenario-list label:hover { border-color:#3d3d3d; }
-.cmp-scenarios-tab button { cursor:pointer; }
+
+.cmp-scenarios-tab h3,
+.cmp-scenarios-tab .scenario-heading { 
+  margin: 0 0 8px;
+  font-family: system-ui;
+  letter-spacing: 0.5px;
+  font-size: 14px; 
+  text-transform: uppercase; 
+  letter-spacing: 0.75px; 
+}
+
+.cmp-scenarios-tab .scenario-description {
+  margin: 0 0 10px;
+  font-size: 12px;
+  opacity: 0.75;
+  line-height: 1.4;
+}
+
+.cmp-scenarios-tab .scenario-list { 
+  display: grid;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.cmp-scenarios-tab .scenario-list label { 
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  font-size: 13px;
+  background: #141414; 
+  padding: 6px 8px; 
+  border: 1px solid #2b2b2b; 
+  border-radius: 4px; 
+}
+
+.cmp-scenarios-tab .scenario-list label:hover { 
+  border-color: #3d3d3d; 
+}
+
+.cmp-scenarios-tab .param-editor {
+  display: none;
+  margin: -4px 0 10px;
+  padding: 8px 10px;
+  background: #121212;
+  border: 1px solid #2c2c2c;
+  border-radius: 6px;
+  font-size: 11px;
+}
+
+.cmp-scenarios-tab .param-editor.is-visible {
+  display: block;
+}
+
+.cmp-scenarios-tab .target-mode-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  background: #141414;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
+}
+
+.cmp-scenarios-tab .target-mode-label,
+.cmp-scenarios-tab .cpu-count-label {
+  font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cmp-scenarios-tab .cpu-count-label {
+  display: none;
+}
+
+.cmp-scenarios-tab .cpu-count-label.is-visible {
+  display: flex;
+}
+
+.cmp-scenarios-tab .button-group {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.cmp-scenarios-tab .applied-list {
+  font-size: 11px;
+  line-height: 1.4;
+  background: #111;
+  padding: 6px 8px;
+  border: 1px solid #333;
+  border-radius: 4px;
+  max-height: 300px;
+  overflow: auto;
+  margin-bottom: 8px;
+}
+
+.cmp-scenarios-tab .applied-list.empty {
+  text-align: center;
+  opacity: 0.6;
+  font-style: italic;
+}
+
+.cmp-scenarios-tab .assignment-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.cmp-scenarios-tab .assignment-table th {
+  text-align: left;
+  padding: 6px 8px;
+  background: #1a1a1a;
+  border-bottom: 2px solid #333;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #9ac;
+}
+
+.cmp-scenarios-tab .assignment-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #222;
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+.cmp-scenarios-tab .assignment-table tr:last-child td {
+  border-bottom: none;
+}
+
+.cmp-scenarios-tab .assignment-table tr:hover {
+  background: #1a1a1a;
+}
+
+.cmp-scenarios-tab .assignment-table .target-cell {
+  width: 80px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.cmp-scenarios-tab .assignment-table .scenario-cell {
+  color: #ddd;
+  line-height: 1.5;
+  word-wrap: break-word;
+  max-width: 300px;
+}
+
+.cmp-scenarios-tab .assignment-table .category-cell {
+  width: 100px;
+  text-align: center;
+  font-size: 16px;
+}
+
+.cmp-scenarios-tab .category-badge {
+  display: inline-block;
+  margin: 0 2px;
+  cursor: help;
+}
+
+.cmp-scenarios-tab .assignment-table .remove-cell {
+  width: 60px;
+  text-align: center;
+}
+
+.cmp-scenarios-tab .action-buttons {
+  margin-top: 4px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.cmp-scenarios-tab .summary-panel {
+  margin-top: 12px;
+  font-size: 11px;
+  line-height: 1.5;
+  background: #0d0d0d;
+  border: 1px solid #222;
+  padding: 8px 10px;
+  border-radius: 4px;
+  max-height: 180px;
+  overflow: auto;
+}
+
+/* Selects */
+.cmp-scenarios-tab .scenario-select,
+select.scenario-select {
+  font-size: 13px;
+  padding: 6px 10px;
+  background: #1f1f1f;
+  color: #ddd;
+  border: 1px solid #333;
+  border-radius: 4px;
+  cursor: pointer;
+  min-width: 140px;
+}
+
+.cmp-scenarios-tab .scenario-select:hover,
+select.scenario-select:hover {
+  border-color: #4a9eff;
+}
+
+/* Button Base Styles - High specificity to override base.css button reset */
+.cmp-scenarios-tab .scenario-btn,
+button.scenario-btn {
+  display: inline-block;
+  font-size: 13px;
+  padding: 8px 16px;
+  min-height: 36px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: system-ui, sans-serif;
+  font-weight: 500;
+  border-width: 1px;
+  border-style: solid;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+  white-space: nowrap;
+  text-align: center;
+  vertical-align: middle;
+  line-height: 1.4;
+}
+
+.cmp-scenarios-tab .scenario-btn:hover:not(:disabled),
+button.scenario-btn:hover:not(:disabled) {
+  filter: brightness(1.2);
+  transform: translateY(-1px);
+  box-shadow: 2px 3px 0 rgba(0,0,0,0.4);
+}
+
+.cmp-scenarios-tab .scenario-btn:active:not(:disabled),
+button.scenario-btn:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+}
+
+.cmp-scenarios-tab .scenario-btn:disabled,
+button.scenario-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(0.8);
+}
+
+/* Primary Button (Add Assignment) */
+.cmp-scenarios-tab .scenario-btn-primary,
+button.scenario-btn-primary {
+  background: #2a6ab0;
+  color: #e4f4ff;
+  border-color: #3d7ec4;
+}
+
+/* Danger Button (Clear All) */
+.cmp-scenarios-tab .scenario-btn-danger,
+button.scenario-btn-danger {
+  background: #a03030;
+  color: #ffe9e9;
+  border-color: #c04040;
+}
+
+/* Secondary Button (Snapshot tools) */
+.cmp-scenarios-tab .scenario-btn-secondary,
+button.scenario-btn-secondary {
+  background: #3a5a6a;
+  color: #e0f4ff;
+  border-color: #4a7a8a;
+}
+
+/* Remove button (in table) */
+.cmp-scenarios-tab .scenario-btn-remove,
+button.scenario-btn-remove {
+  background: #5a2a2a;
+  color: #ffc;
+  border: 1px solid #7a3a3a;
+  border-radius: 3px;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-weight: bold;
+  display: inline-block;
+  min-height: 24px;
+}
+
+.cmp-scenarios-tab .scenario-btn-remove:hover,
+button.scenario-btn-remove:hover {
+  background: #8a3a3a;
+  transform: scale(1.1);
+}
+
+/* Mobile: larger touch targets */
+@media (max-width: 768px), (pointer: coarse) {
+  .cmp-scenarios-tab .scenario-btn,
+  button.scenario-btn {
+    min-height: 44px;
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+  
+  .cmp-scenarios-tab .scenario-select {
+    font-size: 14px;
+    padding: 10px 12px;
+    min-height: 44px;
+  }
+}

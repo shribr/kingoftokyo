@@ -17,6 +17,7 @@ import { selectPlayerById, selectActivePlayer, selectPlayerPowerCards, selectMon
 import { uiCardDetailOpen, uiPlayerPowerCardsOpen } from '../../core/actions.js';
 import { uiPeekShow } from '../../core/actions.js';
 import { createPositioningService } from '../../services/positioningService.js';
+import { getScenario } from '../../scenarios/catalog.js';
 
 /** Build a single player profile card root */
 export function build({ selector, playerId }) {
@@ -32,11 +33,8 @@ export function build({ selector, playerId }) {
     if (cardsStat) {
       e.preventDefault();
       e.stopPropagation();
-      const state = store.getState();
-      const player = selectPlayerById(state, playerId);
-      if (player && player.cards && player.cards.length > 0) {
-        try { store.dispatch(uiPlayerPowerCardsOpen(playerId)); } catch(_) {}
-      }
+      // Always open the modal, even if no cards (will show empty state)
+      try { store.dispatch(uiPlayerPowerCardsOpen(playerId)); } catch(_) {}
       return;
     }
     
@@ -180,20 +178,29 @@ function baseTemplate() {
       </svg>
     </button>
     <div class="ppc-stats" data-stats>
-      <div class="ppc-stat cards" data-cards><span class="label">CARDS</span><span class="value" data-cards-count>0</span></div>
+      <div class="ppc-stat cards" data-cards>
+        <span class="label">CARDS</span>
+        <span class="value" data-cards-count>0</span>
+        <span class="scenario-indicator" data-scenario-cards>*</span>
+      </div>
       <div class="ppc-stat energy" data-energy data-kind="energy">
         <span class="label">ENERGY</span>
         <span class="value" data-energy-value></span>
         <div class="energy-bolt" data-energy-bolt>⚡</div>
+        <span class="scenario-indicator" data-scenario-energy>*</span>
       </div>
       <div class="ppc-stat vp" data-vp data-kind="vp">
         <span class="label">POINTS</span>
         <span class="value" data-vp-value></span>
         <div class="vp-coin" data-vp-coin>★</div>
+        <span class="scenario-indicator" data-scenario-vp>*</span>
       </div>
     </div>
     <div class="ppc-health-block" data-health-block>
-      <div class="ppc-health-label" data-health-label>HEALTH <span data-hp-value></span>/10</div>
+      <div class="ppc-health-label" data-health-label>
+        HEALTH <span data-hp-value></span>/10
+        <span class="scenario-indicator scenario-indicator-health" data-scenario-health>*</span>
+      </div>
       <div class="ppc-health-bar" data-health-bar><div class="fill" data-health-fill></div></div>
     </div>
     <div class="ppc-owned-cards" data-owned-cards hidden>
@@ -273,6 +280,42 @@ export function update(root, { playerId }) {
       }
     }
   } catch(_) {}
+  
+  // Scenario indicators - show asterisks on affected stat tiles
+  try {
+    const scenarioCategories = getPlayerScenarioCategories(state, playerId);
+    
+    const healthIndicator = root.querySelector('[data-scenario-health]');
+    const energyIndicator = root.querySelector('[data-scenario-energy]');
+    const vpIndicator = root.querySelector('[data-scenario-vp]');
+    const cardsIndicator = root.querySelector('[data-scenario-cards]');
+    
+    if (healthIndicator) {
+      healthIndicator.style.display = scenarioCategories.hasHealth ? 'inline' : 'none';
+      if (scenarioCategories.hasHealth) {
+        healthIndicator.setAttribute('title', `Scenarios affecting Health:\n${scenarioCategories.healthScenarios.join('\n')}`);
+      }
+    }
+    if (energyIndicator) {
+      energyIndicator.style.display = scenarioCategories.hasEnergy ? 'inline' : 'none';
+      if (scenarioCategories.hasEnergy) {
+        energyIndicator.setAttribute('title', `Scenarios affecting Energy:\n${scenarioCategories.energyScenarios.join('\n')}`);
+      }
+    }
+    if (vpIndicator) {
+      vpIndicator.style.display = scenarioCategories.hasVP ? 'inline' : 'none';
+      if (scenarioCategories.hasVP) {
+        vpIndicator.setAttribute('title', `Scenarios affecting Victory Points:\n${scenarioCategories.vpScenarios.join('\n')}`);
+      }
+    }
+    if (cardsIndicator) {
+      cardsIndicator.style.display = scenarioCategories.hasCards ? 'inline' : 'none';
+      if (scenarioCategories.hasCards) {
+        cardsIndicator.setAttribute('title', `Scenarios affecting Cards:\n${scenarioCategories.cardsScenarios.join('\n')}`);
+      }
+    }
+  } catch(_) {}
+  
   const hpValEl = root.querySelector('[data-hp-value]');
   if (hpValEl) hpValEl.textContent = player.health;
   
@@ -465,4 +508,145 @@ function announceA11y(message) {
     }
     live.textContent = message;
   } catch(_) {}
+}
+
+// Get categories of stats affected by player's scenarios
+function getPlayerScenarioCategories(state, playerId) {
+  const result = {
+    hasHealth: false,
+    hasEnergy: false,
+    hasVP: false,
+    hasCards: false,
+    healthScenarios: [],
+    energyScenarios: [],
+    vpScenarios: [],
+    cardsScenarios: []
+  };
+  
+  try {
+    const assignments = state.settings?.scenarioConfig?.assignments || [];
+    if (!assignments.length) return result;
+    
+    // Get player info
+    const order = state.players?.order || [];
+    const byId = state.players?.byId || {};
+    const player = byId[playerId];
+    if (!player) return result;
+    
+    const humanId = order.find(pid => !byId[pid]?.isCPU);
+    const cpuIds = order.filter(pid => byId[pid]?.isCPU);
+    const isCPU = player.isCPU || player.isAi || player.type === 'ai';
+    
+    const scenarioIds = new Set();
+    
+    // Collect all scenario IDs that apply to this player
+    for (const assignment of assignments) {
+      const mode = assignment.mode || 'HUMAN';
+      const cpuCount = assignment.cpuCount || 0;
+      
+      let isTargeted = false;
+      if (mode === 'HUMAN' && playerId === humanId) isTargeted = true;
+      if (mode === 'CPUS' && isCPU) {
+        const cpuIndex = cpuIds.indexOf(playerId);
+        if (cpuIndex !== -1 && cpuIndex < cpuCount) isTargeted = true;
+      }
+      if (mode === 'BOTH') {
+        if (playerId === humanId) isTargeted = true;
+        if (isCPU) {
+          const cpuIndex = cpuIds.indexOf(playerId);
+          if (cpuIndex !== -1 && cpuIndex < cpuCount) isTargeted = true;
+        }
+      }
+      
+      if (isTargeted && assignment.scenarioIds) {
+        assignment.scenarioIds.forEach(id => scenarioIds.add(id));
+      }
+    }
+    
+    // Map scenario IDs to affected categories
+    // Use the category property from scenario definitions in catalog.js
+    scenarioIds.forEach(id => {
+      const scenario = getScenario(id);
+      if (!scenario || !scenario.category) return;
+      
+      // Check each category in the scenario's category array
+      scenario.category.forEach(cat => {
+        if (cat === 'health') {
+          result.hasHealth = true;
+          result.healthScenarios.push(scenario.label);
+        }
+        if (cat === 'energy') {
+          result.hasEnergy = true;
+          result.energyScenarios.push(scenario.label);
+        }
+        if (cat === 'vp') {
+          result.hasVP = true;
+          result.vpScenarios.push(scenario.label);
+        }
+        if (cat === 'cards') {
+          result.hasCards = true;
+          result.cardsScenarios.push(scenario.label);
+        }
+      });
+    });
+    
+    return result;
+  } catch(e) {
+    console.warn('Error getting player scenario categories:', e);
+    return result;
+  }
+}
+
+// Check if a player has scenarios assigned (kept for backward compatibility)
+function checkPlayerHasScenarios(state, playerId) {
+  const categories = getPlayerScenarioCategories(state, playerId);
+  return categories.hasHealth || categories.hasEnergy || categories.hasVP || categories.hasCards;
+}
+
+// Get names of scenarios assigned to a player
+function getPlayerScenarioNames(state, playerId) {
+  try {
+    const assignments = state.settings?.scenarioConfig?.assignments || [];
+    if (!assignments.length) return '';
+    
+    // Import getScenario dynamically or use a simpler approach
+    const order = state.players?.order || [];
+    const byId = state.players?.byId || {};
+    const player = byId[playerId];
+    if (!player) return '';
+    
+    const humanId = order.find(pid => !byId[pid]?.isCPU);
+    const cpuIds = order.filter(pid => byId[pid]?.isCPU);
+    const isCPU = player.isCPU || player.isAi || player.type === 'ai';
+    
+    const scenarioIds = new Set();
+    
+    for (const assignment of assignments) {
+      const mode = assignment.mode || 'HUMAN';
+      const cpuCount = assignment.cpuCount || 0;
+      
+      let isTargeted = false;
+      if (mode === 'HUMAN' && playerId === humanId) isTargeted = true;
+      if (mode === 'CPUS' && isCPU) {
+        const cpuIndex = cpuIds.indexOf(playerId);
+        if (cpuIndex !== -1 && cpuIndex < cpuCount) isTargeted = true;
+      }
+      if (mode === 'BOTH') {
+        if (playerId === humanId) isTargeted = true;
+        if (isCPU) {
+          const cpuIndex = cpuIds.indexOf(playerId);
+          if (cpuIndex !== -1 && cpuIndex < cpuCount) isTargeted = true;
+        }
+      }
+      
+      if (isTargeted && assignment.scenarioIds) {
+        assignment.scenarioIds.forEach(id => scenarioIds.add(id));
+      }
+    }
+    
+    return [...scenarioIds].join(', ') || 'Unknown';
+  } catch(e) {
+    console.warn('Error getting player scenario names:', e);
+    return 'Unknown';
+  }
 }

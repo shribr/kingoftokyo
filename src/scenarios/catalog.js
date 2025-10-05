@@ -19,6 +19,7 @@ export function listScenarios() {
       id: ScenarioIds.ALMOST_WIN,
       label: 'On Cusp of Victory',
       description: 'Sets target monster victory points to a near-win threshold.',
+      category: ['vp'], // Affects victory points
       params: {
         vpTarget: { label: 'VP Target', type: 'number', min: 0, max: 20, step: 1, default: 18 }
       },
@@ -29,6 +30,7 @@ export function listScenarios() {
       id: ScenarioIds.NEAR_DEATH,
       label: 'On Verge of Death',
       description: 'Sets health to a critically low value (still alive).',
+      category: ['health'], // Affects health
       params: {
         healthTarget: { label: 'Health', type: 'number', min: 1, max: 10, step: 1, default: 1 }
       },
@@ -39,6 +41,7 @@ export function listScenarios() {
       id: ScenarioIds.POWER_LOADED,
       label: 'Loaded With Power Cards',
       description: 'Gives 4 random keep cards to the monster (no duplicates).',
+      category: ['cards'], // Affects power cards
       bullets: ['Modifier stacking correctness','Card-based reroll/dice slot effects','Hand size UI rendering'],
       params: {
         seed: { label: 'Seed (0=random)', type: 'number', min: 0, max: 999999, step: 1, default: 0 }
@@ -62,6 +65,7 @@ export function listScenarios() {
       id: ScenarioIds.ENERGY_BANK,
       label: 'Huge Energy Reserve',
       description: 'Sets energy to at least a configured value.',
+      category: ['energy'], // Affects energy
       params: {
         energyMin: { label: 'Min Energy', type: 'number', min: 0, max: 50, step: 1, default: 15 }
       },
@@ -72,6 +76,7 @@ export function listScenarios() {
       id: ScenarioIds.TOKYO_CONTROL,
       label: 'Tokyo King',
       description: 'Places this monster into Tokyo City with configured VP (near win while exposed).',
+      category: ['vp'], // Affects victory points (and Tokyo position, but no tile for that)
       params: { vpTarget: { label: 'VP', type: 'number', min: 0, max: 20, step:1, default: 12 } },
       bullets: ['Stay/leave yield decisions under pressure','Start-of-turn Tokyo VP awarding','Attack damage distribution to outside players'],
       apply(player, ctx, params) { const vp = clampInt(params?.vpTarget, 0, 20, 12); return { victoryPoints: Math.max(player.victoryPoints, vp), inTokyo: true }; }
@@ -80,6 +85,7 @@ export function listScenarios() {
       id: ScenarioIds.HIGH_DAMAGE_INCOMING,
       label: 'High Incoming Damage Context',
       description: 'Marks player low HP (2) and flags others with attack buffs to simulate lethal roll risk.',
+      category: ['health'], // Affects health (attack is implicit context, not a stat)
       bullets: ['Armor / mitigation cards','Turn order lethal resolution','Effect queue after death'],
       apply(_player, ctx) { return { health: 2 }; }
     },
@@ -87,6 +93,7 @@ export function listScenarios() {
       id: ScenarioIds.MULTI_NEAR_WIN,
       label: 'Multiple Players Near Victory',
       description: 'Sets all players to configured VP to test tie & race conditions.',
+      category: ['vp'], // Affects victory points
       bullets: ['Simultaneous VP comparisons','Turn boundary winner evaluation','Effect-based VP increments ordering'],
       global: true,
       params: { vpTarget: { label: 'VP Target', type: 'number', min: 0, max: 20, step:1, default: 17 } },
@@ -96,6 +103,7 @@ export function listScenarios() {
       id: ScenarioIds.MASS_EFFECT_QUEUE,
       label: 'Mass Effect Queue',
       description: 'Queues multiple immediate effects (energy gain + VP gain chain).',
+      category: ['energy', 'vp'], // Affects both energy and VP
       bullets: ['BUY_WAIT exit logic','Effect processing order','UI effect resolution logging'],
       apply(player, ctx) { return { _queueEffects: [ { kind:'energy_gain', value:3 }, { kind:'vp_gain', value:2 } ] }; }
     },
@@ -103,6 +111,7 @@ export function listScenarios() {
       id: ScenarioIds.BURST_RESOURCES,
       label: 'Burst Resources (VP+Energy)',
       description: 'Sets VP and Energy to configured burst values.',
+      category: ['vp', 'energy'], // Affects both VP and energy
       params: { vpTarget: { label:'VP', type:'number', min:0, max:20, default:15, step:1 }, energyTarget: { label:'Energy', type:'number', min:0, max:50, default:12, step:1 } },
       bullets: ['Endgame shop purchase decisions','VP vs energy gain logging','AI buy priority near win'],
       apply(player, _ctx, params) { const vp = clampInt(params?.vpTarget,0,20,15); const en = clampInt(params?.energyTarget,0,50,12); return { victoryPoints: Math.max(vp, player.victoryPoints), energy: Math.max(en, player.energy) }; }

@@ -14,41 +14,46 @@ export function build(ctx) {
 
 function template(){
   const scenarios = listScenarios();
-  return `<h3 style="margin:0 0 8px;font-family:system-ui;letter-spacing:.5px;">Scenario Options</h3>
-  <p style="margin:0 0 10px;font-size:12px;opacity:.75;line-height:1.4;">Select one or more scenarios, choose a target group (👤 Human, 🤖 CPUs, or 👤+🤖 Both) then optionally choose how many CPU players (1-5) to include.</p>
-  <div class="scenario-list" style="display:grid;gap:6px;margin-bottom:10px;">
-    ${scenarios.map(s=>`<label style='display:flex;gap:6px;align-items:flex-start;font-size:13px;'>
+  return `<h3 class="scenario-heading">Scenario Configuration</h3>
+  <p class="scenario-description">
+    <strong>Step 1:</strong> Select scenarios below and choose who they apply to (Human, CPUs, or Both).<br/>
+    <strong>Step 2:</strong> Click "Add to List" to add them to your assignment table.<br/>
+    <strong>Step 3:</strong> Click "Apply Scenarios to Game" to activate all assignments (or they auto-apply when game is running).
+  </p>
+  <div class="scenario-list">
+    ${scenarios.map(s=>`<label>
       <input type='checkbox' data-scenario-id='${s.id}' />
       <span><strong>${s.label}</strong><br/><span style='opacity:.65;font-size:11px;'>${s.description}</span></span>
     </label>`).join('')}
   </div>
-  <div data-param-editor style='display:none;margin:-4px 0 10px;padding:8px 10px;background:#121212;border:1px solid #2c2c2c;border-radius:6px;font-size:11px;'></div>
-  <div class='target-mode-wrapper' style='display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;margin:0 0 10px;padding:8px 10px;background:#141414;border:1px solid #2a2a2a;border-radius:6px;'>
-    <label style='font-size:11px;display:flex;flex-direction:column;gap:4px;'>Target
-      <select data-target-mode style='font-size:12px;padding:4px 6px;background:#1f1f1f;color:#ddd;border:1px solid #333;border-radius:4px;'>
+  <div class="param-editor" data-param-editor></div>
+  <div class='target-mode-wrapper'>
+    <label class='target-mode-label'>Target
+      <select class='scenario-select' data-target-mode>
         <option value='HUMAN'>👤 Human</option>
         <option value='CPUS'>🤖 CPUs</option>
         <option value='BOTH'>👤 + 🤖 Both</option>
       </select>
     </label>
-    <label data-cpu-count-wrapper style='font-size:11px;display:none;flex-direction:column;gap:4px;'>CPU Count
-      <select data-cpu-count style='font-size:12px;padding:4px 6px;background:#1f1f1f;color:#ddd;border:1px solid #333;border-radius:4px;'>
+    <label class='cpu-count-label' data-cpu-count-wrapper>CPU Count
+      <select class='scenario-select' data-cpu-count>
         ${[1,2,3,4,5].map(n=>`<option value='${n}'>${n}</option>`).join('')}
       </select>
     </label>
-    <div style='margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;'>
-      <button type='button' data-apply-selected style='font-size:12px;padding:4px 10px;background:#224568;color:#e4f4ff;border:1px solid #2f5d89;border-radius:4px;box-shadow:2px 2px 0 #0d1a24;'>Add Assignment</button>
-      <button type='button' data-clear style='font-size:12px;padding:4px 10px;background:#3a2d2d;color:#ffe9e9;border:1px solid #604141;border-radius:4px;box-shadow:2px 2px 0 #1b1111;'>Clear Scenarios</button>
+    <div class='button-group'>
+      <button type='button' class='scenario-btn scenario-btn-primary' data-apply-selected>Add to List</button>
+      <button type='button' class='scenario-btn scenario-btn-danger' data-clear>Clear All</button>
     </div>
   </div>
-  <div class='applied-list' data-applied style='font-size:11px;line-height:1.4;background:#111;padding:6px 8px;border:1px solid #333;border-radius:4px;max-height:130px;overflow:auto;margin-bottom:8px;'></div>
-  <div style='margin-top:4px;display:flex;gap:6px;flex-wrap:wrap;'>
-    <button type='button' data-run-game style='font-size:13px;padding:6px 14px;background:#184d18;color:#eee;border:1px solid #297929;border-radius:4px;'>Apply / Reapply</button>
-    <button type='button' data-generate-scenario-game style='font-size:13px;padding:6px 14px;background:#4d1818;color:#fee;border:1px solid #792929;border-radius:4px;'>Generate New Scenario Game</button>
-    <button type='button' data-snapshot style='font-size:12px;padding:6px 10px;background:#223a52;color:#e0f4ff;border:1px solid #2e5779;border-radius:4px;'>Capture Snapshot</button>
-    <button type='button' data-restore style='font-size:12px;padding:6px 10px;background:#523a22;color:#ffe0c2;border:1px solid #79572e;border-radius:4px;' disabled>Restore Snapshot</button>
+  <h4 class="scenario-heading" style="margin: 16px 0 8px; font-size: 12px;">Scenario Assignments</h4>
+  <div class='applied-list' data-applied></div>
+  <div class='action-buttons'>
+    <button type='button' class='scenario-btn scenario-btn-primary' data-run-game>Apply Scenarios to Game</button>
+    <button type='button' class='scenario-btn scenario-btn-danger' data-generate-scenario-game>Start New Game with Scenarios</button>
+    <button type='button' class='scenario-btn scenario-btn-secondary' data-snapshot>Save Snapshot</button>
+    <button type='button' class='scenario-btn scenario-btn-secondary' data-restore disabled>Restore Snapshot</button>
   </div>
-  <div data-summary style='margin-top:12px;font-size:11px;line-height:1.5;background:#0d0d0d;border:1px solid #222;padding:8px 10px;border-radius:4px;max-height:180px;overflow:auto;'></div>`;
+  <div class='summary-panel' data-summary></div>`;
 }
 
 function bind(root){
@@ -59,10 +64,11 @@ function bind(root){
   root.addEventListener('change', e => {
     if (e.target.matches('[data-target-mode]')) {
       const v = e.target.value;
+      const wrapper = cpuCountWrapper();
       if (v === 'HUMAN') {
-        cpuCountWrapper().style.display = 'none';
+        wrapper.classList.remove('is-visible');
       } else {
-        cpuCountWrapper().style.display = 'flex';
+        wrapper.classList.add('is-visible');
       }
       // Recompute disabled scenarios for new mode selection
       applyScenarioUniquenessDisables(root);
@@ -83,6 +89,8 @@ function bind(root){
       try { store.dispatch(scenarioConfigUpdated({ assignments: [] })); } catch(_) {}
       // Refresh applied list UI
       sync(root);
+      // Notify settings modal of change
+      notifySettingsChange(root);
     }
     if (e.target.matches('[data-apply-selected]')) {
       let selected = [...root.querySelectorAll('[data-scenario-id]:checked')].map(cb=>cb.getAttribute('data-scenario-id'));
@@ -124,6 +132,8 @@ function bind(root){
       assignments.push({ mode, cpuCount, scenarioIds: selected, paramsByScenario });
       store.dispatch(scenarioConfigUpdated({ assignments }));
       sync(root);
+      // Notify settings modal of change
+      notifySettingsChange(root);
       // Real-time application: if game already started (phase != SETUP), apply immediately
       try {
         const stNow = store.getState();
@@ -189,12 +199,79 @@ function sync(root){
   const humanId = order.find(pid => !byId[pid]?.isCPU);
   const cpuIds = order.filter(pid => byId[pid]?.isCPU);
   const norm = rawAssignments.map(a => normalizeAssignment(a, { humanId, cpuIds }));
-  appliedEl.innerHTML = norm.length ? norm.map((a,i)=>{
-    const label = describeAssignmentLabel(a);
-    return `<div data-assignment-idx='${i}' style='display:flex;justify-content:space-between;gap:8px;'>
-    <span>${label}: ${a.scenarioIds.join(', ')}</span>
-    <button data-remove-assignment='${i}' style='font-size:10px;'>✕</button>
-  </div>`; }).join('') : '<em style="opacity:.6;">No scenario assignments yet.</em>';
+  
+  if (!norm.length) {
+    appliedEl.className = 'applied-list empty';
+    appliedEl.innerHTML = 'No scenario assignments yet.';
+  } else {
+    appliedEl.className = 'applied-list';
+    appliedEl.innerHTML = `
+      <table class='assignment-table'>
+        <thead>
+          <tr>
+            <th>Target</th>
+            <th>Scenario</th>
+            <th>Categories</th>
+            <th>Remove</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${norm.map((a,assignmentIdx)=>{
+            const label = describeAssignmentLabel(a);
+            
+            // Create a row for each scenario in this assignment
+            return a.scenarioIds.map((scId, scIdx) => {
+              const sc = getScenario(scId);
+              const scenarioLabel = sc ? sc.label : scId;
+              
+              // Get categories for this specific scenario
+              const categoryBadges = (sc && sc.category) ? sc.category.map(cat => {
+                const emoji = cat === 'health' ? '❤️' : cat === 'energy' ? '⚡' : cat === 'vp' ? '⭐' : cat === 'cards' ? '🃏' : '?';
+                return `<span class="category-badge" title="${cat}">${emoji}</span>`;
+              }).join(' ') : '—';
+              
+              return `<tr data-assignment-idx='${assignmentIdx}' data-scenario-idx='${scIdx}' data-scenario-id='${scId}'>
+                <td class='target-cell'>${label}</td>
+                <td class='scenario-cell'>${scenarioLabel}</td>
+                <td class='category-cell'>${categoryBadges}</td>
+                <td class='remove-cell'>
+                  <button class='scenario-btn scenario-btn-remove' data-remove-scenario='${assignmentIdx}:${scIdx}' title='Remove this scenario'>✕</button>
+                </td>
+              </tr>`;
+            }).join('');
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+  
+  // Update remove button handlers to remove individual scenarios
+  appliedEl.querySelectorAll('[data-remove-scenario]').forEach(btn=>{
+    btn.addEventListener('click', () => {
+      const indices = btn.getAttribute('data-remove-scenario').split(':');
+      const assignmentIdx = parseInt(indices[0], 10);
+      const scenarioIdx = parseInt(indices[1], 10);
+      const st2 = store.getState();
+      const list = JSON.parse(JSON.stringify(st2.settings?.scenarioConfig?.assignments || []));
+      
+      // Remove the specific scenario from the assignment
+      if (list[assignmentIdx] && list[assignmentIdx].scenarioIds) {
+        list[assignmentIdx].scenarioIds.splice(scenarioIdx, 1);
+        
+        // If this was the last scenario in the assignment, remove the entire assignment
+        if (list[assignmentIdx].scenarioIds.length === 0) {
+          list.splice(assignmentIdx, 1);
+        }
+      }
+      
+      store.dispatch(scenarioConfigUpdated({ assignments: list }));
+      sync(root);
+      // Notify settings modal of change
+      notifySettingsChange(root);
+    });
+  });
+  
+  // Keep old remove-assignment handler for backward compatibility
   appliedEl.querySelectorAll('[data-remove-assignment]').forEach(btn=>{
     btn.addEventListener('click', () => {
       const idx = parseInt(btn.getAttribute('data-remove-assignment'),10);
@@ -203,6 +280,8 @@ function sync(root){
       list.splice(idx,1);
       store.dispatch(scenarioConfigUpdated({ assignments: list }));
       sync(root);
+      // Notify settings modal of change
+      notifySettingsChange(root);
     });
   });
   const summaryEl = root.querySelector('[data-summary]');
@@ -225,21 +304,23 @@ function launchScenarioApplication(){
   rawAssignments.map(a => normalizeAssignment(a, { humanId, cpuIds })).forEach(a => {
     const chosenCpuIds = cpuIds.slice(0, Math.min(a.cpuCount || 0, cpuIds.length));
     if (a.mode === 'HUMAN' && humanId) {
-      expanded.push({ playerId: humanId, scenarioIds: a.scenarioIds });
+      expanded.push({ playerId: humanId, scenarioIds: a.scenarioIds, paramsByScenario: a.paramsByScenario });
     } else if (a.mode === 'CPUS') {
-      chosenCpuIds.forEach(id => expanded.push({ playerId: id, scenarioIds: a.scenarioIds }));
+      chosenCpuIds.forEach(id => expanded.push({ playerId: id, scenarioIds: a.scenarioIds, paramsByScenario: a.paramsByScenario }));
     } else if (a.mode === 'BOTH') {
-      if (humanId) expanded.push({ playerId: humanId, scenarioIds: a.scenarioIds });
-      chosenCpuIds.forEach(id => expanded.push({ playerId: id, scenarioIds: a.scenarioIds }));
+      if (humanId) expanded.push({ playerId: humanId, scenarioIds: a.scenarioIds, paramsByScenario: a.paramsByScenario });
+      chosenCpuIds.forEach(id => expanded.push({ playerId: id, scenarioIds: a.scenarioIds, paramsByScenario: a.paramsByScenario }));
     }
   });
-  // Merge duplicates (same playerId) scenario lists
+  // Merge duplicates (same playerId) scenario lists including params
   const mergedMap = new Map();
   expanded.forEach(entry => {
-    if (!mergedMap.has(entry.playerId)) mergedMap.set(entry.playerId, new Set());
-    entry.scenarioIds.forEach(id => mergedMap.get(entry.playerId).add(id));
+    if (!mergedMap.has(entry.playerId)) mergedMap.set(entry.playerId, { playerId: entry.playerId, scenarioIds: [], paramsByScenario: {} });
+    const slot = mergedMap.get(entry.playerId);
+    entry.scenarioIds.forEach(id => { if (!slot.scenarioIds.includes(id)) slot.scenarioIds.push(id); });
+    if (entry.paramsByScenario) Object.assign(slot.paramsByScenario, entry.paramsByScenario);
   });
-  const finalList = [...mergedMap.entries()].map(([playerId,set])=>({ playerId, scenarioIds: [...set] }));
+  const finalList = [...mergedMap.values()];
   store.dispatch(scenarioApplyRequest(finalList));
 }
 
@@ -324,7 +405,11 @@ function describeAssignmentLabel(a){
 function updateParamEditor(root){
   const editor = root.querySelector('[data-param-editor]');
   const selected = [...root.querySelectorAll('[data-scenario-id]:checked')].map(cb=>cb.getAttribute('data-scenario-id'));
-  if (!selected.length) { editor.style.display='none'; editor.innerHTML=''; return; }
+  if (!selected.length) { 
+    editor.classList.remove('is-visible');
+    editor.innerHTML=''; 
+    return; 
+  }
   const blocks = [];
   selected.forEach(id => {
     const sc = getScenario(id);
@@ -338,8 +423,12 @@ function updateParamEditor(root){
     }).join('<div style="width:8px;"></div>');
     if (paramInputs) blocks.push(`<div style='display:flex;flex-wrap:wrap;gap:10px;margin:4px 0 6px;padding:6px 8px;border:1px solid #252525;background:#181818;border-radius:4px;'><div style='font-weight:600;font-size:11px;width:100%;'>${sc.label}</div>${paramInputs}</div>`);
   });
-  if (!blocks.length) { editor.style.display='none'; editor.innerHTML=''; return; }
-  editor.style.display='block';
+  if (!blocks.length) { 
+    editor.classList.remove('is-visible');
+    editor.innerHTML=''; 
+    return; 
+  }
+  editor.classList.add('is-visible');
   editor.innerHTML = `<div style='font-weight:600;margin-bottom:4px;'>Parameters</div>${blocks.join('')}`;
 }
 
@@ -371,4 +460,15 @@ function applyScenarioUniquenessDisables(root){
 
 function renderUniquenessHint(){
   return `<div style='margin-top:8px;opacity:.55;font-size:10px;'>Scenarios already assigned for the selected target are disabled.</div>`;
+}
+
+// Notify settings modal of scenario configuration changes
+function notifySettingsChange(root) {
+  try {
+    // Bubble up event to parent settings modal
+    const event = new CustomEvent('scenario-config-changed', { bubbles: true });
+    root.dispatchEvent(event);
+  } catch(e) {
+    console.warn('[Scenarios] Failed to notify settings change:', e);
+  }
 }

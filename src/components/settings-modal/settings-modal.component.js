@@ -16,8 +16,9 @@ export function build(ctx) {
         <button type="button" data-tab-btn="scenarios" style="padding:6px 12px;font-size:13px;border:2px solid #333;background:#fff;color:#000;cursor:pointer;">Scenarios</button>
         <button type="button" data-tab-btn="advanced" style="padding:6px 12px;font-size:13px;border:2px solid #333;background:#fff;color:#000;cursor:pointer;">Advanced</button>
       </div>
-      <save-bar data-settings-save-bar style="position:sticky;top:0;flex-shrink:0;height:40px;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 16px;background:red;border-bottom:2px solid yellow;z-index:9999;">
-        <span style="color:white;font-weight:bold;font-size:20px;">RED BAR HERE - SAVE BUTTON LOCATION</span>
+      <save-bar data-settings-save-bar style="position:sticky;top:0;flex-shrink:0;height:40px;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 16px;background:#2a2a2a;border-bottom:2px solid #444;z-index:9999;display:none;">
+        <button type="button" data-save-settings style="padding:8px 20px;background:#ffd400;color:#000;border:2px solid #333;border-radius:4px;font-size:14px;font-weight:bold;cursor:pointer;opacity:0.5;" disabled>Save Settings</button>
+        <span data-changes-count style="color:#aaa;font-size:12px;">No unsaved changes</span>
       </save-bar>
       <div class="modal-body" data-tabs-root style="flex:1;overflow-y:auto;padding:16px;padding-bottom:10px;background:blue;">
         <p style="color:yellow;font-size:20px;font-weight:bold;">MODAL BODY STARTS HERE</p>
@@ -89,11 +90,16 @@ export function build(ctx) {
     trackChange(e.target, form, root);
   });
   
-  // Save button handler (temporarily removed for debugging)
-  // const saveBtn = root.querySelector('[data-save-settings]');
-  // saveBtn.addEventListener('click', () => {
-  //   showConfirmationModal(root);
-  // });
+  // Track scenario changes via custom event
+  root.addEventListener('scenario-config-changed', () => {
+    trackScenarioChange(root);
+  });
+  
+  // Save button handler
+  const saveBtn = root.querySelector('[data-save-settings]');
+  saveBtn.addEventListener('click', () => {
+    showConfirmationModal(root);
+  });
   
   // Advanced tab - changeset list selection
   root.querySelector('#changeset-list')?.addEventListener('change', (e) => {
@@ -196,6 +202,26 @@ function trackChange(input, form, root) {
   console.log('[Settings] Pending changes:', pendingChanges);
 }
 
+function trackScenarioChange(root) {
+  // Check if there are scenario assignments in state
+  const currentState = store.getState();
+  const assignments = currentState.settings?.scenarioConfig?.assignments || [];
+  
+  // Mark scenarios as changed (we don't track individual changes, just that scenarios were modified)
+  if (!pendingChanges['_scenarios']) {
+    pendingChanges['_scenarios'] = {
+      setting: '_scenarios',
+      tab: 'Scenarios',
+      oldValue: '(previous configuration)',
+      newValue: `${assignments.length} assignment(s)`,
+      label: 'Scenario Configuration'
+    };
+  }
+  
+  updateSaveButton(root);
+  console.log('[Settings] Scenario change tracked');
+}
+
 function getLabelForSetting(name) {
   const labels = {
     cpuSpeed: 'CPU Speed',
@@ -215,10 +241,24 @@ function getLabelForSetting(name) {
 
 function updateSaveButton(root) {
   const saveBtn = root.querySelector('[data-save-settings]');
+  const saveBar = root.querySelector('[data-settings-save-bar]');
+  const changesCount = root.querySelector('[data-changes-count]');
   const hasChanges = Object.keys(pendingChanges).length > 0;
+  
   saveBtn.disabled = !hasChanges;
   saveBtn.style.cursor = hasChanges ? 'pointer' : 'not-allowed';
   saveBtn.style.opacity = hasChanges ? '1' : '0.5';
+  
+  // Show/hide save bar
+  saveBar.style.display = hasChanges ? 'flex' : 'none';
+  
+  // Update changes count text
+  if (hasChanges) {
+    const count = Object.keys(pendingChanges).length;
+    changesCount.textContent = `${count} unsaved change${count === 1 ? '' : 's'}`;
+  } else {
+    changesCount.textContent = 'No unsaved changes';
+  }
 }
 
 function clearPendingChanges() {

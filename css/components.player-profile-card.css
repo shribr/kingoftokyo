@@ -661,8 +661,69 @@
   background:transparent;
   border:none;
   padding:0 4px;
-  white-space:normal; /* allow wrapping */
+  white-space:normal;
 }
+
+/* Scenario Badge - Small gear icon next to player name */
+.cmp-player-profile-card .ppc-name .ppc-scenario-badge {
+  display: none; /* DEPRECATED - replaced with stat tile asterisks */
+  font-size: 16px;
+  line-height: 1;
+  margin-left: 6px;
+  position: relative;
+  top: -2px;
+  cursor: help;
+  filter: drop-shadow(0 0 2px rgba(255, 212, 0, 0.8));
+  animation: scenario-pulse 2s ease-in-out infinite;
+}
+
+@keyframes scenario-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(0.95); }
+}
+
+/* ============================================
+   SCENARIO INDICATORS (Red Asterisks)
+   Show on specific stat tiles based on scenario effects
+   ============================================ */
+.scenario-indicator {
+  display: none; /* Hidden by default, shown via JS */
+  position: absolute;
+  bottom: 2px;
+  right: 4px; /* Add padding from edge */
+  color: #ff3333;
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 1;
+  pointer-events: auto; /* Enable hover/click for tooltips */
+  cursor: help;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
+  z-index: 10;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.scenario-indicator:hover {
+  transform: scale(1.2);
+  filter: brightness(1.3);
+}
+
+/* Health bar indicator is positioned differently (top-right) */
+.scenario-indicator-health {
+  bottom: auto;
+  top: 2px;
+  right: 6px; /* Add padding from edge */
+  font-size: 12px;
+}
+
+/* Stat tiles need relative positioning for absolute asterisks */
+.cmp-player-profile-card .ppc-stat {
+  position: relative;
+}
+
+.cmp-player-profile-card .ppc-health-label {
+  position: relative;
+}
+
 /* When space is constrained (mobile panels / narrow widths) allow CPU label to drop below name to prevent overflow */
 @media (max-width: 760px), (pointer: coarse) {
   .cmp-player-profile-card .ppc-name { white-space:normal; overflow:visible; text-overflow:clip; }
