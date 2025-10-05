@@ -5,6 +5,73 @@
 
 import { newModalSystem } from './new-modal-system.js';
 
+// Initialize global winOdds object early so it's available even if settings modal never opens
+if (!window.__KOT_WIN_ODDS__) {
+  const winOdds = {
+    history: [],
+    maxHistory: 40,
+    mode: (()=>{ try { return localStorage.getItem('KOT_DEV_WIN_ODDS_MODE') || 'bars'; } catch(_) { return 'bars'; } })(),
+    compute(state){
+      if (!state || !state.players) return {};
+      const order = state.players.order || [];
+      const byId = state.players.byId || {};
+      const alive = order.filter(id => !byId[id].eliminated && !byId[id].isEliminated);
+      if (!alive.length) return {};
+      const features = alive.map(id => {
+        const p = byId[id];
+        const vp = p.vp ?? p.victoryPoints ?? 0;
+        const health = p.health ?? 0;
+        const energy = p.energy ?? 0;
+        const inTokyo = !!p.inTokyo;
+        const momentum = (p._recentVpGain || 0) + (p._recentEnergyGain || 0);
+        return { id, vp, health, energy, inTokyo, momentum };
+      });
+      const maxVP = Math.max(...features.map(f=>f.vp), 0);
+      const vpWeight = maxVP >= 15 ? 1.35 : (maxVP >= 10 ? 1.15 : 1.0);
+      const healthWeight = 0.9;
+      const energyWeight = 0.55;
+      const tokyoWeight = 1.1;
+      const momentumWeight = 0.4;
+      let total = 0;
+      const rawScores = {};
+      features.forEach(f => {
+        const tokyoBonus = f.inTokyo ? (tokyoWeight * (f.vp >= 10 ? 1.15 : 1)) : 0;
+        const parts = {
+          vp: f.vp * vpWeight,
+          health: f.health * healthWeight,
+          energy: f.energy * energyWeight,
+          tokyo: tokyoBonus,
+          momentum: f.momentum * momentumWeight
+        };
+        const score = parts.vp + parts.health + parts.energy + parts.tokyo + parts.momentum;
+        rawScores[f.id] = { score, parts };
+        total += score;
+      });
+      if (total <= 0) {
+        const pct = (100 / features.length);
+        const uniform = {}; features.forEach(f => uniform[f.id] = { percent: pct, parts: { vp:0,health:0,energy:0,tokyo:0,momentum:0 } });
+        return uniform;
+      }
+      const odds = {};
+      Object.keys(rawScores).forEach(id => { odds[id] = { percent: (rawScores[id].score / total) * 100, parts: rawScores[id].parts }; });
+      return odds;
+    },
+    push(odds){
+      const cloned = {}; Object.keys(odds).forEach(id => { const o = odds[id]; cloned[id] = { percent: o.percent, parts: { ...o.parts } }; });
+      this.history.push({ ts: Date.now(), odds: cloned });
+      if (this.history.length > this.maxHistory) this.history.shift();
+    },
+    trend(prev, current){
+      if (prev == null) return 0;
+      const delta = current - prev;
+      const mag = Math.abs(delta);
+      if (mag < 0.3) return 0;
+      return delta;
+    }
+  };
+  window.__KOT_WIN_ODDS__ = { obj: winOdds, render: null };
+}
+
 export function createSettingsModal() {
   const content = document.createElement('div');
   content.classList.add('settings-modal-root');
@@ -887,69 +954,8 @@ export function createSettingsModal() {
   attachDevToolsActions();
 
   // --- Win Odds Diagnostics -----------------------------------------------------------
-  const winOdds = {
-    history: [], // each entry: { ts, odds: { playerId: { percent, parts } } }
-    maxHistory: 40,
-    mode: (()=>{ try { return localStorage.getItem('KOT_DEV_WIN_ODDS_MODE') || 'bars'; } catch(_) { return 'bars'; } })(), // 'bars' | 'table' | 'compact' | 'stacked'
-    compute(state){
-      if (!state || !state.players) return {};
-      const order = state.players.order || [];
-      const byId = state.players.byId || {};
-      const alive = order.filter(id => !byId[id].eliminated && !byId[id].isEliminated);
-      if (!alive.length) return {};
-      const features = alive.map(id => {
-        const p = byId[id];
-        const vp = p.vp ?? p.victoryPoints ?? 0;
-        const health = p.health ?? 0;
-        const energy = p.energy ?? 0;
-        const inTokyo = !!p.inTokyo;
-        const momentum = (p._recentVpGain || 0) + (p._recentEnergyGain || 0);
-        return { id, vp, health, energy, inTokyo, momentum };
-      });
-      const maxVP = Math.max(...features.map(f=>f.vp), 0);
-      const vpWeight = maxVP >= 15 ? 1.35 : (maxVP >= 10 ? 1.15 : 1.0);
-      const healthWeight = 0.9;
-      const energyWeight = 0.55;
-      const tokyoWeight = 1.1;
-      const momentumWeight = 0.4;
-      let total = 0;
-      const rawScores = {};
-      features.forEach(f => {
-        const tokyoBonus = f.inTokyo ? (tokyoWeight * (f.vp >= 10 ? 1.15 : 1)) : 0;
-        const parts = {
-          vp: f.vp * vpWeight,
-          health: f.health * healthWeight,
-            energy: f.energy * energyWeight,
-          tokyo: tokyoBonus,
-          momentum: f.momentum * momentumWeight
-        };
-        const score = parts.vp + parts.health + parts.energy + parts.tokyo + parts.momentum;
-        rawScores[f.id] = { score, parts };
-        total += score;
-      });
-      if (total <= 0) {
-        const pct = (100 / features.length);
-        const uniform = {}; features.forEach(f => uniform[f.id] = { percent: pct, parts: { vp:0,health:0,energy:0,tokyo:0,momentum:0 } });
-        return uniform;
-      }
-      const odds = {};
-      Object.keys(rawScores).forEach(id => { odds[id] = { percent: (rawScores[id].score / total) * 100, parts: rawScores[id].parts }; });
-      return odds;
-    },
-    push(odds){
-      // Deep clone minimal
-      const cloned = {}; Object.keys(odds).forEach(id => { const o = odds[id]; cloned[id] = { percent: o.percent, parts: { ...o.parts } }; });
-      this.history.push({ ts: Date.now(), odds: cloned });
-      if (this.history.length > this.maxHistory) this.history.shift();
-    },
-    trend(prev, current){
-      if (prev == null) return 0;
-      const delta = current - prev;
-      const mag = Math.abs(delta);
-      if (mag < 0.3) return 0;
-      return delta;
-    }
-  };
+  // Use global winOdds object
+  const winOdds = window.__KOT_WIN_ODDS__.obj;
 
   function adaptSnapshotOdds(snapshotOdds){
     // Backward compatibility if older numeric entries exist
@@ -1106,6 +1112,9 @@ export function createSettingsModal() {
       trendDiv.innerHTML = summary;
     }
   }
+
+  // Update the render function in the global object
+  window.__KOT_WIN_ODDS__.render = renderWinOdds;
 
   function setupWinOddsHandlers(){
     const autoCb = content.querySelector('#dev-win-odds-auto');
@@ -2045,17 +2054,187 @@ export function openWinOddsQuickModal(){
   };
   
   function updateModeIcon() {
-    if (mini.modeBtn) {
+    const winOdds = window.__KOT_WIN_ODDS__?.obj;
+    if (mini.modeBtn && winOdds) {
       mini.modeBtn.innerHTML = modeIcons[winOdds.mode] || modeIcons.bars;
     }
   }
   
   function renderMini(force){
-    try { renderWinOdds(force); } catch(_) {}
-    const mainChart = document.querySelector('#dev-win-odds-chart');
-    if (mainChart && mini.chart) mini.chart.innerHTML = mainChart.innerHTML;
-    const mainTrend = document.querySelector('#dev-win-odds-trend');
-    if (mainTrend && mini.trend) mini.trend.textContent = mainTrend.textContent;
+    const winOdds = window.__KOT_WIN_ODDS__?.obj;
+    if (!winOdds || !mini.chart) return;
+    
+    const state = window.__KOT_NEW__?.store?.getState?.();
+    if (!state) { 
+      mini.chart.innerHTML = '<div style="font-size:11px;opacity:.5;">No state</div>'; 
+      return; 
+    }
+    
+    // Compute fresh odds
+    let odds = winOdds.compute(state);
+    if (!Object.keys(odds).length) { 
+      mini.chart.innerHTML = '<div style="font-size:11px;opacity:.45;">No active players</div>'; 
+      return; 
+    }
+    winOdds.push(odds);
+    
+    const players = state.players.order.map(id => state.players.byId[id]).filter(p => !p.eliminated && !p.isEliminated);
+    
+    // Helper: adaptSnapshotOdds
+    function adaptSnapshotOdds(snapshotOdds){
+      Object.keys(snapshotOdds).forEach(id => {
+        const val = snapshotOdds[id];
+        if (typeof val === 'number') snapshotOdds[id] = { percent: val, parts: { vp:0,health:0,energy:0,tokyo:0,momentum:0 } };
+      });
+      return snapshotOdds;
+    }
+    
+    // Helper: monsterColor
+    const baseColors = ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#0ea5e9','#14b8a6','#ec4899'];
+    function monsterColor(p, idx){
+      const name = (p.monster || p.monsterName || p.character || p.name || '').toLowerCase();
+      const map = {
+        'alienoid':'#1496b4', 'cyber bunny':'#f472b6', 'cyber kitty':'#ec4899',
+        'gigazaur':'#22c55e', 'kraken':'#3b82f6', 'meka dragon':'#a3a3a3',
+        'space penguin':'#38bdf8'
+      };
+      return map[name] || baseColors[idx % baseColors.length];
+    }
+    
+    // Sparkline data
+    const SPARK_N = 12;
+    const recent = winOdds.history.slice(-SPARK_N).map(h => adaptSnapshotOdds(h.odds));
+    const sparkData = {};
+    players.forEach(p => { sparkData[p.id] = recent.map(r => (r[p.id]?.percent) || 0); });
+    
+    // Previous odds for delta
+    const latestHist = winOdds.history;
+    const prev = latestHist.length > 1 ? adaptSnapshotOdds(JSON.parse(JSON.stringify(latestHist[latestHist.length-2].odds))) : {};
+    
+    // Common row data
+    function rowCommon(p) {
+      const pct = odds[p.id]?.percent || 0;
+      const prevPct = prev[p.id]?.percent;
+      const delta = winOdds.trend(prevPct, pct);
+      const arrow = delta > 0 ? '▲' : (delta < 0 ? '▼' : '');
+      const deltaStr = delta !== 0 ? (delta > 0 ? '+' : '') + delta.toFixed(1) : '';
+      const parts = odds[p.id]?.parts || {};
+      const partSum = Object.values(parts).reduce((a,b)=>a+b,0) || 1;
+      const breakdown = Object.entries(parts).map(([k,v]) => `${k}:${(v/partSum*100).toFixed(0)}%`).join(' ');
+      const tooltip = `title="${breakdown}"`;
+      const sVals = sparkData[p.id];
+      const maxS = Math.max(1, ...sVals);
+      const spark = `<span style='display:inline-flex;align-items:flex-end;gap:1px;height:12px;'>${sVals.map(v=>`<i style='display:block;width:3px;height:${Math.max(2,Math.round(v/maxS*12))}px;background:${v===sVals[sVals.length-1]?'#818cf8':'#4f46e5'};opacity:${0.35+(v/maxS*0.65)}'></i>`).join('')}</span>`;
+      return { pct, prevPct, delta, arrow, deltaStr, tooltip, spark };
+    }
+    
+    // Render based on mode
+    let html = '';
+    if (winOdds.mode === 'bars') {
+      html = '<div style="display:flex;flex-direction:column;gap:4px;padding:8px;">';
+      players.forEach((p,idx) => {
+        const { pct, arrow, deltaStr, tooltip, spark } = rowCommon(p);
+        const barW = Math.max(2, Math.min(100, pct)).toFixed(1);
+        const c = monsterColor(p, idx);
+        const grad = `linear-gradient(90deg, ${c}, ${c}cc)`;
+        html += `<div style='display:flex;flex-direction:column;gap:4px;'>
+          <div style='display:flex;justify-content:space-between;align-items:center;font-size:11px;'>
+            <span style='display:flex;align-items:center;gap:6px;' ${tooltip}>${arrow}<i style='width:8px;height:8px;border-radius:50%;background:${c};box-shadow:0 0 4px ${c}aa;display:inline-block;'></i><strong style='letter-spacing:.5px;'>${p.name||p.id}</strong> ${spark}</span>
+            <span style='font-variant-numeric:tabular-nums;' ${tooltip}>${pct.toFixed(1)}% <span style='opacity:.55;'>${deltaStr}</span></span>
+          </div>
+          <div style='background:#1d232c;border:1px solid #2c3440;border-radius:4px;height:10px;position:relative;overflow:hidden;'>
+            <div style='position:absolute;left:0;top:0;bottom:0;width:${barW}%;background:${grad};box-shadow:0 0 6px ${c}66;transition:width .4s ease;'></div>
+          </div>
+        </div>`;
+      });
+      html += '</div>';
+    } else if (winOdds.mode === 'table') {
+      html = `<div style="padding:8px;font-size:11px;"><table style='width:100%;border-collapse:collapse;'>
+        <thead><tr style='text-align:left;'>
+          <th style='padding:4px 6px;border-bottom:1px solid #222;'>Player</th>
+          <th style='padding:4px 6px;border-bottom:1px solid #222;'>Odds %</th>
+          <th style='padding:4px 6px;border-bottom:1px solid #222;'>Δ</th>
+          <th style='padding:4px 6px;border-bottom:1px solid #222;'>Trend</th>
+        </tr></thead><tbody>`;
+      players.forEach((p,idx) => {
+        const { pct, arrow, deltaStr, tooltip, spark } = rowCommon(p);
+        const c = monsterColor(p, idx);
+        html += `<tr>
+          <td style='padding:4px 6px;' ${tooltip}><span style='display:inline-flex;align-items:center;gap:6px;'><i style="width:8px;height:8px;border-radius:50%;background:${c};box-shadow:0 0 4px ${c}aa;display:inline-block;"></i>${p.name||p.id}</span></td>
+          <td style='padding:4px 6px;font-variant-numeric:tabular-nums;' ${tooltip}>${pct.toFixed(1)}%</td>
+          <td style='padding:4px 6px;'>${arrow} <span style='opacity:.65;'>${deltaStr}</span></td>
+          <td style='padding:4px 6px;'>${spark}</td>
+        </tr>`;
+      });
+      html += '</tbody></table></div>';
+    } else if (winOdds.mode === 'compact') {
+      html = `<div style='display:flex;flex-wrap:wrap;gap:10px;font-size:11px;padding:8px;'>`;
+      players.forEach((p,idx) => {
+        const { pct, arrow, tooltip } = rowCommon(p);
+        const c = monsterColor(p, idx);
+        html += `<span style='display:inline-flex;align-items:center;gap:6px;padding:4px 6px;background:#1d232c;border:1px solid #2c3440;border-radius:4px;' ${tooltip}>${arrow}<i style='width:8px;height:8px;border-radius:50%;background:${c};box-shadow:0 0 4px ${c}aa;'></i><strong>${p.name||p.id}</strong> ${pct.toFixed(1)}%</span>`;
+      });
+      html += '</div>';
+    } else if (winOdds.mode === 'stacked') {
+      const segs = players.map((p,idx) => {
+        const { pct, tooltip } = rowCommon(p);
+        const w = pct.toFixed(2);
+        const c = monsterColor(p, idx);
+        return `<div ${tooltip} style='flex:0 0 ${w}%;background:linear-gradient(135deg,${c},${c}cc 60%);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;position:relative;'>
+          <span style='pointer-events:none;text-shadow:0 1px 2px #000;font-weight:600;'>${p.name||p.id} ${pct.toFixed(1)}%</span>
+        </div>`;
+      }).join('');
+      html = `<div style='padding:8px;'><div style='display:flex;width:100%;height:42px;border:1px solid #2c3440;border-radius:6px;overflow:hidden;'>${segs}</div></div>`;
+    } else if (winOdds.mode === 'monitor') {
+      // Line graph
+      const CELL = 30;
+      const COLS = 10;
+      const ROWS = 4;
+      const W = CELL * COLS;
+      const H = CELL * ROWS;
+      const MAX_POINTS = 40;
+      const hist = winOdds.history.slice(-MAX_POINTS);
+      const gridLines = [];
+      for (let y=0;y<=ROWS;y++){ const gy = (H - (y/ROWS)*H).toFixed(2); gridLines.push(`<line x1='0' y1='${gy}' x2='${W}' y2='${gy}' stroke='rgba(255,255,255,.07)' stroke-width='1' />`); }
+      for (let x=0;x<=COLS;x++){ const gx = (x/COLS)*W; gridLines.push(`<line x1='${gx}' y1='0' x2='${gx}' y2='${H}' stroke='rgba(255,255,255,.05)' stroke-width='1' />`); }
+      const paths = players.map((p,idx)=>{
+        const c = monsterColor(p, idx);
+        let d='';
+        hist.forEach((h,i)=>{
+          const po = adaptSnapshotOdds(h.odds);
+          const v = po[p.id]?.percent ?? 0;
+          const x = (i/(hist.length-1||1))*W;
+          const y = H - (v/100)*H;
+          d += (i===0?`M ${x.toFixed(2)} ${y.toFixed(2)}`:` L ${x.toFixed(2)} ${y.toFixed(2)}`);
+        });
+        return `<path d='${d}' fill='none' stroke='${c}' stroke-width='2' vector-effect='non-scaling-stroke' stroke-linejoin='round' stroke-linecap='round' />`;
+      }).join('');
+      const legend = players.map((p,idx)=>{ const c = monsterColor(p, idx); const cur = odds[p.id]?.percent||0; return `<span style='display:inline-flex;align-items:center;gap:4px;font-size:10px;'>
+        <i style='width:10px;height:10px;border-radius:2px;background:${c};box-shadow:0 0 6px ${c}aa;'></i>${p.name||p.id} ${cur.toFixed(1)}%
+      </span>`; }).join('<span style="opacity:.3;">|</span>');
+      html = `<div style='display:flex;flex-direction:column;gap:6px;padding:8px;'>
+        <div style='background:#000;border:1px solid #222;border-radius:6px;padding:6px;position:relative;'>
+          <svg viewBox='0 0 ${W} ${H}' preserveAspectRatio='xMidYMid meet' style='width:100%;aspect-ratio:${W}/${H};display:block;background:#000;'>
+            <g>${gridLines.join('')}</g>
+            <g>${paths}</g>
+          </svg>
+        </div>
+        <div style='display:flex;flex-wrap:wrap;gap:8px;justify-content:center;'>${legend}</div>
+      </div>`;
+    }
+    
+    mini.chart.innerHTML = html;
+    
+    // Update trend
+    if (mini.trend) {
+      const summary = players.map(p => {
+        const pct = odds[p.id]?.percent || 0;
+        const name = p.monster || p.monsterName || p.name || p.id;
+        return `${name}: ${pct.toFixed(1)}%`;
+      }).join(' • ');
+      mini.trend.textContent = summary;
+    }
+    
     updateModeIcon();
   }
   mini.refreshBtn.addEventListener('click', ()=>renderMini(true));
@@ -2064,10 +2243,13 @@ export function openWinOddsQuickModal(){
     const btn = document.querySelector('#dev-win-odds-mode'); 
     if (btn) btn.click(); 
     else { 
-      const modes=['bars','table','compact','stacked','monitor']; 
-      const cur=winOdds.mode; 
-      winOdds.mode=modes[(modes.indexOf(cur)+1)%modes.length]; 
-      try { localStorage.setItem('KOT_DEV_WIN_ODDS_MODE', winOdds.mode); } catch(_) {}
+      const winOdds = window.__KOT_WIN_ODDS__?.obj;
+      if (winOdds) {
+        const modes=['bars','table','compact','stacked','monitor']; 
+        const cur=winOdds.mode; 
+        winOdds.mode=modes[(modes.indexOf(cur)+1)%modes.length]; 
+        try { localStorage.setItem('KOT_DEV_WIN_ODDS_MODE', winOdds.mode); } catch(_) {}
+      }
     } 
     setTimeout(()=>renderMini(true), 40); 
   });

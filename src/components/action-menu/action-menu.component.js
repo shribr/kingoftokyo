@@ -895,13 +895,14 @@ export function build({ selector }) {
     }
   });
   
-  // Add deck illumination on power cards button hover
+  // Add deck illumination and label reveal on power cards button hover
   const powerCardsBtn = root.querySelector('.power-cards-btn');
   if (powerCardsBtn) {
     powerCardsBtn.addEventListener('mouseenter', () => {
       const deck = document.querySelector('.power-card-deck');
       if (deck) {
         deck.style.boxShadow = 'inset 0 0 20px rgba(0,0,0,0.3), 0 0 20px #4a7c59';
+        deck.classList.add('hover-reveal');
       }
     });
     
@@ -909,6 +910,7 @@ export function build({ selector }) {
       const deck = document.querySelector('.power-card-deck');
       if (deck) {
         deck.style.boxShadow = 'inset 0 0 20px rgba(0,0,0,0.3)';
+        deck.classList.remove('hover-reveal');
       }
     });
   }

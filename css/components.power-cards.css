@@ -127,6 +127,15 @@
   transform-origin: center center;
   white-space: nowrap;
   z-index: 1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+/* Show deck label on deck hover or when deck has hover-reveal class */
+.cmp-power-cards-panel .power-card-deck:hover .deck-label,
+.cmp-power-cards-panel .power-card-deck.hover-reveal .deck-label {
+  opacity: 1;
 }
 
 /* Standard/Desktop view - positioned with rotation */
