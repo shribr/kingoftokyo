@@ -224,8 +224,11 @@ if (typeof window !== 'undefined') {
     selectionWasOpened = true;
     store.dispatch(uiSplashHide());
     store.dispatch(uiMonsterSelectionClose());
-    // Ensure blackout added then removed when phase transitions
-    ensurePostSplashBlackout();
+    // Don't create blackout during skipIntro - we're going straight to game
+    try { window.__KOT_BLACKOUT__?.hide(); } catch(_) {}
+    // Remove any existing blackout immediately
+    try { document.querySelector('.post-splash-blackout')?.remove(); } catch(_) {}
+    
     setTimeout(() => {
       try { turnService.startGameIfNeeded(); } catch(e) { console.warn('Skip intro start failed', e); }
       // Immediate UI activation fallback (skipIntro path bypasses RFF finalize hooks)
@@ -234,14 +237,13 @@ if (typeof window !== 'undefined') {
           document.body.classList.add('game-active');
         }
         window.__KOT_GAME_STARTED = true;
-        const blk = document.querySelector('.post-splash-blackout');
-        if (blk) { blk.classList.add('is-hidden'); setTimeout(()=>{ try { blk.remove(); } catch(_){} }, 320); }
-        // Also trigger game-ready + notification if gating is effectively bypassed
+        
+        // Trigger game-ready + notification if gating is effectively bypassed
         if (!document.body.classList.contains('game-ready')) {
           document.body.classList.add('game-ready');
           if (!window.__KOT_GAME_START_TOAST__) {
             const note = document.createElement('div');
-            note.className = 'center-notification game-start-toast visible';
+            note.className = 'game-start-toast visible';
             note.setAttribute('role','status');
             note.setAttribute('aria-live','polite');
             note.innerHTML = `
@@ -320,12 +322,17 @@ if (typeof window !== 'undefined') {
       document.body.classList.add('game-ready');
       // Remove blackout now (both conditions inherently met because phase advanced via gating logic)
       const blk = document.querySelector('.post-splash-blackout');
-      if (blk) { blk.classList.add('is-hidden'); setTimeout(()=>blk.remove(), 520); }
+      if (blk) { 
+        blk.classList.add('is-hidden'); 
+        // Also call the controller to ensure inline styles are cleared
+        try { window.__KOT_BLACKOUT__?.hide(); } catch(_) {}
+        setTimeout(()=>blk.remove(), 520); 
+      }
       // Central notification: Game officially underway
       try {
         if (!window.__KOT_GAME_START_TOAST__) {
           const note = document.createElement('div');
-          note.className = 'center-notification game-start-toast visible';
+          note.className = 'game-start-toast visible';
           note.setAttribute('role','status');
           note.setAttribute('aria-live','polite');
           note.innerHTML = `
@@ -495,7 +502,7 @@ if (typeof window !== 'undefined') {
             const show = () => {
               if (window.__KOT_GAME_START_TOAST__) return;
               const note = document.createElement('div');
-              note.className = 'center-notification game-start-toast visible';
+              note.className = 'game-start-toast visible';
               note.setAttribute('role','status');
               note.setAttribute('aria-live','polite');
               note.innerHTML = `\n                <div class="gst-inner" aria-hidden="true">\n                  <div class="gst-icon-wrap"><span class="gst-icon">🏙️</span><span class="gst-flare" aria-hidden="true"></span></div>\n                  <h2 class="gst-title">GAME START</h2>\n                  <div class="gst-sub">Monsters unleashed in Tokyo!</div>\n                  <div class="gst-energy-bar" aria-hidden="true"><span class="gst-energy-fill"></span></div>\n                </div>`;
@@ -645,7 +652,15 @@ function orchestrateGameStartToast(note) {
     if (prefersReduced) {
       // Respect reduced motion: schedule a simple fade dismiss similar to prior behavior.
       try { note.removeAttribute('data-color-band'); } catch(_){}
-      setTimeout(() => { if (!note.isConnected) return; note.classList.add('dismiss'); setTimeout(()=>{ try { note.remove(); } catch(_){} }, 600); }, 2200);
+      setTimeout(() => { 
+        if (!note.isConnected) return;
+        // Lower z-index before dismissing 
+        note.style.zIndex = '0';
+        note.classList.add('dismiss'); 
+        setTimeout(()=>{ 
+          try { note.remove(); } catch(_){} 
+        }, 600); 
+      }, 2200);
       return;
     }
     // Progressive phases
@@ -667,15 +682,28 @@ function orchestrateGameStartToast(note) {
       if (!note.isConnected) return;
       note.removeAttribute('data-shake-phase');
       note.classList.add('exploding');
+      // Lower z-index so it doesn't block UI during fade-out
+      note.style.zIndex = '0';
       try { if (cfg.enableShockwave) spawnGameStartShockwave(note); } catch(e){ console.warn('shockwave spawn failed', e); }
       try { if (cfg.enableParticles) spawnGameStartParticles(note, cfg); } catch(e){ console.warn('spawnGameStartParticles failed', e);}      
       // Removal after configured additional delay (allows fade tail & particles)
-      setTimeout(() => { if (!note.isConnected) return; try { note.remove(); } catch(_){}; }, cfg.timings.removalDelay);
+      setTimeout(() => { 
+        if (!note.isConnected) return; 
+        try { note.remove(); } catch(_){}
+      }, cfg.timings.removalDelay);
     }, EXPLOSION_AT);
   } catch(e) {
     console.warn('orchestrateGameStartToast internal error', e);
     // Fallback: prior simple dismiss
-    setTimeout(() => { if (!note.isConnected) return; note.classList.add('dismiss'); setTimeout(()=>{ try { note.remove(); } catch(_){} }, 600); }, 2500);
+    setTimeout(() => { 
+      if (!note.isConnected) return;
+      // Lower z-index before dismissing
+      note.style.zIndex = '0';
+      note.classList.add('dismiss'); 
+      setTimeout(()=>{ 
+        try { note.remove(); } catch(_){}
+      }, 600); 
+    }, 2500);
   }
 }
 

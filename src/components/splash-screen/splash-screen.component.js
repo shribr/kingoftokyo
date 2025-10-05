@@ -159,9 +159,13 @@ function beginHideSequence(dispatch, root) {
 
 function ensureBlackout() {
   if (document.body.classList.contains('game-ready') || document.body.classList.contains('game-active')) return;
-  if (!document.querySelector('.post-splash-blackout')) {
+  const existing = document.querySelector('.post-splash-blackout');
+  if (!existing) {
     const div = document.createElement('div');
     div.className = 'post-splash-blackout';
     document.body.appendChild(div);
+  } else if (existing.classList.contains('is-hidden')) {
+    // Don't interfere with hidden blackout
+    return;
   }
 }

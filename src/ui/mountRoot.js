@@ -114,7 +114,7 @@ export async function mountRoot(configEntries, store) {
       const eq = selectEffectQueueState(state);
       // Heuristic: show when active AI player exists and queue not processing but phase indicates awaiting dice roll OR resolution choices.
       const phase = state.phase?.name || state.phase;
-      const aiTurn = active && (active.isCPU || active.isAi || active.type === 'ai');
+      const aiTurn = active && (active.isCPU || active.isAI || active.isAi || active.type === 'ai' || active.type === 'cpu');
       const busy = !!eq.processing || document.querySelector('.cmp-ai-decision-modal:not([hidden])');
       const bannerShould = aiTurn && !busy && /roll|buy|resolve|start/i.test(phase || '');
       setAIThinking(bannerShould);
@@ -210,7 +210,7 @@ export function setAIThinking(isThinking) {
   try {
     const st = store.getState();
     const active = selectActivePlayer(st);
-    const isCpu = !!(active && (active.isCPU || active.isAi || active.isAI || active.type === 'ai'));
+    const isCpu = !!(active && (active.isCPU || active.isAI || active.isAi || active.type === 'ai' || active.type === 'cpu'));
     if (!isCpu) {
       isThinking = false; // force hide if human turn
     }

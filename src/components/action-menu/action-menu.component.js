@@ -208,7 +208,7 @@ export function build({ selector }) {
       btn.innerHTML = '◀'; // left arrow indicates menu will expand to left
       btn.setAttribute('aria-label','Expand Action Menu');
       Object.assign(btn.style, {
-        position:'fixed', bottom:'20px', right:'20px', width:'50px', height:'50px', background:'linear-gradient(135deg,#ffcf33 0%, #ffb300 100%)', border:'3px solid #333', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px', cursor:'pointer', boxShadow:'0 4px 12px rgba(0,0,0,0.3)', zIndex:'7500', transition:'transform 0.2s ease', color:'#000'
+        position:'fixed', bottom:'20px', right:'20px', width:'50px', height:'50px', background:'linear-gradient(135deg,#ffcf33 0%, #ffb300 100%)', border:'3px solid #333', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px', cursor:'pointer', boxShadow:'0 4px 12px rgba(0,0,0,0.3)', zIndex:'6700', transition:'transform 0.2s ease', color:'#000'
       });
       btn.addEventListener('click', () => {
         const horizontalMenu = document.getElementById('horizontal-action-menu');
@@ -250,7 +250,7 @@ export function build({ selector }) {
           position:'fixed', top:'10px', left:'10px', transform:'none',
           display:'flex', flexDirection:'row', alignItems:'center', gap:'10px',
           padding:'6px 10px 6px 6px', background:'linear-gradient(135deg,#2d3436,#1b1f20)',
-          border:'3px solid #000', borderRadius:'40px', boxShadow:'0 4px 12px rgba(0,0,0,0.35)', zIndex:'7500',
+          border:'3px solid #000', borderRadius:'40px', boxShadow:'0 4px 12px rgba(0,0,0,0.35)', zIndex:'6700',
           fontFamily:'Bangers,cursive', letterSpacing:'1px', cursor:'pointer'
         });
         const avatarEl = bubble.querySelector('.apb-avatar');
@@ -1034,7 +1034,7 @@ export function update(root) {
         bubble.style.width = '';
         bubble.style.height = '';
         bubble.style.margin = '';
-        bubble.style.zIndex = '7500';
+        bubble.style.zIndex = '6700';
       }
       
       const avatar = bubble.querySelector('.apb-avatar');

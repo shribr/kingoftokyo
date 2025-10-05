@@ -25,7 +25,7 @@
   border:var(--action-menu-border);
   border-radius:var(--action-menu-radius);
   box-shadow:var(--action-menu-shadow);
-  z-index:6000; /* below peek modal (7000) but above other panels */
+  z-index:6700; /* match mobile buttons */
   font-family:'Bangers',cursive;
   letter-spacing:.5px;
   width:260px; /* unify width */

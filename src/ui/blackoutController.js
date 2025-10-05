@@ -19,12 +19,13 @@ function show(opts = {}) {
   if (opts.zIndex != null) el.style.zIndex = String(opts.zIndex);
 }
 
-function hide() {
-  const el = document.querySelector('.post-splash-blackout');
-  if (el) el.classList.add('is-hidden');
-}
-
-function elevate() {
+  function hide() {
+    const el = document.querySelector('.post-splash-blackout');
+    if (el) {
+      el.classList.add('is-hidden');
+      el.style.zIndex = ''; // Clear any inline z-index
+    }
+  }function elevate() {
   const el = ensureElement();
   el.style.zIndex = '15000';
   el.classList.remove('is-hidden');

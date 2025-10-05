@@ -140,7 +140,7 @@ body, .btn, .card-text { font-size:var(--body-size); }
 		font-size: 24px;
 		cursor: pointer;
 		box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-		z-index: 7500;
+		z-index: 6700;
 		transition: transform 0.2s ease;
 	}
 
@@ -150,6 +150,12 @@ body, .btn, .card-text { font-size:var(--body-size); }
 
 	#action-menu-mobile-btn:active {
 		transform: scale(0.95) !important;
+	}
+
+	/* Active player bubble - positioned to the left of the action menu button */
+	#active-player-bubble,
+	.active-player-bubble {
+		z-index: 6700 !important;
 	}
 
 	.game-header { padding:clamp(15px,4vw,20px); flex-direction:column; gap:clamp(10px,3vw,15px); width:100%; max-width:100vw; }

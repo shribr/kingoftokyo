@@ -401,7 +401,7 @@ function displayRollingFace(dieEl, face) {
 // Auto close
 function scheduleAutoClose(dispatch, getState, root) { /* No-op (legacy placeholder) */ }
 
-// Ensures RFF is resolved, phase advances, modal hides, and blackout is removed
+// Ensures RFF is resolved, phase advances, modal hides, and blackout is kept visible for game start modal
 function finalizeAndStartGame(dispatch, getState, root) {
   const stObj = ensureStateObject(root, getState);
   if (stObj._closed) return;
@@ -411,9 +411,7 @@ function finalizeAndStartGame(dispatch, getState, root) {
   const st = getState();
     if (st.phase === 'SETUP') eventBus.emit('ui/intent/gameStart');
   hide(root);
-  // Aggressive blackout cleanup: hide via controller and remove the node if still present
   try { window.__KOT_BLACKOUT__?.hide(); } catch(_) {}
-  // Blackout removal now deferred to bootstrap subscription once phase transitions.
   // Release overlay if still active
   if (root._overlayAcquired) { try { releaseOverlay('rollForFirst'); root._overlayAcquired = false; } catch(_) {} }
   // Ensure body is marked active immediately to prevent any re-ensure paths from recreating blackout

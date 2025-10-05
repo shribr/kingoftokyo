@@ -66,12 +66,6 @@ export function build(ctx) {
       </div>
     </div>`;
   
-  console.log('[Settings Modal] Build function called');
-  console.log('[Settings Modal] Root element:', root);
-  console.log('[Settings Modal] Looking for save-bar element...');
-  const testBar = root.querySelector('save-bar[data-settings-save-bar]');
-  console.log('[Settings Modal] Found save bar:', testBar);
-  
   // Close button handlers
   root.querySelectorAll('[data-close]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -106,21 +100,6 @@ export function build(ctx) {
     displayChangesetDetails(e.target.value, root);
   });
   
-  // Force the save bar to be visible with JavaScript
-  const saveBar = root.querySelector('.settings-save-bar');
-  if (saveBar) {
-    saveBar.style.setProperty('position', 'sticky', 'important');
-    saveBar.style.setProperty('top', '0', 'important');
-    saveBar.style.setProperty('background', 'red', 'important');
-    saveBar.style.setProperty('height', '40px', 'important');
-    saveBar.style.setProperty('display', 'flex', 'important');
-    saveBar.style.setProperty('z-index', '9999', 'important');
-    console.log('[Settings] Save bar element:', saveBar);
-    console.log('[Settings] Save bar computed styles:', window.getComputedStyle(saveBar));
-  } else {
-    console.error('[Settings] Save bar not found!');
-  }
-  
   return { root, update: (p) => update(p) };
 }
 
@@ -135,28 +114,6 @@ export function update(ctx) {
     try { window.__KOT_BLACKOUT__?.hide(); } catch(_) {}
     // Ensure modal-shell is above general overlays
     try { root.style.zIndex = '12000'; } catch(_) {}
-    
-    // Force save bar visibility when modal opens
-    try {
-      console.log('[Settings] DEBUG 1: Starting save bar search');
-      console.log('[Settings] DEBUG 2: Root element:', root);
-      console.log('[Settings] DEBUG 3: Root className:', root.className);
-      
-      const allSaveBars = root.querySelectorAll('save-bar');
-      console.log('[Settings] DEBUG 4: All save-bar elements:', allSaveBars.length);
-      
-      const saveBar = root.querySelector('save-bar[data-settings-save-bar]');
-      console.log('[Settings] DEBUG 5: Query result:', saveBar);
-      
-      if (saveBar) {
-        console.log('[Settings] Found save bar!');
-        saveBar.style.cssText = 'position:sticky;top:0;flex-shrink:0;height:40px;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 16px;background:red;border-bottom:2px solid yellow;z-index:9999;';
-      } else {
-        console.error('[Settings] Save bar NOT found');
-      }
-    } catch(e) {
-      console.error('[Settings] Error in save bar logic:', e);
-    }
   }
   if (!open) return;
   ensureScenarioConfigMounted(root);
