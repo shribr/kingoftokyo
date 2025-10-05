@@ -75,9 +75,8 @@
   .cmp-arena [data-tokyo="bay"] { padding:8px 10px; }
   .cmp-arena .monster-slot { height:120px; }
 
-  /* Floating action menu (if present) ensure width clamp */
-  .cmp-action-menu { max-width:260px; }
-  .cmp-action-menu[data-layout="vertical"] { width:240px; }
+  /* Desktop action menu is hidden in mobile - using horizontal menu instead */
+  .cmp-action-menu { display: none !important; }
 
   /* Mobile: Dice tray and action menu at same position, sliding from opposite sides */
   /* Dice tray: slides from LEFT, positioned at bottom */
@@ -158,7 +157,6 @@
 @media (max-width:520px) {
   .cmp-player-profile-card { width:46%; min-width:150px; }
   .cmp-player-profile-card .ppc-owned-cards-strip { display:none; }
-  .cmp-action-menu { width:220px; }
   .cmp-dice-tray [data-dice] { gap:4px; }
   .cmp-dice-tray .die { width:calc(var(--dice-size) * .9); height:calc(var(--dice-size) * .9); }
   .cmp-toolbar { --toolbar-btn-size:38px; padding:8px 10px; }
@@ -167,13 +165,11 @@
 /* 5) Very narrow emergency compression */
 @media (max-width:400px) {
   .cmp-player-profile-card { width:100%; }
-  .cmp-action-menu { width:200px; }
   .cmp-dice-tray .die { width:calc(var(--dice-size) * .82); height:calc(var(--dice-size) * .82); }
 }
 
 /* 6) Touch / reduced motion synergy (prefer composition over duplication) */
 @media (pointer:coarse) and (prefers-reduced-motion:reduce) {
-  .cmp-action-menu button,
   .cmp-toolbar .toolbar-btn,
   .cmp-dice-tray .die { transition:none !important; animation:none !important; }
 }
@@ -181,7 +177,6 @@
 /* 7) High-contrast assist (piggyback if OS requests + narrow) */
 @media (prefers-contrast: more) and (max-width:760px) {
   .cmp-player-profile-card { box-shadow:0 0 0 3px #fff, 0 0 0 5px #000; }
-  .cmp-action-menu { box-shadow:0 0 0 3px #fff, 0 0 0 5px #000; }
 }
 
 /* 8) Data attribute based drag affordance removal (visual) */

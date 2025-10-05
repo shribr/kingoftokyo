@@ -1,0 +1,215 @@
+/** components.all-power-cards-catalog.css
+ * Styles for the All Power Cards catalog modal
+ * Features flip animation for card details
+ */
+
+.all-cards-catalog {
+  padding: 16px;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.all-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.catalog-card {
+  perspective: 1000px;
+  height: 280px;
+  cursor: pointer;
+}
+
+.catalog-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+
+.catalog-card.flipped .catalog-card-inner {
+  transform: rotateY(180deg);
+}
+
+.catalog-card-front,
+.catalog-card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 8px;
+  border: 2px solid #333;
+  background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+  box-shadow: 3px 3px 0 #000;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+}
+
+.catalog-card-back {
+  transform: rotateY(180deg);
+  background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.catalog-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.catalog-card-name {
+  font-family: 'Bangers', cursive;
+  font-size: 16px;
+  color: #ffd400;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+  flex: 1;
+}
+
+.catalog-dark-badge {
+  background: #8b008b;
+  color: #fff;
+  font-family: 'Bangers', cursive;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.catalog-card-cost {
+  font-family: 'Bangers', cursive;
+  font-size: 24px;
+  color: #00e5ff;
+  margin: 8px 0;
+  text-align: center;
+}
+
+.catalog-card-type {
+  font-family: 'Bangers', cursive;
+  font-size: 12px;
+  color: #fff;
+  background: rgba(0,0,0,0.5);
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-align: center;
+  margin: 8px 0 4px;
+  letter-spacing: 1px;
+}
+
+.catalog-card-description-front {
+  font-size: 11px;
+  color: #ddd;
+  line-height: 1.3;
+  padding: 4px 8px;
+  flex: 1;
+  overflow-y: auto;
+  text-align: left;
+}
+
+.catalog-card-flip-btn {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: #fff;
+  border: 2px solid #333;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  font-size: 16px;
+  font-weight: bold;
+  font-style: italic;
+  color: #000;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  text-transform: lowercase;
+  line-height: 1;
+  padding: 0;
+}
+
+.catalog-card-flip-btn span {
+  font-style: italic;
+  font-weight: bold;
+  text-transform: lowercase;
+  line-height: 1;
+}
+
+.catalog-card-flip-btn:hover {
+  background: #ffd400;
+  border-color: #000;
+  transform: scale(1.1);
+}
+
+.catalog-card-flip-btn-back {
+  background: #fff;
+  border-color: #333;
+  color: #000;
+  font-style: normal;
+  font-size: 18px;
+}
+
+.catalog-card-flip-btn-back:hover {
+  background: #00e5ff;
+  border-color: #000;
+}
+
+.catalog-card-description {
+  font-size: 13px;
+  color: #ddd;
+  line-height: 1.4;
+  padding: 8px;
+  max-width: 90%;
+}
+
+/* Modal specific styling */
+.all-cards-modal .modal-content {
+  max-width: 900px;
+}
+
+/* Animation for deck card to make it clear it's clickable */
+.power-card-deck {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.power-card-deck:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(255,212,0,0.5);
+}
+
+.power-card-deck .deck-logo {
+  transition: filter 0.3s ease;
+}
+
+.power-card-deck:hover .deck-logo {
+  filter: brightness(1.2);
+}
+
+/* Scrollbar styling */
+.all-cards-catalog::-webkit-scrollbar {
+  width: 8px;
+}
+
+.all-cards-catalog::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.3);
+  border-radius: 4px;
+}
+
+.all-cards-catalog::-webkit-scrollbar-thumb {
+  background: rgba(255,212,0,0.5);
+  border-radius: 4px;
+}
+
+.all-cards-catalog::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,212,0,0.7);
+}

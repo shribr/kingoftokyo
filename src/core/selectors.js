@@ -31,10 +31,10 @@ export const selectCardsState = (state) => state.cards;
 export const selectShopCards = (state) => state.cards.shop;
 export const selectDeckCount = (state) => state.cards.deck.length;
 export const selectDiscardCount = (state) => state.cards.discard.length;
-export const selectPlayerCards = (state, playerId) => state.players.byId[playerId]?.cards || [];
+export const selectPlayerPowerCards = (state, playerId) => state.players.byId[playerId]?.cards || [];
 // UI
 export const selectUICardDetail = (state) => state.ui.cardDetail;
-export const selectUIPlayerCards = (state) => state.ui.playerCards;
+export const selectUIPlayerPowerCards = (state) => state.ui.playerPowerCards;
 export const selectUIMonsterProfiles = (state) => state.ui.monsterProfiles;
 export const selectUISingleMonster = (state) => state.ui.singleMonster;
 export const selectUIPeek = (state) => state.ui.peek;

@@ -120,9 +120,9 @@
 		]
 	},
 	{
-		"name": "playerCardsModal",
+		"name": "playerPowerCardsModal",
 		"version": "0.1.0",
-		"selector": ".cmp-player-cards-modal",
+		"selector": ".cmp-player-power-cards-modal",
 		"mountPoint": "#app",
 		"order": 190,
 		"enabled": true,
@@ -400,9 +400,9 @@
 		"zIndex": 130
 	},
 	{
-		"name": "playerCardsModal",
+		"name": "playerPowerCardsModal",
 		"version": "0.1.0",
-		"selector": ".cmp-player-cards-modal",
+		"selector": ".cmp-player-power-cards-modal",
 		"mountPoint": "#app",
 		"order": 322,
 		"enabled": true,

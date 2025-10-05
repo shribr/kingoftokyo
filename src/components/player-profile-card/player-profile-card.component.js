@@ -13,7 +13,7 @@
  * - No external side-effects; relies only on selectors + store.
  */
 import { store } from '../../bootstrap/index.js';
-import { selectPlayerById, selectActivePlayer, selectPlayerCards, selectMonsterById } from '../../core/selectors.js';
+import { selectPlayerById, selectActivePlayer, selectPlayerPowerCards, selectMonsterById } from '../../core/selectors.js';
 import { uiCardDetailOpen } from '../../core/actions.js';
 import { uiPeekShow } from '../../core/actions.js';
 import { createPositioningService } from '../../services/positioningService.js';
@@ -343,7 +343,7 @@ export function update(root, { playerId }) {
   }
 
   // Owned cards miniature lane
-  const cards = selectPlayerCards(state, playerId) || [];
+  const cards = selectPlayerPowerCards(state, playerId) || [];
   const cardsCountEl = root.querySelector('[data-cards-count]');
   if (cardsCountEl) {
     const prevCount = parseInt(cardsCountEl.textContent||'0',10);

@@ -37,7 +37,7 @@
 .cmp-power-cards-panel .pc-card-header { display:flex; align-items:center; justify-content:flex-start; font-family:'Bangers',cursive; font-size:18px; letter-spacing:.75px; color:var(--pc-card-accent); margin:-4px -4px 2px; padding:4px 6px 6px; background:linear-gradient(135deg,#3b4245,#23272a); border:2px solid #000; border-radius:4px; box-shadow:2px 2px 0 #000,0 0 0 2px #222 inset; }
 .cmp-power-cards-panel .power-card-deck-title { font-family:'Bangers',cursive; font-size:18px; letter-spacing:.75px; color:var(--pc-card-accent); text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; padding-left:8px; margin-bottom:8px; }
 .cmp-power-cards-panel .power-card-deck { 
-  min-height:110px; 
+  min-height:160px; 
   background:linear-gradient(135deg,#2c5234,#1a3d20); 
   border:3px solid #000; 
   border-radius:8px; 
@@ -53,7 +53,7 @@
 
 .cmp-power-cards-panel .deck-logo {
   position: absolute;
-  width: 80px;
+  width: 100px;
   height: auto;
   opacity: 0.8;
   filter: drop-shadow(-2px -2px 0 #000) drop-shadow(2px -2px 0 #000) drop-shadow(-2px 2px 0 #000) drop-shadow(2px 2px 0 #000);
@@ -63,7 +63,7 @@
 
 .cmp-power-cards-panel .deck-label {
   font-family: 'Bangers', cursive;
-  font-size: 28px;
+  font-size: 16px;
   letter-spacing: 1px;
   color: #fff;
   text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000;
@@ -76,31 +76,32 @@
 /* Standard/Desktop view - positioned with rotation */
 @media (min-width: 769px) {
   .cmp-power-cards-panel .deck-logo {
-    top: 55%;
-    left: 50%;
-    transform: translate(-50%, -50%) rotate(-90deg);
+    top: 50%;
+    left: 24px;
+    transform: translateY(-50%) rotate(-90deg);
   }
   
   .cmp-power-cards-panel .deck-label {
-    top: 55%;
-    left: 15px;
-    transform: translateY(-50%) rotate(-90deg);
+    top: 8px;
+    right: 8px;
+    transform: none;
   }
 }
 
-/* Mobile view - no positioning, horizontal text */
+/* Mobile view - horizontal layout */
 @media (max-width: 768px) {
   .cmp-power-cards-panel .deck-logo {
-    top: 55%;
+    top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%) rotate(0deg);
+    transform: translate(-50%, -50%);
     width: 70px;
   }
   
   .cmp-power-cards-panel .deck-label {
-    top: 20%;
-    left: 50%;
-    transform: translate(-50%, -50%) rotate(0deg);
+    top: 8px;
+    right: 8px;
+    transform: none;
+    font-size: 14px;
   }
 }
 
@@ -213,9 +214,20 @@
 .cmp-power-cards-panel .pc-card--deck.can-peek:active { transform:translateY(2px); }
 .cmp-power-cards-panel .pc-card--deck .pc-card__header--deck { position:relative; }
 .cmp-power-cards-panel .pc-card__count { position:absolute; bottom:8px; right:8px; font-size:11px; color:var(--pc-card-accent); background:rgba(0,0,0,0.6); padding:2px 6px; border-radius:8px; font-family:'Bangers',cursive; letter-spacing:0.5px; }
-.cmp-power-cards-panel .pc-card--deck.can-peek .pc-card__header--deck:after { content:'PEEK'; position:absolute; top:4px; right:6px; background:#111; color:#ffd400; font-family:'Bangers',cursive; font-size:10px; padding:2px 6px 3px; border:2px solid #000; border-radius:12px; letter-spacing:1px; box-shadow:2px 2px 0 #000; animation:peekBadgeBlink 3s linear infinite; }
+.cmp-power-cards-panel .pc-card--deck.can-peek .pc-card__header--deck:after { content:'PEEK'; position:absolute; top:4px; right:6px; background:#111; color:#ffd400; font-family:'Bangers',cursive; font-size:10px; padding:2px 6px 3px; border:2px solid #ffd400; border-radius:12px; letter-spacing:1px; box-shadow:2px 2px 0 #000, 0 0 8px rgba(255,212,0,0.6); animation:peekBadgeGlow 1.5s ease-in-out infinite; }
 @keyframes peekPulse { 0%,100% { transform:translate(0,0); } 50% { transform:translate(-2px,-2px); } }
-@keyframes peekBadgeBlink { 0%,70%,100% { opacity:1; } 80% { opacity:.3; } 90% { opacity:1; } }
+@keyframes peekBadgeGlow { 
+  0%, 100% { 
+    opacity:1; 
+    box-shadow:2px 2px 0 #000, 0 0 8px rgba(255,212,0,0.6), 0 0 12px rgba(255,212,0,0.4); 
+    transform:scale(1);
+  } 
+  50% { 
+    opacity:1; 
+    box-shadow:2px 2px 0 #000, 0 0 16px rgba(255,212,0,0.9), 0 0 24px rgba(255,212,0,0.6); 
+    transform:scale(1.05);
+  } 
+}
 /* Flip / denial animations */
 .cmp-power-cards-panel .pc-card--deck.peek-flip { animation:peekFlip .9s ease; }
 @keyframes peekFlip { 0% { transform:rotateY(0deg); } 40% { transform:rotateY(90deg); } 60% { transform:rotateY(100deg); } 100% { transform:rotateY(0deg); } }
@@ -253,9 +265,9 @@
   .cmp-power-cards-panel .pc-card-info-btn { width:16px !important; height:16px !important; font-size:11px !important; margin-left:4px !important; }
   .cmp-power-cards-panel .pc-card:hover { transform:translate(-3px,-3px) !important; box-shadow:4px 4px 0 #000,0 0 0 2px #222 inset,0 8px 18px rgba(0,0,0,.5) !important; }
   .cmp-power-cards-panel .pc-card:active { box-shadow:2px 2px 0 #000,0 0 0 2px #222 inset !important; }
-  .cmp-power-cards-panel .power-card-deck { min-height:90px !important; }
-  .cmp-power-cards-panel .deck-logo { width:64px !important; }
-  .cmp-power-cards-panel .deck-label { font-size:22px !important; }
+  .cmp-power-cards-panel .power-card-deck { min-height:130px !important; }
+  .cmp-power-cards-panel .deck-logo { width:80px !important; }
+  .cmp-power-cards-panel .deck-label { font-size:14px !important; }
   .cmp-power-cards-panel .pc-hint { font-size:11px !important; }
   .cmp-power-cards-panel .pc-empty-frame { padding:14px 14px 16px !important; }
   .cmp-power-cards-panel .pc-empty-frame h3 { font-size:22px !important; }
@@ -273,9 +285,9 @@
   .cmp-power-cards-panel .pc-card__body, 
   .cmp-power-cards-panel .pc-card-description { font-size:11px !important; line-height:1.25 !important; }
   .cmp-power-cards-panel .pc-card__count { font-size:9px !important; }
-  .cmp-power-cards-panel .power-card-deck { min-height:82px !important; }
-  .cmp-power-cards-panel .deck-logo { width:56px !important; }
-  .cmp-power-cards-panel .deck-label { font-size:20px !important; }
+  .cmp-power-cards-panel .power-card-deck { min-height:110px !important; }
+  .cmp-power-cards-panel .deck-logo { width:70px !important; }
+  .cmp-power-cards-panel .deck-label { font-size:12px !important; }
   .cmp-power-cards-panel .pc-card-info-btn { width:15px !important; height:15px !important; font-size:10px !important; }
   .cmp-power-cards-panel .pc-empty-frame { padding:12px 12px 14px !important; }
   .cmp-power-cards-panel .pc-empty-frame h3 { font-size:20px !important; }

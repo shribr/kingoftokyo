@@ -47,8 +47,8 @@ export const META_WINNER_SET = 'META_WINNER_SET';
 // UI
 export const UI_CARD_DETAIL_OPEN = 'UI_CARD_DETAIL_OPEN';
 export const UI_CARD_DETAIL_CLOSE = 'UI_CARD_DETAIL_CLOSE';
-export const UI_PLAYER_CARDS_OPEN = 'UI_PLAYER_CARDS_OPEN';
-export const UI_PLAYER_CARDS_CLOSE = 'UI_PLAYER_CARDS_CLOSE';
+export const UI_PLAYER_POWER_CARDS_OPEN = 'UI_PLAYER_POWER_CARDS_OPEN';
+export const UI_PLAYER_POWER_CARDS_CLOSE = 'UI_PLAYER_POWER_CARDS_CLOSE';
 // Monster profiles
 export const MONSTERS_LOADED = 'MONSTERS_LOADED';
 export const UI_MONSTER_PROFILES_OPEN = 'UI_MONSTER_PROFILES_OPEN';
@@ -166,8 +166,8 @@ export const metaWinnerSet = (winnerId) => ({ type: META_WINNER_SET, payload: { 
 // UI action creators
 export const uiCardDetailOpen = (cardId, source) => ({ type: UI_CARD_DETAIL_OPEN, payload: { cardId, source } });
 export const uiCardDetailClose = () => ({ type: UI_CARD_DETAIL_CLOSE });
-export const uiPlayerCardsOpen = (playerId) => ({ type: UI_PLAYER_CARDS_OPEN, payload: { playerId } });
-export const uiPlayerCardsClose = () => ({ type: UI_PLAYER_CARDS_CLOSE });
+export const uiPlayerPowerCardsOpen = (playerId) => ({ type: UI_PLAYER_POWER_CARDS_OPEN, payload: { playerId } });
+export const uiPlayerPowerCardsClose = () => ({ type: UI_PLAYER_POWER_CARDS_CLOSE });
 // Monster profile action creators
 export const monstersLoaded = (monsters) => ({ type: MONSTERS_LOADED, payload: { monsters } });
 // Optional source allows us to know where profiles were opened from (e.g., 'selection')

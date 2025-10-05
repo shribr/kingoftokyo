@@ -65,19 +65,116 @@ export function build({ selector }) {
   const setupMobile = () => {
     const isMobile = checkMobile();
     if (isMobile) {
-      // Remove the actions label entirely so it cannot display in mobile
-      const labelEl = root.querySelector('.am-label');
-      if (labelEl) {
-        if (!root._storedAmLabelHTML) root._storedAmLabelHTML = labelEl.outerHTML;
-        labelEl.remove();
+      // Hide the original vertical menu (desktop layout)
+      root.style.display = 'none';
+      
+      // Create or reuse horizontal actions menu
+      let horizontalMenu = document.getElementById('horizontal-action-menu');
+      if (!horizontalMenu) {
+        horizontalMenu = document.createElement('div');
+        horizontalMenu.id = 'horizontal-action-menu';
+        horizontalMenu.className = 'horizontal-action-menu';
+        horizontalMenu.setAttribute('data-mobile-menu', 'true');
+        horizontalMenu.innerHTML = `
+          <button id="h-roll-btn" data-action="roll" class="h-action-btn h-btn-primary">ROLL</button>
+          <button id="h-keep-btn" data-action="keep" class="h-action-btn h-btn-secondary" disabled>KEEP</button>
+          <button id="h-accept-dice-btn" data-action="accept-dice" class="h-action-btn h-btn-secondary" disabled>ACCEPT</button>
+          <button id="h-power-cards-btn" data-action="power-cards" class="h-action-btn h-btn-secondary" disabled>
+            <span class="h-btn-text">CARDS</span>
+          </button>
+          <button id="h-end-turn-btn" data-action="end" class="h-action-btn h-btn-secondary" disabled>END</button>
+        `;
+        document.body.appendChild(horizontalMenu);
+        
+        // Store reference for later cleanup
+        root._horizontalMenu = horizontalMenu;
       }
       
-      // Apply horizontal layout immediately for mobile
-      // CSS now handles all styling with !important, so we just ensure collapsed state
-      // Don't set position, bottom, etc. - let CSS handle it completely
+      // Set initial collapsed state (hidden to the right off-screen)
+      horizontalMenu.style.transform = 'translateX(110%)';
+      horizontalMenu.style.opacity = '0';
       
-      // Set initial collapsed state (hidden to the right)
-      root.style.transform = 'translateX(100%)';
+      // Wire up event handlers for horizontal menu buttons (same as desktop menu)
+      horizontalMenu.addEventListener('click', (e) => {
+        const button = e.target.closest('[data-action]');
+        if (!button) return;
+        
+        const action = button.getAttribute('data-action');
+        const st = store.getState();
+        
+        switch (action) {
+          case 'roll': {
+            // Check if dice tray is collapsed, expand it first if so
+            try {
+              const tray = document.querySelector('.cmp-dice-tray');
+              if (tray) {
+                const collapsed = tray.getAttribute('data-collapsed') === 'left';
+                if (collapsed) {
+                  tray.setAttribute('data-collapsed','none');
+                  if (tray._applyMobileOffset) {
+                    try { tray._applyMobileOffset(); } catch(_) {}
+                  }
+                  if (!root._pendingMobileRoll) {
+                    root._pendingMobileRoll = true;
+                    setTimeout(() => {
+                      eventBus.emit('ui/dice/rollRequested');
+                      root._pendingMobileRoll = false;
+                    }, 340);
+                  }
+                  break;
+                }
+              }
+            } catch(_) {}
+            eventBus.emit('ui/dice/rollRequested');
+            break;
+          }
+          case 'keep': {
+            if (st.phase === 'ROLL' && st.dice?.phase === 'resolved' && (st.dice.faces?.length||0) > 0) {
+              store.dispatch(diceSetAllKept(true));
+            }
+            break;
+          }
+          case 'power-cards': {
+            // Open player power cards modal
+            eventBus.emit('ui/modal/showPlayerPowerCards');
+            break;
+          }
+          case 'accept-dice': {
+            if (typeof window !== 'undefined' && window.__KOT_NEW__?.turnService) {
+              window.__KOT_NEW__.turnService.acceptDiceResults();
+            }
+            break;
+          }
+          case 'end': {
+            const phase = st.phase;
+            if (typeof window !== 'undefined' && window.__KOT_NEW__?.turnService) {
+              const ts = window.__KOT_NEW__.turnService;
+              if (!root._endTurnInFlight) {
+                root._endTurnInFlight = true;
+                let p;
+                if (phase === 'ROLL') p = ts.resolve();
+                else if (phase === 'BUY') p = ts.cleanup();
+                else if (phase === 'CLEANUP' || phase === 'RESOLVE') p = ts.endTurn();
+                else p = ts.endTurn();
+                Promise.resolve(p).finally(()=> { root._endTurnInFlight = false; });
+              }
+            } else {
+              if (phase === 'ROLL') {
+                eventBus.emit('ui/intent/finishRoll');
+              } else {
+                store.dispatch(nextTurn());
+                eventBus.emit('ui/intent/gameStart');
+              }
+            }
+            break;
+          }
+        }
+      });
+      
+      // Store reference for state updates
+      root._horizontalMenu = horizontalMenu;
+      
+
       
       // Mark that mobile setup is complete
       root.setAttribute('data-mobile-ready', 'true');
@@ -111,24 +208,30 @@ export function build({ selector }) {
       btn.innerHTML = '◀'; // left arrow indicates menu will expand to left
       btn.setAttribute('aria-label','Expand Action Menu');
       Object.assign(btn.style, {
-        position:'fixed', bottom:'20px', right:'20px', width:'50px', height:'50px', background:'linear-gradient(135deg,#ffcf33 0%, #ffb300 100%)', border:'3px solid #333', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24px', cursor:'pointer', boxShadow:'0 4px 12px rgba(0,0,0,0.3)', zIndex:'7500', transition:'transform 0.2s ease'
+        position:'fixed', bottom:'20px', right:'20px', width:'50px', height:'50px', background:'linear-gradient(135deg,#ffcf33 0%, #ffb300 100%)', border:'3px solid #333', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px', cursor:'pointer', boxShadow:'0 4px 12px rgba(0,0,0,0.3)', zIndex:'7500', transition:'transform 0.2s ease', color:'#000'
       });
       btn.addEventListener('click', () => {
+        const horizontalMenu = document.getElementById('horizontal-action-menu');
+        if (!horizontalMenu) return;
+        
         // Check if menu is currently visible (translateX is 0)
-        const isExpanded = root.style.transform === 'translateX(0px)' || root.style.transform === 'translateX(0)';
+        const currentTransform = horizontalMenu.style.transform || '';
+        const isExpanded = currentTransform.includes('translateX(0');
         
         if (isExpanded) {
-          // Collapse - slide out to right
-          root.style.transform = 'translateX(100%)';
+          // Collapse - slide out to right with fade
+          horizontalMenu.style.opacity = '0';
+          horizontalMenu.style.transform = 'translateX(110%)';
           btn.style.transform = 'scale(1)';
           document.body.removeAttribute('data-action-menu-open');
-          btn.innerHTML = '◀';
+          btn.innerHTML = '◀'; // left arrow for expand
           btn.setAttribute('aria-label','Expand Action Menu');
         } else {
           // Expand - slide in from right
-          root.style.transform = 'translateX(0)';
+          horizontalMenu.style.opacity = '1';
+          horizontalMenu.style.transform = 'translateX(0)';
           btn.style.transform = 'scale(0.9)';
-          btn.innerHTML = '▶'; // right arrow indicates collapse direction
+          btn.innerHTML = '▶'; // right arrow for collapse
           btn.setAttribute('aria-label','Collapse Action Menu');
           document.body.setAttribute('data-action-menu-open','true');
         }
@@ -191,6 +294,12 @@ export function build({ selector }) {
       }
     } else {
       // Desktop: restore visibility & dragging
+      // Hide horizontal menu if it exists
+      const horizontalMenu = document.getElementById('horizontal-action-menu');
+      if (horizontalMenu) {
+        horizontalMenu.style.display = 'none';
+      }
+      
       // Restore label if it was removed while in mobile
       if (!root.querySelector('.am-label') && root._storedAmLabelHTML) {
         try {
@@ -219,13 +328,46 @@ export function build({ selector }) {
     if (!window.__globalOutsidePanelCloser) {
       window.__globalOutsidePanelCloser = (ev) => {
         try {
-          const panels = document.querySelectorAll('#monsters-panel[data-expanded], #power-cards-panel[data-expanded]');
+          // Only apply in mobile view
+          const isMobile = window.matchMedia('(max-width: 760px)').matches;
+          if (!isMobile) return;
+          
+          // Find all panels and check if they have expanded cards
+          const monstersPanel = document.getElementById('monsters-panel');
+          const powerCardsPanel = document.getElementById('power-cards-panel');
+          const panels = [monstersPanel, powerCardsPanel].filter(p => p);
+          
           if (!panels.length) return;
+          
+          // Find all expanded cards across all panels
+          const expandedCards = document.querySelectorAll('.cmp-player-profile-card[data-expanded="true"]');
+          if (expandedCards.length === 0) return; // Nothing expanded, nothing to close
+          
           const target = ev.target;
-            let clickedInside = false;
-            panels.forEach(p => { if (p.contains(target)) clickedInside = true; });
-          if (clickedInside) return;
-          panels.forEach(p => { p.removeAttribute('data-expanded'); p.classList.remove('is-expanded'); p.removeAttribute('inert'); });
+          
+          // Check if any modal is currently active (peek modal, card detail modal, etc.)
+          const activeModals = document.querySelectorAll('[data-apb-modal], .modal:not(.hidden), .peek-modal:not(.hidden), .card-detail-modal:not(.hidden), .monster-profile-single-modal:not(.hidden)');
+          if (activeModals.length > 0) {
+            return; // Don't close panels if a modal is open
+          }
+          
+          // Check if clicked inside any panel OR on a card/profile element
+          let clickedInsidePanel = false;
+          panels.forEach(p => { if (p.contains(target)) clickedInsidePanel = true; });
+          
+          // Check if clicked on a player/monster card or power card detail
+          const clickedOnMonsterCard = target.closest('.cmp-player-profile-card, .monster-profile-card');
+          const clickedOnPowerCard = target.closest('.pc-card, .power-card, .catalog-card, .ppcm-card-detail');
+          
+          // Don't close if clicked inside panel or on relevant cards
+          if (clickedInsidePanel || clickedOnMonsterCard || clickedOnPowerCard) {
+            return; // Keep panels open
+          }
+          
+          // If clicked outside all panels and not on cards, collapse all expanded cards
+          expandedCards.forEach(card => { 
+            card.removeAttribute('data-expanded');
+          });
           // Remove any blackout/dim overlays accidentally left behind
           const overlays = document.querySelectorAll('.blackout-overlay, .dim-overlay, [data-blackout]');
           overlays.forEach(o => { o.remove(); });
@@ -592,7 +734,7 @@ export function build({ selector }) {
         break; }
       case 'show-my-cards': {
         // Open modal showing player's power cards
-        eventBus.emit('ui/modal/showPlayerCards');
+        eventBus.emit('ui/modal/showPlayerPowerCards');
         // Hide submenu after action
         const submenu = root.querySelector('.power-cards-submenu');
         submenu.setAttribute('hidden', '');
@@ -919,6 +1061,13 @@ export function update(root) {
       const hasCards = active?.cards?.length > 0;
       myCardsBtn.disabled = !hasCards;
     }
+    
+    // Update horizontal menu power cards button
+    const hPowerCardsBtn = document.getElementById('h-power-cards-btn');
+    if (hPowerCardsBtn) {
+      const hasCards = active?.cards?.length > 0;
+      hPowerCardsBtn.disabled = !hasCards;
+    }
   } catch(_) {}
   const isCPU = !!(active && (active.isCPU || active.isAi || active.type === 'ai'));
 
@@ -941,6 +1090,13 @@ export function update(root) {
     }
     rollBtn.disabled = !canRollBtn;
     rollBtn.textContent = hasFirstRoll ? 'RE-ROLL UNSELECTED' : 'ROLL';
+    
+    // Update horizontal menu roll button
+    const hRollBtn = document.getElementById('h-roll-btn');
+    if (hRollBtn) {
+      hRollBtn.disabled = !canRollBtn;
+      hRollBtn.textContent = hasFirstRoll ? 'RE-ROLL' : 'ROLL';
+    }
   }
   if (keepBtn && !initializing) {
     const allKept = hasAnyFaces && faces.every(f => !!f.kept);
@@ -948,6 +1104,12 @@ export function update(root) {
     const canKeepAll = st.phase === 'ROLL' && hasAnyFaces && dice.phase === 'resolved' && !isCPU && !allKept && !accepted && !isFinalRoll;
     keepBtn.disabled = !canKeepAll;
     keepBtn.textContent = 'KEEP ALL';
+    
+    // Update horizontal menu keep button
+    const hKeepBtn = document.getElementById('h-keep-btn');
+    if (hKeepBtn) {
+      hKeepBtn.disabled = !canKeepAll;
+    }
   }
   if (acceptBtn && !initializing) {
     const anyKept = faces.some(f => f && f.kept);
@@ -955,6 +1117,13 @@ export function update(root) {
     const canAccept = st.phase === 'ROLL' && (dice.phase === 'resolved' || dice.phase === 'sequence-complete') && hasAnyFaces && anyKept && !isCPU && !accepted && !isFinalRoll;
     acceptBtn.disabled = !canAccept;
     acceptBtn.textContent = accepted ? 'DICE ACCEPTED' : 'ACCEPT DICE RESULTS';
+    
+    // Update horizontal menu accept button
+    const hAcceptBtn = document.getElementById('h-accept-dice-btn');
+    if (hAcceptBtn) {
+      hAcceptBtn.disabled = !canAccept;
+      hAcceptBtn.textContent = accepted ? 'ACCEPTED' : 'ACCEPT';
+    }
   }
   if (flushBtn && !initializing) {
     // Enable flush button during RESOLVE/BUY phases when player has the energy cost available
@@ -983,6 +1152,12 @@ export function update(root) {
       });
     }
     endBtn.disabled = !canEnd;
+    
+    // Update horizontal menu end button
+    const hEndBtn = document.getElementById('h-end-turn-btn');
+    if (hEndBtn) {
+      hEndBtn.disabled = !canEnd;
+    }
   }
 
   // CPU turn styling state

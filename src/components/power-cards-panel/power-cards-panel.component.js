@@ -131,5 +131,15 @@ function addShopEventListeners(container, activePlayer) {
       }
     });
   });
+
+  // Deck card click - show All Power Cards catalog
+  const deckCard = container.querySelector('[data-deck-card]');
+  if (deckCard) {
+    deckCard.addEventListener('click', () => {
+      import('../../utils/new-modals.js').then(({ createAllPowerCardsModal }) => {
+        createAllPowerCardsModal();
+      });
+    });
+  }
 }
 

@@ -31,9 +31,11 @@ body, .btn, .card-text { font-size:var(--body-size); }
 
 /* SUPERSEDED: Large-screen tightening now centralized in components.mobile-overrides.css */
 @media (max-width:1200px){ /* retained only for header text-shadow nuance */ .game-header h1 { letter-spacing:2px; text-shadow:var(--ts-comic-mid); } .dice-container { gap:12px; } .die { width:65px; height:65px; font-size:1.6em; } }
-/* Desktop: ensure action menu is visible on larger screens */
-@media (min-width: 761px) {
-  #action-menu {
+
+/* Desktop: ensure action menu is visible on larger screens (non-touch only) */
+@media (min-width: 761px) and (pointer: fine) {
+  #action-menu,
+  .cmp-action-menu {
     display: flex !important;
   }
 }
@@ -43,7 +45,8 @@ body, .btn, .card-text { font-size:var(--body-size); }
 	#game-container { padding:clamp(10px,3vw,15px); width:100%; max-width:100%; margin:0 auto; }
 	
   /* Mobile action menu - hidden by default, shown by mobile toggle button */
-  #action-menu {
+  #action-menu,
+  .cmp-action-menu {
     display: none !important;
   }
   
@@ -67,19 +70,12 @@ body, .btn, .card-text { font-size:var(--body-size); }
     left: auto !important;
     margin-right: 8px !important;
     margin-left: 0 !important;
-  }  /* When shown in mobile, position above the mobile button, right-aligned */
-  #action-menu[style*="display: flex"] {
-    position: fixed !important;
-    bottom: 80px !important; /* Above mobile button */
-    right: 20px !important; /* Right-align with button's right edge */
-    left: auto !important;
-    transform: none !important;
-    z-index: 7000 !important; /* Higher than monsters panel */
-    width: 260px !important;
-    height: auto !important;
-    max-height: calc(100vh - 120px) !important; /* Leave space for button */
-    top: auto !important;
-  }	/* Mobile dice tray positioning and toggle */
+  }
+  
+  /* Legacy mobile positioning - no longer used with new horizontal menu */
+  /* #action-menu[style*="display: flex"] rule removed - desktop menu stays hidden in mobile */
+
+  /* Mobile dice tray positioning and toggle */
 	.cmp-dice-tray {
 		position: fixed !important;
 		bottom: 0 !important;

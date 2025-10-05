@@ -2428,3 +2428,363 @@ export function createAboutModal() {
   try { __aboutModal.setAttribute('data-modal-id','about'); } catch(_) {}
   return __aboutModal;
 }
+
+/**
+ * Tokyo Yield Modal
+ * Allows human players to decide whether to leave Tokyo when attacked
+ */
+export function createTokyoYieldModal(prompt, onDecision) {
+  const { defenderId, attackerId, slot, damage, originalHealth, advisory } = prompt;
+  
+  const slotName = slot === 'city' ? 'Tokyo City' : 'Tokyo Bay';
+  const projectedHP = (originalHealth != null && typeof damage === 'number')
+    ? Math.max(0, originalHealth - damage)
+    : null;
+  
+  const content = document.createElement('div');
+  content.innerHTML = `
+    <div style="padding: 24px; text-align: center;">
+      <div style="font-family: 'Bangers', cursive; font-size: 2.5rem; margin-bottom: 12px; color: #ff6b6b; text-shadow: 2px 2px 0 #000;">
+        ⚔️ ${slotName.toUpperCase()} UNDER ATTACK!
+      </div>
+      
+      <div style="font-size: 1.1rem; margin-bottom: 24px; opacity: 0.9;">
+        You were hit for <strong style="color: #ff6b6b;">${damage}</strong> damage.
+      </div>
+      
+      ${projectedHP != null ? `
+        <div style="background: rgba(0,0,0,0.3); border-radius: 6px; padding: 16px; margin-bottom: 24px;">
+          <div style="display: flex; justify-content: space-around; gap: 20px;">
+            <div>
+              <div style="font-size: 0.85rem; opacity: 0.7; margin-bottom: 4px;">Damage Taken</div>
+              <div style="font-family: 'Bangers', cursive; font-size: 1.8rem; color: #ff6b6b;">${damage}</div>
+            </div>
+            <div>
+              <div style="font-size: 0.85rem; opacity: 0.7; margin-bottom: 4px;">Health</div>
+              <div style="font-family: 'Bangers', cursive; font-size: 1.8rem;">
+                <span style="opacity: 0.6;">${originalHealth}</span>
+                <span style="margin: 0 8px;">→</span>
+                <span style="color: ${projectedHP <= 3 ? '#ff6b6b' : '#90ee90'};">${projectedHP}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      ` : ''}
+      
+      <div style="font-size: 1.2rem; margin-bottom: 24px; line-height: 1.5;">
+        Do you want to <strong style="color: #4a9eff;">stay</strong> in ${slotName}<br/>
+        or <strong style="color: #ff9f43;">yield</strong> your slot?
+      </div>
+      
+      ${advisory ? `
+        <div style="background: rgba(255,183,67,0.1); border: 1px solid rgba(255,183,67,0.3); border-radius: 6px; padding: 12px; margin-bottom: 24px; font-size: 0.9rem; line-height: 1.5;">
+          <strong>💡 Suggestion:</strong> ${advisory.suggestion === 'yield' ? 'Leave Tokyo' : 'Stay in Tokyo'}<br/>
+          <span style="opacity: 0.8;">${advisory.reason || ''}</span>
+        </div>
+      ` : ''}
+      
+      <div style="display: flex; gap: 16px; justify-content: center;">
+        <button class="yield-stay-btn" style="flex: 1; max-width: 200px; font-family: 'Bangers', cursive; font-size: 1.3rem; padding: 16px 32px; background: linear-gradient(135deg, #4a9eff, #357abd); color: #fff; border: 2px solid #6bb0ff; border-radius: 6px; cursor: pointer; box-shadow: 3px 3px 0 #000; transition: transform 0.1s;">
+          Stay in Tokyo
+        </button>
+        <button class="yield-leave-btn" style="flex: 1; max-width: 200px; font-family: 'Bangers', cursive; font-size: 1.3rem; padding: 16px 32px; background: linear-gradient(135deg, #ff9f43, #d17a1e); color: #fff; border: 2px solid #ffb870; border-radius: 6px; cursor: pointer; box-shadow: 3px 3px 0 #000; transition: transform 0.1s;">
+          Leave Tokyo
+        </button>
+      </div>
+    </div>
+  `;
+  
+  // Button hover effects
+  const stayBtn = content.querySelector('.yield-stay-btn');
+  const leaveBtn = content.querySelector('.yield-leave-btn');
+  
+  [stayBtn, leaveBtn].forEach(btn => {
+    btn.addEventListener('mouseenter', () => {
+      btn.style.transform = 'translateY(-2px)';
+    });
+    btn.addEventListener('mouseleave', () => {
+      btn.style.transform = 'translateY(0)';
+    });
+  });
+  
+  // Create modal
+  const modal = newModalSystem.createModal('tokyo-yield', '🏯 Tokyo Decision', content, { width: '600px' });
+  
+  // Event handlers
+  stayBtn.addEventListener('click', () => {
+    if (onDecision) onDecision('stay');
+    newModalSystem.closeModal('tokyo-yield');
+  });
+  
+  leaveBtn.addEventListener('click', () => {
+    if (onDecision) onDecision('yield');
+    newModalSystem.closeModal('tokyo-yield');
+  });
+  
+  return modal;
+}
+
+/**
+ * Peek Modal
+ * Shows preview of the next card in the deck
+ */
+export function createPeekModal(card, onClose) {
+  const content = document.createElement('div');
+  
+  // Detect if this is a monster card or power card
+  const isMonsterCard = card.isMonster || card.monster || card.personality || card.image;
+  
+  if (isMonsterCard) {
+    const monster = card.monster || card;
+    content.innerHTML = `
+      <div style="padding: 20px; text-align: center;">
+        <div style="font-family: 'Bangers', cursive; font-size: 1.8rem; margin-bottom: 16px; color: #4a9eff;">
+          📋 Next Monster Card
+        </div>
+        
+        <div style="background: linear-gradient(135deg, rgba(74,158,255,0.1), rgba(53,122,189,0.1)); border: 2px solid rgba(74,158,255,0.3); border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+          ${monster.image ? `
+            <div style="margin-bottom: 16px;">
+              <img src="${monster.image}" alt="${monster.name}" style="max-width: 200px; border-radius: 6px; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">
+            </div>
+          ` : ''}
+          
+          <div style="font-family: 'Bangers', cursive; font-size: 2rem; margin-bottom: 8px;">
+            ${monster.name || 'Unknown Monster'}
+          </div>
+          
+          ${monster.description ? `
+            <div style="font-size: 1rem; opacity: 0.85; margin-bottom: 16px; line-height: 1.5;">
+              ${monster.description}
+            </div>
+          ` : ''}
+          
+          ${monster.personality ? `
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 16px; text-align: left;">
+              ${Object.entries(monster.personality).map(([key, value]) => `
+                <div style="background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 4px;">
+                  <div style="font-size: 0.75rem; opacity: 0.7; text-transform: uppercase;">${key}</div>
+                  <div style="font-size: 0.9rem; font-weight: bold;">${value}/10</div>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        </div>
+        
+        <button class="peek-close-btn" style="font-family: 'Bangers', cursive; font-size: 1.1rem; padding: 12px 32px; background: #2a2a2a; color: #e4e4e4; border: 2px solid #444; border-radius: 6px; cursor: pointer; box-shadow: 2px 2px 0 #000;">
+          Close
+        </button>
+      </div>
+    `;
+  } else {
+    // Power card
+    const cardText = card.description || card.text || formatCardEffect(card.effect) || 'No description available';
+    const cost = card.cost != null ? `⚡${card.cost}` : '';
+    
+    content.innerHTML = `
+      <div style="padding: 20px; text-align: center;">
+        <div style="font-family: 'Bangers', cursive; font-size: 1.8rem; margin-bottom: 16px; color: #ffb870;">
+          🎴 Next Power Card
+        </div>
+        
+        <div style="background: linear-gradient(135deg, rgba(255,159,67,0.1), rgba(209,122,30,0.1)); border: 2px solid rgba(255,159,67,0.3); border-radius: 8px; padding: 24px; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+            <div style="font-family: 'Bangers', cursive; font-size: 2rem;">
+              ${card.name || 'Unknown Card'}
+            </div>
+            ${cost ? `
+              <div style="font-family: 'Bangers', cursive; font-size: 1.5rem; background: rgba(255,183,67,0.2); padding: 4px 12px; border-radius: 4px; border: 1px solid rgba(255,183,67,0.4);">
+                ${cost}
+              </div>
+            ` : ''}
+          </div>
+          
+          <div style="font-size: 1rem; line-height: 1.6; opacity: 0.9;">
+            ${cardText}
+          </div>
+          
+          ${card.type ? `
+            <div style="margin-top: 12px; font-size: 0.85rem; opacity: 0.7; text-transform: uppercase;">
+              ${card.type}
+            </div>
+          ` : ''}
+        </div>
+        
+        <button class="peek-close-btn" style="font-family: 'Bangers', cursive; font-size: 1.1rem; padding: 12px 32px; background: #2a2a2a; color: #e4e4e4; border: 2px solid #444; border-radius: 6px; cursor: pointer; box-shadow: 2px 2px 0 #000;">
+          Close
+        </button>
+      </div>
+    `;
+  }
+  
+  // Helper function to format card effect
+  function formatCardEffect(effect) {
+    if (!effect) return '';
+    if (typeof effect === 'string') return effect;
+    if (effect.kind) {
+      const value = effect.value || '';
+      switch(effect.kind) {
+        case 'vp_gain': return `Gain ${value} Victory Points`;
+        case 'energy_gain': return `Gain ${value} Energy`;
+        case 'dice_slot': return `Add ${value} extra die`;
+        case 'reroll_bonus': return `+${value} reroll per turn`;
+        case 'heal_all': return `All monsters heal ${value} damage`;
+        case 'heal_self': return `Heal ${value} damage`;
+        case 'damage_all': return `Deal ${value} damage to all monsters`;
+        default: return effect.kind.replace(/_/g, ' ');
+      }
+    }
+    return '';
+  }
+  
+  // Create modal
+  const modal = newModalSystem.createModal('peek', '👁️ Card Preview', content, { width: '500px' });
+  
+  // Close button handler
+  const closeBtn = content.querySelector('.peek-close-btn');
+  closeBtn.addEventListener('click', () => {
+    newModalSystem.closeModal('peek');
+    if (onClose) onClose();
+  });
+  
+  closeBtn.addEventListener('mouseenter', () => {
+    closeBtn.style.transform = 'translateY(-2px)';
+  });
+  closeBtn.addEventListener('mouseleave', () => {
+    closeBtn.style.transform = 'translateY(0)';
+  });
+  
+  return modal;
+}
+
+/**
+ * Confirm Modal
+ * Generic confirmation dialog with customizable message and buttons
+ */
+export function createConfirmModal(options = {}) {
+  const {
+    title = 'Confirm',
+    message = 'Are you sure?',
+    confirmLabel = 'Confirm',
+    cancelLabel = 'Cancel',
+    onConfirm = null,
+    onCancel = null,
+    confirmStyle = 'primary', // 'primary' or 'danger'
+  } = options;
+  
+  const content = document.createElement('div');
+  content.innerHTML = `
+    <div style="padding: 20px;">
+      <div style="font-size: 1.1rem; line-height: 1.6; margin-bottom: 24px; white-space: pre-line;">
+        ${message}
+      </div>
+      
+      <div style="display: flex; gap: 12px; justify-content: flex-end;">
+        <button class="confirm-cancel-btn" style="font-family: 'Bangers', cursive; font-size: 1rem; padding: 10px 24px; background: #2a2a2a; color: #e4e4e4; border: 2px solid #444; border-radius: 4px; cursor: pointer; box-shadow: 2px 2px 0 #000;">
+          ${cancelLabel}
+        </button>
+        <button class="confirm-confirm-btn" style="font-family: 'Bangers', cursive; font-size: 1rem; padding: 10px 24px; background: ${confirmStyle === 'danger' ? '#d63031' : '#4a9eff'}; color: #fff; border: 2px solid ${confirmStyle === 'danger' ? '#ff7675' : '#6bb0ff'}; border-radius: 4px; cursor: pointer; box-shadow: 2px 2px 0 #000;">
+          ${confirmLabel}
+        </button>
+      </div>
+    </div>
+  `;
+  
+  // Create modal
+  const modal = newModalSystem.createModal('confirm', title, content, { width: '450px' });
+  
+  // Button handlers
+  const cancelBtn = content.querySelector('.confirm-cancel-btn');
+  const confirmBtn = content.querySelector('.confirm-confirm-btn');
+  
+  [cancelBtn, confirmBtn].forEach(btn => {
+    btn.addEventListener('mouseenter', () => {
+      btn.style.transform = 'translateY(-2px)';
+    });
+    btn.addEventListener('mouseleave', () => {
+      btn.style.transform = 'translateY(0)';
+    });
+  });
+  
+  cancelBtn.addEventListener('click', () => {
+    newModalSystem.closeModal('confirm');
+    if (onCancel) onCancel();
+  });
+  
+  confirmBtn.addEventListener('click', () => {
+    newModalSystem.closeModal('confirm');
+    if (onConfirm) onConfirm();
+  });
+  
+  return modal;
+}
+
+/**
+ * Create the All Power Cards catalog modal
+ * Displays complete catalog of all power cards in the game
+ */
+export function createAllPowerCardsModal() {
+  import('../domain/cards.js').then(({ buildBaseCatalog }) => {
+    const allCards = buildBaseCatalog();
+    
+    // Sort by cost, then alphabetically
+    allCards.sort((a, b) => {
+      if (a.cost !== b.cost) return a.cost - b.cost;
+      return a.name.localeCompare(b.name);
+    });
+    
+    const content = document.createElement('div');
+    content.className = 'all-cards-catalog';
+    content.innerHTML = `
+      <div class="all-cards-grid">
+        ${allCards.map(card => `
+          <div class="catalog-card" data-card-id="${card.id}">
+            <div class="catalog-card-inner">
+              <div class="catalog-card-front">
+                <div class="catalog-card-header">
+                  <span class="catalog-card-name">${card.name}</span>
+                  ${card.darkEdition ? '<span class="catalog-dark-badge">DARK</span>' : ''}
+                </div>
+                <div class="catalog-card-cost">${card.cost}⚡</div>
+                <div class="catalog-card-type">${card.type === 'keep' ? 'KEEP' : 'DISCARD'}</div>
+                <div class="catalog-card-description-front">${card.description}</div>
+                <button class="catalog-card-flip-btn" data-flip="${card.id}" title="Show details"><span style="font-style: italic; font-weight: bold; text-transform: lowercase;">i</span></button>
+              </div>
+              <div class="catalog-card-back">
+                <div class="catalog-card-description">${card.description}</div>
+                <div class="catalog-card-effect-details" style="margin-top: 12px; font-size: 11px; opacity: 0.8;">
+                  ${card.effect ? `<strong>Effect:</strong> ${card.effect.kind} ${card.effect.value ? '(+' + card.effect.value + ')' : ''}` : ''}
+                </div>
+                <button class="catalog-card-flip-btn catalog-card-flip-btn-back" data-flip="${card.id}" title="Back to card">←</button>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    
+    const modal = newModalSystem.createModal('all-power-cards-catalog', '🎴 All Power Cards', content, { width: '900px' });
+    
+    // Add flip animation handlers
+    const modalElement = document.getElementById('all-power-cards-catalog');
+    if (modalElement) {
+      modalElement.querySelectorAll('[data-flip]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          // Use closest to handle clicks on child elements (like the span)
+          const button = e.target.closest('[data-flip]');
+          if (!button) return;
+          const cardId = button.dataset.flip;
+          const cardElement = modalElement.querySelector(`.catalog-card[data-card-id="${cardId}"]`);
+          if (cardElement) {
+            cardElement.classList.toggle('flipped');
+          }
+        });
+      });
+    }
+    
+    newModalSystem.showModal('all-power-cards-catalog');
+  });
+}
+
