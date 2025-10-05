@@ -184,6 +184,7 @@ function baseTemplate() {
 
 /** Update cycle */
 export function update(root, { playerId }) {
+  console.log(`🔄 PLAYER CARD UPDATE CALLED for player ${playerId}`);
   if (!playerId) return;
   const state = store.getState();
   const player = selectPlayerById(state, playerId);

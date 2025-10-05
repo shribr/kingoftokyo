@@ -122,9 +122,11 @@ export function resolveDice(store, logger) {
     const anyOccupied = !!cityOcc || !!bayOcc;
     if (tally.claw > 0) {
       if (!anyOccupied && !attacker.inTokyo) {
+        console.log(`🏙️ TOKYO ENTRY: ${activeId} entering Tokyo (empty)`);
         store.dispatch(playerEnteredTokyo(activeId));
         store.dispatch(tokyoOccupantSet(activeId, playerCount));
         logger.system(`${activeId} enters Tokyo City!`, { kind:'tokyo', slot:'city' });
+        console.log(`🏆 DISPATCHING VP for Tokyo entry: ${activeId} +1 VP`);
         store.dispatch(playerVPGained(activeId, 1, 'enterTokyo'));
         store.dispatch(uiVPFlash(activeId, 1));
         logger.info(`${activeId} gains 1 VP for entering Tokyo`);
@@ -253,15 +255,19 @@ function attemptTokyoTakeover(store, logger, attackerId, playerCount, bayAllowed
   const cityOcc = selectTokyoCityOccupant(state);
   const bayOcc = selectTokyoBayOccupant(state);
   if (!cityOcc) {
+    console.log(`🏙️ TOKYO TAKEOVER: ${attackerId} entering Tokyo City`);
     store.dispatch(playerEnteredTokyo(attackerId));
     store.dispatch(tokyoOccupantSet(attackerId, playerCount));
     logger.system(`${attackerId} enters Tokyo City (takeover)`, { kind:'tokyo', slot:'city' });
+    console.log(`🏆 DISPATCHING VP for Tokyo takeover: ${attackerId} +1 VP`);
     store.dispatch(playerVPGained(attackerId, 1, 'enterTokyo'));
     store.dispatch(uiVPFlash(attackerId, 1));
   } else if (bayAllowed && !bayOcc) {
+    console.log(`🏙️ TOKYO TAKEOVER: ${attackerId} entering Tokyo Bay`);
     store.dispatch(playerEnteredTokyo(attackerId));
     store.dispatch(tokyoOccupantSet(attackerId, playerCount));
     logger.system(`${attackerId} enters Tokyo Bay (takeover)`, { kind:'tokyo', slot:'bay' });
+    console.log(`🏆 DISPATCHING VP for Tokyo takeover: ${attackerId} +1 VP`);
     store.dispatch(playerVPGained(attackerId, 1, 'enterTokyo'));
     store.dispatch(uiVPFlash(attackerId, 1));
   }
@@ -286,10 +292,10 @@ export function awardStartOfTurnTokyoVP(store, logger) {
     store.dispatch(uiVPFlash(activeId, 2));
     logger.info(`${activeId} gains 2 VP for starting turn in Tokyo City`);
   } else if (bayAllowed && bayOcc === activeId) {
-    console.log(`🏆 Awarding 1 VP to ${activeId} for starting turn in Tokyo Bay`);
-    store.dispatch(playerVPGained(activeId, 1, 'startTurnTokyoBay'));
-    store.dispatch(uiVPFlash(activeId, 1));
-    logger.info(`${activeId} gains 1 VP for starting turn in Tokyo Bay`);
+    console.log(`🏆 Awarding 2 VP to ${activeId} for starting turn in Tokyo Bay`);
+    store.dispatch(playerVPGained(activeId, 2, 'startTurnTokyoBay'));
+    store.dispatch(uiVPFlash(activeId, 2));
+    logger.info(`${activeId} gains 2 VP for starting turn in Tokyo Bay`);
   }
 }
 

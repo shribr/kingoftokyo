@@ -150,7 +150,15 @@ function syncToolbarState(root) {
     }
     // Dark mode pressed state
     const darkBtn = root.querySelector('[data-action="dark-mode"]');
-    if (darkBtn) darkBtn.classList.toggle('is-active', document.body.classList.contains('dark-mode'));
+    if (darkBtn) {
+      const isDark = document.body.classList.contains('dark-mode');
+      darkBtn.classList.toggle('is-active', isDark);
+      // Update icon to match current state
+      const iconContainer = darkBtn.querySelector('.ico');
+      if (iconContainer && iconContainer.parentNode) {
+        iconContainer.parentNode.innerHTML = darkModeIcon();
+      }
+    }
   } catch(_){ }
 }
 
@@ -232,13 +240,26 @@ function playIcon() {
   return `<svg viewBox="0 0 24 24" class="ico" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>`;
 }
 function darkModeIcon(){
-  return `<svg viewBox="0 0 24 24" class="ico" aria-hidden="true"><path fill="currentColor" d="M12 2c1.31 0 2.56.32 3.65.88A8 8 0 0112 22a8 8 0 01-3.65-15.12A8 8 0 0112 2Zm0 2a6 6 0 100 12 6 6 0 000-12Z" opacity=".4"/><path fill="currentColor" d="M11 4c.34 0 .68.02 1 .07A8 8 0 0011 20c-.34 0-.68-.02-1-.07A6 6 0 0111 4Z"/></svg>`;
+  // Show moon in light mode (click to go dark), sun in dark mode (click to go light)
+  const isDark = document.body.classList.contains('dark-mode');
+  if (isDark) {
+    // Sun icon (light mode)
+    return `<svg viewBox="0 0 24 24" class="ico" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="currentColor"/><path fill="currentColor" d="M12 2v3m0 14v3M2 12h3m14 0h3M4.2 4.2l2.1 2.1m11.4 11.4l2.1 2.1M4.2 19.8l2.1-2.1m11.4-11.4l2.1-2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+  } else {
+    // Moon icon (dark mode)
+    return `<svg viewBox="0 0 24 24" class="ico" aria-hidden="true"><path fill="currentColor" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>`;
+  }
 }
 function toggleDarkMode(btn){
   try {
     const enabled = document.body.classList.toggle('dark-mode');
     btn.classList.toggle('is-active', enabled);
     btn.setAttribute('aria-pressed', String(enabled));
+    // Update icon to reflect new state
+    const iconContainer = btn.querySelector('.ico');
+    if (iconContainer && iconContainer.parentNode) {
+      iconContainer.parentNode.innerHTML = darkModeIcon();
+    }
     try { localStorage.setItem('KOT_DARK_MODE', enabled? '1':'0'); } catch(_) {}
   } catch(_) {}
 }

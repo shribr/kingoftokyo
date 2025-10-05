@@ -393,6 +393,11 @@ export function createTurnService(store, logger, rng = Math.random) {
   logger.system('Phase: RESOLVE', { kind: 'phase' });
   if (usePhaseMachine && phaseMachine) phaseMachine.event('ROLL_COMPLETE'); else phaseCtrl.event('ROLL_COMPLETE');
     markPhaseStart('RESOLVE');
+    
+    // CRITICAL: Wait for dice animation to complete before resolving effects (Tokyo entry, VP, etc.)
+    // Dice roll animation is 0.6s (600ms), add small buffer for smoothness
+    await waitUnlessPaused(store, 700);
+    
     // If dice already accepted (effects applied), skip duplicate resolution
     try {
       const pre = store.getState();
@@ -510,6 +515,12 @@ export function createTurnService(store, logger, rng = Math.random) {
   }
 
   async function playCpuTurn(forcedActiveId = null) {
+    // Guard against multiple concurrent CPU controller instances
+    if (window.__KOT_NEW__?.cpuControllerModeActive) {
+      try { console.log('[turnService] playCpuTurn skipped - controller already active'); } catch(_) {}
+      return;
+    }
+    
     // Always delegate to controller (legacy loop removed)
     try {
       const stPre = store.getState();

@@ -962,6 +962,7 @@ function updateSubmenuPosition(root) {
 }
 
 export function update(root) {
+  console.log('🔄 ACTION MENU UPDATE CALLED');
   const st = store.getState();
   const isPaused = !!st.game?.isPaused;
   
@@ -1073,12 +1074,36 @@ export function update(root) {
 
   const accepted = !!dice.accepted;
   if (rollBtn) {
-    const canRollBtn = !isCPU && !accepted && canRoll;
+    // FIXED: accepted flag should only block RE-rolls during the CURRENT sequence, not initial roll
+    // Initial roll conditions:
+    // 1. dice.phase === 'idle' (clean start)
+    // 2. OR dice.accepted === true (leftover from previous player's turn - should be ignored)
+    const isInitialRoll = dice.phase === 'idle' || (phaseName === 'ROLL' && dice.accepted);
+    const acceptedBlocksRoll = accepted && !isInitialRoll;
+    const canRollBtn = !isCPU && !acceptedBlocksRoll && canRoll;
+    const wasDisabled = rollBtn.disabled;
+    
+    console.log('🎲 ROLL BUTTON UPDATE:', {
+      isCPU,
+      accepted,
+      phaseName,
+      dicePhase: dice.phase,
+      facesLength: faces.length,
+      isInitialRoll,
+      acceptedBlocksRoll,
+      canRoll,
+      canRollBtn,
+      'will set disabled to': !canRollBtn,
+      'current disabled': rollBtn.disabled
+    });
+    
     if (!canRollBtn && !isCPU) {
       console.log('🚫 Roll Button Disabled - Debug Info:', {
         phase: phaseName,
         dicePhase: dice.phase,
         accepted,
+        acceptedBlocksRoll,
+        isInitialRoll,
         canRoll,
         canInitialRoll,
         canReroll,
@@ -1089,6 +1114,9 @@ export function update(root) {
       });
     }
     rollBtn.disabled = !canRollBtn;
+    if (wasDisabled !== rollBtn.disabled) {
+      console.log(`🎲 ROLL BUTTON STATE CHANGED: ${wasDisabled ? 'disabled' : 'enabled'} -> ${rollBtn.disabled ? 'disabled' : 'enabled'}`);
+    }
     rollBtn.textContent = hasFirstRoll ? 'RE-ROLL UNSELECTED' : 'ROLL';
     
     // Update horizontal menu roll button

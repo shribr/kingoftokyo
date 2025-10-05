@@ -128,9 +128,9 @@ body.dark-mode { background:#1a1a1a; color:#e0e0e0; }
 /* LEGACY ARENA SELECTOR (DEPRECATED) dark mode background retained until removal */
 /* Removed legacy .game-board dark-mode styling (arena now scoped via .cmp-arena) */
 body.dark-mode .modal-content { background:#333; color:#e0e0e0; }
-body.dark-mode .power-card, body.dark-mode .player-card { background:#404040; border-color:#555; }
+body.dark-mode .player-card { background:#404040; border-color:#555; }
 body.dark-mode .dice { background:#404040; border-color:#666; }
-body.dark-mode input, body.dark-mode button:not(.toolbar-btn):not(.mini-wo-btn) { background:#555; color:#e0e0e0; border-color:#666; }
+body.dark-mode input, body.dark-mode button:not(.toolbar-btn):not(.mini-wo-btn):not(.cmp-action-menu button):not(.power-card button) { background:#555; color:#e0e0e0; border-color:#666; }
 /* Force toolbar button border color in dark mode */
 /* Toolbar button dark-mode styling handled in components.toolbar.css */
 body.dark-mode .log-entry { background:rgba(255,255,255,.05); color:#e0e0e0; }

@@ -409,7 +409,7 @@
 .cmp-action-menu button:disabled {
   /* Preserve original background & border but visually mute */
   opacity:1; /* keep structural presence */
-  filter:grayscale(.55) brightness(.82) saturate(.6);
+  filter:grayscale(.25) brightness(.75) saturate(.7); /* REDUCED grayscale from .55 to .25 to show more color */
   cursor:not-allowed;
   position:relative;
   box-shadow:2px 2px 0 #000,0 0 0 2px #222 inset;

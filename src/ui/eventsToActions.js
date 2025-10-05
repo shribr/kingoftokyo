@@ -92,6 +92,16 @@ export function bindUIEventBridges(store) {
       const dice = st.dice || {};
       // Final roll detected: phase sequence-complete OR (resolved with rerollsRemaining 0) and not yet accepted.
       const finalRoll = (dice.phase === 'sequence-complete' || (dice.phase === 'resolved' && dice.rerollsRemaining === 0));
+      
+      console.log('🔄 maybeAdvancePhase check:', {
+        phase: st.phase,
+        dicePhase: dice.phase,
+        rerollsRemaining: dice.rerollsRemaining,
+        accepted: dice.accepted,
+        finalRoll,
+        shouldAutoAccept: st.phase === 'ROLL' && finalRoll && !dice.accepted
+      });
+      
       if (st.phase === 'ROLL' && finalRoll && !dice.accepted) {
         // Guard so we schedule only once per sequence id (first rollHistory snapshot ts heuristically identifies sequence)
         const seqId = dice.rollHistory?.[0]?.ts || st.meta?.turnCycleId || Date.now();
