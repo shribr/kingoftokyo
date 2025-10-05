@@ -50,18 +50,26 @@
   /* Scale Tokyo tiles to be shorter for mobile viewport */
   .cmp-arena .city-slot,
   .cmp-arena .bay-slot {
-    width: 140px !important;
-    min-width: 140px !important;
-    height: 140px !important;
-    min-height: 140px !important;
-    --tokyo-slot-default-width: 140px;
-    --tokyo-slot-default-height: 140px;
+    width: 200px !important;
+    min-width: 200px !important;
+    height: 200px !important;
+    min-height: 200px !important;
+    --tokyo-slot-default-width: 200px;
+    --tokyo-slot-default-height: 200px;
+    position: relative !important; /* Ensure slots are positioned for absolute children */
   }
   
-  /* Scale down cards inside Tokyo slots */
+  /* Scale down and center cards inside Tokyo slots */
   .cmp-arena .city-slot .cmp-player-profile-card,
-  .cmp-arena .bay-slot .cmp-player-profile-card {
+  .cmp-arena .bay-slot .cmp-player-profile-card,
+  .cmp-arena .city-slot .cmp-player-profile-card[data-in-tokyo-slot],
+  .cmp-arena .bay-slot .cmp-player-profile-card[data-in-tokyo-slot] {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
     transform: translate(-50%, -50%) scale(0.55) !important;
+    transform-origin: center center !important;
+    margin: 0 !important;
   }
   
   /* Stacking / repositioning */
@@ -129,22 +137,22 @@
   
   /* Shrink dice size and containers for mobile */
   .cmp-dice-tray .die {
-    width: 44px !important;
-    height: 44px !important;
-    font-size: 22px !important;
+    width: 38px !important;
+    height: 38px !important;
+    font-size: 19px !important;
   }
   
   .cmp-dice-tray .tray-frame {
-    padding: 8px 0 !important;
+    padding: 6px 0 !important;
     width: fit-content !important;
-    border-width: 3px !important;
-    box-shadow: 4px 4px 0px #000, 6px 6px 15px rgba(0, 0, 0, 0.4) !important;
+    border-width: 2px !important;
+    box-shadow: 3px 3px 0px #000, 5px 5px 12px rgba(0, 0, 0, 0.4) !important;
   }
   
   .cmp-dice-tray [data-dice] {
-    gap: 6px !important;
-    padding-left: 10px !important;
-    padding-right: 10px !important;
+    gap: 5px !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
   }
   
   .cmp-dice-tray .tray-label { display: none; }

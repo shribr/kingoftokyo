@@ -186,16 +186,145 @@
 @keyframes ppcPulse { 0%,100% { box-shadow:4px 4px 0 #000,0 0 0 2px #222 inset; } 50% { box-shadow:0 0 0 3px #ffd400,0 0 12px 4px #ffdb4d; } }
 
 /* VP flash animation */
-.cmp-player-profile-card .ppc-stat.vp.vp-flash { animation:vpFlash 1.5s ease; }
-@keyframes vpFlash { 0%,100% { box-shadow:2px 2px 0 #000; } 20%,40%,60%,80% { box-shadow:0 0 0 3px #ffd400,0 0 12px 4px #ffdb4d; transform:scale(1.1); } }
+.cmp-player-profile-card .ppc-stat.vp.vp-flash { animation:vpFlash 0.6s ease; }
+@keyframes vpFlash { 
+  0%, 100% { box-shadow:2px 2px 0 #000; transform:scale(1); } 
+  16%, 50%, 83% { box-shadow:0 0 0 3px #ffd400,0 0 12px 4px #ffdb4d; transform:scale(1.08); } 
+  33%, 66% { box-shadow:2px 2px 0 #000; transform:scale(1); }
+}
+
+/* VP Coin spin animation */
+.cmp-player-profile-card .vp-coin {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 48px;
+  color: #ffd400;
+  text-shadow: 
+    -2px -2px 0 #000,
+    2px -2px 0 #000,
+    -2px 2px 0 #000,
+    2px 2px 0 #000,
+    0 0 12px rgba(255, 212, 0, 0.8);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.cmp-player-profile-card .vp-coin.spin {
+  animation: coinSpin 1s ease-out;
+}
+
+@keyframes coinSpin {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5) rotateY(0deg);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(-50%, -80%) scale(1.2) rotateY(180deg);
+  }
+  30% {
+    transform: translate(-50%, -100%) scale(1.4) rotateY(360deg);
+  }
+  50% {
+    transform: translate(-50%, -110%) scale(1.5) rotateY(540deg);
+    filter: brightness(1.5);
+  }
+  70% {
+    transform: translate(-50%, -100%) scale(1.3) rotateY(720deg);
+  }
+  85% {
+    opacity: 1;
+    transform: translate(-50%, -80%) scale(1) rotateY(900deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5) rotateY(1080deg);
+  }
+}
+
+/* Energy Bolt spark animation */
+.cmp-player-profile-card .energy-bolt {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 52px;
+  color: #00ff41;
+  text-shadow: 
+    -2px -2px 0 #000,
+    2px -2px 0 #000,
+    -2px 2px 0 #000,
+    2px 2px 0 #000,
+    0 0 15px rgba(0, 255, 65, 0.9),
+    0 0 25px rgba(0, 255, 65, 0.6);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.cmp-player-profile-card .energy-bolt.spark {
+  animation: energySpark 1s ease-out;
+}
+
+@keyframes energySpark {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3) rotate(0deg);
+    filter: brightness(1);
+  }
+  10% {
+    opacity: 1;
+    transform: translate(-50%, -60%) scale(0.8) rotate(-15deg);
+    filter: brightness(2);
+  }
+  25% {
+    opacity: 1;
+    transform: translate(-50%, -70%) scale(1.3) rotate(15deg);
+    filter: brightness(2.5);
+  }
+  40% {
+    transform: translate(-50%, -90%) scale(1.5) rotate(-10deg);
+    filter: brightness(3);
+  }
+  55% {
+    transform: translate(-50%, -95%) scale(1.6) rotate(5deg);
+    filter: brightness(2.8);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(-50%, -85%) scale(1.4) rotate(-5deg);
+    filter: brightness(2);
+  }
+  85% {
+    opacity: 0.7;
+    transform: translate(-50%, -70%) scale(1) rotate(0deg);
+    filter: brightness(1.5);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3) rotate(0deg);
+    filter: brightness(1);
+  }
+}
 
 /* Energy flash animation */
-.cmp-player-profile-card .ppc-stat.energy.energy-flash { animation:energyFlash 1.5s ease; }
-@keyframes energyFlash { 0%,100% { box-shadow:2px 2px 0 #000; } 20%,40%,60%,80% { box-shadow:0 0 0 3px #00ff41,0 0 12px 4px #00ff41; transform:scale(1.1); } }
+.cmp-player-profile-card .ppc-stat.energy.energy-flash { animation:energyFlash 0.6s ease; }
+@keyframes energyFlash { 
+  0%, 100% { box-shadow:2px 2px 0 #000; transform:scale(1); } 
+  16%, 50%, 83% { box-shadow:0 0 0 3px #00ff41,0 0 12px 4px #00ff41; transform:scale(1.08); } 
+  33%, 66% { box-shadow:2px 2px 0 #000; transform:scale(1); }
+}
 
 /* Health flash animation */
-.cmp-player-profile-card .ppc-health-bar.health-flash { animation:healthFlash 1.5s ease; }
-@keyframes healthFlash { 0%,100% { box-shadow:none; } 20%,40%,60%,80% { box-shadow:0 0 0 3px #3ad65c,0 0 12px 4px #3ad65c; transform:scale(1.02); } }
+.cmp-player-profile-card .ppc-health-bar.health-flash { animation:healthFlash 0.6s ease; }
+@keyframes healthFlash { 
+  0%, 100% { box-shadow:none; transform:scale(1); } 
+  16%, 50%, 83% { box-shadow:0 0 0 3px #3ad65c,0 0 12px 4px #3ad65c; transform:scale(1.02); } 
+  33%, 66% { box-shadow:none; transform:scale(1); }
+}
 
 /* Hover effect minimal to preserve board readability */
 .cmp-player-profile-card:hover { transform:translateY(-2px); box-shadow:6px 6px 0 #000,0 0 0 2px #222 inset; }

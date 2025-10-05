@@ -168,8 +168,16 @@ function baseTemplate() {
     </button>
     <div class="ppc-stats" data-stats>
       <div class="ppc-stat hp" data-cards><span class="label">CARDS</span><span class="value" data-cards-count>0</span></div>
-      <div class="ppc-stat energy" data-energy data-kind="energy"><span class="label">ENERGY</span><span class="value" data-energy-value></span></div>
-      <div class="ppc-stat vp" data-vp data-kind="vp"><span class="label">POINTS</span><span class="value" data-vp-value></span></div>
+      <div class="ppc-stat energy" data-energy data-kind="energy">
+        <span class="label">ENERGY</span>
+        <span class="value" data-energy-value></span>
+        <div class="energy-bolt" data-energy-bolt>⚡</div>
+      </div>
+      <div class="ppc-stat vp" data-vp data-kind="vp">
+        <span class="label">POINTS</span>
+        <span class="value" data-vp-value></span>
+        <div class="vp-coin" data-vp-coin>★</div>
+      </div>
     </div>
     <div class="ppc-health-block" data-health-block>
       <div class="ppc-health-label" data-health-label>HEALTH <span data-hp-value></span>/10</div>
@@ -199,10 +207,10 @@ export function update(root, { playerId }) {
         const hex = monster.color.replace('#','');
         if (hex.length === 3) {
           const r = parseInt(hex[0]+hex[0],16), g = parseInt(hex[1]+hex[1],16), b = parseInt(hex[2]+hex[2],16);
-          setAccentText(r,g,b);
+          setAccentText(root, r,g,b);
         } else if (hex.length === 6) {
           const r = parseInt(hex.slice(0,2),16), g = parseInt(hex.slice(2,4),16), b = parseInt(hex.slice(4,6),16);
-          setAccentText(r,g,b);
+          setAccentText(root, r,g,b);
         }
         // Avatar image mapping (best effort based on monster name / provided image)
         try {
@@ -377,11 +385,35 @@ export function update(root, { playerId }) {
     // VP gain
     if (player.victoryPoints > prev.vp) {
       root.setAttribute('data-vp-gain','true');
+      // Trigger coin spin animation
+      const coin = root.querySelector('[data-vp-coin]');
+      if (coin) {
+        coin.classList.remove('spin'); // Reset animation
+        void coin.offsetWidth; // Force reflow
+        coin.classList.add('spin');
+        setTimeout(() => { 
+          try { 
+            coin.classList.remove('spin');
+          } catch(_){} 
+        }, 1000);
+      }
       setTimeout(() => { try { root.removeAttribute('data-vp-gain'); } catch(_){} }, 1000);
     }
     // Energy gain
     if (player.energy > prev.energy) {
       root.setAttribute('data-energy-gain','true');
+      // Trigger energy bolt animation
+      const bolt = root.querySelector('[data-energy-bolt]');
+      if (bolt) {
+        bolt.classList.remove('spark'); // Reset animation
+        void bolt.offsetWidth; // Force reflow
+        bolt.classList.add('spark');
+        setTimeout(() => { 
+          try { 
+            bolt.classList.remove('spark');
+          } catch(_){} 
+        }, 1000);
+      }
       setTimeout(() => { try { root.removeAttribute('data-energy-gain'); } catch(_){} }, 1000);
     }
     // Health gain (heals)
@@ -398,17 +430,9 @@ export function update(root, { playerId }) {
   } catch(_) {}
 }
 
-function setAccentText(r,g,b) {
-  // Perceived luminance (sRGB)
-  const lum = 0.2126*(r/255) + 0.7152*(g/255) + 0.0722*(b/255);
-  // If bright color, switch to darker value highlight; else keep yellow/gold
-  if (lum > .55) {
-    document.documentElement.style.setProperty('--ppc-accent-text', '#222');
-  } else if (lum < .18) {
-    document.documentElement.style.setProperty('--ppc-accent-text', '#ffe680');
-  } else {
-    document.documentElement.style.setProperty('--ppc-accent-text', '#ffd400');
-  }
+function setAccentText(root, r,g,b) {
+  // Always use consistent yellow/gold color for stat values
+  root.style.setProperty('--ppc-accent-text', '#ffd400');
 }
 
 function announceA11y(message) {

@@ -169,6 +169,13 @@ export function build({ selector }) {
             break;
           }
         }
+        
+        // Auto-hide mobile menu after any button click
+        if (checkMobile() && root._hamburgerOpen) {
+          root._hamburgerOpen = false;
+          // Trigger the hide animation by dispatching event that will call applyHidden
+          window.dispatchEvent(new CustomEvent('ui.actionMenu.forceClose'));
+        }
       });
       
       // Store reference for state updates

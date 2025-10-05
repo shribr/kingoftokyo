@@ -59,8 +59,8 @@ export function update(root, instances, positioning) {
       if (!inst._lastAttackPulse || inst._lastAttackPulse !== pulse.ts) {
         inst._lastAttackPulse = pulse.ts;
         inst.root.classList.add('attack-pulse');
-        // Remove after animation duration (~2s) to allow re-trigger
-        setTimeout(() => inst.root.classList.remove('attack-pulse'), 2000);
+        // Remove after animation duration (800ms) to allow re-trigger
+        setTimeout(() => inst.root.classList.remove('attack-pulse'), 800);
       }
     }
     // VP flash animation
@@ -70,7 +70,7 @@ export function update(root, instances, positioning) {
         const vpStat = inst.root.querySelector('.ppc-stat.vp');
         if (vpStat) {
           vpStat.classList.add('vp-flash');
-          setTimeout(() => vpStat.classList.remove('vp-flash'), 1500);
+          setTimeout(() => vpStat.classList.remove('vp-flash'), 600);
         }
       }
     }
@@ -81,7 +81,7 @@ export function update(root, instances, positioning) {
         const energyStat = inst.root.querySelector('.ppc-stat.energy');
         if (energyStat) {
           energyStat.classList.add('energy-flash');
-          setTimeout(() => energyStat.classList.remove('energy-flash'), 1500);
+          setTimeout(() => energyStat.classList.remove('energy-flash'), 600);
         }
       }
     }
@@ -92,7 +92,7 @@ export function update(root, instances, positioning) {
         const healthBar = inst.root.querySelector('.ppc-health-bar');
         if (healthBar) {
           healthBar.classList.add('health-flash');
-          setTimeout(() => healthBar.classList.remove('health-flash'), 1500);
+          setTimeout(() => healthBar.classList.remove('health-flash'), 600);
         }
       }
     }

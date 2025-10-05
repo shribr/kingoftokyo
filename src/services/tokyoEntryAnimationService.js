@@ -143,7 +143,11 @@ export function bindTokyoEntryAnimation(store, logger = console) {
             cardClone.classList.remove('is-active');
             cardClone.setAttribute('data-in-tokyo', 'true');
             cardClone.setAttribute('data-live-in-tokyo-slot', slot);
-            cardClone.style.transform = 'scale(0.65)'; // Scaled down for Tokyo slot
+            // Position and scale card to center within Tokyo slot (mobile)
+            cardClone.style.position = 'absolute';
+            cardClone.style.left = '50%';
+            cardClone.style.top = '50%';
+            cardClone.style.transform = 'translate(-50%, -50%) scale(0.55)';
             
             targetSlot.innerHTML = '';
             targetSlot.appendChild(cardClone);
