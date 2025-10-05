@@ -131,7 +131,7 @@ body, .btn, .card-text { font-size:var(--body-size); }
 	#action-menu-mobile-btn {
 		position: fixed;
 		bottom: 20px;
-		right: 80px; /* Positioned to the left of dice button */
+		right: 20px;
 		left: auto;
 		width: 50px;
 		height: 50px;

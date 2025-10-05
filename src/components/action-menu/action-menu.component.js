@@ -111,7 +111,7 @@ export function build({ selector }) {
       btn.innerHTML = '◀'; // left arrow indicates menu will expand to left
       btn.setAttribute('aria-label','Expand Action Menu');
       Object.assign(btn.style, {
-        position:'fixed', bottom:'20px', right:'80px', width:'50px', height:'50px', background:'linear-gradient(135deg,#ffcf33 0%, #ffb300 100%)', border:'3px solid #333', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24px', cursor:'pointer', boxShadow:'0 4px 12px rgba(0,0,0,0.3)', zIndex:'7500', transition:'transform 0.2s ease'
+        position:'fixed', bottom:'20px', right:'20px', width:'50px', height:'50px', background:'linear-gradient(135deg,#ffcf33 0%, #ffb300 100%)', border:'3px solid #333', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24px', cursor:'pointer', boxShadow:'0 4px 12px rgba(0,0,0,0.3)', zIndex:'7500', transition:'transform 0.2s ease'
       });
       btn.addEventListener('click', () => {
         // Check if menu is currently visible (translateX is 0)

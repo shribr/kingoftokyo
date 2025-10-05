@@ -19,6 +19,7 @@ const DEFAULT_SETTINGS = {
   , archiveMaxPerType: 10 // hard cap per type (game / aidt) for auto archives
   , enableDecisionTreeCapture: true // capture AI decision tree data for AI Insight tab (can disable for perf)
   , enableFloatingDevPanel: true // allow floating dev panel (can hide if using Dev Tools tab only)
+  , showPhaseMetrics: false // show phase timing metrics panel (developer tool)
 };
 
 export function settingsReducer(state = DEFAULT_SETTINGS, action) {

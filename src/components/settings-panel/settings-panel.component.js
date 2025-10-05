@@ -20,6 +20,9 @@ export function build({ selector }) {
         // When enabling, ensure dice tray remains visible (guard against style side-effects)
         try { const dice = document.querySelector('.cmp-dice-tray'); if (dice) dice.style.visibility = ''; } catch(_) {}
       }
+    } else if (e.target.matches('[data-setting="showPhaseMetrics"]')) {
+      const checked = e.target.checked;
+      store.dispatch(settingsUpdated({ showPhaseMetrics: checked }));
     } else if (e.target.matches('[name="playerCardLayoutMode"]')) {
       const val = e.target.value;
       store.dispatch(settingsUpdated({ playerCardLayoutMode: val, stackedPlayerCards: (val === 'stacked') }));
@@ -48,6 +51,14 @@ function template() {
       Remember layout & panel positions
     </label>
   <p style="margin:8px 0 12px;font-size:12px;opacity:.75;font-family:system-ui,sans-serif;">When off (default), panels reset to their default layout and state every reload.</p>
+    <fieldset style="border:1px solid #333;padding:8px 10px 10px;margin:0 0 10px;font-family:system-ui,sans-serif;">
+      <legend style="padding:0 6px;font-size:13px;letter-spacing:.5px;">Developer Tools</legend>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:4px;">
+        <input type="checkbox" data-setting="showPhaseMetrics" />
+        Show Phase Metrics Panel
+      </label>
+      <p style="margin:6px 0 0;font-size:11px;opacity:.65;line-height:1.4;">Displays real-time performance timing for each game phase. Green = fast (&lt;50ms), Yellow = acceptable (50-150ms), Red = slow (&gt;150ms). Data is not persisted.</p>
+    </fieldset>
     <fieldset style="border:1px solid #333;padding:8px 10px 10px;margin:0 0 10px;font-family:system-ui,sans-serif;">
       <legend style="padding:0 6px;font-size:13px;letter-spacing:.5px;">Player Card Layout</legend>
       <label style="display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:4px;">
@@ -83,6 +94,11 @@ function sync(root) {
   const persist = !!st.settings?.persistPositions;
   const cb = root.querySelector('[data-setting="persistPositions"]');
   if (cb) cb.checked = persist;
+  
+  const showPhaseMetrics = !!st.settings?.showPhaseMetrics;
+  const metricsCb = root.querySelector('[data-setting="showPhaseMetrics"]');
+  if (metricsCb) metricsCb.checked = showPhaseMetrics;
+  
   let mode = st.settings?.playerCardLayoutMode || (st.settings?.stackedPlayerCards === false ? 'list' : 'stacked');
   if (isMobile) mode = 'list'; // Force list on mobile
   const radios = root.querySelectorAll('[name="playerCardLayoutMode"]');
