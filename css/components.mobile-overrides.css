@@ -5,6 +5,42 @@
  * NOTE: Avoid editing scattered responsive rules; migrate future tweaks here when possible.
  */
 
+/* Fix #app div blocking clicks - should not have pointer events or high z-index */
+#app {
+  pointer-events: none !important;
+  z-index: auto !important;
+  position: relative !important;
+}
+
+/* Allow pointer events on actual game elements inside #app */
+#app > * {
+  pointer-events: auto;
+}
+
+/* When splash is visible, hide ALL game elements completely */
+body.splash-visible #app,
+body.splash-visible .cmp-dice-tray,
+body.splash-visible .cmp-action-menu,
+body.splash-visible .cmp-toolbar,
+body.splash-visible .cmp-arena,
+body.splash-visible .cmp-player-profile-cards,
+body.splash-visible .cmp-monsters-panel,
+body.splash-visible .game-layout-shell,
+body.splash-visible #game-container > *:not(.cmp-splash) {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  display: none !important;
+}
+
+/* Ensure splash is always visible and on top when active */
+body.splash-visible .cmp-splash {
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: flex !important;
+  z-index: 10000 !important;
+}
+
 :root {
   /* Scales used for progressive compaction */
   --scale-large: 1;
@@ -12,10 +48,215 @@
   --scale-small: .85;
 }
 
+/* Player Power Cards Modal - draggable centered modal (all screen sizes) */
+.player-power-cards-modal {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: min(500px, 90vw) !important;
+  max-height: 70vh !important;
+  z-index: 9000 !important;
+  cursor: move !important; /* Indicate draggability */
+}
+
+.player-power-cards-modal.hidden {
+  display: none !important;
+}
+
+.player-power-cards-modal .ppcm-frame {
+  width: 100% !important;
+  height: 100% !important;
+  background: linear-gradient(135deg, #2a2d35 0%, #1a1d21 100%) !important;
+  border: 3px solid #000 !important;
+  border-radius: 8px !important;
+  box-shadow: 6px 6px 0 #000 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+.player-power-cards-modal .ppcm-header {
+  background: linear-gradient(135deg, #ffd400 0%, #ffb700 100%) !important;
+  color: #000 !important;
+  padding: 12px 16px !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  border-bottom: 3px solid #000 !important;
+  flex-shrink: 0 !important;
+}
+
+.player-power-cards-modal .ppcm-header h2 {
+  font-family: 'Bangers', cursive !important;
+  font-size: 22px !important;
+  margin: 0 !important;
+  letter-spacing: 1px !important;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2) !important;
+  color: #000 !important;
+}
+
+.player-power-cards-modal .ppcm-header button[data-action="close"] {
+  position: relative !important;
+  width: 32px !important;
+  height: 32px !important;
+  background: #ff4444 !important;
+  color: #fff !important;
+  border: 2px solid #000 !important;
+  border-radius: 4px !important;
+  font-size: 24px !important;
+  font-weight: bold !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  box-shadow: 2px 2px 0 #000 !important;
+  transition: all 0.1s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.player-power-cards-modal .ppcm-header button[data-action="close"]:hover {
+  background: #ff6666 !important;
+  transform: translate(-1px, -1px) !important;
+  box-shadow: 3px 3px 0 #000 !important;
+}
+
+.player-power-cards-modal .ppcm-header button[data-action="close"]:active {
+  transform: translate(1px, 1px) !important;
+  box-shadow: 1px 1px 0 #000 !important;
+}
+
+.player-power-cards-modal .ppcm-body {
+  background: #1a1d21 !important;
+  color: #e0e0e0 !important;
+  padding: 16px !important;
+  overflow-y: auto !important;
+  flex: 1 !important;
+}
+
+.player-power-cards-modal .ppcm-empty {
+  text-align: center !important;
+  padding: 40px 20px !important;
+  color: #999 !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+}
+
+.player-power-cards-modal .ppcm-empty span {
+  display: block !important;
+  margin-top: 8px !important;
+  opacity: 0.7 !important;
+  font-size: 13px !important;
+}
+
+/* Card grid styling */
+.player-power-cards-modal .ppcm-cards-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
+  gap: 12px !important;
+}
+
+.player-power-cards-modal .ppcm-card-detail {
+  background: linear-gradient(135deg, #2d3139 0%, #1f2228 100%) !important;
+  border: 2px solid #000 !important;
+  border-radius: 6px !important;
+  padding: 12px !important;
+  box-shadow: 3px 3px 0 #000, 0 0 0 1px #333 inset !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+.player-power-cards-modal .ppcm-card-detail:hover {
+  transform: translate(-2px, -2px) !important;
+  box-shadow: 5px 5px 0 #000, 0 0 0 1px #444 inset !important;
+}
+
+.player-power-cards-modal .ppcm-card-detail h3 {
+  font-size: 16px !important;
+  color: #ffd400 !important;
+  margin: 0 !important;
+  font-family: 'Bangers', cursive !important;
+  letter-spacing: 0.5px !important;
+  text-shadow: 1px 1px 0 #000 !important;
+}
+
+/* Card element styling */
+.player-power-cards-modal .ppcm-card-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+.player-power-cards-modal .ppcm-card-cost {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #000 !important;
+  background: #ffd400 !important;
+  border: 2px solid #000 !important;
+  padding: 3px 8px !important;
+  border-radius: 4px !important;
+  box-shadow: 2px 2px 0 #000 !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+.player-power-cards-modal .ppcm-card-description {
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+  white-space: pre-wrap !important;
+  color: #e0e0e0 !important;
+}
+
+.player-power-cards-modal .ppcm-card-footer {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  font-size: 11px !important;
+  opacity: 0.7 !important;
+  color: #ccc !important;
+  border-top: 1px solid rgba(255, 212, 0, 0.2) !important;
+  padding-top: 6px !important;
+  margin-top: 4px !important;
+}
+
+.player-power-cards-modal .ppcm-card-rarity {
+  text-transform: uppercase !important;
+  font-weight: 600 !important;
+}
+
+/* Scrollbar styling for modal */
+.player-power-cards-modal .ppcm-body::-webkit-scrollbar {
+  width: 8px !important;
+}
+
+.player-power-cards-modal .ppcm-body::-webkit-scrollbar-track {
+  background: #0f1115 !important;
+  border-radius: 4px !important;
+}
+
+.player-power-cards-modal .ppcm-body::-webkit-scrollbar-thumb {
+  background: #ffd400 !important;
+  border-radius: 4px !important;
+  border: 1px solid #000 !important;
+}
+
+.player-power-cards-modal .ppcm-body::-webkit-scrollbar-thumb:hover {
+  background: #ffdd33 !important;
+}
+
+/* Cursor pointer for clickable cards stat */
+.cmp-player-profile-card [data-cards] {
+  cursor: pointer !important;
+}
+
 /* === Breakpoint Map (source-of-truth) ===
  * 1200px: Tighten large layout spacing.
+ * 1024px (or pointer:coarse): Mobile game interaction model (floating menus, stacked panels).
  * 980px: Begin single-column setup layouts; moderate control scaling.
- * 760px (or pointer:coarse): Mobile game interaction model (floating menus, stacked panels).
  * 520px: Ultra-compact; hide secondary chrome.
  * 400px: Emergency compression for very narrow devices.
  */
@@ -36,8 +277,8 @@
   .cmp-dice-tray .die { font-size:calc(var(--dice-font-size) * .9); }
 }
 
-/* 3) Core mobile mode trigger */
-@media (max-width:760px), (pointer:coarse) {
+/* 3) Mobile / Touch Devices: Main responsive pivot */
+@media (max-width:1024px), (pointer:coarse) {
   /* Hide active player card dock in mobile - replaced by active-player-bubble */
   #active-player-card-slot,
   #active-player-card-slot[data-active-card-dock],
@@ -47,41 +288,82 @@
     pointer-events: none !important;
   }
   
-  /* Scale Tokyo tiles to be shorter for mobile viewport */
-  .cmp-arena .city-slot,
-  .cmp-arena .bay-slot {
-    width: 200px !important;
-    min-width: 200px !important;
-    height: 200px !important;
-    min-height: 200px !important;
-    --tokyo-slot-default-width: 200px;
-    --tokyo-slot-default-height: 200px;
-    position: relative !important; /* Ensure slots are positioned for absolute children */
-  }
-  
-  /* Scale down and center cards inside Tokyo slots */
-  .cmp-arena .city-slot .cmp-player-profile-card,
-  .cmp-arena .bay-slot .cmp-player-profile-card,
-  .cmp-arena .city-slot .cmp-player-profile-card[data-in-tokyo-slot],
-  .cmp-arena .bay-slot .cmp-player-profile-card[data-in-tokyo-slot] {
-    position: absolute !important;
-    left: 50% !important;
-    top: 50% !important;
-    transform: translate(-50%, -50%) scale(0.55) !important;
-    transform-origin: center center !important;
-    margin: 0 !important;
-  }
-  
   /* Stacking / repositioning */
   .cmp-player-profile-cards { position:fixed; top:auto; bottom:150px; left:12px; right:12px; flex-direction:row; flex-wrap:wrap; justify-content:center; width:auto; }
   .cmp-player-profile-card { width:190px; font-size:.75rem; }
   .cmp-player-profile-card .ppc-stats { gap:6px; }
   
+  /* Tokyo slot cards: simplified layout for mobile */
+  .cmp-arena .city-slot .cmp-player-profile-card[data-in-tokyo-slot],
+  .cmp-arena .bay-slot .cmp-player-profile-card[data-in-tokyo-slot] {
+    /* Just center and scale the card, use default layout */
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) scale(0.72) !important; /* Slightly larger scale for better visibility */
+    transform-origin: center center !important;
+    margin: 0 !important;
+    overflow: hidden !important; /* Prevent children from extending out */
+    box-sizing: border-box !important;
+  }
+  
+  /* Ensure all children of Tokyo cards respect boundaries */
+  .cmp-arena .city-slot .cmp-player-profile-card[data-in-tokyo-slot] *,
+  .cmp-arena .bay-slot .cmp-player-profile-card[data-in-tokyo-slot] * {
+    box-sizing: border-box !important;
+  }
+  
+  /* Adjust Tokyo slot dimensions to accommodate scaled card (190px × 0.72 = 137px) */
+  .cmp-arena .city-slot,
+  .cmp-arena .bay-slot {
+    position: relative !important; /* Required for absolute positioning of cards */
+    width: 240px !important; /* Accommodate full card width at scale */
+    min-width: 240px !important;
+    height: 240px !important; /* Accommodate full card height at scale */
+    min-height: 240px !important;
+    --tokyo-slot-default-width: 240px;
+    --tokyo-slot-default-height: 240px;
+    padding: 1px !important; /* Minimal padding for yellow dashed border */
+    border: 3px dashed rgba(255, 207, 51, 0.4) !important; /* Yellow dashed border for Tokyo slots */
+    border-radius: 8px !important;
+  }
+  
+  /* Remove duplicate transform that was overriding the positioning */
+  
   /* Arena compaction */
-  .cmp-arena [data-arena-section="tokyo"] { position:static; width:100%; min-height:0; gap:20px; }
+  .cmp-arena [data-arena-section="tokyo"] { 
+    position: static; 
+    width: 100%; 
+    min-height: 0; 
+    gap: 12px; 
+    padding: 1px;
+    border: none !important; /* Remove any border from Tokyo section */
+    background: transparent !important;
+  }
+  
   .cmp-arena [data-tokyo="city"],
-  .cmp-arena [data-tokyo="bay"] { padding:8px 10px; }
+  .cmp-arena [data-tokyo="bay"] { 
+    padding: 1px;
+    border: none !important; /* Remove border from city/bay containers */
+    background: transparent !important;
+  }
   .cmp-arena .monster-slot { height:120px; }
+
+  /* Hide Tokyo Bay when disabled (< 5 players) and center Tokyo City */
+  .cmp-arena [data-arena-section="bay"][data-disabled="true"] {
+    display: none !important;
+  }
+  
+  /* Center Tokyo City section when Bay is disabled */
+  .cmp-arena [data-arena-section="bay"][data-disabled="true"] ~ [data-arena-section="city"],
+  .cmp-arena [data-arena-section="city"]:only-child {
+    margin: 0 auto !important;
+  }
+  
+  /* When bay is disabled, center the tokyo section contents */
+  .cmp-arena [data-arena-section="tokyo"]:has([data-arena-section="bay"][data-disabled="true"]) {
+    justify-content: center !important;
+  }
 
   /* Desktop action menu is hidden in mobile - using horizontal menu instead */
   .cmp-action-menu { display: none !important; }
@@ -135,24 +417,24 @@
     display: none !important;
   }
   
-  /* Shrink dice size and containers for mobile */
+  /* Shrink dice size and containers for mobile - reduced further to save space */
   .cmp-dice-tray .die {
-    width: 38px !important;
-    height: 38px !important;
-    font-size: 19px !important;
+    width: 34px !important;
+    height: 34px !important;
+    font-size: 17px !important;
   }
   
   .cmp-dice-tray .tray-frame {
-    padding: 6px 0 !important;
+    padding: 4px 0 !important;
     width: fit-content !important;
     border-width: 2px !important;
     box-shadow: 3px 3px 0px #000, 5px 5px 12px rgba(0, 0, 0, 0.4) !important;
   }
   
   .cmp-dice-tray [data-dice] {
-    gap: 5px !important;
-    padding-left: 8px !important;
-    padding-right: 8px !important;
+    gap: 4px !important;
+    padding-left: 6px !important;
+    padding-right: 6px !important;
   }
   
   .cmp-dice-tray .tray-label { display: none; }
@@ -170,6 +452,11 @@
   .cmp-toolbar { --toolbar-btn-size:38px; padding:8px 10px; }
 }
 
+/* Cursor pointer for clickable cards stat */
+.cmp-player-profile-card [data-cards] {
+  cursor: pointer !important;
+}
+
 /* 5) Very narrow emergency compression */
 @media (max-width:400px) {
   .cmp-player-profile-card { width:100%; }
@@ -183,7 +470,7 @@
 }
 
 /* 7) High-contrast assist (piggyback if OS requests + narrow) */
-@media (prefers-contrast: more) and (max-width:760px) {
+@media (prefers-contrast: more) and (max-width:1024px) {
   .cmp-player-profile-card { box-shadow:0 0 0 3px #fff, 0 0 0 5px #000; }
 }
 

@@ -41,7 +41,7 @@ body, .btn, .card-text { font-size:var(--body-size); }
 }
 
 /* SUPERSEDED: Mobile core layout replaced by component-scoped overrides; retained until visual parity confirmed */
-@media (max-width:760px){
+@media (max-width:1024px){
 	#game-container { padding:clamp(10px,3vw,15px); width:100%; max-width:100%; margin:0 auto; }
 	
   /* Mobile action menu - hidden by default, shown by mobile toggle button */

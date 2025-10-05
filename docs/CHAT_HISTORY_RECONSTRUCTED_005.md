@@ -98,9 +98,13 @@ Now all our major interactive components are using the new architecture:
 - Component-scoped CSS files
 - No dependency on legacy global selectors
 
+<img src="../images/screenshots/king_of_tokyo_20250911_112420PM_component_migration_progress.png" alt="Component migration in progress" />
+
 ## The Monster Image Crisis
 
 **User:** "all images for monsters on monster selection screen are gone. was this anticipated as part of the migration while things are in flux or did you mess something up? Also, so far the new UI looks nothing like the old one. is this also expected while we're in transition?"
+
+<img src="../images/screenshots/20250911_102215PM.png" alt="Monster selection screen with missing images" />
 
 **Assistant:** Checking the monster image issue... Let me trace through the code.
 

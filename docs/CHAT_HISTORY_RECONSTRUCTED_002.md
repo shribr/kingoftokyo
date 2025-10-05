@@ -1,6 +1,14 @@
 # Reconstructed Collaboration Timeline (Technical Focus)
 
-> Scope: Purely implementation and UI/architecture collaboration threads. Excludes parity audits meta-discussion, executive email drafting, and managerial messaging. Intent is to reproduce the V2 game from scratch using these logged design & execution decisions.
+> Scope: Purely implementation and UI/architecture collaboration threads. Excludes parity audi## 14. Accessibility & UX Timing Considerations (Initial Planning)
+- Targeted: Focus management for modals (yield, card detail, settings).
+- ARIA live region for phase announcements & takeover prompts (not yet live, reserved tokens in UI layer).
+- CPU pacing normalization via min-phase guard plus optional `cpuSpeed` setting (slow/normal/fast) to emulate "thinking."
+
+![Settings panel showing configuration options](../images/king_of_tokyo_settings_1.png)
+
+---
+## 15. Logging Evolution & Hierarchical Game Log-discussion, executive email drafting, and managerial messaging. Intent is to reproduce the V2 game from scratch using these logged design & execution decisions.
 >
 > Guiding Principle: Deterministic, observable, incremental modernization of the King of Tokyo rules + UX while maintaining the ability to reason about and test AI behaviors.
 
@@ -32,6 +40,8 @@
 - After final reroll (rerollsRemaining == 0), dice slice sets internal flag and dispatches the resolution event.
 - Guards prevent double resolution (use `turnCycleId` concurrency token—see later phases).
 
+<img src="../images/screenshots/king_of_tokyo_20250912_101926AM_dice_roll_flow_game_state.png" alt="Dice roll flow showing game state" />
+
 **Implementation Notes:**
 - Lock keep interactions while rolling; enable after event emission.
 - Reroll bonuses & extra dice slots applied via modifiers (future effect integration path).
@@ -54,6 +64,8 @@
 - Retain last N entries (e.g., 50) in memory for lightweight UI feed.
 - Uniform log shape: `{ timestamp, kind, phase, turn, round, details }`.
 
+![Game log showing structured event logging](../images/king_of_tokyo_game_log.png)
+
 **Later Enhancements (planned, partially implemented):**
 - Hierarchical round/turn expansion with collapsible UI.
 - AI rationale linking (node IDs referencing decision tree states).
@@ -65,6 +77,8 @@
 - Purchase flow: validate energy, transfer card to player, refill shop.
 - Immediate vs Keep distinction stubbed (hooks for timed/delayed effects).
 
+<img src="../images/screenshots/king_of_tokyo_20250917_124404AM_card_shop_available_cards.png" alt="Card shop showing available power cards" />
+
 **Queued Effects Concept:**
 - `effectQueue` introduced as scaffold: entries with type, target(s), pending resolution stage.
 - Concurrency guard uses `turnCycleId` to ensure stale async operations (older turns) cannot resolve.
@@ -74,6 +88,8 @@
 **Components:** `diceTray`, `playerProfileCard(s)`, `logFeed`, `modals` container, card detail modal.
 - Tokenization policy: new or touched styles must reference design tokens (colors, spacing, typography, elevations).
 - Introduce `tokens.css` to centralize semantic variables.
+
+![Power card detail modal](../images/king_of_tokyo_power_card.png)
 
 **Position Persistence:**
 - `ui.positions` slice: `componentName -> { x, y }`.
@@ -86,6 +102,8 @@
 - Dynamic rendering for each active player (HP, VP, Energy display + slot for owned cards preview lane).
 - Data-binding via store subscription; minimal diff optimization (full re-render acceptable early).
 - Integration with positioning rails for layout flexibility.
+
+<img src="../images/screenshots/king_of_tokyo_20250915_052354PM_player_profile_cards_stats.png" alt="Player profile cards showing stats and card lanes" />
 
 ---
 ## 8. Effect & Modifier Integration (Initial)
@@ -122,6 +140,8 @@
 - Create batched yield prompt action: `YIELD_PROMPTS_CREATED` capturing defenders needing a decision.
 - Terminal resolution: `YIELD_ALL_RESOLVED` gating takeover processing.
 - Deterministic AI yield rationale seeded; human UI modal pending integration.
+
+<img src="../images/screenshots/king_of_tokyo_20250918_120803AM_tokyo_area_occupancy_yield.png" alt="Tokyo area showing occupancy and yield mechanics" />
 
 **Interim State:** Backend pipeline partially implemented (AI deterministic path / logging staged; UI incomplete).
 

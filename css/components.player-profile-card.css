@@ -1,6 +1,6 @@
 /* components.player-profile-card.css (legacy parity version) */
 
-.cmp-player-profile-card { position:relative; width:260px; background:linear-gradient(135deg,var(--ppc-accent,#2d3436) 0%, #1b1f20 100%); border:3px solid #000; border-radius:4px; padding:12px 14px 16px; font-family:'Bangers',cursive; letter-spacing:1px; color:#fff; box-shadow:4px 4px 0 #000,0 0 0 2px #222 inset; /* Lower value = shift visible area UP to show more top of image */ --ppc-avatar-pos-y:18%; flex-shrink: 0; }
+.cmp-player-profile-card { position:relative; width:260px; background:linear-gradient(135deg,var(--ppc-accent,#2d3436) 0%, #1b1f20 100%); border:3px solid #000; border-radius:4px; padding:12px 14px 16px; font-family:'Bangers',cursive; letter-spacing:1px; color:#fff; box-shadow:4px 4px 0 #000,0 0 0 2px #222 inset; /* Lower value = shift visible area UP to show more top of image */ --ppc-avatar-pos-y:18%; flex-shrink: 0; overflow: hidden; /* Prevent child elements from extending past card boundaries */ box-sizing: border-box; }
 .cmp-player-profile-card + .cmp-player-profile-card { margin-top:18px; }
 .cmp-player-profile-card.is-active { outline:3px solid #ffd400; outline-offset:3px; }
 
@@ -150,9 +150,9 @@
 }
 
 /* Stats row */
-.cmp-player-profile-card .ppc-stats { display:flex; gap:10px; margin:0 0 12px; }
-.cmp-player-profile-card .ppc-stat { flex:1; background:#fafafa; color:#111; border:3px solid #000; text-align:center; padding:8px 4px 6px; box-shadow:2px 2px 0 #000; font-family:'Bangers',cursive; position:relative; }
-.cmp-player-profile-card .ppc-stat .label { display:block; font-size:12px; letter-spacing:.5px; color:#222; margin:0 0 2px; }
+.cmp-player-profile-card .ppc-stats { display:flex; gap:10px; margin:0 0 12px; flex-wrap: nowrap; overflow: hidden; /* Prevent stats from extending past card */ box-sizing: border-box; max-width: 100%; }
+.cmp-player-profile-card .ppc-stat { flex:1; background:#fafafa; color:#111; border:3px solid #000; text-align:center; padding:8px 4px 6px; box-shadow:2px 2px 0 #000; font-family:'Bangers',cursive; position:relative; min-width: 0; /* Allow flex items to shrink below content size */ box-sizing: border-box; }
+.cmp-player-profile-card .ppc-stat .label { display:block; font-size:12px; letter-spacing:.5px; color:#222; margin:0 0 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cmp-player-profile-card .ppc-stat .value { font-size:28px; color:var(--ppc-accent-text,#ffd400); text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000; line-height:1; }
 
 /* Cards stat tile - clickable when player has cards */
@@ -163,10 +163,10 @@
 
 
 /* Owned cards lane */
-.cmp-player-profile-card .ppc-owned-cards { background:#1c2123; border:3px solid #000; padding:8px 8px 10px; box-shadow:2px 2px 0 #000; }
+.cmp-player-profile-card .ppc-owned-cards { background:#1c2123; border:3px solid #000; padding:8px 8px 10px; box-shadow:2px 2px 0 #000; overflow: hidden; box-sizing: border-box; max-width: 100%; }
 .cmp-player-profile-card .ppc-owned-cards-label { font-size:14px; color:#ffd400; margin:0 0 4px; }
-.cmp-player-profile-card .ppc-owned-cards-strip { display:flex; gap:5px; flex-wrap:wrap; }
-.cmp-player-profile-card .ppc-card-mini { background:#333; color:#fff; font-size:12px; padding:3px 6px 4px; border:2px solid #000; border-radius:2px; max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; box-shadow:1px 1px 0 #000; }
+.cmp-player-profile-card .ppc-owned-cards-strip { display:flex; gap:5px; flex-wrap:wrap; overflow: hidden; box-sizing: border-box; max-width: 100%; }
+.cmp-player-profile-card .ppc-card-mini { background:#333; color:#fff; font-size:12px; padding:3px 6px 4px; border:2px solid #000; border-radius:2px; max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; box-shadow:1px 1px 0 #000; box-sizing: border-box; }
 
 /* Health block */
 .cmp-player-profile-card .ppc-health-block { background:#fff; border:3px solid #000; box-shadow:2px 2px 0 #000; padding:6px 10px 10px; margin-top:10px; }

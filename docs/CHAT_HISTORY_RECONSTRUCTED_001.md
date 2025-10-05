@@ -1,4 +1,9 @@
-## Reconstructed Collaboration & Conversation History
+## Reconstructed Collaborati| Phase 3–4 | Modal & Monster UX parity | Card detail modal, owned cards modal, multi + single monster profile components | Complete |
+| Phase 5 | Splash + design tokens (scaffold) | Splash dynamic polaroids, tokenization strategy (pending full extraction) | Partial |
+
+![Splash screen with monster selection](../images/king_of_tokyo_splash_screen.png)
+
+| Terminology Refactor | "Player dashboard" → "Player profile card" | Dual-class strategy to preserve legacy symbolic CSS mapping | Complete |& Conversation History
 
 Date of Reconstruction: 2025-09-24
 Scope: This document reconstructs the missing conversational / collaboration history between the human developer and the AI assistant pertaining to the King of Tokyo project. It merges:
@@ -16,6 +21,8 @@ Scope: This document reconstructs the missing conversational / collaboration his
 | Legacy / Classic Implementation | Root `js/`, `css/`, `index.html` | Mature, feature-complete (AI heuristics, full game loop, modals, CPU personality) | Production-quality baseline & reference |
 | Incremental Rewrite (Modular Core) | `new/` | In-progress (Phases 6–8) | Clean architecture: reducers, services, effect engine, UI parity strategy |
 
+<img src="../images/screenshots/king_of_tokyo_20250914_010315AM_legacy_implementation_full_interface.png" alt="Legacy implementation showing full game interface" />
+
 The rewrite intentionally avoids editing legacy files, instead building a parallel system oriented around composable state management, testability, and future extensibility (effects queue, AI re-surface, parity diff tooling).
 
 ---
@@ -25,6 +32,9 @@ The rewrite intentionally avoids editing legacy files, instead building a parall
 |-------|-------|------------------|--------|
 | Phase 1–2 | Core state slices + turn mechanics | Custom store, reducers (`players`, `dice`, `cards`, `tokyo`, `log`, `phase`, `meta`, `ui`), basic turn cycle & resolution stubs | Complete |
 | Phase 3–4 | Modal & Monster UX parity | Card detail modal, owned cards modal, multi + single monster profile components | Complete |
+
+![Monster profiles showing character details](../images/king_of_tokyo_monster_profiles.png)
+
 | Phase 5 | Splash + design tokens (scaffold) | Splash dynamic polaroids, tokenization strategy (pending full extraction) | Partial |
 | Terminology Refactor | “Player dashboard” → “Player profile card” | Dual-class strategy to preserve legacy symbolic CSS mapping | Complete |
 | Phase 6 | Player Profile Card componentization | Single + manager (`player-profile-card(s)`), test harness, card lane placeholder | Complete |
@@ -98,6 +108,10 @@ Recent legacy branch (Phase 10) introduced:
 - Multi-branch EV simulation & depth-2 projection (reroll lookahead).
 - Portfolio-aware energy valuation (shop synergy heuristic).
 - Accessibility instrumentation (ARIA roles, focus trapping, live region announcements).
+
+![AI decision tree showing projection and rationale](../images/king_of_tokyo_ai_decision_tree_1.png)
+
+![AI decision tree detailed view](../images/king_of_tokyo_ai_decision_tree_2.png)
 
 Rewrite track will eventually need:
 - Mirroring of projection APIs (adapter to new state slices).

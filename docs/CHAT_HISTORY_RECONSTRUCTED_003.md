@@ -17,6 +17,8 @@ From v002 baseline: core modular rewrite stable (dice → phase → effects → 
 - Establish a consistent strategy for large modals on mobile (fullscreen immersion, reduced chrome) prior to broad modal parity work.
 - Prepare splash (monster select / presentation) for responsive scaling.
 
+<img src="../images/screenshots/king_of_tokyo_20251003_122405AM_mobile_ui_action_menu_dice.png" alt="Mobile UI layout showing action menu and dice tray" />
+
 ---
 ## 3. Implemented Changes (This Interval)
 | Area | Change | Rationale | Notes |

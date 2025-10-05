@@ -114,8 +114,34 @@ export function update(ctx) {
   const root = ctx.inst?.root || ctx.root || (ctx instanceof HTMLElement ? ctx : null);
   if (!root || !root.querySelector) return; // defensive guard during early mount race
   const open = state.ui?.settings?.open;
+  const wasOpen = root.hasAttribute('data-was-open');
+  
   if (root.style) root.style.display = open ? 'flex' : 'none';
   root.classList.toggle('is-open', !!open);
+  
+  if (open && !wasOpen) {
+    // Modal just opened - capture original values
+    root.setAttribute('data-was-open', 'true');
+    const settings = state.settings || {};
+    originalValues = {
+      cpuSpeed: settings.cpuSpeed,
+      showThoughtBubbles: settings.showThoughtBubbles,
+      autoActivateMonsters: settings.autoActivateMonsters,
+      autoStartInTest: settings.autoStartInTest,
+      disableAnimations: settings.disableAnimations,
+      _scenarios: settings.scenarioConfig?.assignments || []
+    };
+    // Clear pending changes from previous session
+    clearPendingChanges();
+    updateSaveButton(root);
+    console.log('[Settings] Modal opened, captured original values:', originalValues);
+  }
+  
+  if (!open && wasOpen) {
+    // Modal just closed
+    root.removeAttribute('data-was-open');
+  }
+  
   if (open) {
     try { window.__KOT_BLACKOUT__?.hide(); } catch(_) {}
     // Ensure modal-shell is above general overlays
@@ -207,19 +233,26 @@ function trackScenarioChange(root) {
   const currentState = store.getState();
   const assignments = currentState.settings?.scenarioConfig?.assignments || [];
   
-  // Mark scenarios as changed (we don't track individual changes, just that scenarios were modified)
-  if (!pendingChanges['_scenarios']) {
+  // Compare with original values to determine if there's a real change
+  const originalAssignments = originalValues['_scenarios'] || [];
+  const hasChanged = JSON.stringify(assignments) !== JSON.stringify(originalAssignments);
+  
+  if (hasChanged) {
+    // Mark scenarios as changed
     pendingChanges['_scenarios'] = {
       setting: '_scenarios',
       tab: 'Scenarios',
-      oldValue: '(previous configuration)',
+      oldValue: `${originalAssignments.length} assignment(s)`,
       newValue: `${assignments.length} assignment(s)`,
       label: 'Scenario Configuration'
     };
+  } else {
+    // No change from original, remove from pending changes
+    delete pendingChanges['_scenarios'];
   }
   
   updateSaveButton(root);
-  console.log('[Settings] Scenario change tracked');
+  console.log('[Settings] Scenario change tracked, assignments:', assignments.length);
 }
 
 function getLabelForSetting(name) {
