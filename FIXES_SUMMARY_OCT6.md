@@ -48,7 +48,60 @@ window.addEventListener('ui.confirm.accepted', (e) => {
 
 ---
 
-### 3. 🔍 AI Modals Auto-Showing Investigation
+### 3. ✅ Fixed Attack Dice Timing (Resolved Too Early)
+**Problem:** Attack dice effects were being applied while the CPU's turn was still visually active, making it feel like attacks happened "before the CPU ended its turn".
+
+**Root Cause:**
+- Attack resolution happens in the RESOLVE phase (correct game logic)
+- However, the dice animation completed and attacks applied instantly
+- No visual pause to show "turn is ending, effects incoming"
+- User perceived attacks as premature because CPU was still the active player
+
+**Solution:**
+- Added CPU-specific resolution delay in `turnService.js` `resolve()` function
+- Delay duration based on CPU speed setting:
+  - Slow: ~1600ms pause before attack resolution
+  - Normal: ~800ms pause before attack resolution  
+  - Fast: ~400ms pause before attack resolution
+- This gives visual feedback that the turn is completing before attacks are applied
+- Human turns are unaffected (no additional delay)
+
+**Files Changed:**
+- `src/services/turnService.js`:
+  - Added check for CPU/AI player after dice animation completes
+  - Calculates resolution delay based on `cpuSpeed` setting
+  - Adds visual pause before calling `resolveDice()`
+  - Logs delay duration for debugging
+
+**Implementation:**
+```javascript
+// After dice animation completes (700ms wait)
+const stateForDelay = store.getState();
+const currentActiveId = selectActivePlayerId(stateForDelay);
+const currentActivePlayer = currentActiveId ? stateForDelay.players.byId[currentActiveId] : null;
+
+if (currentActivePlayer && (currentActivePlayer.isCPU || currentActivePlayer.isAI)) {
+  const cpuSpeed = stateForDelay.settings?.cpuSpeed || 'normal';
+  const baseDelay = computeDelay(stateForDelay.settings);
+  const resolutionDelay = Math.max(400, baseDelay * 2); // 400-1600ms
+  console.log(`⏱️ CPU turn resolution pause: ${resolutionDelay}ms before applying attack effects`);
+  await waitUnlessPaused(store, resolutionDelay);
+}
+
+// Now resolve attacks with proper visual timing
+resolveDice(store, logger);
+```
+
+**User Experience:**
+- CPU rolls dice → animation plays (700ms)
+- Brief pause showing final dice result (400-1600ms based on speed)
+- Attack effects apply (damage, yield prompts)
+- Turn advances to next phase
+- Feels more natural and gives time to see what the CPU rolled
+
+---
+
+### 4. 🔍 AI Modals Auto-Showing Investigation
 **Problem:** AI Decision Tree and AI Reasoning modals briefly flash during CPU turns when dice resolve and yield prompts appear.
 
 **Investigation:**
@@ -77,16 +130,16 @@ User should play game, watch for modal flashing, then check browser console for 
 
 ## Previous Fixes (From Earlier Session)
 
-### 4. ✅ CPU Speed Control
+### 5. ✅ CPU Speed Control
 - Implemented dynamic CPU speed based on `settings.cpuSpeed` setting
 - Three speeds: slow (800ms base), normal (400ms base), fast (150ms base)
 - Applied to roll delays, thinking time, and decision timing
 
-### 5. ✅ CPU Rolling Only Once Bug
+### 6. ✅ CPU Rolling Only Once Bug
 - Added `NEXT_TURN` handler in dice.reducer to reset dice state
 - Fixes issue where CPU could only roll once per turn
 
-### 6. ✅ Thought Bubble Z-Index
+### 7. ✅ Thought Bubble Z-Index
 - Set thought bubble z-index to 99999 when visible
 - Ensures thought bubbles appear above all other UI elements
 
@@ -105,7 +158,14 @@ User should play game, watch for modal flashing, then check browser console for 
    - Confirm modal appears with card details
    - Verify purchase only happens after clicking "Buy Card"
 
-3. **AI Modal Flashing:**
+3. **Attack Timing:**
+   - Set CPU speed to "Normal" or "Slow"
+   - Let CPU roll attack dice (claws)
+   - Observe brief pause after dice stop rolling
+   - Attack effects should apply AFTER the pause
+   - Should feel like "turn ending → attacks resolving" not "attacks during turn"
+
+4. **AI Modal Flashing:**
    - Let CPU take their turn and attack you
    - Watch for any brief modal flashes
    - Open browser console (F12)
@@ -120,3 +180,5 @@ User should play game, watch for modal flashing, then check browser console for 
 - No system dialogs used - all custom modals
 - Proper event-driven architecture maintained
 - Debug logging can be removed after issue is resolved
+- CPU-specific timing respects user's speed preference
+- Human player experience unchanged

@@ -30,6 +30,7 @@ export function build({ selector }) {
   
   // Listen for confirmation events
   window.addEventListener('ui.confirm.accepted', (e) => {
+    console.log('💳 [POWER-CARDS-PANEL] Received ui.confirm.accepted event:', e.detail);
     if (e.detail.confirmId === 'purchase-card-panel' && pendingPurchase) {
       const { playerId, cardId } = pendingPurchase;
       console.log('✅ Card purchase confirmed (panel):', { playerId, cardId });
@@ -119,8 +120,12 @@ function renderDeckCard(isEmpty, remaining) {
 
 function addShopEventListeners(container, activePlayer) {
   // Buy card buttons - now with confirmation modal
-  container.querySelectorAll('[data-buy]').forEach(btn => {
+  const buyButtons = container.querySelectorAll('[data-buy]');
+  console.log(`💳 [POWER-CARDS-PANEL] Found ${buyButtons.length} buy buttons to attach listeners to`);
+  
+  buyButtons.forEach(btn => {
     btn.addEventListener('click', (e) => {
+      console.log('💳 [POWER-CARDS-PANEL] Buy button clicked!', { target: e.target, dataset: e.target.dataset });
       const cardId = e.target.dataset.cardId;
       if (cardId && activePlayer) {
         // Get card details for confirmation message
@@ -148,7 +153,11 @@ function addShopEventListeners(container, activePlayer) {
           const message = `Purchase "${card.name}" for ${card.cost}⚡?\n\n${effectDesc}`;
           console.log('💳 Opening purchase confirmation modal (panel):', { cardName: card.name, cost: card.cost });
           store.dispatch(uiConfirmOpen('purchase-card-panel', message, 'Buy Card', 'Cancel'));
+        } else {
+          console.warn('💳 [POWER-CARDS-PANEL] Card not found:', cardId);
         }
+      } else {
+        console.warn('💳 [POWER-CARDS-PANEL] Missing cardId or activePlayer:', { cardId, activePlayer });
       }
     });
   });

@@ -109,6 +109,15 @@ export function bindUIEventBridges(store) {
     // Accept button is now optional UX; this ensures player cards reflect gains before End Turn.
     try {
       const dice = st.dice || {};
+      
+      // CRITICAL: Never auto-accept during CPU/AI turns
+      // The CPU controller manages its own roll sequence and will dispatch DICE_ROLL_RESOLVED when complete
+      const activePlayerId = selectActivePlayerId(st);
+      const activePlayer = activePlayerId ? st.players.byId[activePlayerId] : null;
+      if (activePlayer && (activePlayer.isCPU || activePlayer.isAI)) {
+        return; // CPU manages own sequence - do not interfere
+      }
+      
       // Final roll detected: phase sequence-complete OR (resolved with rerollsRemaining 0) and not yet accepted.
       const finalRoll = (dice.phase === 'sequence-complete' || (dice.phase === 'resolved' && dice.rerollsRemaining === 0));
       
@@ -118,6 +127,7 @@ export function bindUIEventBridges(store) {
         rerollsRemaining: dice.rerollsRemaining,
         accepted: dice.accepted,
         finalRoll,
+        isCPU: activePlayer?.isCPU || activePlayer?.isAI,
         shouldAutoAccept: st.phase === 'ROLL' && finalRoll && !dice.accepted
       });
       

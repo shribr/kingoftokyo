@@ -38,6 +38,7 @@ import { getScenario } from '../scenarios/catalog.js';
 import { SCENARIO_APPLY_REQUEST } from '../core/actions.js';
 import { bindTokyoEntryAnimation } from '../services/tokyoEntryAnimationService.js';
 import { createYieldModal } from '../ui/components/YieldModal.js';
+import { createYieldAdvisoryNotification } from '../ui/components/YieldAdvisoryNotification.js';
 import { mountEndBuyButton } from '../ui/components/EndBuyButton.js';
 import { AIThoughtBubbleComponent } from '../components/ai-thought-bubble/ai-thought-bubble.component.js';
 import '../ui/mobileToolbarToggle.js';
@@ -405,6 +406,11 @@ if (typeof window !== 'undefined') {
       }
       if (!hasHumanPending && window.__KOT_YIELD_MODAL__) {
         // Allow component to self-close; keep instance for reuse
+      }
+      
+      // Initialize yield advisory notification (subtle bottom-left bubble)
+      if (!window.__KOT_YIELD_ADVISORY__) {
+        window.__KOT_YIELD_ADVISORY__ = createYieldAdvisoryNotification(store);
       }
     } catch(_) {}
 

@@ -15,7 +15,7 @@ import { createPhaseMachine } from '../core/phaseMachine.js';
 import { rollDice } from '../domain/dice.js';
 import { isDeterministicMode, deriveRngForTurn, combineSeed } from '../core/rng.js';
 import { resolveDice, awardStartOfTurnTokyoVP, checkGameOver } from './resolutionService.js';
-import { selectTokyoCityOccupant, selectTokyoBayOccupant } from '../core/selectors.js';
+import { selectTokyoCityOccupant, selectTokyoBayOccupant, selectActivePlayerId } from '../core/selectors.js';
 import { DICE_ANIM_MS, AI_POST_ANIM_DELAY_MS, CPU_TURN_START_MS, CPU_DECISION_DELAY_MS } from '../constants/uiTimings.js';
 import { eventBus } from '../core/eventBus.js';
 import { recordOrCompareDeterminism } from '../core/determinism.js';
@@ -303,6 +303,29 @@ export function createTurnService(store, logger, rng = Math.random) {
   function startTurn() {
     __rollIndex = 0; // reset per new turn (defined later)
   try { console.log('[turnService] startTurn invoked, activePlayerIndex=', store.getState().meta?.activePlayerIndex); } catch(_) {}
+    
+    // TOKYO BAY AUTO-ENTRY RULE (5+ players)
+    // If Tokyo City is occupied but Bay is empty, the active player MUST enter Bay (before rolling)
+    const stBay = store.getState();
+    const playerCount = stBay.players.order.length;
+    if (playerCount >= 5) {
+      const cityOcc = selectTokyoCityOccupant(stBay);
+      const bayOcc = selectTokyoBayOccupant(stBay);
+      const activeId = selectActivePlayerId(stBay);
+      const activePlayer = activeId ? stBay.players.byId[activeId] : null;
+      
+      if (cityOcc && !bayOcc && activePlayer && !activePlayer.inTokyo) {
+        // AUTO-ENTER: Player must enter Tokyo Bay at start of turn
+        console.log(`🏖️ TOKYO BAY AUTO-ENTRY: ${activeId} automatically enters Tokyo Bay (5+ players, City occupied, Bay empty)`);
+        store.dispatch(playerEnteredTokyo(activeId));
+        store.dispatch(tokyoOccupantSet(activeId, playerCount));
+        logger.system(`${activeId} automatically enters Tokyo Bay`, { kind:'tokyo', slot:'bay', auto:true });
+        console.log(`🏆 DISPATCHING VP for Tokyo Bay auto-entry: ${activeId} +1 VP`);
+        store.dispatch(playerVPGained(activeId, 1, 'enterTokyo'));
+        store.dispatch(uiVPFlash(activeId, 1));
+      }
+    }
+    
     // Start-of-turn bonuses (Tokyo VP if occupying City at turn start)
     awardStartOfTurnTokyoVP(store, logger);
   logger.system('Phase: ROLL', { kind: 'phase' });
@@ -419,6 +442,21 @@ export function createTurnService(store, logger, rng = Math.random) {
     // CRITICAL: Wait for dice animation to complete before resolving effects (Tokyo entry, VP, etc.)
     // Dice roll animation is 0.6s (600ms), add small buffer for smoothness
     await waitUnlessPaused(store, 700);
+    
+    // Additional visual pause for CPU turns to show "turn is ending, effects incoming"
+    // This helps the user see that the CPU's turn is completing before attacks are resolved
+    const stateForDelay = store.getState();
+    const currentActiveId = selectActivePlayerId(stateForDelay);
+    const currentActivePlayer = currentActiveId ? stateForDelay.players.byId[currentActiveId] : null;
+    if (currentActivePlayer && (currentActivePlayer.isCPU || currentActivePlayer.isAI)) {
+      // Add a brief pause before resolving attacks so player can see CPU's final dice
+      const cpuSpeed = stateForDelay.settings?.cpuSpeed || 'normal';
+      const baseDelay = computeDelay(stateForDelay.settings);
+      // Short pause: 400-800ms depending on CPU speed
+      const resolutionDelay = Math.max(400, baseDelay * 2);
+      console.log(`⏱️ CPU turn resolution pause: ${resolutionDelay}ms before applying attack effects`);
+      await waitUnlessPaused(store, resolutionDelay);
+    }
     
     // If dice already accepted (effects applied), skip duplicate resolution
     try {
