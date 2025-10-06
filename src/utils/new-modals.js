@@ -885,39 +885,7 @@ export function createSettingsModal() {
       .catch(e=> { if (window.__KOT_DEBUG_ARCHIVES) console.warn('[Settings][Prewarm] Archive Manager preload failed', e); });
   }
 
-  // Hook into tab activation to prewarm when user first views archives tab
-  const originalActivateTab = activateTab;
-  activateTab = function(button){
-    originalActivateTab(button);
-    if (button.getAttribute('data-tab') === 'archives') {
-      maybePrewarmArchiveModule();
-      // One-time deep diagnostics when user first enters archives tab to understand click failure chain
-      if (window.__KOT_DEBUG_ARCHIVES && !window.__KOT_ARCHIVES_DIAG_ONCE__) {
-        window.__KOT_ARCHIVES_DIAG_ONCE__ = true;
-        console.log('[Settings][ArchivesDiag] First activation of Archives tab – installing MutationObserver');
-        try {
-          const host = document.querySelector('[data-tab-content="archives"] .section');
-          if (host) {
-            const mo = new MutationObserver((mutations)=>{
-              let relevant = false;
-              for (const m of mutations){
-                if ([...m.addedNodes].some(n=> n.querySelector?.('#archives-open-manager,#archives-open-analytics')) ||
-                    [...m.removedNodes].some(n=> n.querySelector?.('#archives-open-manager,#archives-open-analytics'))) {
-                  relevant = true; break;
-                }
-              }
-              if (relevant) {
-                console.log('[Settings][ArchivesDiag][MO] Button subtree mutated – re-binding direct handlers');
-                try { bindArchiveButtonsDirect(); } catch(_){}
-              }
-            });
-            mo.observe(host, { childList:true, subtree:true });
-            window.__KOT_ARCHIVES_MO__ = mo;
-          }
-        } catch(e){ console.warn('[Settings][ArchivesDiag] Failed to install MutationObserver', e); }
-      }
-    }
-  };
+  // NOTE: activateTab wrapper moved to after function definition to avoid hoisting issues
 
   // Replay controls referencing active replay (simplified)
   function attachReplayControls(){
@@ -1400,6 +1368,41 @@ export function createSettingsModal() {
       if (btn) btn.click();
     }
   } catch(_) {}
+
+  // Hook into tab activation to prewarm when user first views archives tab
+  // (Moved here after activateTab definition to avoid hoisting issues)
+  const originalActivateTab = activateTab;
+  activateTab = function(button){
+    originalActivateTab(button);
+    if (button.getAttribute('data-tab') === 'archives') {
+      maybePrewarmArchiveModule();
+      // One-time deep diagnostics when user first enters archives tab
+      if (window.__KOT_DEBUG_ARCHIVES && !window.__KOT_ARCHIVES_DIAG_ONCE__) {
+        window.__KOT_ARCHIVES_DIAG_ONCE__ = true;
+        console.log('[Settings][ArchivesDiag] First activation of Archives tab – installing MutationObserver');
+        try {
+          const host = document.querySelector('[data-tab-content="archives"] .section');
+          if (host) {
+            const mo = new MutationObserver((mutations)=>{
+              let relevant = false;
+              for (const m of mutations){
+                if ([...m.addedNodes].some(n=> n.querySelector?.('#archives-open-manager,#archives-open-analytics')) ||
+                    [...m.removedNodes].some(n=> n.querySelector?.('#archives-open-manager,#archives-open-analytics'))) {
+                  relevant = true; break;
+                }
+              }
+              if (relevant) {
+                console.log('[Settings][ArchivesDiag][MO] Button subtree mutated – re-binding direct handlers');
+                try { bindArchiveButtonsDirect(); } catch(_){}
+              }
+            });
+            mo.observe(host, { childList:true, subtree:true });
+            window.__KOT_ARCHIVES_MO__ = mo;
+          }
+        } catch(e){ console.warn('[Settings][ArchivesDiag] Failed to install MutationObserver', e); }
+      }
+    }
+  };
 
   // Handle form changes
   const form = content.querySelector('.unified-modal-form');

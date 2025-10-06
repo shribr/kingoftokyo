@@ -49,23 +49,18 @@ export function build({ selector, playerId }) {
       e.preventDefault();
       return;
     }
-    // Handle avatar click to show monster stats in peek modal
+    // Handle avatar click to show monster profile modal (editable traits)
     if (e.target.closest('[data-avatar]')) {
       e.preventDefault();
       e.stopPropagation();
       const state = store.getState();
       const player = selectPlayerById(state, playerId);
       if (player && player.monsterId) {
-        const monster = selectMonsterById(state, player.monsterId);
-        if (monster) {
-          // Create a monster card object for the peek modal
-          const monsterCard = {
-            name: monster.name,
-            isMonster: true,
-            monster: monster
-          };
-          store.dispatch(uiPeekShow(monsterCard));
-        }
+        // Dispatch action to open monster profile modal with editable traits
+        store.dispatch({
+          type: 'UI_MONSTER_PROFILE_OPEN',
+          payload: { monsterId: player.monsterId }
+        });
       }
       return;
     }

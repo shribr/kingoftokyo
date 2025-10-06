@@ -2,14 +2,15 @@
 import { store } from '../../bootstrap/index.js';
 import { selectUISingleMonster, selectMonsterById } from '../../core/selectors.js';
 import { uiMonsterProfileClose, monstersLoaded } from '../../core/actions.js';
-import { renderMonsterCard } from '../monster-profiles/shared.js';
 
 export function build({ selector }) {
   const root = document.createElement('div');
   root.className = selector.slice(1) + ' monster-profile-single-modal hidden';
-  root.innerHTML = `<div class="mps-frame"><button data-action="close" class="k-btn k-btn--warning k-btn--small mps-close">×</button><div data-card></div><div class="mps-edit" data-edit></div></div>`;
+  root.innerHTML = `<button data-action="close" class="k-btn k-btn--warning k-btn--small mps-close">×</button><div data-card></div>`;
   root.addEventListener('click', (e) => {
     if (e.target.matches('[data-action="close"]')) store.dispatch(uiMonsterProfileClose());
+    // Close if clicking outside the card
+    if (e.target === root) store.dispatch(uiMonsterProfileClose());
   });
   root.addEventListener('input', (e) => {
     const slider = e.target.closest('[data-trait-slider]');
@@ -47,26 +48,36 @@ export function update(root) {
   if (!monster) { root.classList.add('hidden'); return; }
   root.classList.remove('hidden');
   const cardHolder = root.querySelector('[data-card]');
-  cardHolder.innerHTML = renderMonsterCard(monster);
-  const edit = root.querySelector('[data-edit]');
-  edit.innerHTML = traitEditor(monster);
+  cardHolder.innerHTML = renderMonsterCardWithTraits(monster);
 }
 
-function traitEditor(monster) {
+function renderMonsterCardWithTraits(monster) {
+  const { id, name, image, description } = monster;
   const traits = [
     { key: 'aggression', label: 'Aggression' },
     { key: 'strategy', label: 'Strategy' },
     { key: 'risk', label: 'Risk Taking' },
     { key: 'economic', label: 'Economic Focus' }
   ];
-  return `<div class="mps-traits">
-    <h3 class="mps-section-title">ADJUST TRAITS</h3>
-    <div class="mps-trait-list">
-      ${traits.map(t => sliderRow(t.label, t.key, monster.personality?.[t.key])).join('')}
+  const sliders = traits.map(t => sliderRow(t.label, t.key, monster.personality?.[t.key])).join('');
+  
+  return `<div class="monster-profile-card" data-mid="${id}">
+    <div class="mpc-header">
+      <div class="mpc-avatar">${image ? `<img src="${image}" alt="${name}">` : ''}</div>
+      <div class="mpc-text">
+        <div class="mpc-name">${name.toUpperCase()}</div>
+        <div class="mpc-desc">${description || ''}</div>
+      </div>
     </div>
-    <div class="mps-actions">
-      <button class="pill-btn save" data-action="save-traits">Save</button>
-      <button class="pill-btn cancel" data-action="cancel-traits">Cancel</button>
+    <div class="mps-traits">
+      <h3 class="mps-section-title">ADJUST TRAITS</h3>
+      <div class="mps-trait-list">
+        ${sliders}
+      </div>
+      <div class="mps-actions">
+        <button class="pill-btn save" data-action="save-traits">Save</button>
+        <button class="pill-btn cancel" data-action="cancel-traits">Cancel</button>
+      </div>
     </div>
   </div>`;
 }

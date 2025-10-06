@@ -244,7 +244,10 @@ body[data-panels-force-overlay] .players-area { display:none; }
 	animation: gstEnter .65s cubic-bezier(.22,1.4,.32,1) forwards;
 }
 .game-start-toast.dismiss { animation: gstExit .5s ease forwards; }
-.game-start-toast.exploding { z-index: 0; }
+.game-start-toast.exploding { 
+	/* Keep z-index high during explosion animation, JS will lower it near the end */
+	animation: gstExplode 0.8s cubic-bezier(.25,.46,.45,.94) forwards;
+}
 .game-start-toast .gst-inner { 
 	position:relative; 
 	z-index:2; 

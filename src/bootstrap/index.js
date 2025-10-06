@@ -802,10 +802,16 @@ function orchestrateGameStartToast(note) {
       if (!note.isConnected) return;
       note.removeAttribute('data-shake-phase');
       note.classList.add('exploding');
-      // Lower z-index so it doesn't block UI during fade-out
-      note.style.zIndex = '0';
+      // Keep high z-index during explosion animation
       try { if (cfg.enableShockwave) spawnGameStartShockwave(note); } catch(e){ console.warn('shockwave spawn failed', e); }
       try { if (cfg.enableParticles) spawnGameStartParticles(note, cfg); } catch(e){ console.warn('spawnGameStartParticles failed', e);}      
+      
+      // Lower z-index after explosion animation is mostly complete (0.8s animation)
+      setTimeout(() => {
+        if (!note.isConnected) return;
+        note.style.zIndex = '0';
+      }, 800); // After explosion animation completes
+      
       // Removal after configured additional delay (allows fade tail & particles)
       setTimeout(() => { 
         if (!note.isConnected) return; 

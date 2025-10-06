@@ -22,7 +22,7 @@ class NewModalSystem {
       width: 100%;
       height: 100%;
       background: rgba(0, 0, 0, 0.8);
-      z-index: 9000;
+      z-index: 30000;
       display: none;
       align-items: center;
       justify-content: center;
