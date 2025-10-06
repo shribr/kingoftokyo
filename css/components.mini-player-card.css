@@ -187,10 +187,20 @@
   flex-direction: row-reverse;
 }
 
-/* Move active indicator to right side for right-aligned cards */
+/* Also flip left-side cards so profiles face inward */
+.mini-player-card--top-left .mpc-card-inner,
+.mini-player-card--top-left-title .mpc-card-inner,
+.mini-player-card--bottom-left .mpc-card-inner {
+  flex-direction: row-reverse;
+}
+
+/* Move active indicator to right side for ALL cards (since all are flipped) */
 .mini-player-card--top-right .mpc-active-indicator,
 .mini-player-card--top-right-title .mpc-active-indicator,
-.mini-player-card--bottom-right .mpc-active-indicator {
+.mini-player-card--bottom-right .mpc-active-indicator,
+.mini-player-card--top-left .mpc-active-indicator,
+.mini-player-card--top-left-title .mpc-active-indicator,
+.mini-player-card--bottom-left .mpc-active-indicator {
   left: auto;
   right: 0;
   border-top-left-radius: 0;

@@ -51,13 +51,12 @@ function createMiniCard(player, position, activePlayerId, slotIndex, state) {
     const health = player.health || 0;
     const monster = selectMonsterById(state, player.monsterId);
     const monsterImage = monster?.image || 'images/characters/king_of_tokyo_gigazaur.png';
-    const monsterColor = monster?.color || '#757575';
     
     const activeIndicator = isActive ? '<div class="mpc-active-indicator"></div>' : '';
     const playerName = player.name || 'P' + player.id;
     
     card.innerHTML = 
-      '<div class="mpc-card-inner" style="background: linear-gradient(135deg, ' + monsterColor + ' 0%, ' + adjustBrightness(monsterColor, -20) + ' 100%) !important">' +
+      '<div class="mpc-card-inner" style="background: #000 !important">' +
         activeIndicator +
         '<div class="mpc-profile" style="background-image: url(\'' + monsterImage + '\')"></div>' +
         '<div class="mpc-stats-bar">' +
