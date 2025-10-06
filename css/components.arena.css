@@ -66,8 +66,8 @@
    /* Card scales to .85 inside, so slot needs to accommodate: 260 * .85 = 221 + small padding */
    width: var(--tokyo-slot-default-width, 240px);
    min-width: 240px;
-   height: var(--tokyo-slot-default-height, 270px);
-   min-height: 270px;
+   height: var(--tokyo-slot-default-height, 300px);
+   min-height: 300px;
    padding: 0;
    border: 3px dashed rgba(255, 255, 255, 0.35);
    border-radius: 14px;
