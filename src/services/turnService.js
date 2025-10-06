@@ -149,6 +149,28 @@ export function createTurnService(store, logger, rng = Math.random) {
       }
       if (state.phase === Phases.YIELD_DECISION) {
         const pending = state.yield?.prompts?.some(p => p.decision == null);
+        const humanPending = state.yield?.prompts?.some(p => {
+          const player = state.players.byId[p.defenderId];
+          return p.decision == null && player && !player.isCPU && !player.isAI;
+        });
+        
+        console.log('🏯 YIELD_DECISION phase check:', { 
+          pending, 
+          humanPending,
+          promptCount: state.yield?.prompts?.length,
+          prompts: state.yield?.prompts?.map(p => ({
+            defender: p.defenderId,
+            decision: p.decision,
+            isHuman: state.players.byId[p.defenderId] && !state.players.byId[p.defenderId].isCPU && !state.players.byId[p.defenderId].isAI
+          }))
+        });
+        
+        // CRITICAL: Never advance if ANY human has pending decision
+        if (humanPending) {
+          console.log('🏯 BLOCKING phase advancement - human yield decision pending');
+          return; // Don't advance!
+        }
+        
         if (!pending) {
           markPhaseEnd('YIELD_DECISION');
           logger.system('Phase: BUY (yield decisions resolved)', { kind:'phase' });
@@ -436,9 +458,21 @@ export function createTurnService(store, logger, rng = Math.random) {
     try {
       const stAfterResolve = store.getState();
       const hasPendingYield = !!stAfterResolve.yield?.prompts?.some(p => p.decision == null);
+      
+      // CRITICAL: Log pending yield state for debugging
+      if (hasPendingYield) {
+        const pendingPrompts = stAfterResolve.yield.prompts.filter(p => p.decision == null);
+        console.log('🏯 YIELD DECISION PENDING - Blocking phase advancement:', {
+          pendingCount: pendingPrompts.length,
+          defenders: pendingPrompts.map(p => ({ id: p.defenderId, slot: p.slot, isHuman: !(stAfterResolve.players.byId[p.defenderId]?.isCPU || stAfterResolve.players.byId[p.defenderId]?.isAI) })),
+          currentPhase: stAfterResolve.phase
+        });
+      }
+      
       if (stAfterResolve.phase === Phases.YIELD_DECISION || hasPendingYield) {
         // Ensure phase is YIELD_DECISION when required
         if (hasPendingYield && stAfterResolve.phase !== Phases.YIELD_DECISION) {
+          console.log('🏯 Transitioning to YIELD_DECISION phase (human prompts pending)');
           if (usePhaseMachine && phaseMachine) {
             phaseMachine.event('NEEDS_YIELD_DECISION');
           } else {
@@ -447,6 +481,7 @@ export function createTurnService(store, logger, rng = Math.random) {
         }
         // End RESOLVE timing span now; subsequent phases will be handled by YIELD_DECISION watcher
         markPhaseEnd('RESOLVE');
+        console.log('🏯 resolve() RETURNING EARLY - waiting for yield decisions');
         return;
       }
     } catch(_) {}
@@ -526,7 +561,18 @@ export function createTurnService(store, logger, rng = Math.random) {
       const stPre = store.getState();
       const activeIdLog = forcedActiveId || (stPre.players.order[stPre.meta.activePlayerIndex % stPre.players.order.length]);
   try { console.log('[turnService] playCpuTurn invoked for', activeIdLog); } catch(_) {}
-      const controller = createCpuTurnController(store, enhancedEngineProxy(), store._logger || console, {});
+      
+      // Calculate timing based on cpuSpeed setting
+      const cpuSpeed = stPre.settings?.cpuSpeed || 'normal';
+      const baseDelay = computeDelay(stPre.settings);
+      const timingOptions = {
+        nextRollDelayMs: baseDelay * 3,      // Multiplied for visibility between rolls
+        decisionThinkingMs: baseDelay * 2,   // Thinking time
+        initialRollDelayMs: Math.max(800, baseDelay * 2) // Initial pause (min 800ms)
+      };
+      
+      console.log(`[turnService] CPU timing for speed '${cpuSpeed}':`, timingOptions);
+      const controller = createCpuTurnController(store, enhancedEngineProxy(), store._logger || console, timingOptions);
       controller.start();
       setTimeout(()=> {
         try {

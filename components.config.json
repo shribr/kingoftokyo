@@ -339,7 +339,7 @@
       "selector": ".cmp-tokyo-yield-modal",
       "mountPoint": "#app",
       "order": 311,
-      "enabled": true,
+      "enabled": false,
       "stateKeys": ["yield", "players"],
       "build": "tokyo-yield-modal.build",
       "update": "tokyo-yield-modal.update",
@@ -347,7 +347,9 @@
       "eventsIn": [],
       "initialState": {},
       "assets": [],
-      "zIndex": 99999
+      "zIndex": 99999,
+      "deprecated": true,
+      "note": "Replaced by unified YieldModal in src/ui/components/YieldModal.js"
     }
     ,{
       "name": "gameLogModal",

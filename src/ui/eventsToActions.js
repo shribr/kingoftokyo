@@ -35,13 +35,32 @@ export function bindUIEventBridges(store) {
     // Minimal guard: ensure blackout not blocking UI
     try { window.__KOT_BLACKOUT__?.hide(); document.querySelector('.post-splash-blackout')?.remove(); } catch(_) {}
     const stAll = store.getState();
+    
+    console.log('🎲 ROLL REQUESTED:', {
+      phase: stAll.phase,
+      dicePhase: stAll.dice.phase,
+      faces: stAll.dice.faces.length,
+      rerollsRemaining: stAll.dice.rerollsRemaining,
+      accepted: stAll.dice.accepted
+    });
+    
     // Only allow rolling during the ROLL phase
-    if (stAll.phase !== 'ROLL') return;
+    if (stAll.phase !== 'ROLL') {
+      console.warn('🎲 Roll blocked - not in ROLL phase');
+      return;
+    }
     const diceState = stAll.dice;
     const isFirstRoll = diceState.faces.length === 0 || diceState.phase === 'idle';
     // Dynamic enforcement: rely on reducer-maintained rerollsRemaining + base/bonus computation
     if (!isFirstRoll) {
-      if (!(diceState.phase === 'resolved' && diceState.rerollsRemaining > 0)) return;
+      if (!(diceState.phase === 'resolved' && diceState.rerollsRemaining > 0)) {
+        console.warn('🎲 Roll blocked - not first roll and invalid state:', {
+          dicePhase: diceState.phase,
+          rerollsRemaining: diceState.rerollsRemaining,
+          condition: `phase=${diceState.phase} resolved=${diceState.phase === 'resolved'} rerolls=${diceState.rerollsRemaining}`
+        });
+        return;
+      }
     }
     // Optional diagnostic (dev only): verify we have not exceeded theoretical max
     try {

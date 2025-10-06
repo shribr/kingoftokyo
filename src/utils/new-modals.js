@@ -2538,6 +2538,11 @@ export function createHelpModal() {
 }
 
 export function createAIDecisionModal() {
+  console.log('🔍 [MODAL-DEBUG] createAIDecisionModal() called', {
+    timestamp: new Date().toISOString(),
+    stack: new Error().stack
+  });
+  
   const content = document.createElement('div');
   content.className = 'ai-decision-tree-wrapper';
   content.innerHTML = '<div style="padding: 20px; text-align: center; color: #ccc;">Loading AI Decision Tree...</div>';

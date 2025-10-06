@@ -1,7 +1,7 @@
 /* AI Thought Bubble Component Styles */
 .ai-thought-bubble {
   position: fixed;
-  top: 20px;
+  top: 80px;  /* Position below header */
   right: 20px;
   width: 380px;
   max-width: calc(100vw - 40px);
@@ -11,7 +11,7 @@
     0 20px 40px rgba(0, 0, 0, 0.3),
     0 8px 16px rgba(0, 0, 0, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  z-index: 10000;
+  z-index: 9999;  /* Below modals but above most content */
   opacity: 0;
   transform: translateY(-20px) scale(0.95);
   visibility: hidden;
@@ -21,9 +21,19 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Desktop positioning - to the right of header */
+@media (min-width: 1024px) {
+  .ai-thought-bubble {
+    top: 20px;
+    right: 20px;
+    /* Will appear to the right side of the page, near header level */
+  }
+}
+
 .ai-thought-bubble.visible {
   opacity: 1;
   visibility: visible;
+  z-index: 99999;  /* MAXIMUM z-index when visible */
 }
 
 .ai-thought-bubble.animated-in {

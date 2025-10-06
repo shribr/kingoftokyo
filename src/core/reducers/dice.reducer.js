@@ -1,9 +1,16 @@
-import { DICE_ROLL_STARTED, DICE_ROLLED, DICE_TOGGLE_KEEP, DICE_REROLL_USED, DICE_SET_ALL_KEPT, DICE_ROLL_RESOLVED, DICE_ROLL_COMPLETED, DICE_RESULTS_ACCEPTED } from '../actions.js';
+import { DICE_ROLL_STARTED, DICE_ROLLED, DICE_TOGGLE_KEEP, DICE_REROLL_USED, DICE_SET_ALL_KEPT, DICE_ROLL_RESOLVED, DICE_ROLL_COMPLETED, DICE_RESULTS_ACCEPTED, NEXT_TURN } from '../actions.js';
 
 const initial = { faces: [], rerollsRemaining: 0, baseRerolls: 2, phase: 'idle', accepted: false, rollHistory: [] };
 
 export function diceReducer(state = initial, action) {
   switch (action.type) {
+    case NEXT_TURN: {
+      // Critical: Reset dice state on turn advancement to ensure clean slate for new player
+      // This guards against stale accepted/phase state persisting from previous player
+      console.log('🎲 DICE REDUCER: NEXT_TURN - Resetting dice state for new turn');
+      const baseRerolls = (state && typeof state.baseRerolls === 'number') ? state.baseRerolls : 2;
+      return { faces: [], rerollsRemaining: 0, baseRerolls, phase: 'idle', accepted: false, rollHistory: [] };
+    }
     case DICE_ROLL_STARTED: {
       // If starting new sequence, compute rerollsRemaining from active player's modifiers (base + bonus)
       const starting = state.phase === 'idle';

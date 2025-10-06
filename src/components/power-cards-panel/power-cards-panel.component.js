@@ -8,6 +8,10 @@ import { initSidePanel } from '../side-panel/side-panel.js';
 import { purchaseCard, flushShop } from '../../services/cardsService.js';
 import { logger } from '../../bootstrap/index.js';
 import { generatePowerCard } from '../power-cards/power-card-generator.js';
+import { uiConfirmOpen } from '../../core/actions.js';
+
+// Track pending purchase for confirmation
+let pendingPurchase = null;
 
 export function build({ selector }) {
   const root = document.createElement('div');
@@ -22,6 +26,16 @@ export function build({ selector }) {
     expandedArrow:'◄',  // Points left (toward collapse direction)
     collapsedArrow:'▲',  // Points up (toward expand direction)
     bodyClassExpanded:'panels-expanded-left'
+  });
+  
+  // Listen for confirmation events
+  window.addEventListener('ui.confirm.accepted', (e) => {
+    if (e.detail.confirmId === 'purchase-card-panel' && pendingPurchase) {
+      const { playerId, cardId } = pendingPurchase;
+      console.log('✅ Card purchase confirmed (panel):', { playerId, cardId });
+      purchaseCard(store, logger, playerId, cardId);
+      pendingPurchase = null;
+    }
   });
   
   return { root, update: () => update(root), destroy: () => destroy(root) };
@@ -104,12 +118,37 @@ function renderDeckCard(isEmpty, remaining) {
 // getRarity and getCardDescription now handled in generator
 
 function addShopEventListeners(container, activePlayer) {
-  // Buy card buttons
+  // Buy card buttons - now with confirmation modal
   container.querySelectorAll('[data-buy]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const cardId = e.target.dataset.cardId;
       if (cardId && activePlayer) {
-        purchaseCard(store, logger, activePlayer.id, cardId);
+        // Get card details for confirmation message
+        const state = store.getState();
+        const card = [...(state.cards?.shop || []), ...(state.cards?.deck || [])].find(c => c.id === cardId);
+        if (card) {
+          pendingPurchase = { playerId: activePlayer.id, cardId: cardId };
+          
+          // Format card effect description
+          let effectDesc = '';
+          if (card.effect) {
+            if (card.effect.kind === 'victory_points') {
+              effectDesc = `Gain ${card.effect.value} Victory Points`;
+            } else if (card.effect.kind === 'extra_die') {
+              effectDesc = `Roll an extra die`;
+            } else if (card.effect.kind === 'extra_reroll') {
+              effectDesc = `Get an extra reroll each turn`;
+            } else if (card.effect.kind === 'cheaper_cards') {
+              effectDesc = `Cards cost ${card.effect.value} less energy`;
+            } else {
+              effectDesc = card.description || 'Special ability';
+            }
+          }
+          
+          const message = `Purchase "${card.name}" for ${card.cost}⚡?\n\n${effectDesc}`;
+          console.log('💳 Opening purchase confirmation modal (panel):', { cardName: card.name, cost: card.cost });
+          store.dispatch(uiConfirmOpen('purchase-card-panel', message, 'Buy Card', 'Cancel'));
+        }
       }
     });
   });

@@ -137,6 +137,15 @@ class NewModalSystem {
     const modal = this.modals.get(id);
     if (!modal) return;
 
+    // DEBUG: Track modal shows with stack trace
+    if (id === 'aiDecision' || id === 'aiReasoningDetail') {
+      console.warn(`🚨 [MODAL-DEBUG] Showing ${id} modal`, {
+        timestamp: new Date().toISOString(),
+        currentModal: this.currentModal,
+        stack: new Error().stack
+      });
+    }
+
     // Store previous modal if opening a nested modal
     const previousModal = this.currentModal;
 

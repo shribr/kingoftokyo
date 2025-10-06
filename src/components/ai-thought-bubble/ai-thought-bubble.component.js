@@ -99,7 +99,38 @@ export class AIThoughtBubbleComponent {
    * Bind event listeners
    */
   bindEvents() {
-    // Listen for AIDT decision display events
+    console.log('[AIThoughtBubbleComponent] bindEvents called');
+    console.log('[AIThoughtBubbleComponent] window.__KOT_NEW__:', window.__KOT_NEW__);
+    console.log('[AIThoughtBubbleComponent] eventBus:', window.__KOT_NEW__?.eventBus);
+    
+    // Listen for live CPU decision events
+    if (typeof window !== 'undefined' && window.__KOT_NEW__?.eventBus) {
+      const eventBus = window.__KOT_NEW__.eventBus;
+      eventBus.on('ai/decision/made', (data) => {
+        console.log('[AIThoughtBubbleComponent] Received ai/decision/made event:', data);
+        // Check if thought bubbles are enabled in settings
+        try {
+          const store = window.__KOT_NEW__?.store;
+          if (store) {
+            const settings = store.getState().settings;
+            console.log('[AIThoughtBubbleComponent] Settings check - showThoughtBubbles:', settings.showThoughtBubbles);
+            if (settings.showThoughtBubbles === false) {
+              console.log('[AIThoughtBubbleComponent] Thought bubbles disabled in settings, skipping');
+              return;
+            }
+          }
+        } catch(e) {
+          console.warn('[AIThoughtBubbleComponent] Error checking settings:', e);
+        }
+        
+        this.displayCPUDecision(data);
+      });
+      console.log('[AIThoughtBubbleComponent] Successfully registered ai/decision/made listener');
+    } else {
+      console.warn('[AIThoughtBubbleComponent] Cannot register listener - window.__KOT_NEW__ or eventBus not available');
+    }
+    
+    // Listen for AIDT decision display events (replay mode)
     window.addEventListener('aidt.decision.display', (event) => {
       this.displayDecision(event.detail.decision, event.detail.logEntry);
     });
@@ -163,6 +194,34 @@ export class AIThoughtBubbleComponent {
     this.setAutoHide(8000); // 8 seconds
     
     console.log('[AIThoughtBubbleComponent] Displaying decision:', decision);
+  }
+  
+  /**
+   * Display a live CPU decision in the thought bubble
+   * @param {Object} data - CPU decision event data
+   */
+  displayCPUDecision(data) {
+    if (!data || !data.decision) {
+      console.warn('[AIThoughtBubbleComponent] displayCPUDecision called with invalid data:', data);
+      return;
+    }
+    
+    console.log('[AIThoughtBubbleComponent] Displaying live CPU decision:', data);
+    
+    // Map CPU decision format to thought bubble format
+    const decision = {
+      playerName: data.playerName,
+      roundNumber: '-',
+      turnNumber: data.rollNumber,
+      faces: data.faces || [],
+      action: data.decision.action || 'reroll',
+      rationale: data.decision.reason || 'Analyzing dice roll...',
+      score: data.decision.confidence || 0.5,
+      probabilities: null
+    };
+    
+    console.log('[AIThoughtBubbleComponent] Mapped decision:', decision);
+    this.displayDecision(decision, null);
   }
   
   /**

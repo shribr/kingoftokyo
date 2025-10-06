@@ -15,6 +15,7 @@ import { immediateAIDiceSelection } from './aiDecisionService.js';
 import { extractEngineInputs } from '../ai/perception/stateView.js';
 import { rollDice, tallyFaces } from '../domain/dice.js';
 import { DICE_ANIM_MS, AI_POST_ANIM_DELAY_MS } from '../constants/uiTimings.js';
+import { eventBus } from '../core/eventBus.js';
 
 function wait(ms){ return new Promise(res=> setTimeout(res, ms)); }
 
@@ -29,8 +30,9 @@ export function createCpuTurnController(store, engine, logger = console, options
   const settings = {
     maxRolls: 3,
     decisionTimeoutMs: 1200,
-    nextRollDelayMs: 400,
-    decisionThinkingMs: 300,
+    nextRollDelayMs: 1200,       // Increased from 400ms - delay between rolls
+    decisionThinkingMs: 800,     // Increased from 300ms - AI thinking time
+    initialRollDelayMs: 1500,    // NEW: delay before first roll starts
     ...options
   };
   let active = false;
@@ -60,6 +62,10 @@ export function createCpuTurnController(store, engine, logger = console, options
   function cancel(){ cancelled = true; }
 
   async function runRollCycle(playerId){
+    // Initial delay before CPU starts rolling (gives player time to see turn change)
+    console.log(`[cpuController] Waiting ${settings.initialRollDelayMs}ms before starting rolls...`);
+    await wait(settings.initialRollDelayMs);
+    
     let rollNumber = 0;
     while (!cancelled && rollNumber < settings.maxRolls) {
       rollNumber++;
@@ -129,6 +135,27 @@ export function createCpuTurnController(store, engine, logger = console, options
         rerollsRemaining: st.dice.rerollsRemaining,
         reason: decision.reason 
       });
+
+      // Emit event for thought bubble display
+      try {
+        const activePlayer = st.players.byId[playerId];
+        eventBus.emit('ai/decision/made', {
+          playerId,
+          playerName: activePlayer?.name || 'CPU',
+          rollNumber,
+          faces: canonical,
+          decision: {
+            action: decision.action,
+            keepDice: decision.keepDice,
+            confidence: decision.confidence,
+            reason: decision.reason
+          },
+          rerollsRemaining: st.dice.rerollsRemaining,
+          turnCycleId: st.meta?.turnCycleId
+        });
+      } catch(e) {
+        console.warn('[cpuController] Failed to emit thought bubble event', e);
+      }
 
       // Normalize decision action:
       // - Treat 'keep' as intent to continue rolling (after locking desired dice)

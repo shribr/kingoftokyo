@@ -261,6 +261,13 @@ export function generateDetailedReasoning(data, gameConfig = null) {
  * Displays detailed AI reasoning when user clicks on a roll entry
  */
 export function showReasoningInfoModal(rollData, playerName, gameConfig = null) {
+  console.log('🔍 [MODAL-DEBUG] showReasoningInfoModal() called', {
+    timestamp: new Date().toISOString(),
+    playerName,
+    rollData,
+    stack: new Error().stack
+  });
+  
   if (!rollData) {
     console.warn('[AI Reasoning] No roll data provided');
     return;

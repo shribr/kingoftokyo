@@ -39,6 +39,7 @@ import { SCENARIO_APPLY_REQUEST } from '../core/actions.js';
 import { bindTokyoEntryAnimation } from '../services/tokyoEntryAnimationService.js';
 import { createYieldModal } from '../ui/components/YieldModal.js';
 import { mountEndBuyButton } from '../ui/components/EndBuyButton.js';
+import { AIThoughtBubbleComponent } from '../components/ai-thought-bubble/ai-thought-bubble.component.js';
 import '../ui/mobileToolbarToggle.js';
 
 // Placeholder reducers until implemented
@@ -125,6 +126,16 @@ if (typeof window !== 'undefined') {
   bindUIEventBridges(store);
   bindUIEventAdapters(store);
   bindA11yOverlays(store);
+  
+  // Initialize AI thought bubble component
+  try {
+    const thoughtBubble = new AIThoughtBubbleComponent();
+    window.__KOT_NEW__.thoughtBubble = thoughtBubble;
+    console.log('[bootstrap] AI thought bubble initialized');
+  } catch(e) {
+    console.warn('[bootstrap] AI thought bubble initialization failed', e);
+  }
+  
   // Tokyo entry animation binding (visual only)
   try { bindTokyoEntryAnimation(store, logger); } catch(e) { console.warn('tokyoEntryAnimation bind failed', e); }
   
