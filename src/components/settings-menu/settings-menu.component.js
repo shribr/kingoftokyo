@@ -54,12 +54,12 @@ export function build({ selector }) {
         const preferRight = true; // settings button is on right
         if (preferRight) {
           root.removeAttribute('data-hamburger-corner');
-          root.style.right = '8px'; root.style.left = 'auto';
+          root.style.right = '0.8vw'; root.style.left = 'auto';
         } else {
           root.setAttribute('data-hamburger-corner','left');
-          root.style.left = '8px'; root.style.right = 'auto';
+          root.style.left = '0.8vw'; root.style.right = 'auto';
         }
-        root.style.top = 'auto'; root.style.bottom = '56px';
+        root.style.top = 'auto'; root.style.bottom = '5.6vh';
   // Auto-size: let CSS handle width via max-content/min-width
   root.style.width = '';
       } catch(_){}

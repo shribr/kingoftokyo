@@ -26,7 +26,7 @@ class NewModalSystem {
       display: none;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      padding: 2vh;
       box-sizing: border-box;
     `;
     
@@ -46,12 +46,12 @@ class NewModalSystem {
     modal.style.cssText = `
       background: #1c1c1c;
       border: 2px solid #111;
-      border-radius: 8px;
-      box-shadow: 6px 6px 0 #000, 0 0 0 2px #000 inset, 0 10px 26px -8px rgba(0,0,0,.7);
+      border-radius: 0.8vh;
+      box-shadow: 0.6vh 0.6vh 0 #000, 0 0 0 2px #000 inset, 0 1vh 2.6vh -0.8vh rgba(0,0,0,.7);
       color: #e4e4e4;
       font-family: 'Nunito', system-ui, sans-serif;
       width: 100%;
-      max-width: ${options.width || '600px'};
+      max-width: ${options.width || '60vw'};
       ${options.height ? `height: ${options.height}; max-height: ${options.height};` : 'max-height: 90vh;'}
       display: flex;
       flex-direction: column;
@@ -62,11 +62,11 @@ class NewModalSystem {
     header.className = 'new-modal-header';
     header.style.cssText = `
       background: #111;
-      padding: 12px 16px;
+      padding: 1.2vh 1.6vw;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      gap: 1.2vw;
       box-shadow: inset 0 -2px 0 rgba(255,255,255,0.05);
     `;
 
@@ -88,14 +88,14 @@ class NewModalSystem {
       font-family: inherit;
       font-size: 1rem;
       line-height: 1;
-      width: 32px;
-      height: 32px;
-      border-radius: 4px;
+      width: 3.2vh;
+      height: 3.2vh;
+      border-radius: 0.4vh;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 2px 2px 0 #000;
+      box-shadow: 0.2vh 0.2vh 0 #000;
       transition: background 0.18s ease, transform 80ms cubic-bezier(0.34,1.56,0.64,1);
     `;
     closeButton.innerHTML = '×';
@@ -113,7 +113,7 @@ class NewModalSystem {
     const body = document.createElement('div');
     body.className = 'new-modal-body';
     body.style.cssText = `
-      padding: 16px;
+      padding: 1.6vh;
       overflow: auto;
       flex: 1;
     `;

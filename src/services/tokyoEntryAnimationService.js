@@ -117,7 +117,9 @@ export function bindTokyoEntryAnimation(store, logger = console) {
       requestAnimationFrame(() => {
         const dx = endRect.left + (endRect.width / 2) - (startRect.left + (startRect.width / 2));
         const dy = endRect.top + (endRect.height / 2) - (startRect.top + (startRect.height / 2));
-        bubble.style.transform = `translate(${dx}px, ${dy}px)`;
+        const dxVw = (dx / window.innerWidth) * 100;
+        const dyVh = (dy / window.innerHeight) * 100;
+        bubble.style.transform = `translate(${dxVw}vw, ${dyVh}vh)`;
       });
     });
     
@@ -209,12 +211,14 @@ export function bindTokyoEntryAnimation(store, logger = console) {
       requestAnimationFrame(() => {
         const dx = (endRect.left + (endRect.width/2)) - (startRect.left + startRect.width/2);
         const dy = (endRect.top + (endRect.height/2)) - (startRect.top + startRect.height/2);
+        const dxVw = (dx / window.innerWidth) * 100;
+        const dyVh = (dy / window.innerHeight) * 100;
         clone.setAttribute('data-phase','landing');
         if (prefersReducedMotion || animationsDisabled()) {
           clone.style.transitionDuration = '120ms';
-          clone.style.transform = `translate(${dx}px, ${dy}px) scale(1)`;
+          clone.style.transform = `translate(${dxVw}vw, ${dyVh}vh) scale(1)`;
         } else {
-          clone.style.transform = `translate(${dx}px, ${dy}px) scale(.72)`;
+          clone.style.transform = `translate(${dxVw}vw, ${dyVh}vh) scale(.72)`;
         }
         triggerAnchorGlow(tokyoAnchor);
       });
@@ -278,13 +282,15 @@ export function bindTokyoEntryAnimation(store, logger = console) {
       requestAnimationFrame(()=>{
         const dx = (endRect.left + (endRect.width/2)) - (startRect.left + startRect.width/2);
         const dy = (endRect.top + (endRect.height/2)) - (startRect.top + startRect.height/2);
+        const dxVw = (dx / window.innerWidth) * 100;
+        const dyVh = (dy / window.innerHeight) * 100;
         clone.setAttribute('data-phase','landing');
         if (prefersReducedMotion || animationsDisabled()) {
           clone.style.transitionDuration = '120ms';
-          clone.style.transform = `translate(${dx}px, ${dy}px) scale(1)`;
+          clone.style.transform = `translate(${dxVw}vw, ${dyVh}vh) scale(1)`;
           clone.style.opacity = '0';
         } else {
-          clone.style.transform = `translate(${dx}px, ${dy}px) scale(.95)`;
+          clone.style.transform = `translate(${dxVw}vw, ${dyVh}vh) scale(.95)`;
           clone.style.opacity = '0';
         }
       });
@@ -337,19 +343,21 @@ export function bindTokyoEntryAnimation(store, logger = console) {
         const p = document.createElement('span');
         p.className = 'tokyo-entry-particle';
         const size = 6 + Math.random()*10;
-        p.style.left = (rect.left + rect.width/2) + 'px';
-        p.style.top = (rect.top + rect.height/2) + 'px';
-        p.style.width = size + 'px';
-        p.style.height = size + 'px';
-        p.style.margin = '-3px 0 0 -3px';
+        p.style.left = ((rect.left + rect.width/2) / window.innerWidth * 100) + 'vw';
+        p.style.top = ((rect.top + rect.height/2) / window.innerHeight * 100) + 'vh';
+        p.style.width = (size / window.innerHeight * 100) + 'vh';
+        p.style.height = (size / window.innerHeight * 100) + 'vh';
+        p.style.margin = '-0.3vh 0 0 -0.3vh';
         document.body.appendChild(p);
         requestAnimationFrame(()=>{
           const angle = Math.random()*Math.PI*2;
             const dist = 40 + Math.random()*60;
             const dx = Math.cos(angle)*dist;
             const dy = Math.sin(angle)*dist;
+            const dxVw = (dx / window.innerWidth) * 100;
+            const dyVh = (dy / window.innerHeight) * 100;
             p.style.opacity='1';
-            p.style.transform = `translate(${dx}px, ${dy}px) scale(1)`;
+            p.style.transform = `translate(${dxVw}vw, ${dyVh}vh) scale(1)`;
         });
         setTimeout(()=>{ try { p.style.opacity='0'; } catch(_){} }, 520);
         setTimeout(()=>{ try { p.remove(); } catch(_){} }, 900);

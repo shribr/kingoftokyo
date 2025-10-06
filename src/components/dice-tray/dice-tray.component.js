@@ -72,24 +72,25 @@ export function build({ selector, emit }) {
   toggleBtn.setAttribute('aria-label','Toggle Dice Tray');
   toggleBtn.setAttribute('aria-expanded','false');
       Object.assign(toggleBtn.style, {
-        position:'fixed', bottom:'20px', left:'20px', width:'50px', height:'50px', background:'#ffcf33', border:'3px solid #333', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24px', cursor:'pointer', boxShadow:'0 4px 12px rgba(0,0,0,0.3)', zIndex:'6700', transition:'transform 0.2s ease'
+        position:'fixed', bottom:'2vh', left:'2vw', width:'12vh', height:'12vh', background:'#ffcf33', border:'3px solid #333', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'5vh', cursor:'pointer', boxShadow:'0 0.4vh 1.2vh rgba(0,0,0,0.3)', zIndex:'6700', transition:'transform 0.2s ease'
       });
       // Helper to apply dynamic offset so tray's left edge sits just to the right of the toggle button
       const applyMobileOffset = () => {
         try {
           const rect = toggleBtn.getBoundingClientRect();
-          const gap = 16; // increased clearance so dice not blocked by button
-          const offset = Math.round(rect.left + rect.width + gap);
-          root.style.left = offset + 'px';
-          // Expand width a bit more now that gap increased; retain 10px safety
-          root.style.width = `calc(100vw - ${offset + 6}px)`;
+          const gap = window.innerWidth * 0.016; // 1.6vw - increased clearance so dice not blocked by button
+          const offsetPx = Math.round(rect.left + rect.width + gap);
+          const offsetVw = (offsetPx / window.innerWidth) * 100;
+          root.style.left = offsetVw + 'vw';
+          // Expand width a bit more now that gap increased; retain 0.5vw safety
+          root.style.width = `calc(100vw - ${offsetVw + 0.5}vw)`;
           // Recompute current transform based on collapsed state
           const collapsed = root.getAttribute('data-collapsed') === 'left';
           root.style.transform = collapsed ? 'translateX(-100%)' : 'translateX(0)';
         } catch(_) {
           // Fallback: full width if measurement fails
           root.style.left = '0';
-          root.style.width = 'calc(100vw - 10px)';
+          root.style.width = 'calc(100vw - 1vw)';
         }
       };
       toggleBtn.addEventListener('click', () => {

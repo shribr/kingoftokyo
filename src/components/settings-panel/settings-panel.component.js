@@ -51,16 +51,16 @@ function template() {
       Remember layout & panel positions
     </label>
   <p style="margin:8px 0 12px;font-size:12px;opacity:.75;font-family:system-ui,sans-serif;">When off (default), panels reset to their default layout and state every reload.</p>
-    <fieldset style="border:1px solid #333;padding:8px 10px 10px;margin:0 0 10px;font-family:system-ui,sans-serif;">
-      <legend style="padding:0 6px;font-size:13px;letter-spacing:.5px;">Developer Tools</legend>
+    <fieldset style="border:1px solid #333;padding:0.8vh 1vw 1vh;margin:0 0 1vh;font-family:system-ui,sans-serif;">
+      <legend style="padding:0 0.6vw;font-size:13px;letter-spacing:.5px;">Developer Tools</legend>
       <label style="display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:4px;">
         <input type="checkbox" data-setting="showPhaseMetrics" />
         Show Phase Metrics Panel
       </label>
       <p style="margin:6px 0 0;font-size:11px;opacity:.65;line-height:1.4;">Displays real-time performance timing for each game phase. Green = fast (&lt;50ms), Yellow = acceptable (50-150ms), Red = slow (&gt;150ms). Data is not persisted.</p>
     </fieldset>
-    <fieldset style="border:1px solid #333;padding:8px 10px 10px;margin:0 0 10px;font-family:system-ui,sans-serif;">
-      <legend style="padding:0 6px;font-size:13px;letter-spacing:.5px;">Player Card Layout</legend>
+    <fieldset style="border:1px solid #333;padding:0.8vh 1vw 1vh;margin:0 0 1vh;font-family:system-ui,sans-serif;">
+      <legend style="padding:0 0.6vw;font-size:13px;letter-spacing:.5px;">Player Card Layout</legend>
       <label style="display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:4px;">
         <input type="radio" name="playerCardLayoutMode" value="stacked" /> Stacked (full overlap)
       </label>
@@ -72,8 +72,8 @@ function template() {
       </label>
       <p style="margin:6px 0 0;font-size:11px;opacity:.65;line-height:1.4;">Try different density modes. Stacked = dramatic tilt & tight pile. Condensed = readable mini stack. List = linear.</p>
     </fieldset>
-    <fieldset style="border:1px solid #333;padding:8px 10px 10px;margin:0 0 14px;font-family:system-ui,sans-serif;">
-      <legend style="padding:0 6px;font-size:13px;letter-spacing:.5px;">Action Menu Placement</legend>
+    <fieldset style="border:1px solid #333;padding:0.8vh 1vw 1vh;margin:0 0 1.4vh;font-family:system-ui,sans-serif;">
+      <legend style="padding:0 0.6vw;font-size:13px;letter-spacing:.5px;">Action Menu Placement</legend>
       <label style="display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:4px;">
         <input type="radio" name="actionMenuMode" value="hybrid" /> Hybrid (dock until dragged)
       </label>

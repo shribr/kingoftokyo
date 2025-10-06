@@ -78,37 +78,37 @@ export function createSettingsModal() {
   // Optionally add 'settings-light' class later based on user preference
   content.innerHTML = `
     <!-- Tab Navigation -->
-  <div class="settings-tabs" style="display:flex; border-bottom:2px solid #333; margin-bottom:0; background:#1c1c1c; border-radius:6px 6px 0 0; position:sticky; top:0; z-index:50; box-shadow:0 2px 6px -2px rgba(0,0,0,.7); padding-bottom:2px;" role="tablist">
-      <button type="button" class="tab-button active" data-tab="gameplay" style="flex: 1; background: none; border: none; color: #e4e4e4; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;">
-        <span style="margin-right: 8px;">🎮</span>Gameplay
+  <div class="settings-tabs" style="display:flex; border-bottom:2px solid #333; margin-bottom:0; background:#1c1c1c; border-radius:0.6vh 0.6vh 0 0; position:sticky; top:0; z-index:50; box-shadow:0 0.2vh 0.6vh -0.2vh rgba(0,0,0,.7); padding-bottom:2px;" role="tablist">
+      <button type="button" class="tab-button active" data-tab="gameplay" style="flex: 1; background: none; border: none; color: #e4e4e4; padding: 1.2vh 1.6vw; cursor: pointer; font-family: 'Bangers', cursive; font-size: 1.6vh; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;">
+        <span style="margin-right: 0.8vw;">🎮</span>Gameplay
       </button>
-      <button type="button" class="tab-button" data-tab="interface" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;">
-        <span style="margin-right: 8px;">🎨</span>Interface
+      <button type="button" class="tab-button" data-tab="interface" style="flex: 1; background: none; border: none; color: #999; padding: 1.2vh 1.6vw; cursor: pointer; font-family: 'Bangers', cursive; font-size: 1.6vh; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;">
+        <span style="margin-right: 0.8vw;">🎨</span>Interface
       </button>
-      <button type="button" class="tab-button" data-tab="themes" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;">
-        <span style="margin-right: 8px;">🌈</span>Themes
+      <button type="button" class="tab-button" data-tab="themes" style="flex: 1; background: none; border: none; color: #999; padding: 1.2vh 1.6vw; cursor: pointer; font-family: 'Bangers', cursive; font-size: 1.6vh; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;">
+        <span style="margin-right: 0.8vw;">🌈</span>Themes
       </button>
-      <button type="button" class="tab-button" data-tab="advanced" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;">
-        <span style="margin-right: 8px;">⚙️</span>Advanced
+      <button type="button" class="tab-button" data-tab="advanced" style="flex: 1; background: none; border: none; color: #999; padding: 1.2vh 1.6vw; cursor: pointer; font-family: 'Bangers', cursive; font-size: 1.6vh; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;">
+        <span style="margin-right: 0.8vw;">⚙️</span>Advanced
       </button>
-      <button type="button" class="tab-button" data-tab="scenarios" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;">
-        <span style="margin-right: 8px;">🧪</span>Scenarios
+      <button type="button" class="tab-button" data-tab="scenarios" style="flex: 1; background: none; border: none; color: #999; padding: 1.2vh 1.6vw; cursor: pointer; font-family: 'Bangers', cursive; font-size: 1.6vh; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;">
+        <span style="margin-right: 0.8vw;">🧪</span>Scenarios
       </button>
-      <button type="button" class="tab-button" data-tab="archives" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;">
-        <span style="margin-right: 8px;">🗂</span>Archives
+      <button type="button" class="tab-button" data-tab="archives" style="flex: 1; background: none; border: none; color: #999; padding: 1.2vh 1.6vw; cursor: pointer; font-family: 'Bangers', cursive; font-size: 1.6vh; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;">
+        <span style="margin-right: 0.8vw;">🗂</span>Archives
       </button>
-      <button type="button" class="tab-button" data-tab="replay" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;">
-        <span style="margin-right: 8px;">▶️</span>Replay
+      <button type="button" class="tab-button" data-tab="replay" style="flex: 1; background: none; border: none; color: #999; padding: 1.2vh 1.6vw; cursor: pointer; font-family: 'Bangers', cursive; font-size: 1.6vh; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;">
+        <span style="margin-right: 0.8vw;">▶️</span>Replay
       </button>
-      <button type="button" class="tab-button" data-tab="ai" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;">
-        <span style="margin-right: 8px;">📊</span>Analytics & Insights
+      <button type="button" class="tab-button" data-tab="ai" style="flex: 1; background: none; border: none; color: #999; padding: 1.2vh 1.6vw; cursor: pointer; font-family: 'Bangers', cursive; font-size: 1.6vh; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;">
+        <span style="margin-right: 0.8vw;">📊</span>Analytics & Insights
       </button>
-      <button type="button" class="tab-button" data-tab="devtools" style="flex: 1; background: none; border: none; color: #999; padding: 12px 16px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;">
-        <span style="margin-right: 8px;">🛠</span>Dev Tools
+      <button type="button" class="tab-button" data-tab="devtools" style="flex: 1; background: none; border: none; color: #999; padding: 1.2vh 1.6vw; cursor: pointer; font-family: 'Bangers', cursive; font-size: 1.6vh; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;">
+        <span style="margin-right: 0.8vw;">🛠</span>Dev Tools
       </button>
     </div>
 
-    <form class="unified-modal-form" style="padding: 16px;">
+    <form class="unified-modal-form" style="padding: 1.6vh;">
       <!-- Gameplay Tab -->
       <div class="tab-content active" data-tab-content="gameplay">
         <div class="section">
@@ -223,10 +223,10 @@ export function createSettingsModal() {
           
           <div class="field" style="margin-top:18px;">
             <label class="field-label">Debug Console</label>
-            <div id="dev-debug-console" style="margin-top:8px;max-height:220px;overflow:auto;font-family:monospace;font-size:11px;line-height:1.4;background:#0d1417;border:1px solid #222;border-radius:6px;padding:8px;">
+            <div id="dev-debug-console" style="margin-top:0.8vh;max-height:22vh;overflow:auto;font-family:monospace;font-size:11px;line-height:1.4;background:#0d1417;border:1px solid #222;border-radius:0.6vh;padding:0.8vh;">
               <div style="opacity:.5;">Debug output will appear here...</div>
             </div>
-            <div style="margin-top:6px;display:flex;gap:8px;">
+            <div style="margin-top:0.6vh;display:flex;gap:0.8vw;">
               <button type="button" class="btn btn-sm" id="dev-debug-clear">Clear</button>
               <button type="button" class="btn btn-sm" id="dev-debug-pause" data-paused="false">Pause</button>
             </div>
@@ -284,11 +284,11 @@ export function createSettingsModal() {
           
           <div class="field">
             <label class="field-label">Settings Export/Import</label>
-            <div style="display: flex; gap: 8px; margin-top: 8px;">
-              <button type="button" class="btn btn-secondary export-settings-btn" style="font-size: 12px; padding: 6px 12px;">
+            <div style="display: flex; gap: 0.8vw; margin-top: 0.8vh;">
+              <button type="button" class="btn btn-secondary export-settings-btn" style="font-size: 1.2vh; padding: 0.6vh 1.2vw;">
                 📤 Export Settings
               </button>
-              <button type="button" class="btn btn-secondary import-settings-btn" style="font-size: 12px; padding: 6px 12px;">
+              <button type="button" class="btn btn-secondary import-settings-btn" style="font-size: 1.2vh; padding: 0.6vh 1.2vw;">
                 📥 Import Settings
               </button>
               <input type="file" id="settings-import-file" accept=".json" style="display: none;">
@@ -298,11 +298,11 @@ export function createSettingsModal() {
 
           <div class="field">
             <label class="field-label">Reset Options</label>
-            <div style="display: flex; gap: 8px; margin-top: 8px;">
-              <button type="button" class="btn btn-warning reset-settings-btn" style="font-size: 12px; padding: 6px 12px; background: #f39c12; border-color: #e67e22;">
+            <div style="display: flex; gap: 0.8vw; margin-top: 0.8vh;">
+              <button type="button" class="btn btn-warning reset-settings-btn" style="font-size: 1.2vh; padding: 0.6vh 1.2vw; background: #f39c12; border-color: #e67e22;">
                 🔄 Reset to Defaults
               </button>
-              <button type="button" class="btn btn-danger clear-all-data-btn" style="font-size: 12px; padding: 6px 12px; background: #e74c3c; border-color: #c0392b;">
+              <button type="button" class="btn btn-danger clear-all-data-btn" style="font-size: 1.2vh; padding: 0.6vh 1.2vw; background: #e74c3c; border-color: #c0392b;">
                 🗑️ Clear All Data
               </button>
             </div>
@@ -316,7 +316,7 @@ export function createSettingsModal() {
         <div class="section" style="max-height:60vh;overflow:auto;">
           <h3 class="section-title">🧪 Scenario Configuration</h3>
           <p style="font-size:13px;opacity:.85;line-height:1.5;margin-bottom:16px;">Configure scenario assignments and either apply them to the live game or generate a fresh auto-seeded run.</p>
-          <div data-scenarios-host style="border:1px solid #222;background:#141414;padding:10px 12px;border-radius:6px;min-height:140px;position:relative;">
+          <div data-scenarios-host style="border:1px solid #222;background:#141414;padding:1vh 1.2vw;border-radius:0.6vh;min-height:14vh;position:relative;">
             <div class="loading" style="font-size:11px;opacity:.6;">Loading scenario tools…</div>
           </div>
         </div>
@@ -332,23 +332,23 @@ export function createSettingsModal() {
 
           <div class="field">
             <label class="field-label">Search & Filter</label>
-            <div style="display:flex;gap:8px;margin-top:8px;margin-bottom:12px;">
+            <div style="display:flex;gap:0.8vw;margin-top:0.8vh;margin-bottom:1.2vh;">
               <input type="text" id="settings-archive-search" placeholder="Search archives..." 
-                     style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:12px;">
-              <select id="settings-archive-filter" style="padding:8px;border:1px solid #ddd;border-radius:4px;font-size:12px;">
+                     style="flex:1;padding:0.8vh;border:1px solid #ddd;border-radius:0.4vh;font-size:1.2vh;">
+              <select id="settings-archive-filter" style="padding:0.8vh;border:1px solid #ddd;border-radius:0.4vh;font-size:1.2vh;">
                 <option value="all">All Types</option>
                 <option value="game">Game Logs</option>
                 <option value="aidt">AI Decisions</option>
                 <option value="auto">Auto Archives</option>
               </select>
-              <button type="button" id="settings-archive-refresh" class="btn btn-secondary" style="padding:8px 12px;">🔄</button>
+              <button type="button" id="settings-archive-refresh" class="btn btn-secondary" style="padding:0.8vh 1.2vw;">🔄</button>
             </div>
           </div>
 
           <div class="field">
             <label class="field-label">Archives</label>
-            <div id="settings-archive-list" style="margin-top:8px;max-height:300px;overflow-y:auto;border:1px solid #ddd;border-radius:4px;background:#f9f9f9;">
-              <div style="padding:20px;text-align:center;color:#666;font-size:12px;">
+            <div id="settings-archive-list" style="margin-top:0.8vh;max-height:30vh;overflow-y:auto;border:1px solid #ddd;border-radius:0.4vh;background:#f9f9f9;">
+              <div style="padding:2vh;text-align:center;color:#666;font-size:1.2vh;">
                 Loading archives...
               </div>
             </div>
@@ -356,7 +356,7 @@ export function createSettingsModal() {
 
           <div class="field">
             <label class="field-label">Archive Settings</label>
-            <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;">
+            <div style="display:flex;gap:1.6vw;flex-wrap:wrap;margin-top:0.8vh;">
               <label class="field-checkbox" style="margin:0;">
                 <input type="checkbox" name="autoArchiveGameLogs" />
                 <span class="checkbox-label">Auto-archive Game Logs</span>
@@ -404,8 +404,8 @@ export function createSettingsModal() {
 
           <div class="field">
             <label class="field-label">Current Replay Status</label>
-            <div style="padding:12px;background:#1a1a1a;border:1px solid #333;border-radius:6px;margin-top:8px;">
-              <div style="font-size:12px;" data-replay-status-text>No active replay</div>
+            <div style="padding:1.2vh;background:#1a1a1a;border:1px solid #333;border-radius:0.6vh;margin-top:0.8vh;">
+              <div style="font-size:1.2vh;" data-replay-status-text>No active replay</div>
             </div>
           </div>
         </div>
@@ -421,21 +421,21 @@ export function createSettingsModal() {
           
           <div class="field">
             <label class="field-label">Analytics Overview</label>
-            <div id="settings-analytics-overview" style="margin-top:8px;padding:12px;border:1px solid #ddd;border-radius:4px;background:#f9f9f9;">
-              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;text-align:center;">
-                <div style="padding:8px;background:white;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+            <div id="settings-analytics-overview" style="margin-top:0.8vh;padding:1.2vh;border:1px solid #ddd;border-radius:0.4vh;background:#f9f9f9;">
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(12vw,1fr));gap:1.2vw;text-align:center;">
+                <div style="padding:0.8vh;background:white;border-radius:0.4vh;box-shadow:0 0.1vh 0.3vh rgba(0,0,0,0.1);">
                   <div style="font-size:18px;font-weight:bold;color:#333;" id="analytics-total-games">0</div>
                   <div style="font-size:11px;color:#666;">Total Games</div>
                 </div>
-                <div style="padding:8px;background:white;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+                <div style="padding:0.8vh;background:white;border-radius:0.4vh;box-shadow:0 0.1vh 0.3vh rgba(0,0,0,0.1);">
                   <div style="font-size:18px;font-weight:bold;color:#333;" id="analytics-avg-duration">0min</div>
                   <div style="font-size:11px;color:#666;">Avg Duration</div>
                 </div>
-                <div style="padding:8px;background:white;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+                <div style="padding:0.8vh;background:white;border-radius:0.4vh;box-shadow:0 0.1vh 0.3vh rgba(0,0,0,0.1);">
                   <div style="font-size:18px;font-weight:bold;color:#333;" id="analytics-ai-decisions">0</div>
                   <div style="font-size:11px;color:#666;">AI Decisions</div>
                 </div>
-                <div style="padding:8px;background:white;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+                <div style="padding:0.8vh;background:white;border-radius:0.4vh;box-shadow:0 0.1vh 0.3vh rgba(0,0,0,0.1);">
                   <div style="font-size:18px;font-weight:bold;color:#333;" id="analytics-unique-players">0</div>
                   <div style="font-size:11px;color:#666;">Players</div>
                 </div>

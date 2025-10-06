@@ -151,13 +151,15 @@ export function update(root) {
         const lastRect = card.getBoundingClientRect();
         const dx = firstRect.left - lastRect.left;
         const dy = firstRect.top - lastRect.top;
+        const dxVw = (dx / window.innerWidth) * 100;
+        const dyVh = (dy / window.innerHeight) * 100;
         const sx = firstRect.width / (lastRect.width || 1);
         const sy = firstRect.height / (lastRect.height || 1);
         card.classList.add('tokyo-flip-anim');
         card.style.willChange = 'transform';
         card.style.transition = 'none';
         card.style.transformOrigin = 'top left';
-        card.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
+        card.style.transform = `translate(${dxVw}vw, ${dyVh}vh) scale(${sx}, ${sy})`;
         void card.offsetWidth;
         card.style.transition = 'transform 500ms cubic-bezier(.25,.9,.35,1.15)';
         card.style.transform = '';
@@ -240,8 +242,8 @@ function startTokyoPortal({ root, playerId, slotEl, slotName, liveCard, originMa
     // Create invisible placeholder to preserve layout
     const placeholder = document.createElement('div');
     placeholder.className = 'tokyo-card-placeholder';
-    placeholder.style.width = startRect.width + 'px';
-    placeholder.style.height = startRect.height + 'px';
+    placeholder.style.width = (startRect.width / window.innerWidth * 100) + 'vw';
+    placeholder.style.height = (startRect.height / window.innerHeight * 100) + 'vh';
     placeholder.style.visibility = 'hidden';
     placeholder.style.pointerEvents = 'none';
     if (originalParent) {
@@ -257,10 +259,10 @@ function startTokyoPortal({ root, playerId, slotEl, slotName, liveCard, originMa
     // SECOND: Immediately set positioning to prevent any reflow/repaint
     // Do this synchronously before browser can render
     liveCard.style.position = 'fixed';
-    liveCard.style.top = startRect.top + 'px';
-    liveCard.style.left = startRect.left + 'px';
-    liveCard.style.width = startRect.width + 'px';
-    liveCard.style.height = startRect.height + 'px';
+    liveCard.style.top = (startRect.top / window.innerHeight * 100) + 'vh';
+    liveCard.style.left = (startRect.left / window.innerWidth * 100) + 'vw';
+    liveCard.style.width = (startRect.width / window.innerWidth * 100) + 'vw';
+    liveCard.style.height = (startRect.height / window.innerHeight * 100) + 'vh';
     liveCard.style.margin = '0';
     liveCard.style.zIndex = '6900';
     liveCard.style.transformOrigin = 'top left';
@@ -324,8 +326,10 @@ function startTokyoPortal({ root, playerId, slotEl, slotName, liveCard, originMa
     liveCard.style.transition = 'transform 550ms cubic-bezier(.25,.9,.35,1.1)';
     
     // And animate to target
+    const dxVw = (dx / window.innerWidth) * 100;
+    const dyVh = (dy / window.innerHeight) * 100;
     requestAnimationFrame(() => {
-      liveCard.style.transform = `translate(${dx}px, ${dy}px) ${rotation} scale(${targetScale})`;
+      liveCard.style.transform = `translate(${dxVw}vw, ${dyVh}vh) ${rotation} scale(${targetScale})`;
     });
     
     const onTransitionEnd = (ev) => {

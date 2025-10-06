@@ -290,7 +290,7 @@ export function showReasoningInfoModal(rollData, playerName, gameConfig = null) 
     'aiReasoningDetail',
     `🧠 AI Reasoning: ${detailedData.playerName}`,
     content,
-    { width: '600px', maxWidth: '90vw' }
+    { width: '60vw', maxWidth: '90vw' }
   );
   
   newModalSystem.showModal('aiReasoningDetail');

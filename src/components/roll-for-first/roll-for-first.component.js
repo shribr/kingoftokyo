@@ -270,7 +270,7 @@ function evaluateRound(dispatch, getState, root) {
           if (tr.getAttribute('data-player-row') !== winnerIdStr) {
             tr.style.transition = 'opacity .25s ease, transform .25s ease';
             tr.style.opacity = '0';
-            tr.style.transform = 'translateX(-8px)';
+            tr.style.transform = 'translateX(-0.8vw)';
             setTimeout(()=>{ try { tr.remove(); } catch(_) {} }, 260);
           }
         });
@@ -292,7 +292,7 @@ function evaluateRound(dispatch, getState, root) {
           if (!topIds.has(pid)) {
             tr.style.transition = 'opacity .25s ease, transform .25s ease';
             tr.style.opacity = '0';
-            tr.style.transform = 'translateX(-8px)';
+            tr.style.transform = 'translateX(-0.8vw)';
             setTimeout(()=>{ try { tr.remove(); } catch(_) {} }, 260);
           }
         });
