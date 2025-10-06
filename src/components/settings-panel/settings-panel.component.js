@@ -29,6 +29,9 @@ export function build({ selector }) {
     } else if (e.target.matches('[name="actionMenuMode"]')) {
       const val = e.target.value;
       store.dispatch(settingsUpdated({ actionMenuMode: val }));
+    } else if (e.target.matches('[name="mobileUIMode"]')) {
+      const val = e.target.value;
+      store.dispatch(settingsUpdated({ mobileUIMode: val }));
     }
   });
   sync(root);
@@ -85,6 +88,16 @@ function template() {
       </label>
       <p style="margin:6px 0 0;font-size:11px;opacity:.65;line-height:1.4;">Hybrid (default): auto-docks near the dice tray on resize until you drag it, then it stops moving.</p>
     </fieldset>
+    <fieldset style="border:1px solid #333;padding:0.8vh 1vw 1vh;margin:0 0 1vh;font-family:system-ui,sans-serif;">
+      <legend style="padding:0 0.6vw;font-size:13px;letter-spacing:.5px;">Mobile UI Style</legend>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:4px;">
+        <input type="radio" name="mobileUIMode" value="classic" /> Classic (horizontal menu)
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;">
+        <input type="radio" name="mobileUIMode" value="radial-menu" /> Radial Menu (circular actions)
+      </label>
+      <p style="margin:6px 0 0;font-size:11px;opacity:.65;line-height:1.4;">Choose between traditional horizontal action bar or modern radial menu with corner player cards. Only applies on mobile devices.</p>
+    </fieldset>
   </div>`;
 }
 
@@ -122,4 +135,7 @@ function sync(root) {
   });
   const amMode = st.settings?.actionMenuMode || 'hybrid';
   root.querySelectorAll('[name="actionMenuMode"]').forEach(r => { r.checked = (r.value === amMode); });
+  
+  const mobileUIMode = st.settings?.mobileUIMode || 'classic';
+  root.querySelectorAll('[name="mobileUIMode"]').forEach(r => { r.checked = (r.value === mobileUIMode); });
 }

@@ -28,6 +28,20 @@
     "zIndex": 4000
   },
   {
+    "name": "radialMenu",
+    "version": "0.1.0",
+    "selector": ".radial-menu-container",
+    "mountPoint": "body",
+    "order": 91,
+    "enabled": true,
+    "stateKeys": ["dice","phase","players","settings"],
+    "build": "radial-menu.build",
+    "update": "radial-menu.update",
+    "initialState": {},
+    "assets": [],
+    "zIndex": 9500
+  },
+  {
     "name": "toolbar",
     "version": "0.1.0",
     "selector": ".cmp-toolbar",
@@ -478,8 +492,8 @@
       "initialState": {},
       "assets": [],
       "zIndex": 7100
-    }
-    ,{
+    },
+    {
       "name": "pauseOverlay",
       "version": "0.1.0",
       "selector": ".cmp-pause-overlay",
@@ -494,5 +508,53 @@
       "initialState": {},
       "assets": [],
       "zIndex": 99999
+    },
+    {
+      "name": "miniPlayerCards",
+      "version": "0.1.0",
+      "selector": ".cmp-mini-player-cards",
+      "mountPoint": "body",
+      "order": 95,
+      "enabled": true,
+      "stateKeys": ["players", "activePlayer", "settings"],
+      "build": "mini-player-card.build",
+      "update": "mini-player-card.update",
+      "eventsOut": [],
+      "eventsIn": [],
+      "initialState": {},
+      "assets": [],
+      "zIndex": 9400
+    },
+    {
+      "name": "miniPowerCards",
+      "version": "0.1.0",
+      "selector": ".cmp-mini-power-cards",
+      "mountPoint": "body",
+      "order": 96,
+      "enabled": true,
+      "stateKeys": ["players", "activePlayer", "settings"],
+      "build": "mini-power-cards.build",
+      "update": "mini-power-cards.update",
+      "eventsOut": [],
+      "eventsIn": [],
+      "initialState": {},
+      "assets": [],
+      "zIndex": 9300
+    },
+    {
+      "name": "miniDeck",
+      "version": "0.1.0",
+      "selector": ".cmp-mini-deck",
+      "mountPoint": "body",
+      "order": 97,
+      "enabled": true,
+      "stateKeys": ["players", "activePlayer", "settings"],
+      "build": "mini-deck.build",
+      "update": "mini-deck.update",
+      "eventsOut": [],
+      "eventsIn": [],
+      "initialState": {},
+      "assets": [],
+      "zIndex": 9350
     }
 ]

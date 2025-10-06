@@ -3,13 +3,26 @@
  * Unified styling system for all toolbar modals
  */
 
+/* Settings Modal Root - Flex container for tabs + scrollable content */
+.settings-modal-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0; /* Critical for flex children scrolling */
+  overflow: hidden; /* Parent doesn't scroll, child does */
+}
+
 /* Settings Tab System */
 .settings-tabs {
+  flex-shrink: 0; /* Tabs don't shrink */
   display: flex;
   border-bottom: 2px solid #333;
-  margin-bottom: 20px;
+  margin-bottom: 0;
   background: #1a1a1a;
   border-radius: 6px 6px 0 0;
+  position: sticky;
+  top: 0;
+  z-index: 50;
 }
 
 .tab-button {
@@ -63,12 +76,24 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Modal Form Structure */
+/* Modal Form Structure - Scrollable flex child */
 .unified-modal-form {
-  max-height: 70vh;
+  flex: 1; /* Take remaining space */
+  min-height: 0; /* Critical for proper flex scrolling */
   overflow-y: auto;
-  padding: 0;
+  overflow-x: hidden;
+  padding: 1.6vh;
   margin: 0;
+  /* Ensure smooth scrolling */
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure form can scroll to bottom on all content */
+.unified-modal-form::after {
+  content: '';
+  display: block;
+  height: 20px; /* Extra padding at bottom for scroll clearance */
 }
 
 /* Section Headers */

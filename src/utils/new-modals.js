@@ -108,7 +108,7 @@ export function createSettingsModal() {
       </button>
     </div>
 
-    <form class="unified-modal-form" style="padding: 1.6vh;">
+    <form class="unified-modal-form">
       <!-- Gameplay Tab -->
       <div class="tab-content active" data-tab-content="gameplay">
         <div class="section">
@@ -195,6 +195,21 @@ export function createSettingsModal() {
               </label>
             </div>
             <div class="field-help">Where action buttons appear during your turn</div>
+          </div>
+
+          <div class="field">
+            <label class="field-label">Mobile UI Style</label>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="mobileUIMode" value="classic">
+                <span>Classic - Horizontal action bar at bottom</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="mobileUIMode" value="radial-menu">
+                <span>Radial Menu - Circular actions with corner player cards</span>
+              </label>
+            </div>
+            <div class="field-help">Choose mobile interface style (only applies on mobile devices)</div>
           </div>
 
           <div class="field">
@@ -1480,6 +1495,7 @@ export function createSettingsModal() {
       // Interface settings
       playerCardLayoutMode: formData.get('playerCardLayoutMode'),
       actionMenuMode: formData.get('actionMenuMode'),
+      mobileUIMode: formData.get('mobileUIMode'),
       persistPositions: form.querySelector('input[name="persistPositions"]')?.checked || false,
 
       // Theme settings
@@ -1873,6 +1889,8 @@ export function createSettingsModal() {
     content.querySelectorAll('input[name="playerCardLayoutMode"]').forEach(r => r.checked = r.value === cardLayoutMode);
     const actionMode = settings.actionMenuMode || 'hybrid';
     content.querySelectorAll('input[name="actionMenuMode"]').forEach(r => r.checked = r.value === actionMode);
+    const mobileUIMode = settings.mobileUIMode || 'classic';
+    content.querySelectorAll('input[name="mobileUIMode"]').forEach(r => r.checked = r.value === mobileUIMode);
     const powerCardTheme = settings.powerCardTheme || 'original';
     content.querySelectorAll('input[name="powerCardTheme"]').forEach(r => r.checked = r.value === powerCardTheme);
     const dialogSystem = settings.dialogSystem || 'legacy';
@@ -1904,11 +1922,27 @@ export function createSettingsModal() {
     __settingsModal.style.maxHeight = 'none';
   } catch(_) {}
 
-  // Remove padding from modal body to prevent gap below sticky footer
+  // Ensure modal body can scroll properly
   try {
     const modalBody = __settingsModal.querySelector('.new-modal-body');
     if (modalBody) {
       modalBody.style.padding = '0';
+      modalBody.style.overflow = 'hidden'; // Form handles scrolling
+      modalBody.style.display = 'flex';
+      modalBody.style.flexDirection = 'column';
+      modalBody.style.minHeight = '0'; // Critical for flex scrolling
+    }
+  } catch(_) {}
+  
+  // Ensure form itself is scrollable and fills available space
+  try {
+    const form = __settingsModal.querySelector('.unified-modal-form');
+    if (form) {
+      form.style.flex = '1';
+      form.style.minHeight = '0'; // Critical for flex scrolling
+      form.style.overflowY = 'auto';
+      form.style.overflowX = 'hidden';
+      // Don't override padding - let CSS handle it
     }
   } catch(_) {}
 
@@ -2577,36 +2611,79 @@ export function createAboutModal() {
   content.innerHTML = `
     <div class="modal-content-scrollable">
       <div class="content-section">
-        <h4>👑 King of Tokyo Enhanced</h4>
-        <p>A digital implementation of the popular board game by Richard Garfield, featuring AI opponents and enhanced gameplay mechanics.</p>
+        <h4>👑 King of Tokyo – Enhanced UI Prototype</h4>
+        <p>This experimental interface brings advanced UI features, modular components, and flexible customization to the classic monster battle game by Richard Garfield.</p>
       </div>
 
       <div class="content-section">
-        <h4>✨ New Features</h4>
+        <h4>🎮 Core Gameplay Features</h4>
         <ul>
-          <li><strong>AI Decision Tree:</strong> Watch how CPU players make strategic decisions</li>
-          <li><strong>Enhanced UI:</strong> Draggable panels, collapsible interface, responsive design</li>
-          <li><strong>Game Log:</strong> Comprehensive action history with filtering</li>
-          <li><strong>Thought Bubbles:</strong> See AI reasoning in real-time</li>
-          <li><strong>Power Cards:</strong> Full implementation with special abilities</li>
+          <li><strong>Full Game Implementation:</strong> Complete rules including Tokyo Bay, Power Cards, Victory Stars, and Energy</li>
+          <li><strong>AI Opponents:</strong> Intelligent computer players with strategic decision-making</li>
+          <li><strong>Multiple Monster Choices:</strong> Play as Gigazaur, Meka Dragon, The King, Cyber Bunny, Alienoid, and Kraken</li>
+          <li><strong>Power Card System:</strong> Complete deck with Keep and Discard cards, effects, and synergies</li>
+          <li><strong>Tokyo Yield Mechanics:</strong> Strategic decisions for staying in Tokyo or yielding control</li>
+        </ul>
+      </div>
+
+      <div class="content-section">
+        <h4>📱 Mobile UI Modes</h4>
+        <ul>
+          <li><strong>Classic Mobile View:</strong> Traditional touch-optimized layout with action menu button</li>
+          <li><strong>Radial Menu Mode:</strong> Catan-inspired circular action menu with mini player cards in corners, mini power cards bar at bottom, mini deck indicator, rotated Tokyo tiles, and always-visible dice tray</li>
+        </ul>
+      </div>
+
+      <div class="content-section">
+        <h4>⚙️ Settings & Customization</h4>
+        <ul>
+          <li><strong>Layout Density Options:</strong> Switch between Stacked, Condensed, and List views</li>
+          <li><strong>Mobile UI Mode Toggle:</strong> Choose Classic or Radial Menu layouts for mobile</li>
+          <li><strong>Accessible Settings Panel:</strong> Scrollable modal with clear controls</li>
+          <li><strong>Developer Panel:</strong> Advanced debugging and state inspection tools</li>
+        </ul>
+      </div>
+
+      <div class="content-section">
+        <h4>🤖 AI & Analytics</h4>
+        <ul>
+          <li><strong>AI Decision Tree Viewer:</strong> Inspect AI reasoning and decision-making process</li>
+          <li><strong>AI Thought Bubbles:</strong> Visual indicators showing what AI players are considering</li>
+          <li><strong>Win Odds Calculator:</strong> Real-time probability analysis for victory chances</li>
+          <li><strong>Analytics Dashboard:</strong> Track game statistics and player performance</li>
+        </ul>
+      </div>
+
+      <div class="content-section">
+        <h4>♿ Accessibility</h4>
+        <ul>
+          <li><strong>ARIA Labels:</strong> Screen reader support throughout interface</li>
+          <li><strong>Keyboard Navigation:</strong> Full game control without mouse/touch</li>
+          <li><strong>Focus Management:</strong> Clear visual focus indicators</li>
+          <li><strong>Modal Accessibility:</strong> Proper dialog roles and hidden attribute management</li>
+        </ul>
+      </div>
+
+      <div class="content-section">
+        <h4>🎨 Visual Design</h4>
+        <ul>
+          <li><strong>Dark Theme:</strong> Eye-friendly dark color scheme with design tokens</li>
+          <li><strong>Modular Component System:</strong> Reusable, maintainable UI components</li>
+          <li><strong>Responsive Layout:</strong> Adapts to desktop, tablet, and mobile screens</li>
+          <li><strong>Custom Animations:</strong> Smooth transitions and visual feedback</li>
         </ul>
       </div>
 
       <div class="content-section">
         <h4>🔧 Technical Info</h4>
-        <p><strong>Build Version:</strong> Enhanced v2.0</p>
-        <p><strong>Built:</strong> ${buildTime}</p>
+        <p><strong>Build Version:</strong> Enhanced v2.1</p>
+        <p><strong>Session Built:</strong> ${buildTime}</p>
         <p><strong>Framework:</strong> Vanilla JS with Component Architecture</p>
         <p><strong>State Management:</strong> Redux-style Store</p>
       </div>
 
-      <div class="content-section">
-        <h4>🎯 Development Status</h4>
-        <div class="status-indicator success">✅ Core Game</div>
-        <div class="status-indicator success">✅ AI System</div>
-        <div class="status-indicator success">✅ UI Enhancement</div>
-        <div class="status-indicator warning">🔄 Power Cards</div>
-        <div class="status-indicator info">📋 Dark Edition</div>
+      <div class="content-section" style="opacity: 0.6; font-size: 0.85rem; margin-top: 20px;">
+        <p>All trademarks belong to their respective owners. Prototype for personal/educational use.</p>
       </div>
     </div>
     <!-- No bottom close button: modal can be closed via overlay / ESC -->
@@ -2614,7 +2691,7 @@ export function createAboutModal() {
 
   // No bottom close button; overlay / ESC handles close
 
-  const __aboutModal = newModalSystem.createModal('about', 'ℹ️ About King of Tokyo', content, { width: '500px' });
+  const __aboutModal = newModalSystem.createModal('about', 'ℹ️ About King of Tokyo', content, { width: '800px', maxHeight: '85vh' });
   try { __aboutModal.setAttribute('data-modal-id','about'); } catch(_) {}
   return __aboutModal;
 }

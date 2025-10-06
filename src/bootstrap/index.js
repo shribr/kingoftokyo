@@ -128,6 +128,23 @@ if (typeof window !== 'undefined') {
   bindUIEventAdapters(store);
   bindA11yOverlays(store);
   
+  // Sync mobile UI mode to body data attribute for CSS targeting
+  const syncMobileUIMode = () => {
+    const st = store.getState();
+    let mode = st.settings?.mobileUIMode || 'classic';
+    
+    // Force classic mode on desktop (non-touch, wide screens)
+    const isMobile = matchMedia('(max-width: 760px), (pointer: coarse)').matches;
+    if (!isMobile && mode === 'radial-menu') {
+      mode = 'classic'; // Don't show radial menu on desktop
+    }
+    
+    document.body.setAttribute('data-mobile-ui-mode', mode);
+  };
+  syncMobileUIMode();
+  store.subscribe(syncMobileUIMode);
+  window.addEventListener('resize', syncMobileUIMode); // Re-check on resize
+  
   // Initialize AI thought bubble component
   try {
     const thoughtBubble = new AIThoughtBubbleComponent();

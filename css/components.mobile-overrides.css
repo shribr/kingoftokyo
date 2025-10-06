@@ -912,3 +912,108 @@ body.splash-visible .cmp-splash {
   }
 }
 
+/* ============================================================================
+ * RADIAL MENU MODE - Hide monsters panel, power cards panel; show mini components
+ * ========================================================================== */
+@media (max-width: 760px), (pointer: coarse) {
+  body[data-mobile-ui-mode="radial-menu"] .cmp-monsters-panel,
+  body[data-mobile-ui-mode="radial-menu"] .cmp-power-cards-panel {
+    display: none !important;
+  }
+  
+  /* Hide APB avatar and name on mobile in radial-menu mode */
+  body[data-mobile-ui-mode="radial-menu"] .apb-avatar,
+  body[data-mobile-ui-mode="radial-menu"] [data-apb-avatar],
+  body[data-mobile-ui-mode="radial-menu"] .ppc-avatar,
+  body[data-mobile-ui-mode="radial-menu"] .active-player-bubble,
+  body[data-mobile-ui-mode="radial-menu"] #active-player-bubble,
+  body[data-mobile-ui-mode="radial-menu"] .round-indicator-container,
+  body[data-mobile-ui-mode="radial-menu"] .round-indicator,
+  body[data-mobile-ui-mode="radial-menu"] [data-round-indicator],
+  body[data-mobile-ui-mode="radial-menu"] #active-player-card-slot,
+  body[data-mobile-ui-mode="radial-menu"] .apb-name,
+  body[data-mobile-ui-mode="radial-menu"] .arena-active-player-dock,
+  body[data-mobile-ui-mode="radial-menu"] [data-active-player-dock],
+  body[data-mobile-ui-mode="radial-menu"] .active-player-slot,
+  body[data-mobile-ui-mode="radial-menu"] [data-active-player-slot] {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  
+  /* Make Tokyo TILES (entire sections) pivoted/rotated like desktop, smaller, and shifted up */
+  body[data-mobile-ui-mode="radial-menu"] [data-arena-section="city"] {
+    transform: rotate(-8deg) scale(0.6) translateY(-15vh);
+    transform-origin: center center;
+  }
+  
+  body[data-mobile-ui-mode="radial-menu"] [data-arena-section="bay"] {
+    transform: rotate(8deg) scale(0.6) translateY(-15vh);
+    transform-origin: center center;
+  }
+  
+  body[data-mobile-ui-mode="radial-menu"] [data-arena-section="city"],
+  body[data-mobile-ui-mode="radial-menu"] [data-arena-section="bay"] {
+    min-height: 0 !important;
+    z-index: 1 !important;
+  }
+  
+  /* Ensure arena itself doesn't block UI */
+  body[data-mobile-ui-mode="radial-menu"] .cmp-arena {
+    z-index: 1 !important;
+  }
+  
+  /* Lower toolbar z-index in radial-menu mode */
+  body[data-mobile-ui-mode="radial-menu"] .cmp-toolbar {
+    z-index: 100 !important;
+  }
+  
+  /* Increase Tokyo title sizes */
+  body[data-mobile-ui-mode="radial-menu"] .tokyo-bay h3,
+  body[data-mobile-ui-mode="radial-menu"] .tokyo-city h3 {
+    font-size: 48px !important;
+  }
+  
+  /* Make EMPTY text larger in slots */
+  body[data-mobile-ui-mode="radial-menu"] .empty-slot,
+  body[data-mobile-ui-mode="radial-menu"] .slot-empty {
+    font-size: 1.8em !important;
+    font-weight: bold;
+  }
+  
+  /* Add padding to Tokyo tiles and their slots */
+  body[data-mobile-ui-mode="radial-menu"] .tokyo-bay,
+  body[data-mobile-ui-mode="radial-menu"] .tokyo-city {
+    padding: 20px !important;
+  }
+  
+  /* Add padding between dashed slot inner divs and parent containers */
+  body[data-mobile-ui-mode="radial-menu"] .active-player-slot,
+  body[data-mobile-ui-mode="radial-menu"] .player-slot {
+    padding: 16px !important;
+  }
+  
+  /* Show dice tray always in radial-menu mode, positioned at bottom-left */
+  body[data-mobile-ui-mode="radial-menu"] .cmp-dice-tray {
+    display: flex !important;
+    visibility: visible !important;
+    position: fixed !important;
+    bottom: 2vh !important;
+    left: calc(80px + 2vw + 20px) !important; /* After mini player card + spacing */
+    z-index: 5350 !important;
+  }
+  
+  /* Force ALL mini player cards to 100% opacity */
+  body[data-mobile-ui-mode="radial-menu"] .mini-player-card,
+  body[data-mobile-ui-mode="radial-menu"] .mini-player-card *,
+  body[data-mobile-ui-mode="radial-menu"] .mpc-card-inner,
+  body[data-mobile-ui-mode="radial-menu"] .mpc-profile,
+  body[data-mobile-ui-mode="radial-menu"] .mpc-stats-bar {
+    opacity: 1 !important;
+  }
+  
+  /* Hide dice toggle button and action menu button in radial-menu mode */
+  body[data-mobile-ui-mode="radial-menu"] #dice-toggle-btn,
+  body[data-mobile-ui-mode="radial-menu"] #action-menu-mobile-btn {
+    display: none !important;
+  }
+}

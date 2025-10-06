@@ -58,6 +58,13 @@
   .modal.settings form { max-width: 420px; }
   .modal.settings .field select { width: 100%; }
   .modal.settings input[type="checkbox"] { transform: translateY(1px); }
+
+  /* About Modal - Larger size for feature list */
+  .modal.modal-about-large { width: clamp(320px, 80vw, 960px); max-height: 85vh; }
+  .modal.modal-about-large .modal-body { max-height: calc(85vh - 60px); }
+  .modal.modal-about-large h3 { font-family: var(--font-family-brand, 'Bangers', cursive); }
+  .modal.modal-about-large ul { margin-top: 8px; margin-bottom: 4px; }
+  .modal.modal-about-large li { margin-bottom: 6px; }
 }
 
 /* Mobile-first adaptations for generic modals (e.g., Settings) */

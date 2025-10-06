@@ -11,7 +11,7 @@ export async function mountRoot(configEntries, store) {
   const sorted = [...configEntries].sort((a,b) => a.order - b.order);
   for (const entry of sorted) {
     if (!entry.enabled) continue;
-  // (Diagnostics removed after resolving monsterSelection visibility issue)
+    
     const modFns = await resolveComponent(entry.build, entry.update);
     if (!modFns || typeof modFns.build !== 'function') {
       console.error('[mountRoot] Failed to resolve build function for', entry.name, 'from refs', entry.build, entry.update, modFns);
@@ -55,7 +55,18 @@ export async function mountRoot(configEntries, store) {
   // Keep instance shape consistent; do not attach module update to instance when build returns raw element
   const instance = inst?.root ? inst : { root: rootEl };
   registry.set(entry.name, { entry, inst: instance, modFns });
+    
+    // Debug logging for radial/mini components
+    if (entry.name && (entry.name.toLowerCase().includes('radial') || entry.name.toLowerCase().includes('mini'))) {
+      console.log('[mountRoot] 📍 Mounting component:', entry.name, {
+        mountPoint: mountPoint?.tagName || mountPoint?.className || 'unknown',
+        rootElement: rootEl?.tagName,
+        rootClass: rootEl?.className
+      });
+    }
+    
     mountPoint.appendChild(rootEl);
+    
     // Initial update with slice state (guard if no stateKeys provided)
     const needsState = Array.isArray(entry.stateKeys) && entry.stateKeys.length > 0;
     const hasInstUpdate = inst && typeof inst.update === 'function';
@@ -282,6 +293,16 @@ export function setAIThinking(isThinking) {
 
 async function resolveComponent(buildRef, updateRef) {
   const [folder, buildName] = buildRef.split('.');
+  
+  // Debug logging for radial/mini components
+  if (folder && (folder.includes('radial') || folder.includes('mini'))) {
+    console.log('[resolveComponent] 🔍 Attempting to load:', folder, {
+      buildRef,
+      updateRef,
+      expectedPath: `../components/${folder}/${folder}.component.js`
+    });
+  }
+  
   const pas = (s) => s.split('-').map(p=>p.charAt(0).toUpperCase()+p.slice(1)).join('');
   const tryLoad = async (folderName) => {
     let module;

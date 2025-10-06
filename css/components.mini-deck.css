@@ -1,0 +1,125 @@
+/* components.mini-deck.css
+ * Mini deck indicator for mobile radial-menu mode
+ * Positioned at bottom-right next to power cards bar
+ */
+
+/* Hide by default */
+body:not([data-mobile-ui-mode="radial-menu"]) .cmp-mini-deck {
+  display: none;
+}
+
+/* Show in radial-menu mode - positioned at bottom-right with same spacing as dice tray on left */
+body[data-mobile-ui-mode="radial-menu"] .cmp-mini-deck {
+  display: block;
+  position: fixed;
+  bottom: 2vh;
+  right: calc(120px + 2vw + 20px); /* Same spacing pattern as dice tray: card width + edge margin + gap */
+  z-index: 5350; /* Below modals */
+}
+
+.mini-deck-container {
+  position: relative;
+  width: 70px;
+  height: 50px;
+  background:
+    radial-gradient(circle at 2px 2px, rgba(0,0,0,.12) 1px, transparent 0),
+    linear-gradient(135deg,#2c5234,#1a3d20);
+  background-size: 6px 6px, 100% 100%;
+  border: 2px solid #000;
+  border-radius: 4px;
+  box-shadow:
+    inset 0 0 10px rgba(0,0,0,0.3),
+    inset -1px -1px 4px rgba(0,0,0,0.4),
+    inset 1px 1px 4px rgba(255,255,255,0.05),
+    3px 3px 0 #000;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transform: rotate(1deg);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Stacked card effect using pseudo-elements */
+.mini-deck-container::before {
+  content: '';
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg,#234429,#15301a);
+  border: 2px solid #000;
+  border-radius: 4px;
+  z-index: -1;
+  box-shadow: 2px 2px 0 #000;
+  transform: rotate(-1.5deg);
+}
+
+.mini-deck-container::after {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg,#1a3520,#0e2314);
+  border: 2px solid #000;
+  border-radius: 4px;
+  z-index: -2;
+  box-shadow: 2px 2px 0 #000;
+  transform: rotate(2deg);
+}
+
+.mini-deck-container:hover {
+  transform: rotate(1deg) scale(1.05);
+  box-shadow:
+    inset 0 0 10px rgba(0,0,0,0.3),
+    inset -1px -1px 4px rgba(0,0,0,0.4),
+    inset 1px 1px 4px rgba(255,255,255,0.08),
+    4px 4px 0 #000;
+}
+
+.mini-deck-container:active {
+  transform: scale(0.95);
+}
+
+/* Horizontal text */
+.mini-deck-text {
+  font-family: 'Bangers', cursive;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  color: #ffcf33;
+  text-shadow: 
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000,
+    0 2px 4px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+  position: relative;
+  z-index: 2;
+}
+
+/* Card count badge */
+.mini-deck-count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 20px;
+  height: 20px;
+  background: #e74c3c;
+  border: 2px solid #000;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Bangers', cursive;
+  font-size: 12px;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  padding: 0 4px;
+  z-index: 10;
+}
