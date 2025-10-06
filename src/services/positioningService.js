@@ -1,12 +1,33 @@
-/** positioningService.js
- * Phase 7: Provide draggable positioning & persistence for components.
- * Usage:
+/** positioningService.js — Persistent UI element positioning with dragging (migrate legacy .draggable)
+ *  Usage:
  *   const ps = createPositioningService(store);
+ *   ps.hydrate();
  *   ps.makeDraggable(element, componentName);
  */
 import { uiPositionSet, uiPositionsReset } from '../core/actions.js';
 import { store as bootstrapStore } from '../bootstrap/index.js';
 import { eventBus } from '../core/eventBus.js';
+
+// Viewport conversion constants
+const VIEWPORT_WIDTH_REF = 1920;  // Reference width for vw calculations
+const VIEWPORT_HEIGHT_REF = 1080; // Reference height for vh calculations
+
+// Helper functions to convert px to viewport units based on CURRENT window size
+function pxToVw(px) {
+  return (px / window.innerWidth) * 100;
+}
+
+function pxToVh(px) {
+  return (px / window.innerHeight) * 100;
+}
+
+function vhToPx(vh) {
+  return (vh * window.innerHeight) / 100;
+}
+
+function vwToPx(vw) {
+  return (vw * window.innerWidth) / 100;
+}
 
 const STORAGE_KEY = 'kot_new_ui_positions_v1';
 let singleton;
@@ -188,58 +209,63 @@ export function createPositioningService(store) {
       const diceBox = document.querySelector('.cmp-dice-tray');
       const actionMenu = document.querySelector('.cmp-action-menu');
       
-      if (toolbar && pauseButton && diceBox) {
+      // Check if user has dragged the dice tray - if so, don't override their position
+      const diceHasPersistedPosition = store.getState().ui?.positions?.diceTray;
+      
+      if (toolbar && pauseButton && diceBox && !diceHasPersistedPosition) {
         const toolbarRect = toolbar.getBoundingClientRect();
         const pauseRect = pauseButton.getBoundingClientRect();
         const diceRect = diceBox.getBoundingClientRect();
         
-        // Calculate dice tray position relative to toolbar
-        const padding = 20; // Space between toolbar and dice tray
-        const diceY = toolbarRect.top - diceRect.height - padding;
-        const diceX = pauseRect.left - diceRect.width; // Right edge of dice aligns with left edge of pause
+        // Calculate dice tray position using bottom/right (more resize-friendly)
+        const padding = 40; // Space between toolbar and dice tray
+        const bottomOffset = window.innerHeight - toolbarRect.top + padding;
+        const rightOffset = window.innerWidth - pauseRect.left;
         
-        // Position dice tray
+        // Position dice tray using bottom/right for natural resize behavior
         diceBox.style.position = 'fixed';
-        diceBox.style.left = `${diceX}px`;
-        diceBox.style.top = `${diceY}px`;
+        diceBox.style.left = 'auto';
+        diceBox.style.top = 'auto';
+        diceBox.style.right = `${pxToVw(rightOffset)}vw`;
+        diceBox.style.bottom = `${pxToVh(bottomOffset)}vh`;
         diceBox.style.transform = 'none';
+      }
+      
+      // Check if user has dragged the action menu
+      const menuHasPersistedPosition = store.getState().ui?.positions?.actionMenu;
+      
+      if (toolbar && actionMenu && !menuHasPersistedPosition) {
+        // Position action menu using CSS default values (bottom: 140px, right: 370px)
+        // Convert to viewport units for consistency
+        const actionRect = actionMenu.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
         
-        // Position action menu relative to toolbar (not absolute coordinates)
-        if (actionMenu) {
-          const actionRect = actionMenu.getBoundingClientRect();
-          
-          // Find the active player card to align with
-          const activePlayerCard = document.querySelector('.cmp-player-profile-card.is-active, .player-profile-card.is-active');
-          
-          let menuX;
-          if (activePlayerCard) {
-            const activeCardRect = activePlayerCard.getBoundingClientRect();
-            // Left edge of action menu aligns with left edge of active player card
-            menuX = activeCardRect.left;
-          } else {
-            // Fallback: use toolbar + half button width if no active player card found
-            const toolbarButton = toolbar.querySelector('.toolbar-btn');
-            const buttonWidth = toolbarButton ? toolbarButton.getBoundingClientRect().width : 50;
-            menuX = toolbarRect.right + (buttonWidth / 2);
-          }
-          
-          // Y: Bottom of action menu aligns with bottom of toolbar (moves with toolbar)
-          const menuY = toolbarRect.bottom - actionRect.height;
-          
-          actionMenu.style.position = 'fixed';
-          actionMenu.style.left = `${menuX}px`;
-          actionMenu.style.top = `${menuY}px`;
-          actionMenu.style.right = 'auto';
-          actionMenu.style.transform = 'none';
-        }
+        // Adjusted positioning: more to the right and lower
+        const rightOffset = 340; // moved back left a bit from 300
+        const bottomOffset = 110; // was 140 - reduced to move down
+        
+        actionMenu.style.position = 'fixed';
+        actionMenu.style.left = 'auto';
+        actionMenu.style.top = 'auto';
+        actionMenu.style.right = `${pxToVw(rightOffset)}vw`;
+        actionMenu.style.bottom = `${pxToVh(bottomOffset)}vh`;
+        actionMenu.style.transform = 'none';
       }
     }
     
     // Position elements initially
     positionRelativeToToolbar();
     
-    // Re-position on window resize to keep elements in sync
-    const resizeHandler = () => positionRelativeToToolbar();
+    // Re-apply positioning on resize (because dice-tray component clears styles on resize)
+    let resizeTimeout;
+    const resizeHandler = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        // Re-apply positioning after dice-tray setupMobile() has run
+        positionRelativeToToolbar();
+      }, 150); // Small delay to ensure setupMobile() completes first
+    };
     window.addEventListener('resize', resizeHandler);
     
     // Store the handler so we can remove it if needed
@@ -248,17 +274,26 @@ export function createPositioningService(store) {
     }
     window.__KOT_RESIZE_HANDLER__ = resizeHandler;
     
-    console.log(`[PositioningService] Reset positions relative to toolbar with resize sync`);
+    console.log(`[PositioningService] Reset positions with viewport units and resize re-application`);
   }
 
   function applyTransform(el, x, y) {
-    el.style.transform = `translate(${x}px, ${y}px)`;
+    el.style.transform = `translate(${pxToVw(x)}vw, ${pxToVh(y)}vh)`;
   }
 
   function currentTransform(el) {
-    const m = /translate\(([-0-9.]+)px,\s*([-0-9.]+)px\)/.exec(el.style.transform || '');
-    if (!m) return { x:0, y:0 };
-    return { x: parseFloat(m[1]), y: parseFloat(m[2]) };
+    // Support both px and viewport unit transforms
+    const vwMatch = /translate\(([-0-9.]+)vw,\s*([-0-9.]+)vh\)/.exec(el.style.transform || '');
+    if (vwMatch) {
+      return { x: vwToPx(parseFloat(vwMatch[1])), y: vhToPx(parseFloat(vwMatch[2])) };
+    }
+    
+    const pxMatch = /translate\(([-0-9.]+)px,\s*([-0-9.]+)px\)/.exec(el.style.transform || '');
+    if (pxMatch) {
+      return { x: parseFloat(pxMatch[1]), y: parseFloat(pxMatch[2]) };
+    }
+    
+    return { x: 0, y: 0 };
   }
 
   function applyBounds(x, y, el, bounds) {
@@ -278,6 +313,71 @@ export function createPositioningService(store) {
   }
 
   singleton = { makeDraggable, hydrate, resetPositions };
+  
+  // Expose a function to reapply default positioning without clearing persisted positions
+  singleton.applyDefaultPositioning = function() {
+    const toolbar = document.querySelector('.cmp-toolbar');
+    const pauseButton = toolbar?.querySelector('[data-action="pause"]');
+    const diceBox = document.querySelector('.cmp-dice-tray');
+    const actionMenu = document.querySelector('.cmp-action-menu');
+    
+    console.log('[applyDefaultPositioning] Elements found:', { 
+      toolbar: !!toolbar, 
+      pauseButton: !!pauseButton, 
+      diceBox: !!diceBox, 
+      actionMenu: !!actionMenu 
+    });
+    
+    // Check if user has dragged the dice tray - if so, don't override their position
+    const diceHasPersistedPosition = store.getState().ui?.positions?.diceTray;
+    
+    if (toolbar && pauseButton && diceBox && !diceHasPersistedPosition) {
+      const toolbarRect = toolbar.getBoundingClientRect();
+      const pauseRect = pauseButton.getBoundingClientRect();
+      const diceRect = diceBox.getBoundingClientRect();
+      
+      // Calculate dice tray position using bottom/right (more resize-friendly)
+      const padding = 40; // Space between toolbar and dice tray
+      const bottomOffset = window.innerHeight - toolbarRect.top + padding;
+      const rightOffset = window.innerWidth - pauseRect.left;
+      
+      console.log('[applyDefaultPositioning] Dice tray:', { bottomOffset, rightOffset });
+      
+      // Position dice tray using bottom/right for natural resize behavior
+      diceBox.style.position = 'fixed';
+      diceBox.style.left = 'auto';
+      diceBox.style.top = 'auto';
+      diceBox.style.right = `${pxToVw(rightOffset)}vw`;
+      diceBox.style.bottom = `${pxToVh(bottomOffset)}vh`;
+      diceBox.style.transform = 'none';
+    }
+    
+    // Check if user has dragged the action menu
+    const menuHasPersistedPosition = store.getState().ui?.positions?.actionMenu;
+    
+    console.log('[applyDefaultPositioning] Action menu persisted:', menuHasPersistedPosition);
+    
+    if (actionMenu && !menuHasPersistedPosition) {
+      // Position action menu using CSS default values (bottom: 140px, right: 370px)
+      // Convert to viewport units for consistency
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      // Adjusted positioning: more to the right and lower
+      const rightOffset = 340; // moved back left a bit from 300
+      const bottomOffset = 110; // was 140 - reduced to move down
+      
+      console.log('[applyDefaultPositioning] Action menu position:', { rightOffset, bottomOffset });
+      
+      actionMenu.style.position = 'fixed';
+      actionMenu.style.left = 'auto';
+      actionMenu.style.top = 'auto';
+      actionMenu.style.right = `${pxToVw(rightOffset)}vw`;
+      actionMenu.style.bottom = `${pxToVh(bottomOffset)}vh`;
+      actionMenu.style.transform = 'none';
+    }
+  };
+  
   // On first creation, perform an initial layout reset BEFORE components become visible if persistence disabled
   try {
     const st = store.getState();
@@ -311,6 +411,31 @@ export function createPositioningService(store) {
   
   // Listen for global reset event
   eventBus.on('ui/positions/reset', () => resetPositions());
+  
+  // Watch for game-active class being added to body and reapply positioning
+  if (typeof MutationObserver !== 'undefined') {
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          const hasGameActive = document.body.classList.contains('game-active');
+          if (hasGameActive && !window.__KOT_GAME_POSITIONED__) {
+            window.__KOT_GAME_POSITIONED__ = true;
+            // Wait a bit for all game elements to be fully rendered
+            setTimeout(() => {
+              if (singleton.applyDefaultPositioning) {
+                singleton.applyDefaultPositioning();
+              }
+            }, 200);
+          }
+        }
+      }
+    });
+    
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+  }
   
   if (typeof window !== 'undefined') {
     window.__KOT_NEW_POSITIONS__ = singleton;

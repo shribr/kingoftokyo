@@ -149,25 +149,15 @@ export function build({ selector, emit }) {
     root.setAttribute('data-draggable','false');
   }
 
-  // If user has not manually moved tray (no stored position), align its left edge with arena's left edge.
+  // If user has not manually moved tray (no stored position), it will be positioned by positioningService.
   function autoAlignIfNotUserMoved() {
     // Skip auto-align entirely on mobile/touch (not draggable there)
     if (checkMobile()) return;
     const persisted = positioning.getPersistedPosition?.('diceTray');
     if (persisted) return; // user customized position; don't override
-    const arena = document.querySelector('.cmp-arena');
-    if (!arena) return;
-    const aRect = arena.getBoundingClientRect();
-    const GAP_Y = 24;
-    root.style.left = (aRect.left) + 'px';
-    root.style.transform = 'translateX(0)';
-    root.style.bottom = '';
-    let proposedTop = aRect.bottom + GAP_Y + (window.scrollY || 0);
-    const trayH = root.offsetHeight || 0;
-    const maxTop = (window.innerHeight - trayH - 16) + (window.scrollY || 0);
-    if (trayH && proposedTop > maxTop) proposedTop = Math.max(10, maxTop);
-    root.style.top = proposedTop + 'px';
-    window.dispatchEvent(new CustomEvent('diceTrayAutoAligned', { detail: { left: aRect.left } }));
+    
+    // Don't apply any positioning here - let positioningService handle it
+    // This function just ensures we don't override user-dragged positions
   }
   // Align on next frame (after arena laid out) and on resize
   requestAnimationFrame(autoAlignIfNotUserMoved);

@@ -39,6 +39,8 @@
   font-size: 20px;
   color: #ffcf33;
   text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000;
+  position: relative;
+  z-index: 10;
 }
 
 /* Tokyo grid: City + Bay */
@@ -61,11 +63,11 @@
    display: flex;
    align-items: stretch;
    justify-content: center;
-   /* Card scales to .85 inside, so slot needs to accommodate: 260 * .85 = 221 + padding */
-   width: var(--tokyo-slot-default-width, 280px);
-   min-width: 280px;
-   height: var(--tokyo-slot-default-height, 320px);
-   min-height: 320px;
+   /* Card scales to .85 inside, so slot needs to accommodate: 260 * .85 = 221 + small padding */
+   width: var(--tokyo-slot-default-width, 240px);
+   min-width: 240px;
+   height: var(--tokyo-slot-default-height, 270px);
+   min-height: 270px;
    padding: 0;
    border: 3px dashed rgba(255, 255, 255, 0.35);
    border-radius: 14px;
@@ -198,7 +200,7 @@
  .cmp-arena [data-arena-section="city"] {
    background: var(--arena-panel-bg);
    border: 2px solid #333;
-   padding: 10px 14px 16px;
+   padding: 6px 8px 8px;
    border-radius: 10px;
    text-align: center;
    position: relative;

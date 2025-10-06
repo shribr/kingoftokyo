@@ -16,11 +16,7 @@ export function build({ selector, dispatch, getState }) {
       beginHideSequence(dispatch, root);
       return;
     }
-    const polaroid = e.target.closest('.polaroid');
-    if (polaroid) {
-      beginHideSequence(dispatch, root);
-      return;
-    }
+    // Polaroid cards are now decorative only - no click navigation
   });
 
   // Expose safe getter internally for delayed callbacks
@@ -36,6 +32,26 @@ export function update(ctx) {
   if (!visible) {
     root.classList.add('is-hidden');
     document.body.classList.remove('splash-visible');
+    
+    // Apply default positioning when game arena is revealed
+    // Use multiple attempts with delays to ensure elements are ready
+    const applyPositioning = () => {
+      try {
+        if (window.__KOT_NEW_POSITIONS__?.applyDefaultPositioning) {
+          window.__KOT_NEW_POSITIONS__.applyDefaultPositioning();
+        }
+      } catch(e) {
+        console.warn('Failed to apply default positioning:', e);
+      }
+    };
+    
+    // Try immediately
+    setTimeout(applyPositioning, 100);
+    // Try again after monster selection/roll-for-first likely complete
+    setTimeout(applyPositioning, 500);
+    // Final attempt after game starts
+    setTimeout(applyPositioning, 1000);
+    
     // Only ensure blackout during SETUP while selection or roll-for-first is active
     try {
       const phase = state?.phase;

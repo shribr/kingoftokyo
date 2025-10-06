@@ -54,7 +54,7 @@ body.splash-visible .cmp-splash {
   top: 50% !important;
   left: 50% !important;
   transform: translate(-50%, -50%) !important;
-  width: min(500px, 90vw) !important;
+  width: min(26vw, 90vw) !important; /* ~500px at 1920px viewport */
   max-height: 70vh !important;
   z-index: 12000 !important; /* Above panels (6000-6700) and other modals */
   cursor: move !important; /* Indicate draggability */
@@ -68,9 +68,9 @@ body.splash-visible .cmp-splash {
   width: 100% !important;
   height: 100% !important;
   background: linear-gradient(135deg, #2a2d35 0%, #1a1d21 100%) !important;
-  border: 3px solid #000 !important;
-  border-radius: 8px !important;
-  box-shadow: 6px 6px 0 #000 !important;
+  border: 0.15vh solid #000 !important; /* ~3px at 1080px height */
+  border-radius: 0.4vh !important; /* ~8px */
+  box-shadow: 0.3vh 0.3vh 0 #000 !important; /* ~6px */
   display: flex !important;
   flex-direction: column !important;
   overflow: hidden !important;
@@ -79,37 +79,37 @@ body.splash-visible .cmp-splash {
 .player-power-cards-modal .ppcm-header {
   background: linear-gradient(135deg, #ffd400 0%, #ffb700 100%) !important;
   color: #000 !important;
-  padding: 12px 16px !important;
+  padding: 1.1vh 1.5vh !important; /* ~12px 16px at 1080px */
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
-  border-bottom: 3px solid #000 !important;
+  border-bottom: 0.15vh solid #000 !important; /* ~3px */
   flex-shrink: 0 !important;
 }
 
 .player-power-cards-modal .ppcm-header h2 {
   font-family: 'Bangers', cursive !important;
-  font-size: 22px !important;
+  font-size: 2vh !important; /* ~22px at 1080px */
   margin: 0 !important;
-  letter-spacing: 1px !important;
-  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2) !important;
+  letter-spacing: 0.1vh !important; /* ~1px */
+  text-shadow: 0.2vh 0.2vh 0 rgba(0, 0, 0, 0.2) !important; /* ~2px */
   color: #000 !important;
 }
 
 .player-power-cards-modal .ppcm-header button[data-action="close"] {
   position: relative !important;
-  width: 32px !important;
-  height: 32px !important;
+  width: 3vh !important; /* ~32px at 1080px */
+  height: 3vh !important; /* ~32px */
   background: #ff4444 !important;
   color: #fff !important;
-  border: 2px solid #000 !important;
-  border-radius: 4px !important;
-  font-size: 24px !important;
+  border: 0.2vh solid #000 !important; /* ~2px */
+  border-radius: 0.4vh !important; /* ~4px */
+  font-size: 2.2vh !important; /* ~24px */
   font-weight: bold !important;
   line-height: 1 !important;
   cursor: pointer !important;
   padding: 0 !important;
-  box-shadow: 2px 2px 0 #000 !important;
+  box-shadow: 0.2vh 0.2vh 0 #000 !important; /* ~2px */
   transition: all 0.1s ease !important;
   display: flex !important;
   align-items: center !important;
@@ -118,69 +118,69 @@ body.splash-visible .cmp-splash {
 
 .player-power-cards-modal .ppcm-header button[data-action="close"]:hover {
   background: #ff6666 !important;
-  transform: translate(-1px, -1px) !important;
-  box-shadow: 3px 3px 0 #000 !important;
+  transform: translate(-0.1vh, -0.1vh) !important; /* ~-1px */
+  box-shadow: 0.3vh 0.3vh 0 #000 !important; /* ~3px */
 }
 
 .player-power-cards-modal .ppcm-header button[data-action="close"]:active {
-  transform: translate(1px, 1px) !important;
-  box-shadow: 1px 1px 0 #000 !important;
+  transform: translate(0.1vh, 0.1vh) !important; /* ~1px */
+  box-shadow: 0.1vh 0.1vh 0 #000 !important; /* ~1px */
 }
 
 .player-power-cards-modal .ppcm-body {
   background: #1a1d21 !important;
   color: #e0e0e0 !important;
-  padding: 16px !important;
+  padding: 1.5vh !important; /* ~16px at 1080px */
   overflow-y: auto !important;
   flex: 1 !important;
 }
 
 .player-power-cards-modal .ppcm-empty {
   text-align: center !important;
-  padding: 40px 20px !important;
+  padding: 3.7vh 1.9vh !important; /* ~40px 20px at 1080px */
   color: #999 !important;
-  font-size: 14px !important;
+  font-size: 1.3vh !important; /* ~14px */
   line-height: 1.6 !important;
 }
 
 .player-power-cards-modal .ppcm-empty span {
   display: block !important;
-  margin-top: 8px !important;
+  margin-top: 0.7vh !important; /* ~8px */
   opacity: 0.7 !important;
-  font-size: 13px !important;
+  font-size: 1.2vh !important; /* ~13px */
 }
 
 /* Card grid styling */
 .player-power-cards-modal .ppcm-cards-grid {
   display: grid !important;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
-  gap: 12px !important;
+  grid-template-columns: repeat(auto-fill, minmax(10.4vw, 1fr)) !important; /* ~200px at 1920px */
+  gap: 1.1vh !important; /* ~12px at 1080px */
 }
 
 .player-power-cards-modal .ppcm-card-detail {
   background: linear-gradient(135deg, #2d3139 0%, #1f2228 100%) !important;
-  border: 2px solid #000 !important;
-  border-radius: 6px !important;
-  padding: 12px !important;
-  box-shadow: 3px 3px 0 #000, 0 0 0 1px #333 inset !important;
+  border: 0.2vh solid #000 !important; /* ~2px */
+  border-radius: 0.6vh !important; /* ~6px */
+  padding: 1.1vh !important; /* ~12px */
+  box-shadow: 0.3vh 0.3vh 0 #000, 0 0 0 0.1vh #333 inset !important; /* ~3px, ~1px */
   transition: transform 0.2s ease, box-shadow 0.2s ease !important;
   display: flex !important;
   flex-direction: column !important;
-  gap: 8px !important;
+  gap: 0.7vh !important; /* ~8px */
 }
 
 .player-power-cards-modal .ppcm-card-detail:hover {
-  transform: translate(-2px, -2px) !important;
-  box-shadow: 5px 5px 0 #000, 0 0 0 1px #444 inset !important;
+  transform: translate(-0.2vh, -0.2vh) !important; /* ~-2px */
+  box-shadow: 0.5vh 0.5vh 0 #000, 0 0 0 0.1vh #444 inset !important; /* ~5px, ~1px */
 }
 
 .player-power-cards-modal .ppcm-card-detail h3 {
-  font-size: 16px !important;
+  font-size: 1.5vh !important; /* ~16px at 1080px */
   color: #ffd400 !important;
   margin: 0 !important;
   font-family: 'Bangers', cursive !important;
-  letter-spacing: 0.5px !important;
-  text-shadow: 1px 1px 0 #000 !important;
+  letter-spacing: 0.05vh !important; /* ~0.5px */
+  text-shadow: 0.1vh 0.1vh 0 #000 !important; /* ~1px */
 }
 
 /* Card element styling */
@@ -188,24 +188,24 @@ body.splash-visible .cmp-splash {
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
-  gap: 6px !important;
+  gap: 0.6vh !important; /* ~6px */
 }
 
 .player-power-cards-modal .ppcm-card-cost {
-  font-size: 14px !important;
+  font-size: 1.3vh !important; /* ~14px at 1080px */
   font-weight: 600 !important;
   color: #000 !important;
   background: #ffd400 !important;
-  border: 2px solid #000 !important;
-  padding: 3px 8px !important;
-  border-radius: 4px !important;
-  box-shadow: 2px 2px 0 #000 !important;
+  border: 0.2vh solid #000 !important; /* ~2px */
+  padding: 0.3vh 0.7vh !important; /* ~3px 8px */
+  border-radius: 0.4vh !important; /* ~4px */
+  box-shadow: 0.2vh 0.2vh 0 #000 !important; /* ~2px */
   white-space: nowrap !important;
   flex-shrink: 0 !important;
 }
 
 .player-power-cards-modal .ppcm-card-description {
-  font-size: 13px !important;
+  font-size: 1.2vh !important; /* ~13px at 1080px */
   line-height: 1.4 !important;
   white-space: pre-wrap !important;
   color: #e0e0e0 !important;
@@ -215,12 +215,12 @@ body.splash-visible .cmp-splash {
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
-  font-size: 11px !important;
+  font-size: 1vh !important; /* ~11px at 1080px */
   opacity: 0.7 !important;
   color: #ccc !important;
-  border-top: 1px solid rgba(255, 212, 0, 0.2) !important;
-  padding-top: 6px !important;
-  margin-top: 4px !important;
+  border-top: 0.1vh solid rgba(255, 212, 0, 0.2) !important; /* ~1px */
+  padding-top: 0.6vh !important; /* ~6px */
+  margin-top: 0.4vh !important; /* ~4px */
 }
 
 .player-power-cards-modal .ppcm-card-rarity {
@@ -230,18 +230,18 @@ body.splash-visible .cmp-splash {
 
 /* Scrollbar styling for modal */
 .player-power-cards-modal .ppcm-body::-webkit-scrollbar {
-  width: 8px !important;
+  width: 0.7vh !important; /* ~8px at 1080px */
 }
 
 .player-power-cards-modal .ppcm-body::-webkit-scrollbar-track {
   background: #0f1115 !important;
-  border-radius: 4px !important;
+  border-radius: 0.4vh !important; /* ~4px */
 }
 
 .player-power-cards-modal .ppcm-body::-webkit-scrollbar-thumb {
   background: #ffd400 !important;
-  border-radius: 4px !important;
-  border: 1px solid #000 !important;
+  border-radius: 0.4vh !important; /* ~4px */
+  border: 0.1vh solid #000 !important; /* ~1px */
 }
 
 .player-power-cards-modal .ppcm-body::-webkit-scrollbar-thumb:hover {
@@ -251,6 +251,119 @@ body.splash-visible .cmp-splash {
 /* Cursor pointer for clickable cards stat */
 .cmp-player-profile-card [data-cards] {
   cursor: pointer !important;
+}
+
+/* Mobile-specific adjustments for player power cards modal */
+@media (max-width: 1024px), (pointer: coarse) {
+  .player-power-cards-modal {
+    width: min(85vw, 90vw) !important; /* Wider on mobile */
+    max-height: 80vh !important; /* Taller on mobile */
+  }
+
+  .player-power-cards-modal .ppcm-frame {
+    border: 0.3vh solid #000 !important; /* Thicker borders on mobile */
+    border-radius: 0.8vh !important;
+    box-shadow: 0.6vh 0.6vh 0 #000 !important;
+  }
+
+  .player-power-cards-modal .ppcm-header {
+    padding: 2vh 2.5vh !important; /* Larger padding on mobile */
+    border-bottom: 0.3vh solid #000 !important;
+  }
+
+  .player-power-cards-modal .ppcm-header h2 {
+    font-size: 3.5vh !important; /* Much larger title on mobile */
+    letter-spacing: 0.15vh !important;
+    text-shadow: 0.3vh 0.3vh 0 rgba(0, 0, 0, 0.2) !important;
+  }
+
+  .player-power-cards-modal .ppcm-header button[data-action="close"] {
+    width: 5vh !important; /* Larger close button for touch */
+    height: 5vh !important;
+    border: 0.3vh solid #000 !important;
+    border-radius: 0.6vh !important;
+    font-size: 3.5vh !important;
+    box-shadow: 0.3vh 0.3vh 0 #000 !important;
+  }
+
+  .player-power-cards-modal .ppcm-header button[data-action="close"]:hover {
+    transform: translate(-0.15vh, -0.15vh) !important;
+    box-shadow: 0.5vh 0.5vh 0 #000 !important;
+  }
+
+  .player-power-cards-modal .ppcm-body {
+    padding: 2.5vh !important; /* More padding on mobile */
+  }
+
+  .player-power-cards-modal .ppcm-empty {
+    padding: 5vh 3vh !important; /* Larger empty state on mobile */
+    font-size: 2.2vh !important;
+  }
+
+  .player-power-cards-modal .ppcm-empty span {
+    margin-top: 1.2vh !important;
+    font-size: 2vh !important;
+  }
+
+  .player-power-cards-modal .ppcm-cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(40vw, 1fr)) !important; /* Larger cards on mobile */
+    gap: 2vh !important;
+  }
+
+  .player-power-cards-modal .ppcm-card-detail {
+    border: 0.3vh solid #000 !important;
+    border-radius: 1vh !important;
+    padding: 2vh !important;
+    box-shadow: 0.5vh 0.5vh 0 #000, 0 0 0 0.15vh #333 inset !important;
+    gap: 1.2vh !important;
+  }
+
+  .player-power-cards-modal .ppcm-card-detail:hover {
+    transform: translate(-0.3vh, -0.3vh) !important;
+    box-shadow: 0.8vh 0.8vh 0 #000, 0 0 0 0.15vh #444 inset !important;
+  }
+
+  .player-power-cards-modal .ppcm-card-detail h3 {
+    font-size: 2.5vh !important; /* Larger card titles on mobile */
+    letter-spacing: 0.1vh !important;
+    text-shadow: 0.15vh 0.15vh 0 #000 !important;
+  }
+
+  .player-power-cards-modal .ppcm-card-header {
+    gap: 1vh !important;
+  }
+
+  .player-power-cards-modal .ppcm-card-cost {
+    font-size: 2.2vh !important; /* Larger cost badge on mobile */
+    border: 0.3vh solid #000 !important;
+    padding: 0.5vh 1.2vh !important;
+    border-radius: 0.6vh !important;
+    box-shadow: 0.3vh 0.3vh 0 #000 !important;
+  }
+
+  .player-power-cards-modal .ppcm-card-description {
+    font-size: 2vh !important; /* Larger description text on mobile */
+  }
+
+  .player-power-cards-modal .ppcm-card-footer {
+    font-size: 1.8vh !important; /* Larger footer text on mobile */
+    border-top: 0.15vh solid rgba(255, 212, 0, 0.2) !important;
+    padding-top: 1vh !important;
+    margin-top: 0.7vh !important;
+  }
+
+  .player-power-cards-modal .ppcm-body::-webkit-scrollbar {
+    width: 1.2vh !important; /* Wider scrollbar on mobile */
+  }
+
+  .player-power-cards-modal .ppcm-body::-webkit-scrollbar-track {
+    border-radius: 0.6vh !important;
+  }
+
+  .player-power-cards-modal .ppcm-body::-webkit-scrollbar-thumb {
+    border-radius: 0.6vh !important;
+    border: 0.15vh solid #000 !important;
+  }
 }
 
 /* === Breakpoint Map (source-of-truth) ===
@@ -481,3 +594,283 @@ body.splash-visible .cmp-splash {
 
 /* 9) Safe guard: if any legacy class slips in, neutralize (defensive, to remove later) */
 [class^="game-board"], [class*=" game-board"], .game-board { /* deprecated sentinel to detect accidental legacy usage */ outline:0 !important; }
+
+/* 10) Splash Screen Mobile Enhancements */
+@media (max-width: 1024px) {
+  /* Make polaroids larger on mobile for better visibility - portrait 5:6.5 ratio */
+  .cmp-splash .polaroid { 
+    width: 14vw !important; 
+    height: 18.2vw !important; 
+    padding: 1.5vh 1.5vh 6vw 1.5vh !important;
+  }
+  
+  .cmp-splash .polaroid img { 
+    width: 11vw !important; 
+    height: 11vw !important; 
+  }
+  
+  .cmp-splash .polaroid-caption { 
+    font-size: 1.6vw !important; 
+    bottom: 2.5vw !important; 
+  }
+  
+  /* Adjust polaroid positions for larger cards */
+  .cmp-splash .polaroid-1 { top: 8% !important; left: 2vw !important; }
+  .cmp-splash .polaroid-2 { top: 35% !important; left: 1vw !important; }
+  .cmp-splash .polaroid-3 { top: 60% !important; left: 3vw !important; }
+  .cmp-splash .polaroid-4 { top: 6% !important; right: 2vw !important; }
+  .cmp-splash .polaroid-5 { top: 38% !important; right: 1vw !important; }
+  .cmp-splash .polaroid-6 { top: 62% !important; right: 3vw !important; }
+  
+  /* Lower the logo on mobile */
+  .cmp-splash .splash-logo-image { 
+    margin-bottom: 4vh !important;
+    margin-top: 8vh !important;
+  }
+  
+  /* Give subtitle more width to reduce wrapping */
+  .cmp-splash .splash-center-content { 
+    width: 50vw !important; 
+    max-width: 90% !important;
+  }
+  
+  .cmp-splash .splash-subtitle { 
+    font-size: 4.5vw !important;
+    margin-bottom: 6vh !important;
+    margin-top: 4vh !important;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Further adjustments for smaller tablets/phones - maintain portrait ratio */
+  .cmp-splash .polaroid { 
+    width: 16vw !important; 
+    height: 20.8vw !important; 
+  }
+  
+  .cmp-splash .polaroid img { 
+    width: 13vw !important; 
+    height: 13vw !important; 
+  }
+  
+  .cmp-splash .polaroid-caption { 
+    font-size: 1.8vw !important; 
+  }
+  
+  .cmp-splash .splash-center-content { 
+    width: 55vw !important;
+  }
+  
+  .cmp-splash .splash-subtitle { 
+    font-size: 5vw !important;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Phones: larger polaroids, more centered content - portrait ratio */
+  .cmp-splash .polaroid { 
+    width: 18vw !important; 
+    height: 23.4vw !important; 
+    padding: 1.5vh 1.5vh 7vw 1.5vh !important;
+  }
+  
+  .cmp-splash .polaroid img { 
+    width: 15vw !important; 
+    height: 15vw !important; 
+  }
+  
+  .cmp-splash .polaroid-caption { 
+    font-size: 2vw !important; 
+    bottom: 3vw !important;
+  }
+  
+  .cmp-splash .splash-center-content { 
+    width: 60vw !important;
+  }
+  
+  .cmp-splash .splash-subtitle { 
+    font-size: 5.5vw !important;
+    line-height: 1.3 !important;
+  }
+  
+  .cmp-splash .splash-logo-image {
+    margin-top: 10vh !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Very small phones: maximize readability - portrait ratio */
+  .cmp-splash .polaroid { 
+    width: 20vw !important; 
+    height: 26vw !important; 
+  }
+  
+  .cmp-splash .polaroid img { 
+    width: 17vw !important; 
+    height: 17vw !important; 
+  }
+  
+  .cmp-splash .polaroid-caption { 
+    font-size: 2.2vw !important; 
+  }
+  
+  .cmp-splash .splash-center-content { 
+    width: 70vw !important;
+  }
+  
+  .cmp-splash .splash-subtitle { 
+    font-size: 6vw !important;
+    letter-spacing: 0.1vmin !important;
+  }
+}
+
+/* 11) Roll For First Modal Mobile Enhancements */
+@media (max-width: 1024px) {
+  /* Make all fonts and elements larger on mobile/tablet */
+  .cmp-roll-for-first.rff-modal .rff-title { 
+    font-size: 5vh !important; 
+  }
+  
+  .cmp-roll-for-first.rff-modal .rff-broadcast { 
+    font-size: 3vh !important;
+    min-height: 12vh !important;
+    padding: 2vh 2vh 2.5vh !important;
+  }
+  
+  .cmp-roll-for-first.rff-modal .rff-table thead th { 
+    font-size: 2vh !important;
+    padding: 1.5vh 1vw !important;
+  }
+  
+  .cmp-roll-for-first.rff-modal .rff-table tbody td { 
+    font-size: 2.2vh !important;
+    padding: 2vh 1vw !important;
+  }
+  
+  .cmp-roll-for-first.rff-modal .rff-table .rff-name { 
+    font-size: 2.5vh !important; 
+  }
+  
+  .cmp-roll-for-first.rff-modal .rff-table .rff-avatar { 
+    width: 6vh !important; 
+    height: 6vh !important; 
+  }
+  
+  .cmp-roll-for-first.rff-modal .rff-table .mini-die { 
+    width: 5vh !important; 
+    height: 5vh !important; 
+    font-size: 2.5vh !important;
+  }
+  
+  .cmp-roll-for-first.rff-modal .rff-table .mini-die.f-heart .rff-face-heart,
+  .cmp-roll-for-first.rff-modal .rff-table .mini-die.f-energy .rff-face-energy,
+  .cmp-roll-for-first.rff-modal .rff-table .mini-die.f-claw .rff-face-claw { 
+    font-size: 2.8vh !important; 
+  }
+  
+  .cmp-roll-for-first.rff-modal .rff-cpu-tag { 
+    font-size: 1.5vh !important;
+    padding: 0.5vh 0.8vw 0.6vh !important;
+  }
+  
+  .cmp-roll-for-first.rff-modal .rff-btn { 
+    font-size: 3vh !important;
+    padding: 2vh 3vw 2.5vh !important;
+  }
+  
+  .cmp-roll-for-first.rff-modal .rff-skip { 
+    font-size: 2vh !important; 
+  }
+  
+  .cmp-roll-for-first.rff-modal .rff-winner-icon { 
+    font-size: 5vh !important; 
+  }
+  
+  .cmp-roll-for-first.rff-modal .rff-winner-text { 
+    font-size: 4vh !important; 
+  }
+  
+  .cmp-roll-for-first.rff-modal .rff-winner-sub { 
+    font-size: 2vh !important; 
+  }
+  
+  .cmp-roll-for-first.rff-modal .rff-winner-msg { 
+    font-size: 2.2vh !important; 
+  }
+}
+
+@media (max-width: 768px) {
+  /* Tablets: increase further */
+  .cmp-roll-for-first.rff-modal .rff-title { 
+    font-size: 5.5vh !important; 
+  }
+  
+  .cmp-roll-for-first.rff-modal .rff-broadcast { 
+    font-size: 3.5vh !important;
+  }
+  
+  .cmp-roll-for-first.rff-modal .rff-table .rff-name { 
+    font-size: 3vh !important; 
+  }
+  
+  .cmp-roll-for-first.rff-modal .rff-btn { 
+    font-size: 3.5vh !important;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Phones: maximum readability */
+  .cmp-roll-for-first.rff-modal .rff-title { 
+    font-size: 6vh !important; 
+  }
+  
+  .cmp-roll-for-first.rff-modal .rff-broadcast { 
+    font-size: 4vh !important;
+    min-height: 14vh !important;
+  }
+  
+  .cmp-roll-for-first.rff-modal .rff-table thead th { 
+    font-size: 2.5vh !important;
+  }
+  
+  .cmp-roll-for-first.rff-modal .rff-table tbody td { 
+    font-size: 2.8vh !important;
+  }
+  
+  .cmp-roll-for-first.rff-modal .rff-table .rff-name { 
+    font-size: 3.5vh !important; 
+  }
+  
+  .cmp-roll-for-first.rff-modal .rff-table .mini-die { 
+    width: 6vh !important; 
+    height: 6vh !important; 
+    font-size: 3vh !important;
+  }
+  
+  .cmp-roll-for-first.rff-modal .rff-btn { 
+    font-size: 4vh !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Very small phones */
+  .cmp-roll-for-first.rff-modal .rff-broadcast { 
+    font-size: 4.5vh !important;
+  }
+  
+  .cmp-roll-for-first.rff-modal .rff-table .rff-name { 
+    font-size: 4vh !important; 
+  }
+}
+
+/* ============================================================================
+ * MOBILE FOOTER - Remove blur effect
+ * ========================================================================== */
+@media (max-width: 1024px), (pointer: coarse) {
+  .game-layout-shell .gl-footer {
+    background: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+
