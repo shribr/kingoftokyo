@@ -465,9 +465,11 @@ function renderUniquenessHint(){
 // Notify settings modal of scenario configuration changes
 function notifySettingsChange(root) {
   try {
+    console.log('[Scenarios] Dispatching scenario-config-changed event from:', root);
     // Bubble up event to parent settings modal
     const event = new CustomEvent('scenario-config-changed', { bubbles: true });
     root.dispatchEvent(event);
+    console.log('[Scenarios] Event dispatched successfully');
   } catch(e) {
     console.warn('[Scenarios] Failed to notify settings change:', e);
   }

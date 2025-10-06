@@ -1,5 +1,5 @@
 /* components.mobile-overrides.css
- * Consolidated modern responsive overrides using component (.cmp-*) + data-* selectors only.
+ * Consolidated modern responsive overrides. Uses modern component (.cmp-*) + data-* selectors only.
  * Purpose: Normalize scattered legacy/mobile rules, remove dependence on deprecated structural classes,
  * and provide a single predictable cascade target loaded LAST.
  * NOTE: Avoid editing scattered responsive rules; migrate future tweaks here when possible.
@@ -51,13 +51,15 @@ body.splash-visible .cmp-splash {
 /* Player Power Cards Modal - draggable centered modal (all screen sizes) */
 .player-power-cards-modal {
   position: fixed !important;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  width: min(26vw, 90vw) !important; /* ~500px at 1920px viewport */
-  max-height: 70vh !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
   z-index: 12000 !important; /* Above panels (6000-6700) and other modals */
-  cursor: move !important; /* Indicate draggability */
+  pointer-events: none !important; /* Allow clicks through the overlay */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .player-power-cards-modal.hidden {
@@ -65,82 +67,122 @@ body.splash-visible .cmp-splash {
 }
 
 .player-power-cards-modal .ppcm-frame {
-  width: 100% !important;
-  height: 100% !important;
-  background: linear-gradient(135deg, #2a2d35 0%, #1a1d21 100%) !important;
-  border: 0.15vh solid #000 !important; /* ~3px at 1080px height */
-  border-radius: 0.4vh !important; /* ~8px */
-  box-shadow: 0.3vh 0.3vh 0 #000 !important; /* ~6px */
+  position: relative !important;
+  width: min(60vw, 1200px) !important; /* Wider to prevent cutoff - 60% of viewport or 1200px max */
+  max-height: 85vh !important;
+  pointer-events: auto !important; /* Re-enable clicks on the frame */
+  cursor: move !important; /* Indicate draggability */
+  /* Dark purple gradient matching card detail modal */
+  background: linear-gradient(180deg, #2e2540, #1d1729) !important;
+  border: 3px solid #000 !important;
+  border-radius: 10px !important;
+  box-shadow: 4px 4px 0 #000, 0 0 0 2px #4a3b63 inset !important; /* Purple inset glow */
   display: flex !important;
   flex-direction: column !important;
   overflow: hidden !important;
+  padding: 1.2rem !important; /* Increased outer padding */
+}
+
+/* Subtle radial glow overlay like card detail modal */
+.player-power-cards-modal .ppcm-frame:before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background: radial-gradient(circle at 70% 15%, rgba(255,255,255,0.12), transparent 60%) !important;
+  pointer-events: none !important;
 }
 
 .player-power-cards-modal .ppcm-header {
-  background: linear-gradient(135deg, #ffd400 0%, #ffb700 100%) !important;
-  color: #000 !important;
-  padding: 1.1vh 1.5vh !important; /* ~12px 16px at 1080px */
+  /* Darker, more subdued header matching card detail modal */
+  background: var(--adt-panel, #1d2126) !important;
+  border: 1px solid var(--adt-border, #2f3740) !important;
+  color: #ffefa5 !important; /* Gold/cream text */
+  padding: 1.2vh 1.5vh !important;
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
-  border-bottom: 0.15vh solid #000 !important; /* ~3px */
+  border-radius: 8px !important;
+  box-shadow: 0 2px 6px -2px #000a inset !important;
   flex-shrink: 0 !important;
+  margin-bottom: 1rem !important;
+  position: relative !important;
+  cursor: grab !important; /* Show it's draggable */
+}
+
+.player-power-cards-modal .ppcm-header:active {
+  cursor: grabbing !important;
 }
 
 .player-power-cards-modal .ppcm-header h2 {
   font-family: 'Bangers', cursive !important;
-  font-size: 2vh !important; /* ~22px at 1080px */
+  font-size: 2.2rem !important; /* ~35px - larger for better visibility */
   margin: 0 !important;
-  letter-spacing: 0.1vh !important; /* ~1px */
-  text-shadow: 0.2vh 0.2vh 0 rgba(0, 0, 0, 0.2) !important; /* ~2px */
-  color: #000 !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+  color: #ffefa5 !important; /* Gold/cream like card detail */
+  text-shadow: 0 2px 0 #000, 0 0 2px #000 !important; /* Subtle shadow */
+  font-weight: 800 !important;
 }
 
 .player-power-cards-modal .ppcm-header button[data-action="close"] {
-  position: relative !important;
-  width: 3vh !important; /* ~32px at 1080px */
-  height: 3vh !important; /* ~32px */
-  background: #ff4444 !important;
-  color: #fff !important;
-  border: 0.2vh solid #000 !important; /* ~2px */
-  border-radius: 0.4vh !important; /* ~4px */
-  font-size: 2.2vh !important; /* ~24px */
+  background: transparent !important;
+  color: #ffefa5 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  font-size: 2rem !important; /* ~32px - larger and more visible */
   font-weight: bold !important;
   line-height: 1 !important;
   cursor: pointer !important;
-  padding: 0 !important;
-  box-shadow: 0.2vh 0.2vh 0 #000 !important; /* ~2px */
-  transition: all 0.1s ease !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+  padding: 0.25rem 0.5rem !important;
+  box-shadow: none !important;
+  transition: color 0.15s ease !important;
+  display: inline-block !important;
+  position: relative !important;
+  z-index: 1 !important;
 }
 
 .player-power-cards-modal .ppcm-header button[data-action="close"]:hover {
-  background: #ff6666 !important;
-  transform: translate(-0.1vh, -0.1vh) !important; /* ~-1px */
-  box-shadow: 0.3vh 0.3vh 0 #000 !important; /* ~3px */
+  color: #fff !important;
+  background: transparent !important;
 }
 
 .player-power-cards-modal .ppcm-header button[data-action="close"]:active {
-  transform: translate(0.1vh, 0.1vh) !important; /* ~1px */
-  box-shadow: 0.1vh 0.1vh 0 #000 !important; /* ~1px */
+  transform: none !important;
+}
+
+.player-power-cards-modal .ppcm-header button[data-action="close"]:focus {
+  outline: 2px solid #ffefa5 !important;
+  outline-offset: 2px !important;
 }
 
 .player-power-cards-modal .ppcm-body {
-  background: #1a1d21 !important;
-  color: #e0e0e0 !important;
-  padding: 1.5vh !important; /* ~16px at 1080px */
+  /* Dark background matching purple theme */
+  background: transparent !important;
+  color: #e9e3f7 !important; /* Light purple-tinted text */
+  padding: 0 !important; /* Remove padding to prevent cutoff */
   overflow-y: auto !important;
+  overflow-x: hidden !important; /* Prevent horizontal scroll */
   flex: 1 !important;
+}
+
+/* Card titles - allow wrapping to 2 lines for longer names */
+.player-power-cards-modal .pc-card-name,
+.player-power-cards-modal .pc-card__name {
+  white-space: nowrap !important; /* Keep single line since cards are wider now */
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
 }
 
 .player-power-cards-modal .ppcm-empty {
   text-align: center !important;
   padding: 3.7vh 1.9vh !important; /* ~40px 20px at 1080px */
-  color: #999 !important;
-  font-size: 1.3vh !important; /* ~14px */
+  color: #9e92b8 !important; /* Muted purple-tinted text */
+  font-family: 'Bangers', cursive !important;
+  font-size: 1.6vh !important; /* ~17px */
   line-height: 1.6 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  opacity: 0.8 !important;
 }
 
 .player-power-cards-modal .ppcm-empty span {
@@ -150,92 +192,55 @@ body.splash-visible .cmp-splash {
   font-size: 1.2vh !important; /* ~13px */
 }
 
-/* Card grid styling */
+/* Card grid styling - reuse power cards panel grid */
 .player-power-cards-modal .ppcm-cards-grid {
   display: grid !important;
-  grid-template-columns: repeat(auto-fill, minmax(10.4vw, 1fr)) !important; /* ~200px at 1920px */
-  gap: 1.1vh !important; /* ~12px at 1080px */
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important; /* auto-fit instead of auto-fill to prevent cutoff */
+  gap: 14px !important;
+  align-items: stretch !important;
+  padding: 0.5rem !important; /* Add padding inside the grid to prevent edge cutoff */
 }
 
-.player-power-cards-modal .ppcm-card-detail {
-  background: linear-gradient(135deg, #2d3139 0%, #1f2228 100%) !important;
-  border: 0.2vh solid #000 !important; /* ~2px */
-  border-radius: 0.6vh !important; /* ~6px */
-  padding: 1.1vh !important; /* ~12px */
-  box-shadow: 0.3vh 0.3vh 0 #000, 0 0 0 0.1vh #333 inset !important; /* ~3px, ~1px */
-  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+/* Ensure power cards don't have hidden footers in this modal */
+.player-power-cards-modal .pc-card-footer {
   display: flex !important;
-  flex-direction: column !important;
-  gap: 0.7vh !important; /* ~8px */
+  justify-content: flex-start !important;
+  padding: 8px 0 0 !important;
 }
 
-.player-power-cards-modal .ppcm-card-detail:hover {
-  transform: translate(-0.2vh, -0.2vh) !important; /* ~-2px */
-  box-shadow: 0.5vh 0.5vh 0 #000, 0 0 0 0.1vh #444 inset !important; /* ~5px, ~1px */
+/* Desktop: Add more padding to cards for better spacing */
+.player-power-cards-modal .pc-card {
+  padding: 16px 18px 18px !important; /* Increased from default 12px 14px 14px */
+  gap: 10px !important; /* Increased internal spacing */
 }
 
-.player-power-cards-modal .ppcm-card-detail h3 {
-  font-size: 1.5vh !important; /* ~16px at 1080px */
-  color: #ffd400 !important;
-  margin: 0 !important;
-  font-family: 'Bangers', cursive !important;
-  letter-spacing: 0.05vh !important; /* ~0.5px */
-  text-shadow: 0.1vh 0.1vh 0 #000 !important; /* ~1px */
+.player-power-cards-modal .pc-card-description {
+  line-height: 1.45 !important; /* More breathing room for text */
+  margin-bottom: 6px !important; /* Space above footer/cost badge */
 }
 
-/* Card element styling */
-.player-power-cards-modal .ppcm-card-header {
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  gap: 0.6vh !important; /* ~6px */
-}
-
-.player-power-cards-modal .ppcm-card-cost {
-  font-size: 1.3vh !important; /* ~14px at 1080px */
-  font-weight: 600 !important;
-  color: #000 !important;
-  background: #ffd400 !important;
-  border: 0.2vh solid #000 !important; /* ~2px */
-  padding: 0.3vh 0.7vh !important; /* ~3px 8px */
-  border-radius: 0.4vh !important; /* ~4px */
-  box-shadow: 0.2vh 0.2vh 0 #000 !important; /* ~2px */
-  white-space: nowrap !important;
-  flex-shrink: 0 !important;
-}
-
-.player-power-cards-modal .ppcm-card-description {
-  font-size: 1.2vh !important; /* ~13px at 1080px */
-  line-height: 1.4 !important;
-  white-space: pre-wrap !important;
-  color: #e0e0e0 !important;
-}
-
-.player-power-cards-modal .ppcm-card-footer {
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  font-size: 1vh !important; /* ~11px at 1080px */
-  opacity: 0.7 !important;
-  color: #ccc !important;
-  border-top: 0.1vh solid rgba(255, 212, 0, 0.2) !important; /* ~1px */
-  padding-top: 0.6vh !important; /* ~6px */
-  margin-top: 0.4vh !important; /* ~4px */
-}
-
-.player-power-cards-modal .ppcm-card-rarity {
-  text-transform: uppercase !important;
-  font-weight: 600 !important;
+.player-power-cards-modal .pc-card-header,
+.player-power-cards-modal .pc-card__header {
+  padding: 6px 8px 8px !important; /* Slightly more padding in header */
+  margin: -6px -6px 4px !important; /* Adjust negative margin to compensate */
 }
 
 /* Scrollbar styling for modal */
 .player-power-cards-modal .ppcm-body::-webkit-scrollbar {
-  width: 0.7vh !important; /* ~8px at 1080px */
+  width: 8px !important;
 }
 
 .player-power-cards-modal .ppcm-body::-webkit-scrollbar-track {
-  background: #0f1115 !important;
-  border-radius: 0.4vh !important; /* ~4px */
+  background: #241b30 !important; /* Dark purple track */
+}
+
+.player-power-cards-modal .ppcm-body::-webkit-scrollbar-thumb {
+  background: #4e3d62 !important; /* Purple thumb */
+  border-radius: 4px !important;
+}
+
+.player-power-cards-modal .ppcm-body::-webkit-scrollbar-thumb:hover {
+  background: #6c5a7d !important; /* Lighter purple on hover */
 }
 
 .player-power-cards-modal .ppcm-body::-webkit-scrollbar-thumb {
@@ -255,114 +260,126 @@ body.splash-visible .cmp-splash {
 
 /* Mobile-specific adjustments for player power cards modal */
 @media (max-width: 1024px), (pointer: coarse) {
+  /* Ensure modal container is properly centered */
   .player-power-cards-modal {
-    width: min(85vw, 90vw) !important; /* Wider on mobile */
-    max-height: 80vh !important; /* Taller on mobile */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
-
+  
   .player-power-cards-modal .ppcm-frame {
-    border: 0.3vh solid #000 !important; /* Thicker borders on mobile */
-    border-radius: 0.8vh !important;
-    box-shadow: 0.6vh 0.6vh 0 #000 !important;
+    width: 95vw !important; /* Almost full width on mobile */
+    max-width: 95vw !important;
+    max-height: 90vh !important; /* More vertical space */
+    padding: 0.8rem !important; /* Smaller padding on mobile to maximize space */
+    margin: auto !important; /* Center the frame */
   }
 
   .player-power-cards-modal .ppcm-header {
-    padding: 2vh 2.5vh !important; /* Larger padding on mobile */
-    border-bottom: 0.3vh solid #000 !important;
+    padding: 0.75rem !important; /* Compact padding */
+    margin-bottom: 0.75rem !important;
+    display: flex !important;
+    flex-direction: row !important; /* Keep horizontal layout */
+    justify-content: space-between !important; /* Title left, close button right */
+    align-items: center !important;
+    gap: 0.5rem !important;
   }
 
   .player-power-cards-modal .ppcm-header h2 {
-    font-size: 3.5vh !important; /* Much larger title on mobile */
-    letter-spacing: 0.15vh !important;
-    text-shadow: 0.3vh 0.3vh 0 rgba(0, 0, 0, 0.2) !important;
+    font-size: 1.4rem !important; /* Smaller on mobile to prevent overflow */
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    flex: 1 !important; /* Take available space */
   }
 
   .player-power-cards-modal .ppcm-header button[data-action="close"] {
-    width: 5vh !important; /* Larger close button for touch */
-    height: 5vh !important;
-    border: 0.3vh solid #000 !important;
-    border-radius: 0.6vh !important;
-    font-size: 3.5vh !important;
-    box-shadow: 0.3vh 0.3vh 0 #000 !important;
-  }
-
-  .player-power-cards-modal .ppcm-header button[data-action="close"]:hover {
-    transform: translate(-0.15vh, -0.15vh) !important;
-    box-shadow: 0.5vh 0.5vh 0 #000 !important;
-  }
-
-  .player-power-cards-modal .ppcm-body {
-    padding: 2.5vh !important; /* More padding on mobile */
-  }
-
-  .player-power-cards-modal .ppcm-empty {
-    padding: 5vh 3vh !important; /* Larger empty state on mobile */
-    font-size: 2.2vh !important;
-  }
-
-  .player-power-cards-modal .ppcm-empty span {
-    margin-top: 1.2vh !important;
-    font-size: 2vh !important;
+    font-size: 1.6rem !important;
+    padding: 0.25rem 0.5rem !important;
+    flex-shrink: 0 !important; /* Don't shrink the close button */
+    position: static !important; /* Reset any absolute positioning */
+    margin-left: auto !important; /* Push to the right */
   }
 
   .player-power-cards-modal .ppcm-cards-grid {
-    grid-template-columns: repeat(auto-fill, minmax(40vw, 1fr)) !important; /* Larger cards on mobile */
-    gap: 2vh !important;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important; /* auto-fit to prevent cutoff on mobile */
+    gap: 8px !important; /* Tighter gap */
+    padding: 0.25rem !important;
+  }
+  
+  /* Increase empty state text size for better mobile readability */
+  .player-power-cards-modal .ppcm-empty {
+    font-size: 1.1rem !important; /* Larger, easier to read */
+    padding: 2rem 1rem !important;
+  }
+  
+  .player-power-cards-modal .ppcm-empty span {
+    font-size: 0.9rem !important; /* Larger secondary text */
+    margin-top: 0.5rem !important;
   }
 
-  .player-power-cards-modal .ppcm-card-detail {
-    border: 0.3vh solid #000 !important;
-    border-radius: 1vh !important;
-    padding: 2vh !important;
-    box-shadow: 0.5vh 0.5vh 0 #000, 0 0 0 0.15vh #333 inset !important;
-    gap: 1.2vh !important;
+  /* Mini card styles for mobile - scale down all the fancy styling */
+  .player-power-cards-modal .pc-card {
+    font-size: 0.85rem !important;
+    padding: 6px 8px 8px !important; /* Reduced padding */
+    gap: 4px !important; /* Tighter internal spacing */
+    border-width: 1px !important; /* Thinner borders */
+  }
+  
+  .player-power-cards-modal .pc-card:before {
+    inset: 2px !important; /* Less glow spacing */
+  }
+  
+  .player-power-cards-modal .pc-card:after {
+    height: 32px !important; /* Shorter gradient overlay */
   }
 
-  .player-power-cards-modal .ppcm-card-detail:hover {
-    transform: translate(-0.3vh, -0.3vh) !important;
-    box-shadow: 0.8vh 0.8vh 0 #000, 0 0 0 0.15vh #444 inset !important;
+  .player-power-cards-modal .pc-card-header,
+  .player-power-cards-modal .pc-card__header {
+    font-size: 14px !important;
+    padding: 3px 4px 4px !important;
+    margin: -2px -2px 1px !important;
+    border-width: 1px !important; /* Thinner header border */
   }
 
-  .player-power-cards-modal .ppcm-card-detail h3 {
-    font-size: 2.5vh !important; /* Larger card titles on mobile */
-    letter-spacing: 0.1vh !important;
-    text-shadow: 0.15vh 0.15vh 0 #000 !important;
+  .player-power-cards-modal .pc-card-name {
+    font-size: 0.85rem !important;
+    padding-left: 4px !important;
   }
 
-  .player-power-cards-modal .ppcm-card-header {
-    gap: 1vh !important;
+  .player-power-cards-modal .pc-card-description {
+    font-size: 0.7rem !important;
+    line-height: 1.25 !important;
   }
-
-  .player-power-cards-modal .ppcm-card-cost {
-    font-size: 2.2vh !important; /* Larger cost badge on mobile */
-    border: 0.3vh solid #000 !important;
-    padding: 0.5vh 1.2vh !important;
-    border-radius: 0.6vh !important;
-    box-shadow: 0.3vh 0.3vh 0 #000 !important;
+  
+  .player-power-cards-modal .pc-card-cost,
+  .player-power-cards-modal .pc-card__cost {
+    font-size: 11px !important;
+    padding: 2px 6px 3px !important;
+    min-width: 32px !important;
+    margin-right: 4px !important;
   }
-
-  .player-power-cards-modal .ppcm-card-description {
-    font-size: 2vh !important; /* Larger description text on mobile */
+  
+  .player-power-cards-modal .pc-card-cost--footer {
+    bottom: 4px !important;
+    left: 4px !important;
   }
-
-  .player-power-cards-modal .ppcm-card-footer {
-    font-size: 1.8vh !important; /* Larger footer text on mobile */
-    border-top: 0.15vh solid rgba(255, 212, 0, 0.2) !important;
-    padding-top: 1vh !important;
-    margin-top: 0.7vh !important;
+  
+  .player-power-cards-modal .pc-card-info-btn {
+    width: 14px !important;
+    height: 14px !important;
+    font-size: 10px !important;
+    margin-left: 3px !important;
   }
-
-  .player-power-cards-modal .ppcm-body::-webkit-scrollbar {
-    width: 1.2vh !important; /* Wider scrollbar on mobile */
+  
+  /* Scale down hover effects for mobile */
+  .player-power-cards-modal .pc-card:hover {
+    transform: translate(-2px, -2px) !important;
+    box-shadow: 3px 3px 0 #000, 0 0 0 1px #222 inset !important;
   }
-
-  .player-power-cards-modal .ppcm-body::-webkit-scrollbar-track {
-    border-radius: 0.6vh !important;
-  }
-
-  .player-power-cards-modal .ppcm-body::-webkit-scrollbar-thumb {
-    border-radius: 0.6vh !important;
-    border: 0.15vh solid #000 !important;
+  
+  .player-power-cards-modal .pc-card:active {
+    box-shadow: 2px 2px 0 #000, 0 0 0 1px #222 inset !important;
   }
 }
 
@@ -392,6 +409,27 @@ body.splash-visible .cmp-splash {
 
 /* 3) Mobile / Touch Devices: Main responsive pivot */
 @media (max-width:1024px), (pointer:coarse) {
+  /* Make active player bubble larger and more visible on mobile */
+  #active-player-bubble,
+  .active-player-bubble {
+    padding: 8px 14px 8px 8px !important;
+    gap: 12px !important;
+    top: 12px !important;
+    left: 12px !important;
+  }
+  
+  .apb-avatar {
+    width: 56px !important;
+    height: 56px !important;
+    border-width: 3px !important;
+  }
+  
+  .apb-name,
+  [data-apb-name] {
+    font-size: 1.1rem !important;
+    max-width: 140px !important;
+  }
+  
   /* Hide active player card dock in mobile - replaced by active-player-bubble */
   #active-player-card-slot,
   #active-player-card-slot[data-active-card-dock],

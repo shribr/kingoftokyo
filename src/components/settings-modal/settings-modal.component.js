@@ -91,9 +91,45 @@ export function build(ctx) {
   });
   
   // Track scenario changes via custom event
-  root.addEventListener('scenario-config-changed', () => {
+  root.addEventListener('scenario-config-changed', (e) => {
+    console.log('[Settings] scenario-config-changed event received!', e);
     trackScenarioChange(root);
   });
+  
+  // Also watch store for scenario config changes directly (in case events don't bubble)
+  let lastScenarioAssignments = null;
+  let scenarioSubscriptionActive = false;
+  
+  const unsubscribeScenarios = store.subscribe(() => {
+    // Only track changes when modal is open
+    const state = store.getState();
+    const isOpen = state.ui?.settings?.open;
+    
+    if (!isOpen) {
+      // Modal closed - reset tracking
+      scenarioSubscriptionActive = false;
+      lastScenarioAssignments = null;
+      return;
+    }
+    
+    const currentAssignments = state.settings?.scenarioConfig?.assignments;
+    const currentJSON = JSON.stringify(currentAssignments || []);
+    
+    if (!scenarioSubscriptionActive) {
+      // First time modal is open - just initialize
+      lastScenarioAssignments = currentJSON;
+      scenarioSubscriptionActive = true;
+      console.log('[Settings] Initialized scenario tracking:', currentAssignments?.length || 0, 'assignments');
+    } else if (lastScenarioAssignments !== currentJSON) {
+      // Detected a change
+      console.log('[Settings] Store detected scenario change via subscription');
+      trackScenarioChange(root);
+      lastScenarioAssignments = currentJSON;
+    }
+  });
+  
+  // Store unsubscribe function for cleanup
+  root._unsubscribeScenarios = unsubscribeScenarios;
   
   // Save button handler
   const saveBtn = root.querySelector('[data-save-settings]');
@@ -237,6 +273,14 @@ function trackScenarioChange(root) {
   const originalAssignments = originalValues['_scenarios'] || [];
   const hasChanged = JSON.stringify(assignments) !== JSON.stringify(originalAssignments);
   
+  console.log('[Settings] trackScenarioChange called', {
+    assignments: assignments.length,
+    original: originalAssignments.length,
+    hasChanged,
+    assignmentsJSON: JSON.stringify(assignments),
+    originalJSON: JSON.stringify(originalAssignments)
+  });
+  
   if (hasChanged) {
     // Mark scenarios as changed
     pendingChanges['_scenarios'] = {
@@ -246,6 +290,7 @@ function trackScenarioChange(root) {
       newValue: `${assignments.length} assignment(s)`,
       label: 'Scenario Configuration'
     };
+    console.log('[Settings] Scenario change tracked - pendingChanges:', pendingChanges);
   } else {
     // No change from original, remove from pending changes
     delete pendingChanges['_scenarios'];

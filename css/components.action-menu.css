@@ -393,7 +393,16 @@
 .cmp-action-menu button[data-action="power-cards"]:not(:disabled):hover { background:linear-gradient(135deg,#345a3b,#1f4524) !important; }
 
 /* MY CARDS + FLUSH inside submenu (inherit smaller variant) */
-.cmp-action-menu button[data-action="show-my-cards"],
+.cmp-action-menu button[data-action="show-my-cards"] { 
+  font-size:16px; 
+  /* Purple background matching player power cards modal */
+  background: linear-gradient(135deg, #2e2540, #1d1729) !important;
+  border-color: #4a3b63 !important;
+}
+.cmp-action-menu button[data-action="show-my-cards"]:not(:disabled):hover { 
+  background: linear-gradient(135deg, #3a2f52, #241e35) !important; 
+}
+
 .cmp-action-menu button[data-action="flush"] { font-size:16px; }
 
 /* FLUSH keep gold accent */

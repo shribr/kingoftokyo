@@ -62,6 +62,61 @@ export function build({ selector }) {
   // Cache frequently accessed elements to reduce querySelector churn
   const __refs = new Map();
   function $(sel) { if (__refs.has(sel)) return __refs.get(sel); const el = root.querySelector(sel); __refs.set(sel, el); return el; }
+  
+  // Ensure active player bubble (avatar + name) exists - ALWAYS create it, not just in mobile
+  let bubble = document.getElementById('active-player-bubble');
+  if (!bubble) {
+    bubble = document.createElement('div');
+    bubble.id = 'active-player-bubble';
+    bubble.className = 'active-player-bubble';
+    bubble.innerHTML = `<div class="apb-avatar" aria-label="Active Player"></div><div class="apb-name" data-apb-name></div>`;
+    Object.assign(bubble.style, {
+      position:'fixed', top:'1vh', left:'1vw', transform:'none',
+      display:'flex', flexDirection:'row', alignItems:'center', gap:'1vw',
+      padding:'0.6vh 1vw 0.6vh 0.6vw', background:'linear-gradient(135deg,#2d3436,#1b1f20)',
+      border:'3px solid #000', borderRadius:'40px', boxShadow:'0 0.4vh 1.2vh rgba(0,0,0,0.35)', zIndex:'6700',
+      fontFamily:'Bangers,cursive', letterSpacing:'1px', cursor:'pointer'
+    });
+    const avatarEl = bubble.querySelector('.apb-avatar');
+    Object.assign(avatarEl.style, {
+      width:'4.8vh', height:'4.8vh', borderRadius:'50%',
+      /* White background behind monster/player image */
+      background:'#fff center/cover no-repeat',
+      border:'3px solid #000', boxShadow:'0.2vh 0.2vh 0 #000',
+      overflow:'hidden', position:'relative'
+    });
+    const nameEl = bubble.querySelector('[data-apb-name]');
+    Object.assign(nameEl.style, { color:'#fff', fontSize:'1.8vh', maxWidth:'12vw', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' });
+    document.body.appendChild(bubble);
+
+    // Toggle modal for full player card (open if closed, close if open)
+    const toggleFullCardModal = () => {
+      try {
+        const existing = document.getElementById('apb-player-card-modal');
+        if (existing) { existing.remove(); return; }
+        const activeCard = document.querySelector('.cmp-player-profile-card.is-active, .cmp-player-profile-card[data-in-active-dock="true"]');
+        if (!activeCard) return;
+        const overlay = document.createElement('div');
+        overlay.id = 'apb-player-card-modal';
+        overlay.setAttribute('data-apb-modal','');
+        overlay.setAttribute('role','dialog');
+        overlay.setAttribute('aria-modal','true');
+        overlay.setAttribute('aria-label','Active Player Card');
+        Object.assign(overlay.style, { position:'fixed', inset:'0', background:'rgba(0,0,0,0.65)', zIndex:'9000', display:'flex', alignItems:'center', justifyContent:'center', padding:'3vh' });
+        const cardClone = activeCard.cloneNode(true);
+        cardClone.style.transform = 'scale(.95)';
+        cardClone.style.position = 'static';
+        cardClone.style.left = cardClone.style.top = '';
+        cardClone.removeAttribute('data-in-active-dock');
+        overlay.appendChild(cardClone);
+        const close = (ev) => { if (ev.target === overlay) { overlay.removeEventListener('click', close); overlay.remove(); } };
+        overlay.addEventListener('click', close);
+        document.body.appendChild(overlay);
+      } catch(_) {}
+    };
+    bubble.addEventListener('click', toggleFullCardModal);
+  }
+  
   const setupMobile = () => {
     const isMobile = checkMobile();
     if (isMobile) {
@@ -245,60 +300,6 @@ export function build({ selector }) {
       });
       document.body.appendChild(btn);
       root._mobileBtn = btn;
-
-      // Ensure active player bubble (avatar + name) exists to the left of the action menu button
-      let bubble = document.getElementById('active-player-bubble');
-      if (!bubble) {
-        bubble = document.createElement('div');
-        bubble.id = 'active-player-bubble';
-        bubble.className = 'active-player-bubble';
-        bubble.innerHTML = `<div class="apb-avatar" aria-label="Active Player"></div><div class="apb-name" data-apb-name></div>`;
-        Object.assign(bubble.style, {
-          position:'fixed', top:'10px', left:'10px', transform:'none',
-          display:'flex', flexDirection:'row', alignItems:'center', gap:'10px',
-          padding:'6px 10px 6px 6px', background:'linear-gradient(135deg,#2d3436,#1b1f20)',
-          border:'3px solid #000', borderRadius:'40px', boxShadow:'0 4px 12px rgba(0,0,0,0.35)', zIndex:'6700',
-          fontFamily:'Bangers,cursive', letterSpacing:'1px', cursor:'pointer'
-        });
-        const avatarEl = bubble.querySelector('.apb-avatar');
-        Object.assign(avatarEl.style, {
-          width:'48px', height:'48px', borderRadius:'50%',
-          /* White background behind monster/player image */
-          background:'#fff center/cover no-repeat',
-          border:'3px solid #000', boxShadow:'2px 2px 0 #000',
-          overflow:'hidden', position:'relative'
-        });
-        const nameEl = bubble.querySelector('[data-apb-name]');
-        Object.assign(nameEl.style, { color:'#fff', fontSize:'18px', maxWidth:'120px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' });
-        document.body.appendChild(bubble);
-
-        // Toggle modal for full player card (open if closed, close if open)
-        const toggleFullCardModal = () => {
-          try {
-            const existing = document.getElementById('apb-player-card-modal');
-            if (existing) { existing.remove(); return; }
-            const activeCard = document.querySelector('.cmp-player-profile-card.is-active, .cmp-player-profile-card[data-in-active-dock="true"]');
-            if (!activeCard) return;
-            const overlay = document.createElement('div');
-            overlay.id = 'apb-player-card-modal';
-            overlay.setAttribute('data-apb-modal','');
-            overlay.setAttribute('role','dialog');
-            overlay.setAttribute('aria-modal','true');
-            overlay.setAttribute('aria-label','Active Player Card');
-            Object.assign(overlay.style, { position:'fixed', inset:'0', background:'rgba(0,0,0,0.65)', zIndex:'9000', display:'flex', alignItems:'center', justifyContent:'center', padding:'30px' });
-            const cardClone = activeCard.cloneNode(true);
-            cardClone.style.transform = 'scale(.95)';
-            cardClone.style.position = 'static';
-            cardClone.style.left = cardClone.style.top = '';
-            cardClone.removeAttribute('data-in-active-dock');
-            overlay.appendChild(cardClone);
-            const close = (ev) => { if (ev.target === overlay) { overlay.removeEventListener('click', close); overlay.remove(); } };
-            overlay.addEventListener('click', close);
-            document.body.appendChild(overlay);
-          } catch(_) {}
-        };
-        bubble.addEventListener('click', toggleFullCardModal);
-      }
     } else {
       // Desktop: restore visibility & dragging
       // Hide horizontal menu if it exists
@@ -348,12 +349,17 @@ export function build({ selector }) {
           
           // Find all expanded cards across all panels
           const expandedCards = document.querySelectorAll('.cmp-player-profile-card[data-expanded="true"]');
-          if (expandedCards.length === 0) return; // Nothing expanded, nothing to close
+          
+          // Check if any panels are expanded (not collapsed)
+          const expandedPanels = panels.filter(p => p.getAttribute('data-collapsed') !== 'true');
+          
+          // Nothing to close if no expanded cards and no expanded panels
+          if (expandedCards.length === 0 && expandedPanels.length === 0) return;
           
           const target = ev.target;
           
           // Check if any modal is currently active (peek modal, card detail modal, etc.)
-          const activeModals = document.querySelectorAll('[data-apb-modal], .modal:not(.hidden), .peek-modal:not(.hidden), .card-detail-modal:not(.hidden), .monster-profile-single-modal:not(.hidden)');
+          const activeModals = document.querySelectorAll('[data-apb-modal], .modal:not(.hidden), .peek-modal:not(.hidden), .card-detail-modal:not(.hidden), .monster-profile-single-modal:not(.hidden), .player-power-cards-modal:not(.hidden)');
           if (activeModals.length > 0) {
             return; // Don't close panels if a modal is open
           }
@@ -371,10 +377,27 @@ export function build({ selector }) {
             return; // Keep panels open
           }
           
-          // If clicked outside all panels and not on cards, collapse all expanded cards
+          // If clicked outside all panels and not on cards, collapse everything
+          // 1. Collapse all expanded cards
           expandedCards.forEach(card => { 
             card.removeAttribute('data-expanded');
           });
+          
+          // 2. Collapse all expanded panels
+          expandedPanels.forEach(panel => {
+            panel.setAttribute('data-collapsed', 'true');
+            // Update arrow direction
+            const arrow = panel.querySelector('.mp-arrow');
+            if (arrow) {
+              const side = panel.getAttribute('data-side');
+              if (side === 'left') {
+                arrow.textContent = '›'; // Right arrow when collapsed (expand right)
+              } else if (side === 'right') {
+                arrow.textContent = '‹'; // Left arrow when collapsed (expand left)
+              }
+            }
+          });
+          
           // Remove any blackout/dim overlays accidentally left behind
           const overlays = document.querySelectorAll('.blackout-overlay, .dim-overlay, [data-blackout]');
           overlays.forEach(o => { o.remove(); });
@@ -1067,24 +1090,21 @@ export function update(root) {
       const c = active?.cards?.length || 0;
       countEl.textContent = c ? ` (${c})` : '';
     }
+    // MY CARDS button should always be enabled so players can view their wallet anytime
     if (myCardsBtn) {
-      const hasCards = active?.cards?.length > 0;
-      const wasDisabled = myCardsBtn.disabled;
-      myCardsBtn.disabled = !hasCards;
-      if (wasDisabled && !myCardsBtn.disabled) {
-        console.log('🎴 Power Cards button enabled (cards count:', active?.cards?.length, ')');
-      }
+      myCardsBtn.disabled = false;
     }
     
-    // Update horizontal menu power cards button
+    // Main power cards button should always be enabled
+    const powerCardsBtn = document.getElementById('power-cards-btn');
+    if (powerCardsBtn) {
+      powerCardsBtn.disabled = false;
+    }
+    
+    // Horizontal menu power cards button should always be enabled
     const hPowerCardsBtn = document.getElementById('h-power-cards-btn');
     if (hPowerCardsBtn) {
-      const hasCards = active?.cards?.length > 0;
-      const wasDisabled = hPowerCardsBtn.disabled;
-      hPowerCardsBtn.disabled = !hasCards;
-      if (wasDisabled && !hPowerCardsBtn.disabled) {
-        console.log('🎴 Horizontal Power Cards button enabled (cards count:', active?.cards?.length, ')');
-      }
+      hPowerCardsBtn.disabled = false;
     }
   } catch(_) {}
   const isCPU = !!(active && (active.isCPU || active.isAi || active.type === 'ai'));
