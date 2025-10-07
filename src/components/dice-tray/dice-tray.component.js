@@ -232,14 +232,24 @@ export function update(root, { state }) {
         const hideResult = valuesChanged && !face.kept;
         const content = hideResult ? '?' : symbolFor(face.value);
         const extraCls = hideResult ? ' reveal-pending' : '';
+        
+        // Check if we're in radial-menu mode for mini dice styling
+        const isRadialMode = document.body.getAttribute('data-mobile-ui-mode') === 'radial-menu';
+        const baseClass = isRadialMode ? 'mini-die' : 'die';
+        const faceClass = isRadialMode ? getFaceClass(face.value) : '';
+        const keptClass = face.kept ? (isRadialMode ? 'selected' : 'is-kept') : '';
+        
         // Add a subtle selection indicator (lift) via 'is-kept' without any yellow outline
-        rendered.push(`<span class="die ${face.kept ? 'is-kept' : ''} ${isExtra ? 'extra-die' : ''}${extraCls}" data-die-index="${i}" data-face="${face.value}">${content}</span>`);
+        rendered.push(`<span class="${baseClass} ${keptClass} ${isExtra ? 'extra-die' : ''} ${faceClass}${extraCls}" data-die-index="${i}" data-face="${face.value}">${content}</span>`);
       } else {
         // For extra dice (7th, 8th) show empty compartments with dashed border
         // For regular dice (1-6) show '?' when waiting for roll
         const content = isExtra ? '' : '?';
         const extraClass = isExtra ? 'extra-die empty-compartment' : '';
-        rendered.push(`<span class="die pending ${extraClass}" data-die-index="${i}">${content}</span>`);
+        const isRadialMode = document.body.getAttribute('data-mobile-ui-mode') === 'radial-menu';
+        const baseClass = isRadialMode ? 'mini-die' : 'die';
+        
+        rendered.push(`<span class="${baseClass} pending ${extraClass}" data-die-index="${i}">${content}</span>`);
       }
     }
     diceContainer.innerHTML = rendered.join('');
@@ -335,6 +345,26 @@ function symbolFor(v) {
     case '2': return '2';
     case '3': return '3';
     default: return '?'; // never show raw words on the dice
+  }
+}
+
+function getFaceClass(value) {
+  switch(value) {
+    case 'heart':
+    case 'heal':
+      return 'f-heart heal';
+    case 'energy':
+      return 'f-energy energy';
+    case 'claw':
+    case 'attack':
+    case 'smash':
+      return 'f-claw attack';
+    case '1':
+    case '2':
+    case '3':
+      return 'f-num vp';
+    default:
+      return '';
   }
 }
 

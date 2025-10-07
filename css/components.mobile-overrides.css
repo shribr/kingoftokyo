@@ -1038,62 +1038,42 @@ body.splash-visible .cmp-splash {
     transform: translateX(0) !important; /* Force visible even when marked as collapsed */
   }
   
-  /* Scale down dice tray and use mini dice styling in radial-menu mode */
+  /* Scale down dice tray for mini dice in radial-menu mode */
   body[data-mobile-ui-mode="radial-menu"] .cmp-dice-tray {
-    /* Reduce overall tray size */
+    /* Reduce overall tray size for mini dice */
     height: 60px !important;
     padding: 8px !important;
+    /* Force position near bottom-left mini player card - override all JavaScript positioning */
+    position: fixed !important;
+    left: calc(120px + 16px) !important; /* Mini player card width (120px) + small gap (16px) */
+    bottom: 16px !important;
+    right: auto !important; /* Override any right positioning */
+    top: auto !important; /* Override any top positioning */
+    width: 300px !important; /* Fixed width instead of calc values */
+    max-width: 300px !important;
+    transform: translateX(0) !important; /* Override any JavaScript transforms */
+    margin: 0 !important;
   }
   
-  body[data-mobile-ui-mode="radial-menu"] .cmp-dice-tray .die {
-    /* Transform regular dice to mini dice size and styling */
-    width: 35px !important;
-    height: 35px !important;
-    border: 2px solid #333 !important;
-    border-radius: 6px !important;
-    font-size: 16px !important;
-    background: linear-gradient(145deg, #f0f0f0, #d0d0d0) !important;
-    color: #333 !important;
-    box-shadow: 2px 2px 4px rgba(0,0,0,.3) !important;
-    margin: 2px !important;
+  /* Ensure "No Power Cards" text appears below dice tray */
+  body[data-mobile-ui-mode="radial-menu"] .cmp-mini-power-cards .mpc-empty-state {
+    z-index: 6400 !important; /* One level below dice tray (6500) */
+    position: relative;
   }
   
-  /* Mini dice face variants in radial-menu mode */
-  body[data-mobile-ui-mode="radial-menu"] .cmp-dice-tray .die.f-claw {
-    border-color: #FF4444 !important;
-    background: linear-gradient(145deg, #FF6666, #FF4444) !important;
-    color: #fff !important;
-    box-shadow: 0 0 8px rgba(255,68,68,.6) !important;
+  /* Fix radial menu launcher positioning to avoid overlapping mini player cards */
+  body[data-mobile-ui-mode="radial-menu"] .radial-menu-container {
+    right: calc(120px + 16px) !important; /* To the LEFT of bottom-right mini player card */
+    bottom: calc(8px + (60px - 60px) / 2) !important; /* Vertically center with mini player cards */
   }
   
-  body[data-mobile-ui-mode="radial-menu"] .cmp-dice-tray .die.f-energy {
-    border-color: #B8860B !important;
-    background: linear-gradient(145deg, #DAA520, #B8860B) !important;
-    color: #222 !important;
-    box-shadow: 0 0 8px rgba(184,134,11,.55) !important;
-  }
-  
-  body[data-mobile-ui-mode="radial-menu"] .cmp-dice-tray .die.f-heart {
-    border-color: #4CAF50 !important;
-    background: linear-gradient(145deg, #81C784, #4CAF50) !important;
-    color: #fff !important;
-    box-shadow: 0 0 8px rgba(76,175,80,.55) !important;
-  }
-  
-  body[data-mobile-ui-mode="radial-menu"] .cmp-dice-tray .die.f-1,
-  body[data-mobile-ui-mode="radial-menu"] .cmp-dice-tray .die.f-2,
-  body[data-mobile-ui-mode="radial-menu"] .cmp-dice-tray .die.f-3 {
-    border-color: #9C27B0 !important;
-    background: linear-gradient(145deg, #BA68C8, #9C27B0) !important;
-    color: #fff !important;
-    box-shadow: 0 0 8px rgba(156,39,176,.55) !important;
-  }
-  
-  body[data-mobile-ui-mode="radial-menu"] .cmp-dice-tray .die.kept {
-    border-color: #2196F3 !important;
-    background: linear-gradient(145deg, #64B5F6, #2196F3) !important;
-    color: #fff !important;
-    box-shadow: 0 0 10px rgba(33,150,243,.65) !important;
+  /* Move mini power cards tray to the right next to radial launcher */
+  body[data-mobile-ui-mode="radial-menu"] .cmp-mini-power-cards {
+    /* Override the center positioning */
+    left: auto !important;
+    transform: none !important; /* Remove the translateX(-50%) */
+    right: calc(120px + 60px + 32px) !important; /* Mini card (120px) + launcher (60px) + gaps */
+    max-width: 200px !important; /* Smaller width to fit */
   }
   
   /* Force mini player cards below unleash screen and other modals */
