@@ -53,8 +53,8 @@ function createMiniCard(player, position, activePlayerId, slotIndex, state) {
     const monsterImage = monster?.image || 'images/characters/king_of_tokyo_gigazaur.png';
     
     // Add monster data attribute for CSS theming
-    if (monster?.name) {
-      card.setAttribute('data-monster', monster.name.toLowerCase());
+    if (monster?.id) {
+      card.setAttribute('data-monster', monster.id);
     }
     
     const activeIndicator = isActive ? '<div class="mpc-active-indicator"></div>' : '';

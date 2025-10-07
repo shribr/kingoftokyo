@@ -399,7 +399,7 @@ async function getMonsterIcon(playerName) {
     'MEKA DRAGON': '🐲',
     'ALIENOID': '👽',
     'CYBERBUNNY': '🐰', // Alternative spelling
-    'KINGHULL': '👑' // Alternative name for THE KING
+    'THE KING': '👑'
   };
   
   // Use AI config if available, otherwise fall back to defaults
@@ -426,7 +426,7 @@ function getMonsterIconSync(playerName) {
     'MEKA DRAGON': '🐲',
     'ALIENOID': '👽',
     'CYBERBUNNY': '🐰',
-    'KINGHULL': '👑'
+    'THE KING': '👑'
   };
   return defaultIcons[playerName.toUpperCase()] || '👹';
 }

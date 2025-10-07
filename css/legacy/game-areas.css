@@ -149,11 +149,11 @@
     background: #1e3a37; /* Dark greenish blue background for Kraken */
 }
 
-.monster-slot.occupied[data-monster="kinghull"] {
+.monster-slot.occupied[data-monster="the-king"] {
     background: #4a3c1f; /* Dark brown background for The King */
 }
 
-.monster-slot.occupied[data-monster="megalodon"] {
+.monster-slot.occupied[data-monster="meka-dragon"] {
     background: #cd5c5c; /* Red background for Meka Dragon */
 }
 
@@ -1083,22 +1083,22 @@ body:has(.modal:not(.hidden)) .player-dashboard.active {
 /* Removed hardcoded active background - let CSS custom properties handle it */
 
 /* The King player dashboard - darker brown background */
-.player-dashboard[data-monster="kinghull"] {
+.player-dashboard[data-monster="the-king"] {
     background: #4a3c1f;
 }
 
-.player-dashboard[data-monster="kinghull"]::before {
+.player-dashboard[data-monster="the-king"]::before {
     background: transparent;
 }
 
 /* Removed hardcoded active background - let CSS custom properties handle it */
 
 /* Meka Dragon player dashboard - red background */
-.player-dashboard[data-monster="megalodon"] {
+.player-dashboard[data-monster="meka-dragon"] {
     background: #cd5c5c; /* Red background */
 }
 
-.player-dashboard[data-monster="megalodon"]::before {
+.player-dashboard[data-monster="meka-dragon"]::before {
     background: transparent;
 }
 
@@ -1130,13 +1130,13 @@ body:has(.modal:not(.hidden)) .player-dashboard.active {
 }
 
 /* The King in Tokyo - maintain regular background */
-.player-dashboard[data-monster="kinghull"].in-tokyo-city,
-.player-dashboard[data-monster="kinghull"].in-tokyo {
+.player-dashboard[data-monster="the-king"].in-tokyo-city,
+.player-dashboard[data-monster="the-king"].in-tokyo {
     background: #4a3c1f !important; /* Force regular dark brown background */
 }
 
 /* Meka Dragon in Tokyo - maintain regular background */
-.player-dashboard[data-monster="megalodon"].in-tokyo-city,
-.player-dashboard[data-monster="megalodon"].in-tokyo {
+.player-dashboard[data-monster="meka-dragon"].in-tokyo-city,
+.player-dashboard[data-monster="meka-dragon"].in-tokyo {
     background: #cd5c5c !important; /* Force regular red background */
 }

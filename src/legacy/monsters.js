@@ -45,8 +45,8 @@ let MONSTERS = {
             risk: 4        // High risk - deep sea adventurer
         }
     },
-    kinghull: {
-        id: 'kinghull',
+    'the-king': {
+        id: 'the-king',
         name: 'The King',
         emoji: '🦍',
         image: 'images/characters/king_of_tokyo_the_king.png',
@@ -60,8 +60,8 @@ let MONSTERS = {
             risk: 3        // Medium risk - confident but not reckless
         }
     },
-    megalodon: {
-        id: 'megalodon',
+    'meka-dragon': {
+        id: 'meka-dragon',
         name: 'Meka Dragon',
         emoji: '🐲',
         image: 'images/characters/king_of_tokyo_meka_dragon.png',
@@ -88,6 +88,36 @@ let MONSTERS = {
             aggression: 2, // Low aggression - prefers observation
             strategy: 5,   // Maximum strategy - advanced alien intelligence
             risk: 4        // High risk - explores unknown dangers
+        }
+    },
+    'cyber-kitty': {
+        id: 'cyber-kitty',
+        name: 'Cyber Kitty',
+        emoji: '🐱',
+        image: 'images/characters/king_of_tokyo_cyber_kitty.png',
+        color: '#ff7ab8', // Pink (from config)
+        themeColor: '#ec4899', // Hot pink accent
+        description: 'Feline fury with cyber claws',
+        symbol: '🔪', // Claw symbol
+        personality: {
+            aggression: 3, // Medium aggression - calculated strikes
+            strategy: 3,   // Medium strategy - cat-like cunning
+            risk: 4        // High risk - curious and bold
+        }
+    },
+    'space-penguin': {
+        id: 'space-penguin',
+        name: 'Space Penguin',
+        emoji: '🐧',
+        image: 'images/characters/king_of_tokyo_space_penguin.png',
+        color: '#8ed1f0', // Light blue (from config)
+        themeColor: '#38bdf8', // Sky blue accent
+        description: 'Cosmic avian invader',
+        symbol: '❄️', // Ice symbol
+        personality: {
+            aggression: 2, // Low aggression - cool and calculating
+            strategy: 4,   // High strategy - intelligent penguin
+            risk: 2        // Low risk - cautious space explorer
         }
     }
 };

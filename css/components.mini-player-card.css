@@ -49,43 +49,43 @@
 }
 
 /* Monster-specific hover/touch border colors */
-.mini-player-card[data-monster*="alienoid"] .mpc-card-inner:hover,
-.mini-player-card[data-monster*="alienoid"] .mpc-card-inner:active {
+.mini-player-card[data-monster="alienoid"] .mpc-card-inner:hover,
+.mini-player-card[data-monster="alienoid"] .mpc-card-inner:active {
   border-color: #1496b4 !important;
 }
 
-.mini-player-card[data-monster*="cyber bunny"] .mpc-card-inner:hover,
-.mini-player-card[data-monster*="cyber bunny"] .mpc-card-inner:active {
+.mini-player-card[data-monster="cyberbunny"] .mpc-card-inner:hover,
+.mini-player-card[data-monster="cyberbunny"] .mpc-card-inner:active {
   border-color: #f472b6 !important;
 }
 
-.mini-player-card[data-monster*="cyber kitty"] .mpc-card-inner:hover,
-.mini-player-card[data-monster*="cyber kitty"] .mpc-card-inner:active {
+.mini-player-card[data-monster="cyber-kitty"] .mpc-card-inner:hover,
+.mini-player-card[data-monster="cyber-kitty"] .mpc-card-inner:active {
   border-color: #ec4899 !important;
 }
 
-.mini-player-card[data-monster*="gigazaur"] .mpc-card-inner:hover,
-.mini-player-card[data-monster*="gigazaur"] .mpc-card-inner:active {
+.mini-player-card[data-monster="gigazaur"] .mpc-card-inner:hover,
+.mini-player-card[data-monster="gigazaur"] .mpc-card-inner:active {
   border-color: #22c55e !important;
 }
 
-.mini-player-card[data-monster*="kraken"] .mpc-card-inner:hover,
-.mini-player-card[data-monster*="kraken"] .mpc-card-inner:active {
+.mini-player-card[data-monster="kraken"] .mpc-card-inner:hover,
+.mini-player-card[data-monster="kraken"] .mpc-card-inner:active {
   border-color: #3b82f6 !important;
 }
 
-.mini-player-card[data-monster*="meka dragon"] .mpc-card-inner:hover,
-.mini-player-card[data-monster*="meka dragon"] .mpc-card-inner:active {
+.mini-player-card[data-monster="meka-dragon"] .mpc-card-inner:hover,
+.mini-player-card[data-monster="meka-dragon"] .mpc-card-inner:active {
   border-color: #a3a3a3 !important;
 }
 
-.mini-player-card[data-monster*="space penguin"] .mpc-card-inner:hover,
-.mini-player-card[data-monster*="space penguin"] .mpc-card-inner:active {
+.mini-player-card[data-monster="space-penguin"] .mpc-card-inner:hover,
+.mini-player-card[data-monster="space-penguin"] .mpc-card-inner:active {
   border-color: #38bdf8 !important;
 }
 
-.mini-player-card[data-monster*="king"] .mpc-card-inner:hover,
-.mini-player-card[data-monster*="king"] .mpc-card-inner:active {
+.mini-player-card[data-monster="the-king"] .mpc-card-inner:hover,
+.mini-player-card[data-monster="the-king"] .mpc-card-inner:active {
   border-color: #f59e0b !important;
 }
 
@@ -298,16 +298,16 @@
 /* Active player highlight - Monster-themed colors */
 
 /* Alienoid active */
-.mini-player-card--active[data-monster*="alienoid"] {
+.mini-player-card--active[data-monster="alienoid"] {
   filter: drop-shadow(0 0 30px rgba(20, 150, 180, 0.8)) 
           drop-shadow(0 0 60px rgba(20, 150, 180, 0.6))
           drop-shadow(0 0 100px rgba(20, 150, 180, 0.3));
 }
-.mini-player-card--active[data-monster*="alienoid"] .mpc-card-inner {
+.mini-player-card--active[data-monster="alienoid"] .mpc-card-inner {
   border: 3px solid #1496b4 !important;
   box-shadow: 0 0 8px rgba(20, 150, 180, 0.6), 0 2px 6px rgba(0,0,0,0.4);
 }
-.mini-player-card--active[data-monster*="alienoid"]::before {
+.mini-player-card--active[data-monster="alienoid"]::before {
   content: '';
   position: absolute;
   top: -20px; left: -20px; right: -20px; bottom: -20px;
@@ -316,16 +316,16 @@
 }
 
 /* Cyber Bunny active */
-.mini-player-card--active[data-monster*="cyber bunny"] {
+.mini-player-card--active[data-monster="cyberbunny"] {
   filter: drop-shadow(0 0 30px rgba(244, 114, 182, 0.8)) 
           drop-shadow(0 0 60px rgba(244, 114, 182, 0.6))
           drop-shadow(0 0 100px rgba(244, 114, 182, 0.3));
 }
-.mini-player-card--active[data-monster*="cyber bunny"] .mpc-card-inner {
+.mini-player-card--active[data-monster="cyberbunny"] .mpc-card-inner {
   border: 3px solid #f472b6 !important;
   box-shadow: 0 0 8px rgba(244, 114, 182, 0.6), 0 2px 6px rgba(0,0,0,0.4);
 }
-.mini-player-card--active[data-monster*="cyber bunny"]::before {
+.mini-player-card--active[data-monster="cyberbunny"]::before {
   content: '';
   position: absolute;
   top: -20px; left: -20px; right: -20px; bottom: -20px;
@@ -334,16 +334,16 @@
 }
 
 /* Cyber Kitty active */
-.mini-player-card--active[data-monster*="cyber kitty"] {
+.mini-player-card--active[data-monster="cyber-kitty"] {
   filter: drop-shadow(0 0 30px rgba(236, 72, 153, 0.8)) 
           drop-shadow(0 0 60px rgba(236, 72, 153, 0.6))
           drop-shadow(0 0 100px rgba(236, 72, 153, 0.3));
 }
-.mini-player-card--active[data-monster*="cyber kitty"] .mpc-card-inner {
+.mini-player-card--active[data-monster="cyber-kitty"] .mpc-card-inner {
   border: 3px solid #ec4899 !important;
   box-shadow: 0 0 8px rgba(236, 72, 153, 0.6), 0 2px 6px rgba(0,0,0,0.4);
 }
-.mini-player-card--active[data-monster*="cyber kitty"]::before {
+.mini-player-card--active[data-monster="cyber-kitty"]::before {
   content: '';
   position: absolute;
   top: -20px; left: -20px; right: -20px; bottom: -20px;
@@ -352,16 +352,16 @@
 }
 
 /* Gigazaur active */
-.mini-player-card--active[data-monster*="gigazaur"] {
+.mini-player-card--active[data-monster="gigazaur"] {
   filter: drop-shadow(0 0 30px rgba(34, 197, 94, 0.8)) 
           drop-shadow(0 0 60px rgba(34, 197, 94, 0.6))
           drop-shadow(0 0 100px rgba(34, 197, 94, 0.3));
 }
-.mini-player-card--active[data-monster*="gigazaur"] .mpc-card-inner {
+.mini-player-card--active[data-monster="gigazaur"] .mpc-card-inner {
   border: 3px solid #22c55e !important;
   box-shadow: 0 0 8px rgba(34, 197, 94, 0.6), 0 2px 6px rgba(0,0,0,0.4);
 }
-.mini-player-card--active[data-monster*="gigazaur"]::before {
+.mini-player-card--active[data-monster="gigazaur"]::before {
   content: '';
   position: absolute;
   top: -20px; left: -20px; right: -20px; bottom: -20px;
@@ -370,16 +370,16 @@
 }
 
 /* Kraken active */
-.mini-player-card--active[data-monster*="kraken"] {
+.mini-player-card--active[data-monster="kraken"] {
   filter: drop-shadow(0 0 30px rgba(59, 130, 246, 0.8)) 
           drop-shadow(0 0 60px rgba(59, 130, 246, 0.6))
           drop-shadow(0 0 100px rgba(59, 130, 246, 0.3));
 }
-.mini-player-card--active[data-monster*="kraken"] .mpc-card-inner {
+.mini-player-card--active[data-monster="kraken"] .mpc-card-inner {
   border: 3px solid #3b82f6 !important;
   box-shadow: 0 0 8px rgba(59, 130, 246, 0.6), 0 2px 6px rgba(0,0,0,0.4);
 }
-.mini-player-card--active[data-monster*="kraken"]::before {
+.mini-player-card--active[data-monster="kraken"]::before {
   content: '';
   position: absolute;
   top: -20px; left: -20px; right: -20px; bottom: -20px;
@@ -388,19 +388,19 @@
 }
 
 /* Meka Dragon active - enhanced with higher specificity */
-.mini-player-card--active[data-monster*="meka dragon"],
-body[data-mobile-ui-mode="radial-menu"] .mini-player-card--active[data-monster*="meka dragon"] {
+.mini-player-card--active[data-monster="meka-dragon"],
+body[data-mobile-ui-mode="radial-menu"] .mini-player-card--active[data-monster="meka-dragon"] {
   filter: drop-shadow(0 0 30px rgba(163, 163, 163, 0.8)) 
           drop-shadow(0 0 60px rgba(163, 163, 163, 0.6))
           drop-shadow(0 0 100px rgba(163, 163, 163, 0.3));
 }
-.mini-player-card--active[data-monster*="meka dragon"] .mpc-card-inner,
-body[data-mobile-ui-mode="radial-menu"] .mini-player-card--active[data-monster*="meka dragon"] .mpc-card-inner {
+.mini-player-card--active[data-monster="meka-dragon"] .mpc-card-inner,
+body[data-mobile-ui-mode="radial-menu"] .mini-player-card--active[data-monster="meka-dragon"] .mpc-card-inner {
   border: 3px solid #a3a3a3 !important;
   box-shadow: 0 0 8px rgba(163, 163, 163, 0.6), 0 2px 6px rgba(0,0,0,0.4);
 }
-.mini-player-card--active[data-monster*="meka dragon"]::before,
-body[data-mobile-ui-mode="radial-menu"] .mini-player-card--active[data-monster*="meka dragon"]::before {
+.mini-player-card--active[data-monster="meka-dragon"]::before,
+body[data-mobile-ui-mode="radial-menu"] .mini-player-card--active[data-monster="meka-dragon"]::before {
   content: '';
   position: absolute;
   top: -20px; left: -20px; right: -20px; bottom: -20px;
@@ -409,16 +409,16 @@ body[data-mobile-ui-mode="radial-menu"] .mini-player-card--active[data-monster*=
 }
 
 /* Space Penguin active */
-.mini-player-card--active[data-monster*="space penguin"] {
+.mini-player-card--active[data-monster="space-penguin"] {
   filter: drop-shadow(0 0 30px rgba(56, 189, 248, 0.8)) 
           drop-shadow(0 0 60px rgba(56, 189, 248, 0.6))
           drop-shadow(0 0 100px rgba(56, 189, 248, 0.3));
 }
-.mini-player-card--active[data-monster*="space penguin"] .mpc-card-inner {
+.mini-player-card--active[data-monster="space-penguin"] .mpc-card-inner {
   border: 3px solid #38bdf8 !important;
   box-shadow: 0 0 8px rgba(56, 189, 248, 0.6), 0 2px 6px rgba(0,0,0,0.4);
 }
-.mini-player-card--active[data-monster*="space penguin"]::before {
+.mini-player-card--active[data-monster="space-penguin"]::before {
   content: '';
   position: absolute;
   top: -20px; left: -20px; right: -20px; bottom: -20px;
@@ -427,16 +427,16 @@ body[data-mobile-ui-mode="radial-menu"] .mini-player-card--active[data-monster*=
 }
 
 /* The King active */
-.mini-player-card--active[data-monster*="king"] {
+.mini-player-card--active[data-monster="the-king"] {
   filter: drop-shadow(0 0 30px rgba(245, 158, 11, 0.8)) 
           drop-shadow(0 0 60px rgba(245, 158, 11, 0.6))
           drop-shadow(0 0 100px rgba(245, 158, 11, 0.3));
 }
-.mini-player-card--active[data-monster*="king"] .mpc-card-inner {
+.mini-player-card--active[data-monster="the-king"] .mpc-card-inner {
   border: 3px solid #f59e0b !important;
   box-shadow: 0 0 8px rgba(245, 158, 11, 0.6), 0 2px 6px rgba(0,0,0,0.4);
 }
-.mini-player-card--active[data-monster*="king"]::before {
+.mini-player-card--active[data-monster="the-king"]::before {
   content: '';
   position: absolute;
   top: -20px; left: -20px; right: -20px; bottom: -20px;
@@ -445,16 +445,16 @@ body[data-mobile-ui-mode="radial-menu"] .mini-player-card--active[data-monster*=
 }
 
 /* Fallback for unmatched monsters - use yellow as default */
-.mini-player-card--active:not([data-monster*="alienoid"]):not([data-monster*="cyber bunny"]):not([data-monster*="cyber kitty"]):not([data-monster*="gigazaur"]):not([data-monster*="kraken"]):not([data-monster*="meka dragon"]):not([data-monster*="space penguin"]):not([data-monster*="king"]) {
+.mini-player-card--active:not([data-monster="alienoid"]):not([data-monster="cyberbunny"]):not([data-monster="cyber-kitty"]):not([data-monster="gigazaur"]):not([data-monster="kraken"]):not([data-monster="meka-dragon"]):not([data-monster="space-penguin"]):not([data-monster="the-king"]) {
   filter: drop-shadow(0 0 30px rgba(255, 207, 51, 0.8)) 
           drop-shadow(0 0 60px rgba(255, 207, 51, 0.6))
           drop-shadow(0 0 100px rgba(255, 207, 51, 0.3));
 }
-.mini-player-card--active:not([data-monster*="alienoid"]):not([data-monster*="cyber bunny"]):not([data-monster*="cyber kitty"]):not([data-monster*="gigazaur"]):not([data-monster*="kraken"]):not([data-monster*="meka dragon"]):not([data-monster*="space penguin"]):not([data-monster*="king"]) .mpc-card-inner {
+.mini-player-card--active:not([data-monster="alienoid"]):not([data-monster="cyberbunny"]):not([data-monster="cyber-kitty"]):not([data-monster="gigazaur"]):not([data-monster="kraken"]):not([data-monster="meka-dragon"]):not([data-monster="space-penguin"]):not([data-monster="the-king"]) .mpc-card-inner {
   border: 3px solid #ffcf33 !important;
   box-shadow: 0 0 8px rgba(255, 207, 51, 0.6), 0 2px 6px rgba(0,0,0,0.4);
 }
-.mini-player-card--active:not([data-monster*="alienoid"]):not([data-monster*="cyber bunny"]):not([data-monster*="cyber kitty"]):not([data-monster*="gigazaur"]):not([data-monster*="kraken"]):not([data-monster*="meka dragon"]):not([data-monster*="space penguin"]):not([data-monster*="king"])::before {
+.mini-player-card--active:not([data-monster="alienoid"]):not([data-monster="cyberbunny"]):not([data-monster="cyber-kitty"]):not([data-monster="gigazaur"]):not([data-monster="kraken"]):not([data-monster="meka-dragon"]):not([data-monster="space-penguin"]):not([data-monster="the-king"])::before {
   content: '';
   position: absolute;
   top: -20px; left: -20px; right: -20px; bottom: -20px;

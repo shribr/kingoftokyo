@@ -204,13 +204,13 @@
         "description": "Patient hunter - good strategy with willingness to take calculated risks"
       }
     },
-    "kinghull": {
+    "the-king": {
       "personality": { "aggression": 5, "strategy": 2, "risk": 3 },
       "specialRules": {
         "description": "Alpha predator - maximum aggression with direct approach"
       }
     },
-    "megalodon": {
+    "meka-dragon": {
       "personality": { "aggression": 4, "strategy": 3, "risk": 5 },
       "specialRules": {
         "description": "Mechanical dragon - fearless and willing to take maximum risks"
@@ -219,7 +219,19 @@
     "alienoid": {
       "personality": { "aggression": 2, "strategy": 5, "risk": 4 },
       "specialRules": {
-        "description": "Alien intelligence - prefers observation and strategic analysis over direct conflict"
+        "description": "Advanced alien intelligence - maximum strategy with exploration risks"
+      }
+    },
+    "cyber-kitty": {
+      "personality": { "aggression": 3, "strategy": 3, "risk": 4 },
+      "specialRules": {
+        "description": "Feline fury - balanced approach with high risk tolerance"
+      }
+    },
+    "space-penguin": {
+      "personality": { "aggression": 2, "strategy": 4, "risk": 2 },
+      "specialRules": {
+        "description": "Cool cosmic invader - high strategy with calculated caution"
       }
     }
   },
