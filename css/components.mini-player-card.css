@@ -28,7 +28,7 @@
   width: 100%;
   height: 100%;
   border: 2px solid #000;
-  border-radius: 6px;
+  border-radius: 0; /* No rounded corners */
   box-shadow: 0 2px 6px rgba(0,0,0,0.4);
   display: flex;
   align-items: center;
@@ -47,23 +47,33 @@
   opacity: 1 !important; /* Force full opacity */
 }
 
-/* Active player indicator - subtle border (no orange) */
+/* Active player indicator - circular dice badge positioned outside card */
 .mpc-active-indicator {
   position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
+  bottom: -8px; /* Position below the card */
+  width: 24px;
+  height: 24px;
   background: #fff;
-  border-top-left-radius: 4px;
-  border-bottom-left-radius: 4px;
+  border: 2px solid #000;
+  border-radius: 50%; /* Make it circular */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.mpc-active-indicator::before {
+  content: '🎲';
+  font-size: 12px;
+  line-height: 1;
 }
 
 /* Profile image - square on left side, zoomed to show headshot */
 .mpc-profile {
   width: 40px;
   height: 40px;
-  border-radius: 4px;
+  border-radius: 0; /* No rounded corners */
   background-color: #fff; /* White background for headshots */
   background-size: 150%; /* Zoom in to show headshot area */
   background-position: center 20%; /* Focus on upper portion (head) */
@@ -77,8 +87,9 @@
   grid-template-columns: 1fr 1fr; /* 2 columns */
   grid-template-rows: 1fr 1fr; /* 2 rows */
   gap: 2px 4px; /* vertical gap, horizontal gap */
-  flex: 1;
+  flex: 0 0 auto; /* Don't grow or shrink, use natural size */
   min-width: 0;
+  width: 60px; /* Fixed width for consistent layout */
 }
 
 /* Individual stat - horizontal row */
@@ -151,35 +162,35 @@
 
 /* Position variants - 6 slots: 4 corners + 2 middle sides */
 .mini-player-card--top-left {
-  top: 10px; /* Close to perimeter */
-  left: 2vw;
+  top: 8px; /* Close to perimeter */
+  left: 8px;
 }
 
 .mini-player-card--top-left-title {
   top: 50%; /* Middle left side */
-  left: 2vw;
+  left: 8px;
   transform: translateY(-50%);
 }
 
 .mini-player-card--top-right-title {
   top: 50%; /* Middle right side where radial launcher was */
-  right: 2vw;
+  right: 8px;
   transform: translateY(-50%);
 }
 
 .mini-player-card--top-right {
-  top: 10px; /* Close to perimeter */
-  right: 2vw; /* Same distance as left side for symmetry */
+  top: 8px; /* Close to perimeter */
+  right: 8px; /* Same distance as left side for symmetry */
 }
 
 .mini-player-card--bottom-left {
-  bottom: 2vh; /* Match top spacing */
-  left: 2vw;
+  bottom: 8px; /* Match edge spacing */
+  left: 8px;
 }
 
 .mini-player-card--bottom-right {
-  bottom: 2vh; /* Match top spacing */
-  right: 2vw;
+  bottom: 8px; /* Match edge spacing */
+  right: 8px;
 }
 
 /* Flip layout for right-side cards - profile on right, stats on left */
@@ -187,6 +198,7 @@
 .mini-player-card--top-right-title .mpc-card-inner,
 .mini-player-card--bottom-right .mpc-card-inner {
   flex-direction: row-reverse;
+  justify-content: flex-start; /* Ensure content is aligned to start */
 }
 
 /* Also flip left-side cards so profiles face inward */
@@ -194,21 +206,20 @@
 .mini-player-card--top-left-title .mpc-card-inner,
 .mini-player-card--bottom-left .mpc-card-inner {
   flex-direction: row-reverse;
+  justify-content: flex-start; /* Ensure content is aligned to start */
 }
 
-/* Move active indicator to right side for ALL cards (since all are flipped) */
-.mini-player-card--top-right .mpc-active-indicator,
-.mini-player-card--top-right-title .mpc-active-indicator,
-.mini-player-card--bottom-right .mpc-active-indicator,
+/* Position dice indicator - next to bottom corners with slight overlap */
 .mini-player-card--top-left .mpc-active-indicator,
 .mini-player-card--top-left-title .mpc-active-indicator,
 .mini-player-card--bottom-left .mpc-active-indicator {
-  left: auto;
-  right: 0;
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
-  border-top-right-radius: 4px;
-  border-bottom-right-radius: 4px;
+  right: -8px; /* Next to bottom right corner for left-side cards */
+}
+
+.mini-player-card--top-right .mpc-active-indicator,
+.mini-player-card--top-right-title .mpc-active-indicator,
+.mini-player-card--bottom-right .mpc-active-indicator {
+  left: -8px; /* Next to bottom left corner for right-side cards */
 }
 
 /* Hide active indicator for empty cards */

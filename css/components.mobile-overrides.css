@@ -942,12 +942,12 @@ body.splash-visible .cmp-splash {
   
   /* Make Tokyo TILES (entire sections) pivoted/rotated like desktop, smaller, and moved toward center */
   body[data-mobile-ui-mode="radial-menu"] [data-arena-section="city"] {
-    transform: rotate(-8deg) scale(0.6) translate(10vw, -15vh);
+    transform: rotate(-8deg) scale(0.6) translate(10vw, -25vh);
     transform-origin: center center;
   }
   
   body[data-mobile-ui-mode="radial-menu"] [data-arena-section="bay"] {
-    transform: rotate(8deg) scale(0.6) translate(-10vw, -15vh);
+    transform: rotate(8deg) scale(0.6) translate(-10vw, -25vh);
     transform-origin: center center;
   }
   
@@ -968,9 +968,11 @@ body.splash-visible .cmp-splash {
   }
   
   /* Increase Tokyo title sizes */
-  body[data-mobile-ui-mode="radial-menu"] .tokyo-bay h3,
-  body[data-mobile-ui-mode="radial-menu"] .tokyo-city h3 {
-    font-size: 48px !important;
+  body[data-mobile-ui-mode="radial-menu"] .cmp-arena [data-arena-section="bay"] > h3,
+  body[data-mobile-ui-mode="radial-menu"] .cmp-arena [data-arena-section="city"] > h3 {
+    font-size: 32px !important;
+    line-height: 1.2 !important;
+    font-weight: bold !important;
   }
   
   /* Make EMPTY text larger in slots */
@@ -983,13 +985,19 @@ body.splash-visible .cmp-splash {
   /* Add padding to Tokyo tiles and their slots */
   body[data-mobile-ui-mode="radial-menu"] .tokyo-bay,
   body[data-mobile-ui-mode="radial-menu"] .tokyo-city {
-    padding: 20px !important;
+    padding: 30px !important;
+  }
+  
+  /* Remove rounded corners from Tokyo slots */
+  body[data-mobile-ui-mode="radial-menu"] .cmp-arena .city-slot,
+  body[data-mobile-ui-mode="radial-menu"] .cmp-arena .bay-slot {
+    border-radius: 0 !important;
   }
   
   /* Add padding between dashed slot inner divs and parent containers */
   body[data-mobile-ui-mode="radial-menu"] .active-player-slot,
   body[data-mobile-ui-mode="radial-menu"] .player-slot {
-    padding: 16px !important;
+    padding: 24px !important;
   }
   
   /* Show dice tray always in radial-menu mode, positioned at bottom-left */
@@ -997,8 +1005,8 @@ body.splash-visible .cmp-splash {
     display: flex !important;
     visibility: visible !important;
     position: fixed !important;
-    bottom: 2vh !important;
-    left: calc(120px + 2vw + 20px) !important; /* After mini player card (120px) + spacing */
+    bottom: 8px !important;
+    left: calc(120px + 8px + 20px) !important; /* After mini player card (120px) + edge spacing (8px) + gap */
     z-index: 5350 !important;
   }
   

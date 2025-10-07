@@ -55,7 +55,7 @@
 .mpc-card-inner {
   width: 100%;
   height: 100%;
-  border-radius: 8px;
+  border-radius: 0; /* No rounded corners */
   border: 2px solid;
   padding: 4px 6px;
   display: flex;

@@ -12,8 +12,8 @@ body:not([data-mobile-ui-mode="radial-menu"]) .cmp-mini-deck {
 body[data-mobile-ui-mode="radial-menu"] .cmp-mini-deck {
   display: block;
   position: fixed;
-  bottom: 2vh;
-  right: calc(60px + 20px + 70px + 20px + 2vw); /* radial button (60px) + gap + deck width (70px) + gap + edge margin */
+  bottom: 8px;
+  right: calc(60px + 20px + 70px + 20px + 8px); /* radial button (60px) + gap + deck width (70px) + gap + edge margin */
   z-index: 5350; /* Below modals */
 }
 
@@ -26,7 +26,7 @@ body[data-mobile-ui-mode="radial-menu"] .cmp-mini-deck {
     linear-gradient(135deg,#2c5234,#1a3d20);
   background-size: 6px 6px, 100% 100%;
   border: 2px solid #000;
-  border-radius: 4px;
+  border-radius: 0; /* No rounded corners */
   box-shadow:
     inset 0 0 10px rgba(0,0,0,0.3),
     inset -1px -1px 4px rgba(0,0,0,0.4),
@@ -51,7 +51,7 @@ body[data-mobile-ui-mode="radial-menu"] .cmp-mini-deck {
   height: 100%;
   background: linear-gradient(135deg,#234429,#15301a);
   border: 2px solid #000;
-  border-radius: 4px;
+  border-radius: 0; /* No rounded corners */
   z-index: -1;
   box-shadow: 2px 2px 0 #000;
   transform: rotate(-1.5deg);
@@ -66,7 +66,7 @@ body[data-mobile-ui-mode="radial-menu"] .cmp-mini-deck {
   height: 100%;
   background: linear-gradient(135deg,#1a3520,#0e2314);
   border: 2px solid #000;
-  border-radius: 4px;
+  border-radius: 0; /* No rounded corners */
   z-index: -2;
   box-shadow: 2px 2px 0 #000;
   transform: rotate(2deg);
