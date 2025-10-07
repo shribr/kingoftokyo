@@ -251,17 +251,43 @@
   justify-content: flex-start; /* Ensure content is aligned to start */
 }
 
-/* Position dice indicator - overlapping bottom corners, full circle visible */
-.mini-player-card--top-left .mpc-active-indicator,
-.mini-player-card--top-left-title .mpc-active-indicator,
-.mini-player-card--bottom-left .mpc-active-indicator {
-  right: -4px; /* Overlap bottom right corner for left-side cards */
+/* Position dice indicator - corner-specific positioning for better visual balance */
+/* Top-left card: bottom-right corner */
+.mini-player-card--top-left .mpc-active-indicator {
+  right: -4px;
+  bottom: -4px;
 }
 
-.mini-player-card--top-right .mpc-active-indicator,
-.mini-player-card--top-right-title .mpc-active-indicator,
+/* Middle-left card: bottom-right corner */
+.mini-player-card--top-left-title .mpc-active-indicator {
+  right: -4px;
+  bottom: -4px;
+}
+
+/* Top-right card: bottom-left corner */
+.mini-player-card--top-right .mpc-active-indicator {
+  left: -4px;
+  bottom: -4px;
+}
+
+/* Middle-right card: bottom-left corner */
+.mini-player-card--top-right-title .mpc-active-indicator {
+  left: -4px;
+  bottom: -4px;
+}
+
+/* Bottom-left card: top-right corner */
+.mini-player-card--bottom-left .mpc-active-indicator {
+  right: -4px;
+  top: -4px;
+  bottom: auto;
+}
+
+/* Bottom-right card: top-left corner */
 .mini-player-card--bottom-right .mpc-active-indicator {
-  left: -4px; /* Overlap bottom left corner for right-side cards */
+  left: -4px;
+  top: -4px;
+  bottom: auto;
 }
 
 /* Hide active indicator for empty cards */
@@ -361,17 +387,20 @@
   z-index: -1; border-radius: 20px;
 }
 
-/* Meka Dragon active */
-.mini-player-card--active[data-monster*="meka dragon"] {
+/* Meka Dragon active - enhanced with higher specificity */
+.mini-player-card--active[data-monster*="meka dragon"],
+body[data-mobile-ui-mode="radial-menu"] .mini-player-card--active[data-monster*="meka dragon"] {
   filter: drop-shadow(0 0 30px rgba(163, 163, 163, 0.8)) 
           drop-shadow(0 0 60px rgba(163, 163, 163, 0.6))
           drop-shadow(0 0 100px rgba(163, 163, 163, 0.3));
 }
-.mini-player-card--active[data-monster*="meka dragon"] .mpc-card-inner {
+.mini-player-card--active[data-monster*="meka dragon"] .mpc-card-inner,
+body[data-mobile-ui-mode="radial-menu"] .mini-player-card--active[data-monster*="meka dragon"] .mpc-card-inner {
   border: 3px solid #a3a3a3 !important;
   box-shadow: 0 0 8px rgba(163, 163, 163, 0.6), 0 2px 6px rgba(0,0,0,0.4);
 }
-.mini-player-card--active[data-monster*="meka dragon"]::before {
+.mini-player-card--active[data-monster*="meka dragon"]::before,
+body[data-mobile-ui-mode="radial-menu"] .mini-player-card--active[data-monster*="meka dragon"]::before {
   content: '';
   position: absolute;
   top: -20px; left: -20px; right: -20px; bottom: -20px;

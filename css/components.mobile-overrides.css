@@ -1038,21 +1038,29 @@ body.splash-visible .cmp-splash {
     transform: translateX(0) !important; /* Force visible even when marked as collapsed */
   }
   
-  /* Scale down dice tray for mini dice in radial-menu mode */
-  body[data-mobile-ui-mode="radial-menu"] .cmp-dice-tray {
-    /* Reduce overall tray size for mini dice */
-    height: 60px !important;
-    padding: 8px !important;
-    /* Force position near bottom-left mini player card - override all JavaScript positioning */
+  /* Position dice tray in radial-menu mode with maximum specificity to override JavaScript */
+  body[data-mobile-ui-mode="radial-menu"] .cmp-dice-tray#dice-tray {
     position: fixed !important;
-    left: calc(120px + 16px) !important; /* Mini player card width (120px) + small gap (16px) */
-    bottom: 16px !important;
-    right: auto !important; /* Override any right positioning */
-    top: auto !important; /* Override any top positioning */
-    width: 300px !important; /* Fixed width instead of calc values */
+    left: 128px !important; /* Next to bottom-left mini player card */
+    bottom: 8px !important;
+    height: 60px !important;
+    width: 300px !important;
+    padding: 8px !important;
+    right: auto !important;
+    top: auto !important;
+    transform: none !important;
     max-width: 300px !important;
-    transform: translateX(0) !important; /* Override any JavaScript transforms */
-    margin: 0 !important;
+    min-width: 300px !important;
+  }
+  
+  /* Additional high-specificity rule to combat JavaScript inline styles */
+  body[data-mobile-ui-mode="radial-menu"] div.cmp-dice-tray#dice-tray[data-component="dice-tray"] {
+    left: 128px !important;
+    bottom: 8px !important;
+    position: fixed !important;
+    transform: none !important;
+    right: unset !important;
+    top: unset !important;
   }
   
   /* Ensure "No Power Cards" text appears below dice tray */
@@ -1074,6 +1082,10 @@ body.splash-visible .cmp-splash {
     transform: none !important; /* Remove the translateX(-50%) */
     right: calc(120px + 60px + 32px) !important; /* Mini card (120px) + launcher (60px) + gaps */
     max-width: 200px !important; /* Smaller width to fit */
+    bottom: 8px !important; /* Align with mini player cards */
+    height: 60px !important; /* Match mini player card height */
+    border: 1px solid rgba(200, 200, 200, 0.3) !important; /* Light gray border */
+    border-top: 1px solid rgba(200, 200, 200, 0.3) !important; /* Override existing border-top */
   }
   
   /* Force mini player cards below unleash screen and other modals */

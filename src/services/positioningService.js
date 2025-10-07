@@ -212,7 +212,10 @@ export function createPositioningService(store) {
       // Check if user has dragged the dice tray - if so, don't override their position
       const diceHasPersistedPosition = store.getState().ui?.positions?.diceTray;
       
-      if (toolbar && pauseButton && diceBox && !diceHasPersistedPosition) {
+      // Skip positioning in radial-menu mode (uses CSS positioning instead)
+      const isRadialMode = document.body.getAttribute('data-mobile-ui-mode') === 'radial-menu';
+      
+      if (toolbar && pauseButton && diceBox && !diceHasPersistedPosition && !isRadialMode) {
         const toolbarRect = toolbar.getBoundingClientRect();
         const pauseRect = pauseButton.getBoundingClientRect();
         const diceRect = diceBox.getBoundingClientRect();
@@ -234,7 +237,8 @@ export function createPositioningService(store) {
       // Check if user has dragged the action menu
       const menuHasPersistedPosition = store.getState().ui?.positions?.actionMenu;
       
-      if (toolbar && actionMenu && !menuHasPersistedPosition) {
+      // Skip action menu positioning in radial-menu mode (uses radial menu instead)
+      if (toolbar && actionMenu && !menuHasPersistedPosition && !isRadialMode) {
         // Position action menu using CSS default values (bottom: 140px, right: 370px)
         // Convert to viewport units for consistency
         const actionRect = actionMenu.getBoundingClientRect();
@@ -331,7 +335,10 @@ export function createPositioningService(store) {
     // Check if user has dragged the dice tray - if so, don't override their position
     const diceHasPersistedPosition = store.getState().ui?.positions?.diceTray;
     
-    if (toolbar && pauseButton && diceBox && !diceHasPersistedPosition) {
+    // Skip positioning in radial-menu mode (uses CSS positioning instead)
+    const isRadialMode = document.body.getAttribute('data-mobile-ui-mode') === 'radial-menu';
+    
+    if (toolbar && pauseButton && diceBox && !diceHasPersistedPosition && !isRadialMode) {
       const toolbarRect = toolbar.getBoundingClientRect();
       const pauseRect = pauseButton.getBoundingClientRect();
       const diceRect = diceBox.getBoundingClientRect();
@@ -357,7 +364,8 @@ export function createPositioningService(store) {
     
     console.log('[applyDefaultPositioning] Action menu persisted:', menuHasPersistedPosition);
     
-    if (actionMenu && !menuHasPersistedPosition) {
+    // Skip action menu positioning in radial-menu mode (uses radial menu instead)
+    if (actionMenu && !menuHasPersistedPosition && !isRadialMode) {
       // Position action menu using CSS default values (bottom: 140px, right: 370px)
       // Convert to viewport units for consistency
       const viewportWidth = window.innerWidth;
