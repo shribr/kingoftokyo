@@ -5,9 +5,8 @@
 
 .radial-menu-container {
   position: fixed;
-  top: 50%;
-  right: 2vw;
-  transform: translateY(-50%);
+  bottom: 2vh;
+  right: calc(70px + 20px + 2vw); /* Right of mini deck (70px width + gap + edge margin) */
   z-index: 5500; /* Below modals (10500) but above normal UI */
   pointer-events: none;
   transition: none; /* Launcher never moves */

@@ -940,14 +940,14 @@ body.splash-visible .cmp-splash {
     visibility: hidden !important;
   }
   
-  /* Make Tokyo TILES (entire sections) pivoted/rotated like desktop, smaller, and shifted up */
+  /* Make Tokyo TILES (entire sections) pivoted/rotated like desktop, smaller, and moved toward center */
   body[data-mobile-ui-mode="radial-menu"] [data-arena-section="city"] {
-    transform: rotate(-8deg) scale(0.6) translateY(-15vh);
+    transform: rotate(-8deg) scale(0.6) translate(10vw, -15vh);
     transform-origin: center center;
   }
   
   body[data-mobile-ui-mode="radial-menu"] [data-arena-section="bay"] {
-    transform: rotate(8deg) scale(0.6) translateY(-15vh);
+    transform: rotate(8deg) scale(0.6) translate(-10vw, -15vh);
     transform-origin: center center;
   }
   
@@ -998,7 +998,7 @@ body.splash-visible .cmp-splash {
     visibility: visible !important;
     position: fixed !important;
     bottom: 2vh !important;
-    left: calc(80px + 2vw + 20px) !important; /* After mini player card + spacing */
+    left: calc(120px + 2vw + 20px) !important; /* After mini player card (120px) + spacing */
     z-index: 5350 !important;
   }
   

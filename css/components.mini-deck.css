@@ -8,12 +8,12 @@ body:not([data-mobile-ui-mode="radial-menu"]) .cmp-mini-deck {
   display: none;
 }
 
-/* Show in radial-menu mode - positioned at bottom-right with same spacing as dice tray on left */
+/* Show in radial-menu mode - positioned at bottom between power cards and radial launcher */
 body[data-mobile-ui-mode="radial-menu"] .cmp-mini-deck {
   display: block;
   position: fixed;
   bottom: 2vh;
-  right: calc(120px + 2vw + 20px); /* Same spacing pattern as dice tray: card width + edge margin + gap */
+  right: calc(60px + 20px + 70px + 20px + 2vw); /* radial button (60px) + gap + deck width (70px) + gap + edge margin */
   z-index: 5350; /* Below modals */
 }
 

@@ -15,8 +15,8 @@
 /* Base card styling - rectangular horizontal card */
 .mini-player-card {
   position: absolute;
-  width: 140px; /* Increased from 120px */
-  height: 70px; /* Increased from 60px */
+  width: 120px; /* Reduced from 140px for more compact layout */
+  height: 60px; /* Reduced from 70px for more compact layout */
   pointer-events: auto;
   transition: all 0.3s ease;
   z-index: 9998; /* Just below replay overlay */
@@ -32,8 +32,8 @@
   box-shadow: 0 2px 6px rgba(0,0,0,0.4);
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 8px; /* Increased horizontal padding */
+  gap: 4px;
+  padding: 3px 6px; /* Reduced padding for more compact layout */
   cursor: pointer;
   position: relative;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -61,8 +61,8 @@
 
 /* Profile image - square on left side, zoomed to show headshot */
 .mpc-profile {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border-radius: 4px;
   background-color: #fff; /* White background for headshots */
   background-size: 150%; /* Zoom in to show headshot area */
@@ -86,13 +86,13 @@
   display: flex;
   align-items: center;
   gap: 2px; /* Reduced gap for tighter layout */
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 600;
   color: #fff;
 }
 
 .mpc-stat-icon {
-  font-size: 10px;
+  font-size: 9px;
   flex-shrink: 0;
 }
 
@@ -106,16 +106,16 @@
 /* Player name - absolute positioned at bottom */
 .mpc-name {
   position: absolute;
-  bottom: -16px;
+  bottom: -14px;
   left: 0;
   right: 0;
   text-align: center;
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 600;
   color: rgba(255,255,255,0.9);
   text-shadow: 0 1px 2px rgba(0,0,0,0.5);
   white-space: nowrap;
-  max-width: 120px;
+  max-width: 110px;
   overflow: hidden;
   text-overflow: ellipsis;
   z-index: 1;
@@ -149,20 +149,22 @@
   opacity: 0.5;
 }
 
-/* Position variants - 6 slots: 4 corners + 2 top positions next to title */
+/* Position variants - 6 slots: 4 corners + 2 middle sides */
 .mini-player-card--top-left {
   top: 10px; /* Close to perimeter */
   left: 2vw;
 }
 
 .mini-player-card--top-left-title {
-  top: 10px; /* Close to perimeter */
-  left: 20vw; /* Slightly closer to left edge */
+  top: 50%; /* Middle left side */
+  left: 2vw;
+  transform: translateY(-50%);
 }
 
 .mini-player-card--top-right-title {
-  top: 10px; /* Close to perimeter */
-  right: 20vw; /* Slightly closer to right edge */
+  top: 50%; /* Middle right side where radial launcher was */
+  right: 2vw;
+  transform: translateY(-50%);
 }
 
 .mini-player-card--top-right {
