@@ -699,7 +699,7 @@ function showScenarioAppliedNotification(assignments) {
       font-size: 14px;
       font-weight: 600;
       box-shadow: 3px 3px 0 #000, 0 4px 12px rgba(0,0,0,0.5);
-      z-index: 10000;
+      z-index: 400;
       animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s;
       pointer-events: none;
     `;
@@ -754,7 +754,7 @@ function showScenarioErrorNotification() {
       font-size: 14px;
       font-weight: 600;
       box-shadow: 3px 3px 0 #000, 0 4px 12px rgba(0,0,0,0.5);
-      z-index: 10000;
+      z-index: 400;
       animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s;
       pointer-events: none;
     `;

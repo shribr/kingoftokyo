@@ -539,7 +539,7 @@
 		"eventsIn": [],
 		"initialState": {},
 		"assets": [],
-		"zIndex": 9400
+		"zIndex": 5000
 	},
 	{
 		"name": "miniPowerCards",

@@ -9,7 +9,7 @@
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 9998; /* Just below replay overlay (9999) */
+  z-index: 9500; /* Below unleash/modal screens (12000) and replay overlay (9999) */
 }
 
 /* Base card styling - rectangular horizontal card */
@@ -19,7 +19,7 @@
   height: 60px; /* Reduced from 70px for more compact layout */
   pointer-events: auto;
   transition: all 0.3s ease;
-  z-index: 9998; /* Just below replay overlay */
+  z-index: 9500; /* Below unleash/modal screens (12000) and replay overlay (9999) */
   opacity: 1; /* Ensure full opacity */
 }
 
@@ -32,7 +32,7 @@
   box-shadow: 0 2px 6px rgba(0,0,0,0.4);
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   padding: 3px 6px; /* Reduced padding for more compact layout */
   cursor: pointer;
   position: relative;
@@ -41,16 +41,58 @@
   overflow: visible; /* Ensure children aren't clipped */
 }
 
-.mpc-card-inner:hover {
+.mpc-card-inner:hover,
+.mpc-card-inner:active {
   transform: scale(1.05);
   box-shadow: 0 4px 10px rgba(0,0,0,0.5);
   opacity: 1 !important; /* Force full opacity */
 }
 
-/* Active player indicator - circular dice badge positioned outside card */
+/* Monster-specific hover/touch border colors */
+.mini-player-card[data-monster*="alienoid"] .mpc-card-inner:hover,
+.mini-player-card[data-monster*="alienoid"] .mpc-card-inner:active {
+  border-color: #1496b4 !important;
+}
+
+.mini-player-card[data-monster*="cyber bunny"] .mpc-card-inner:hover,
+.mini-player-card[data-monster*="cyber bunny"] .mpc-card-inner:active {
+  border-color: #f472b6 !important;
+}
+
+.mini-player-card[data-monster*="cyber kitty"] .mpc-card-inner:hover,
+.mini-player-card[data-monster*="cyber kitty"] .mpc-card-inner:active {
+  border-color: #ec4899 !important;
+}
+
+.mini-player-card[data-monster*="gigazaur"] .mpc-card-inner:hover,
+.mini-player-card[data-monster*="gigazaur"] .mpc-card-inner:active {
+  border-color: #22c55e !important;
+}
+
+.mini-player-card[data-monster*="kraken"] .mpc-card-inner:hover,
+.mini-player-card[data-monster*="kraken"] .mpc-card-inner:active {
+  border-color: #3b82f6 !important;
+}
+
+.mini-player-card[data-monster*="meka dragon"] .mpc-card-inner:hover,
+.mini-player-card[data-monster*="meka dragon"] .mpc-card-inner:active {
+  border-color: #a3a3a3 !important;
+}
+
+.mini-player-card[data-monster*="space penguin"] .mpc-card-inner:hover,
+.mini-player-card[data-monster*="space penguin"] .mpc-card-inner:active {
+  border-color: #38bdf8 !important;
+}
+
+.mini-player-card[data-monster*="king"] .mpc-card-inner:hover,
+.mini-player-card[data-monster*="king"] .mpc-card-inner:active {
+  border-color: #f59e0b !important;
+}
+
+/* Active player indicator - circular dice badge overlapping card corner */
 .mpc-active-indicator {
   position: absolute;
-  bottom: -8px; /* Position below the card */
+  bottom: -4px; /* Overlap the bottom edge of the card */
   width: 24px;
   height: 24px;
   background: #fff;
@@ -86,7 +128,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr; /* 2 columns */
   grid-template-rows: 1fr 1fr; /* 2 rows */
-  gap: 2px 4px; /* vertical gap, horizontal gap */
+  gap: 2px 1px; /* vertical gap, horizontal gap */
   flex: 0 0 auto; /* Don't grow or shrink, use natural size */
   min-width: 0;
   width: 60px; /* Fixed width for consistent layout */
@@ -136,13 +178,13 @@
 .mini-player-card--empty {
   opacity: 1; /* Fully visible like occupied cards */
   pointer-events: none;
-  z-index: 9998; /* Same as other cards */
+  z-index: 9500; /* Same as other cards */
 }
 
 /* Ensure non-empty cards are fully opaque */
 .mini-player-card:not(.mini-player-card--empty) {
   opacity: 1 !important;
-  z-index: 9998; /* Just below replay overlay */
+  z-index: 9500; /* Below unleash/modal screens (12000) and replay overlay (9999) */
 }
 
 .mini-player-card--empty .mpc-card-inner {
@@ -209,17 +251,17 @@
   justify-content: flex-start; /* Ensure content is aligned to start */
 }
 
-/* Position dice indicator - next to bottom corners with slight overlap */
+/* Position dice indicator - overlapping bottom corners, full circle visible */
 .mini-player-card--top-left .mpc-active-indicator,
 .mini-player-card--top-left-title .mpc-active-indicator,
 .mini-player-card--bottom-left .mpc-active-indicator {
-  right: -8px; /* Next to bottom right corner for left-side cards */
+  right: -4px; /* Overlap bottom right corner for left-side cards */
 }
 
 .mini-player-card--top-right .mpc-active-indicator,
 .mini-player-card--top-right-title .mpc-active-indicator,
 .mini-player-card--bottom-right .mpc-active-indicator {
-  left: -8px; /* Next to bottom left corner for right-side cards */
+  left: -4px; /* Overlap bottom left corner for right-side cards */
 }
 
 /* Hide active indicator for empty cards */
@@ -227,10 +269,168 @@
   display: none;
 }
 
-/* Active player highlight - subtle white border */
-.mini-player-card--active .mpc-profile {
-  border-color: #fff;
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.8), 0 2px 8px rgba(0,0,0,0.3);
+/* Active player highlight - Monster-themed colors */
+
+/* Alienoid active */
+.mini-player-card--active[data-monster*="alienoid"] {
+  filter: drop-shadow(0 0 30px rgba(20, 150, 180, 0.8)) 
+          drop-shadow(0 0 60px rgba(20, 150, 180, 0.6))
+          drop-shadow(0 0 100px rgba(20, 150, 180, 0.3));
+}
+.mini-player-card--active[data-monster*="alienoid"] .mpc-card-inner {
+  border: 3px solid #1496b4 !important;
+  box-shadow: 0 0 8px rgba(20, 150, 180, 0.6), 0 2px 6px rgba(0,0,0,0.4);
+}
+.mini-player-card--active[data-monster*="alienoid"]::before {
+  content: '';
+  position: absolute;
+  top: -20px; left: -20px; right: -20px; bottom: -20px;
+  background: radial-gradient(ellipse at center, rgba(20, 150, 180, 0.4) 0%, rgba(20, 150, 180, 0.2) 50%, transparent 80%);
+  z-index: -1; border-radius: 20px;
+}
+
+/* Cyber Bunny active */
+.mini-player-card--active[data-monster*="cyber bunny"] {
+  filter: drop-shadow(0 0 30px rgba(244, 114, 182, 0.8)) 
+          drop-shadow(0 0 60px rgba(244, 114, 182, 0.6))
+          drop-shadow(0 0 100px rgba(244, 114, 182, 0.3));
+}
+.mini-player-card--active[data-monster*="cyber bunny"] .mpc-card-inner {
+  border: 3px solid #f472b6 !important;
+  box-shadow: 0 0 8px rgba(244, 114, 182, 0.6), 0 2px 6px rgba(0,0,0,0.4);
+}
+.mini-player-card--active[data-monster*="cyber bunny"]::before {
+  content: '';
+  position: absolute;
+  top: -20px; left: -20px; right: -20px; bottom: -20px;
+  background: radial-gradient(ellipse at center, rgba(244, 114, 182, 0.4) 0%, rgba(244, 114, 182, 0.2) 50%, transparent 80%);
+  z-index: -1; border-radius: 20px;
+}
+
+/* Cyber Kitty active */
+.mini-player-card--active[data-monster*="cyber kitty"] {
+  filter: drop-shadow(0 0 30px rgba(236, 72, 153, 0.8)) 
+          drop-shadow(0 0 60px rgba(236, 72, 153, 0.6))
+          drop-shadow(0 0 100px rgba(236, 72, 153, 0.3));
+}
+.mini-player-card--active[data-monster*="cyber kitty"] .mpc-card-inner {
+  border: 3px solid #ec4899 !important;
+  box-shadow: 0 0 8px rgba(236, 72, 153, 0.6), 0 2px 6px rgba(0,0,0,0.4);
+}
+.mini-player-card--active[data-monster*="cyber kitty"]::before {
+  content: '';
+  position: absolute;
+  top: -20px; left: -20px; right: -20px; bottom: -20px;
+  background: radial-gradient(ellipse at center, rgba(236, 72, 153, 0.4) 0%, rgba(236, 72, 153, 0.2) 50%, transparent 80%);
+  z-index: -1; border-radius: 20px;
+}
+
+/* Gigazaur active */
+.mini-player-card--active[data-monster*="gigazaur"] {
+  filter: drop-shadow(0 0 30px rgba(34, 197, 94, 0.8)) 
+          drop-shadow(0 0 60px rgba(34, 197, 94, 0.6))
+          drop-shadow(0 0 100px rgba(34, 197, 94, 0.3));
+}
+.mini-player-card--active[data-monster*="gigazaur"] .mpc-card-inner {
+  border: 3px solid #22c55e !important;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.6), 0 2px 6px rgba(0,0,0,0.4);
+}
+.mini-player-card--active[data-monster*="gigazaur"]::before {
+  content: '';
+  position: absolute;
+  top: -20px; left: -20px; right: -20px; bottom: -20px;
+  background: radial-gradient(ellipse at center, rgba(34, 197, 94, 0.4) 0%, rgba(34, 197, 94, 0.2) 50%, transparent 80%);
+  z-index: -1; border-radius: 20px;
+}
+
+/* Kraken active */
+.mini-player-card--active[data-monster*="kraken"] {
+  filter: drop-shadow(0 0 30px rgba(59, 130, 246, 0.8)) 
+          drop-shadow(0 0 60px rgba(59, 130, 246, 0.6))
+          drop-shadow(0 0 100px rgba(59, 130, 246, 0.3));
+}
+.mini-player-card--active[data-monster*="kraken"] .mpc-card-inner {
+  border: 3px solid #3b82f6 !important;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.6), 0 2px 6px rgba(0,0,0,0.4);
+}
+.mini-player-card--active[data-monster*="kraken"]::before {
+  content: '';
+  position: absolute;
+  top: -20px; left: -20px; right: -20px; bottom: -20px;
+  background: radial-gradient(ellipse at center, rgba(59, 130, 246, 0.4) 0%, rgba(59, 130, 246, 0.2) 50%, transparent 80%);
+  z-index: -1; border-radius: 20px;
+}
+
+/* Meka Dragon active */
+.mini-player-card--active[data-monster*="meka dragon"] {
+  filter: drop-shadow(0 0 30px rgba(163, 163, 163, 0.8)) 
+          drop-shadow(0 0 60px rgba(163, 163, 163, 0.6))
+          drop-shadow(0 0 100px rgba(163, 163, 163, 0.3));
+}
+.mini-player-card--active[data-monster*="meka dragon"] .mpc-card-inner {
+  border: 3px solid #a3a3a3 !important;
+  box-shadow: 0 0 8px rgba(163, 163, 163, 0.6), 0 2px 6px rgba(0,0,0,0.4);
+}
+.mini-player-card--active[data-monster*="meka dragon"]::before {
+  content: '';
+  position: absolute;
+  top: -20px; left: -20px; right: -20px; bottom: -20px;
+  background: radial-gradient(ellipse at center, rgba(163, 163, 163, 0.4) 0%, rgba(163, 163, 163, 0.2) 50%, transparent 80%);
+  z-index: -1; border-radius: 20px;
+}
+
+/* Space Penguin active */
+.mini-player-card--active[data-monster*="space penguin"] {
+  filter: drop-shadow(0 0 30px rgba(56, 189, 248, 0.8)) 
+          drop-shadow(0 0 60px rgba(56, 189, 248, 0.6))
+          drop-shadow(0 0 100px rgba(56, 189, 248, 0.3));
+}
+.mini-player-card--active[data-monster*="space penguin"] .mpc-card-inner {
+  border: 3px solid #38bdf8 !important;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.6), 0 2px 6px rgba(0,0,0,0.4);
+}
+.mini-player-card--active[data-monster*="space penguin"]::before {
+  content: '';
+  position: absolute;
+  top: -20px; left: -20px; right: -20px; bottom: -20px;
+  background: radial-gradient(ellipse at center, rgba(56, 189, 248, 0.4) 0%, rgba(56, 189, 248, 0.2) 50%, transparent 80%);
+  z-index: -1; border-radius: 20px;
+}
+
+/* The King active */
+.mini-player-card--active[data-monster*="king"] {
+  filter: drop-shadow(0 0 30px rgba(245, 158, 11, 0.8)) 
+          drop-shadow(0 0 60px rgba(245, 158, 11, 0.6))
+          drop-shadow(0 0 100px rgba(245, 158, 11, 0.3));
+}
+.mini-player-card--active[data-monster*="king"] .mpc-card-inner {
+  border: 3px solid #f59e0b !important;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.6), 0 2px 6px rgba(0,0,0,0.4);
+}
+.mini-player-card--active[data-monster*="king"]::before {
+  content: '';
+  position: absolute;
+  top: -20px; left: -20px; right: -20px; bottom: -20px;
+  background: radial-gradient(ellipse at center, rgba(245, 158, 11, 0.4) 0%, rgba(245, 158, 11, 0.2) 50%, transparent 80%);
+  z-index: -1; border-radius: 20px;
+}
+
+/* Fallback for unmatched monsters - use yellow as default */
+.mini-player-card--active:not([data-monster*="alienoid"]):not([data-monster*="cyber bunny"]):not([data-monster*="cyber kitty"]):not([data-monster*="gigazaur"]):not([data-monster*="kraken"]):not([data-monster*="meka dragon"]):not([data-monster*="space penguin"]):not([data-monster*="king"]) {
+  filter: drop-shadow(0 0 30px rgba(255, 207, 51, 0.8)) 
+          drop-shadow(0 0 60px rgba(255, 207, 51, 0.6))
+          drop-shadow(0 0 100px rgba(255, 207, 51, 0.3));
+}
+.mini-player-card--active:not([data-monster*="alienoid"]):not([data-monster*="cyber bunny"]):not([data-monster*="cyber kitty"]):not([data-monster*="gigazaur"]):not([data-monster*="kraken"]):not([data-monster*="meka dragon"]):not([data-monster*="space penguin"]):not([data-monster*="king"]) .mpc-card-inner {
+  border: 3px solid #ffcf33 !important;
+  box-shadow: 0 0 8px rgba(255, 207, 51, 0.6), 0 2px 6px rgba(0,0,0,0.4);
+}
+.mini-player-card--active:not([data-monster*="alienoid"]):not([data-monster*="cyber bunny"]):not([data-monster*="cyber kitty"]):not([data-monster*="gigazaur"]):not([data-monster*="kraken"]):not([data-monster*="meka dragon"]):not([data-monster*="space penguin"]):not([data-monster*="king"])::before {
+  content: '';
+  position: absolute;
+  top: -20px; left: -20px; right: -20px; bottom: -20px;
+  background: radial-gradient(ellipse at center, rgba(255, 207, 51, 0.4) 0%, rgba(255, 207, 51, 0.2) 50%, transparent 80%);
+  z-index: -1; border-radius: 20px;
 }
 
 /* Only show in radial-menu mode */

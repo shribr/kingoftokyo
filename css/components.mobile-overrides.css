@@ -1024,4 +1024,10 @@ body.splash-visible .cmp-splash {
   body[data-mobile-ui-mode="radial-menu"] #action-menu-mobile-btn {
     display: none !important;
   }
+  
+  /* Force mini player cards below unleash screen and other modals */
+  body[data-mobile-ui-mode="radial-menu"] .cmp-mini-player-cards,
+  body[data-mobile-ui-mode="radial-menu"] .mini-player-card {
+    z-index: 5000 !important;
+  }
 }
