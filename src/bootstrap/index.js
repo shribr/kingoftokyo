@@ -140,6 +140,17 @@ if (typeof window !== 'undefined') {
     }
     
     document.body.setAttribute('data-mobile-ui-mode', mode);
+    
+    // Ensure dice tray is always visible in radial-menu mode
+    if (mode === 'radial-menu') {
+      try {
+        const diceTray = document.querySelector('.cmp-dice-tray');
+        if (diceTray) {
+          diceTray.setAttribute('data-collapsed', 'none');
+          diceTray.style.transform = 'translateX(0)';
+        }
+      } catch(_) {}
+    }
   };
   syncMobileUIMode();
   store.subscribe(syncMobileUIMode);
