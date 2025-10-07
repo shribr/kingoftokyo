@@ -12,9 +12,45 @@
   z-index: 9500; /* Below unleash/modal screens (12000) and replay overlay (9999) */
 }
 
+/* Container for card + name label */
+.mini-player-card-container {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: auto;
+}
+
+/* Player name label under card */
+.mini-player-card-name {
+  font-family: 'Bangers', cursive;
+  font-size: 12px;
+  color: #ffefa5;
+  text-align: center;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+  margin-top: 4px;
+  white-space: nowrap;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.mini-player-card-name--empty {
+  color: #888;
+  opacity: 0.6;
+  font-style: italic;
+}
+
+.mini-player-card-name--active {
+  color: #fff;
+  text-shadow: 0 0 4px #ffefa5, 1px 1px 2px rgba(0,0,0,0.8);
+}
+
 /* Base card styling - rectangular horizontal card */
 .mini-player-card {
-  position: absolute;
+  position: relative; /* Changed from absolute since container handles positioning */
   width: 120px; /* Reduced from 140px for more compact layout */
   height: 60px; /* Reduced from 70px for more compact layout */
   pointer-events: auto;
@@ -174,65 +210,96 @@
   z-index: 1;
 }
 
-/* Empty slot styling - same visual structure, just subdued */
+/* Empty slot styling - clearly grayed out and inactive */
 .mini-player-card--empty {
-  opacity: 1; /* Fully visible like occupied cards */
+  opacity: 0.4; /* More subdued appearance */
   pointer-events: none;
   z-index: 9500; /* Same as other cards */
+  filter: grayscale(1) brightness(0.7); /* Desaturated and darker */
 }
 
-/* Ensure non-empty cards are fully opaque */
+/* Ensure non-empty cards are fully opaque and colorful */
 .mini-player-card:not(.mini-player-card--empty) {
   opacity: 1 !important;
   z-index: 9500; /* Below unleash/modal screens (12000) and replay overlay (9999) */
+  filter: none; /* Ensure no filters applied to active cards */
 }
 
 .mini-player-card--empty .mpc-card-inner {
-  background: #999 !important; /* Medium gray for empty slots */
-  border-color: rgba(255,255,255,0.3);
+  background: #555 !important; /* Darker gray for clear inactive look */
+  border-color: rgba(255,255,255,0.15) !important;
+  border-width: 1px !important;
+  border-style: dashed !important; /* Dashed border to indicate inactive */
 }
 
 .mini-player-card--empty .mpc-profile {
-  background: #777 !important; /* Darker gray for empty profile */
-  border-color: rgba(255,255,255,0.2);
+  background: #444 !important; /* Even darker gray for empty profile */
+  border-color: rgba(255,255,255,0.1) !important;
+  opacity: 0.6;
 }
 
-/* Empty card stat values are dimmed but visible */
-.mini-player-card--empty .mpc-stat-value {
-  opacity: 0.5;
+/* Empty card stat values and icons are heavily dimmed */
+.mini-player-card--empty .mpc-stat-value,
+.mini-player-card--empty .mpc-stat-icon {
+  opacity: 0.3;
+  color: #888 !important;
+}
+
+/* Empty card name styling */
+.mini-player-card--empty .mpc-name {
+  opacity: 0.4;
+  color: #888 !important;
+  font-style: italic;
 }
 
 /* Position variants - 6 slots: 4 corners + 2 middle sides */
-.mini-player-card--top-left {
+/* Container positioning (includes card + name) */
+.mini-player-card-container--top-left {
   top: 8px; /* Close to perimeter */
   left: 8px;
 }
 
-.mini-player-card--top-left-title {
+.mini-player-card-container--top-left-title {
   top: 50%; /* Middle left side */
   left: 8px;
   transform: translateY(-50%);
 }
 
-.mini-player-card--top-right-title {
+.mini-player-card-container--top-right-title {
   top: 50%; /* Middle right side where radial launcher was */
   right: 8px;
   transform: translateY(-50%);
 }
 
-.mini-player-card--top-right {
+.mini-player-card-container--top-right {
   top: 8px; /* Close to perimeter */
   right: 8px; /* Same distance as left side for symmetry */
 }
 
-.mini-player-card--bottom-left {
-  bottom: 8px; /* Match edge spacing */
+.mini-player-card-container--bottom-left {
+  bottom: 8px; /* Match edge spacing - adjusted for name label */
   left: 8px;
 }
 
-.mini-player-card--bottom-right {
-  bottom: 8px; /* Match edge spacing */
+.mini-player-card-container--bottom-right {
+  bottom: 8px; /* Match edge spacing - adjusted for name label */
   right: 8px;
+}
+
+/* Legacy positioning for backward compatibility (if any other code references these) */
+.mini-player-card--top-left,
+.mini-player-card--top-left-title,
+.mini-player-card--top-right-title,
+.mini-player-card--top-right,
+.mini-player-card--bottom-left,
+.mini-player-card--bottom-right {
+  /* Reset since positioning is now handled by container */
+  position: relative;
+  top: auto;
+  bottom: auto;
+  left: auto;
+  right: auto;
+  transform: none;
 }
 
 /* Flip layout for right-side cards - profile on right, stats on left */

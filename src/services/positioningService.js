@@ -50,6 +50,16 @@ export function createPositioningService(store) {
   let zCounter = 6000; // elevated above base component z-indexes
 
   function makeDraggable(el, componentName, opts = {}) {
+    // Check if we're on mobile device - skip dragging if so
+    const isMobile = () => {
+      return window.innerWidth <= 768 || 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    };
+    
+    if (isMobile()) {
+      el.dataset.draggable = 'false';
+      return; // Skip dragging setup on mobile
+    }
+    
     el.style.touchAction = 'none';
     el.dataset.draggable = 'true';
     const saved = store.getState().ui.positions[componentName];

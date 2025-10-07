@@ -202,7 +202,7 @@ export function update(root, { state }) {
   const collapseBtn = root.querySelector('[data-collapse-toggle]');
   const globalState = store.getState();
   const active = selectActivePlayer(globalState);
-  const diceSlots = active?.modifiers?.diceSlots || 6;
+  const diceSlots = 6; // Keep it simple - always 6 dice for mobile
   // Accept both nested slice shape ({ dice: {...} }) and flat ({ faces, ... })
   const diceState = (state && state.dice) ? state.dice : (state || {});
   const faces = diceState.faces || [];

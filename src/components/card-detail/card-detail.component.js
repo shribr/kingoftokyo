@@ -43,6 +43,12 @@ export function build({ selector, emit }) {
     </div>`;
 
   root.addEventListener('click', (e) => {
+    // Close modal if clicking outside the frame (backdrop)
+    if (e.target === root) {
+      store.dispatch(uiCardDetailClose());
+      return;
+    }
+    
     if (e.target.matches('[data-action="close"]')) {
       store.dispatch(uiCardDetailClose());
     } else if (e.target.matches('[data-action="purchase"]')) {

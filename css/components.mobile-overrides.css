@@ -48,25 +48,40 @@ body.splash-visible .cmp-splash {
   --scale-small: .85;
 }
 
-/* Player Power Cards Modal - draggable centered modal (all screen sizes) */
-.player-power-cards-modal {
+/* Player Power Cards Modal - centered modal only in radial-menu mode */
+.radial-menu .cmp-player-power-cards-modal {
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  z-index: 12000 !important; /* Above panels (6000-6700) and other modals */
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 99999 !important; /* Maximum z-index to ensure it's always on top */
   pointer-events: none !important; /* Allow clicks through the overlay */
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  background: rgba(0, 0, 0, 0.6) !important; /* Darker backdrop for better focus */
 }
 
-.player-power-cards-modal.hidden {
+.radial-menu .cmp-player-power-cards-modal.hidden {
   display: none !important;
 }
 
-.player-power-cards-modal .ppcm-frame {
+/* When modal becomes visible, ensure it's centered */
+.radial-menu .cmp-player-power-cards-modal:not(.hidden) .ppcm-frame {
+  /* Force centering when modal opens */
+  left: auto !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+  position: relative !important;
+  margin: auto !important; /* Ensure flexbox centering works */
+}
+
+.radial-menu .cmp-player-power-cards-modal .ppcm-frame {
   position: relative !important;
   width: min(60vw, 1200px) !important; /* Wider to prevent cutoff - 60% of viewport or 1200px max */
   max-height: 85vh !important;
@@ -81,10 +96,12 @@ body.splash-visible .cmp-splash {
   flex-direction: column !important;
   overflow: hidden !important;
   padding: 1.2rem !important; /* Increased outer padding */
+  /* Ensure centering is maintained */
+  margin: auto !important;
 }
 
 /* Subtle radial glow overlay like card detail modal */
-.player-power-cards-modal .ppcm-frame:before {
+.radial-menu .cmp-player-power-cards-modal .ppcm-frame:before {
   content: '' !important;
   position: absolute !important;
   inset: 0 !important;
@@ -92,7 +109,7 @@ body.splash-visible .cmp-splash {
   pointer-events: none !important;
 }
 
-.player-power-cards-modal .ppcm-header {
+.radial-menu .cmp-player-power-cards-modal .ppcm-header {
   /* Darker, more subdued header matching card detail modal */
   background: var(--adt-panel, #1d2126) !important;
   border: 1px solid var(--adt-border, #2f3740) !important;
@@ -109,11 +126,11 @@ body.splash-visible .cmp-splash {
   cursor: grab !important; /* Show it's draggable */
 }
 
-.player-power-cards-modal .ppcm-header:active {
+.radial-menu .cmp-player-power-cards-modal .ppcm-header:active {
   cursor: grabbing !important;
 }
 
-.player-power-cards-modal .ppcm-header h2 {
+.radial-menu .cmp-player-power-cards-modal .ppcm-header h2 {
   font-family: 'Bangers', cursive !important;
   font-size: 2.2rem !important; /* ~35px - larger for better visibility */
   margin: 0 !important;
@@ -124,7 +141,7 @@ body.splash-visible .cmp-splash {
   font-weight: 800 !important;
 }
 
-.player-power-cards-modal .ppcm-header button[data-action="close"] {
+.radial-menu .cmp-player-power-cards-modal .ppcm-header button[data-action="close"] {
   background: transparent !important;
   color: #ffefa5 !important;
   border: none !important;
@@ -141,21 +158,21 @@ body.splash-visible .cmp-splash {
   z-index: 1 !important;
 }
 
-.player-power-cards-modal .ppcm-header button[data-action="close"]:hover {
+.radial-menu .cmp-player-power-cards-modal .ppcm-header button[data-action="close"]:hover {
   color: #fff !important;
   background: transparent !important;
 }
 
-.player-power-cards-modal .ppcm-header button[data-action="close"]:active {
+.radial-menu .cmp-player-power-cards-modal .ppcm-header button[data-action="close"]:active {
   transform: none !important;
 }
 
-.player-power-cards-modal .ppcm-header button[data-action="close"]:focus {
+.radial-menu .cmp-player-power-cards-modal .ppcm-header button[data-action="close"]:focus {
   outline: 2px solid #ffefa5 !important;
   outline-offset: 2px !important;
 }
 
-.player-power-cards-modal .ppcm-body {
+.radial-menu .cmp-player-power-cards-modal .ppcm-body {
   /* Dark background matching purple theme */
   background: transparent !important;
   color: #e9e3f7 !important; /* Light purple-tinted text */
@@ -166,14 +183,14 @@ body.splash-visible .cmp-splash {
 }
 
 /* Card titles - allow wrapping to 2 lines for longer names */
-.player-power-cards-modal .pc-card-name,
-.player-power-cards-modal .pc-card__name {
+.radial-menu .cmp-player-power-cards-modal .pc-card-name,
+.radial-menu .cmp-player-power-cards-modal .pc-card__name {
   white-space: nowrap !important; /* Keep single line since cards are wider now */
   overflow: hidden !important;
   text-overflow: ellipsis !important;
 }
 
-.player-power-cards-modal .ppcm-empty {
+.radial-menu .cmp-player-power-cards-modal .ppcm-empty {
   text-align: center !important;
   padding: 3.7vh 1.9vh !important; /* ~40px 20px at 1080px */
   color: #9e92b8 !important; /* Muted purple-tinted text */
@@ -185,7 +202,7 @@ body.splash-visible .cmp-splash {
   opacity: 0.8 !important;
 }
 
-.player-power-cards-modal .ppcm-empty span {
+.radial-menu .cmp-player-power-cards-modal .ppcm-empty span {
   display: block !important;
   margin-top: 0.7vh !important; /* ~8px */
   opacity: 0.7 !important;
@@ -193,7 +210,7 @@ body.splash-visible .cmp-splash {
 }
 
 /* Card grid styling - reuse power cards panel grid */
-.player-power-cards-modal .ppcm-cards-grid {
+.radial-menu .cmp-player-power-cards-modal .ppcm-cards-grid {
   display: grid !important;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important; /* auto-fit instead of auto-fill to prevent cutoff */
   gap: 14px !important;
@@ -201,55 +218,249 @@ body.splash-visible .cmp-splash {
   padding: 0.5rem !important; /* Add padding inside the grid to prevent edge cutoff */
 }
 
+/* Hide carousel on desktop */
+.radial-menu .cmp-player-power-cards-modal .ppcm-carousel {
+  display: none !important;
+}
+
 /* Ensure power cards don't have hidden footers in this modal */
-.player-power-cards-modal .pc-card-footer {
+.radial-menu .cmp-player-power-cards-modal .pc-card-footer {
   display: flex !important;
   justify-content: flex-start !important;
   padding: 8px 0 0 !important;
 }
 
 /* Desktop: Add more padding to cards for better spacing */
-.player-power-cards-modal .pc-card {
+.radial-menu .cmp-player-power-cards-modal .pc-card {
   padding: 16px 18px 18px !important; /* Increased from default 12px 14px 14px */
   gap: 10px !important; /* Increased internal spacing */
 }
 
-.player-power-cards-modal .pc-card-description {
+.radial-menu .cmp-player-power-cards-modal .pc-card-description {
   line-height: 1.45 !important; /* More breathing room for text */
   margin-bottom: 6px !important; /* Space above footer/cost badge */
 }
 
-.player-power-cards-modal .pc-card-header,
-.player-power-cards-modal .pc-card__header {
+/* Mobile scaling for player power cards modal - Carousel View */
+@media (max-width: 768px) {
+  .radial-menu .cmp-player-power-cards-modal .ppcm-frame {
+    width: 85vw !important; /* More reasonable width for mobile */
+    max-width: 400px !important; /* Smaller max width for better proportions */
+    max-height: 70vh !important; /* More reasonable height */
+    margin: 2vh !important; /* Smaller margins */
+    padding: 0.75rem !important; /* Reduced padding */
+    cursor: default !important; /* Remove drag cursor on mobile */
+  }
+
+  .radial-menu .cmp-player-power-cards-modal .ppcm-header {
+    cursor: default !important; /* Remove drag cursor on mobile */
+    padding: 0.8rem 1rem !important; /* Smaller header padding */
+    margin-bottom: 0.75rem !important; /* Tighter spacing */
+  }
+
+  .radial-menu .cmp-player-power-cards-modal .ppcm-header h2 {
+    font-size: 1.4rem !important; /* Much smaller header for mobile */
+    letter-spacing: 0.5px !important; /* Tighter letter spacing */
+  }
+
+  /* Hide grid layout on mobile, use carousel instead */
+  .radial-menu .cmp-player-power-cards-modal .ppcm-cards-grid {
+    display: none !important;
+  }
+
+  /* Show carousel container only on mobile */
+  .radial-menu .cmp-player-power-cards-modal .ppcm-carousel {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    height: 100% !important;
+  }
+
+  /* Carousel navigation */
+  .radial-menu .cmp-player-power-cards-modal .ppcm-carousel-nav {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    margin-bottom: 0.75rem !important; /* Tighter spacing */
+  }
+
+  .radial-menu .cmp-player-power-cards-modal .ppcm-carousel-btn {
+    background: #4a3b63 !important;
+    border: 2px solid #000 !important;
+    color: #ffefa5 !important;
+    font-size: 1.2rem !important; /* Smaller buttons */
+    font-weight: bold !important;
+    width: 40px !important; /* Smaller buttons */
+    height: 40px !important; /* Smaller buttons */
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 2px 2px 0 #000 !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .radial-menu .cmp-player-power-cards-modal .ppcm-carousel-btn:hover {
+    background: #5a4b73 !important;
+    transform: translateY(-1px) !important;
+  }
+
+  .radial-menu .cmp-player-power-cards-modal .ppcm-carousel-btn:active {
+    transform: translateY(1px) !important;
+    box-shadow: 1px 1px 0 #000 !important;
+  }
+
+  .radial-menu .cmp-player-power-cards-modal .ppcm-carousel-btn:disabled {
+    background: #2a2030 !important;
+    color: #666 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+  }
+
+  /* Card counter */
+  .radial-menu .cmp-player-power-cards-modal .ppcm-card-counter {
+    color: #ffefa5 !important;
+    font-family: 'Bangers', cursive !important;
+    font-size: 1rem !important; /* Smaller counter text */
+    text-align: center !important;
+    letter-spacing: 0.5px !important; /* Tighter spacing */
+  }
+
+  /* Single card display area */
+  .radial-menu .cmp-player-power-cards-modal .ppcm-carousel-card {
+    flex: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    padding: 0.5rem 0 !important; /* Tighter spacing */
+  }
+
+  /* Scale single card appropriately for mobile */
+  .radial-menu .cmp-player-power-cards-modal .ppcm-carousel-card .pc-card {
+    max-width: 240px !important; /* Smaller card width */
+    width: 100% !important;
+    padding: 12px 14px 14px !important; /* Smaller padding */
+    gap: 8px !important; /* Tighter gap */
+    font-size: 0.9rem !important; /* Smaller text */
+  }
+}
+
+/* Extra small screens (phones in portrait) - Carousel View */
+@media (max-width: 480px) {
+  .radial-menu .cmp-player-power-cards-modal .ppcm-frame {
+    width: 92vw !important; /* Reasonable width even on small phones */
+    max-width: 350px !important; /* Even smaller max width */
+    max-height: 75vh !important; /* More reasonable height */
+    margin: 1vh !important; /* Minimal margin */
+    padding: 0.5rem !important; /* Even smaller padding */
+  }
+
+  .radial-menu .cmp-player-power-cards-modal .ppcm-header {
+    padding: 0.5rem 0.75rem !important; /* Smaller header padding */
+    margin-bottom: 0.5rem !important; /* Tighter spacing */
+  }
+
+  .radial-menu .cmp-player-power-cards-modal .ppcm-header h2 {
+    font-size: 1.2rem !important; /* Much smaller header for phones */
+  }
+
+  /* Smaller carousel buttons for small screens */
+  .radial-menu .cmp-player-power-cards-modal .ppcm-carousel-btn {
+    width: 35px !important; /* Even smaller buttons */
+    height: 35px !important;
+    font-size: 1.1rem !important;
+  }
+
+  /* Smaller card counter text */
+  .radial-menu .cmp-player-power-cards-modal .ppcm-card-counter {
+    font-size: 0.9rem !important;
+  }
+
+  /* Compact single card on tiny screens */
+  .radial-menu .cmp-player-power-cards-modal .ppcm-carousel-card {
+    padding: 0.25rem 0 !important; /* Minimal spacing */
+  }
+
+  .radial-menu .cmp-player-power-cards-modal .ppcm-carousel-card .pc-card {
+    max-width: 200px !important; /* Much smaller card */
+    padding: 10px 12px 12px !important; /* Compact padding */
+    gap: 6px !important; /* Minimal gap */
+    font-size: 0.8rem !important; /* Smaller text */
+  }
+}
+
+/* Radial menu mode specific scaling (mobile) */
+.radial-menu .cmp-player-power-cards-modal {
+  /* Ensure highest z-index in radial-menu mode */
+  z-index: 99999 !important; /* Maximum z-index */
+}
+
+.radial-menu .cmp-player-power-cards-modal .ppcm-frame {
+  /* Compact sizing for radial-menu mode */
+  width: 80vw !important;
+  max-width: 380px !important; /* Smaller max width for better proportions */
+  max-height: 65vh !important; /* Leave more room for radial menu elements */
+  transform: none !important; /* Prevent transform conflicts */
+  position: relative !important; /* Maintain relative positioning for centering */
+  left: auto !important; /* Reset any dragged positioning */
+  top: auto !important; /* Reset any dragged positioning */
+  cursor: default !important; /* No drag cursor in radial-menu mode */
+}
+
+.radial-menu .cmp-player-power-cards-modal .ppcm-header {
+  cursor: default !important; /* No drag cursor in radial-menu mode */
+}
+
+/* Disable dragging for all components in radial-menu mode */
+body[data-mobile-ui-mode="radial-menu"] [data-draggable="true"] {
+  cursor: default !important;
+}
+
+body[data-mobile-ui-mode="radial-menu"] .cmp-player-profile-card,
+body[data-mobile-ui-mode="radial-menu"] .cmp-dice-tray,
+body[data-mobile-ui-mode="radial-menu"] .cmp-monsters-panel {
+  cursor: default !important;
+}
+
+.radial-menu .cmp-player-power-cards-modal .ppcm-cards-grid {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+  gap: 12px !important;
+}
+
+.radial-menu .cmp-player-power-cards-modal .pc-card-header,
+.radial-menu .cmp-player-power-cards-modal .pc-card__header {
   padding: 6px 8px 8px !important; /* Slightly more padding in header */
   margin: -6px -6px 4px !important; /* Adjust negative margin to compensate */
 }
 
 /* Scrollbar styling for modal */
-.player-power-cards-modal .ppcm-body::-webkit-scrollbar {
+.radial-menu .cmp-player-power-cards-modal .ppcm-body::-webkit-scrollbar {
   width: 8px !important;
 }
 
-.player-power-cards-modal .ppcm-body::-webkit-scrollbar-track {
+.radial-menu .cmp-player-power-cards-modal .ppcm-body::-webkit-scrollbar-track {
   background: #241b30 !important; /* Dark purple track */
 }
 
-.player-power-cards-modal .ppcm-body::-webkit-scrollbar-thumb {
+.radial-menu .cmp-player-power-cards-modal .ppcm-body::-webkit-scrollbar-thumb {
   background: #4e3d62 !important; /* Purple thumb */
   border-radius: 4px !important;
 }
 
-.player-power-cards-modal .ppcm-body::-webkit-scrollbar-thumb:hover {
+.radial-menu .cmp-player-power-cards-modal .ppcm-body::-webkit-scrollbar-thumb:hover {
   background: #6c5a7d !important; /* Lighter purple on hover */
 }
 
-.player-power-cards-modal .ppcm-body::-webkit-scrollbar-thumb {
+.radial-menu .cmp-player-power-cards-modal .ppcm-body::-webkit-scrollbar-thumb {
   background: #ffd400 !important;
   border-radius: 0.4vh !important; /* ~4px */
   border: 0.1vh solid #000 !important; /* ~1px */
 }
 
-.player-power-cards-modal .ppcm-body::-webkit-scrollbar-thumb:hover {
+.radial-menu .cmp-player-power-cards-modal .ppcm-body::-webkit-scrollbar-thumb:hover {
   background: #ffdd33 !important;
 }
 
@@ -261,13 +472,13 @@ body.splash-visible .cmp-splash {
 /* Mobile-specific adjustments for player power cards modal */
 @media (max-width: 1024px), (pointer: coarse) {
   /* Ensure modal container is properly centered */
-  .player-power-cards-modal {
+  .radial-menu .cmp-player-power-cards-modal {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
   }
   
-  .player-power-cards-modal .ppcm-frame {
+  .radial-menu .cmp-player-power-cards-modal .ppcm-frame {
     width: 95vw !important; /* Almost full width on mobile */
     max-width: 95vw !important;
     max-height: 90vh !important; /* More vertical space */
@@ -275,7 +486,7 @@ body.splash-visible .cmp-splash {
     margin: auto !important; /* Center the frame */
   }
 
-  .player-power-cards-modal .ppcm-header {
+  .radial-menu .cmp-player-power-cards-modal .ppcm-header {
     padding: 0.75rem !important; /* Compact padding */
     margin-bottom: 0.75rem !important;
     display: flex !important;
@@ -285,7 +496,7 @@ body.splash-visible .cmp-splash {
     gap: 0.5rem !important;
   }
 
-  .player-power-cards-modal .ppcm-header h2 {
+  .radial-menu .cmp-player-power-cards-modal .ppcm-header h2 {
     font-size: 1.4rem !important; /* Smaller on mobile to prevent overflow */
     white-space: nowrap !important;
     overflow: hidden !important;
@@ -293,7 +504,7 @@ body.splash-visible .cmp-splash {
     flex: 1 !important; /* Take available space */
   }
 
-  .player-power-cards-modal .ppcm-header button[data-action="close"] {
+  .radial-menu .cmp-player-power-cards-modal .ppcm-header button[data-action="close"] {
     font-size: 1.6rem !important;
     padding: 0.25rem 0.5rem !important;
     flex-shrink: 0 !important; /* Don't shrink the close button */
@@ -301,25 +512,25 @@ body.splash-visible .cmp-splash {
     margin-left: auto !important; /* Push to the right */
   }
 
-  .player-power-cards-modal .ppcm-cards-grid {
+  .radial-menu .cmp-player-power-cards-modal .ppcm-cards-grid {
     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important; /* auto-fit to prevent cutoff on mobile */
     gap: 8px !important; /* Tighter gap */
     padding: 0.25rem !important;
   }
   
   /* Increase empty state text size for better mobile readability */
-  .player-power-cards-modal .ppcm-empty {
+  .radial-menu .cmp-player-power-cards-modal .ppcm-empty {
     font-size: 1.1rem !important; /* Larger, easier to read */
     padding: 2rem 1rem !important;
   }
   
-  .player-power-cards-modal .ppcm-empty span {
+  .radial-menu .cmp-player-power-cards-modal .ppcm-empty span {
     font-size: 0.9rem !important; /* Larger secondary text */
     margin-top: 0.5rem !important;
   }
 
   /* Mini card styles for mobile - scale down all the fancy styling */
-  .player-power-cards-modal .pc-card {
+  .radial-menu .cmp-player-power-cards-modal .pc-card {
     font-size: 0.85rem !important;
     padding: 6px 8px 8px !important; /* Reduced padding */
     gap: 4px !important; /* Tighter internal spacing */
@@ -563,7 +774,7 @@ body.splash-visible .cmp-splash {
     transform: none !important;
   }
   
-  /* Hide extra dice slots (7th, 8th) in mobile unless player has power cards */
+  /* Hide extra dice slots (7th, 8th) in mobile - keep it simple with 6 dice only */
   .cmp-dice-tray .die.extra-die {
     display: none !important;
   }
@@ -628,7 +839,23 @@ body.splash-visible .cmp-splash {
 /* 8) Data attribute based drag affordance removal (visual) */
 [cdata-drag-placeholder] { display:none; }
 [cdata-drag-handle] { cursor:move; }
-[data-draggable="false"] { cursor:default !important; }
+[data-draggable="false"] { 
+  cursor: default !important; 
+}
+
+/* Remove drag cursors on all mobile devices */
+@media (max-width: 768px), (hover: none) {
+  [data-draggable="true"],
+  [data-draggable="false"],
+  .draggable,
+  .cmp-player-profile-card,
+  .cmp-dice-tray,
+  .cmp-monsters-panel,
+  .player-power-cards-modal .ppcm-frame,
+  .player-power-cards-modal .ppcm-header {
+    cursor: default !important;
+  }
+}
 
 /* 9) Safe guard: if any legacy class slips in, neutralize (defensive, to remove later) */
 [class^="game-board"], [class*=" game-board"], .game-board { /* deprecated sentinel to detect accidental legacy usage */ outline:0 !important; }
@@ -1011,8 +1238,10 @@ body.splash-visible .cmp-splash {
   }
   
   /* Force ALL mini player cards to 100% opacity */
+  body[data-mobile-ui-mode="radial-menu"] .mini-player-card-container,
   body[data-mobile-ui-mode="radial-menu"] .mini-player-card,
   body[data-mobile-ui-mode="radial-menu"] .mini-player-card *,
+  body[data-mobile-ui-mode="radial-menu"] .mini-player-card-name,
   body[data-mobile-ui-mode="radial-menu"] .mpc-card-inner,
   body[data-mobile-ui-mode="radial-menu"] .mpc-profile,
   body[data-mobile-ui-mode="radial-menu"] .mpc-stats-bar {
@@ -1053,18 +1282,43 @@ body.splash-visible .cmp-splash {
     min-width: 300px !important;
   }
   
-  /* Make dice in radial-menu mode the same size as roll-for-first mini dice */
+  /* Make dice in radial-menu mode much smaller to fit properly */
   body[data-mobile-ui-mode="radial-menu"] .cmp-dice-tray .die {
-    width: 35px !important;
-    height: 35px !important;
-    font-size: 16px !important;
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 12px !important;
+    margin: 1px !important;
+    padding: 0 !important;
+    border-width: 1px !important;
+    border-radius: 3px !important;
   }
   
   /* Ensure mini-die class also gets proper sizing */
   body[data-mobile-ui-mode="radial-menu"] .cmp-dice-tray .mini-die {
-    width: 35px !important;
-    height: 35px !important;
-    font-size: 16px !important;
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 12px !important;
+    margin: 1px !important;
+    padding: 0 !important;
+    border-width: 1px !important;
+    border-radius: 3px !important;
+  }
+  
+  /* Ensure dice tray content doesn't wrap */
+  body[data-mobile-ui-mode="radial-menu"] .cmp-dice-tray .dice-container,
+  body[data-mobile-ui-mode="radial-menu"] .cmp-dice-tray .dice-list {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 2px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+  }
+  
+  /* Appropriate size for 6 dice only */
+  body[data-mobile-ui-mode="radial-menu"] .cmp-dice-tray {
+    width: 210px !important; /* Sized for 6 dice */
+    max-width: 210px !important;
+    min-width: 210px !important;
   }
   
   /* Additional high-specificity rule to combat JavaScript inline styles */
@@ -1083,10 +1337,10 @@ body.splash-visible .cmp-splash {
     position: relative;
   }
   
-  /* Fix radial menu launcher positioning to avoid overlapping mini player cards */
+  /* Position radial menu launcher between right-middle and right-bottom cards */
   body[data-mobile-ui-mode="radial-menu"] .radial-menu-container {
-    right: calc(120px + 16px) !important; /* To the LEFT of bottom-right mini player card */
-    bottom: calc(8px + (60px - 60px) / 2) !important; /* Vertically center with mini player cards */
+    right: 8px !important; /* Align with right edge cards */
+    top: calc(50% + 40px) !important; /* Below middle-right (50%) but above bottom-right */
   }
   
   /* Move mini power cards tray to the right next to radial launcher */
@@ -1104,6 +1358,7 @@ body.splash-visible .cmp-splash {
   
   /* Force mini player cards below unleash screen and other modals */
   body[data-mobile-ui-mode="radial-menu"] .cmp-mini-player-cards,
+  body[data-mobile-ui-mode="radial-menu"] .mini-player-card-container,
   body[data-mobile-ui-mode="radial-menu"] .mini-player-card {
     z-index: 5000 !important;
   }

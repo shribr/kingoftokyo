@@ -4,7 +4,7 @@
  * Shows active player's power cards along bottom of screen (Catan-style)
  */
 import { store } from '../../bootstrap/index.js';
-import { eventBus } from '../../core/eventBus.js';
+import { uiCardDetailOpen } from '../../core/actions.js';
 
 export function build({ selector }) {
   const container = document.createElement('div');
@@ -103,7 +103,7 @@ function getCardTheme(card) {
 }
 
 function showPowerCardModal(card) {
-  eventBus.emit('showPowerCardDetail', { card });
+  store.dispatch(uiCardDetailOpen(card.id, 'owned'));
 }
 
 export function update() {

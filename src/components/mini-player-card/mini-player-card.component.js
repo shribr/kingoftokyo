@@ -3,6 +3,7 @@
  */
 import { store } from '../../bootstrap/index.js';
 import { selectMonsterById, selectActivePlayer } from '../../core/selectors.js';
+import { uiPlayerPowerCardsOpen } from '../../core/actions.js';
 
 export function build({ selector }) {
   const container = document.createElement('div');
@@ -36,9 +37,17 @@ export function build({ selector }) {
 export function update() {}
 
 function createMiniCard(player, position, activePlayerId, slotIndex, state) {
+  // Create a container for card + name label
+  const container = document.createElement('div');
+  container.className = 'mini-player-card-container mini-player-card-container--' + position;
+  
   const card = document.createElement('div');
   card.className = 'mini-player-card mini-player-card--' + position;
   card.setAttribute('data-slot-index', slotIndex);
+  
+  // Create name label element
+  const nameLabel = document.createElement('div');
+  nameLabel.className = 'mini-player-card-name';
   
   if (player) {
     card.setAttribute('data-player-id', player.id);
@@ -70,13 +79,16 @@ function createMiniCard(player, position, activePlayerId, slotIndex, state) {
           '<div class="mpc-stat"><span class="mpc-stat-icon">⭐</span><span class="mpc-stat-value">' + vp + '</span></div>' +
           '<div class="mpc-stat"><span class="mpc-stat-icon">🃏</span><span class="mpc-stat-value">' + cards + '</span></div>' +
         '</div>' +
-        '<div class="mpc-name">' + playerName + '</div>' +
       '</div>';
+    
+    // Set player name in the external label
+    nameLabel.textContent = playerName;
+    nameLabel.classList.add('mini-player-card-name--active');
   } else {
     card.classList.add('mini-player-card--empty');
     card.innerHTML = 
-      '<div class="mpc-card-inner" style="background: #999 !important">' +
-        '<div class="mpc-profile" style="background: #777 !important"></div>' +
+      '<div class="mpc-card-inner">' +
+        '<div class="mpc-profile"></div>' +
         '<div class="mpc-stats-bar">' +
           '<div class="mpc-stat"><span class="mpc-stat-icon">❤️</span><span class="mpc-stat-value">-</span></div>' +
           '<div class="mpc-stat"><span class="mpc-stat-icon">⚡</span><span class="mpc-stat-value">-</span></div>' +
@@ -84,8 +96,29 @@ function createMiniCard(player, position, activePlayerId, slotIndex, state) {
           '<div class="mpc-stat"><span class="mpc-stat-icon">🃏</span><span class="mpc-stat-value">-</span></div>' +
         '</div>' +
       '</div>';
+    
+    // Set empty label
+    nameLabel.textContent = 'Empty';
+    nameLabel.classList.add('mini-player-card-name--empty');
   }
-  return card;
+  
+  // Assemble container with card and name
+  container.appendChild(card);
+  container.appendChild(nameLabel);
+  
+  // Add click handler to show player profile modal with owned power cards
+  if (player && player.id) {
+    const clickHandler = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      // Dispatch action to open player power cards modal
+      store.dispatch(uiPlayerPowerCardsOpen(player.id));
+    };
+    card.addEventListener('click', clickHandler);
+    card.style.cursor = 'pointer';
+  }
+  
+  return container;
 }
 
 function adjustBrightness(hexColor, percent) {
