@@ -302,20 +302,28 @@
   transform: none;
 }
 
-/* Flip layout for right-side cards - profile on right, stats on left */
-.mini-player-card--top-right .mpc-card-inner,
-.mini-player-card--top-right-title .mpc-card-inner,
-.mini-player-card--bottom-right .mpc-card-inner {
-  flex-direction: row-reverse;
-  justify-content: flex-start; /* Ensure content is aligned to start */
-}
-
-/* Also flip left-side cards so profiles face inward */
+/* Left-side cards: profile on left, stats on right (normal flex direction) */
 .mini-player-card--top-left .mpc-card-inner,
 .mini-player-card--top-left-title .mpc-card-inner,
 .mini-player-card--bottom-left .mpc-card-inner {
-  flex-direction: row-reverse;
-  justify-content: flex-start; /* Ensure content is aligned to start */
+  flex-direction: row; /* Normal direction: profile left, stats right */
+  justify-content: flex-start;
+}
+
+/* Right-side cards: profile on right, stats on left (reversed flex direction) */
+.mini-player-card--top-right .mpc-card-inner,
+.mini-player-card--top-right-title .mpc-card-inner,
+.mini-player-card--bottom-right .mpc-card-inner {
+  flex-direction: row-reverse; /* Reversed direction: profile right, stats left */
+  justify-content: flex-start;
+}
+
+/* Left-side cards: right-align stats content */
+.mini-player-card--top-left .mpc-stat,
+.mini-player-card--top-left-title .mpc-stat,
+.mini-player-card--bottom-left .mpc-stat {
+  justify-content: flex-end; /* Right-align the stat content */
+  text-align: right;
 }
 
 /* Position dice indicator - corner-specific positioning for better visual balance */
