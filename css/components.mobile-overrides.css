@@ -1337,10 +1337,12 @@ body[data-mobile-ui-mode="radial-menu"] .cmp-monsters-panel {
     position: relative;
   }
   
-  /* Position radial menu launcher between right-middle and right-bottom cards */
+  /* Position radial menu launcher in bottom left corner */
   body[data-mobile-ui-mode="radial-menu"] .radial-menu-container {
-    right: 8px !important; /* Align with right edge cards */
-    top: calc(50% + 40px) !important; /* Below middle-right (50%) but above bottom-right */
+    left: 8px !important; /* Bottom left corner */
+    bottom: 8px !important;
+    right: auto !important; /* Override any right positioning */
+    top: auto !important; /* Override any top positioning */
   }
   
   /* Move mini power cards tray to the right next to radial launcher */

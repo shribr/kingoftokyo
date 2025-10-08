@@ -253,9 +253,9 @@
 }
 
 /* Position variants - 6 slots: 4 corners + 2 middle sides */
-/* Container positioning (includes card + name) */
+/* Container positioning (includes card + name) - spaced out for name visibility */
 .mini-player-card-container--top-left {
-  top: 8px; /* Close to perimeter */
+  top: 15%; /* More space from top edge and middle cards */
   left: 8px;
 }
 
@@ -266,23 +266,23 @@
 }
 
 .mini-player-card-container--top-right-title {
-  top: 50%; /* Middle right side where radial launcher was */
+  top: 50%; /* Middle right side */
   right: 8px;
   transform: translateY(-50%);
 }
 
 .mini-player-card-container--top-right {
-  top: 8px; /* Close to perimeter */
-  right: 8px; /* Same distance as left side for symmetry */
+  top: 15%; /* More space from top edge and middle cards */
+  right: 8px;
 }
 
 .mini-player-card-container--bottom-left {
-  bottom: 8px; /* Match edge spacing - adjusted for name label */
+  bottom: 15%; /* More space from bottom edge and middle cards */
   left: 8px;
 }
 
 .mini-player-card-container--bottom-right {
-  bottom: 8px; /* Match edge spacing - adjusted for name label */
+  bottom: 15%; /* More space from bottom edge and middle cards */
   right: 8px;
 }
 

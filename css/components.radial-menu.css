@@ -6,7 +6,7 @@
 .radial-menu-container {
   position: fixed;
   bottom: 8px;
-  right: calc(70px + 20px + 8px); /* Right of mini deck (70px width + gap + edge margin) */
+  left: 8px; /* Moved to bottom left corner */
   z-index: 5500; /* Below modals (10500) but above normal UI */
   pointer-events: none;
   transition: none; /* Launcher never moves */
