@@ -206,6 +206,13 @@ export function build({ selector }) {
               const ts = window.__KOT_NEW__.turnService;
               if (!root._endTurnInFlight) {
                 root._endTurnInFlight = true;
+                
+                // Immediately disable both end turn buttons to prevent double-clicks
+                const endBtn = document.getElementById('end-turn-btn');
+                const hEndBtn = document.getElementById('h-end-turn-btn');
+                if (endBtn) endBtn.disabled = true;
+                if (hEndBtn) hEndBtn.disabled = true;
+                
                 let p;
                 if (phase === 'ROLL') p = ts.resolve();
                 else if (phase === 'BUY') p = ts.cleanup();
