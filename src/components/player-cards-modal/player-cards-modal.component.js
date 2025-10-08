@@ -8,9 +8,16 @@ import { buildBaseCatalog } from '../../domain/cards.js';
 // Build catalog once at module load
 const CARD_CATALOG = buildBaseCatalog();
 
+// Function to check if we're on mobile
+const isMobileDevice = () => {
+  return window.innerWidth <= 1024 || 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+};
+
 export function build({ selector }) {
   const root = document.createElement('div');
-  root.className = selector.slice(1) + ' player-power-cards-modal hidden';
+  // Detect mobile and use appropriate class (don't add selector on mobile since we have a dedicated mobile class)
+  const modalClass = isMobileDevice() ? 'cmp-player-power-cards-modal-mobile' : selector.slice(1);
+  root.className = modalClass + ' hidden';
   root.innerHTML = `<div class="ppcm-frame" data-frame>
     <div class="ppcm-header" data-header>
       <h2 data-player-name></h2>
@@ -35,8 +42,8 @@ export function build({ selector }) {
       return;
     }
     
-    // Backdrop click to close
-    if (e.target === root) {
+    // Backdrop click to close - only if clicking directly on the modal backdrop (not the frame)
+    if (e.target === root || e.target.classList.contains('cmp-player-power-cards-modal') || e.target.classList.contains('cmp-player-power-cards-modal-mobile')) {
       store.dispatch(uiPlayerPowerCardsClose());
     }
   });
@@ -50,14 +57,9 @@ export function build({ selector }) {
   let initialX;
   let initialY;
 
-  // Function to check if we're on mobile
-  const isMobile = () => {
-    return window.innerWidth <= 768 || 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-  };
-
   header.addEventListener('mousedown', (e) => {
     // Skip dragging on mobile devices
-    if (isMobile()) return;
+    if (isMobileDevice()) return;
     if (e.target.matches('[data-action="close"]')) return;
     isDragging = true;
     initialX = e.clientX - (frame.offsetLeft || 0);
@@ -66,7 +68,7 @@ export function build({ selector }) {
   });
 
   document.addEventListener('mousemove', (e) => {
-    if (!isDragging || isMobile()) return;
+    if (!isDragging || isMobileDevice()) return;
     e.preventDefault();
     currentX = e.clientX - initialX;
     currentY = e.clientY - initialY;
@@ -76,7 +78,7 @@ export function build({ selector }) {
   });
 
   document.addEventListener('mouseup', () => {
-    if (isDragging && !isMobile()) {
+    if (isDragging && !isMobileDevice()) {
       isDragging = false;
       root.style.cursor = 'move';
     }

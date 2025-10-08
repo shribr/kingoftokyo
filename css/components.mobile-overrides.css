@@ -50,7 +50,13 @@ body.splash-visible .cmp-splash {
 
 /* Player Power Cards Modal - centered modal on mobile */
 @media (max-width: 1024px), (pointer: coarse) {
+  /* Hide desktop power cards modal on mobile */
   .cmp-player-power-cards-modal {
+    display: none !important;
+  }
+  
+  /* Mobile-specific power cards modal */
+  .cmp-player-power-cards-modal-mobile {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
@@ -58,51 +64,45 @@ body.splash-visible .cmp-splash {
     bottom: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
-    z-index: 99999 !important; /* Maximum z-index to ensure it's always on top */
-    pointer-events: none !important; /* Allow clicks through the overlay */
+    margin: 0 !important;
+    padding: 0 !important;
+    transform: none !important; /* Override any transforms */
+    z-index: 999999 !important;
+    pointer-events: auto !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    background: rgba(0, 0, 0, 0.6) !important; /* Darker backdrop for better focus */
+    background: rgba(0, 0, 0, 0.6) !important;
+  }
+  
+  /* Ensure modal is properly positioned even if inside #app */
+  #app .cmp-player-power-cards-modal-mobile {
+    position: fixed !important;
+    inset: 0 !important;
   }
 
-  .cmp-player-power-cards-modal.hidden {
+  .cmp-player-power-cards-modal-mobile.hidden {
     display: none !important;
   }
 
-  /* When modal becomes visible, ensure it's centered */
-  .cmp-player-power-cards-modal:not(.hidden) .ppcm-frame {
-    /* Force centering when modal opens */
-    left: auto !important;
-    top: auto !important;
-    right: auto !important;
-    bottom: auto !important;
-    transform: none !important;
+  .cmp-player-power-cards-modal-mobile .ppcm-frame {
     position: relative !important;
-    margin: auto !important; /* Ensure flexbox centering works */
-  }
-
-  .cmp-player-power-cards-modal .ppcm-frame {
-    position: relative !important;
-    width: min(60vw, 1200px) !important; /* Wider to prevent cutoff - 60% of viewport or 1200px max */
-    max-height: 85vh !important;
-    pointer-events: auto !important; /* Re-enable clicks on the frame */
-    cursor: move !important; /* Indicate draggability */
-    /* Dark purple gradient matching card detail modal */
+    width: 85vw !important;
+    max-width: 400px !important;
+    height: auto !important;
     background: linear-gradient(180deg, #2e2540, #1d1729) !important;
-    border: 3px solid #000 !important;
-    border-radius: 10px !important;
-    box-shadow: 4px 4px 0 #000, 0 0 0 2px #4a3b63 inset !important; /* Purple inset glow */
+    border: 2px solid #000 !important;
+    border-radius: 0 !important;
+    box-shadow: 3px 3px 0 #000, 0 0 0 1px #4a3b63 inset !important;
     display: flex !important;
     flex-direction: column !important;
     overflow: hidden !important;
-    padding: 1.2rem !important; /* Increased outer padding */
-    /* Ensure centering is maintained */
-    margin: auto !important;
+    padding: 0.75rem !important;
+    cursor: default !important;
   }
 
-  /* Subtle radial glow overlay like card detail modal */
-  .cmp-player-power-cards-modal .ppcm-frame:before {
+  /* Subtle radial glow overlay */
+  .cmp-player-power-cards-modal-mobile .ppcm-frame:before {
     content: '' !important;
     position: absolute !important;
     inset: 0 !important;
@@ -110,165 +110,239 @@ body.splash-visible .cmp-splash {
     pointer-events: none !important;
   }
 
-  .cmp-player-power-cards-modal .ppcm-header {
-    /* Darker, more subdued header matching card detail modal */
-    background: var(--adt-panel, #1d2126) !important;
-    border: 1px solid var(--adt-border, #2f3740) !important;
-    color: #ffefa5 !important; /* Gold/cream text */
-    padding: 1.2vh 1.5vh !important;
+  .cmp-player-power-cards-modal-mobile .ppcm-header {
+    background: transparent !important;
+    border: none !important;
+    color: #ffefa5 !important;
+    padding: 0.5rem 0 !important;
     display: flex !important;
-    justify-content: space-between !important;
+    justify-content: center !important;
     align-items: center !important;
-    border-radius: 8px !important;
-    box-shadow: 0 2px 6px -2px #000a inset !important;
     flex-shrink: 0 !important;
-    margin-bottom: 1rem !important;
+    margin-bottom: 0.75rem !important;
     position: relative !important;
-    cursor: grab !important; /* Show it's draggable */
+    cursor: default !important;
   }
 
-  .cmp-player-power-cards-modal .ppcm-header:active {
-    cursor: grabbing !important;
-  }
-
-  .cmp-player-power-cards-modal .ppcm-header h2 {
+  .cmp-player-power-cards-modal-mobile .ppcm-header h2 {
     font-family: 'Bangers', cursive !important;
-    font-size: 2.2rem !important; /* ~35px - larger for better visibility */
+    font-size: 1.2rem !important;
     margin: 0 !important;
-    letter-spacing: 1px !important;
+    letter-spacing: 0.5px !important;
     text-transform: uppercase !important;
-    color: #ffefa5 !important; /* Gold/cream like card detail */
-    text-shadow: 0 2px 0 #000, 0 0 2px #000 !important; /* Subtle shadow */
+    color: #ffefa5 !important;
+    text-shadow: 0 2px 0 #000, 0 0 2px #000 !important;
     font-weight: 800 !important;
   }
 
-  .cmp-player-power-cards-modal .ppcm-header button[data-action="close"] {
-    background: transparent !important;
+  /* Close button */
+  .cmp-player-power-cards-modal-mobile .ppcm-frame > button[data-action="close"],
+  .cmp-player-power-cards-modal-mobile .ppcm-header button[data-action="close"] {
+    background: rgba(0, 0, 0, 0.7) !important;
     color: #ffefa5 !important;
-    border: none !important;
-    border-radius: 0 !important;
-    font-size: 2rem !important; /* ~32px - larger and more visible */
+    border: 2px solid #000 !important;
+    border-radius: 50% !important;
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 1.4rem !important;
     font-weight: bold !important;
     line-height: 1 !important;
     cursor: pointer !important;
-    padding: 0.25rem 0.5rem !important;
-    box-shadow: none !important;
-    transition: color 0.15s ease !important;
-    display: inline-block !important;
-    position: relative !important;
-    z-index: 1 !important;
+    padding: 0 !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5) !important;
+    transition: all 0.2s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: absolute !important;
+    top: -14px !important;
+    right: -14px !important;
+    z-index: 100 !important;
+  }
+  
+  .cmp-player-power-cards-modal-mobile .ppcm-frame > button[data-action="close"]:hover,
+  .cmp-player-power-cards-modal-mobile .ppcm-header button[data-action="close"]:hover {
+    background: rgba(255, 215, 0, 0.3) !important;
+    color: #ffd700 !important;
+    transform: scale(1.1) !important;
   }
 
-  .cmp-player-power-cards-modal .ppcm-header button[data-action="close"]:hover {
-    color: #fff !important;
+  .cmp-player-power-cards-modal-mobile .ppcm-body {
     background: transparent !important;
-  }
-
-  .cmp-player-power-cards-modal .ppcm-header button[data-action="close"]:active {
-    transform: none !important;
-  }
-
-  .cmp-player-power-cards-modal .ppcm-header button[data-action="close"]:focus {
-    outline: 2px solid #ffefa5 !important;
-    outline-offset: 2px !important;
-  }
-
-  .cmp-player-power-cards-modal .ppcm-body {
-    /* Dark background matching purple theme */
-    background: transparent !important;
-    color: #e9e3f7 !important; /* Light purple-tinted text */
-    padding: 0 !important; /* Remove padding to prevent cutoff */
+    color: #e9e3f7 !important;
+    padding: 0 !important;
     overflow-y: auto !important;
-    overflow-x: hidden !important; /* Prevent horizontal scroll */
-    flex: 1 !important;
+    overflow-x: hidden !important;
+    flex: 0 0 auto !important;
   }
 
-  /* Card titles - allow wrapping to 2 lines for longer names */
-  .cmp-player-power-cards-modal .pc-card-name,
-  .cmp-player-power-cards-modal .pc-card__name {
-    white-space: nowrap !important; /* Keep single line since cards are wider now */
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-  }
-
-  .cmp-player-power-cards-modal .ppcm-empty {
+  /* Empty state */
+  .cmp-player-power-cards-modal-mobile .ppcm-empty {
     text-align: center !important;
-    padding: 3.7vh 1.9vh !important; /* ~40px 20px at 1080px */
-    color: #9e92b8 !important; /* Muted purple-tinted text */
+    padding: 1.5rem 1rem !important;
+    color: #9e92b8 !important;
     font-family: 'Bangers', cursive !important;
-    font-size: 1.6vh !important; /* ~17px */
+    font-size: 1rem !important;
     line-height: 1.6 !important;
     text-transform: uppercase !important;
-    letter-spacing: 1px !important;
+    letter-spacing: 0.5px !important;
     opacity: 0.8 !important;
+    height: 240px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: 2px dashed rgba(255, 215, 0, 0.2) !important;
+    border-radius: 8px !important;
+    margin-bottom: 0.5rem !important;
+    background: rgba(255, 239, 165, 0.05) !important;
   }
 
-  .cmp-player-power-cards-modal .ppcm-empty span {
-    display: block !important;
-    margin-top: 0.7vh !important; /* ~8px */
-    opacity: 0.7 !important;
-    font-size: 1.2vh !important; /* ~13px */
+  /* Carousel */
+  .cmp-player-power-cards-modal-mobile .ppcm-carousel {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    position: relative !important;
+    width: 100% !important;
+    padding: 0 !important;
   }
 
-  /* Card grid styling - reuse power cards panel grid */
-  .cmp-player-power-cards-modal .ppcm-cards-grid {
-    display: grid !important;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important; /* auto-fit instead of auto-fill to prevent cutoff */
-    gap: 14px !important;
-    align-items: stretch !important;
-    padding: 0.5rem !important; /* Add padding inside the grid to prevent edge cutoff */
+  /* Carousel controls container */
+  .cmp-player-power-cards-modal-mobile .ppcm-carousel-controls {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 1rem !important;
+    width: 100% !important;
+    position: relative !important;
   }
 
-  /* Hide carousel on desktop */
-  .cmp-player-power-cards-modal .ppcm-carousel {
-    display: none !important;
+  /* Carousel track - fixed height for single card */
+  .cmp-player-power-cards-modal-mobile .ppcm-carousel-track {
+    flex: 0 0 auto !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    overflow: visible !important;
+    position: relative !important;
+    width: 100% !important;
+    height: 240px !important;
+    touch-action: pan-x !important;
+    margin-bottom: 0.5rem !important;
+    background: rgba(255, 239, 165, 0.05) !important;
+    border-radius: 8px !important;
+    padding: 0.5rem !important;
   }
 
-  /* Ensure power cards don't have hidden footers in this modal */
-  .cmp-player-power-cards-modal .pc-card-footer {
+  /* Individual carousel card */
+  .cmp-player-power-cards-modal-mobile .ppcm-carousel-card {
+    width: 100% !important;
+    max-width: 320px !important;
+    flex-shrink: 0 !important;
+    transition: transform 0.3s ease, opacity 0.3s ease !important;
+  }
+
+  /* Carousel navigation buttons */
+  .cmp-player-power-cards-modal-mobile .ppcm-carousel-prev,
+  .cmp-player-power-cards-modal-mobile .ppcm-carousel-next {
+    background: rgba(255, 215, 0, 0.2) !important;
+    border: 2px solid #ffd700 !important;
+    border-radius: 50% !important;
+    width: 40px !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #ffd700 !important;
+    font-size: 1.5rem !important;
+    font-weight: bold !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    flex-shrink: 0 !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    z-index: 10 !important;
+  }
+
+  .cmp-player-power-cards-modal-mobile .ppcm-carousel-prev:hover,
+  .cmp-player-power-cards-modal-mobile .ppcm-carousel-next:hover {
+    background: rgba(255, 215, 0, 0.4) !important;
+    transform: scale(1.1) !important;
+  }
+
+  .cmp-player-power-cards-modal-mobile .ppcm-carousel-prev.disabled,
+  .cmp-player-power-cards-modal-mobile .ppcm-carousel-next.disabled {
+    opacity: 0.3 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+  }
+
+  /* Carousel indicator dots */
+  .cmp-player-power-cards-modal-mobile .ppcm-carousel-indicators {
+    display: flex !important;
+    gap: 8px !important;
+    justify-content: center !important;
+    margin-top: 1rem !important;
+  }
+
+  .cmp-player-power-cards-modal-mobile .ppcm-carousel-indicator {
+    width: 8px !important;
+    height: 8px !important;
+    border-radius: 50% !important;
+    background: rgba(255, 215, 0, 0.3) !important;
+    border: 1px solid #ffd700 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .cmp-player-power-cards-modal-mobile .ppcm-carousel-indicator.active {
+    background: #ffd700 !important;
+    transform: scale(1.3) !important;
+  }
+
+  /* Power card styling within mobile modal */
+  .cmp-player-power-cards-modal-mobile .pc-card {
+    padding: 8px 10px 10px !important;
+    gap: 6px !important;
+  }
+
+  .cmp-player-power-cards-modal-mobile .pc-card-description {
+    line-height: 1.3 !important;
+    margin-bottom: 3px !important;
+    font-size: 0.75rem !important;
+  }
+
+  .cmp-player-power-cards-modal-mobile .pc-card-header,
+  .cmp-player-power-cards-modal-mobile .pc-card__header {
+    padding: 3px 5px 5px !important;
+    margin: -3px -3px 3px !important;
+    font-size: 0.85rem !important;
+  }
+
+  .cmp-player-power-cards-modal-mobile .pc-card-footer {
     display: flex !important;
     justify-content: flex-start !important;
-    padding: 8px 0 0 !important;
+    padding: 6px 0 0 !important;
   }
 
-  /* Desktop: Add more padding to cards for better spacing */
-  .cmp-player-power-cards-modal .pc-card {
-    padding: 16px 18px 18px !important; /* Increased from default 12px 14px 14px */
-    gap: 10px !important; /* Increased internal spacing */
+  /* Scrollbar styling */
+  .cmp-player-power-cards-modal-mobile .ppcm-body::-webkit-scrollbar {
+    width: 6px !important;
   }
 
-  .cmp-player-power-cards-modal .pc-card-description {
-    line-height: 1.45 !important; /* More breathing room for text */
-    margin-bottom: 6px !important; /* Space above footer/cost badge */
+  .cmp-player-power-cards-modal-mobile .ppcm-body::-webkit-scrollbar-track {
+    background: #241b30 !important;
   }
 
-  .cmp-player-power-cards-modal .ppcm-cards-grid {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
-    gap: 12px !important;
-  }
-
-  .cmp-player-power-cards-modal .pc-card-header,
-  .cmp-player-power-cards-modal .pc-card__header {
-    padding: 6px 8px 8px !important; /* Slightly more padding in header */
-    margin: -6px -6px 4px !important; /* Adjust negative margin to compensate */
-  }
-
-  /* Scrollbar styling for modal */
-  .cmp-player-power-cards-modal .ppcm-body::-webkit-scrollbar {
-    width: 8px !important;
-  }
-
-  .cmp-player-power-cards-modal .ppcm-body::-webkit-scrollbar-track {
-    background: #241b30 !important; /* Dark purple track */
-  }
-
-  .cmp-player-power-cards-modal .ppcm-body::-webkit-scrollbar-thumb {
+  .cmp-player-power-cards-modal-mobile .ppcm-body::-webkit-scrollbar-thumb {
     background: #ffd400 !important;
-    border-radius: 0.4vh !important; /* ~4px */
-    border: 0.1vh solid #000 !important; /* ~1px */
+    border-radius: 3px !important;
+    border: 1px solid #000 !important;
   }
 
-  .cmp-player-power-cards-modal .ppcm-body::-webkit-scrollbar-thumb:hover {
+  .cmp-player-power-cards-modal-mobile .ppcm-body::-webkit-scrollbar-thumb:hover {
     background: #ffdd33 !important;
   }
 
@@ -1088,15 +1162,93 @@ body.splash-visible .cmp-splash {
     position: relative;
   }
   
-  /* Move mini power cards tray to bottom - no radial launcher to worry about */
+  /* Move mini power cards tray to bottom - positioned between dice tray and action menu */
   .cmp-mini-power-cards {
-    /* Center positioning at bottom */
-    left: 50% !important;
-    transform: translateX(-50%) !important;
+    /* Positioned between dice tray (ends ~340px from left) and action menu (starts ~40px from right) */
+    position: fixed !important;
+    left: 350px !important; /* Just after dice tray */
+    right: 90px !important; /* Just before action menu button */
     bottom: 8px !important; 
-    height: 60px !important;
-    border: 1px solid rgba(200, 200, 200, 0.3) !important;
-    border-top: 1px solid rgba(200, 200, 200, 0.3) !important;
+    height: 48px !important; /* Reduced from 60px */
+    min-width: 100px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: rgba(20, 20, 30, 0.85) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(255, 215, 0, 0.3) !important;
+    border-radius: 0 !important; /* No rounded corners */
+    padding: 2px 6px !important; /* Reduced padding */
+    z-index: 6400 !important;
+    transform: none !important; /* Remove transform */
+  }
+  
+  /* Container for mini power card items */
+  .cmp-mini-power-cards .mpc-cards-container {
+    display: flex !important;
+    gap: 4px !important; /* Reduced gap */
+    align-items: center !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 1px 2px !important; /* Reduced padding */
+    height: 100% !important;
+  }
+  
+  /* Individual mini power card */
+  .cmp-mini-power-cards .mini-power-card {
+    flex-shrink: 0 !important;
+    width: 44px !important; /* Reduced from 50px */
+    height: 42px !important; /* Reduced from 48px */
+    cursor: pointer !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+  }
+  
+  .cmp-mini-power-cards .mini-power-card:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  .cmp-mini-power-cards .mini-power-card:active {
+    transform: translateY(0) !important;
+  }
+  
+  /* Mini power card inner styling */
+  .cmp-mini-power-cards .mpc-card-inner {
+    width: 100% !important;
+    height: 100% !important;
+    background: linear-gradient(135deg, #4a3b63 0%, #2e2540 100%) !important;
+    border: 2px solid #ffd700 !important;
+    border-radius: 4px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 4px !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Card name text */
+  .cmp-mini-power-cards .mpc-card-name {
+    font-size: 0.6rem !important;
+    font-weight: bold !important;
+    color: #ffd700 !important;
+    text-align: center !important;
+    line-height: 1.1 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 3 !important;
+    line-clamp: 3 !important;
+    -webkit-box-orient: vertical !important;
+    word-break: break-word !important;
+  }
+  
+  /* Empty state styling */
+  .cmp-mini-power-cards .mpc-empty-state {
+    font-size: 0.9rem !important;
+    color: rgba(255, 215, 0, 0.6) !important;
+    font-style: italic !important;
+    padding: 0 1rem !important;
   }
   
   /* Force mini player cards below unleash screen and other modals */
@@ -1104,6 +1256,48 @@ body.splash-visible .cmp-splash {
   .mini-player-card-container,
   .mini-player-card {
     z-index: 5000 !important;
+  }
+  
+  /* Color active indicator based on monster theme - using correct colors from config.json */
+  .mini-player-card-container:has(.mini-player-card--active[data-monster="the_king"]) .mpc-active-indicator {
+    background: #c49b3a !important;
+    border-color: #9a7a2d !important;
+  }
+  
+  .mini-player-card-container:has(.mini-player-card--active[data-monster="alienoid"]) .mpc-active-indicator {
+    background: #c7d84a !important;
+    border-color: #9fb038 !important;
+  }
+  
+  .mini-player-card-container:has(.mini-player-card--active[data-monster="kraken"]) .mpc-active-indicator {
+    background: #2e8cba !important;
+    border-color: #236d94 !important;
+  }
+  
+  .mini-player-card-container:has(.mini-player-card--active[data-monster="meka_dragon"]) .mpc-active-indicator {
+    background: #d4473a !important;
+    border-color: #a9382e !important;
+  }
+  
+  .mini-player-card-container:has(.mini-player-card--active[data-monster="cyber_kitty"]) .mpc-active-indicator {
+    background: #ff7ab8 !important;
+    border-color: #cc6293 !important;
+  }
+  
+  .mini-player-card-container:has(.mini-player-card--active[data-monster="space_penguin"]) .mpc-active-indicator {
+    background: #8ed1f0 !important;
+    border-color: #6fb5d1 !important;
+  }
+  
+  .mini-player-card-container:has(.mini-player-card--active[data-monster="gigazaur"]) .mpc-active-indicator {
+    background: #5fa047 !important;
+    border-color: #4c8038 !important;
+  }
+  
+  /* Fallback for unmatched monsters */
+  .mini-player-card-container:has(.mini-player-card--active:not([data-monster])) .mpc-active-indicator {
+    background: #ffcf33 !important;
+    border-color: #cca729 !important;
   }
   
   /* Additional Tokyo tiles scaling for very small viewports */

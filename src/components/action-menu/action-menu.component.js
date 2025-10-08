@@ -360,7 +360,7 @@ export function build({ selector }) {
           const target = ev.target;
           
           // Check if any modal is currently active (peek modal, card detail modal, etc.)
-          const activeModals = document.querySelectorAll('[data-apb-modal], .modal:not(.hidden), .peek-modal:not(.hidden), .card-detail-modal:not(.hidden), .monster-profile-single-modal:not(.hidden), .player-power-cards-modal:not(.hidden)');
+          const activeModals = document.querySelectorAll('[data-apb-modal], .modal:not(.hidden), .peek-modal:not(.hidden), .card-detail-modal:not(.hidden), .monster-profile-single-modal:not(.hidden), .player-power-cards-modal:not(.hidden), .cmp-player-power-cards-modal-mobile:not(.hidden)');
           if (activeModals.length > 0) {
             return; // Don't close panels if a modal is open
           }

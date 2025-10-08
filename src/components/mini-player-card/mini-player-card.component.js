@@ -67,6 +67,7 @@ function createMiniCard(player, position, activePlayerId, slotIndex, state) {
     }
     
     const playerName = player.name || 'P' + player.id;
+    const isCPU = player.isCPU || false;
     
     card.innerHTML = 
       '<div class="mpc-card-inner" style="background: #000 !important">' +
@@ -79,8 +80,8 @@ function createMiniCard(player, position, activePlayerId, slotIndex, state) {
         '</div>' +
       '</div>';
     
-    // Set player name in the external label
-    nameLabel.textContent = playerName;
+    // Set player name in the external label with CPU indicator
+    nameLabel.innerHTML = playerName + (isCPU ? ' <span class="cpu-label">(CPU)</span>' : '');
     nameLabel.classList.add('mini-player-card-name--active');
     
     // Create active indicator as separate element if player is active

@@ -37,6 +37,16 @@
   text-transform: uppercase;
 }
 
+/* CPU label styling - matches player name styling */
+.mini-player-card-name .cpu-label {
+  font-size: 10px;
+  color: #ffefa5; /* Same color as player name */
+  opacity: 1; /* Full opacity like player name */
+  margin-left: 4px;
+  font-weight: normal;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8); /* Same shadow as player name */
+}
+
 .mini-player-card-name--empty {
   color: #888;
   opacity: 0.6;
@@ -368,166 +378,145 @@
   display: none;
 }
 
-/* Active player highlight - Monster-themed colors */
+/* Active player highlight - Monster-themed colors (from config.json) */
 
-/* Alienoid active */
+/* The King active - #c49b3a (golden/orange) */
+.mini-player-card--active[data-monster="the_king"] {
+  filter: drop-shadow(0 0 30px rgba(196, 155, 58, 0.8)) 
+          drop-shadow(0 0 60px rgba(196, 155, 58, 0.6))
+          drop-shadow(0 0 100px rgba(196, 155, 58, 0.3));
+}
+.mini-player-card--active[data-monster="the_king"] .mpc-card-inner {
+  border: 3px solid #c49b3a !important;
+  box-shadow: 0 0 8px rgba(196, 155, 58, 0.6), 0 2px 6px rgba(0,0,0,0.4);
+}
+.mini-player-card--active[data-monster="the_king"]::before {
+  content: '';
+  position: absolute;
+  top: -20px; left: -20px; right: -20px; bottom: -20px;
+  background: radial-gradient(ellipse at center, rgba(196, 155, 58, 0.4) 0%, rgba(196, 155, 58, 0.2) 50%, transparent 80%);
+  z-index: -1; border-radius: 20px;
+}
+
+/* Alienoid active - #c7d84a (yellow-green/lime) */
 .mini-player-card--active[data-monster="alienoid"] {
-  filter: drop-shadow(0 0 30px rgba(20, 150, 180, 0.8)) 
-          drop-shadow(0 0 60px rgba(20, 150, 180, 0.6))
-          drop-shadow(0 0 100px rgba(20, 150, 180, 0.3));
+  filter: drop-shadow(0 0 30px rgba(199, 216, 74, 0.8)) 
+          drop-shadow(0 0 60px rgba(199, 216, 74, 0.6))
+          drop-shadow(0 0 100px rgba(199, 216, 74, 0.3));
 }
 .mini-player-card--active[data-monster="alienoid"] .mpc-card-inner {
-  border: 3px solid #1496b4 !important;
-  box-shadow: 0 0 8px rgba(20, 150, 180, 0.6), 0 2px 6px rgba(0,0,0,0.4);
+  border: 3px solid #c7d84a !important;
+  box-shadow: 0 0 8px rgba(199, 216, 74, 0.6), 0 2px 6px rgba(0,0,0,0.4);
 }
 .mini-player-card--active[data-monster="alienoid"]::before {
   content: '';
   position: absolute;
   top: -20px; left: -20px; right: -20px; bottom: -20px;
-  background: radial-gradient(ellipse at center, rgba(20, 150, 180, 0.4) 0%, rgba(20, 150, 180, 0.2) 50%, transparent 80%);
+  background: radial-gradient(ellipse at center, rgba(199, 216, 74, 0.4) 0%, rgba(199, 216, 74, 0.2) 50%, transparent 80%);
   z-index: -1; border-radius: 20px;
 }
 
-/* Cyber Bunny active */
-.mini-player-card--active[data-monster="cyberbunny"] {
-  filter: drop-shadow(0 0 30px rgba(244, 114, 182, 0.8)) 
-          drop-shadow(0 0 60px rgba(244, 114, 182, 0.6))
-          drop-shadow(0 0 100px rgba(244, 114, 182, 0.3));
-}
-.mini-player-card--active[data-monster="cyberbunny"] .mpc-card-inner {
-  border: 3px solid #f472b6 !important;
-  box-shadow: 0 0 8px rgba(244, 114, 182, 0.6), 0 2px 6px rgba(0,0,0,0.4);
-}
-.mini-player-card--active[data-monster="cyberbunny"]::before {
-  content: '';
-  position: absolute;
-  top: -20px; left: -20px; right: -20px; bottom: -20px;
-  background: radial-gradient(ellipse at center, rgba(244, 114, 182, 0.4) 0%, rgba(244, 114, 182, 0.2) 50%, transparent 80%);
-  z-index: -1; border-radius: 20px;
-}
-
-/* Cyber Kitty active */
-.mini-player-card--active[data-monster="cyber-kitty"] {
-  filter: drop-shadow(0 0 30px rgba(236, 72, 153, 0.8)) 
-          drop-shadow(0 0 60px rgba(236, 72, 153, 0.6))
-          drop-shadow(0 0 100px rgba(236, 72, 153, 0.3));
-}
-.mini-player-card--active[data-monster="cyber-kitty"] .mpc-card-inner {
-  border: 3px solid #ec4899 !important;
-  box-shadow: 0 0 8px rgba(236, 72, 153, 0.6), 0 2px 6px rgba(0,0,0,0.4);
-}
-.mini-player-card--active[data-monster="cyber-kitty"]::before {
-  content: '';
-  position: absolute;
-  top: -20px; left: -20px; right: -20px; bottom: -20px;
-  background: radial-gradient(ellipse at center, rgba(236, 72, 153, 0.4) 0%, rgba(236, 72, 153, 0.2) 50%, transparent 80%);
-  z-index: -1; border-radius: 20px;
-}
-
-/* Gigazaur active */
-.mini-player-card--active[data-monster="gigazaur"] {
-  filter: drop-shadow(0 0 30px rgba(34, 197, 94, 0.8)) 
-          drop-shadow(0 0 60px rgba(34, 197, 94, 0.6))
-          drop-shadow(0 0 100px rgba(34, 197, 94, 0.3));
-}
-.mini-player-card--active[data-monster="gigazaur"] .mpc-card-inner {
-  border: 3px solid #22c55e !important;
-  box-shadow: 0 0 8px rgba(34, 197, 94, 0.6), 0 2px 6px rgba(0,0,0,0.4);
-}
-.mini-player-card--active[data-monster="gigazaur"]::before {
-  content: '';
-  position: absolute;
-  top: -20px; left: -20px; right: -20px; bottom: -20px;
-  background: radial-gradient(ellipse at center, rgba(34, 197, 94, 0.4) 0%, rgba(34, 197, 94, 0.2) 50%, transparent 80%);
-  z-index: -1; border-radius: 20px;
-}
-
-/* Kraken active */
+/* Kraken active - #2e8cba (blue) */
 .mini-player-card--active[data-monster="kraken"] {
-  filter: drop-shadow(0 0 30px rgba(59, 130, 246, 0.8)) 
-          drop-shadow(0 0 60px rgba(59, 130, 246, 0.6))
-          drop-shadow(0 0 100px rgba(59, 130, 246, 0.3));
+  filter: drop-shadow(0 0 30px rgba(46, 140, 186, 0.8)) 
+          drop-shadow(0 0 60px rgba(46, 140, 186, 0.6))
+          drop-shadow(0 0 100px rgba(46, 140, 186, 0.3));
 }
 .mini-player-card--active[data-monster="kraken"] .mpc-card-inner {
-  border: 3px solid #3b82f6 !important;
-  box-shadow: 0 0 8px rgba(59, 130, 246, 0.6), 0 2px 6px rgba(0,0,0,0.4);
+  border: 3px solid #2e8cba !important;
+  box-shadow: 0 0 8px rgba(46, 140, 186, 0.6), 0 2px 6px rgba(0,0,0,0.4);
 }
 .mini-player-card--active[data-monster="kraken"]::before {
   content: '';
   position: absolute;
   top: -20px; left: -20px; right: -20px; bottom: -20px;
-  background: radial-gradient(ellipse at center, rgba(59, 130, 246, 0.4) 0%, rgba(59, 130, 246, 0.2) 50%, transparent 80%);
+  background: radial-gradient(ellipse at center, rgba(46, 140, 186, 0.4) 0%, rgba(46, 140, 186, 0.2) 50%, transparent 80%);
   z-index: -1; border-radius: 20px;
 }
 
-/* Meka Dragon active - enhanced with higher specificity */
-.mini-player-card--active[data-monster="meka-dragon"],
-body[data-mobile-ui-mode="radial-menu"] .mini-player-card--active[data-monster="meka-dragon"] {
-  filter: drop-shadow(0 0 30px rgba(163, 163, 163, 0.8)) 
-          drop-shadow(0 0 60px rgba(163, 163, 163, 0.6))
-          drop-shadow(0 0 100px rgba(163, 163, 163, 0.3));
+/* Meka Dragon active - #d4473a (red) */
+.mini-player-card--active[data-monster="meka_dragon"] {
+  filter: drop-shadow(0 0 30px rgba(212, 71, 58, 0.8)) 
+          drop-shadow(0 0 60px rgba(212, 71, 58, 0.6))
+          drop-shadow(0 0 100px rgba(212, 71, 58, 0.3));
 }
-.mini-player-card--active[data-monster="meka-dragon"] .mpc-card-inner,
-body[data-mobile-ui-mode="radial-menu"] .mini-player-card--active[data-monster="meka-dragon"] .mpc-card-inner {
-  border: 3px solid #a3a3a3 !important;
-  box-shadow: 0 0 8px rgba(163, 163, 163, 0.6), 0 2px 6px rgba(0,0,0,0.4);
+.mini-player-card--active[data-monster="meka_dragon"] .mpc-card-inner {
+  border: 3px solid #d4473a !important;
+  box-shadow: 0 0 8px rgba(212, 71, 58, 0.6), 0 2px 6px rgba(0,0,0,0.4);
 }
-.mini-player-card--active[data-monster="meka-dragon"]::before,
-body[data-mobile-ui-mode="radial-menu"] .mini-player-card--active[data-monster="meka-dragon"]::before {
+.mini-player-card--active[data-monster="meka_dragon"]::before {
   content: '';
   position: absolute;
   top: -20px; left: -20px; right: -20px; bottom: -20px;
-  background: radial-gradient(ellipse at center, rgba(163, 163, 163, 0.4) 0%, rgba(163, 163, 163, 0.2) 50%, transparent 80%);
+  background: radial-gradient(ellipse at center, rgba(212, 71, 58, 0.4) 0%, rgba(212, 71, 58, 0.2) 50%, transparent 80%);
   z-index: -1; border-radius: 20px;
 }
 
-/* Space Penguin active */
-.mini-player-card--active[data-monster="space-penguin"] {
-  filter: drop-shadow(0 0 30px rgba(56, 189, 248, 0.8)) 
-          drop-shadow(0 0 60px rgba(56, 189, 248, 0.6))
-          drop-shadow(0 0 100px rgba(56, 189, 248, 0.3));
+/* Cyber Kitty active - #ff7ab8 (pink) */
+.mini-player-card--active[data-monster="cyber_kitty"] {
+  filter: drop-shadow(0 0 30px rgba(255, 122, 184, 0.8)) 
+          drop-shadow(0 0 60px rgba(255, 122, 184, 0.6))
+          drop-shadow(0 0 100px rgba(255, 122, 184, 0.3));
 }
-.mini-player-card--active[data-monster="space-penguin"] .mpc-card-inner {
-  border: 3px solid #38bdf8 !important;
-  box-shadow: 0 0 8px rgba(56, 189, 248, 0.6), 0 2px 6px rgba(0,0,0,0.4);
+.mini-player-card--active[data-monster="cyber_kitty"] .mpc-card-inner {
+  border: 3px solid #ff7ab8 !important;
+  box-shadow: 0 0 8px rgba(255, 122, 184, 0.6), 0 2px 6px rgba(0,0,0,0.4);
 }
-.mini-player-card--active[data-monster="space-penguin"]::before {
+.mini-player-card--active[data-monster="cyber_kitty"]::before {
   content: '';
   position: absolute;
   top: -20px; left: -20px; right: -20px; bottom: -20px;
-  background: radial-gradient(ellipse at center, rgba(56, 189, 248, 0.4) 0%, rgba(56, 189, 248, 0.2) 50%, transparent 80%);
+  background: radial-gradient(ellipse at center, rgba(255, 122, 184, 0.4) 0%, rgba(255, 122, 184, 0.2) 50%, transparent 80%);
   z-index: -1; border-radius: 20px;
 }
 
-/* The King active */
-.mini-player-card--active[data-monster="the-king"] {
-  filter: drop-shadow(0 0 30px rgba(245, 158, 11, 0.8)) 
-          drop-shadow(0 0 60px rgba(245, 158, 11, 0.6))
-          drop-shadow(0 0 100px rgba(245, 158, 11, 0.3));
+/* Space Penguin active - #8ed1f0 (light blue) */
+.mini-player-card--active[data-monster="space_penguin"] {
+  filter: drop-shadow(0 0 30px rgba(142, 209, 240, 0.8)) 
+          drop-shadow(0 0 60px rgba(142, 209, 240, 0.6))
+          drop-shadow(0 0 100px rgba(142, 209, 240, 0.3));
 }
-.mini-player-card--active[data-monster="the-king"] .mpc-card-inner {
-  border: 3px solid #f59e0b !important;
-  box-shadow: 0 0 8px rgba(245, 158, 11, 0.6), 0 2px 6px rgba(0,0,0,0.4);
+.mini-player-card--active[data-monster="space_penguin"] .mpc-card-inner {
+  border: 3px solid #8ed1f0 !important;
+  box-shadow: 0 0 8px rgba(142, 209, 240, 0.6), 0 2px 6px rgba(0,0,0,0.4);
 }
-.mini-player-card--active[data-monster="the-king"]::before {
+.mini-player-card--active[data-monster="space_penguin"]::before {
   content: '';
   position: absolute;
   top: -20px; left: -20px; right: -20px; bottom: -20px;
-  background: radial-gradient(ellipse at center, rgba(245, 158, 11, 0.4) 0%, rgba(245, 158, 11, 0.2) 50%, transparent 80%);
+  background: radial-gradient(ellipse at center, rgba(142, 209, 240, 0.4) 0%, rgba(142, 209, 240, 0.2) 50%, transparent 80%);
+  z-index: -1; border-radius: 20px;
+}
+
+/* Gigazaur active - #5fa047 (green) */
+.mini-player-card--active[data-monster="gigazaur"] {
+  filter: drop-shadow(0 0 30px rgba(95, 160, 71, 0.8)) 
+          drop-shadow(0 0 60px rgba(95, 160, 71, 0.6))
+          drop-shadow(0 0 100px rgba(95, 160, 71, 0.3));
+}
+.mini-player-card--active[data-monster="gigazaur"] .mpc-card-inner {
+  border: 3px solid #5fa047 !important;
+  box-shadow: 0 0 8px rgba(95, 160, 71, 0.6), 0 2px 6px rgba(0,0,0,0.4);
+}
+.mini-player-card--active[data-monster="gigazaur"]::before {
+  content: '';
+  position: absolute;
+  top: -20px; left: -20px; right: -20px; bottom: -20px;
+  background: radial-gradient(ellipse at center, rgba(95, 160, 71, 0.4) 0%, rgba(95, 160, 71, 0.2) 50%, transparent 80%);
   z-index: -1; border-radius: 20px;
 }
 
 /* Fallback for unmatched monsters - use yellow as default */
-.mini-player-card--active:not([data-monster="alienoid"]):not([data-monster="cyberbunny"]):not([data-monster="cyber-kitty"]):not([data-monster="gigazaur"]):not([data-monster="kraken"]):not([data-monster="meka-dragon"]):not([data-monster="space-penguin"]):not([data-monster="the-king"]) {
+.mini-player-card--active:not([data-monster="the_king"]):not([data-monster="alienoid"]):not([data-monster="kraken"]):not([data-monster="meka_dragon"]):not([data-monster="cyber_kitty"]):not([data-monster="space_penguin"]):not([data-monster="gigazaur"]) {
   filter: drop-shadow(0 0 30px rgba(255, 207, 51, 0.8)) 
           drop-shadow(0 0 60px rgba(255, 207, 51, 0.6))
           drop-shadow(0 0 100px rgba(255, 207, 51, 0.3));
 }
-.mini-player-card--active:not([data-monster="alienoid"]):not([data-monster="cyberbunny"]):not([data-monster="cyber-kitty"]):not([data-monster="gigazaur"]):not([data-monster="kraken"]):not([data-monster="meka-dragon"]):not([data-monster="space-penguin"]):not([data-monster="the-king"]) .mpc-card-inner {
+.mini-player-card--active:not([data-monster="the_king"]):not([data-monster="alienoid"]):not([data-monster="kraken"]):not([data-monster="meka_dragon"]):not([data-monster="cyber_kitty"]):not([data-monster="space_penguin"]):not([data-monster="gigazaur"]) .mpc-card-inner {
   border: 3px solid #ffcf33 !important;
   box-shadow: 0 0 8px rgba(255, 207, 51, 0.6), 0 2px 6px rgba(0,0,0,0.4);
 }
-.mini-player-card--active:not([data-monster="alienoid"]):not([data-monster="cyberbunny"]):not([data-monster="cyber-kitty"]):not([data-monster="gigazaur"]):not([data-monster="kraken"]):not([data-monster="meka-dragon"]):not([data-monster="space-penguin"]):not([data-monster="the-king"])::before {
+.mini-player-card--active:not([data-monster="the_king"]):not([data-monster="alienoid"]):not([data-monster="kraken"]):not([data-monster="meka_dragon"]):not([data-monster="cyber_kitty"]):not([data-monster="space_penguin"]):not([data-monster="gigazaur"])::before {
   content: '';
   position: absolute;
   top: -20px; left: -20px; right: -20px; bottom: -20px;
