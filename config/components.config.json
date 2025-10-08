@@ -136,6 +136,22 @@
 		"zIndex": 40
 	},
 	{
+		"name": "miniPowerCardsCollection",
+		"version": "0.1.0",
+		"selector": ".cmp-mini-power-cards-collection",
+		"mountPoint": "#app",
+		"order": 191,
+		"enabled": true,
+		"stateKeys": ["ui","players"],
+		"build": "mini-power-cards-collection.build",
+		"update": "mini-power-cards-collection.update",
+		"eventsOut": [],
+		"eventsIn": [],
+		"initialState": {},
+		"assets": [],
+		"zIndex": 7000
+	},
+	{
 		"name": "monsterProfiles",
 		"version": "0.1.0",
 		"selector": ".cmp-monster-profiles",
