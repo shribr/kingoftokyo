@@ -365,6 +365,17 @@ body.splash-visible .cmp-splash {
  * 400px: Emergency compression for very narrow devices.
  */
 
+/* Hide AI thought bubbles on mobile/touch devices */
+@media (max-width: 1024px), (pointer: coarse) {
+  .thought-bubble-container,
+  .thought-bubble-container * {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+}
+
 /* 1) Large screens just below desktop wide */
 @media (max-width:1200px) {
   .cmp-arena [data-arena-section="tokyo"] { gap:28px; }
@@ -1100,6 +1111,16 @@ body.splash-visible .cmp-splash {
     border-color: #333 !important;
     color: #111 !important;
     box-shadow: 2px 2px 4px rgba(0,0,0,0.3) !important;
+    cursor: pointer !important;
+  }
+  
+  /* Visual feedback for kept/selected dice on mobile */
+  .cmp-dice-tray .mini-die.selected {
+    border-width: 2px !important;
+    border-color: #0066ff !important;
+    box-shadow: 0 0 8px rgba(0, 102, 255, 0.6), 2px 2px 4px rgba(0,0,0,0.3) !important;
+    transform: translateY(-2px) scale(1.1) !important;
+    background: linear-gradient(135deg, #f0f8ff 0%, #e0f0ff 50%, #d0e8ff 100%) !important;
   }
   
   /* Use same rolling animation as regular dice */
