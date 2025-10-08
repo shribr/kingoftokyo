@@ -198,21 +198,6 @@ export function createSettingsModal() {
           </div>
 
           <div class="field">
-            <label class="field-label">Mobile UI Style</label>
-            <div class="radio-group">
-              <label class="radio-option">
-                <input type="radio" name="mobileUIMode" value="classic">
-                <span>Classic - Horizontal action bar at bottom</span>
-              </label>
-              <label class="radio-option">
-                <input type="radio" name="mobileUIMode" value="radial-menu">
-                <span>Radial Menu - Circular actions with corner player cards</span>
-              </label>
-            </div>
-            <div class="field-help">Choose mobile interface style (only applies on mobile devices)</div>
-          </div>
-
-          <div class="field">
             <label class="field-checkbox">
               <input type="checkbox" name="persistPositions">
               <span class="checkbox-label">Remember Layout & Positions</span>
@@ -1495,7 +1480,6 @@ export function createSettingsModal() {
       // Interface settings
       playerCardLayoutMode: formData.get('playerCardLayoutMode'),
       actionMenuMode: formData.get('actionMenuMode'),
-      mobileUIMode: formData.get('mobileUIMode'),
       persistPositions: form.querySelector('input[name="persistPositions"]')?.checked || false,
 
       // Theme settings
@@ -1889,8 +1873,6 @@ export function createSettingsModal() {
     content.querySelectorAll('input[name="playerCardLayoutMode"]').forEach(r => r.checked = r.value === cardLayoutMode);
     const actionMode = settings.actionMenuMode || 'hybrid';
     content.querySelectorAll('input[name="actionMenuMode"]').forEach(r => r.checked = r.value === actionMode);
-    const mobileUIMode = settings.mobileUIMode || 'classic';
-    content.querySelectorAll('input[name="mobileUIMode"]').forEach(r => r.checked = r.value === mobileUIMode);
     const powerCardTheme = settings.powerCardTheme || 'original';
     content.querySelectorAll('input[name="powerCardTheme"]').forEach(r => r.checked = r.value === powerCardTheme);
     const dialogSystem = settings.dialogSystem || 'legacy';

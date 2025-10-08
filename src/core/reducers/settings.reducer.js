@@ -20,7 +20,6 @@ const DEFAULT_SETTINGS = {
   , enableDecisionTreeCapture: true // capture AI decision tree data for AI Insight tab (can disable for perf)
   , enableFloatingDevPanel: true // allow floating dev panel (can hide if using Dev Tools tab only)
   , showPhaseMetrics: false // show phase timing metrics panel (developer tool)
-  , mobileUIMode: 'classic' // classic | radial-menu (mobile UI layout style)
 };
 
 export function settingsReducer(state = DEFAULT_SETTINGS, action) {

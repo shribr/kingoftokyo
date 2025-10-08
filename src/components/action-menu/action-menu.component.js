@@ -138,12 +138,6 @@ export function build({ selector }) {
             <span class="h-btn-text">CARDS</span>
           </button>
           <button id="h-end-turn-btn" data-action="end" class="h-action-btn h-btn-secondary" disabled>END</button>
-          <button id="h-settings-btn" data-action="settings" class="h-action-btn h-btn-settings" title="Settings">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="3"/>
-              <path d="M12 1v6m0 6v10M6.64 4.64l4.24 4.24m2.83 2.83l4.24 4.24M1 12h6m6 0h10M4.64 17.36l4.24-4.24m2.83-2.83l4.24-4.24"/>
-            </svg>
-          </button>
         `;
         document.body.appendChild(horizontalMenu);
         
@@ -229,18 +223,14 @@ export function build({ selector }) {
             }
             break;
           }
-          case 'settings': {
-            // Open settings modal
-            store.dispatch({ type: 'UI_SETTINGS_OPEN' });
-            break;
-          }
         }
         
-        // Auto-hide mobile menu after any button click
-        if (checkMobile() && root._hamburgerOpen) {
-          root._hamburgerOpen = false;
-          // Trigger the hide animation by dispatching event that will call applyHidden
-          window.dispatchEvent(new CustomEvent('ui.actionMenu.forceClose'));
+        // Auto-collapse mobile menu after any button click
+        const horizontalMenu = document.getElementById('horizontal-action-menu');
+        if (horizontalMenu && checkMobile()) {
+          // Slide menu off-screen to the right
+          horizontalMenu.style.transform = 'translateX(110%)';
+          horizontalMenu.style.opacity = '0';
         }
       });
       

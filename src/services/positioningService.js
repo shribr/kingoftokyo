@@ -222,10 +222,10 @@ export function createPositioningService(store) {
       // Check if user has dragged the dice tray - if so, don't override their position
       const diceHasPersistedPosition = store.getState().ui?.positions?.diceTray;
       
-      // Skip positioning in radial-menu mode (uses CSS positioning instead)
-      const isRadialMode = document.body.getAttribute('data-mobile-ui-mode') === 'radial-menu';
+      // Skip positioning on mobile (uses CSS positioning instead)
+      const isMobile = matchMedia('(max-width: 760px), (pointer: coarse)').matches;
       
-      if (toolbar && pauseButton && diceBox && !diceHasPersistedPosition && !isRadialMode) {
+      if (toolbar && pauseButton && diceBox && !diceHasPersistedPosition && !isMobile) {
         const toolbarRect = toolbar.getBoundingClientRect();
         const pauseRect = pauseButton.getBoundingClientRect();
         const diceRect = diceBox.getBoundingClientRect();
@@ -247,8 +247,8 @@ export function createPositioningService(store) {
       // Check if user has dragged the action menu
       const menuHasPersistedPosition = store.getState().ui?.positions?.actionMenu;
       
-      // Skip action menu positioning in radial-menu mode (uses radial menu instead)
-      if (toolbar && actionMenu && !menuHasPersistedPosition && !isRadialMode) {
+      // Skip action menu positioning on mobile (uses horizontal mobile menu instead)
+      if (toolbar && actionMenu && !menuHasPersistedPosition && !isMobile) {
         // Position action menu using CSS default values (bottom: 140px, right: 370px)
         // Convert to viewport units for consistency
         const actionRect = actionMenu.getBoundingClientRect();
@@ -345,10 +345,10 @@ export function createPositioningService(store) {
     // Check if user has dragged the dice tray - if so, don't override their position
     const diceHasPersistedPosition = store.getState().ui?.positions?.diceTray;
     
-    // Skip positioning in radial-menu mode (uses CSS positioning instead)
-    const isRadialMode = document.body.getAttribute('data-mobile-ui-mode') === 'radial-menu';
+    // Skip positioning on mobile (uses CSS positioning instead)
+    const isMobile = matchMedia('(max-width: 760px), (pointer: coarse)').matches;
     
-    if (toolbar && pauseButton && diceBox && !diceHasPersistedPosition && !isRadialMode) {
+    if (toolbar && pauseButton && diceBox && !diceHasPersistedPosition && !isMobile) {
       const toolbarRect = toolbar.getBoundingClientRect();
       const pauseRect = pauseButton.getBoundingClientRect();
       const diceRect = diceBox.getBoundingClientRect();
@@ -374,8 +374,8 @@ export function createPositioningService(store) {
     
     console.log('[applyDefaultPositioning] Action menu persisted:', menuHasPersistedPosition);
     
-    // Skip action menu positioning in radial-menu mode (uses radial menu instead)
-    if (actionMenu && !menuHasPersistedPosition && !isRadialMode) {
+    // Skip action menu positioning on mobile (uses horizontal mobile menu instead)
+    if (actionMenu && !menuHasPersistedPosition && !isMobile) {
       // Position action menu using CSS default values (bottom: 140px, right: 370px)
       // Convert to viewport units for consistency
       const viewportWidth = window.innerWidth;

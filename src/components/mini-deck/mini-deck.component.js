@@ -1,4 +1,4 @@
-// Mini Deck Component - Vertical power cards text indicator for mobile radial-menu mode
+// Mini Deck Component - Vertical power cards text indicator for mobile UI
 // Positioned at bottom-left with rotated text like collapsed monsters panel
 
 import { store } from '../../bootstrap/index.js';

@@ -128,21 +128,10 @@ if (typeof window !== 'undefined') {
   bindUIEventAdapters(store);
   bindA11yOverlays(store);
   
-  // Sync mobile UI mode to body data attribute for CSS targeting
-  const syncMobileUIMode = () => {
-    const st = store.getState();
-    let mode = st.settings?.mobileUIMode || 'classic';
-    
-    // Force classic mode on desktop (non-touch, wide screens)
+  // Ensure dice tray is always visible on mobile
+  const syncDiceTrayVisibility = () => {
     const isMobile = matchMedia('(max-width: 760px), (pointer: coarse)').matches;
-    if (!isMobile && mode === 'radial-menu') {
-      mode = 'classic'; // Don't show radial menu on desktop
-    }
-    
-    document.body.setAttribute('data-mobile-ui-mode', mode);
-    
-    // Ensure dice tray is always visible in radial-menu mode
-    if (mode === 'radial-menu') {
+    if (isMobile) {
       try {
         const diceTray = document.querySelector('.cmp-dice-tray');
         if (diceTray) {
@@ -152,9 +141,8 @@ if (typeof window !== 'undefined') {
       } catch(_) {}
     }
   };
-  syncMobileUIMode();
-  store.subscribe(syncMobileUIMode);
-  window.addEventListener('resize', syncMobileUIMode); // Re-check on resize
+  syncDiceTrayVisibility();
+  window.addEventListener('resize', syncDiceTrayVisibility); // Re-check on resize
   
   // Initialize AI thought bubble component
   try {

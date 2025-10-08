@@ -233,11 +233,11 @@ export function update(root, { state }) {
         const content = hideResult ? '?' : symbolFor(face.value);
         const extraCls = hideResult ? ' reveal-pending' : '';
         
-        // Check if we're in radial-menu mode for mini dice styling
-        const isRadialMode = document.body.getAttribute('data-mobile-ui-mode') === 'radial-menu';
-        const baseClass = isRadialMode ? 'mini-die' : 'die';
-        const faceClass = isRadialMode ? getFaceClass(face.value) : '';
-        const keptClass = face.kept ? (isRadialMode ? 'selected' : 'is-kept') : '';
+        // Check if we're on mobile for mini dice styling
+        const isMobile = matchMedia('(max-width: 760px), (pointer: coarse)').matches;
+        const baseClass = isMobile ? 'mini-die' : 'die';
+        const faceClass = isMobile ? getFaceClass(face.value) : '';
+        const keptClass = face.kept ? (isMobile ? 'selected' : 'is-kept') : '';
         
         // Add a subtle selection indicator (lift) via 'is-kept' without any yellow outline
         rendered.push(`<span class="${baseClass} ${keptClass} ${isExtra ? 'extra-die' : ''} ${faceClass}${extraCls}" data-die-index="${i}" data-face="${face.value}">${content}</span>`);
@@ -246,8 +246,8 @@ export function update(root, { state }) {
         // For regular dice (1-6) show '?' when waiting for roll
         const content = isExtra ? '' : '?';
         const extraClass = isExtra ? 'extra-die empty-compartment' : '';
-        const isRadialMode = document.body.getAttribute('data-mobile-ui-mode') === 'radial-menu';
-        const baseClass = isRadialMode ? 'mini-die' : 'die';
+        const isMobile = matchMedia('(max-width: 760px), (pointer: coarse)').matches;
+        const baseClass = isMobile ? 'mini-die' : 'die';
         
         rendered.push(`<span class="${baseClass} pending ${extraClass}" data-die-index="${i}">${content}</span>`);
       }

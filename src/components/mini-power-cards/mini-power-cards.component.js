@@ -1,6 +1,6 @@
 /**
  * Mini Power Cards Component
- * Compact power card display for radial-menu mobile UI
+ * Compact power card display for mobile UI
  * Shows active player's power cards along bottom of screen (Catan-style)
  */
 import { store } from '../../bootstrap/index.js';
