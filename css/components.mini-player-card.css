@@ -253,36 +253,36 @@
 }
 
 /* Position variants - 6 slots: 4 corners + 2 middle sides */
-/* Container positioning (includes card + name) - spaced out for name visibility */
+/* Container positioning (includes card + name) - shifted up slightly */
 .mini-player-card-container--top-left {
-  top: 15%; /* More space from top edge and middle cards */
+  top: 10%; /* Shifted up from 15% */
   left: 8px;
 }
 
 .mini-player-card-container--top-left-title {
-  top: 50%; /* Middle left side */
+  top: 45%; /* Shifted up from 50% */
   left: 8px;
   transform: translateY(-50%);
 }
 
 .mini-player-card-container--top-right-title {
-  top: 50%; /* Middle right side */
+  top: 45%; /* Shifted up from 50% */
   right: 8px;
   transform: translateY(-50%);
 }
 
 .mini-player-card-container--top-right {
-  top: 15%; /* More space from top edge and middle cards */
+  top: 10%; /* Shifted up from 15% */
   right: 8px;
 }
 
 .mini-player-card-container--bottom-left {
-  bottom: 15%; /* More space from bottom edge and middle cards */
+  bottom: 20%; /* Shifted up (increased from 15%) */
   left: 8px;
 }
 
 .mini-player-card-container--bottom-right {
-  bottom: 15%; /* More space from bottom edge and middle cards */
+  bottom: 20%; /* Shifted up (increased from 15%) */
   right: 8px;
 }
 
