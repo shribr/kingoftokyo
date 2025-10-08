@@ -1248,10 +1248,18 @@ body[data-mobile-ui-mode="radial-menu"] .cmp-monsters-panel {
     opacity: 1 !important;
   }
   
-  /* Hide dice toggle button and action menu button in radial-menu mode */
-  body[data-mobile-ui-mode="radial-menu"] #dice-toggle-btn,
-  body[data-mobile-ui-mode="radial-menu"] #action-menu-mobile-btn {
+  /* Hide dice toggle button in radial-menu mode, but show action menu button */
+  body[data-mobile-ui-mode="radial-menu"] #dice-toggle-btn {
     display: none !important;
+  }
+  
+  /* Show action menu button in radial-menu mode (aligned with dice tray center) */
+  body[data-mobile-ui-mode="radial-menu"] #action-menu-mobile-btn {
+    display: flex !important;
+    position: fixed !important;
+    bottom: 13px !important; /* Aligned with dice tray center (8px + 30px - 25px for button center) */
+    right: 20px !important;
+    z-index: 6700 !important;
   }
   
   /* Force dice tray to be always visible in radial-menu mode */
@@ -1267,10 +1275,10 @@ body[data-mobile-ui-mode="radial-menu"] .cmp-monsters-panel {
     transform: translateX(0) !important; /* Force visible even when marked as collapsed */
   }
   
-  /* Position dice tray in radial-menu mode with maximum specificity to override JavaScript */
+  /* Position dice tray in radial-menu mode - moved to far left with padding */
   body[data-mobile-ui-mode="radial-menu"] .cmp-dice-tray#dice-tray {
     position: fixed !important;
-    left: 128px !important; /* Next to bottom-left mini player card */
+    left: 16px !important; /* Far left with padding from edge */
     bottom: 8px !important;
     height: 60px !important;
     width: 300px !important;

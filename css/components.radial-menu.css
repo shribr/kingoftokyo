@@ -257,20 +257,15 @@ body:not([data-mobile-ui-mode="radial-menu"]) .radial-menu-container {
   display: none;
 }
 
-/* Show radial menu when radial-menu mode is active (mobile or testing) */
+/* Hide radial menu when radial-menu mode is active (showing regular mobile menu instead) */
 body[data-mobile-ui-mode="radial-menu"] .radial-menu-container {
-  display: block;
-}
-
-/* Hide the mobile action menu button when using radial menu */
-body[data-mobile-ui-mode="radial-menu"] .action-menu-mobile-btn,
-body[data-mobile-ui-mode="radial-menu"] #action-menu-mobile-btn {
   display: none;
 }
 
-/* Mobile-specific: Hide horizontal menu when using radial menu */
-@media (max-width: 760px), (pointer: coarse) {
-  body[data-mobile-ui-mode="radial-menu"] .horizontal-action-menu {
-    display: none;
-  }
+/* Show the mobile action menu button when using radial menu mode */
+body[data-mobile-ui-mode="radial-menu"] .action-menu-mobile-btn,
+body[data-mobile-ui-mode="radial-menu"] #action-menu-mobile-btn {
+  display: block;
 }
+
+/* Mobile-specific: Horizontal menu can now be toggled even in radial menu UI mode */
