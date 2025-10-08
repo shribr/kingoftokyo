@@ -112,15 +112,55 @@ function createMiniCard(player, position, activePlayerId, slotIndex, state) {
   container.appendChild(card);
   container.appendChild(nameLabel);
   
-  // Add click handler to show player profile modal with owned power cards
+  // Add click handler to show mobile power cards wallet
   if (player && player.id) {
+    // Add data attribute to prevent monsters panel mobile slide behavior
+    card.setAttribute('data-ignore-flip', 'true');
+    container.setAttribute('data-ignore-flip', 'true');
+    
     const clickHandler = (e) => {
       e.preventDefault();
       e.stopPropagation();
-      // Dispatch action to open player power cards modal
-      store.dispatch(uiPlayerPowerCardsOpen(player.id));
+      e.stopImmediatePropagation(); // Stop all event propagation
+      
+      // Check if we're on mobile
+      const isMobile = window.innerWidth <= 1024 || 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      
+      if (isMobile) {
+        console.log('[MiniPlayerCard] Mobile click detected for player:', player.id, player.name);
+        
+        // Close any expanded monsters panel cards first
+        const expandedCards = document.querySelectorAll('.cmp-player-profile-card[data-expanded="true"]');
+        expandedCards.forEach(card => card.removeAttribute('data-expanded'));
+        
+        // Hide monsters panel backdrop if visible
+        const mpBackdrop = document.querySelector('.mp-mobile-backdrop');
+        if (mpBackdrop) {
+          mpBackdrop.classList.remove('visible');
+        }
+        
+        // Show mini power cards collection
+        const collection = document.querySelector('.cmp-mini-power-cards-collection');
+        console.log('[MiniPlayerCard] Collection element found:', !!collection);
+        console.log('[MiniPlayerCard] Component instance:', !!collection?._componentInstance);
+        console.log('[MiniPlayerCard] Show method:', !!collection?._componentInstance?.show);
+        
+        if (collection && collection._componentInstance && collection._componentInstance.show) {
+          console.log('[MiniPlayerCard] Calling collection.show for player:', player.id);
+          collection._componentInstance.show(player.id);
+        } else {
+          console.log('[MiniPlayerCard] Fallback: dispatching uiPlayerPowerCardsOpen for player:', player.id);
+          // Fallback: dispatch the action to open regular modal if collection not available
+          store.dispatch(uiPlayerPowerCardsOpen(player.id));
+        }
+      } else {
+        // On desktop, use the regular modal
+        store.dispatch(uiPlayerPowerCardsOpen(player.id));
+      }
     };
-    card.addEventListener('click', clickHandler);
+    
+    card.addEventListener('click', clickHandler, { capture: true });
+    container.addEventListener('click', clickHandler, { capture: true });
     card.style.cursor = 'pointer';
   }
   
