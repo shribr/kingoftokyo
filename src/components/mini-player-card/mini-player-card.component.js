@@ -66,12 +66,10 @@ function createMiniCard(player, position, activePlayerId, slotIndex, state) {
       card.setAttribute('data-monster', monster.id);
     }
     
-    const activeIndicator = isActive ? '<div class="mpc-active-indicator"></div>' : '';
     const playerName = player.name || 'P' + player.id;
     
     card.innerHTML = 
       '<div class="mpc-card-inner" style="background: #000 !important">' +
-        activeIndicator +
         '<div class="mpc-profile" style="background-image: url(\'' + monsterImage + '\')"></div>' +
         '<div class="mpc-stats-bar">' +
           '<div class="mpc-stat"><span class="mpc-stat-icon">❤️</span><span class="mpc-stat-value">' + health + '</span></div>' +
@@ -84,6 +82,13 @@ function createMiniCard(player, position, activePlayerId, slotIndex, state) {
     // Set player name in the external label
     nameLabel.textContent = playerName;
     nameLabel.classList.add('mini-player-card-name--active');
+    
+    // Create active indicator as separate element if player is active
+    if (isActive) {
+      const activeIndicator = document.createElement('div');
+      activeIndicator.className = 'mpc-active-indicator';
+      container.appendChild(activeIndicator);
+    }
   } else {
     card.classList.add('mini-player-card--empty');
     card.innerHTML = 

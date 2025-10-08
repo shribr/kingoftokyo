@@ -125,10 +125,9 @@
   border-color: #f59e0b !important;
 }
 
-/* Active player indicator - circular dice badge overlapping card corner */
+/* Active player indicator - circular dice badge positioned outside card within container */
 .mpc-active-indicator {
   position: absolute;
-  bottom: -4px; /* Overlap the bottom edge of the card */
   width: 24px;
   height: 24px;
   background: #fff;
@@ -137,7 +136,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10;
+  z-index: 9501; /* One level above mini player cards (9500) */
+  pointer-events: none; /* Don't interfere with card clicks */
   box-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 
@@ -326,43 +326,41 @@
   text-align: right;
 }
 
-/* Position dice indicator - corner-specific positioning for better visual balance */
-/* Top-left card: bottom-right corner */
-.mini-player-card--top-left .mpc-active-indicator {
-  right: -4px;
-  bottom: -4px;
+/* Position dice indicator - positioned outside card within container, like the name label */
+/* Top-left card: bottom-right of card area */
+.mini-player-card-container--top-left .mpc-active-indicator {
+  top: 52px; /* Just below the 60px card height */
+  right: -8px; /* Slightly outside the card width */
 }
 
-/* Middle-left card: bottom-right corner */
-.mini-player-card--top-left-title .mpc-active-indicator {
-  right: -4px;
-  bottom: -4px;
+/* Middle-left card: bottom-right of card area */
+.mini-player-card-container--top-left-title .mpc-active-indicator {
+  top: 52px; /* Just below the 60px card height */
+  right: -8px; /* Slightly outside the card width */
 }
 
-/* Top-right card: bottom-left corner */
-.mini-player-card--top-right .mpc-active-indicator {
-  left: -4px;
-  bottom: -4px;
+/* Top-right card: bottom-left of card area */
+.mini-player-card-container--top-right .mpc-active-indicator {
+  top: 52px; /* Just below the 60px card height */
+  left: -8px; /* Slightly outside the card width */
 }
 
-/* Middle-right card: bottom-left corner */
-.mini-player-card--top-right-title .mpc-active-indicator {
-  left: -4px;
-  bottom: -4px;
+/* Middle-right card: bottom-left of card area */
+.mini-player-card-container--top-right-title .mpc-active-indicator {
+  top: 52px; /* Just below the 60px card height */
+  left: -8px; /* Slightly outside the card width */
 }
 
-/* Bottom-left card: top-right corner */
-.mini-player-card--bottom-left .mpc-active-indicator {
-  right: -4px;
-  top: -4px;
-  bottom: auto;
+/* Bottom-left card: top-right of card area */
+.mini-player-card-container--bottom-left .mpc-active-indicator {
+  top: -8px; /* Above the card */
+  right: -8px; /* Slightly outside the card width */
 }
 
-/* Bottom-right card: top-left corner */
-.mini-player-card--bottom-right .mpc-active-indicator {
-  left: -4px;
-  top: -4px;
-  bottom: auto;
+/* Bottom-right card: top-left of card area */
+.mini-player-card-container--bottom-right .mpc-active-indicator {
+  top: -8px; /* Above the card */
+  left: -8px; /* Slightly outside the card width */
 }
 
 /* Hide active indicator for empty cards */
