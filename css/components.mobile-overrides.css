@@ -374,6 +374,17 @@ body.splash-visible .cmp-splash {
     opacity: 0 !important;
     pointer-events: none !important;
   }
+  
+  /* Hide AI Decision Tree modal and component on mobile */
+  .cmp-ai-decision-modal,
+  [data-ai-decision-modal],
+  .ai-decision-modal,
+  .cmp-ai-decision-tree {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
 }
 
 /* 1) Large screens just below desktop wide */
@@ -523,7 +534,7 @@ body.splash-visible .cmp-splash {
   .cmp-dice-tray:not([data-collapsed="left"]):not([data-collapsed="true"]):not([data-collapsed="1"]),
   .cmp-dice-tray.expanded,
   .cmp-dice-tray[data-expanded="true"] { 
-    transform: translateX(60px) !important; /* Slide in from left, offset 60px to the right */
+    transform: translateX(100px) !important; /* Slide in from left, offset 100px to the right (increased from 60px for better mobile positioning) */
   }
   
   /* Collapsed state - slide out to left (default) */

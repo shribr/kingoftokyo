@@ -304,28 +304,6 @@ export function createTurnService(store, logger, rng = Math.random) {
     __rollIndex = 0; // reset per new turn (defined later)
   try { console.log('[turnService] startTurn invoked, activePlayerIndex=', store.getState().meta?.activePlayerIndex); } catch(_) {}
     
-    // TOKYO BAY AUTO-ENTRY RULE (5+ players)
-    // If Tokyo City is occupied but Bay is empty, the active player MUST enter Bay (before rolling)
-    const stBay = store.getState();
-    const playerCount = stBay.players.order.length;
-    if (playerCount >= 5) {
-      const cityOcc = selectTokyoCityOccupant(stBay);
-      const bayOcc = selectTokyoBayOccupant(stBay);
-      const activeId = selectActivePlayerId(stBay);
-      const activePlayer = activeId ? stBay.players.byId[activeId] : null;
-      
-      if (cityOcc && !bayOcc && activePlayer && !activePlayer.inTokyo) {
-        // AUTO-ENTER: Player must enter Tokyo Bay at start of turn
-        console.log(`🏖️ TOKYO BAY AUTO-ENTRY: ${activeId} automatically enters Tokyo Bay (5+ players, City occupied, Bay empty)`);
-        store.dispatch(playerEnteredTokyo(activeId));
-        store.dispatch(tokyoOccupantSet(activeId, playerCount));
-        logger.system(`${activeId} automatically enters Tokyo Bay`, { kind:'tokyo', slot:'bay', auto:true });
-        console.log(`🏆 DISPATCHING VP for Tokyo Bay auto-entry: ${activeId} +1 VP`);
-        store.dispatch(playerVPGained(activeId, 1, 'enterTokyo'));
-        store.dispatch(uiVPFlash(activeId, 1));
-      }
-    }
-    
     // Start-of-turn bonuses (Tokyo VP if occupying City at turn start)
     awardStartOfTurnTokyoVP(store, logger);
   logger.system('Phase: ROLL', { kind: 'phase' });
@@ -631,6 +609,28 @@ export function createTurnService(store, logger, rng = Math.random) {
       markPhaseEnd('CLEANUP');
     } catch(_) {}
     try {
+      // TOKYO BAY AUTO-ENTRY RULE (5+ players) - happens at END of turn
+      // If Tokyo City is occupied but Bay is empty, the active player MUST enter Bay
+      const stBay = store.getState();
+      const playerCount = stBay.players.order.length;
+      if (playerCount >= 5) {
+        const activeId = selectActivePlayerId(stBay);
+        const cityOcc = selectTokyoCityOccupant(stBay);
+        const bayOcc = selectTokyoBayOccupant(stBay);
+        const activePlayer = activeId ? stBay.players.byId[activeId] : null;
+        
+        if (cityOcc && cityOcc !== activeId && !bayOcc && activePlayer && !activePlayer.inTokyo) {
+          // AUTO-ENTER: Player must enter Tokyo Bay at end of their turn
+          console.log(`🏖️ TOKYO BAY AUTO-ENTRY: ${activeId} automatically enters Tokyo Bay at end of turn (5+ players, City occupied, Bay empty)`);
+          store.dispatch(playerEnteredTokyo(activeId));
+          store.dispatch(tokyoOccupantSet(activeId, playerCount));
+          logger.system(`${activeId} automatically enters Tokyo Bay`, { kind:'tokyo', slot:'bay', auto:true });
+          console.log(`🏆 DISPATCHING VP for Tokyo Bay entry: ${activeId} +1 VP`);
+          store.dispatch(playerVPGained(activeId, 1, 'enterTokyo'));
+          store.dispatch(uiVPFlash(activeId, 1));
+        }
+      }
+      
       // Advance active player index
       const st = store.getState();
       const order = st.players.order;

@@ -122,7 +122,8 @@ export function resolveDice(store, logger) {
     const anyOccupied = !!cityOcc || !!bayOcc;
     if (tally.claw > 0) {
       if (!anyOccupied && !attacker.inTokyo) {
-        console.log(`🏙️ TOKYO ENTRY: ${activeId} entering Tokyo (empty)`);
+        // Both City and Bay empty - enter City
+        console.log(`🏙️ TOKYO ENTRY: ${activeId} entering Tokyo City (both empty)`);
         store.dispatch(playerEnteredTokyo(activeId));
         store.dispatch(tokyoOccupantSet(activeId, playerCount));
         logger.system(`${activeId} enters Tokyo City!`, { kind:'tokyo', slot:'city' });
@@ -130,7 +131,20 @@ export function resolveDice(store, logger) {
         store.dispatch(playerVPGained(activeId, 1, 'enterTokyo'));
         store.dispatch(uiVPFlash(activeId, 1));
         logger.info(`${activeId} gains 1 VP for entering Tokyo`);
-      } else if (anyOccupied) {
+      } else if (bayAllowed && cityOcc && !bayOcc && !attacker.inTokyo) {
+        // 5+ players: City occupied, Bay empty - auto-enter Bay (no attack on City)
+        console.log(`🏖️ TOKYO BAY ENTRY: ${activeId} entering Tokyo Bay (City occupied, Bay empty)`);
+        store.dispatch(playerEnteredTokyo(activeId));
+        store.dispatch(tokyoOccupantSet(activeId, playerCount));
+        logger.system(`${activeId} enters Tokyo Bay!`, { kind:'tokyo', slot:'bay' });
+        console.log(`🏆 DISPATCHING VP for Tokyo Bay entry: ${activeId} +1 VP`);
+        store.dispatch(playerVPGained(activeId, 1, 'enterTokyo'));
+        store.dispatch(uiVPFlash(activeId, 1));
+        logger.info(`${activeId} gains 1 VP for entering Tokyo Bay`);
+      } else if (anyOccupied && !attacker.inTokyo) {
+        // Both City and Bay occupied (or 4 players with City occupied) - trigger yield flow
+        // Only trigger yield flow if attacker is OUTSIDE Tokyo attacking IN
+        // If attacker is IN Tokyo, they attack outside players (no yield needed)
         const created = beginYieldFlow(store, logger, activeId, tally.claw, playerCount, bayAllowed, preDamageHP);
         yieldPromptsCreated = created > 0;
       }
@@ -285,7 +299,7 @@ export function awardStartOfTurnTokyoVP(store, logger) {
   const playerCount = state.players.order.length;
   console.log(`🏙️ Tokyo VP Check: Active=${activeId} - City=${cityOcc}, Bay=${bayOcc}, Phase=${state.phase}`);
   const bayAllowed = playerCount >= 5;
-  // Official: City occupant gains 2 VP; Bay occupant (only in 5-6 player games) gains 1 VP at start of their turn if they remain.
+  // Official: City occupant gains 2 VP; Bay occupant (only in 5-6 player games) also gains 2 VP at start of their turn if they remain.
   if (cityOcc === activeId) {
     console.log(`🏆 Awarding 2 VP to ${activeId} for starting turn in Tokyo City`);
     store.dispatch(playerVPGained(activeId, 2, 'startTurnTokyoCity'));
