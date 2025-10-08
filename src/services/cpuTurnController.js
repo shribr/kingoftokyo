@@ -217,19 +217,29 @@ export function createCpuTurnController(store, engine, logger = console, options
       // Reroll counter management handled in the stop conditions logic
 
       // Early stop conditions - check current state for rerolls remaining
-  const currentState = store.getState();
+      const currentState = store.getState();
       const currentRerolls = currentState.dice.rerollsRemaining ?? 0;
       const hasUnkeptDice = !!(currentState.dice.faces||[]).some(f=> f && !f.kept);
       
-      // For initial roll, we still have rerolls available (haven't decremented yet)
-      const effectiveRerolls = initial ? currentRerolls : Math.max(0, currentRerolls);
+      console.log(`[cpuController] Stop check: action=${normalizedAction}, rerollsRemaining=${currentRerolls}, hasUnkeptDice=${hasUnkeptDice}, rollNumber=${rollNumber}`);
       
-      console.log(`[cpuController] Stop check: action=${normalizedAction}, currentRerolls=${currentRerolls}, effectiveRerolls=${effectiveRerolls}, hasUnkeptDice=${hasUnkeptDice}, initial=${initial}`);
-      
-  // Stop only when explicitly ending, out of rerolls, or nothing left to reroll
-  const stop = normalizedAction === 'endRoll' || effectiveRerolls <= 0 || !hasUnkeptDice;
+      // Stop conditions:
+      // 1. AI explicitly wants to end (normalizedAction === 'endRoll')
+      // 2. No more rerolls available AND not the initial roll
+      // 3. All dice are kept (nothing to reroll)
+      // 4. Reached max rolls
+      const noRerollsLeft = currentRerolls <= 0 && !initial;
+      const stop = normalizedAction === 'endRoll' || noRerollsLeft || !hasUnkeptDice;
       if (stop || rollNumber >= settings.maxRolls) {
-        console.log(`[cpuController] Stopping after roll ${rollNumber}:`, { stop, rollNumber, maxRolls: settings.maxRolls, reason: stop ? 'stop condition met' : 'max rolls reached' });
+        console.log(`[cpuController] Stopping after roll ${rollNumber}:`, { 
+          stop, 
+          rollNumber, 
+          maxRolls: settings.maxRolls, 
+          reason: normalizedAction === 'endRoll' ? 'AI chose to end' : 
+                  noRerollsLeft ? 'no rerolls left' : 
+                  !hasUnkeptDice ? 'all dice kept' : 
+                  'max rolls reached' 
+        });
         break;
       }
       console.log(`[cpuController] Continuing to next roll...`);
