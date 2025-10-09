@@ -73,8 +73,32 @@
 /* Removed obsolete alternative combo styling */
 
 /* --- Card Detail Header / Close Button Reposition --- */
-.card-detail-frame .cd-header { position: relative; padding-top:.35rem; padding-right:.5rem; display:flex; align-items:flex-end; }
+.card-detail-frame .cd-header { position: relative; padding-top:.35rem; padding-right:.5rem; display:flex; align-items:flex-end; gap:8px; }
 .card-detail-frame .cd-title { margin:0; font-size:1.35rem; font-weight:800; letter-spacing:1px; flex:1; color:#ffefa5; text-shadow:0 2px 0 #000, 0 0 2px #000; }
+
+/* Cost badge in top right corner */
+.card-detail-frame .cd-cost-badge {
+  position: absolute;
+  top: -8px;
+  right: 24px;
+  min-width: 32px;
+  height: 24px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ffd700 0%, #ffb300 100%);
+  color: #000;
+  font-size: 13px;
+  font-weight: bold;
+  font-family: 'Bangers', cursive;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  border: 2px solid #000;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.5px;
+  z-index: 1;
+}
+
 /* Close button now floats slightly above and to right of header */
 .card-detail-frame .cd-close { position:absolute; top:-12px; right:-12px; background:transparent; border:none; color:#ffefa5; font-size:1rem; padding:4px 6px; line-height:1; border-radius:0; display:inline-block; box-shadow:none; cursor:pointer; }
 .card-detail-frame .cd-close:hover { color:#fff; background:transparent; }

@@ -1325,10 +1325,9 @@ body.splash-visible .cmp-splash {
   
   /* Move mini power cards tray to bottom - positioned between dice tray and action menu */
   .cmp-mini-power-cards {
-    /* Positioned between dice tray (ends ~340px from left) and action menu (starts ~40px from right) */
+    /* Positioned after dice tray */
     position: fixed !important;
-    left: 350px !important; /* Just after dice tray */
-    right: 90px !important; /* Just before action menu button */
+    left: 300px !important;
     bottom: 8px !important; 
     height: 48px !important; /* Reduced from 60px */
     min-width: 100px !important;
@@ -1338,7 +1337,6 @@ body.splash-visible .cmp-splash {
     background: rgba(20, 20, 30, 0.85) !important;
     -webkit-backdrop-filter: blur(8px) !important;
     backdrop-filter: blur(8px) !important;
-    border: 1px solid rgba(255, 215, 0, 0.3) !important;
     border-radius: 0 !important; /* No rounded corners */
     padding: 2px 6px !important; /* Reduced padding */
     z-index: 6400 !important;
@@ -1359,7 +1357,6 @@ body.splash-visible .cmp-splash {
   /* Individual mini power card */
   .cmp-mini-power-cards .mini-power-card {
     flex-shrink: 0 !important;
-    width: 44px !important; /* Reduced from 50px */
     height: 42px !important; /* Reduced from 48px */
     cursor: pointer !important;
     transition: transform 0.2s ease, box-shadow 0.2s ease !important;

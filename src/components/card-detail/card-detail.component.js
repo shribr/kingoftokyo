@@ -17,6 +17,7 @@ export function build({ selector, emit }) {
   root.innerHTML = `<div class="card-detail-frame" data-frame>
       <div class="cd-header">
         <h2 class="cd-title" id="card-detail-title" data-name></h2>
+        <div class="cd-cost-badge" data-cost></div>
         <button class="cd-close" data-action="close" aria-label="Close card details">✕</button>
       </div>
   <div class="cd-card-wrapper cmp-power-cards-panel" data-card-wrapper></div>
@@ -92,6 +93,12 @@ export function update(root) {
     return;
   }
   root.querySelector('[data-name]').textContent = candidate.name;
+  
+  // Update cost badge
+  const costBadge = root.querySelector('[data-cost]');
+  if (costBadge) {
+    costBadge.textContent = `${candidate.cost || 0}⚡`;
+  }
 
   // Regenerate power card using shared generator (defensive: only if card changed)
   const cardWrapper = root.querySelector('[data-card-wrapper]');
