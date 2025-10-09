@@ -14,10 +14,10 @@ export function build({ selector, emit }) {
   root.setAttribute('aria-modal','true');
   root.setAttribute('aria-hidden','true');
   root.setAttribute('aria-labelledby','card-detail-title');
-  root.innerHTML = `<div class="card-detail-frame" data-frame>
+  root.innerHTML = `<div class="card-detail-backdrop" data-backdrop></div>
+    <div class="card-detail-frame" data-frame>
       <div class="cd-header">
-        <h2 class="cd-title" id="card-detail-title" data-name></h2>
-        <div class="cd-cost-badge" data-cost></div>
+        <h2 class="cd-title" id="card-detail-title">Power Card Details</h2>
         <button class="cd-close" data-action="close" aria-label="Close card details">✕</button>
       </div>
   <div class="cd-card-wrapper cmp-power-cards-panel" data-card-wrapper></div>
@@ -27,12 +27,17 @@ export function build({ selector, emit }) {
           <div class="cd-strategy-text" data-strategy></div>
         </div>
         <div class="cd-section cd-synergies" data-synergies-wrapper>
-          <h3 class="cd-section-title">SYNERGIES</h3>
+          <h3 class="cd-section-title">
+            SYNERGIES
+            <span class="cd-info-icon" title="Synergies show generally good card combinations. Combo Tips show combinations available in your current game.">i</span>
+          </h3>
           <div class="cd-synergies" data-synergies></div>
         </div>
         <div class="cd-combos" data-combos>
           <!-- Combos header now outside dynamic text suggestions -->
-          <div class="cd-combos-header" data-combos-header><h3 class="cd-section-title">💡 COMBO TIPS</h3></div>
+          <div class="cd-combos-header" data-combos-header>
+            <h3 class="cd-section-title">💡 COMBO TIPS</h3>
+          </div>
           <div class="cd-combos-body" data-combos-body></div>
         </div>
         <div class="cd-section cd-examples" data-examples-wrapper>
@@ -41,11 +46,14 @@ export function build({ selector, emit }) {
         </div>
       </div>
       <div class="cd-actions" data-actions></div>
+      <div class="cd-footer-note">
+        <strong>Synergies</strong> show generally good card combinations. <strong>Combo Tips</strong> show combinations available in your current game.
+      </div>
     </div>`;
 
   root.addEventListener('click', (e) => {
-    // Close modal if clicking outside the frame (backdrop)
-    if (e.target === root) {
+    // Close modal if clicking the backdrop
+    if (e.target.matches('[data-backdrop]')) {
       store.dispatch(uiCardDetailClose());
       return;
     }
@@ -91,13 +99,6 @@ export function update(root) {
     // Card disappeared (edge case) close.
     store.dispatch(uiCardDetailClose());
     return;
-  }
-  root.querySelector('[data-name]').textContent = candidate.name;
-  
-  // Update cost badge
-  const costBadge = root.querySelector('[data-cost]');
-  if (costBadge) {
-    costBadge.textContent = `${candidate.cost || 0}⚡`;
   }
 
   // Regenerate power card using shared generator (defensive: only if card changed)

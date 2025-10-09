@@ -44,7 +44,7 @@ export function buildBaseCatalog() {
     { id: 'psychic-probe', name: 'Psychic Probe', cost: 2, type: 'keep', effect: { kind: 'force_reroll', value: 1 }, description: 'Force other monsters to reroll specific dice.', emoji: refreshSVG, lightEmoji: true },
     { id: 'rapid-healing', name: 'Rapid Healing', cost: 3, type: 'keep', effect: { kind: 'heal_energy', value: 1 }, description: 'Gain 1 Health when you gain Energy.', emoji: '💚' },
     { id: 'regeneration', name: 'Regeneration', cost: 4, type: 'keep', effect: { kind: 'heal_turn_start', value: 1 }, description: 'Heal 1 Health at the start of your turn.', emoji: '❤️' },
-    { id: 'rooting-for-the-underdog', name: 'Rooting for the Underdog', cost: 3, type: 'keep', effect: { kind: 'low_health_bonus', value: 1 }, description: 'Gain 1 Energy for each Health you are missing.', emoji: '🙏', lightEmoji: true },
+    { id: 'rooting-for-the-underdog', name: 'Rooting for the Underdog', cost: 3, type: 'keep', effect: { kind: 'low_health_bonus', value: 1 }, description: 'Gain 1 Energy for each Health you are missing.', emoji: '🎉' },
     { id: 'shrink-ray', name: 'Shrink Ray', cost: 2, type: 'discard', effect: { kind: 'reduce_dice', value: 1 }, description: 'Target monster rolls 1 fewer die this turn.', emoji: '🔫' },
     { id: 'skyscraper', name: 'Skyscraper', cost: 6, type: 'keep', effect: { kind: 'tokyo_immunity', value: 1 }, description: 'You cannot be forced to leave Tokyo.', emoji: '🗼' },
     { id: 'solar-powered', name: 'Solar Powered', cost: 4, type: 'keep', effect: { kind: 'outside_tokyo_energy', value: 1 }, description: 'Gain 1 Energy when not in Tokyo at turn start.', emoji: '🌙', lightEmoji: true },

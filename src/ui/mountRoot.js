@@ -41,7 +41,7 @@ export async function mountRoot(configEntries, store) {
   // LEFT  = Power Cards panel ONLY per latest requirement.
       // RIGHT = Monsters / player profiles cluster + remaining ancillary panels.
       if (/arena/.test(n)) mountPoint = center;
-  else if (/modal/.test(n)) mountPoint = document.body; // All modals mount to body
+  else if (/modal|carddetail/.test(n)) mountPoint = document.body; // All modals and card detail mount to body
   else if (/powercard|power-cards|powercardspanel|power-cards-panel/.test(n) && !/modal/.test(n)) { mountPoint = left; } // Power Cards panel on left (but not modals)
       else if (/monsterspanel|monsterprofiles|monsterprofilesingle|playerprofile|playercards|player-card-list/.test(n)) mountPoint = right; // Monsters & player info on right
       else if (/dice/.test(n)) mountPoint = centerBottom; // dice lives center-bottom

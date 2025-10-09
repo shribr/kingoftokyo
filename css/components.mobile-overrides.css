@@ -1093,6 +1093,11 @@ body.splash-visible .cmp-splash {
     display: none !important;
   }
   
+  /* Exception: Show power cards panel inside card detail modal */
+  .card-detail-frame .cmp-power-cards-panel {
+    display: block !important;
+  }
+  
   /* Show mini components on mobile */
   .cmp-mini-player-cards {
     display: block !important;
