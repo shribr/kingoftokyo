@@ -56,9 +56,9 @@ export function listScenarios() {
           pool = shuffle(keepCards);
         }
         const grant = pool.slice(0,4).map(c => ({ id: c.id, name: c.name, type: c.type, effect: c.effect }));
-        const existingIds = new Set((player.cards||[]).map(c=>c.id));
-        const merged = (player.cards||[]).concat(grant.filter(c=>!existingIds.has(c.id)));
-        return { cards: merged };
+        const existingIds = new Set((player.powerCards||[]).map(c=>c.id));
+        const merged = (player.powerCards||[]).concat(grant.filter(c=>!existingIds.has(c.id)));
+        return { powerCards: merged };
       }
     },
     {

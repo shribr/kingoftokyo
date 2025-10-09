@@ -282,6 +282,10 @@ export function update(root, { playerId }) {
   try {
     const scenarioCategories = getPlayerScenarioCategories(state, playerId);
     
+    if (window.__KOT_DEBUG__?.logComponentUpdates) {
+      console.log('[PlayerProfileCard] Scenario categories for', playerId, ':', scenarioCategories);
+    }
+    
     const healthIndicator = root.querySelector('[data-scenario-health]');
     const energyIndicator = root.querySelector('[data-scenario-energy]');
     const vpIndicator = root.querySelector('[data-scenario-vp]');

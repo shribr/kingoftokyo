@@ -1,0 +1,137 @@
+/**
+ * Player Power Cards Modal (Desktop)
+ * Grid view of owned power cards
+ */
+
+.cmp-player-power-cards-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 9999;
+  pointer-events: auto;
+}
+
+.cmp-player-power-cards-modal.hidden {
+  display: none;
+}
+
+/* Modal frame/container */
+.cmp-player-power-cards-modal .ppcm-frame {
+  position: relative;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 3px solid #ffd700;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+  max-width: 900px;
+  max-height: 85vh;
+  width: 90vw;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Header */
+.cmp-player-power-cards-modal .ppcm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+  border-bottom: 2px solid #ffd700;
+  cursor: move; /* Indicate draggable */
+}
+
+.cmp-player-power-cards-modal .ppcm-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffd700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.cmp-player-power-cards-modal .ppcm-header button[data-action="close"] {
+  background: transparent;
+  border: 2px solid #ffd700;
+  border-radius: 4px;
+  color: #ffd700;
+  font-size: 24px;
+  font-weight: 700;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1;
+  padding: 0;
+}
+
+.cmp-player-power-cards-modal .ppcm-header button[data-action="close"]:hover {
+  background: rgba(255, 215, 0, 0.2);
+  transform: scale(1.1);
+}
+
+/* Body - Grid Container */
+.cmp-player-power-cards-modal .ppcm-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 20px;
+}
+
+/* Empty state */
+.cmp-player-power-cards-modal .ppcm-empty {
+  text-align: center;
+  padding: 60px 40px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+}
+
+.cmp-player-power-cards-modal .ppcm-empty span {
+  display: block;
+  margin-top: 12px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Grid view of cards (desktop) */
+.cmp-player-power-cards-modal .ppcm-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  padding: 4px;
+}
+
+/* Hide carousel on desktop */
+.cmp-player-power-cards-modal .ppcm-carousel {
+  display: none;
+}
+
+/* Scrollbar styling */
+.cmp-player-power-cards-modal .ppcm-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.cmp-player-power-cards-modal .ppcm-body::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.cmp-player-power-cards-modal .ppcm-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 215, 0, 0.4);
+  border-radius: 4px;
+}
+
+.cmp-player-power-cards-modal .ppcm-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 215, 0, 0.6);
+}

@@ -279,6 +279,44 @@ body.splash-visible .cmp-splash {
     pointer-events: none !important;
   }
 
+  /* Card Info Panel - Strategy and Combo Tips */
+  .cmp-player-power-cards-modal-mobile .ppcm-card-info-panel {
+    width: 100%;
+    margin-top: 16px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+  }
+
+  .cmp-player-power-cards-modal-mobile .ppcm-strategy-section,
+  .cmp-player-power-cards-modal-mobile .ppcm-combo-section {
+    margin-bottom: 12px;
+  }
+
+  .cmp-player-power-cards-modal-mobile .ppcm-strategy-section:last-child,
+  .cmp-player-power-cards-modal-mobile .ppcm-combo-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .cmp-player-power-cards-modal-mobile .ppcm-strategy-section h3,
+  .cmp-player-power-cards-modal-mobile .ppcm-combo-section h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #ffd700;
+    margin: 0 0 8px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .cmp-player-power-cards-modal-mobile .ppcm-strategy-text,
+  .cmp-player-power-cards-modal-mobile .ppcm-combo-text {
+    font-size: 12px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0;
+  }
+
   /* Carousel indicator dots */
   .cmp-player-power-cards-modal-mobile .ppcm-carousel-indicators {
     display: flex !important;

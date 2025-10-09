@@ -27,8 +27,8 @@ export function build({ selector }) {
     
     const activePlayer = playerArray.find(p => p && p.id === activePlayerId);
     
-    // Check for cards - players have a 'cards' property (array of card IDs)
-    if (!activePlayer || !activePlayer.cards || activePlayer.cards.length === 0) {
+    // Check for cards - players have a 'powerCards' property (array of card objects/IDs)
+    if (!activePlayer || !activePlayer.powerCards || activePlayer.powerCards.length === 0) {
       container.innerHTML = '<div class="mpc-empty-state">No Power Cards</div>';
       return;
     }
@@ -38,7 +38,7 @@ export function build({ selector }) {
     const cardsContainer = document.createElement('div');
     cardsContainer.className = 'mpc-cards-container';
     
-    activePlayer.cards.forEach((cardId, index) => {
+    activePlayer.powerCards.forEach((cardId, index) => {
       const miniCard = createMiniPowerCard(cardId, index, activePlayer.id);
       cardsContainer.appendChild(miniCard);
     });

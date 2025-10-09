@@ -6,7 +6,7 @@
  */
 import { eventBus } from '../../core/eventBus.js';
 import { store } from '../../bootstrap/index.js';
-import { nextTurn, diceSetAllKept } from '../../core/actions.js';
+import { nextTurn, diceSetAllKept, uiPlayerPowerCardsOpen } from '../../core/actions.js';
 import { createPositioningService } from '../../services/positioningService.js';
 
 // When the mobile action menu is opened (toggled visible), shift it 100px further left
@@ -772,10 +772,17 @@ export function build({ selector }) {
         break; }
       case 'show-my-cards': {
         // Open modal showing player's power cards
-        eventBus.emit('ui/modal/showPlayerPowerCards');
+        const st = store.getState();
+        const activePlayerIndex = st.meta?.activePlayerIndex ?? 0;
+        const activePlayerId = st.players?.order?.[activePlayerIndex];
+        if (activePlayerId) {
+          store.dispatch(uiPlayerPowerCardsOpen(activePlayerId));
+        }
         // Hide submenu after action
         const submenu = root.querySelector('.power-cards-submenu');
-        submenu.setAttribute('hidden', '');
+        if (submenu) {
+          submenu.setAttribute('hidden', '');
+        }
         break; }
       case 'flush': {
         // Flush power cards shop for 2 energy
@@ -1097,7 +1104,7 @@ export function update(root) {
     const countEl = root.querySelector('[data-my-cards-count]');
     const myCardsBtn = root.querySelector('[data-action="show-my-cards"]');
     if (countEl) {
-      const c = active?.cards?.length || 0;
+      const c = active?.powerCards?.length || 0;
       countEl.textContent = c ? ` (${c})` : '';
     }
     // MY CARDS button should always be enabled so players can view their wallet anytime

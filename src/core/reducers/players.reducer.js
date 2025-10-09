@@ -60,7 +60,7 @@ export function playersReducer(state = initial, action) {
       const { playerId, card } = action.payload;
       const existing = state.byId[playerId];
       if (!existing || !card) return state;
-      const withCard = { ...existing, cards: [...existing.cards, card] };
+      const withCard = { ...existing, powerCards: [...(existing.powerCards || []), card] };
       const recalced = recalcModifiers(withCard);
       return { ...state, byId: { ...state.byId, [playerId]: recalced } };
     }

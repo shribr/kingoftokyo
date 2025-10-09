@@ -26,7 +26,7 @@ export function applyScenarios(store, config) {
       health: player.health, 
       energy: player.energy, 
       vp: player.victoryPoints, 
-      cards: player.cards?.length || 0 
+      powerCards: player.powerCards?.length || 0 
     });
     (assign.scenarioIds || []).forEach(scId => {
       const sc = getScenario(scId);
@@ -57,11 +57,11 @@ export function applyScenarios(store, config) {
         if (delta < 0) store.dispatch(applyPlayerDamage(player.id, -delta));
         else if (delta > 0) store.dispatch(healPlayerAction(player.id, delta));
       }
-      if (Array.isArray(patch.cards)) {
+      if (Array.isArray(patch.powerCards)) {
         // Add each card (skip duplicates)
-        const existing = new Set((player.cards||[]).map(c=>c.id));
-        const newCards = patch.cards.filter(c => !existing.has(c.id));
-        console.log(`  🃏 Cards: ${newCards.length} new cards to add (total in patch: ${patch.cards.length}, existing: ${existing.size})`);
+        const existing = new Set((player.powerCards||[]).map(c=>c.id));
+        const newCards = patch.powerCards.filter(c => !existing.has(c.id));
+        console.log(`  🃏 Cards: ${newCards.length} new cards to add (total in patch: ${patch.powerCards.length}, existing: ${existing.size})`);
         newCards.forEach((c, idx) => {
           console.log(`    📇 Adding card ${idx + 1}/${newCards.length}: "${c.name}" (${c.id})`);
           store.dispatch(playerCardGained(player.id, c));
