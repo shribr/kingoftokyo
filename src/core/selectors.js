@@ -31,7 +31,7 @@ export const selectCardsState = (state) => state.cards;
 export const selectShopCards = (state) => state.cards.shop;
 export const selectDeckCount = (state) => state.cards.deck.length;
 export const selectDiscardCount = (state) => state.cards.discard.length;
-export const selectPlayerPowerCards = (state, playerId) => state.players.byId[playerId]?.cards || [];
+export const selectPlayerPowerCards = (state, playerId) => state.players.byId[playerId]?.powerCards || [];
 // UI
 export const selectUICardDetail = (state) => state.ui.cardDetail;
 export const selectUIPlayerPowerCards = (state) => state.ui.playerPowerCards;

@@ -127,11 +127,11 @@ export function update(root) {
   
   const body = root.querySelector('[data-body]');
   
-  if (!player.cards.length) {
+  if (!player.powerCards || !player.powerCards.length) {
     body.innerHTML = `<div class="ppcm-empty">You currently have no power cards.<br/><span>Buy cards from the shop to gain special abilities.</span></div>`;
   } else {
     // Look up full card data from catalog by ID
-    const fullCards = player.cards.map(cardRef => {
+    const fullCards = player.powerCards.map(cardRef => {
       // cardRef might be just an ID string, or an object with an 'id' property
       const cardId = typeof cardRef === 'string' ? cardRef : cardRef.id;
       
@@ -180,7 +180,7 @@ export function update(root) {
     `;
     
     // Initialize carousel functionality
-    initializeCarousel(root, fullCards, player.energy || 0, player.cards);
+    initializeCarousel(root, fullCards, player.energy || 0, player.powerCards);
   }
 }
 

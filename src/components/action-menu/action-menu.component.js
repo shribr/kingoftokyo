@@ -425,29 +425,30 @@ export function build({ selector }) {
           }
         }
         
-        // Auto-collapse radial menu after any button click
-        const radialMenu = document.getElementById('radial-action-menu');
-        if (radialMenu && checkMobile()) {
-          radialMenu.setAttribute('data-expanded', 'false');
-          if (radialMenu._applyRadialPositions) {
-            radialMenu._applyRadialPositions(false);
-          }
-          
-          // Update toggle button - animate pie slices to empty
-          const toggleBtn = document.getElementById('action-menu-mobile-btn');
-          if (toggleBtn) {
-            const slices = toggleBtn.querySelectorAll('.pie-slice');
-            const delayPerSlice = 50; // ms per slice
-            slices.forEach((slice, index) => {
-              setTimeout(() => {
-                slice.setAttribute('fill', 'none');
-              }, (slices.length - 1 - index) * delayPerSlice);
-            });
-            toggleBtn.style.transform = 'scale(1)';
-            toggleBtn.setAttribute('aria-label', 'Expand Action Menu');
-            document.body.removeAttribute('data-action-menu-open');
-          }
-        }
+        // REMOVED: Auto-collapse radial menu after button click
+        // User requested radial menu to stay open when clicking buttons or clicking outside
+        // const radialMenu = document.getElementById('radial-action-menu');
+        // if (radialMenu && checkMobile()) {
+        //   radialMenu.setAttribute('data-expanded', 'false');
+        //   if (radialMenu._applyRadialPositions) {
+        //     radialMenu._applyRadialPositions(false);
+        //   }
+        //   
+        //   // Update toggle button - animate pie slices to empty
+        //   const toggleBtn = document.getElementById('action-menu-mobile-btn');
+        //   if (toggleBtn) {
+        //     const slices = toggleBtn.querySelectorAll('.pie-slice');
+        //     const delayPerSlice = 50; // ms per slice
+        //     slices.forEach((slice, index) => {
+        //       setTimeout(() => {
+        //         slice.setAttribute('fill', 'none');
+        //       }, (slices.length - 1 - index) * delayPerSlice);
+        //     });
+        //     toggleBtn.style.transform = 'scale(1)';
+        //     toggleBtn.setAttribute('aria-label', 'Expand Action Menu');
+        //     document.body.removeAttribute('data-action-menu-open');
+        //   }
+        // }
       });
       
       // Store reference for state updates

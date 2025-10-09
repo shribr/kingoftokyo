@@ -3171,7 +3171,7 @@ class KingOfTokyoGame {
                 victoryPoints: player.victoryPoints,
                 isInTokyo: player.isInTokyo,
                 tokyoLocation: player.tokyoLocation,
-                cards: player.cards
+                powerCards: player.powerCards
             })),
             tokyoCity: this.tokyoCity,
             tokyoBay: this.tokyoBay,
@@ -3216,7 +3216,7 @@ class KingOfTokyoGame {
                     player.victoryPoints = playerData.victoryPoints;
                     player.isInTokyo = playerData.isInTokyo;
                     player.tokyoLocation = playerData.tokyoLocation;
-                    player.cards = playerData.cards;
+                    player.powerCards = playerData.powerCards || playerData.cards || []; // Support both old and new format
                     return player;
                 });
 

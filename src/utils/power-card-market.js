@@ -90,7 +90,7 @@ export function createPowerCardMarket() {
     if (activePlayer) {
       content.querySelector('#player-energy').textContent = activePlayer.energy || 0;
       content.querySelector('#player-vp').textContent = activePlayer.victoryPoints || 0;
-      content.querySelector('#player-cards').textContent = activePlayer.cards?.length || 0;
+      content.querySelector('#player-cards').textContent = activePlayer.powerCards?.length || 0;
     }
     
     // Update market info
