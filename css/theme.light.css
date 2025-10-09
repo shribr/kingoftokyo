@@ -1,0 +1,261 @@
+/* theme.light.css - Light theme using #ffefa5 as primary color */
+
+body:not(.dark-mode) {
+  /* Base colors */
+  --theme-primary: #ffefa5;
+  --theme-primary-dark: #e6d68a;
+  --theme-bg: #fff9e6;
+  --theme-surface: #fffcf0;
+  --theme-border: #d4c89a;
+  --theme-border-strong: #b8a977;
+  --theme-text: #2d2416;
+  --theme-text-muted: #6b5d42;
+  --theme-shadow: rgba(45, 36, 22, 0.15);
+  --theme-shadow-strong: rgba(45, 36, 22, 0.3);
+  
+  background: var(--theme-bg);
+  color: var(--theme-text);
+}
+
+/* Power Cards Panel Light Theme - Background only, cards stay same */
+body:not(.dark-mode) .cmp-power-cards-panel {
+  background: #ffefa5 !important;
+}
+
+body:not(.dark-mode) .cmp-power-cards-panel .power-card-deck {
+  /* Keep cards looking similar to dark mode, just change panel background */
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+/* Cards themselves remain mostly unchanged between light/dark */
+/* Only the panel background changes to #ffefa5 */
+
+/* Mini Power Cards Light Theme - Keep cards same between modes */
+
+/* Modals Light Theme - Settings and general modals only */
+body:not(.dark-mode) .pcm-frame {
+  background: #ffefa5;
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+/* Power Card Details Modal - Keep same styling regardless of theme */
+/* No overrides for .card-detail-frame - it maintains default dark styling */
+
+/* Section titles and footer keep same styling between modes */
+
+/* Monsters Panel Light Theme - Background changes */
+body:not(.dark-mode) .cmp-monsters-panel,
+body:not(.dark-mode) .player-profile-card {
+  background: #ffefa5;
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+/* Dice Tray Light Theme - Keep default appearance (no overrides) */
+
+/* Action Menu Light Theme - #ffefa5 background with dark buttons */
+body:not(.dark-mode) .cmp-action-menu {
+  background: #ffefa5 !important;
+  border-color: #d4c89a;
+}
+
+body:not(.dark-mode) .cmp-action-menu button {
+  background: linear-gradient(135deg, #b8860b, #8b6914) !important;
+  border-color: #6b5d42 !important;
+  color: #fff !important;
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000 !important;
+}
+
+body:not(.dark-mode) .cmp-action-menu button:hover {
+  background: linear-gradient(135deg, #d4a017, #a67c00) !important;
+}
+
+/* King of Tokyo header - lighter background, darker text */
+body:not(.dark-mode) .game-title,
+body:not(.dark-mode) h1,
+body:not(.dark-mode) .arena-title {
+  background: linear-gradient(135deg, #fff4d1, #ffefa5);
+  color: #2d2416 !important;
+  text-shadow: -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 2px 2px 0 #fff !important;
+}
+
+/* Toolbar Light Theme - Background changes */
+body:not(.dark-mode) .cmp-toolbar {
+  background: #ffefa5;
+  border-top-color: rgba(0, 0, 0, 0.2);
+}
+
+/* Keep toolbar buttons same between modes */
+
+/* Keep toolbar buttons same between modes */
+
+/* General UI Elements - Modal backgrounds change */
+body:not(.dark-mode) .modal-content,
+body:not(.dark-mode) .settings-panel,
+body:not(.dark-mode) .cmp-settings-menu {
+  background: #ffefa5;
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+/* Inputs and buttons keep same styling between modes */
+
+/* Inputs and buttons keep same styling between modes */
+
+/* Backdrop for modals */
+body:not(.dark-mode) .card-detail-backdrop {
+  background: rgba(255, 239, 165, 0.7);
+}
+
+/* Arena/Game title headers - lighter background, darker text */
+body:not(.dark-mode) .game-title,
+body:not(.dark-mode) h1.arena-title,
+body:not(.dark-mode) .game-layout-shell .gl-title,
+body:not(.dark-mode) .arena-title {
+  background: rgba(255, 239, 165, 0.8);
+  color: #2d2416 !important;
+  text-shadow: none !important;
+}
+
+/* Game layout header - cream colored background */
+body:not(.dark-mode) .gl-header {
+  background: #ffefa5 !important;
+  border-color: rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Player/Monster names in mobile view - black text */
+@media (max-width: 768px) {
+  body:not(.dark-mode) .cmp-player-profile-card .ppc-name,
+  body:not(.dark-mode) .mini-player-card-name {
+    color: #000 !important;
+    text-shadow: none !important;
+  }
+}
+
+/* Monster Selection Modal Light Theme */
+body:not(.dark-mode) .cmp-monster-selection.monster-selection-modal {
+  background: rgba(255, 239, 165, 0.4);
+}
+
+body:not(.dark-mode) .cmp-monster-selection .setup-frame {
+  background: linear-gradient(180deg, #fffbf0 0%, #ffefa5 100%);
+  border: 4px solid #b8a977;
+  box-shadow: 14px 14px 0 rgba(0, 0, 0, 0.3), 0 0 0 2px #d4c89a inset, 0 22px 42px -14px rgba(0, 0, 0, 0.2);
+  color: #2d2416;
+}
+
+body:not(.dark-mode) .cmp-monster-selection .setup-title {
+  color: #b8860b;
+  text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000;
+  filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.2));
+}
+
+body:not(.dark-mode) .cmp-monster-selection {
+  color: #2d2416;
+}
+
+body:not(.dark-mode) .cmp-monster-selection .pill-btn {
+  background: linear-gradient(#fff, #f0f0f0);
+  border-color: #6b5d42;
+  color: #2d2416;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.3);
+}
+
+body:not(.dark-mode) .cmp-monster-selection .pill-btn.gold {
+  background: linear-gradient(#ffd700, #ffb400);
+  color: #2d2416;
+}
+
+body:not(.dark-mode) .cmp-monster-selection .pill-btn:hover {
+  background: linear-gradient(#fff, #e8e8e8);
+}
+
+/* Monster page counter - black text, no outline */
+body:not(.dark-mode) .cmp-monster-selection .monster-pager .pager-status {
+  color: #2d2416;
+  text-shadow: none;
+}
+
+/* Reset button letter spacing to match assign button */
+body:not(.dark-mode) .cmp-monster-selection .reset-link {
+  letter-spacing: 1px;
+}
+
+/* Roll For First Modal Light Theme */
+body:not(.dark-mode) .cmp-roll-for-first.rff-modal .rff-frame {
+  background: #fffbf0;
+  border-color: #b8a977;
+  box-shadow: 0.93vh 0.93vh 0 rgba(0, 0, 0, 0.3), 0 0 0 0.2vh #d4c89a inset, 0 1.67vh 3.9vh -1.3vh rgba(0, 0, 0, 0.2);
+  color: #2d2416;
+}
+
+body:not(.dark-mode) .cmp-roll-for-first.rff-modal .rff-title {
+  color: #2d2416;
+  text-shadow: -0.16vmin -0.16vmin 0 #fff, 0.16vmin -0.16vmin 0 #fff, -0.16vmin 0.16vmin 0 #fff, 0.16vmin 0.16vmin 0 #fff;
+}
+
+body:not(.dark-mode) .cmp-roll-for-first.rff-modal .rff-close {
+  background: #fff;
+  color: #2d2416;
+  border-color: #d4c89a;
+  box-shadow: 0.2vh 0.2vh 0 rgba(0, 0, 0, 0.3);
+}
+
+body:not(.dark-mode) .cmp-roll-for-first.rff-modal .rff-close:hover {
+  background: #f5f5f5;
+}
+
+body:not(.dark-mode) .cmp-roll-for-first.rff-modal .rff-broadcast {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: #d4c89a;
+  color: #b8860b;
+  box-shadow: 0 0 0 0.1vh rgba(0, 0, 0, 0.1) inset;
+}
+
+body:not(.dark-mode) .cmp-roll-for-first.rff-modal .rff-mon {
+  background: #fff;
+  border-color: #d4c89a;
+  color: #2d2416;
+}
+
+body:not(.dark-mode) .cmp-roll-for-first.rff-modal .rff-val {
+  background: #fffcf0;
+  border-color: #d4c89a;
+  color: #2d2416;
+  box-shadow: 0 0 0 0.1vh rgba(0, 0, 0, 0.1) inset;
+}
+
+body:not(.dark-mode) .cmp-roll-for-first.rff-modal .rff-footer {
+  background: linear-gradient(to top, rgba(255, 251, 240, 0.95), rgba(255, 251, 240, 0.6) 60%, rgba(255, 251, 240, 0));
+}
+
+body:not(.dark-mode) .cmp-roll-for-first.rff-modal .rff-btn {
+  background: linear-gradient(#fff, #f0f0f0);
+  border-color: #b8a977;
+  color: #2d2416;
+  box-shadow: 0.28vh 0.28vh 0 rgba(0, 0, 0, 0.3);
+}
+
+body:not(.dark-mode) .cmp-roll-for-first.rff-modal .rff-btn-primary {
+  background: linear-gradient(#ffd700, #ffb400);
+  color: #2d2416;
+  border-color: #b8860b;
+}
+
+body:not(.dark-mode) .cmp-roll-for-first.rff-modal .rff-btn:hover {
+  background: linear-gradient(#fff, #e8e8e8);
+}
+
+body:not(.dark-mode) .cmp-roll-for-first.rff-modal .rff-btn:active {
+  box-shadow: 0.1vh 0.1vh 0 rgba(0, 0, 0, 0.3);
+}
+
+body:not(.dark-mode) .cmp-roll-for-first.rff-modal .rff-skip {
+  color: #6b5d42;
+}
+
+body:not(.dark-mode) .cmp-roll-for-first.rff-modal .rff-skip:hover {
+  color: #2d2416;
+}
+
+body:not(.dark-mode) .cmp-roll-for-first.rff-modal .rff-frame:after {
+  background: linear-gradient(to bottom, rgba(255, 251, 240, 0), rgba(255, 251, 240, 0.85));
+}

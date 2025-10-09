@@ -36,10 +36,10 @@ export function build({ selector }) {
     <div class="am-header-row">
       <div class="am-label" aria-hidden="true">
       <span>ACTIONS</span>
-      <button class="am-collapse-toggle" aria-label="Expand/Collapse Actions" type="button">
+      <div class="am-collapse-toggle" role="button" tabindex="0" aria-label="Expand/Collapse Actions">
         <span class="arrow-up">▲</span>
         <span class="arrow-down">▼</span>
-      </button>
+      </div>
       </div>
     </div>
     <div class="am-content" data-collapsed="false">
@@ -1012,6 +1012,14 @@ export function build({ selector }) {
 
       // If expanding from docked but we have a stored floating return position (hybrid flow), fade back to float position after expansion
       // Removed return-to-floating on expand; menu remains docked unless user drags again.
+    });
+
+    // Keyboard support for div-based toggle
+    toggleBtn.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleBtn.click();
+      }
     });
 
     // If user starts dragging while collapsed and translated, reset translation so drag origin is correct

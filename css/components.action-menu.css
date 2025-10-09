@@ -25,7 +25,7 @@
   border:var(--action-menu-border);
   border-radius:var(--action-menu-radius);
   box-shadow:var(--action-menu-shadow);
-  z-index:6700; /* match mobile buttons */
+  z-index:9600; /* Above mini player cards (9500) */
   font-family:'Bangers',cursive;
   letter-spacing:.5px;
   width:260px; /* unify width */
@@ -256,7 +256,7 @@
 .power-cards-submenu {
   position: absolute;
   top: 0;
-  z-index: 6700;
+  z-index: 9600; /* Match action menu z-index */
   background: var(--action-menu-bg);
   border: var(--action-menu-border);
   border-radius: var(--action-menu-radius);
@@ -479,7 +479,7 @@
     width: 50vh; /* Larger area to cover the arc */
     height: 50vh; /* Larger area to cover the arc */
     pointer-events: none; /* Container doesn't block clicks, only buttons do */
-    z-index: 6698; /* Below the buttons */
+    z-index: 9598; /* Below the buttons, above mini player cards */
     background: radial-gradient(circle at bottom right, rgba(0,0,0,0.85) 0%, transparent 70%);
     transition: left 0.3s ease, right 0.3s ease;
   }
@@ -520,7 +520,7 @@
     pointer-events: none; /* Only active button is clickable */
     box-shadow: 0 0.6vh 1.8vh rgba(0,0,0,0.8), 
                 0 0 0 2px rgba(255,255,255,0.3) inset !important;
-    z-index: 6699; /* All buttons at same level */
+    z-index: 9599; /* All buttons at same level, below active button */
     
     /* Animation properties */
     transform: translate(0, 0) scale(0);
@@ -541,7 +541,7 @@
     font-size: 2.8vh !important;
     opacity: 1 !important;
     pointer-events: auto !important; /* Only active button is clickable */
-    z-index: 6700 !important; /* Active button on top */
+    z-index: 9600 !important; /* Active button on top, above mini player cards */
     box-shadow: 0 1vh 3vh rgba(0,0,0,0.9), 
                 0 0 0 3px rgba(255,255,255,0.5) inset,
                 0 0 2vh rgba(255,255,255,0.3) !important;
@@ -671,7 +671,7 @@
     border-radius: 6px;
     padding: 0 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    z-index: 7400;
+    z-index: 9600; /* Above mini player cards */
     
     /* Width calculation: viewport - dice button (50px) - actions button (50px) - left padding (20px) - right padding (20px) - gap between buttons (20px) - menu offset (80px) */
     width: calc(100vw - 50px - 50px - 20px - 20px - 20px - 80px - 16px);

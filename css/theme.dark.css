@@ -1,0 +1,260 @@
+/* theme.dark.css - Dark theme (current default look) */
+
+body.dark-mode {
+  /* Base colors */
+  --theme-primary: #1a1a1a;
+  --theme-surface: #2d3436;
+  --theme-bg: #1a1a1a;
+  --theme-border: #222;
+  --theme-border-strong: #000;
+  --theme-text: #e0e0e0;
+  --theme-text-muted: #b0b0b0;
+  --theme-shadow: rgba(0, 0, 0, 0.5);
+  --theme-shadow-strong: rgba(0, 0, 0, 0.8);
+  
+  background: var(--theme-bg);
+  color: var(--theme-text);
+}
+
+/* Power Cards Dark Theme (current default) */
+body.dark-mode .cmp-power-cards-panel {
+  --pc-card-bg: linear-gradient(135deg, #2d3436 0%, #1b1f20 78%);
+  --pc-card-border: 2px solid #222;
+  --pc-card-shadow: 2px 2px 0 #000, 0 0 0 1px #222 inset;
+  --pc-card-radius: 6px;
+  --pc-card-accent: var(--accent-monsters, #ffcf33);
+  --pc-card-text: #ececec;
+  --pc-cost-bg: #111;
+  --pc-rare: #5cc9ff;
+  --pc-epic: #ff66f6;
+}
+
+body.dark-mode .cmp-power-cards-panel .pc-card {
+  background: var(--pc-card-bg);
+  border: var(--pc-card-border);
+  color: var(--pc-card-text);
+  box-shadow: var(--pc-card-shadow);
+}
+
+body.dark-mode .cmp-power-cards-panel .pc-card:before {
+  background: radial-gradient(circle at 30% 22%, rgba(255,255,255,0.12), rgba(255,255,255,0) 65%);
+}
+
+body.dark-mode .cmp-power-cards-panel .pc-card:after {
+  background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0));
+}
+
+body.dark-mode .cmp-power-cards-panel .pc-card-header,
+body.dark-mode .cmp-power-cards-panel .pc-card__header {
+  background: linear-gradient(135deg, #3b4245, #23272a);
+  border: 2px solid #000;
+  box-shadow: 2px 2px 0 #000, 0 0 0 2px #222 inset;
+  color: var(--pc-card-accent);
+}
+
+body.dark-mode .cmp-power-cards-panel .pc-card-cost,
+body.dark-mode .cmp-power-cards-panel .pc-card__cost {
+  background: var(--pc-cost-bg);
+  color: var(--pc-card-accent);
+  box-shadow: 2px 2px 0 #000;
+}
+
+body.dark-mode .cmp-power-cards-panel .mp-title,
+body.dark-mode .cmp-power-cards-panel .power-card-deck-title {
+  color: var(--pc-card-accent);
+  text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000;
+}
+
+body.dark-mode .cmp-power-cards-panel .pc-empty-frame {
+  background: var(--pc-card-bg);
+  border: var(--pc-card-border);
+  color: var(--pc-card-text);
+  box-shadow: var(--pc-card-shadow);
+}
+
+body.dark-mode .cmp-power-cards-panel .pc-empty-frame h3 {
+  color: var(--pc-card-accent);
+  text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000;
+}
+
+body.dark-mode .cmp-power-cards-panel .power-card-deck {
+  background:
+    radial-gradient(circle at 2px 2px, rgba(0,0,0,0.12) 1px, transparent 0),
+    radial-gradient(ellipse at center, rgba(255,207,51,0.08) 0%, transparent 50%),
+    linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.15) 100%),
+    linear-gradient(135deg, #2c5234, #1a3d20);
+  border: 3px solid #000;
+}
+
+/* Dark Edition cards in dark theme */
+body.dark-mode .cmp-power-cards-panel .pc-card[data-dark-edition="true"]:before {
+  background: radial-gradient(circle at 30% 22%, rgba(0,0,0,0.18), rgba(0,0,0,0) 65%);
+}
+
+body.dark-mode .cmp-power-cards-panel .pc-card[data-dark-edition="true"] .pc-card-header,
+body.dark-mode .cmp-power-cards-panel .pc-card[data-dark-edition="true"] .pc-card__header {
+  background: linear-gradient(135deg, #3b4245, #23272a);
+}
+
+/* Mini Power Cards Dark Theme */
+body.dark-mode .cmp-mini-power-cards .mpc-card {
+  background: linear-gradient(135deg, #2d3436, #1b1f20);
+  border: 1px solid #222;
+  color: #ececec;
+  box-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+}
+
+body.dark-mode .cmp-mini-power-cards .mpc-card-name {
+  color: #ffcf33;
+}
+
+body.dark-mode .cmp-mini-power-cards .mpc-cost-badge {
+  background: #111;
+  color: #ffcf33;
+  border: 1px solid #222;
+}
+
+/* Panels and Modals Dark Theme */
+body.dark-mode .card-detail-frame,
+body.dark-mode .pcm-frame {
+  background: linear-gradient(180deg, #2e2540, #1d1729);
+  color: #e9e3f7;
+  border: 3px solid #000;
+  box-shadow: 4px 4px 0 #000, 0 0 0 2px #4a3b63 inset;
+}
+
+body.dark-mode .card-detail-frame:before {
+  background: radial-gradient(circle at 70% 15%, rgba(255,255,255,0.12), transparent 60%);
+}
+
+body.dark-mode .card-detail-frame .cd-title {
+  color: #ffd400;
+  text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000;
+}
+
+body.dark-mode .cd-section-title {
+  color: #ffefa5;
+}
+
+body.dark-mode .cd-footer-note {
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #b8a7d1;
+}
+
+body.dark-mode .cd-footer-note strong {
+  color: #ffefa5;
+}
+
+/* Monsters Panel Dark Theme */
+body.dark-mode .cmp-monsters-panel,
+body.dark-mode .player-profile-card {
+  background: linear-gradient(180deg, #2d3436, #1b1f20);
+  border-color: #222;
+  color: #e0e0e0;
+}
+
+/* Dice Tray Dark Theme */
+body.dark-mode .cmp-dice-tray {
+  background: linear-gradient(135deg, #2d3436, #1b1f20);
+  border-color: #222;
+}
+
+body.dark-mode .cmp-dice-tray .dice {
+  background: #404040;
+  border-color: #666;
+  color: #e0e0e0;
+}
+
+/* Action Menu Dark Theme */
+body.dark-mode .cmp-action-menu {
+  background: #2d3436;
+  border-color: #222;
+}
+
+body.dark-mode .cmp-action-menu button {
+  background: linear-gradient(135deg, #3b4245, #23272a);
+  border-color: #000;
+  color: #e0e0e0;
+}
+
+body.dark-mode .cmp-action-menu button:hover {
+  background: linear-gradient(135deg, #4a5255, #2d3739);
+}
+
+/* Toolbar Dark Theme */
+body.dark-mode .cmp-toolbar {
+  background: linear-gradient(90deg, #2d3436, #1b1f20);
+  border-top-color: #222;
+}
+
+body.dark-mode .toolbar-btn {
+  background: transparent;
+  color: #e0e0e0;
+  border-color: #444;
+}
+
+body.dark-mode .toolbar-btn:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+/* General UI Elements Dark Theme */
+body.dark-mode .modal-content {
+  background: #333;
+  color: #e0e0e0;
+}
+
+body.dark-mode .player-card {
+  background: #404040;
+  border-color: #555;
+}
+
+body.dark-mode input,
+body.dark-mode button:not(.toolbar-btn):not(.mini-wo-btn):not(.cmp-action-menu button):not(.power-card button):not(.cd-close) {
+  background: #555;
+  color: #e0e0e0;
+  border-color: #666;
+}
+
+body.dark-mode .log-entry {
+  background: rgba(255,255,255,0.05);
+  color: #e0e0e0;
+}
+
+body.dark-mode .cpu-rolling-indicator .dot {
+  background: #f4e38a;
+}
+
+/* AI Decision Tree Dark Theme */
+body.dark-mode .ai-decision-tree,
+body.dark-mode .ai-decision-tree-panel {
+  background: var(--panel-bg);
+  color: #e5e5e5;
+}
+
+body.dark-mode .ai-decision-tree-panel .node {
+  background: #1c262b;
+  border-color: #2a343a;
+}
+
+body.dark-mode .ai-decision-tree-panel .node:hover {
+  background: #24333a;
+}
+
+/* Settings Panel Dark Theme */
+body.dark-mode #settings-analytics-performance {
+  background: var(--panel-bg) !important;
+  border-color: var(--panel-border) !important;
+  color: var(--panel-muted) !important;
+}
+
+body.dark-mode #settings-analytics-performance .metric {
+  color: #e0e6eb;
+}
+
+/* Backdrop */
+body.dark-mode .card-detail-backdrop {
+  background: rgba(0,0,0,0.55);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
