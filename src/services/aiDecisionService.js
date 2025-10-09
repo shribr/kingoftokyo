@@ -345,7 +345,7 @@ function autoKeepHeuristic(store) {
       victoryPoints: player.victoryPoints || player.vp || 0,
       energy: player.energy || 0,
       isInTokyo: player.inTokyo || false,
-      powerCards: player.cards || [],
+      powerCards: player.powerCards || [],
       monster: player.monster || { personality: { aggression: 3, risk: 3, strategy: 3 } }
     };
     

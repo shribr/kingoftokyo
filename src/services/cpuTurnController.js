@@ -121,7 +121,7 @@ export function createCpuTurnController(store, engine, logger = console, options
       let decisionPromise;
       let rawDecision;
       try {
-        rawDecision = engine.makeRollDecision(canonical, st.dice.rerollsRemaining, { ...player, monster: player.monster||{}, powerCards: player.cards||[] }, gameState);
+        rawDecision = engine.makeRollDecision(canonical, st.dice.rerollsRemaining, { ...player, monster: player.monster||{}, powerCards: player.powerCards||[] }, gameState);
         if (window.__KOT_DEBUG__?.logCPUDecisions) {
           console.log(`[cpuController] Engine returned decision for roll ${rollNumber}:`, rawDecision);
         }

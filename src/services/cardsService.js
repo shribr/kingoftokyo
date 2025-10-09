@@ -85,7 +85,7 @@ export function peekTopCard(store, logger, playerId, cost = 1) {
   const state = store.getState();
   const player = state.players.byId[playerId];
   if (!player) return false;
-  const hasPeek = player.cards.some(c => c.effect?.kind === 'peek');
+  const hasPeek = (player.powerCards || []).some(c => c.effect?.kind === 'peek');
   if (!hasPeek) return false;
   if (player.energy < cost) return false;
   if (!state.cards.deck.length) return false;

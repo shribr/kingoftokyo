@@ -28,7 +28,7 @@ export function build({ selector }) {
       <h2 data-player-name></h2>
       <button data-action="close" aria-label="Close">×</button>
     </div>
-    <div class="ppcm-body cmp-power-cards-panel" data-body></div>
+    <div class="ppcm-body" data-body></div>
   </div>`;
 
   root.addEventListener('click', (e) => {
@@ -105,16 +105,25 @@ export function build({ selector }) {
 export function update(root) {
   const state = store.getState();
   const ui = selectUIPlayerPowerCards(state);
+  
+  console.log('[PlayerPowerCardsModal] Update called');
+  console.log('[PlayerPowerCardsModal] UI state:', ui);
+  
   if (!ui || !ui.playerId) {
+    console.log('[PlayerPowerCardsModal] No UI state or playerId, hiding modal');
     root.classList.add('hidden');
     return;
   }
   const player = selectPlayerById(state, ui.playerId);
+  console.log('[PlayerPowerCardsModal] Player found:', player);
+  
   if (!player) {
+    console.log('[PlayerPowerCardsModal] Player not found, hiding modal');
     root.classList.add('hidden');
     return;
   }
   root.classList.remove('hidden');
+  console.log('[PlayerPowerCardsModal] Modal shown for player:', player.name);
   root.querySelector('[data-player-name]').textContent = `${player.name}'s Power Cards`.toUpperCase();
   
   // Reset frame position to ensure proper centering
@@ -127,32 +136,48 @@ export function update(root) {
   
   const body = root.querySelector('[data-body]');
   
+  // Debug: Log player's power cards
+  console.log('[PlayerPowerCardsModal] Player:', player.name);
+  console.log('[PlayerPowerCardsModal] PowerCards:', player.powerCards);
+  console.log('[PlayerPowerCardsModal] PowerCards type:', typeof player.powerCards);
+  console.log('[PlayerPowerCardsModal] PowerCards length:', player.powerCards?.length);
+  
   if (!player.powerCards || !player.powerCards.length) {
-    body.innerHTML = `<div class="ppcm-empty">You currently have no power cards.<br/><span>Buy cards from the shop to gain special abilities.</span></div>`;
+    // Show empty state with structure
+    const isMobile = isMobileDevice();
+    if (isMobile) {
+      body.innerHTML = `
+        <div class="ppcm-carousel" data-carousel>
+          <div class="ppcm-empty">You currently have no power cards.<br/><span>Buy cards from the shop to gain special abilities.</span></div>
+          <div class="ppcm-card-info-panel">
+            <div class="ppcm-strategy-section">
+              <h3>💡 STRATEGY</h3>
+              <p class="ppcm-strategy-text">No cards yet. Visit the shop to buy power cards!</p>
+            </div>
+            <div class="ppcm-combo-section">
+              <h3>🔗 COMBO TIPS</h3>
+              <p class="ppcm-combo-text">Combos will appear when you own multiple cards.</p>
+            </div>
+          </div>
+        </div>
+      `;
+    } else {
+      body.innerHTML = `<div class="ppcm-empty">You currently have no power cards.<br/><span>Buy cards from the shop to gain special abilities.</span></div>`;
+    }
   } else {
     // Look up full card data from catalog by ID
-    const fullCards = player.powerCards.map(cardRef => {
-      // cardRef might be just an ID string, or an object with an 'id' property
+    const fullCards = player.powerCards.map((cardRef) => {
       const cardId = typeof cardRef === 'string' ? cardRef : cardRef.id;
-      
-      // Look up the full card data from the catalog
-      const fullCard = CARD_CATALOG.find(c => c.id === cardId);
-      
-      if (!fullCard) {
-        console.warn('Card not found in catalog:', cardId, cardRef);
-        return null; // Skip cards not in catalog
-      }
-      
-      return fullCard;
-    }).filter(Boolean); // Filter out null values
+      return CARD_CATALOG.find(c => c.id === cardId);
+    }).filter(Boolean);
     
-    // Generate HTML for grid view
+    // Generate HTML for grid view (desktop only)
     const cardsHtml = fullCards.map(fullCard => {
       return generatePowerCard(fullCard, { 
         playerEnergy: player.energy || 0, 
-        showBuy: false,  // Don't show buy button for owned cards
-        showFooter: true, // Keep footer to show cost badge at bottom
-        infoButton: true // Show info button to see card details
+        showBuy: false,
+        showFooter: false,
+        infoButton: false
       });
     }).join('');
     
@@ -160,19 +185,21 @@ export function update(root) {
     body.innerHTML = `
       <div class="ppcm-cards-grid">${cardsHtml}</div>
       <div class="ppcm-carousel" data-carousel>
-        <div class="ppcm-carousel-nav">
-          <button class="ppcm-carousel-btn" data-carousel-prev>‹</button>
-          <div class="ppcm-card-counter" data-card-counter>1 of ${fullCards.length}</div>
-          <button class="ppcm-carousel-btn" data-carousel-next>›</button>
-        </div>
         <div class="ppcm-carousel-card" data-carousel-card></div>
-        <div class="ppcm-card-info-panel">
-          <div class="ppcm-strategy-section">
-            <h3>💡 STRATEGY</h3>
+        <div class="ppcm-carousel-controls">
+          <button class="ppcm-carousel-btn ppcm-carousel-prev" data-carousel-prev aria-label="Previous card">‹</button>
+          <div class="ppcm-card-counter" data-card-counter>1 of ${fullCards.length}</div>
+          <button class="ppcm-carousel-btn ppcm-carousel-next" data-carousel-next aria-label="Next card">›</button>
+        </div>
+        <div class="ppcm-tabs">
+          <button class="ppcm-tab ppcm-tab-active" data-tab="strategy">Strategy</button>
+          <button class="ppcm-tab" data-tab="combos">Combos</button>
+        </div>
+        <div class="ppcm-tab-content">
+          <div class="ppcm-tab-panel ppcm-tab-panel-active" data-panel="strategy">
             <p class="ppcm-strategy-text" data-strategy-text></p>
           </div>
-          <div class="ppcm-combo-section">
-            <h3>🔗 COMBO TIPS</h3>
+          <div class="ppcm-tab-panel" data-panel="combos">
             <p class="ppcm-combo-text" data-combo-text></p>
           </div>
         </div>
@@ -196,14 +223,32 @@ function initializeCarousel(root, cards, playerEnergy, allPlayerCards = []) {
   const strategyText = root.querySelector('[data-strategy-text]');
   const comboText = root.querySelector('[data-combo-text]');
   
+  // Tab functionality
+  const tabs = root.querySelectorAll('.ppcm-tab');
+  const panels = root.querySelectorAll('.ppcm-tab-panel');
+  
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const targetPanel = tab.dataset.tab;
+      
+      // Update active tab
+      tabs.forEach(t => t.classList.remove('ppcm-tab-active'));
+      tab.classList.add('ppcm-tab-active');
+      
+      // Update active panel
+      panels.forEach(p => p.classList.remove('ppcm-tab-panel-active'));
+      root.querySelector(`[data-panel="${targetPanel}"]`).classList.add('ppcm-tab-panel-active');
+    });
+  });
+  
   function updateCarousel() {
     // Generate HTML for current card
     const currentCard = cards[currentIndex];
     const cardHtml = generatePowerCard(currentCard, { 
       playerEnergy, 
       showBuy: false,
-      showFooter: true,
-      infoButton: true
+      showFooter: false,
+      infoButton: false
     });
     
     cardContainer.innerHTML = cardHtml;
@@ -344,19 +389,22 @@ function generateComboTips(card, allCards) {
   // Simple combo detection based on card names/types/effects
   const energyCards = otherCards.filter(c => 
     c.name?.toUpperCase().includes('ENERGY') || 
-    c.effect?.toLowerCase().includes('energy')
+    c.effect?.kind === 'energy' ||
+    c.description?.toLowerCase().includes('energy')
   );
   
   const attackCards = otherCards.filter(c => 
     c.name?.toUpperCase().includes('ATTACK') || 
     c.name?.toUpperCase().includes('CLAW') ||
-    c.effect?.toLowerCase().includes('damage')
+    c.effect?.kind === 'damage' ||
+    c.description?.toLowerCase().includes('damage')
   );
   
   const healthCards = otherCards.filter(c => 
     c.name?.toUpperCase().includes('HEALTH') || 
     c.name?.toUpperCase().includes('HEAL') ||
-    c.effect?.toLowerCase().includes('heal')
+    c.effect?.kind === 'heal' ||
+    c.description?.toLowerCase().includes('heal')
   );
   
   // Generate combo suggestions
@@ -367,12 +415,12 @@ function generateComboTips(card, allCards) {
     combos.push(`Pair with ${names} for sustained offense.`);
   }
   
-  if (card.effect?.toLowerCase().includes('damage') && energyCards.length > 0) {
+  if ((card.effect?.kind === 'damage' || card.description?.toLowerCase().includes('damage')) && energyCards.length > 0) {
     const names = energyCards.slice(0, 2).map(c => c.name).join(', ');
     combos.push(`Combine with ${names} to fuel repeated attacks.`);
   }
   
-  if (healthCards.length > 0 && card.effect?.toLowerCase().includes('tokyo')) {
+  if (healthCards.length > 0 && (card.effect?.kind === 'tokyo' || card.description?.toLowerCase().includes('tokyo'))) {
     const names = healthCards.slice(0, 2).map(c => c.name).join(', ');
     combos.push(`Use ${names} to stay in Tokyo longer.`);
   }

@@ -100,7 +100,7 @@ export function applyScenarios(store, config) {
           else if (delta > 0) store.dispatch(healPlayerAction(player.id, delta));
         }
         if (Array.isArray(patch.cards)) {
-          const existing = new Set((player.cards||[]).map(c=>c.id));
+          const existing = new Set((player.powerCards||[]).map(c=>c.id));
             patch.cards.forEach(c => { if (!existing.has(c.id)) store.dispatch(playerCardGained(player.id, c)); });
         }
       });

@@ -13,7 +13,7 @@ export function createPlayer({ id, name, monsterId }) {
     energy: 0,
     victoryPoints: 0,
     inTokyo: false,
-    cards: [],
+    powerCards: [],
     modifiers: { diceSlots: 6, rerollBonus: 0 },
     status: { alive: true }
   };
@@ -60,7 +60,7 @@ export function recalcModifiers(player) {
   // Base defaults
   let diceSlots = 6; // standard
   let rerollBonus = 0;
-  for (const c of player.cards) {
+  for (const c of (player.powerCards || [])) {
     if (!c.effect) continue;
     switch (c.effect.kind) {
       case 'dice_slot':

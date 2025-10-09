@@ -775,8 +775,15 @@ export function build({ selector }) {
         const st = store.getState();
         const activePlayerIndex = st.meta?.activePlayerIndex ?? 0;
         const activePlayerId = st.players?.order?.[activePlayerIndex];
+        console.log('[ActionMenu] Show My Cards clicked');
+        console.log('[ActionMenu] Active player index:', activePlayerIndex);
+        console.log('[ActionMenu] Active player ID:', activePlayerId);
+        console.log('[ActionMenu] Players order:', st.players?.order);
         if (activePlayerId) {
+          console.log('[ActionMenu] Dispatching uiPlayerPowerCardsOpen for:', activePlayerId);
           store.dispatch(uiPlayerPowerCardsOpen(activePlayerId));
+        } else {
+          console.warn('[ActionMenu] No active player ID found!');
         }
         // Hide submenu after action
         const submenu = root.querySelector('.power-cards-submenu');
