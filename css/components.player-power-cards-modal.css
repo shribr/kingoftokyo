@@ -18,13 +18,13 @@
   z-index: 9999;
   pointer-events: auto;
   
-  /* Power card CSS variables */
-  --pc-card-bg: #ffefa5;
-  --pc-card-border: 2px solid #222;
+  /* Power card CSS variables - match panel styling */
+  --pc-card-bg: linear-gradient(135deg, #2d3436 0%, #1b1f20 78%);
+  --pc-card-border: 2px solid #000;
   --pc-card-shadow: 2px 2px 0 #000, 0 0 0 1px #222 inset;
-  --pc-card-radius: 6px;
+  --pc-card-radius: 12px;
   --pc-card-accent: var(--accent-monsters, #ffcf33);
-  --pc-card-text: #000;
+  --pc-card-text: #ececec;
   --pc-cost-bg: #111;
   --pc-rare: #5cc9ff;
   --pc-epic: #ff66f6;
@@ -246,14 +246,14 @@
   border: var(--pc-card-border);
   border-radius: var(--pc-card-radius);
   padding: 12px 14px 14px !important;
-  box-shadow: var(--pc-card-shadow);
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5));
   font-family: 'Comic Neue', cursive;
   letter-spacing: 0.25px;
   gap: 8px;
   color: var(--pc-card-text);
   isolation: isolate;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, filter 0.2s ease;
   min-height: 120px; /* Ensure cards have some height */
 }
 
@@ -300,15 +300,18 @@
   background: linear-gradient(135deg, #3b4245, #23272a);
   border: 2px solid #000;
   border-radius: 4px;
-  box-shadow: 2px 2px 0 #000, 0 0 0 2px #222 inset;
+  box-shadow: none;
   position: relative;
   z-index: 1;
+  text-shadow: none;
 }
 
 /* Card name */
 .cmp-player-power-cards-modal .pc-card-name {
   margin: 0;
   flex: 1;
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  padding-left: 4px;
 }
 
 /* Card type/rarity */

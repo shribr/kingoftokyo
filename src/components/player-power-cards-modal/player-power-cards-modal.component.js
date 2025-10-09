@@ -171,15 +171,22 @@ export function update(root) {
       return CARD_CATALOG.find(c => c.id === cardId);
     }).filter(Boolean);
     
+    console.log('[PlayerPowerCardsModal] Full cards found:', fullCards.length, fullCards.map(c => c.name));
+    
     // Generate HTML for grid view (desktop only)
     const cardsHtml = fullCards.map(fullCard => {
-      return generatePowerCard(fullCard, { 
+      const html = generatePowerCard(fullCard, { 
         playerEnergy: player.energy || 0, 
         showBuy: false,
         showFooter: false,
         infoButton: false
       });
+      console.log('[PlayerPowerCardsModal] Generated card HTML for', fullCard.name, 'length:', html?.length);
+      return html;
     }).join('');
+    
+    console.log('[PlayerPowerCardsModal] Total cards HTML length:', cardsHtml.length);
+    console.log('[PlayerPowerCardsModal] Cards HTML preview:', cardsHtml.substring(0, 200));
     
     // Create both grid and carousel views
     body.innerHTML = `
@@ -192,8 +199,8 @@ export function update(root) {
           <button class="ppcm-carousel-btn ppcm-carousel-next" data-carousel-next aria-label="Next card">›</button>
         </div>
         <div class="ppcm-tabs">
-          <button class="ppcm-tab ppcm-tab-active" data-tab="strategy">Strategy</button>
-          <button class="ppcm-tab" data-tab="combos">Combos</button>
+          <button class="ppcm-tab ppcm-tab-active" data-tab="strategy">💡 Strategy</button>
+          <button class="ppcm-tab" data-tab="combos">🔗 Combos</button>
         </div>
         <div class="ppcm-tab-content">
           <div class="ppcm-tab-panel ppcm-tab-panel-active" data-panel="strategy">

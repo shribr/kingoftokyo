@@ -306,20 +306,20 @@ body.splash-visible .cmp-splash {
     margin: 0 !important;
   }
 
-  /* Power card styling - use gold background like modal header title */
+  /* Power card styling - match panel with dark gradient background */
   .cmp-player-power-cards-modal-mobile .pc-card {
     position: relative !important;
     display: flex !important;
     flex-direction: column !important;
-    background: #ffefa5 !important;
-    border: var(--pc-card-border) !important;
-    border-radius: var(--pc-card-radius) !important;
+    background: linear-gradient(135deg, #2d3436 0%, #1b1f20 78%) !important;
+    border: 2px solid #000 !important;
+    border-radius: 12px !important;
     padding: 12px 14px 14px !important;
-    box-shadow: var(--pc-card-shadow) !important;
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5)) !important;
     font-family: 'Comic Neue', cursive !important;
     letter-spacing: 0.25px !important;
     gap: 8px !important;
-    color: #000 !important;
+    color: #ececec !important;
     isolation: isolate !important;
     width: 100% !important;
     max-width: none !important;
@@ -363,14 +363,17 @@ body.splash-visible .cmp-splash {
     background: linear-gradient(135deg, #3b4245, #23272a) !important;
     border: 2px solid #000 !important;
     border-radius: 4px !important;
-    box-shadow: 2px 2px 0 #000, 0 0 0 2px #222 inset !important;
+    box-shadow: none !important;
     gap: 8px !important;
+    text-shadow: none !important;
   }
 
   /* Card name */
   .cmp-player-power-cards-modal-mobile .pc-card-name {
     margin: 0 !important;
     flex: 1 !important;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000 !important;
+    padding-left: 4px !important;
   }
 
   /* Card description */
