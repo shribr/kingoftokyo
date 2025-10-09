@@ -196,25 +196,8 @@ export function update(root) {
     
     console.log('[PlayerPowerCardsModal] Full cards found:', fullCards.length, fullCards.map(c => c.name));
     
-    // Helper to generate strategy text
-    const getStrategyText = (card) => {
-      if (card.strategy) return card.strategy;
-      if (card.type === 'keep') return 'Keep this card for ongoing benefits throughout the game.';
-      if (card.type === 'discard') return 'Use this card for an immediate powerful effect, then discard.';
-      return 'Use strategically to maximize your advantage.';
-    };
-    
-    // Helper to generate combo text
-    const getCombosText = (card, allCards) => {
-      if (card.combos) return card.combos;
-      
-      // Generate basic combo suggestions based on owned cards
-      const cardTypes = allCards.map(c => c.type);
-      if (cardTypes.filter(t => t === 'keep').length > 2) {
-        return 'Combine with other Keep cards for stacking bonuses.';
-      }
-      return 'Synergizes well with victory point and energy generation cards.';
-    };
+    // NOTE: Using the sophisticated generateStrategyText and generateComboTips functions
+    // defined at the bottom of this file instead of simple inline helpers
     
     // Generate HTML for grid view (desktop) - with strategy/combo sections
     const cardsHtml = fullCards.map(fullCard => {
@@ -231,11 +214,11 @@ export function update(root) {
         /<\/div>\s*$/,
         `<div class="ppcm-card-strategy">
           <h4>💡 Strategy</h4>
-          <p>${getStrategyText(fullCard)}</p>
+          <p>${generateStrategyText(fullCard)}</p>
         </div>
         <div class="ppcm-card-combos">
           <h4>🔗 Combos</h4>
-          <p>${getCombosText(fullCard, fullCards)}</p>
+          <p>${generateComboTips(fullCard, fullCards)}</p>
         </div>
       </div>`
       );
