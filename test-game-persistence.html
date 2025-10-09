@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Persistence Test - King of Tokyo</title>
+  <style>
+    body {
+      font-family: 'Orbitron', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #e0e0e0;
+      padding: 2rem;
+      margin: 0;
+    }
+    .test-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 2rem;
+      border: 2px solid #0f4c75;
+    }
+    h1 {
+      color: #3fc1c9;
+      text-align: center;
+      margin-bottom: 2rem;
+      text-shadow: 0 0 10px rgba(63, 193, 201, 0.5);
+    }
+    .test-section {
+      margin: 1.5rem 0;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+    }
+    .test-section h2 {
+      color: #3fc1c9;
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+    }
+    .test-button {
+      padding: 0.75rem 1.5rem;
+      margin: 0.5rem;
+      border: 2px solid #0f4c75;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #0f4c75 0%, #1a1a2e 100%);
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .test-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(63, 193, 201, 0.3);
+      border-color: #3fc1c9;
+    }
+    .test-button.primary {
+      background: linear-gradient(135deg, #2a9d8f 0%, #1a5f56 100%);
+      border-color: #2a9d8f;
+    }
+    .test-button.danger {
+      background: linear-gradient(135deg, #e76f51 0%, #a84832 100%);
+      border-color: #e76f51;
+    }
+    .test-output {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.9rem;
+      white-space: pre-wrap;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .status {
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      margin: 0.5rem 0;
+      font-weight: bold;
+    }
+    .status.success {
+      background: rgba(42, 157, 143, 0.2);
+      border: 1px solid #2a9d8f;
+      color: #2a9d8f;
+    }
+    .status.error {
+      background: rgba(231, 111, 81, 0.2);
+      border: 1px solid #e76f51;
+      color: #e76f51;
+    }
+    .status.info {
+      background: rgba(63, 193, 201, 0.2);
+      border: 1px solid #3fc1c9;
+      color: #3fc1c9;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <h1>🎮 Game State Persistence Test</h1>
+    
+    <div class="test-section">
+      <h2>📦 Storage Information</h2>
+      <button class="test-button" onclick="checkSavedGame()">Check for Saved Game</button>
+      <button class="test-button" onclick="getSaveDetails()">Get Save Details</button>
+      <button class="test-button danger" onclick="clearSave()">Clear Saved Game</button>
+      <div id="storage-output" class="test-output"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>🎲 Mock Game State</h2>
+      <button class="test-button primary" onclick="createMockState()">Create Mock Game</button>
+      <button class="test-button" onclick="saveMockState()">Save Mock State</button>
+      <button class="test-button" onclick="loadMockState()">Load Mock State</button>
+      <div id="mock-output" class="test-output"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>🔄 Auto-Save Test</h2>
+      <button class="test-button primary" onclick="testAutoSave()">Test Auto-Save (10 updates)</button>
+      <button class="test-button" onclick="verifyAutoSave()">Verify Auto-Save</button>
+      <div id="autosave-output" class="test-output"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>🚀 Launch Game</h2>
+      <p>Open the main game to test persistence between page reloads:</p>
+      <button class="test-button primary" onclick="window.location.href='index.html'">Open Game</button>
+      <button class="test-button" onclick="window.location.href='index.html#skipintro'">Open Game (Skip Intro)</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { 
+      hasSavedGame, 
+      loadGameState, 
+      saveGameState, 
+      getSaveInfo, 
+      clearSavedGame,
+      initializeAutoSave 
+    } from './src/services/gameStatePersistence.js';
+    
+    import { createStore, combineReducers } from './src/core/store.js';
+    import { createInitialState } from './src/core/stateShape.js';
+
+    // Expose functions globally for button handlers
+    window.testPersistence = {
+      hasSavedGame,
+      loadGameState,
+      saveGameState,
+      getSaveInfo,
+      clearSavedGame,
+      initializeAutoSave
+    };
+
+    // Create a mock store for testing
+    const mockReducer = (state = createInitialState(), action) => {
+      if (action.type === 'TEST_UPDATE') {
+        return {
+          ...state,
+          game: {
+            ...state.game,
+            round: (state.game?.round || 0) + 1
+          },
+          meta: {
+            ...state.meta,
+            timestamp: Date.now()
+          }
+        };
+      }
+      return state;
+    };
+
+    window.mockStore = createStore(mockReducer, createInitialState());
+
+    function log(elementId, message, type = 'info') {
+      const output = document.getElementById(elementId);
+      const status = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+      const timestamp = new Date().toLocaleTimeString();
+      output.innerHTML = `<div class="status ${status}">[${timestamp}] ${message}</div>` + output.innerHTML;
+    }
+
+    window.checkSavedGame = function() {
+      const exists = window.testPersistence.hasSavedGame();
+      log('storage-output', 
+        exists ? '✅ Saved game exists in localStorage' : '❌ No saved game found',
+        exists ? 'success' : 'info'
+      );
+    };
+
+    window.getSaveDetails = function() {
+      const info = window.testPersistence.getSaveInfo();
+      if (info) {
+        const details = `
+📊 Save Information:
+- Saved: ${new Date(info.timestamp).toLocaleString()}
+- Round: ${info.round || 'N/A'}
+- Players: ${info.playerCount || 'N/A'}
+- Current Player: ${info.currentPlayer || 'N/A'}
+- Age: ${Math.round((Date.now() - info.timestamp) / 1000 / 60)} minutes
+        `.trim();
+        log('storage-output', details, 'success');
+      } else {
+        log('storage-output', '❌ No save information available', 'info');
+      }
+    };
+
+    window.clearSave = function() {
+      window.testPersistence.clearSavedGame();
+      log('storage-output', '🗑️ Cleared saved game from localStorage', 'success');
+    };
+
+    window.createMockState = function() {
+      const state = window.mockStore.getState();
+      log('mock-output', `✅ Created mock game state with ${state.players?.order?.length || 0} players`, 'success');
+      log('mock-output', JSON.stringify(state, null, 2), 'info');
+    };
+
+    window.saveMockState = function() {
+      try {
+        window.testPersistence.saveGameState(window.mockStore);
+        log('mock-output', '💾 Saved mock state to localStorage', 'success');
+      } catch (e) {
+        log('mock-output', `❌ Save failed: ${e.message}`, 'error');
+      }
+    };
+
+    window.loadMockState = function() {
+      try {
+        const state = window.testPersistence.loadGameState();
+        if (state) {
+          log('mock-output', '✅ Loaded state from localStorage:', 'success');
+          log('mock-output', JSON.stringify(state, null, 2), 'info');
+        } else {
+          log('mock-output', '❌ No state to load', 'error');
+        }
+      } catch (e) {
+        log('mock-output', `❌ Load failed: ${e.message}`, 'error');
+      }
+    };
+
+    window.testAutoSave = async function() {
+      log('autosave-output', '🔄 Starting auto-save test with 10 updates...', 'info');
+      
+      // Initialize auto-save
+      const cleanup = window.testPersistence.initializeAutoSave(window.mockStore);
+      
+      // Dispatch 10 updates
+      for (let i = 1; i <= 10; i++) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        window.mockStore.dispatch({ type: 'TEST_UPDATE' });
+        log('autosave-output', `Update ${i}/10: Dispatched TEST_UPDATE`, 'info');
+      }
+      
+      log('autosave-output', '✅ Auto-save test complete. Check localStorage.', 'success');
+      cleanup(); // Stop auto-save
+    };
+
+    window.verifyAutoSave = function() {
+      const info = window.testPersistence.getSaveInfo();
+      if (info) {
+        const age = Math.round((Date.now() - info.timestamp) / 1000);
+        log('autosave-output', `✅ Last auto-save: ${age} seconds ago (Round ${info.round || 0})`, 'success');
+      } else {
+        log('autosave-output', '❌ No auto-save found', 'error');
+      }
+    };
+
+    // Initial check on load
+    window.addEventListener('DOMContentLoaded', () => {
+      window.checkSavedGame();
+    });
+  </script>
+</body>
+</html>

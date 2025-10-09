@@ -43,6 +43,8 @@ import { createYieldAdvisoryNotification } from '../ui/components/YieldAdvisoryN
 import { mountEndBuyButton } from '../ui/components/EndBuyButton.js';
 import { AIThoughtBubbleComponent } from '../components/ai-thought-bubble/ai-thought-bubble.component.js';
 import '../ui/mobileToolbarToggle.js';
+import { hasSavedGame, loadGameState, restoreGameState, initializeAutoSave, getSaveInfo, clearSavedGame } from '../services/gameStatePersistence.js';
+import { initializeSaveStatusIndicator } from '../components/save-indicator/save-indicator.component.js';
 
 // Placeholder reducers until implemented
 function placeholderReducer(state = {}, _action) { return state; }
@@ -73,6 +75,15 @@ function rootReducer(state, action) {
     const merged = { ...current };
     Object.assign(merged, snapshot.slices || {});
     return baseReducer(merged, { type: '@@PERSIST/HYDRATED' });
+  }
+  if (action.type === 'GAME_STATE_RESTORED') {
+    const restoredState = action.payload.state;
+    // Merge restored state with UI defaults
+    const current = state || createInitialState();
+    return baseReducer({
+      ...restoredState,
+      ui: { ...current.ui, ...restoredState.ui }
+    }, { type: '@@PERSIST/RESTORED' });
   }
   return baseReducer(state, action);
 }
@@ -159,6 +170,15 @@ if (typeof window !== 'undefined') {
   
   // Initialize enhanced UI integration (unified modals, dialogs, themes)
   initializeEnhancedIntegration(store);
+  
+  // Initialize save status indicator
+  try {
+    initializeSaveStatusIndicator();
+    console.log('[bootstrap] Save status indicator initialized');
+  } catch(e) {
+    console.warn('[bootstrap] Save status indicator initialization failed', e);
+  }
+  
   // Responsive: force side panels to overlay and auto-collapse on small screens/touch to avoid wrapping
   try {
     const applyOverlayMode = () => {
@@ -177,6 +197,156 @@ if (typeof window !== 'undefined') {
     applyOverlayMode();
     window.addEventListener('resize', applyOverlayMode);
   } catch(_) {}
+  // Function to prompt user to restore saved game
+  const promptRestoreGame = () => {
+    return new Promise((resolve) => {
+      if (!hasSavedGame()) {
+        resolve(false);
+        return;
+      }
+
+      const saveInfo = getSaveInfo();
+      if (!saveInfo) {
+        resolve(false);
+        return;
+      }
+
+      // Create restore prompt modal
+      const modal = document.createElement('div');
+      modal.className = 'restore-game-modal';
+      modal.innerHTML = `
+        <div class="restore-game-backdrop"></div>
+        <div class="restore-game-content">
+          <h2>📦 Continue Previous Game?</h2>
+          <div class="restore-info">
+            <p><strong>Saved:</strong> ${new Date(saveInfo.timestamp).toLocaleString()}</p>
+            <p><strong>Round:</strong> ${saveInfo.round || 1}</p>
+            <p><strong>Players:</strong> ${saveInfo.playerCount || '?'}</p>
+            ${saveInfo.currentPlayer ? `<p><strong>Current Turn:</strong> ${saveInfo.currentPlayer}</p>` : ''}
+          </div>
+          <div class="restore-actions">
+            <button class="restore-btn restore-continue" data-action="continue">
+              <span>🎮</span> Continue Game
+            </button>
+            <button class="restore-btn restore-new" data-action="new">
+              <span>✨</span> New Game
+            </button>
+          </div>
+        </div>
+      `;
+
+      // Add styles
+      const style = document.createElement('style');
+      style.textContent = `
+        .restore-game-modal {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          z-index: 10000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: 'Orbitron', sans-serif;
+        }
+        .restore-game-backdrop {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.85);
+          backdrop-filter: blur(4px);
+        }
+        .restore-game-content {
+          position: relative;
+          background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+          border: 2px solid #0f4c75;
+          border-radius: 12px;
+          padding: 2rem;
+          max-width: 400px;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+        .restore-game-content h2 {
+          margin: 0 0 1.5rem;
+          color: #3fc1c9;
+          font-size: 1.5rem;
+          text-align: center;
+          text-shadow: 0 0 10px rgba(63, 193, 201, 0.5);
+        }
+        .restore-info {
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 8px;
+          padding: 1rem;
+          margin-bottom: 1.5rem;
+        }
+        .restore-info p {
+          margin: 0.5rem 0;
+          color: #e0e0e0;
+          font-size: 0.9rem;
+        }
+        .restore-info strong {
+          color: #3fc1c9;
+        }
+        .restore-actions {
+          display: flex;
+          gap: 1rem;
+        }
+        .restore-btn {
+          flex: 1;
+          padding: 0.75rem 1rem;
+          border: 2px solid #0f4c75;
+          border-radius: 8px;
+          background: linear-gradient(135deg, #0f4c75 0%, #1a1a2e 100%);
+          color: #fff;
+          font-family: 'Orbitron', sans-serif;
+          font-size: 0.9rem;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.25rem;
+        }
+        .restore-btn span {
+          font-size: 1.5rem;
+        }
+        .restore-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 16px rgba(63, 193, 201, 0.3);
+          border-color: #3fc1c9;
+        }
+        .restore-continue {
+          background: linear-gradient(135deg, #2a9d8f 0%, #1a5f56 100%);
+          border-color: #2a9d8f;
+        }
+        .restore-continue:hover {
+          box-shadow: 0 4px 16px rgba(42, 157, 143, 0.4);
+        }
+        .restore-new {
+          background: linear-gradient(135deg, #e76f51 0%, #a84832 100%);
+          border-color: #e76f51;
+        }
+        .restore-new:hover {
+          box-shadow: 0 4px 16px rgba(231, 111, 81, 0.4);
+        }
+      `;
+      document.head.appendChild(style);
+      document.body.appendChild(modal);
+
+      // Handle button clicks
+      const handleAction = (shouldRestore) => {
+        modal.remove();
+        style.remove();
+        resolve(shouldRestore);
+      };
+
+      modal.querySelector('[data-action="continue"]').addEventListener('click', () => handleAction(true));
+      modal.querySelector('[data-action="new"]').addEventListener('click', () => handleAction(false));
+    });
+  };
+
   // Determine skipIntro first so we know whether to auto-seed dev players.
   const skipIntro = (() => {
     try {
@@ -186,7 +356,7 @@ if (typeof window !== 'undefined') {
   })();
 
   // Load monsters first; if skipIntro, unconditionally auto-seed players and bypass selection/RFF.
-  fetch('./config/config.json').then(r => r.json()).then(cfg => {
+  fetch('./config/config.json').then(r => r.json()).then(async cfg => {
     let monsters = Object.values(cfg.monsters || {}).map(m => ({ id: m.id, name: m.name, image: m.image, description: m.description, personality: m.personality || {}, color: m.color }));
     if (!monsters.length) {
       console.warn('[bootstrap] config.json contained no monsters; using internal default set.');
@@ -197,6 +367,35 @@ if (typeof window !== 'undefined') {
       ];
     }
     store.dispatch(monstersLoaded(monsters));
+
+    // Check for saved game and prompt user (unless skipIntro is active)
+    if (!skipIntro) {
+      try {
+        const shouldRestore = await promptRestoreGame();
+        if (shouldRestore) {
+          const savedState = loadGameState();
+          if (savedState) {
+            console.log('[bootstrap] Restoring saved game state');
+            restoreGameState(store, savedState);
+            // Initialize auto-save for restored game
+            initializeAutoSave(store);
+            console.log('[bootstrap] Auto-save initialized for restored game');
+            // Skip normal game setup and go straight to game
+            store.dispatch(uiSplashHide());
+            store.dispatch(uiMonsterSelectionClose());
+            document.body.classList.add('game-active', 'game-ready');
+            window.__KOT_GAME_STARTED = true;
+            return; // Exit early, game is restored
+          }
+        } else {
+          // User chose to start new game - clear saved state
+          clearSavedGame();
+          console.log('[bootstrap] Cleared saved game, starting fresh');
+        }
+      } catch (e) {
+        console.warn('[bootstrap] Restore prompt failed', e);
+      }
+    }
     if (skipIntro) {
       const st = store.getState();
       if (!st.players.order.length) {
@@ -379,6 +578,18 @@ if (typeof window !== 'undefined') {
     if (st.phase !== 'SETUP' && !document.body.classList.contains('game-ready')) {
       // Mark game ready only after gating satisfied (phase advanced)
       document.body.classList.add('game-ready');
+      
+      // Initialize auto-save when game starts (only if not already initialized)
+      if (!window.__KOT_AUTOSAVE_INITIALIZED__) {
+        try {
+          initializeAutoSave(store);
+          window.__KOT_AUTOSAVE_INITIALIZED__ = true;
+          console.log('[bootstrap] Auto-save initialized - game state will be saved automatically');
+        } catch(e) {
+          console.warn('[bootstrap] Auto-save initialization failed', e);
+        }
+      }
+      
       // Apply scenarios immediately after game starts (normal flow)
       // Small delay to ensure all initialization is complete
       setTimeout(() => {
