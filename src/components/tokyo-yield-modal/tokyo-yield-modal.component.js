@@ -11,6 +11,11 @@ export function build({ selector, emit }) {
   const root = document.createElement('div');
   root.id = 'tokyo-yield-modal';
   root.className = 'cmp-tokyo-yield-modal modal-shell hidden';
+  
+  // IMPORTANT: Append modal directly to body, not to the mountPoint
+  // Modals should always be at the top level to avoid z-index and overflow issues
+  document.body.appendChild(root);
+  
   root.innerHTML = `
     <div class="modal-overlay" data-overlay></div>
     <div class="decision-modal" data-modal>

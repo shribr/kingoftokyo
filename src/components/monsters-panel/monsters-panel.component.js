@@ -8,6 +8,13 @@ import { build as buildPlayerCard } from '../player-profile-card/player-profile-
 import { initSidePanel } from '../side-panel/side-panel.js';
 
 export function build({ selector, emit }) {
+  // Clean up any leftover backdrop from previous session
+  const existingBackdrop = document.querySelector('.mp-mobile-backdrop');
+  if (existingBackdrop) {
+    console.log('[MonstersPanel] Removing existing backdrop on build');
+    existingBackdrop.remove();
+  }
+  
   const root = document.createElement('div');
   root.id = 'monsters-panel';
   root.className = 'cmp-monsters-panel';
@@ -203,17 +210,17 @@ export function update(root, instances) {
     inst.update({ playerId: id });
   });
   
-  // Debug: Log when stats should update
-  try {
-    const vpFlash = state.ui?.vpFlash;
-    const energyFlash = state.ui?.energyFlash;
-    if ((vpFlash && vpFlash.ts > (root._lastVPFlash || 0)) || 
-        (energyFlash && energyFlash.ts > (root._lastEnergyFlash || 0))) {
-      console.log('🔄 Monsters Panel: Stats updates detected', { vpFlash, energyFlash });
-      root._lastVPFlash = vpFlash?.ts || 0;
-      root._lastEnergyFlash = energyFlash?.ts || 0;
-    }
-  } catch(_) {}
+  // Debug: Log when stats should update (DISABLED - too noisy)
+  // try {
+  //   const vpFlash = state.ui?.vpFlash;
+  //   const energyFlash = state.ui?.energyFlash;
+  //   if ((vpFlash && vpFlash.ts > (root._lastVPFlash || 0)) || 
+  //       (energyFlash && energyFlash.ts > (root._lastEnergyFlash || 0))) {
+  //     console.log('🔄 Monsters Panel: Stats updates detected', { vpFlash, energyFlash });
+  //     root._lastVPFlash = vpFlash?.ts || 0;
+  //     root._lastEnergyFlash = energyFlash?.ts || 0;
+  //   }
+  // } catch(_) {}
   
   // Relocate active card outside panel (placeholder anchor) if present (all viewports; scales via CSS)
   // Also: when active player changes, return the previous active card to the panel stack in-order
@@ -294,7 +301,13 @@ function wireMobileSlideBehavior(cardEl, panelRoot) {
       if (!backdrop) {
         backdrop = document.createElement('div');
         backdrop.className = 'mp-mobile-backdrop';
+        // Ensure it starts without visible class
+        backdrop.classList.remove('visible');
         document.body.appendChild(backdrop);
+        console.log('[MonstersPanel] Mobile backdrop created:', {
+          className: backdrop.className,
+          hasVisible: backdrop.classList.contains('visible')
+        });
       }
       return backdrop;
     };

@@ -68,6 +68,23 @@
   box-shadow: 6px 6px 0px #000;
   max-width: 293px; /* Match original frame width */
   position: relative; /* For absolute positioned close button */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Monster name at top of card - above everything */
+.monster-profile-card > .mpc-name {
+  font-family: 'Bangers', cursive;
+  font-size: 2rem;
+  color: #000;
+  text-align: center;
+  margin: -0.5rem -0.5rem 1rem -0.5rem; /* Negative margin to extend to edges */
+  padding: 0.75rem 0.5rem;
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  border-bottom: 4px solid #000;
+  line-height: 1.1;
+  letter-spacing: 1.5px;
+  order: -1; /* Ensure it's first */
 }
 
 /* DESKTOP: Vertical centered layout */
@@ -100,14 +117,6 @@
   height: 100%;
   object-fit: contain;
   image-rendering: pixelated;
-}
-.mpc-name { 
-  font-family: 'Bangers', cursive;
-  font-size: 1.2rem; /* Reduced from 1.5rem */
-  color: #000;
-  text-align: center;
-  margin: 0;
-  line-height: 1.2;
 }
 .mpc-desc { 
   font-size: 0.7rem; /* Reduced from 0.8rem */
@@ -245,6 +254,28 @@
   box-shadow: 3px 3px 0 #000;
 }
 
+/* Read-only trait display */
+.mps-trait-readonly {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 2px solid rgba(0,0,0,0.1);
+}
+.mps-trait-label {
+  font-family: 'Bangers', cursive;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+}
+.mps-trait-value {
+  font-family: monospace;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #ff5d35;
+  letter-spacing: 1px;
+}
+
+
 
 @media (max-width:1400px){
 	.mp-grid { grid-template-columns: repeat(3, 1fr); }
@@ -334,6 +365,14 @@
     border-bottom: none;
   }
   
+  /* Monster name scales down on mobile */
+  .monster-profile-card > .mpc-name {
+    font-size: 5vw;
+    margin: -2vw -2vw 3vw -2vw;
+    padding: 2vw 1vw;
+    letter-spacing: 1px;
+  }
+  
   /* MOBILE: Switch to horizontal layout */
   .mpc-header {
     flex-direction: row; /* Horizontal: avatar left, name+desc right */
@@ -355,10 +394,6 @@
     max-height: 80px;
     flex-shrink: 0;
     border: 3px solid #000; /* Reduced from 4px */
-  }
-  .mpc-name {
-    font-size: 4vw; /* Reduced from 4.5vw */
-    text-align: left; /* Left-align for horizontal layout */
   }
   .mpc-desc {
     font-size: 2.4vw; /* Reduced from 2.7vw */

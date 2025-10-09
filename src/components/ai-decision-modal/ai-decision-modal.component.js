@@ -4,6 +4,11 @@ import { getAIDecisionTree } from '../../services/aiDecisionService.js';
 export function build() {
   const root = document.createElement('div');
   root.className = 'cmp-ai-decision-modal modal-shell';
+  
+  // IMPORTANT: Append modal directly to body, not to the mountPoint
+  // Modals should always be at the top level to avoid z-index and overflow issues
+  document.body.appendChild(root);
+  
   root.innerHTML = `
     <div class="modal ai-decision" data-ai-decision-modal>
       <div class="modal-header"><h2>AI Decision Tree (New)</h2><button data-close>×</button></div>

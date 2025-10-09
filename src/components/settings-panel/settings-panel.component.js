@@ -23,6 +23,14 @@ export function build({ selector }) {
     } else if (e.target.matches('[data-setting="showPhaseMetrics"]')) {
       const checked = e.target.checked;
       store.dispatch(settingsUpdated({ showPhaseMetrics: checked }));
+    } else if (e.target.matches('[data-log-flag]')) {
+      // Handle debug logging flags
+      const flagName = e.target.getAttribute('data-log-flag');
+      const checked = e.target.checked;
+      if (window.__KOT_DEBUG__) {
+        window.__KOT_DEBUG__[flagName] = checked;
+        console.log(`[Settings] Debug flag ${flagName} ${checked ? 'enabled' : 'disabled'}`);
+      }
     } else if (e.target.matches('[name="playerCardLayoutMode"]')) {
       const val = e.target.value;
       store.dispatch(settingsUpdated({ playerCardLayoutMode: val, stackedPlayerCards: (val === 'stacked') }));
@@ -58,6 +66,30 @@ function template() {
         Show Phase Metrics Panel
       </label>
       <p style="margin:6px 0 0;font-size:11px;opacity:.65;line-height:1.4;">Displays real-time performance timing for each game phase. Green = fast (&lt;50ms), Yellow = acceptable (50-150ms), Red = slow (&gt;150ms). Data is not persisted.</p>
+    </fieldset>
+    <fieldset style="border:1px solid #333;padding:0.8vh 1vw 1vh;margin:0 0 1vh;font-family:system-ui,sans-serif;">
+      <legend style="padding:0 0.6vw;font-size:13px;letter-spacing:.5px;">Debug Logging</legend>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:4px;">
+        <input type="checkbox" data-log-flag="logComponentUpdates" />
+        Component Updates
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:4px;">
+        <input type="checkbox" data-log-flag="logCPUDecisions" />
+        CPU/AI Decisions
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:4px;">
+        <input type="checkbox" data-log-flag="logStoreUpdates" />
+        Store Updates
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:4px;">
+        <input type="checkbox" data-log-flag="logSubscriptions" />
+        Subscriptions
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:4px;">
+        <input type="checkbox" data-log-flag="logModals" />
+        Modal Lifecycle
+      </label>
+      <p style="margin:6px 0 0;font-size:11px;opacity:.65;line-height:1.4;">Enable verbose logging for debugging. Changes take effect immediately. You can also use ?debug=all in URL.</p>
     </fieldset>
     <fieldset style="border:1px solid #333;padding:0.8vh 1vw 1vh;margin:0 0 1vh;font-family:system-ui,sans-serif;">
       <legend style="padding:0 0.6vw;font-size:13px;letter-spacing:.5px;">Player Card Layout</legend>
@@ -98,6 +130,17 @@ function sync(root) {
   const showPhaseMetrics = !!st.settings?.showPhaseMetrics;
   const metricsCb = root.querySelector('[data-setting="showPhaseMetrics"]');
   if (metricsCb) metricsCb.checked = showPhaseMetrics;
+  
+  // Sync debug logging flags
+  if (window.__KOT_DEBUG__) {
+    const logFlags = ['logComponentUpdates', 'logCPUDecisions', 'logStoreUpdates', 'logSubscriptions', 'logModals'];
+    logFlags.forEach(flagName => {
+      const checkbox = root.querySelector(`[data-log-flag="${flagName}"]`);
+      if (checkbox) {
+        checkbox.checked = !!window.__KOT_DEBUG__[flagName];
+      }
+    });
+  }
   
   let mode = st.settings?.playerCardLayoutMode || (st.settings?.stackedPlayerCards === false ? 'list' : 'stacked');
   if (isMobile) mode = 'list'; // Force list on mobile

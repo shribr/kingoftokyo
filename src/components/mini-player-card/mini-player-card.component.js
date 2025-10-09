@@ -142,14 +142,20 @@ function createMiniCard(player, position, activePlayerId, slotIndex, state) {
         // Show mini power cards collection
         const collection = document.querySelector('.cmp-mini-power-cards-collection');
         console.log('[MiniPlayerCard] Collection element found:', !!collection);
-        console.log('[MiniPlayerCard] Component instance:', !!collection?._componentInstance);
-        console.log('[MiniPlayerCard] Show method:', !!collection?._componentInstance?.show);
         
-        if (collection && collection._componentInstance && collection._componentInstance.show) {
-          console.log('[MiniPlayerCard] Calling collection.show for player:', player.id);
-          collection._componentInstance.show(player.id);
+        if (collection) {
+          console.log('[MiniPlayerCard] Component instance:', !!collection._componentInstance);
+          console.log('[MiniPlayerCard] Show method:', !!collection._componentInstance?.show);
+          
+          if (collection._componentInstance && typeof collection._componentInstance.show === 'function') {
+            console.log('[MiniPlayerCard] Calling collection.show for player:', player.id);
+            collection._componentInstance.show(player.id);
+          } else {
+            console.warn('[MiniPlayerCard] Component instance or show method not found, dispatching action');
+            store.dispatch(uiPlayerPowerCardsOpen(player.id));
+          }
         } else {
-          console.log('[MiniPlayerCard] Fallback: dispatching uiPlayerPowerCardsOpen for player:', player.id);
+          console.warn('[MiniPlayerCard] Collection element not found in DOM, dispatching action');
           // Fallback: dispatch the action to open regular modal if collection not available
           store.dispatch(uiPlayerPowerCardsOpen(player.id));
         }

@@ -9,6 +9,7 @@ import { selectMonsters } from '../../core/selectors.js';
 import { acquire as acquireOverlay, release as releaseOverlay } from '../../services/overlayService.js';
 import { uiMonsterSelectionClose, uiMonsterProfilesOpen, playerJoined } from '../../core/actions.js';
 import { createPlayer } from '../../domain/player.js';
+import { polaroidHTML } from '../../utils/polaroid.js';
 
 export function build({ selector, dispatch, getState }) {
   const root = document.createElement('div');
@@ -219,12 +220,9 @@ function render(inst, fullState) {
 
 function card(m, selected) {
   const cls = selected ? 'monster-card selected' : 'monster-card';
-  // Simple structure with photo div containing both image and name
+  // Use polaroid HTML but without rotation transforms
   return `<div class="${cls}" data-monster-card data-id="${m.id}">
-    <div class="monster-photo">
-      <img src="${m.image}" alt="${m.name}">
-      <div class="monster-name">${m.name}</div>
-    </div>
+    ${polaroidHTML(m, 0, false)}
   </div>`;
 }
 function miniCard(m, slotIndex, isHumanSlot=false) {

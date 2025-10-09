@@ -1,6 +1,7 @@
 /** splash-screen.component.js */
 import { selectSplashVisible, selectMonsters } from '../../core/selectors.js';
 import { uiSplashHide, uiMonsterSelectionOpen } from '../../core/actions.js';
+import { polaroidHTML } from '../../utils/polaroid.js';
 
 export function build({ selector, dispatch, getState }) {
   const root = document.createElement('div');
@@ -113,14 +114,6 @@ function splashMarkup() {
     <div class="polaroids-right" data-polaroids-right></div>
   </div>
   <div class="city-skyline-container">${citySVG()}</div>`;
-}
-
-function polaroidHTML(monster, index) {
-  const tint = monster.color || '#444444';
-  return `<div class="polaroid polaroid-${index}" style="--monster-tint: ${tint};">
-      ${monster.image ? `<img src="${monster.image}" alt="${monster.name}"/>` : `<div class="polaroid-fallback">${monster.name}</div>`}
-      <div class="polaroid-caption">${monster.name}</div>
-    </div>`;
 }
 
 function citySVG() {

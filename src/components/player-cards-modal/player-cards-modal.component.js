@@ -18,6 +18,11 @@ export function build({ selector }) {
   // Detect mobile and use appropriate class (don't add selector on mobile since we have a dedicated mobile class)
   const modalClass = isMobileDevice() ? 'cmp-player-power-cards-modal-mobile' : selector.slice(1);
   root.className = modalClass + ' hidden';
+  
+  // IMPORTANT: Append modal directly to body, not to the mountPoint
+  // Modals should always be at the top level to avoid z-index and overflow issues
+  document.body.appendChild(root);
+  
   root.innerHTML = `<div class="ppcm-frame" data-frame>
     <div class="ppcm-header" data-header>
       <h2 data-player-name></h2>

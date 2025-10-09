@@ -63,19 +63,25 @@ export function createCpuTurnController(store, engine, logger = console, options
 
   async function runRollCycle(playerId){
     // Initial delay before CPU starts rolling (gives player time to see turn change)
-    console.log(`[cpuController] Waiting ${settings.initialRollDelayMs}ms before starting rolls...`);
+    if (window.__KOT_DEBUG__?.logCPUDecisions) {
+      console.log(`[cpuController] Waiting ${settings.initialRollDelayMs}ms before starting rolls...`);
+    }
     await wait(settings.initialRollDelayMs);
     
     let rollNumber = 0;
     while (!cancelled && rollNumber < settings.maxRolls) {
       rollNumber++;
       const initial = rollNumber === 1;
-      console.log(`[cpuController] Starting roll ${rollNumber}/${settings.maxRolls}, initial=${initial}`);
+      if (window.__KOT_DEBUG__?.logCPUDecisions) {
+        console.log(`[cpuController] Starting roll ${rollNumber}/${settings.maxRolls}, initial=${initial}`);
+      }
       
       // Perform roll
       const preState = store.getState();
       const diceFacesBefore = preState.dice.faces;
-      console.log(`[cpuController] Pre-roll state: rerolls=${preState.dice.rerollsRemaining}, faces=${diceFacesBefore.length}`);
+      if (window.__KOT_DEBUG__?.logCPUDecisions) {
+        console.log(`[cpuController] Pre-roll state: rerolls=${preState.dice.rerollsRemaining}, faces=${diceFacesBefore.length}`);
+      }
       
       store.dispatch(diceRollStarted());
       
@@ -98,7 +104,9 @@ export function createCpuTurnController(store, engine, logger = console, options
       // Mark dice as resolved after animation
       const postAnimState = store.getState();
       if (postAnimState.dice.phase !== 'resolved') {
-        console.log(`[cpuController] Dice phase is ${postAnimState.dice.phase}, setting to resolved`);
+        if (window.__KOT_DEBUG__?.logCPUDecisions) {
+          console.log(`[cpuController] Dice phase is ${postAnimState.dice.phase}, setting to resolved`);
+        }
         // The dice should be resolved after animation, but if not, we can't proceed properly
       }
 
@@ -114,7 +122,9 @@ export function createCpuTurnController(store, engine, logger = console, options
       let rawDecision;
       try {
         rawDecision = engine.makeRollDecision(canonical, st.dice.rerollsRemaining, { ...player, monster: player.monster||{}, powerCards: player.cards||[] }, gameState);
-        console.log(`[cpuController] Engine returned decision for roll ${rollNumber}:`, rawDecision);
+        if (window.__KOT_DEBUG__?.logCPUDecisions) {
+          console.log(`[cpuController] Engine returned decision for roll ${rollNumber}:`, rawDecision);
+        }
       } catch(e) {
         console.warn('[cpuController] engine decision error sync, fallback', e);
         logger.warn('[cpuController] engine decision error sync, fallback', e);
@@ -129,12 +139,14 @@ export function createCpuTurnController(store, engine, logger = console, options
         return { action: currentRerollsForFallback>0?'reroll':'endRoll', keepDice: [], confidence:0.2, reason:'timeout fallback'};
       });
 
-      console.log(`[cpuController] AI decision for roll ${rollNumber}:`, { 
-        action: decision.action, 
-        keepDice: decision.keepDice, 
-        rerollsRemaining: st.dice.rerollsRemaining,
-        reason: decision.reason 
-      });
+      if (window.__KOT_DEBUG__?.logCPUDecisions) {
+        console.log(`[cpuController] AI decision for roll ${rollNumber}:`, { 
+          action: decision.action, 
+          keepDice: decision.keepDice, 
+          rerollsRemaining: st.dice.rerollsRemaining,
+          reason: decision.reason 
+        });
+      }
 
       // Emit event for thought bubble display
       try {
@@ -171,7 +183,9 @@ export function createCpuTurnController(store, engine, logger = console, options
       // Apply dice keeps based on AI decision
       try {
         if (Array.isArray(decision.keepDice)) {
-          console.log(`[cpuController] Applying AI keep decision: ${decision.keepDice}`);
+          if (window.__KOT_DEBUG__?.logCPUDecisions) {
+            console.log(`[cpuController] Applying AI keep decision: ${decision.keepDice}`);
+          }
           const currentFaces = store.getState().dice.faces || [];
           const desired = new Set(decision.keepDice.filter(i=> i>=0 && i<currentFaces.length));
           
@@ -179,7 +193,9 @@ export function createCpuTurnController(store, engine, logger = console, options
           currentFaces.forEach((die, idx) => { 
             if (die?.kept && !desired.has(idx)) { 
               store.dispatch({ type:'DICE_TOGGLE_KEEP', payload:{ index: idx }});
-              console.log(`[cpuController] Released die ${idx} (${die.value})`);
+              if (window.__KOT_DEBUG__?.logCPUDecisions) {
+                console.log(`[cpuController] Released die ${idx} (${die.value})`);
+              }
             }
           });
           
@@ -189,7 +205,9 @@ export function createCpuTurnController(store, engine, logger = console, options
             const d = cf[idx]; 
             if (d && !d.kept) {
               store.dispatch({ type:'DICE_TOGGLE_KEEP', payload:{ index: idx }});
-              console.log(`[cpuController] Kept die ${idx} (${d.value})`);
+              if (window.__KOT_DEBUG__?.logCPUDecisions) {
+                console.log(`[cpuController] Kept die ${idx} (${d.value})`);
+              }
             }
           });
           // If AI intends to reroll but accidentally kept all dice, release one low-value die so reroll is possible
@@ -201,13 +219,17 @@ export function createCpuTurnController(store, engine, logger = console, options
               const releaseIdx = pickReleaseIndex(afterKeeps, playerId);
               if (releaseIdx != null) {
                 store.dispatch({ type:'DICE_TOGGLE_KEEP', payload:{ index: releaseIdx }});
-                console.log(`[cpuController] Released die ${releaseIdx} to allow reroll`);
+                if (window.__KOT_DEBUG__?.logCPUDecisions) {
+                  console.log(`[cpuController] Released die ${releaseIdx} to allow reroll`);
+                }
               }
             }
           } catch(_) {}
         } else {
           // Fallback to simple heuristic if no specific dice provided
-          console.log(`[cpuController] No specific keeps, using fallback heuristic`);
+          if (window.__KOT_DEBUG__?.logCPUDecisions) {
+            console.log(`[cpuController] No specific keeps, using fallback heuristic`);
+          }
           immediateAIDiceSelection(store);
         }
       } catch(e) { 
@@ -221,7 +243,9 @@ export function createCpuTurnController(store, engine, logger = console, options
       const currentRerolls = currentState.dice.rerollsRemaining ?? 0;
       const hasUnkeptDice = !!(currentState.dice.faces||[]).some(f=> f && !f.kept);
       
-      console.log(`[cpuController] Stop check: action=${normalizedAction}, rerollsRemaining=${currentRerolls}, hasUnkeptDice=${hasUnkeptDice}, rollNumber=${rollNumber}`);
+      if (window.__KOT_DEBUG__?.logCPUDecisions) {
+        console.log(`[cpuController] Stop check: action=${normalizedAction}, rerollsRemaining=${currentRerolls}, hasUnkeptDice=${hasUnkeptDice}, rollNumber=${rollNumber}`);
+      }
       
       // Stop conditions:
       // 1. AI explicitly wants to end (normalizedAction === 'endRoll')
@@ -231,21 +255,27 @@ export function createCpuTurnController(store, engine, logger = console, options
       const noRerollsLeft = currentRerolls <= 0 && !initial;
       const stop = normalizedAction === 'endRoll' || noRerollsLeft || !hasUnkeptDice;
       if (stop || rollNumber >= settings.maxRolls) {
-        console.log(`[cpuController] Stopping after roll ${rollNumber}:`, { 
-          stop, 
-          rollNumber, 
-          maxRolls: settings.maxRolls, 
-          reason: normalizedAction === 'endRoll' ? 'AI chose to end' : 
-                  noRerollsLeft ? 'no rerolls left' : 
-                  !hasUnkeptDice ? 'all dice kept' : 
-                  'max rolls reached' 
-        });
+        if (window.__KOT_DEBUG__?.logCPUDecisions) {
+          console.log(`[cpuController] Stopping after roll ${rollNumber}:`, { 
+            stop, 
+            rollNumber, 
+            maxRolls: settings.maxRolls, 
+            reason: normalizedAction === 'endRoll' ? 'AI chose to end' : 
+                    noRerollsLeft ? 'no rerolls left' : 
+                    !hasUnkeptDice ? 'all dice kept' : 
+                    'max rolls reached' 
+          });
+        }
         break;
       }
-      console.log(`[cpuController] Continuing to next roll...`);
+      if (window.__KOT_DEBUG__?.logCPUDecisions) {
+        console.log(`[cpuController] Continuing to next roll...`);
+      }
       
       // Decrement reroll counter now for next iteration 
-      console.log(`[cpuController] Decrementing reroll counter after roll ${rollNumber}`);
+      if (window.__KOT_DEBUG__?.logCPUDecisions) {
+        console.log(`[cpuController] Decrementing reroll counter after roll ${rollNumber}`);
+      }
       store.dispatch(diceRollCompleted());
       
       // Next roll pacing

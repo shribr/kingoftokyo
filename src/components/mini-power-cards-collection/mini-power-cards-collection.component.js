@@ -4,18 +4,45 @@
  */
 import { store } from '../../bootstrap/index.js';
 import { selectPlayerById, selectMonsterById } from '../../core/selectors.js';
-import { uiPlayerPowerCardsClose } from '../../core/actions.js';
+import { uiPlayerPowerCardsClose, uiPlayerPowerCardsOpen } from '../../core/actions.js';
 import { buildBaseCatalog } from '../../domain/cards.js';
 
 // Build catalog once at module load
 const CARD_CATALOG = buildBaseCatalog();
 
 export function build({ selector }) {
+  // Clean up any leftover backdrop from previous session
+  const existingBackdrop = document.querySelector('#mini-power-cards-backdrop');
+  if (existingBackdrop) {
+    console.log('[MiniPowerCardsCollection] Removing existing backdrop on build');
+    existingBackdrop.remove();
+  }
+  
+  // Clean up any leftover modal from previous session
+  const existingModal = document.querySelector('#mini-power-cards-modal');
+  if (existingModal) {
+    console.log('[MiniPowerCardsCollection] Removing existing modal on build');
+    existingModal.remove();
+  }
+  
+  // BACKDROP DISABLED FOR NOW - will re-enable once modal is working properly
+  // Create backdrop separately
+  // const backdrop = document.createElement('div');
+  // backdrop.className = 'mpcc-backdrop hidden';
+  // backdrop.id = 'mini-power-cards-backdrop';
+  // document.body.appendChild(backdrop);
+  
+  // Create modal container
   const root = document.createElement('div');
   root.className = 'cmp-mini-power-cards-collection hidden';
+  root.id = 'mini-power-cards-modal';
+  
+  // Append directly to body to ensure it's on top of everything
+  document.body.appendChild(root);
+  
+  // console.log('[MiniPowerCardsCollection] Component built and appended to body'); // DISABLED - init logging
   
   root.innerHTML = `
-    <div class="mpcc-backdrop"></div>
     <div class="mpcc-modal">
       <div class="mpcc-header">
         <h2 class="mpcc-title" data-title></h2>
@@ -50,9 +77,15 @@ export function build({ selector }) {
   let currentCards = [];
   let currentIndex = 0;
 
-  // Event handlers
+  // BACKDROP EVENT HANDLERS DISABLED - backdrop is disabled for now
+  // Event handlers on backdrop
+  // backdrop.addEventListener('click', () => {
+  //   close();
+  // });
+  
+  // Event handlers on modal
   root.addEventListener('click', (e) => {
-    if (e.target.matches('[data-action="close"]') || e.target.classList.contains('mpcc-backdrop')) {
+    if (e.target.matches('[data-action="close"]')) {
       close();
       return;
     }
@@ -97,8 +130,8 @@ export function build({ selector }) {
   }, { passive: true });
 
   function close() {
-    root.style.display = 'none';
     root.classList.add('hidden');
+    // backdrop.classList.add('hidden'); // BACKDROP DISABLED
     currentPlayer = null;
     currentCards = [];
     currentIndex = 0;
@@ -240,7 +273,12 @@ export function build({ selector }) {
   }
 
   function show(playerId) {
-    console.log('[MiniPowerCardsCollection] Show called for player:', playerId);
+    if (window.__KOT_DEBUG__?.logModals) {
+      console.log('[MiniPowerCardsCollection] Show called for player:', playerId);
+    }
+    
+    // Dispatch action to update Redux state
+    store.dispatch(uiPlayerPowerCardsOpen(playerId));
     
     const state = store.getState();
     const player = selectPlayerById(state, playerId);
@@ -250,7 +288,9 @@ export function build({ selector }) {
       return;
     }
 
-    console.log('[MiniPowerCardsCollection] Player found:', player.name, 'with', player.powerCards?.length || 0, 'power cards');
+    if (window.__KOT_DEBUG__?.logModals) {
+      console.log('[MiniPowerCardsCollection] Player found:', player.name, 'with', player.powerCards?.length || 0, 'power cards');
+    }
 
     const monster = selectMonsterById(state, player.monsterId);
     currentPlayer = player;
@@ -261,11 +301,17 @@ export function build({ selector }) {
     const title = root.querySelector('[data-title]');
     title.textContent = `${monster?.name?.toUpperCase() || 'UNKNOWN'}'S POWER CARDS`;
 
-    console.log('[MiniPowerCardsCollection] Showing modal with title:', title.textContent);
-
-    // Show modal
-    root.style.display = 'flex';
+    if (window.__KOT_DEBUG__?.logModals) {
+      console.log('[MiniPowerCardsCollection] Showing modal with title:', title.textContent);
+      console.log('[MiniPowerCardsCollection] Before show - root classes:', root.className);
+    }
+    
+    // backdrop.classList.remove('hidden'); // BACKDROP DISABLED
     root.classList.remove('hidden');
+    
+    if (window.__KOT_DEBUG__?.logModals) {
+      console.log('[MiniPowerCardsCollection] After show - root classes:', root.className);
+    }
 
     // Render first card
     renderCurrentCard();
@@ -300,11 +346,17 @@ export function build({ selector }) {
     } else if (!uiState?.playerId) {
       // Close modal if no player selected
       root.classList.add('hidden');
+      // backdrop.classList.add('hidden'); // BACKDROP DISABLED
     }
   }
 
   // Subscribe to store updates
   store.subscribe(update);
+  
+  // Ensure modal is hidden on initialization (backdrop disabled)
+  root.classList.add('hidden');
+  // backdrop.classList.add('hidden'); // BACKDROP DISABLED
+  console.log('[MiniPowerCardsCollection] Initial state set - modal hidden');
 
   // Store instance reference on DOM element for external access
   const instance = { 

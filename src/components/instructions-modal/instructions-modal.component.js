@@ -3,6 +3,11 @@ import { uiSettingsClose } from '../../core/actions.js';
 export function build() {
   const root = document.createElement('div');
   root.className = 'cmp-instructions-modal modal-shell';
+  
+  // IMPORTANT: Append modal directly to body, not to the mountPoint
+  // Modals should always be at the top level to avoid z-index and overflow issues
+  document.body.appendChild(root);
+  
   root.innerHTML = `
     <div class="modal instructions" data-instructions-modal>
       <div class="modal-header"><h2>Instructions</h2><button data-close aria-label="Close">×</button></div>

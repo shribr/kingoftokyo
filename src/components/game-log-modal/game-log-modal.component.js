@@ -4,6 +4,11 @@ import { buildLogTree } from '../../services/logTree.js';
 export function build() {
   const root = document.createElement('div');
   root.className = 'cmp-game-log-modal modal-shell';
+  
+  // IMPORTANT: Append modal directly to body, not to the mountPoint
+  // Modals should always be at the top level to avoid z-index and overflow issues
+  document.body.appendChild(root);
+  
   root.innerHTML = `
     <div class="modal game-log" data-game-log-modal>
       <div class="modal-header"><h2>Game Log (New)</h2><button data-close>×</button></div>

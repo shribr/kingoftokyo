@@ -1,4 +1,5 @@
 /** bootstrap/index.js */
+import '../utils/debugFlags.js'; // Initialize debug system FIRST
 import { createInitialState } from '../core/stateShape.js';
 import { createStore, combineReducers } from '../core/store.js';
 import { eventBus } from '../core/eventBus.js';

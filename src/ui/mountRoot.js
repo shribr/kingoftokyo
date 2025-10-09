@@ -41,7 +41,8 @@ export async function mountRoot(configEntries, store) {
   // LEFT  = Power Cards panel ONLY per latest requirement.
       // RIGHT = Monsters / player profiles cluster + remaining ancillary panels.
       if (/arena/.test(n)) mountPoint = center;
-  else if (/powercard|power-cards|powercardspanel|power-cards-panel/.test(n)) { mountPoint = left; } // Power Cards panel on left
+  else if (/modal/.test(n)) mountPoint = document.body; // All modals mount to body
+  else if (/powercard|power-cards|powercardspanel|power-cards-panel/.test(n) && !/modal/.test(n)) { mountPoint = left; } // Power Cards panel on left (but not modals)
       else if (/monsterspanel|monsterprofiles|monsterprofilesingle|playerprofile|playercards|player-card-list/.test(n)) mountPoint = right; // Monsters & player info on right
       else if (/dice/.test(n)) mountPoint = centerBottom; // dice lives center-bottom
       else if (/actionmenu/.test(n)) mountPoint = centerBottom; // action menu near dice
@@ -90,14 +91,43 @@ export async function mountRoot(configEntries, store) {
       inst.update({ state: needsState ? sliceState(entry.stateKeys, store.getState()) : {} });
     }
   }
-  // Subscribe to store updates
-  store.subscribe((state) => {
+  
+  // Track previous state to detect changes
+  let previousState = store.getState();
+  
+  // Subscribe to store updates with optimized change detection
+  store.subscribe((state, action) => {
+    // Check if we should skip updates (e.g., during batch operations)
+    if (window.__KOT_SKIP_UPDATES__) return;
+    
     for (const { entry, inst, modFns } of registry.values()) {
       const hasInstUpdate = inst && typeof inst.update === 'function';
       const hasModuleUpdate = typeof modFns.update === 'function';
       const instSrc = hasInstUpdate ? Function.prototype.toString.call(inst.update) : '';
       const looksNoop = hasInstUpdate && inst.update.length === 0 && /\{\s*\}/.test(instSrc);
       const needsState = Array.isArray(entry.stateKeys) && entry.stateKeys.length > 0;
+      
+      // OPTIMIZATION: Skip update if component has stateKeys but none of them changed
+      if (needsState) {
+        const hasRelevantChange = entry.stateKeys.some(key => 
+          previousState[key] !== state[key]
+        );
+        
+        if (!hasRelevantChange) {
+          // No relevant state changed, skip this component
+          if (window.__KOT_DEBUG__?.logComponentUpdates) {
+            console.log(`[mountRoot] Skipping update for ${entry.name} - no relevant state change`);
+          }
+          continue;
+        }
+        
+        if (window.__KOT_DEBUG__?.logComponentUpdates) {
+          console.log(`[mountRoot] Updating ${entry.name} - state changed:`, 
+            entry.stateKeys.filter(key => previousState[key] !== state[key])
+          );
+        }
+      }
+      
       if (hasInstUpdate && !looksNoop) {
         if (needsState) {
           inst.update({ state: sliceState(entry.stateKeys, state) });
@@ -119,6 +149,10 @@ export async function mountRoot(configEntries, store) {
         callUpdate(inst, modFns, { state: slice }, state);
       }
     }
+    
+    // Update previous state for next comparison
+    previousState = state;
+    
     // AI thinking banner auto logic: show only if active player is AI and no effect currently processing but AI is in a pending decision window.
     try {
       const active = selectActivePlayer(state);
