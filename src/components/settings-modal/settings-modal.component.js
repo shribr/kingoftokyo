@@ -83,6 +83,16 @@ if (!window.__KOT_WIN_ODDS__) {
   window.__KOT_WIN_ODDS__ = { obj: winOdds, render: null };
 }
 
+// Stub functions for component system (component is disabled, uses direct imports)
+// Return actual DOM element to avoid appendChild errors
+export const build = () => {
+  const el = document.createElement('div');
+  el.className = 'cmp-settings-modal';
+  el.style.display = 'none'; // Hidden since component is disabled
+  return el;
+};
+export const update = () => {};
+
 export function createSettingsModal() {
   const content = document.createElement('div');
   content.classList.add('settings-modal-root');
@@ -636,6 +646,23 @@ export function createSettingsModal() {
           </div>
 
           <div class="field">
+            <label class="field-label">🎲 CPU Roll Testing</label>
+            <div style="display:flex;gap:24px;align-items:center;margin-top:8px;max-width:600px;">
+              <div style="flex:1;">
+                <label style="font-size:12px;color:#999;display:block;margin-bottom:4px;">Delay Between CPU Rolls (ms)</label>
+                <input type="range" name="cpuRollDelay" min="0" max="5000" step="100" value="1200" 
+                  style="width:100%;cursor:pointer;" />
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:#666;margin-top:2px;">
+                  <span>0ms (instant)</span>
+                  <span id="cpu-roll-delay-value" style="color:#f4d03f;font-weight:bold;">1200ms</span>
+                  <span>5000ms (slow)</span>
+                </div>
+              </div>
+            </div>
+            <div class="field-help">Control the delay between CPU rolls for easier observation during testing. Set to 0 for instant rolls, higher values for slower play. Default: 1200ms</div>
+          </div>
+
+          <div class="field">
             <label class="field-label">Debug Logging</label>
             <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;">
               <label class="field-checkbox" style="margin:0;">
@@ -1029,6 +1056,21 @@ export function createSettingsModal() {
   }
   attachDevToolsActions();
 
+  // CPU Roll Delay Slider Handler
+  function attachCPUDelaySlider() {
+    const slider = content.querySelector('input[name="cpuRollDelay"]');
+    const valueDisplay = content.querySelector('#cpu-roll-delay-value');
+    
+    if (slider && valueDisplay) {
+      // Update display when slider changes
+      slider.addEventListener('input', (e) => {
+        const value = e.target.value;
+        valueDisplay.textContent = `${value}ms`;
+      });
+    }
+  }
+  attachCPUDelaySlider();
+
   // --- Game State Persistence Controls -----------------------------------------------------------
   function attachPersistenceControls() {
     const store = window.__KOT_NEW__?.store;
@@ -1122,6 +1164,7 @@ export function createSettingsModal() {
       autoSaveCheck.addEventListener('change', (e) => {
         toggleAutoSave(e.target.checked);
         showToast(e.target.checked ? '✅ Auto-save enabled' : '⏸️ Auto-save disabled');
+        handlePotentialDirty(e); // Trigger dirty state check
       });
     }
     
@@ -1129,6 +1172,7 @@ export function createSettingsModal() {
       confirmCheck.addEventListener('change', (e) => {
         toggleUnloadConfirmation(e.target.checked);
         showToast(e.target.checked ? '✅ Unload confirmation enabled' : '⏸️ Unload confirmation disabled');
+        handlePotentialDirty(e); // Trigger dirty state check
       });
     }
 
@@ -1719,6 +1763,7 @@ export function createSettingsModal() {
       // Dev Tools settings
       enableDecisionTreeCapture: form.querySelector('input[name="enableDecisionTreeCapture"]')?.checked || false,
       enableFloatingDevPanel: form.querySelector('input[name="enableFloatingDevPanel"]')?.checked || false,
+      cpuRollDelay: parseInt(form.querySelector('input[name="cpuRollDelay"]')?.value || '1200', 10),
       
       // Debug Logging flags
       logComponentUpdates: form.querySelector('input[name="logComponentUpdates"]')?.checked || false,
@@ -1729,7 +1774,11 @@ export function createSettingsModal() {
       
       // Archive settings
       autoArchiveGameLogs: form.querySelector('input[name="autoArchiveGameLogs"]')?.checked || false,
-      autoArchiveAIDTLogs: form.querySelector('input[name="autoArchiveAIDTLogs"]')?.checked || false
+      autoArchiveAIDTLogs: form.querySelector('input[name="autoArchiveAIDTLogs"]')?.checked || false,
+      
+      // Game State Persistence settings (from Advanced tab)
+      autoSaveGame: content.querySelector('[data-persistence-check="auto-save"]')?.checked || false,
+      confirmBeforeUnload: content.querySelector('[data-persistence-check="confirm-unload"]')?.checked || false
     };
   }
 
@@ -1898,6 +1947,16 @@ export function createSettingsModal() {
             console.log(`[Settings] Debug flag ${flagName} ${settingsToSave[flagName] ? 'enabled' : 'disabled'}`);
           }
         });
+        
+        // Apply CPU roll delay to CPU turn controller if available
+        if ('cpuRollDelay' in settingsToSave && window.__KOT_NEW__?.cpuController) {
+          const delayValue = settingsToSave.cpuRollDelay;
+          // Update the CPU controller's settings
+          if (window.__KOT_NEW__.cpuController.settings) {
+            window.__KOT_NEW__.cpuController.settings.nextRollDelayMs = delayValue;
+            console.log(`[Settings] CPU roll delay updated to ${delayValue}ms`);
+          }
+        }
         
         if (window.__KOT_NEW__?.store) {
           try {
@@ -2135,6 +2194,15 @@ export function createSettingsModal() {
     const floatDev = content.querySelector('input[name="enableFloatingDevPanel"]');
     if (floatDev) floatDev.checked = !!settings.enableFloatingDevPanel;
     
+    // CPU Roll Delay slider
+    const cpuRollDelaySlider = content.querySelector('input[name="cpuRollDelay"]');
+    const cpuRollDelayValue = content.querySelector('#cpu-roll-delay-value');
+    if (cpuRollDelaySlider) {
+      const delay = settings.cpuRollDelay || 1200;
+      cpuRollDelaySlider.value = delay;
+      if (cpuRollDelayValue) cpuRollDelayValue.textContent = `${delay}ms`;
+    }
+    
     // Debug Logging flags - sync with window.__KOT_DEBUG__ if available
     const debugFlags = ['logComponentUpdates', 'logCPUDecisions', 'logStoreUpdates', 'logSubscriptions', 'logModals'];
     debugFlags.forEach(flagName => {
@@ -2151,6 +2219,12 @@ export function createSettingsModal() {
     if (autoArchiveGame) autoArchiveGame.checked = !!settings.autoArchiveGameLogs;
     const autoArchiveAI = content.querySelector('input[name="autoArchiveAIDTLogs"]');
     if (autoArchiveAI) autoArchiveAI.checked = !!settings.autoArchiveAIDTLogs;
+    
+    // Game State Persistence settings (from Advanced tab - use helper functions)
+    const autoSaveCheck = content.querySelector('[data-persistence-check="auto-save"]');
+    if (autoSaveCheck) autoSaveCheck.checked = settings.autoSaveGame !== undefined ? !!settings.autoSaveGame : isAutoSaveActive();
+    const confirmCheck = content.querySelector('[data-persistence-check="confirm-unload"]');
+    if (confirmCheck) confirmCheck.checked = settings.confirmBeforeUnload !== undefined ? !!settings.confirmBeforeUnload : isUnloadConfirmationEnabled();
   }
 
   // Load current settings initially
@@ -2193,6 +2267,15 @@ export function createSettingsModal() {
 
   // Establish baseline AFTER loading initial settings values
   establishBaseline();
+  
+  // Listen for modal restoration after page reload
+  window.addEventListener('modal:restore', (e) => {
+    if (e.detail?.modalId === 'settings') {
+      console.log('[Settings Modal] Restoring settings modal from page reload');
+      newModalSystem.showModal('settings');
+    }
+  });
+  
   return __settingsModal;
 }
 

@@ -272,11 +272,19 @@ export function createCpuTurnController(store, engine, logger = console, options
         console.log(`[cpuController] Continuing to next roll...`);
       }
       
-      // Decrement reroll counter now for next iteration 
-      if (window.__KOT_DEBUG__?.logCPUDecisions) {
-        console.log(`[cpuController] Decrementing reroll counter after roll ${rollNumber}`);
+      // Decrement reroll counter now for next iteration
+      // CRITICAL FIX: Only decrement after rerolls, NOT after the initial roll
+      // The initial roll is FREE - it doesn't consume one of the 2 rerolls
+      if (!initial) {
+        if (window.__KOT_DEBUG__?.logCPUDecisions) {
+          console.log(`[cpuController] Decrementing reroll counter after roll ${rollNumber} (was a reroll)`);
+        }
+        store.dispatch(diceRollCompleted());
+      } else {
+        if (window.__KOT_DEBUG__?.logCPUDecisions) {
+          console.log(`[cpuController] NOT decrementing - roll ${rollNumber} was the initial roll`);
+        }
       }
-      store.dispatch(diceRollCompleted());
       
       // Next roll pacing
       await wait(settings.nextRollDelayMs + settings.decisionThinkingMs);

@@ -581,12 +581,20 @@ export function createTurnService(store, logger, rng = Math.random) {
       // Calculate timing based on cpuSpeed setting
       const cpuSpeed = stPre.settings?.cpuSpeed || 'normal';
       const baseDelay = computeDelay(stPre.settings);
+      
+      // Check for Dev Tools override (cpuRollDelay takes precedence if set)
+      const devToolsDelay = stPre.settings?.cpuRollDelay;
+      const useDevDelay = typeof devToolsDelay === 'number' && devToolsDelay >= 0;
+      
       const timingOptions = {
-        nextRollDelayMs: baseDelay * 3,      // Multiplied for visibility between rolls
+        nextRollDelayMs: useDevDelay ? devToolsDelay : baseDelay * 3,      // Multiplied for visibility between rolls (or dev override)
         decisionThinkingMs: baseDelay * 2,   // Thinking time
         initialRollDelayMs: Math.max(800, baseDelay * 2) // Initial pause (min 800ms)
       };
       
+      if (useDevDelay) {
+        console.log(`[turnService] CPU timing using Dev Tools override: ${devToolsDelay}ms between rolls`);
+      }
       console.log(`[turnService] CPU timing for speed '${cpuSpeed}':`, timingOptions);
       const controller = createCpuTurnController(store, enhancedEngineProxy(), store._logger || console, timingOptions);
       controller.start();

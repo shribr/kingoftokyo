@@ -168,6 +168,11 @@ class NewModalSystem {
     this.currentModal = id;
     this.previousModal = previousModal;
 
+    // Track open modal in localStorage for page reload restoration
+    try {
+      localStorage.setItem('KOT_OPEN_MODAL', id);
+    } catch(_) {}
+
     // Focus management
     const firstFocusable = modal.querySelector('button, input, select, textarea, [tabindex]:not([tabindex="-1"])');
     if (firstFocusable) {
@@ -202,6 +207,12 @@ class NewModalSystem {
       this.overlay.innerHTML = '';
       this.currentModal = null;
       this.previousModal = null;
+      
+      // Clear tracked modal from localStorage
+      try {
+        localStorage.removeItem('KOT_OPEN_MODAL');
+      } catch(_) {}
+      
       console.log(`[NEW-MODAL] Closed modal: ${id}`);
     }
   }
@@ -209,6 +220,22 @@ class NewModalSystem {
   closeCurrentModal() {
     if (this.currentModal) {
       this.closeModal(this.currentModal);
+    }
+  }
+
+  // Restore modal state from localStorage (call after page load)
+  restoreModalState() {
+    try {
+      const savedModal = localStorage.getItem('KOT_OPEN_MODAL');
+      if (savedModal) {
+        console.log(`[NEW-MODAL] Restoring modal from page reload: ${savedModal}`);
+        // Dispatch event so components can reopen their modals
+        window.dispatchEvent(new CustomEvent('modal:restore', { 
+          detail: { modalId: savedModal } 
+        }));
+      }
+    } catch(err) {
+      console.warn('[NEW-MODAL] Failed to restore modal state:', err);
     }
   }
 

@@ -124,6 +124,13 @@ export function build({ selector }) {
       if (b) toggleSound(store, b);
     }
   });
+  
+  // Restore any modal that was open before page reload
+  // Run after a short delay to ensure components are ready
+  setTimeout(() => {
+    newModalSystem.restoreModalState();
+  }, 100);
+  
   return { root, update: () => syncToolbarState(root) };
 }
 
