@@ -123,34 +123,89 @@ export function build({ selector }) {
       // Hide the original vertical menu (desktop layout)
       root.style.display = 'none';
       
-      // Create or reuse horizontal actions menu
-      let horizontalMenu = document.getElementById('horizontal-action-menu');
-      if (!horizontalMenu) {
-        horizontalMenu = document.createElement('div');
-        horizontalMenu.id = 'horizontal-action-menu';
-        horizontalMenu.className = 'horizontal-action-menu';
-        horizontalMenu.setAttribute('data-mobile-menu', 'true');
-        horizontalMenu.innerHTML = `
-          <button id="h-roll-btn" data-action="roll" class="h-action-btn h-btn-primary">ROLL</button>
-          <button id="h-keep-btn" data-action="keep" class="h-action-btn h-btn-secondary" disabled>KEEP</button>
-          <button id="h-accept-dice-btn" data-action="accept-dice" class="h-action-btn h-btn-secondary" disabled>ACCEPT</button>
-          <button id="h-power-cards-btn" data-action="power-cards" class="h-action-btn h-btn-secondary" disabled>
-            <span class="h-btn-text">CARDS</span>
-          </button>
-          <button id="h-end-turn-btn" data-action="end" class="h-action-btn h-btn-secondary" disabled>END</button>
-        `;
-        document.body.appendChild(horizontalMenu);
+      // Create or reuse radial action buttons container
+      let radialContainer = document.getElementById('radial-action-menu');
+      if (!radialContainer) {
+        radialContainer = document.createElement('div');
+        radialContainer.id = 'radial-action-menu';
+        radialContainer.className = 'radial-action-menu';
+        radialContainer.setAttribute('data-mobile-menu', 'true');
+        radialContainer.setAttribute('data-expanded', 'false');
+        
+        // Create individual circular action buttons
+        const buttons = [
+          { id: 'r-roll-btn', action: 'roll', label: 'ROLL', class: 'r-btn-primary', icon: '🎲' },
+          { id: 'r-keep-btn', action: 'keep', label: 'KEEP', class: 'r-btn-secondary', icon: '✓', disabled: true },
+          { id: 'r-accept-dice-btn', action: 'accept-dice', label: 'ACCEPT', class: 'r-btn-secondary', icon: '✓✓', disabled: true },
+          { id: 'r-power-cards-btn', action: 'power-cards', label: 'CARDS', class: 'r-btn-secondary', icon: '<svg viewBox="0 0 24 24" width="3.5vh" height="3.5vh"><rect x="5" y="6" width="8" height="11" rx="1" fill="white" stroke="currentColor" stroke-width="1.5" transform="rotate(-12 9 11.5)"/><rect x="11" y="6" width="8" height="11" rx="1" fill="white" stroke="currentColor" stroke-width="1.5" transform="rotate(12 15 11.5)"/></svg>', disabled: true },
+          { id: 'r-end-turn-btn', action: 'end', label: 'END', class: 'r-btn-secondary', icon: '⏭', disabled: true }
+        ];
+        
+        buttons.forEach((btn, index) => {
+          const button = document.createElement('button');
+          button.id = btn.id;
+          button.className = `radial-action-btn ${btn.class}`;
+          button.setAttribute('data-action', btn.action);
+          button.setAttribute('data-index', index);
+          if (btn.disabled) button.disabled = true;
+          button.innerHTML = `
+            <div class="r-btn-icon">${btn.icon}</div>
+            <div class="r-btn-label">${btn.label}</div>
+          `;
+          radialContainer.appendChild(button);
+        });
+        
+        document.body.appendChild(radialContainer);
         
         // Store reference for later cleanup
-        root._horizontalMenu = horizontalMenu;
+        root._radialContainer = radialContainer;
       }
       
-      // Set initial collapsed state (hidden to the right off-screen)
-      horizontalMenu.style.transform = 'translateX(110%)';
-      horizontalMenu.style.opacity = '0';
+      // Set initial collapsed state (buttons start at center, scale 0)
+      const buttons = radialContainer.querySelectorAll('.radial-action-btn');
+      buttons.forEach(btn => {
+        btn.style.transform = 'translate(0, 0) scale(0)';
+      });
       
-      // Wire up event handlers for horizontal menu buttons (same as desktop menu)
-      horizontalMenu.addEventListener('click', (e) => {
+      // Function to calculate and apply radial positions
+      const applyRadialPositions = (expanded = false) => {
+        const buttons = radialContainer.querySelectorAll('.radial-action-btn');
+        const radius = 28; // vh units - increased significantly for more spacing
+        const startAngle = 180; // Start at left (180 degrees)
+        const endAngle = 270; // End at top (270 degrees) - creates quarter circle arc
+        const angleStep = (endAngle - startAngle) / (buttons.length - 1);
+        
+        buttons.forEach((btn, index) => {
+          if (expanded) {
+            // Calculate position on arc
+            const angle = (startAngle + (angleStep * index)) * (Math.PI / 180);
+            const x = Math.cos(angle) * radius; // vh units
+            const y = Math.sin(angle) * radius; // vh units
+            
+            // Store position as CSS custom properties for hover effects
+            btn.style.setProperty('--tx', `${x}vh`);
+            btn.style.setProperty('--ty', `${y}vh`);
+            
+            // Apply staggered animation delay
+            const delay = index * 50; // ms
+            setTimeout(() => {
+              btn.style.transform = `translate(${x}vh, ${y}vh) scale(1)`;
+            }, delay);
+          } else {
+            // Collapse back to center in reverse order
+            const reverseDelay = (buttons.length - 1 - index) * 40; // ms
+            setTimeout(() => {
+              btn.style.transform = 'translate(0, 0) scale(0)';
+            }, reverseDelay);
+          }
+        });
+      };
+      
+      // Store positioning function for later use
+      radialContainer._applyRadialPositions = applyRadialPositions;
+      
+      // Wire up event handlers for radial menu buttons
+      radialContainer.addEventListener('click', (e) => {
         const button = e.target.closest('[data-action]');
         if (!button) return;
         
@@ -232,17 +287,25 @@ export function build({ selector }) {
           }
         }
         
-        // Auto-collapse mobile menu after any button click
-        const horizontalMenu = document.getElementById('horizontal-action-menu');
-        if (horizontalMenu && checkMobile()) {
-          // Slide menu off-screen to the right
-          horizontalMenu.style.transform = 'translateX(110%)';
-          horizontalMenu.style.opacity = '0';
+        // Auto-collapse radial menu after any button click
+        const radialMenu = document.getElementById('radial-action-menu');
+        if (radialMenu && checkMobile()) {
+          radialMenu.setAttribute('data-expanded', 'false');
+          if (radialMenu._applyRadialPositions) {
+            radialMenu._applyRadialPositions(false);
+          }
+          
+          // Update toggle button
+          const toggleBtn = document.getElementById('action-menu-mobile-btn');
+          if (toggleBtn) {
+            toggleBtn.innerHTML = '◀';
+            toggleBtn.setAttribute('aria-label', 'Expand Action Menu');
+          }
         }
       });
       
       // Store reference for state updates
-      root._horizontalMenu = horizontalMenu;
+      root._radialContainer = radialContainer;
       
 
       
@@ -281,29 +344,32 @@ export function build({ selector }) {
         position:'fixed', bottom:'2vh', right:'2vw', width:'12vh', height:'12vh', background:'linear-gradient(135deg,#ffcf33 0%, #ffb300 100%)', border:'3px solid #333', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'4.8vh', cursor:'pointer', boxShadow:'0 0.4vh 1.2vh rgba(0,0,0,0.3)', zIndex:'6700', transition:'transform 0.2s ease', color:'#000'
       });
       btn.addEventListener('click', () => {
-        const horizontalMenu = document.getElementById('horizontal-action-menu');
-        if (!horizontalMenu) return;
+        const radialMenu = document.getElementById('radial-action-menu');
+        if (!radialMenu) return;
         
-        // Check if menu is currently visible (translateX is 0)
-        const currentTransform = horizontalMenu.style.transform || '';
-        const isExpanded = currentTransform.includes('translateX(0');
+        // Check if menu is currently expanded
+        const isExpanded = radialMenu.getAttribute('data-expanded') === 'true';
         
         if (isExpanded) {
-          // Collapse - slide out to right with fade
-          horizontalMenu.style.opacity = '0';
-          horizontalMenu.style.transform = 'translateX(110%)';
-          btn.style.transform = 'scale(1)';
+          // Collapse - animate buttons back to center
+          radialMenu.setAttribute('data-expanded', 'false');
+          if (radialMenu._applyRadialPositions) {
+            radialMenu._applyRadialPositions(false);
+          }
+          btn.style.transform = 'scale(1) rotate(0deg)';
           document.body.removeAttribute('data-action-menu-open');
-          btn.innerHTML = '◀'; // left arrow for expand
-          btn.setAttribute('aria-label','Expand Action Menu');
+          btn.innerHTML = '◀';
+          btn.setAttribute('aria-label', 'Expand Action Menu');
         } else {
-          // Expand - slide in from right
-          horizontalMenu.style.opacity = '1';
-          horizontalMenu.style.transform = 'translateX(0)';
-          btn.style.transform = 'scale(0.9)';
-          btn.innerHTML = '▶'; // right arrow for collapse
-          btn.setAttribute('aria-label','Collapse Action Menu');
-          document.body.setAttribute('data-action-menu-open','true');
+          // Expand - fan out buttons in arc
+          radialMenu.setAttribute('data-expanded', 'true');
+          if (radialMenu._applyRadialPositions) {
+            radialMenu._applyRadialPositions(true);
+          }
+          btn.style.transform = 'scale(0.9) rotate(180deg)';
+          btn.innerHTML = '▶';
+          btn.setAttribute('aria-label', 'Collapse Action Menu');
+          document.body.setAttribute('data-action-menu-open', 'true');
         }
       });
       document.body.appendChild(btn);
@@ -1130,6 +1196,12 @@ export function update(root) {
     if (hPowerCardsBtn) {
       hPowerCardsBtn.disabled = false;
     }
+    
+    // Radial menu power cards button should always be enabled
+    const rPowerCardsBtn = document.getElementById('r-power-cards-btn');
+    if (rPowerCardsBtn) {
+      rPowerCardsBtn.disabled = false;
+    }
   } catch(_) {}
   const isCPU = !!(active && (active.isCPU || active.isAi || active.type === 'ai'));
 
@@ -1193,6 +1265,14 @@ export function update(root) {
       hRollBtn.disabled = !canRollBtn;
       hRollBtn.textContent = hasFirstRoll ? 'RE-ROLL' : 'ROLL';
     }
+    
+    // Update radial menu roll button
+    const rRollBtn = document.getElementById('r-roll-btn');
+    if (rRollBtn) {
+      rRollBtn.disabled = !canRollBtn;
+      const label = rRollBtn.querySelector('.r-btn-label');
+      if (label) label.textContent = hasFirstRoll ? 'RE-ROLL' : 'ROLL';
+    }
   }
   if (keepBtn && !initializing) {
     const allKept = hasAnyFaces && faces.every(f => !!f.kept);
@@ -1205,6 +1285,12 @@ export function update(root) {
     const hKeepBtn = document.getElementById('h-keep-btn');
     if (hKeepBtn) {
       hKeepBtn.disabled = !canKeepAll;
+    }
+    
+    // Update radial menu keep button
+    const rKeepBtn = document.getElementById('r-keep-btn');
+    if (rKeepBtn) {
+      rKeepBtn.disabled = !canKeepAll;
     }
   }
   if (acceptBtn && !initializing) {
@@ -1219,6 +1305,14 @@ export function update(root) {
     if (hAcceptBtn) {
       hAcceptBtn.disabled = !canAccept;
       hAcceptBtn.textContent = accepted ? 'ACCEPTED' : 'ACCEPT';
+    }
+    
+    // Update radial menu accept button
+    const rAcceptBtn = document.getElementById('r-accept-dice-btn');
+    if (rAcceptBtn) {
+      rAcceptBtn.disabled = !canAccept;
+      const label = rAcceptBtn.querySelector('.r-btn-label');
+      if (label) label.textContent = accepted ? 'ACCEPTED' : 'ACCEPT';
     }
   }
   if (flushBtn && !initializing) {
@@ -1253,6 +1347,12 @@ export function update(root) {
     const hEndBtn = document.getElementById('h-end-turn-btn');
     if (hEndBtn) {
       hEndBtn.disabled = !canEnd;
+    }
+    
+    // Update radial menu end button
+    const rEndBtn = document.getElementById('r-end-turn-btn');
+    if (rEndBtn) {
+      rEndBtn.disabled = !canEnd;
     }
   }
 

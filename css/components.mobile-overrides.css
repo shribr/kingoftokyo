@@ -1203,8 +1203,11 @@ body.splash-visible .cmp-splash {
   #action-menu-mobile-btn {
     display: flex !important;
     position: fixed !important;
-    bottom: 13px !important; /* Aligned with dice tray center (8px + 30px - 25px for button center) */
+    bottom: 20px !important; /* Adjusted to align with smaller button */
     right: 20px !important;
+    width: 34px !important; /* Smaller than dice button */
+    height: 34px !important; /* Smaller than dice button */
+    font-size: 16px !important; /* Reduced icon size */
     z-index: 6700 !important;
   }
   

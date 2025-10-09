@@ -72,7 +72,7 @@ export function build({ selector, emit }) {
   toggleBtn.setAttribute('aria-label','Toggle Dice Tray');
   toggleBtn.setAttribute('aria-expanded','false');
       Object.assign(toggleBtn.style, {
-        position:'fixed', bottom:'2vh', left:'2vw', width:'12vh', height:'12vh', background:'#ffcf33', border:'3px solid #333', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'5vh', cursor:'pointer', boxShadow:'0 0.4vh 1.2vh rgba(0,0,0,0.3)', zIndex:'6700', transition:'transform 0.2s ease'
+        position:'fixed', bottom:'2vh', right:'10vw', width:'12vh', height:'12vh', background:'#ffcf33', border:'3px solid #333', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'5vh', cursor:'pointer', boxShadow:'0 0.4vh 1.2vh rgba(0,0,0,0.3)', zIndex:'6700', transition:'transform 0.2s ease'
       });
       // Helper to apply dynamic offset so tray's left edge sits just to the right of the toggle button
       const applyMobileOffset = () => {
