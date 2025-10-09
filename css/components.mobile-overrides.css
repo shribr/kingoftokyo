@@ -707,9 +707,30 @@ body.splash-visible .cmp-splash {
     width: 34px !important;
     height: 34px !important;
     font-size: 17px !important;
+    /* Match screenshot style: flat, square, clean */
+    background: #ffffff !important;
+    border: 3px solid #000 !important;
+    border-radius: 0 !important;
+    box-shadow: 2px 2px 0px #000 !important;
+    transform: none !important;
+  }
+  
+  /* Remove pseudo-elements (shine/glow effects) for cleaner mobile look */
+  .cmp-dice-tray .die:before,
+  .cmp-dice-tray .die:after {
+    display: none !important;
+  }
+  
+  /* Hide outer white border/frame - only show black inner frame with dice */
+  .cmp-dice-tray .tray-outer {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
   }
   
   .cmp-dice-tray .tray-frame {
+    left: 25px !important;
     padding: 4px 0 !important;
     width: fit-content !important;
     border-width: 2px !important;
@@ -1331,6 +1352,7 @@ body.splash-visible .cmp-splash {
     bottom: 8px !important; 
     height: 48px !important; /* Reduced from 60px */
     min-width: 100px !important;
+    max-width: calc(100vw - 300px - 120px) !important; /* Leave space for radial menu button on right */
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -1341,6 +1363,15 @@ body.splash-visible .cmp-splash {
     padding: 2px 6px !important; /* Reduced padding */
     z-index: 6400 !important;
     transform: none !important; /* Remove transform */
+  }
+  
+  /* Paging buttons - smaller in mobile */
+  .cmp-mini-power-cards .mpc-page-btn {
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 10px !important;
+    border-width: 1.5px !important;
+    line-height: 1 !important;
   }
   
   /* Container for mini power card items */
@@ -1376,11 +1407,11 @@ body.splash-visible .cmp-splash {
     width: 100% !important;
     height: 100% !important;
     background: linear-gradient(135deg, #4a3b63 0%, #2e2540 100%) !important;
-    border: 2px solid #ffd700 !important;
+    border: 2px solid #ffefa5 !important;
     border-radius: 4px !important;
     display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+    align-items: flex-start !important; /* Align text to top */
+    justify-content: flex-start !important; /* Align text to top */
     padding: 4px !important;
     box-sizing: border-box !important;
   }
@@ -1389,9 +1420,10 @@ body.splash-visible .cmp-splash {
   .cmp-mini-power-cards .mpc-card-name {
     font-size: 0.6rem !important;
     font-weight: bold !important;
-    color: #ffd700 !important;
+    color: #ffefa5 !important;
     text-align: center !important;
     line-height: 1.1 !important;
+    padding-top: 4px !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     display: -webkit-box !important;
@@ -1399,6 +1431,40 @@ body.splash-visible .cmp-splash {
     line-clamp: 3 !important;
     -webkit-box-orient: vertical !important;
     word-break: break-word !important;
+  }
+  
+  /* Cost badge - shorter width for mobile */
+  .cmp-mini-power-cards .mpc-card-cost {
+    min-width: 18px !important;
+    height: 16px !important;
+    font-size: 9px !important;
+    padding: 0 1px 0 4px !important;
+    border-radius: 8px !important;
+  }
+  
+  /* Card emoji - circular badge outside card in mobile (bottom-right) */
+  .cmp-mini-power-cards .mpc-card-emoji {
+    bottom: -6px !important;
+    right: -6px !important;
+    width: 18px !important;
+    height: 18px !important;
+    font-size: 9px !important;
+    border-width: 2px !important;
+    line-height: 1 !important;
+    padding: 0 !important;
+  }
+  
+  .cmp-mini-power-cards .mpc-card-emoji svg {
+    width: 8px !important;
+    height: 8px !important;
+    display: block !important;
+    margin: auto !important;
+  }
+  
+  /* Light emoji variant - inverted colors for better contrast (mobile) */
+  .cmp-mini-power-cards .mpc-card-emoji.mpc-emoji-light {
+    background: #000 !important;
+    border-color: #fff !important;
   }
   
   /* Empty state styling */

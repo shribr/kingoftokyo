@@ -34,10 +34,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #ffefa5;
+  border-color: #ffefa5;
 }
 
 /* Individual mini power card - auto-width to fit content */
 .mini-power-card {
+  position: relative;
   flex-shrink: 0;
   height: 54px;
   cursor: pointer;
@@ -62,7 +65,7 @@
   padding: 6px 8px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start; /* Align text to top */
   background: linear-gradient(135deg, #2d3436 0%, #1b1f20 78%);
   box-shadow: 2px 2px 0 #000, 0 0 0 1px #222 inset;
   position: relative;
@@ -96,6 +99,40 @@
   letter-spacing: 0.5px;
 }
 
+/* Card emoji - circular badge positioned outside card in bottom-right corner */
+.mpc-card-emoji {
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border: 2px solid #000;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  line-height: 1;
+  pointer-events: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  padding: 0;
+}
+
+/* Light emoji variant - inverted colors for better contrast */
+.mpc-card-emoji.mpc-emoji-light {
+  background: #000;
+  border-color: #fff;
+}
+
+.mpc-card-emoji svg {
+  width: 10px;
+  height: 10px;
+  display: block;
+  margin: auto;
+}
+
 /* Card name - single line, no wrapping, with sufficient padding to avoid cost overlap */
 .mpc-card-name {
   font-size: 14px;
@@ -127,13 +164,13 @@
 /* Paging buttons */
 .mpc-page-btn {
   flex-shrink: 0;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background: rgba(255, 207, 51, 0.2);
   border: 2px solid #ffcf33;
   color: #ffcf33;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: bold;
   cursor: pointer;
   display: flex;
@@ -142,6 +179,7 @@
   transition: all 0.2s ease;
   -webkit-user-select: none;
   user-select: none;
+  line-height: 1;
 }
 
 .mpc-page-btn:hover {

@@ -698,16 +698,34 @@ function showScenarioToast(appliedList){
     if (!appliedList || !appliedList.length) return;
     const div = document.createElement('div');
     div.className = 'scenario-toast';
-    div.style.cssText = 'position:fixed;top:10px;left:50%;transform:translateX(-50%);background:#142a18;color:#cfe9d2;padding:8px 14px;font-size:12px;border:1px solid #265c34;border-radius:6px;z-index:9999;box-shadow:0 2px 6px rgba(0,0,0,.4);display:flex;align-items:center;gap:8px;';
+    div.style.cssText = 'position:fixed;top:10px;left:50%;transform:translateX(-50%);background:#142a18;color:#cfe9d2;padding:12px 16px;font-size:13px;border:1px solid #265c34;border-radius:6px;z-index:9999;box-shadow:0 2px 6px rgba(0,0,0,.4);min-width:300px;max-width:500px;';
+    
     const uniqueScenarios = new Set();
     appliedList.forEach(a => (a.scenarioIds||[]).forEach(id => uniqueScenarios.add(id)));
     const names = [...uniqueScenarios].map(id => { const s = getScenario(id); return s ? s.label : id; });
-    div.textContent = `Scenarios applied: ${names.join(', ')}`;
+    
+    // Create content with bulleted list
+    const header = document.createElement('div');
+    header.style.cssText = 'font-weight:600;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;';
+    header.innerHTML = `<span>Scenarios applied:</span>`;
+    
     const close = document.createElement('button');
     close.textContent = '×';
-    close.style.cssText = 'background:transparent;color:#cfe9d2;border:none;font-size:14px;cursor:pointer;';
+    close.style.cssText = 'background:transparent;color:#cfe9d2;border:none;font-size:18px;cursor:pointer;padding:0;margin-left:8px;margin-top:-2px;line-height:1;';
     close.onclick = ()=>div.remove();
-    div.appendChild(close);
+    header.appendChild(close);
+    
+    const list = document.createElement('ul');
+    list.style.cssText = 'margin:0;padding-left:20px;list-style:disc;';
+    names.forEach(name => {
+      const li = document.createElement('li');
+      li.textContent = name;
+      li.style.cssText = 'margin-bottom:4px;';
+      list.appendChild(li);
+    });
+    
+    div.appendChild(header);
+    div.appendChild(list);
     document.body.appendChild(div);
     setTimeout(()=>{ div.classList.add('fade'); div.style.transition='opacity .6s'; div.style.opacity='0'; setTimeout(()=>div.remove(), 700); }, 4000);
   } catch(_) {}
@@ -739,7 +757,19 @@ function showScenarioAppliedNotification(assignments) {
     assignments.forEach(a => (a.scenarioIds||[]).forEach(id => uniqueScenarios.add(id)));
     const count = uniqueScenarios.size;
     
-    notification.innerHTML = `✓ Scenarios Applied Successfully <span style="opacity:0.8;font-weight:normal;">(${count} scenario${count !== 1 ? 's' : ''})</span>`;
+    // Get scenario names for the list
+    const scenarioNames = [...uniqueScenarios].map(id => {
+      const s = getScenario(id);
+      return s ? s.label : id;
+    });
+    
+    // Build bulleted list
+    const bulletList = scenarioNames.map(name => `<li style="margin-left: 20px; margin-bottom: 4px;">${name}</li>`).join('');
+    
+    notification.innerHTML = `
+      <div style="font-weight: 600; margin-bottom: 8px;">✓ Scenarios Applied Successfully <span style="opacity:0.8;font-weight:normal;">(${count} scenario${count !== 1 ? 's' : ''})</span></div>
+      <ul style="margin: 0; padding: 0; list-style: disc; font-weight: normal; font-size: 13px; opacity: 0.9;">${bulletList}</ul>
+    `;
     
     // Add animation keyframes if not already present
     if (!document.getElementById('notification-animations')) {

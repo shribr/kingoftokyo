@@ -44,13 +44,14 @@ export function build({ selector, emit }) {
       root.setAttribute('data-mobile-init','true');
       
       // Position dice tray at bottom of screen, always visible in mobile
-      root.style.position = 'fixed';
-      root.style.bottom = '0';
-      root.style.left = '0';
-      root.style.right = '0';
-      root.style.top = 'auto';
-      root.style.width = '100vw';
-      root.style.transform = 'translateX(0)'; // Always visible
+      // Remove inline styles that override CSS - let CSS handle positioning
+      root.style.position = '';
+      root.style.bottom = '';
+      root.style.left = '';
+      root.style.right = '';
+      root.style.top = '';
+      root.style.width = '';
+      root.style.transform = '';
       
       // Always expanded in mobile
       root.removeAttribute('data-collapsed');

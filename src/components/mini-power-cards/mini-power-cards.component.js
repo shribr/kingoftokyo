@@ -139,6 +139,8 @@ function createMiniShopCard(card, index) {
   
   const cardName = card.name || card.id;
   const cardCost = card.cost || 0;
+  const emoji = card.emoji || '';
+  const isLight = card.lightEmoji || false;
   
   cardEl.innerHTML = `
     <div class="mpc-card-inner">
@@ -146,6 +148,14 @@ function createMiniShopCard(card, index) {
       <div class="mpc-card-cost">${cardCost}⚡</div>
     </div>
   `;
+  
+  // Add emoji badge outside the card (similar to active player indicator)
+  if (emoji) {
+    const emojiEl = document.createElement('div');
+    emojiEl.className = 'mpc-card-emoji' + (isLight ? ' mpc-emoji-light' : '');
+    emojiEl.innerHTML = emoji;
+    cardEl.appendChild(emojiEl);
+  }
   
   // Click to open card detail modal
   cardEl.addEventListener('click', () => {
@@ -155,6 +165,12 @@ function createMiniShopCard(card, index) {
   return cardEl;
 }
 
+// Legacy function - now emojis come from card data
+function getCardEmoji(card) {
+  return card.emoji || '';
+}
+
 export function update() {
   // Component auto-syncs via store subscription
 }
+
