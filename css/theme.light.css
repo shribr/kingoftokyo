@@ -259,3 +259,35 @@ body:not(.dark-mode) .cmp-roll-for-first.rff-modal .rff-skip:hover {
 body:not(.dark-mode) .cmp-roll-for-first.rff-modal .rff-frame:after {
   background: linear-gradient(to bottom, rgba(255, 251, 240, 0), rgba(255, 251, 240, 0.85));
 }
+
+/* Roll for First - Dice Table Light Theme */
+body:not(.dark-mode) .cmp-roll-for-first .rff-table thead th {
+  background: linear-gradient(135deg, #fff, #f5f5f5);
+  color: #2d2416;
+  border-color: #d4c89a;
+}
+
+body:not(.dark-mode) .cmp-roll-for-first .rff-table tbody td {
+  background: #fffcf0;
+  color: #2d2416;
+  border-color: #d4c89a;
+}
+
+body:not(.dark-mode) .cmp-roll-for-first .rff-table td.rff-player {
+  background: #fff;
+}
+
+body:not(.dark-mode) .cmp-roll-for-first .rff-table .rff-avatar {
+  border-color: #b8a977;
+  box-shadow: 0 0 0 0.2vh #d4c89a inset, 0.2vh 0.2vh 0 rgba(0, 0, 0, 0.2);
+}
+
+body:not(.dark-mode) .cmp-roll-for-first .rff-table tr.winner td {
+  background: #fff9e6;
+  color: #b8860b;
+}
+
+body:not(.dark-mode) .cmp-roll-for-first .rff-table tr.winner .rff-name {
+  color: #b8860b;
+  text-shadow: none;
+}
