@@ -8,20 +8,22 @@ import { buildBaseCatalog } from '../../domain/cards.js';
 // Build catalog once at module load
 const CARD_CATALOG = buildBaseCatalog();
 
-// Function to check if we're on mobile
+// Simple mobile check for disabling drag on touch devices
 const isMobileDevice = () => {
   return window.innerWidth <= 1024 || 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 };
 
 export function build({ selector }) {
   const root = document.createElement('div');
-  // Detect mobile and use appropriate class (don't add selector on mobile since we have a dedicated mobile class)
-  const modalClass = isMobileDevice() ? 'cmp-player-power-cards-modal-mobile' : selector.slice(1);
-  root.className = modalClass + ' hidden';
+  // Always use mobile class since it works for both desktop and mobile
+  root.className = 'cmp-player-power-cards-modal-mobile hidden';
   
-  // IMPORTANT: Append modal directly to body, not to the mountPoint
-  // Modals should always be at the top level to avoid z-index and overflow issues
-  document.body.appendChild(root);
+  console.log('[PlayerPowerCardsModal] BUILD - Creating modal element');
+  console.log('[PlayerPowerCardsModal] BUILD - Initial className:', root.className);
+  console.log('[PlayerPowerCardsModal] BUILD - isMobileDevice:', isMobileDevice());
+  
+  // Note: mountPoint is set to "body" in components.config.json, so mountRoot will append this to body
+  // We don't need to manually append here
   
   root.innerHTML = `<div class="ppcm-frame" data-frame>
     <div class="ppcm-header" data-header>
@@ -89,9 +91,22 @@ export function build({ selector }) {
     }
   });
 
+  // Initial update
+  update(root);
+
+  console.log('[PlayerPowerCardsModal] BUILD - Component built, returning instance');
+  console.log('[PlayerPowerCardsModal] BUILD - Root element parent:', root.parentElement?.tagName || 'NONE');
+  console.log('[PlayerPowerCardsModal] BUILD - Root element classes:', root.className);
+
   return { 
     root, 
-    update: () => update(root), 
+    update: (props) => {
+      console.log('[PlayerPowerCardsModal] UPDATE WRAPPER - Called with props:', props);
+      console.log('[PlayerPowerCardsModal] UPDATE WRAPPER - Root parent:', root.parentElement?.tagName || 'NONE');
+      console.log('[PlayerPowerCardsModal] UPDATE WRAPPER - Root classes before:', root.className);
+      update(root);
+      console.log('[PlayerPowerCardsModal] UPDATE WRAPPER - Root classes after:', root.className);
+    }, 
     destroy: () => {
       // Cleanup carousel event listeners
       if (root._carouselCleanup) {
@@ -106,24 +121,32 @@ export function update(root) {
   const state = store.getState();
   const ui = selectUIPlayerPowerCards(state);
   
-  console.log('[PlayerPowerCardsModal] Update called');
-  console.log('[PlayerPowerCardsModal] UI state:', ui);
+  console.log('[PlayerPowerCardsModal] UPDATE - Called');
+  console.log('[PlayerPowerCardsModal] UPDATE - Root element:', root);
+  console.log('[PlayerPowerCardsModal] UPDATE - Root parent:', root.parentElement?.tagName || 'NONE');
+  console.log('[PlayerPowerCardsModal] UPDATE - Root classes:', root.className);
+  console.log('[PlayerPowerCardsModal] UPDATE - UI state:', ui);
+  console.log('[PlayerPowerCardsModal] UPDATE - Computed style display:', window.getComputedStyle(root).display);
+  console.log('[PlayerPowerCardsModal] UPDATE - Computed style visibility:', window.getComputedStyle(root).visibility);
+  console.log('[PlayerPowerCardsModal] UPDATE - Computed style position:', window.getComputedStyle(root).position);
   
   if (!ui || !ui.playerId) {
-    console.log('[PlayerPowerCardsModal] No UI state or playerId, hiding modal');
+    console.log('[PlayerPowerCardsModal] UPDATE - No UI state or playerId, hiding modal');
     root.classList.add('hidden');
     return;
   }
   const player = selectPlayerById(state, ui.playerId);
-  console.log('[PlayerPowerCardsModal] Player found:', player);
+  console.log('[PlayerPowerCardsModal] UPDATE - Player found:', player);
   
   if (!player) {
-    console.log('[PlayerPowerCardsModal] Player not found, hiding modal');
+    console.log('[PlayerPowerCardsModal] UPDATE - Player not found, hiding modal');
     root.classList.add('hidden');
     return;
   }
   root.classList.remove('hidden');
-  console.log('[PlayerPowerCardsModal] Modal shown for player:', player.name);
+  console.log('[PlayerPowerCardsModal] UPDATE - Modal shown for player:', player.name);
+  console.log('[PlayerPowerCardsModal] UPDATE - After removing hidden - classes:', root.className);
+  console.log('[PlayerPowerCardsModal] UPDATE - After removing hidden - display:', window.getComputedStyle(root).display);
   root.querySelector('[data-player-name]').textContent = `${player.name}'s Power Cards`.toUpperCase();
   
   // Reset frame position to ensure proper centering
@@ -173,20 +196,54 @@ export function update(root) {
     
     console.log('[PlayerPowerCardsModal] Full cards found:', fullCards.length, fullCards.map(c => c.name));
     
-    // Generate HTML for grid view (desktop only)
+    // Helper to generate strategy text
+    const getStrategyText = (card) => {
+      if (card.strategy) return card.strategy;
+      if (card.type === 'keep') return 'Keep this card for ongoing benefits throughout the game.';
+      if (card.type === 'discard') return 'Use this card for an immediate powerful effect, then discard.';
+      return 'Use strategically to maximize your advantage.';
+    };
+    
+    // Helper to generate combo text
+    const getCombosText = (card, allCards) => {
+      if (card.combos) return card.combos;
+      
+      // Generate basic combo suggestions based on owned cards
+      const cardTypes = allCards.map(c => c.type);
+      if (cardTypes.filter(t => t === 'keep').length > 2) {
+        return 'Combine with other Keep cards for stacking bonuses.';
+      }
+      return 'Synergizes well with victory point and energy generation cards.';
+    };
+    
+    // Generate HTML for grid view (desktop) - with strategy/combo sections
     const cardsHtml = fullCards.map(fullCard => {
-      const html = generatePowerCard(fullCard, { 
+      const cardHtml = generatePowerCard(fullCard, { 
         playerEnergy: player.energy || 0, 
         showBuy: false,
         showFooter: false,
         infoButton: false
       });
-      console.log('[PlayerPowerCardsModal] Generated card HTML for', fullCard.name, 'length:', html?.length);
-      return html;
+      
+      // For desktop grid, inject strategy/combo sections into the card HTML
+      // The card HTML ends with closing </div>, so we insert before that
+      const cardWithSections = cardHtml.replace(
+        /<\/div>\s*$/,
+        `<div class="ppcm-card-strategy">
+          <h4>💡 Strategy</h4>
+          <p>${getStrategyText(fullCard)}</p>
+        </div>
+        <div class="ppcm-card-combos">
+          <h4>🔗 Combos</h4>
+          <p>${getCombosText(fullCard, fullCards)}</p>
+        </div>
+      </div>`
+      );
+      
+      return cardWithSections;
     }).join('');
     
     console.log('[PlayerPowerCardsModal] Total cards HTML length:', cardsHtml.length);
-    console.log('[PlayerPowerCardsModal] Cards HTML preview:', cardsHtml.substring(0, 200));
     
     // Create both grid and carousel views
     body.innerHTML = `

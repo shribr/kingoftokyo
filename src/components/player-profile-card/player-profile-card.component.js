@@ -33,8 +33,14 @@ export function build({ selector, playerId }) {
     if (cardsStat) {
       e.preventDefault();
       e.stopPropagation();
+      console.log('[PlayerProfileCard] Cards tile clicked for player:', playerId);
       // Always open the modal, even if no cards (will show empty state)
-      try { store.dispatch(uiPlayerPowerCardsOpen(playerId)); } catch(_) {}
+      try { 
+        console.log('[PlayerProfileCard] Dispatching uiPlayerPowerCardsOpen with playerId:', playerId);
+        store.dispatch(uiPlayerPowerCardsOpen(playerId)); 
+      } catch(err) {
+        console.error('[PlayerProfileCard] Error dispatching uiPlayerPowerCardsOpen:', err);
+      }
       return;
     }
     
