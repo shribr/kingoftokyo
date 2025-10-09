@@ -184,7 +184,7 @@ function addShopEventListeners(container, activePlayer) {
   const deckCard = container.querySelector('[data-deck-card]');
   if (deckCard) {
     deckCard.addEventListener('click', () => {
-      import('../../utils/new-modals.js').then(({ createAllPowerCardsModal }) => {
+      import('../settings-modal/settings-modal.component.js').then(({ createAllPowerCardsModal }) => {
         createAllPowerCardsModal();
       });
     });

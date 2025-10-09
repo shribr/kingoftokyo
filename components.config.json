@@ -321,7 +321,7 @@
       "selector": ".cmp-settings-modal",
       "mountPoint": "#app",
       "order": 300,
-      "enabled": true,
+      "enabled": false,
       "stateKeys": ["ui","settings"],
       "build": "settings-modal.build",
       "update": "settings-modal.update",
@@ -329,7 +329,8 @@
       "eventsIn": [],
       "initialState": {},
       "assets": [],
-      "zIndex": 120
+      "zIndex": 120,
+      "comment": "DISABLED - This file is now used via direct imports (createSettingsModal, etc) not through component system"
     }
     ,{
       "name": "aiDecisionModal",

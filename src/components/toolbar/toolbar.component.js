@@ -7,7 +7,7 @@ import { store } from '../../bootstrap/index.js';
 import { uiSettingsOpen, uiGameLogOpen, uiInstructionsOpen, settingsUpdated, uiConfirmOpen, uiAboutOpen, gamePaused, gameResumed } from '../../core/actions.js';
 import { createPositioningService } from '../../services/positioningService.js';
 import { newModalSystem } from '../../utils/new-modal-system.js';
-import { createSettingsModal, createGameLogModal, createHelpModal, createAIDecisionModal, createAboutModal } from '../../utils/new-modals.js';
+import { createSettingsModal, createGameLogModal, createHelpModal, createAIDecisionModal, createAboutModal } from '../settings-modal/settings-modal.component.js';
 
 export function build({ selector }) {
   const root = document.createElement('div');
@@ -73,7 +73,7 @@ export function build({ selector }) {
       return; 
     }
     if (a === 'win-odds') {
-      import('../../utils/new-modals.js').then(m => m.openWinOddsQuickModal());
+      import('../settings-modal/settings-modal.component.js').then(m => m.openWinOddsQuickModal());
       return;
     }
     if (a === 'ai-decision') {

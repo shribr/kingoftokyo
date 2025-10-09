@@ -1,9 +1,20 @@
 /**
- * new-modals.js
- * Content creators for the new modal system
+ * settings-modal.component.js
+ * Content creators for the new modal system (formerly new-modals.js)
  */
 
-import { newModalSystem } from './new-modal-system.js';
+import { newModalSystem } from '../../utils/new-modal-system.js';
+import { 
+  saveGameState, 
+  exportSaveFile,
+  importSaveFile, 
+  clearSavedGame, 
+  getSaveInfo,
+  toggleAutoSave,
+  isAutoSaveActive,
+  toggleUnloadConfirmation,
+  isUnloadConfirmationEnabled
+} from '../../services/gameStatePersistence.js';
 
 // Initialize global winOdds object early so it's available even if settings modal never opens
 if (!window.__KOT_WIN_ODDS__) {
@@ -275,7 +286,53 @@ export function createSettingsModal() {
       <!-- Advanced Tab -->
       <div class="tab-content" data-tab-content="advanced" style="display: none;">
         <div class="section">
-          <h3 class="section-title">🔧 Developer Options</h3>
+          <h3 class="section-title">� Game State Persistence</h3>
+          
+          <div class="field">
+            <div class="save-info-advanced" style="font-size: 1.2vh; color: #3fc1c9; margin-bottom: 1.2vh; padding: 0.8vh 1.2vw; background: rgba(63, 193, 201, 0.1); border-radius: 0.4vh; display: none;">
+              Last save: <span class="save-time">Never</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label">Quick Actions</label>
+            <div style="display: flex; gap: 0.8vw; margin-top: 0.8vh; flex-wrap: wrap;">
+              <button type="button" class="btn btn-primary" data-persistence-action="save-now" style="font-size: 1.2vh; padding: 0.6vh 1.2vw;">
+                💾 Save Now
+              </button>
+              <button type="button" class="btn btn-secondary" data-persistence-action="export-save" style="font-size: 1.2vh; padding: 0.6vh 1.2vw;">
+                📥 Export Save File
+              </button>
+              <button type="button" class="btn btn-secondary" data-persistence-action="import-save" style="font-size: 1.2vh; padding: 0.6vh 1.2vw;">
+                📤 Import Save File
+              </button>
+              <button type="button" class="btn btn-warning" data-persistence-action="clear-save" style="font-size: 1.2vh; padding: 0.6vh 1.2vw; background: #e67e22; border-color: #d35400;">
+                🗑️ Clear Saved Game
+              </button>
+              <input type="file" id="game-save-import-file" accept=".json" style="display: none;">
+            </div>
+            <div class="field-help">Manually save, export, import, or clear your current game progress</div>
+          </div>
+
+          <div class="field">
+            <label class="field-checkbox">
+              <input type="checkbox" data-persistence-check="auto-save" checked>
+              <span class="checkbox-label">Enable Auto-Save (every 5 minutes)</span>
+            </label>
+            <div class="field-help">Automatically save game progress every 5 minutes</div>
+          </div>
+
+          <div class="field">
+            <label class="field-checkbox">
+              <input type="checkbox" data-persistence-check="confirm-unload" checked>
+              <span class="checkbox-label">Confirm Before Leaving Page</span>
+            </label>
+            <div class="field-help">Show custom confirmation modal when closing/refreshing page with unsaved progress</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3 class="section-title">�🔧 Developer Options</h3>
           
           <div class="field">
             <label class="field-checkbox">
@@ -683,7 +740,7 @@ export function createSettingsModal() {
     const host = content.querySelector('[data-scenarios-host]');
     if (!host) return;
     scenariosMounted = true;
-    import('../components/scenarios-tab/scenarios-tab.component.js').then(mod => {
+    import('../../components/scenarios-tab/scenarios-tab.component.js').then(mod => {
       const inst = mod.build({});
       host.innerHTML = '';
       host.appendChild(inst.root);
@@ -702,7 +759,7 @@ export function createSettingsModal() {
     if (!host) return;
     aiTreeMounted = true;
     try {
-      const mod = await import('../components/ai-decision-tree/ai-decision-tree.component.js');
+      const mod = await import('../../components/ai-decision-tree/ai-decision-tree.component.js');
       const inst = mod.buildAIDecisionTree();
       host.innerHTML='';
       host.appendChild(inst.root);
@@ -718,7 +775,7 @@ export function createSettingsModal() {
     if (!host) return;
     host.innerHTML = '<div style="font-size:11px;opacity:.6;">Loading archives…</div>';
     try {
-      const { archiveManager } = await import('../services/archiveManagementService.js');
+      const { archiveManager } = await import('../../services/archiveManagementService.js');
       const list = archiveManager.getAllArchives();
       if (!list.length){ host.innerHTML = '<div style="font-size:11px;opacity:.5;">No archives found.</div>'; return; }
       host.innerHTML = `<ul style='list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;'>${list.slice(0,100).map(a=>{
@@ -747,12 +804,12 @@ export function createSettingsModal() {
       
       try {
         if (btn.hasAttribute('data-launch-replay-from-archive')) {
-          const { showArchiveManager } = await import('../ui/components/archiveManagerComponent.js');
+          const { showArchiveManager } = await import('../../ui/components/archiveManagerComponent.js');
           showArchiveManager();
           // Note: User can select archive and start replay from there
         }
         else if (btn.hasAttribute('data-show-replay-overlay')) {
-          const { createReplayStateOverlay } = await import('../ui/components/replayStateOverlay.js');
+          const { createReplayStateOverlay } = await import('../../ui/components/replayStateOverlay.js');
           const overlay = createReplayStateOverlay();
           overlay.show();
         }
@@ -762,7 +819,7 @@ export function createSettingsModal() {
           newModalSystem.showModal('aiDecision');
         }
         else if (btn.hasAttribute('data-export-ai-decisions')) {
-          const { getAIDecisionTree } = await import('../services/aiDecisionService.js');
+          const { getAIDecisionTree } = await import('../../services/aiDecisionService.js');
           const tree = getAIDecisionTree();
           const blob = new Blob([JSON.stringify(tree, null, 2)], { type: 'application/json' });
           const url = URL.createObjectURL(blob);
@@ -793,7 +850,7 @@ export function createSettingsModal() {
         try {
           archiveList.innerHTML = '<div style="padding:20px;text-align:center;color:#666;font-size:12px;">Loading archives...</div>';
           
-          const { archiveManager } = await import('../services/archiveManagementService.js');
+          const { archiveManager } = await import('../../services/archiveManagementService.js');
           const archives = archiveManager.getAllArchives();
           
           if (!archives.length) {
@@ -854,7 +911,7 @@ export function createSettingsModal() {
       embeddedTreeLoaded = true;
       
       try {
-        const mod = await import('../components/ai-decision-tree/ai-decision-tree.component.js');
+        const mod = await import('../../components/ai-decision-tree/ai-decision-tree.component.js');
         const { root, dispose } = mod.buildAIDecisionTree();
         
         // Style the embedded tree differently (more compact)
@@ -931,7 +988,7 @@ export function createSettingsModal() {
   function maybePrewarmArchiveModule(){
     if (archiveModulePreloadStarted) return;
     archiveModulePreloadStarted = true;
-    import('../ui/components/archiveManagerComponent.js')
+    import('../../ui/components/archiveManagerComponent.js')
       .then((m)=> { if (window.__KOT_DEBUG_ARCHIVES) console.log('[Settings][Prewarm] Archive Manager module preloaded'); })
       .catch(e=> { if (window.__KOT_DEBUG_ARCHIVES) console.warn('[Settings][Prewarm] Archive Manager preload failed', e); });
   }
@@ -956,7 +1013,7 @@ export function createSettingsModal() {
       if (!btn) return;
       const store = window.__KOT_NEW__?.store;
       if (!store) return;
-      const { eventBus } = await import('../core/eventBus.js');
+      const { eventBus } = await import('../../core/eventBus.js');
       if (btn.hasAttribute('data-dev-reset-positions')) eventBus.emit('ui/positions/reset');
       else if (btn.hasAttribute('data-dev-log-positions')) console.log('UI Positions', store.getState().ui.positions);
       else if (btn.hasAttribute('data-dev-log-dice')) {
@@ -966,11 +1023,127 @@ export function createSettingsModal() {
         console.log('Dice State', st.dice, 'Active Player Mods', activeMods);
       }
       else if (btn.hasAttribute('data-dev-log-effects')) console.log('Effect Queue', store.getState().effectQueue);
-      else if (btn.hasAttribute('data-dev-archive-game')) { const { archiveGameLog } = await import('../services/logArchiveService.js'); archiveGameLog(store,'Manual Snapshot'); }
-      else if (btn.hasAttribute('data-dev-archive-ai')) { const { archiveAIDT } = await import('../services/logArchiveService.js'); archiveAIDT(store,'Manual Snapshot'); }
+      else if (btn.hasAttribute('data-dev-archive-game')) { const { archiveGameLog } = await import('../../services/logArchiveService.js'); archiveGameLog(store,'Manual Snapshot'); }
+      else if (btn.hasAttribute('data-dev-archive-ai')) { const { archiveAIDT } = await import('../../services/logArchiveService.js'); archiveAIDT(store,'Manual Snapshot'); }
     });
   }
   attachDevToolsActions();
+
+  // --- Game State Persistence Controls -----------------------------------------------------------
+  function attachPersistenceControls() {
+    const store = window.__KOT_NEW__?.store;
+    
+    if (!store) {
+      console.warn('[Settings Modal] Store not available for persistence controls');
+      return;
+    }
+    
+    // Update save info display
+    const updateSaveInfo = () => {
+      const saveInfo = getSaveInfo();
+      const saveInfoEl = content.querySelector('.save-info-advanced');
+      if (saveInfoEl) {
+        if (saveInfo) {
+          const age = Math.floor((Date.now() - saveInfo.timestamp) / 1000);
+          const ageStr = age < 60 ? `${age}s ago` : 
+                         age < 3600 ? `${Math.floor(age / 60)}m ago` : 
+                         `${Math.floor(age / 3600)}h ago`;
+          saveInfoEl.querySelector('.save-time').textContent = `${ageStr} (Round ${saveInfo.round})`;
+          saveInfoEl.style.display = 'block';
+        } else {
+          saveInfoEl.style.display = 'none';
+        }
+      }
+    };
+
+    // Initialize checkboxes
+    const autoSaveCheck = content.querySelector('[data-persistence-check="auto-save"]');
+    const confirmCheck = content.querySelector('[data-persistence-check="confirm-unload"]');
+    if (autoSaveCheck) autoSaveCheck.checked = isAutoSaveActive();
+    if (confirmCheck) confirmCheck.checked = isUnloadConfirmationEnabled();
+    
+    updateSaveInfo();
+
+    // Handle button clicks
+    content.addEventListener('click', async (e) => {
+      const btn = e.target.closest('[data-persistence-action]');
+      if (!btn) return;
+      
+      const action = btn.getAttribute('data-persistence-action');
+      
+      if (action === 'save-now') {
+        saveGameState(store);
+        updateSaveInfo();
+        showToast('💾 Game Saved!');
+      }
+      else if (action === 'export-save') {
+        try {
+          const filename = exportSaveFile();
+          showToast(`📥 Exported: ${filename}`);
+        } catch (err) {
+          showToast(`❌ Export failed: ${err.message}`, true);
+        }
+      }
+      else if (action === 'import-save') {
+        const fileInput = document.getElementById('game-save-import-file');
+        if (fileInput) fileInput.click();
+      }
+      else if (action === 'clear-save') {
+        if (confirm('Clear saved game? This cannot be undone.')) {
+          clearSavedGame();
+          updateSaveInfo();
+          showToast('🗑️ Saved game cleared');
+        }
+      }
+    });
+
+    // Handle file import
+    const fileInput = document.getElementById('game-save-import-file');
+    if (fileInput) {
+      fileInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        try {
+          const text = await file.text();
+          await importSaveFile(text, store);
+          updateSaveInfo();
+          showToast('📤 Save file imported successfully!');
+          fileInput.value = '';
+        } catch (err) {
+          showToast(`❌ Import failed: ${err.message}`, true);
+          fileInput.value = '';
+        }
+      });
+    }
+
+    // Handle checkbox changes
+    if (autoSaveCheck) {
+      autoSaveCheck.addEventListener('change', (e) => {
+        toggleAutoSave(e.target.checked);
+        showToast(e.target.checked ? '✅ Auto-save enabled' : '⏸️ Auto-save disabled');
+      });
+    }
+    
+    if (confirmCheck) {
+      confirmCheck.addEventListener('change', (e) => {
+        toggleUnloadConfirmation(e.target.checked);
+        showToast(e.target.checked ? '✅ Unload confirmation enabled' : '⏸️ Unload confirmation disabled');
+      });
+    }
+
+    // Helper to show toast notifications
+    function showToast(message, isError = false) {
+      const toast = document.createElement('div');
+      toast.className = 'save-confirm-toast';
+      toast.textContent = message;
+      if (isError) toast.style.background = 'rgba(231, 76, 60, 0.9)';
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+  }
+  
+  attachPersistenceControls();
 
   // --- Win Odds Diagnostics -----------------------------------------------------------
   // Use global winOdds object
@@ -1284,7 +1457,7 @@ export function createSettingsModal() {
         if (confirm('Clear the entire game log? This cannot be undone.')) {
           try {
             if (window.__KOT_NEW__?.store) {
-              const { logCleared } = await import('../core/actions.js');
+              const { logCleared } = await import('../../core/actions.js');
               window.__KOT_NEW__.store.dispatch(logCleared());
               updateDevLogContent();
             }
@@ -1728,7 +1901,7 @@ export function createSettingsModal() {
         
         if (window.__KOT_NEW__?.store) {
           try {
-            const actions = await import('../core/actions.js');
+            const actions = await import('../../core/actions.js');
             window.__KOT_NEW__.store.dispatch(actions.settingsUpdated(settingsToSave));
             console.log('[NEW-SETTINGS] Settings saved:', settingsToSave);
             
@@ -1856,7 +2029,7 @@ export function createSettingsModal() {
           try {
             const importedSettings = JSON.parse(e.target.result);
             if (window.__KOT_NEW__?.store) {
-              const actions = await import('../core/actions.js');
+              const actions = await import('../../core/actions.js');
               window.__KOT_NEW__.store.dispatch(actions.settingsUpdated(importedSettings));
               // Apply imported settings to form fields directly then reset baseline
               applySettingsToForm(importedSettings);
@@ -1892,7 +2065,7 @@ export function createSettingsModal() {
         
         if (window.__KOT_NEW__?.store) {
           try {
-            const actions = await import('../core/actions.js');
+            const actions = await import('../../core/actions.js');
             window.__KOT_NEW__.store.dispatch(actions.settingsUpdated(defaultSettings));
             applySettingsToForm(defaultSettings);
             baselineSettings = collectSettingsFromForm();
@@ -2493,7 +2666,7 @@ export function createGameLogModal() {
       try {
         // Clear log in store if available
         if (window.__KOT_NEW__?.store) {
-          const { logCleared } = await import('../core/actions.js');
+          const { logCleared } = await import('../../core/actions.js');
           window.__KOT_NEW__.store.dispatch(logCleared());
           updateLogContent();
         }
@@ -2654,7 +2827,7 @@ export function createAIDecisionModal() {
   content.innerHTML = '<div style="padding: 20px; text-align: center; color: #ccc;">Loading AI Decision Tree...</div>';
   
   // Lazy import new component to avoid upfront cost
-  import('../components/ai-decision-tree/ai-decision-tree.component.js').then(mod => {
+  import('../../components/ai-decision-tree/ai-decision-tree.component.js').then(mod => {
     try {
       const { root, dispose } = mod.buildAIDecisionTree();
       content.innerHTML = ''; // Clear loading message
@@ -3063,7 +3236,7 @@ export function createConfirmModal(options = {}) {
  * Displays complete catalog of all power cards in the game
  */
 export function createAllPowerCardsModal() {
-  import('../domain/cards.js').then(({ buildBaseCatalog }) => {
+  import('../../domain/cards.js').then(({ buildBaseCatalog }) => {
     const allCards = buildBaseCatalog();
     
     // Sort by cost, then alphabetically
