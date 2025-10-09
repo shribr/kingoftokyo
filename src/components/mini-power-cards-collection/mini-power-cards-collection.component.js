@@ -14,14 +14,18 @@ export function build({ selector }) {
   // Clean up any leftover backdrop from previous session
   const existingBackdrop = document.querySelector('#mini-power-cards-backdrop');
   if (existingBackdrop) {
-    console.log('[MiniPowerCardsCollection] Removing existing backdrop on build');
+    if (window.__KOT_DEBUG__?.logComponentUpdates) {
+      console.log('[MiniPowerCardsCollection] Removing existing backdrop on build');
+    }
     existingBackdrop.remove();
   }
   
   // Clean up any leftover modal from previous session
   const existingModal = document.querySelector('#mini-power-cards-modal');
   if (existingModal) {
-    console.log('[MiniPowerCardsCollection] Removing existing modal on build');
+    if (window.__KOT_DEBUG__?.logComponentUpdates) {
+      console.log('[MiniPowerCardsCollection] Removing existing modal on build');
+    }
     existingModal.remove();
   }
   
@@ -277,8 +281,8 @@ export function build({ selector }) {
       console.log('[MiniPowerCardsCollection] Show called for player:', playerId);
     }
     
-    // Dispatch action to update Redux state
-    store.dispatch(uiPlayerPowerCardsOpen(playerId));
+    // NOTE: Don't dispatch action here - it's already dispatched by the caller or this is called from update()
+    // Dispatching here causes infinite loop: show -> dispatch -> update -> show -> dispatch...
     
     const state = store.getState();
     const player = selectPlayerById(state, playerId);
@@ -356,7 +360,9 @@ export function build({ selector }) {
   // Ensure modal is hidden on initialization (backdrop disabled)
   root.classList.add('hidden');
   // backdrop.classList.add('hidden'); // BACKDROP DISABLED
-  console.log('[MiniPowerCardsCollection] Initial state set - modal hidden');
+  if (window.__KOT_DEBUG__?.logComponentUpdates) {
+    console.log('[MiniPowerCardsCollection] Initial state set - modal hidden');
+  }
 
   // Store instance reference on DOM element for external access
   const instance = { 
@@ -367,7 +373,9 @@ export function build({ selector }) {
   
   root._componentInstance = instance;
   
-  console.log('[MiniPowerCardsCollection] Component built and instance stored');
+  if (window.__KOT_DEBUG__?.logComponentUpdates) {
+    console.log('[MiniPowerCardsCollection] Component built and instance stored');
+  }
 
   return instance;
 }

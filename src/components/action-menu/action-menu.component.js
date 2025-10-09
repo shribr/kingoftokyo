@@ -1002,7 +1002,9 @@ function updateSubmenuPosition(root) {
 }
 
 export function update(root) {
-  console.log('🔄 ACTION MENU UPDATE CALLED');
+  if (window.__KOT_DEBUG__?.logComponentUpdates) {
+    console.log('🔄 ACTION MENU UPDATE CALLED');
+  }
   const st = store.getState();
   const isPaused = !!st.game?.isPaused;
   
@@ -1132,22 +1134,24 @@ export function update(root) {
     const canRollBtn = humanNeedFirstRoll || (!isCPU && !acceptedBlocksRoll && canRoll);
     const wasDisabled = rollBtn.disabled;
     
-    console.log('🎲 ROLL BUTTON UPDATE:', {
-      isCPU,
-      accepted,
-      phaseName,
-      dicePhase: dice.phase,
-      facesLength: faces.length,
-      isInitialRoll,
-      acceptedBlocksRoll,
-      humanNeedFirstRoll,
-      canRoll,
-      canRollBtn,
-      'will set disabled to': !canRollBtn,
-      'current disabled': rollBtn.disabled
-    });
+    if (window.__KOT_DEBUG__?.logComponentUpdates) {
+      console.log('🎲 ROLL BUTTON UPDATE:', {
+        isCPU,
+        accepted,
+        phaseName,
+        dicePhase: dice.phase,
+        facesLength: faces.length,
+        isInitialRoll,
+        acceptedBlocksRoll,
+        humanNeedFirstRoll,
+        canRoll,
+        canRollBtn,
+        'will set disabled to': !canRollBtn,
+        'current disabled': rollBtn.disabled
+      });
+    }
     
-    if (!canRollBtn && !isCPU) {
+    if (!canRollBtn && !isCPU && window.__KOT_DEBUG__?.logComponentUpdates) {
       console.log('🚫 Roll Button Disabled - Debug Info:', {
         phase: phaseName,
         dicePhase: dice.phase,
@@ -1164,7 +1168,7 @@ export function update(root) {
       });
     }
     rollBtn.disabled = !canRollBtn;
-    if (wasDisabled !== rollBtn.disabled) {
+    if (wasDisabled !== rollBtn.disabled && window.__KOT_DEBUG__?.logComponentUpdates) {
       console.log(`🎲 ROLL BUTTON STATE CHANGED: ${wasDisabled ? 'disabled' : 'enabled'} -> ${rollBtn.disabled ? 'disabled' : 'enabled'}`);
     }
     rollBtn.textContent = hasFirstRoll ? 'RE-ROLL UNSELECTED' : 'ROLL';

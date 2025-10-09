@@ -207,7 +207,9 @@ function baseTemplate() {
 
 /** Update cycle */
 export function update(root, { playerId }) {
-  console.log(`🔄 PLAYER CARD UPDATE CALLED for player ${playerId}`);
+  if (window.__KOT_DEBUG__?.logComponentUpdates) {
+    console.log(`🔄 PLAYER CARD UPDATE CALLED for player ${playerId}`);
+  }
   if (!playerId) return;
   const state = store.getState();
   const player = selectPlayerById(state, playerId);
@@ -319,14 +321,14 @@ export function update(root, { playerId }) {
   const vpEl = root.querySelector('[data-vp-value]');
   if (energyEl) {
     const currentEnergy = energyEl.textContent;
-    if (currentEnergy !== String(player.energy)) {
+    if (currentEnergy !== String(player.energy) && window.__KOT_DEBUG__?.logComponentUpdates) {
       console.log(`🔋 Energy Update for ${player.name} (${player.isCPU ? 'CPU' : 'Human'}): ${currentEnergy} -> ${player.energy}`);
     }
     energyEl.textContent = player.energy;
   }
   if (vpEl) {
     const currentVP = vpEl.textContent;
-    if (currentVP !== String(player.victoryPoints)) {
+    if (currentVP !== String(player.victoryPoints) && window.__KOT_DEBUG__?.logComponentUpdates) {
       console.log(`🏆 VP Update for ${player.name} (${player.isCPU ? 'CPU' : 'Human'}): ${currentVP} -> ${player.victoryPoints}`);
     }
     vpEl.textContent = player.victoryPoints;
@@ -349,7 +351,9 @@ export function update(root, { playerId }) {
       setTimeout(() => {
         if (energyEl) energyEl.textContent = player.energy;
         if (vpEl) vpEl.textContent = player.victoryPoints;
-        console.log(`🔄 ${delay}ms update for ${player.name}: Energy ${player.energy}, VP ${player.victoryPoints}`);
+        if (window.__KOT_DEBUG__?.logComponentUpdates) {
+          console.log(`🔄 ${delay}ms update for ${player.name}: Energy ${player.energy}, VP ${player.victoryPoints}`);
+        }
       }, delay);
     });
   }

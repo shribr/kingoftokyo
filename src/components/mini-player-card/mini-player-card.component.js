@@ -139,7 +139,12 @@ function createMiniCard(player, position, activePlayerId, slotIndex, state) {
           mpBackdrop.classList.remove('visible');
         }
         
-        // Show mini power cards collection
+        // SHOW BOTH MODALS SIDE-BY-SIDE FOR COMPARISON
+        
+        // First, dispatch the Redux action that both modals listen to
+        store.dispatch(uiPlayerPowerCardsOpen(player.id));
+        
+        // 1. Show mini power cards collection (carousel-style)
         const collection = document.querySelector('.cmp-mini-power-cards-collection');
         console.log('[MiniPlayerCard] Collection element found:', !!collection);
         
@@ -147,18 +152,42 @@ function createMiniCard(player, position, activePlayerId, slotIndex, state) {
           console.log('[MiniPlayerCard] Component instance:', !!collection._componentInstance);
           console.log('[MiniPlayerCard] Show method:', !!collection._componentInstance?.show);
           
+          // The update() subscription will already show it, but we call show() to ensure it's displayed
+          // and to position it on the left
           if (collection._componentInstance && typeof collection._componentInstance.show === 'function') {
             console.log('[MiniPlayerCard] Calling collection.show for player:', player.id);
             collection._componentInstance.show(player.id);
-          } else {
-            console.warn('[MiniPlayerCard] Component instance or show method not found, dispatching action');
-            store.dispatch(uiPlayerPowerCardsOpen(player.id));
+            
+            // Position it on the LEFT side
+            const modal = collection.querySelector('.mpcc-modal');
+            if (modal) {
+              modal.style.position = 'fixed';
+              modal.style.left = '10px';
+              modal.style.right = 'auto';
+              modal.style.transform = 'none';
+              modal.style.width = '45vw';
+              modal.style.maxWidth = '45vw';
+            }
           }
-        } else {
-          console.warn('[MiniPlayerCard] Collection element not found in DOM, dispatching action');
-          // Fallback: dispatch the action to open regular modal if collection not available
-          store.dispatch(uiPlayerPowerCardsOpen(player.id));
         }
+        
+        // 2. The regular player-cards-modal will show automatically via its update() subscription
+        
+        // Position the regular modal on the RIGHT side after a brief delay to ensure it's rendered
+        setTimeout(() => {
+          const regularModal = document.querySelector('.cmp-player-power-cards-modal-mobile');
+          if (regularModal) {
+            const frame = regularModal.querySelector('.ppcm-frame');
+            if (frame) {
+              frame.style.position = 'fixed';
+              frame.style.right = '10px';
+              frame.style.left = 'auto';
+              frame.style.transform = 'none';
+              frame.style.width = '45vw';
+              frame.style.maxWidth = '45vw';
+            }
+          }
+        }, 50);
       } else {
         // On desktop, use the regular modal
         store.dispatch(uiPlayerPowerCardsOpen(player.id));

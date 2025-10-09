@@ -162,7 +162,11 @@ export async function mountRoot(configEntries, store) {
       const aiTurn = active && (active.isCPU || active.isAI || active.isAi || active.type === 'ai' || active.type === 'cpu');
       const busy = !!eq.processing || document.querySelector('.cmp-ai-decision-modal:not([hidden])');
       const bannerShould = aiTurn && !busy && /roll|buy|resolve|start/i.test(phase || '');
-      setAIThinking(bannerShould);
+      // Only update if the state actually changed
+      if (!window._lastAIThinkingState || window._lastAIThinkingState !== bannerShould) {
+        setAIThinking(bannerShould);
+        window._lastAIThinkingState = bannerShould;
+      }
     } catch(_) {}
   });
 }
@@ -248,7 +252,9 @@ function ensureAppRoot() {
 export function setAIThinking(isThinking) {
   const banner = document.querySelector('[data-ai-thinking]');
   if (!banner) {
-    console.log('❌ AI thinking banner not found');
+    if (window.__KOT_DEBUG__?.logModals) {
+      console.log('❌ AI thinking banner not found');
+    }
     return;
   }
   // Only show when active player is CPU (ai flags)
@@ -265,14 +271,17 @@ export function setAIThinking(isThinking) {
   const shouldBeInFooter = window.innerWidth < 1100 || matchMedia('(pointer: coarse)').matches;
   const footer = document.querySelector('.gl-footer');
   
-  console.log('🤖 AI thinking banner check:', {
-    isThinking,
-    shouldBeInFooter,
-    windowWidth: window.innerWidth,
-    isTouch: matchMedia('(pointer: coarse)').matches,
-    bannerParent: banner.parentElement?.className,
-    footerExists: !!footer
-  });
+  // Only log if debug logging is enabled
+  if (window.__KOT_DEBUG__?.logModals) {
+    console.log('🤖 AI thinking banner check:', {
+      isThinking,
+      shouldBeInFooter,
+      windowWidth: window.innerWidth,
+      isTouch: matchMedia('(pointer: coarse)').matches,
+      bannerParent: banner.parentElement?.className,
+      footerExists: !!footer
+    });
+  }
   
   const moveToFooter = () => {
     if (!footer) return;
@@ -328,8 +337,8 @@ export function setAIThinking(isThinking) {
 async function resolveComponent(buildRef, updateRef) {
   const [folder, buildName] = buildRef.split('.');
   
-  // Debug logging for radial/mini components
-  if (folder && (folder.includes('radial') || folder.includes('mini'))) {
+  // Debug logging for radial/mini components - only when debug mode enabled
+  if (window.__KOT_DEBUG__?.logComponentUpdates && folder && (folder.includes('radial') || folder.includes('mini'))) {
     console.log('[resolveComponent] 🔍 Attempting to load:', folder, {
       buildRef,
       updateRef,
@@ -343,6 +352,7 @@ async function resolveComponent(buildRef, updateRef) {
     try {
       module = await import(`../components/${folderName}/${folderName}.component.js`);
     } catch(e) {
+      // Keep error logging - these are actual errors
       console.error('[resolveComponent] dynamic import failed for', folderName, e);
       throw e;
     }

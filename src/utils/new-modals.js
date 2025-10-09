@@ -539,7 +539,7 @@ export function createSettingsModal() {
       <div class="tab-content" data-tab-content="devtools" style="display:none;">
         <div class="section" style="max-height:60vh;overflow:auto;">
           <h3 class="section-title">🛠 Developer Tools</h3>
-          <p style="font-size:12px;opacity:.75;">Utilities for debugging & rapid iteration. Toggle floating panel or use in-modal actions.</p>
+          <p style="font-size:13px;opacity:.75;padding-bottom:12px;">Utilities for debugging & rapid iteration. Toggle floating panel or use in-modal actions.</p>
           
           <div class="field">
             <label class="field-label">Options</label>
@@ -556,6 +556,33 @@ export function createSettingsModal() {
           </div>
 
           <div class="field">
+            <label class="field-label">Debug Logging</label>
+            <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;">
+              <label class="field-checkbox" style="margin:0;">
+                <input type="checkbox" name="logComponentUpdates" />
+                <span class="checkbox-label">Component Updates</span>
+              </label>
+              <label class="field-checkbox" style="margin:0;">
+                <input type="checkbox" name="logCPUDecisions" />
+                <span class="checkbox-label">CPU/AI Decisions</span>
+              </label>
+              <label class="field-checkbox" style="margin:0;">
+                <input type="checkbox" name="logStoreUpdates" />
+                <span class="checkbox-label">Store Updates</span>
+              </label>
+              <label class="field-checkbox" style="margin:0;">
+                <input type="checkbox" name="logSubscriptions" />
+                <span class="checkbox-label">Subscriptions</span>
+              </label>
+              <label class="field-checkbox" style="margin:0;">
+                <input type="checkbox" name="logModals" />
+                <span class="checkbox-label">Modal Lifecycle</span>
+              </label>
+            </div>
+            <div class="field-help">Enable verbose console logging for debugging. Changes apply immediately via Save Settings button.</div>
+          </div>
+
+          <div class="field">
             <label class="field-label">UI Actions</label>
             <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
               <button type="button" class="btn btn-sm" data-dev-reset-positions>Reset Positions</button>
@@ -563,6 +590,7 @@ export function createSettingsModal() {
               <button type="button" class="btn btn-sm" data-dev-log-dice>Log Dice</button>
               <button type="button" class="btn btn-sm" data-dev-log-effects>Log Effects</button>
             </div>
+            <div class="field-help">One-time actions for debugging (immediate effect, not saved).</div>
           </div>
 
           <!-- Game Log in Dev Tools -->
@@ -606,11 +634,11 @@ export function createSettingsModal() {
                 </div>
               </div>
               
+              <div style="font-size:11px;opacity:.6;margin-top:12px;font-style:italic;">
+                Some actions require #dev hash for full detail. Archive actions store snapshots in localStorage.
+              </div>
+              
             </div>
-          </div>
-
-          <div style="font-size:10px;opacity:.6;margin-top:12px;font-style:italic;">
-            Some actions require #dev hash for full detail. Archive actions store snapshots in localStorage.
           </div>
         </div>
       </div>
@@ -1495,6 +1523,13 @@ export function createSettingsModal() {
       enableDecisionTreeCapture: form.querySelector('input[name="enableDecisionTreeCapture"]')?.checked || false,
       enableFloatingDevPanel: form.querySelector('input[name="enableFloatingDevPanel"]')?.checked || false,
       
+      // Debug Logging flags
+      logComponentUpdates: form.querySelector('input[name="logComponentUpdates"]')?.checked || false,
+      logCPUDecisions: form.querySelector('input[name="logCPUDecisions"]')?.checked || false,
+      logStoreUpdates: form.querySelector('input[name="logStoreUpdates"]')?.checked || false,
+      logSubscriptions: form.querySelector('input[name="logSubscriptions"]')?.checked || false,
+      logModals: form.querySelector('input[name="logModals"]')?.checked || false,
+      
       // Archive settings
       autoArchiveGameLogs: form.querySelector('input[name="autoArchiveGameLogs"]')?.checked || false,
       autoArchiveAIDTLogs: form.querySelector('input[name="autoArchiveAIDTLogs"]')?.checked || false
@@ -1655,6 +1690,15 @@ export function createSettingsModal() {
           if (cb.checked) {
             const settingKey = cb.getAttribute('data-setting');
             settingsToSave[settingKey] = newSettings[settingKey];
+          }
+        });
+        
+        // Apply debug logging flags to window.__KOT_DEBUG__ if present
+        const debugFlags = ['logComponentUpdates', 'logCPUDecisions', 'logStoreUpdates', 'logSubscriptions', 'logModals'];
+        debugFlags.forEach(flagName => {
+          if (flagName in settingsToSave && window.__KOT_DEBUG__) {
+            window.__KOT_DEBUG__[flagName] = settingsToSave[flagName];
+            console.log(`[Settings] Debug flag ${flagName} ${settingsToSave[flagName] ? 'enabled' : 'disabled'}`);
           }
         });
         
@@ -1883,6 +1927,18 @@ export function createSettingsModal() {
     if (dtCap) dtCap.checked = !!settings.enableDecisionTreeCapture;
     const floatDev = content.querySelector('input[name="enableFloatingDevPanel"]');
     if (floatDev) floatDev.checked = !!settings.enableFloatingDevPanel;
+    
+    // Debug Logging flags - sync with window.__KOT_DEBUG__ if available
+    const debugFlags = ['logComponentUpdates', 'logCPUDecisions', 'logStoreUpdates', 'logSubscriptions', 'logModals'];
+    debugFlags.forEach(flagName => {
+      const checkbox = content.querySelector(`input[name="${flagName}"]`);
+      if (checkbox) {
+        // Prefer window.__KOT_DEBUG__ over settings if available
+        const value = window.__KOT_DEBUG__?.[flagName] ?? settings[flagName] ?? false;
+        checkbox.checked = !!value;
+      }
+    });
+    
     // Archive settings
     const autoArchiveGame = content.querySelector('input[name="autoArchiveGameLogs"]');
     if (autoArchiveGame) autoArchiveGame.checked = !!settings.autoArchiveGameLogs;

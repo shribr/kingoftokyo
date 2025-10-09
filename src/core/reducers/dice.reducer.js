@@ -7,7 +7,9 @@ export function diceReducer(state = initial, action) {
     case NEXT_TURN: {
       // Critical: Reset dice state on turn advancement to ensure clean slate for new player
       // This guards against stale accepted/phase state persisting from previous player
-      console.log('🎲 DICE REDUCER: NEXT_TURN - Resetting dice state for new turn');
+      if (window.__KOT_DEBUG__?.logStoreUpdates) {
+        console.log('🎲 DICE REDUCER: NEXT_TURN - Resetting dice state for new turn');
+      }
       const baseRerolls = (state && typeof state.baseRerolls === 'number') ? state.baseRerolls : 2;
       return { faces: [], rerollsRemaining: 0, baseRerolls, phase: 'idle', accepted: false, rollHistory: [] };
     }
@@ -92,10 +94,14 @@ export function diceReducer(state = initial, action) {
       // Ensure dice state is reset whenever global phase enters ROLL (covers legacy phase controller path)
       try {
         const nextPhase = action.payload?.phase;
-        console.log('🎲 DICE REDUCER: PHASE_CHANGED action received', { nextPhase, currentPhase: state.phase, currentFaces: state.faces.length });
+        if (window.__KOT_DEBUG__?.logStoreUpdates) {
+          console.log('🎲 DICE REDUCER: PHASE_CHANGED action received', { nextPhase, currentPhase: state.phase, currentFaces: state.faces.length });
+        }
         if (nextPhase === 'ROLL') {
           const baseRerolls = (state && typeof state.baseRerolls === 'number') ? state.baseRerolls : 3;
-          console.log('🎲 DICE REDUCER: Resetting dice for new ROLL phase', { baseRerolls });
+          if (window.__KOT_DEBUG__?.logStoreUpdates) {
+            console.log('🎲 DICE REDUCER: Resetting dice for new ROLL phase', { baseRerolls });
+          }
           return { faces: [], rerollsRemaining: 0, baseRerolls, phase: 'idle', accepted: false, rollHistory: [] };
         }
       } catch(_) {}

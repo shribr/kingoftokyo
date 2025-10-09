@@ -9,12 +9,21 @@ export function initAudio(store) {
   storeRef = store;
   // Subscribe to settings changes
   if (unsub) unsub();
+  let prevMutedSetting = null;
   unsub = store.subscribe(() => {
     const st = store.getState();
     const muted = !!st.settings?.soundMuted;
+    
+    // OPTIMIZATION: Skip if muted setting hasn't changed
+    if (prevMutedSetting === muted) {
+      return;
+    }
+    
     channels.forEach(ch => {
       ch.volume = muted ? 0 : ch._baseVolume;
     });
+    
+    prevMutedSetting = muted;
   });
 }
 

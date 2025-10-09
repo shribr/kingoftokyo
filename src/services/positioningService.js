@@ -39,12 +39,28 @@ export function createPositioningService(store) {
   let hydrationDone = false;
 
   // Subscribe once for persistence of entire positions object
+  let prevPositions = null;
+  let prevPersistSetting = null;
   store.subscribe(() => {
     const st = store.getState();
     const allowPersist = !!st.settings?.persistPositions;
-    if (!allowPersist) return; // do nothing if persistence disabled
+    
+    // OPTIMIZATION: Skip if persist setting hasn't changed and positions haven't changed
+    if (prevPersistSetting === allowPersist && prevPositions === st.ui.positions) {
+      return;
+    }
+    
+    if (!allowPersist) {
+      prevPersistSetting = allowPersist;
+      prevPositions = st.ui.positions;
+      return; // do nothing if persistence disabled
+    }
+    
     const positions = st.ui.positions;
     persistThrottled(positions);
+    
+    prevPersistSetting = allowPersist;
+    prevPositions = positions;
   });
 
   let zCounter = 6000; // elevated above base component z-indexes
@@ -335,12 +351,14 @@ export function createPositioningService(store) {
     const diceBox = document.querySelector('.cmp-dice-tray');
     const actionMenu = document.querySelector('.cmp-action-menu');
     
-    console.log('[applyDefaultPositioning] Elements found:', { 
-      toolbar: !!toolbar, 
-      pauseButton: !!pauseButton, 
-      diceBox: !!diceBox, 
-      actionMenu: !!actionMenu 
-    });
+    if (window.__KOT_DEBUG__?.logComponentUpdates) {
+      console.log('[applyDefaultPositioning] Elements found:', { 
+        toolbar: !!toolbar, 
+        pauseButton: !!pauseButton, 
+        diceBox: !!diceBox, 
+        actionMenu: !!actionMenu 
+      });
+    }
     
     // Check if user has dragged the dice tray - if so, don't override their position
     const diceHasPersistedPosition = store.getState().ui?.positions?.diceTray;
@@ -358,7 +376,9 @@ export function createPositioningService(store) {
       const bottomOffset = window.innerHeight - toolbarRect.top + padding;
       const rightOffset = window.innerWidth - pauseRect.left;
       
-      console.log('[applyDefaultPositioning] Dice tray:', { bottomOffset, rightOffset });
+      if (window.__KOT_DEBUG__?.logComponentUpdates) {
+        console.log('[applyDefaultPositioning] Dice tray:', { bottomOffset, rightOffset });
+      }
       
       // Position dice tray using bottom/right for natural resize behavior
       diceBox.style.position = 'fixed';
@@ -372,7 +392,9 @@ export function createPositioningService(store) {
     // Check if user has dragged the action menu
     const menuHasPersistedPosition = store.getState().ui?.positions?.actionMenu;
     
-    console.log('[applyDefaultPositioning] Action menu persisted:', menuHasPersistedPosition);
+    if (window.__KOT_DEBUG__?.logComponentUpdates) {
+      console.log('[applyDefaultPositioning] Action menu persisted:', menuHasPersistedPosition);
+    }
     
     // Skip action menu positioning on mobile (uses horizontal mobile menu instead)
     if (actionMenu && !menuHasPersistedPosition && !isMobile) {
@@ -385,7 +407,9 @@ export function createPositioningService(store) {
       const rightOffset = 340; // moved back left a bit from 300
       const bottomOffset = 110; // was 140 - reduced to move down
       
-      console.log('[applyDefaultPositioning] Action menu position:', { rightOffset, bottomOffset });
+      if (window.__KOT_DEBUG__?.logComponentUpdates) {
+        console.log('[applyDefaultPositioning] Action menu position:', { rightOffset, bottomOffset });
+      }
       
       actionMenu.style.position = 'fixed';
       actionMenu.style.left = 'auto';

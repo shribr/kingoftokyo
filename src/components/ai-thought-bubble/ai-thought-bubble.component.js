@@ -27,7 +27,9 @@ export class AIThoughtBubbleComponent {
     // Add to document body
     document.body.appendChild(this.container);
     
-    console.log('[AIThoughtBubbleComponent] Initialized (simple mode)');
+    if (window.__KOT_DEBUG__?.logComponentUpdates) {
+      console.log('[AIThoughtBubbleComponent] Initialized (simple mode)');
+    }
   }
   
   /**
@@ -37,7 +39,9 @@ export class AIThoughtBubbleComponent {
     try {
       const response = await fetch('/config/ai-phrases.json');
       this.phrases = await response.json();
-      console.log('[AIThoughtBubbleComponent] Loaded phrases');
+      if (window.__KOT_DEBUG__?.logComponentUpdates) {
+        console.log('[AIThoughtBubbleComponent] Loaded phrases');
+      }
     } catch (error) {
       console.error('[AIThoughtBubbleComponent] Failed to load phrases:', error);
       // Fallback phrases
@@ -102,7 +106,9 @@ export class AIThoughtBubbleComponent {
       this.hide();
     }, 6000);
     
-    console.log('[AIThoughtBubbleComponent] Showing:', phrase);
+    if (window.__KOT_DEBUG__?.logCPUDecisions) {
+      console.log('[AIThoughtBubbleComponent] Showing:', phrase);
+    }
   }
   
   /**

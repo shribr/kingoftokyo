@@ -319,9 +319,13 @@ if (typeof window !== 'undefined') {
     }, 0);
   }
 
+  let prevUIState = {};
+  let prevPhase = '';
   store.subscribe(() => {
     const st = store.getState();
     const lastAction = store.getLastAction?.();
+    
+    // OPTIMIZATION: Only process scenario requests when action type matches
     if (lastAction && lastAction.type === SCENARIO_APPLY_REQUEST) {
       try { 
         applyScenarios(store, { assignments: lastAction.payload.assignments }); 
@@ -332,7 +336,18 @@ if (typeof window !== 'undefined') {
         showScenarioErrorNotification();
       }
     }
-  const selectionOpen = !!st.ui?.monsterSelection?.open;
+    
+    // OPTIMIZATION: Skip processing if ui state and phase haven't changed
+    const currentUIState = st.ui;
+    const currentPhase = st.phase;
+    const uiChanged = currentUIState !== prevUIState;
+    const phaseChanged = currentPhase !== prevPhase;
+    
+    if (!uiChanged && !phaseChanged && lastAction?.type !== SCENARIO_APPLY_REQUEST) {
+      return;
+    }
+    
+    const selectionOpen = !!st.ui?.monsterSelection?.open;
     if (selectionOpen && !selectionWasOpened) selectionWasOpened = true;
     const splashGone = st.ui?.splash?.visible === false;
     const rff = st.ui?.rollForFirst;
@@ -447,6 +462,10 @@ if (typeof window !== 'undefined') {
     } catch(_) {}
 
     // removed selection visibility watchdog
+    
+    // Update previous state for next comparison
+    prevUIState = currentUIState;
+    prevPhase = currentPhase;
   });
   // Game Activation Watchdog (reduced scope: no longer forces premature UI; logs only)
   if (!window.__KOT_GAME_ACTIVATION_WATCHDOG__) {
@@ -461,12 +480,14 @@ if (typeof window !== 'undefined') {
         const rff = st.ui?.rollForFirst;
   // Only attempt start when >=2 players AND RFF resolved (strict gating)
   const shouldAttemptStart = (st.players?.order?.length || 0) >= 2 && rff && rff.resolved;
-        if (runs < 6) {
+        if (runs < 6 && window.__KOT_DEBUG__?.logStoreUpdates) {
           try { console.log('[watchdog:pulse]', { run: runs, phase: st.phase, playersReady, selectionOpen, rffState: rff && { open:rff.open, resolved:rff.resolved } }); } catch(_) {}
         }
         if (shouldAttemptStart) {
           if (st.phase === 'SETUP' && !window.__KOT_GAME_STARTED) {
-            console.log('[watchdog] Triggering gated startGameIfNeeded');
+            if (window.__KOT_DEBUG__?.logStoreUpdates) {
+              console.log('[watchdog] Triggering gated startGameIfNeeded');
+            }
             try { window.__KOT_NEW__?.turnService?.startGameIfNeeded?.(); } catch(e) { console.warn('[watchdog] startGameIfNeeded error', e); }
           }
           // Cleanup lingering blackout
@@ -487,10 +508,20 @@ if (typeof window !== 'undefined') {
   store.subscribe(()=>{
     const stNow = store.getState();
     const cur = stNow.players.byId;
+    
+    // OPTIMIZATION: Skip if players object reference hasn't changed
+    if (cur === prevPlayers) {
+      return;
+    }
+    
     Object.keys(cur).forEach(id => {
       const now = cur[id];
       const prev = prevPlayers[id];
       if (!now) return;
+      
+      // OPTIMIZATION: Skip if this player object hasn't changed
+      if (now === prev) return;
+      
       const cardEl = document.querySelector(`.cmp-player-profile-card[data-player-id="${id}"]`);
       if (!cardEl) return;
       // Tokyo animation handled by player-profile-card component itself
