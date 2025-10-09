@@ -132,6 +132,12 @@ export function build({ selector }) {
         radialContainer.setAttribute('data-mobile-menu', 'true');
         radialContainer.setAttribute('data-expanded', 'false');
         
+        // Apply saved corner preference or default to right
+        const savedCorner = store.getState().settings?.mobileMenuCorner || 
+                           (typeof localStorage !== 'undefined' && localStorage.getItem('kot_mobile_corner')) || 
+                           'right';
+        radialContainer.setAttribute('data-corner', savedCorner);
+        
         // Create individual circular action buttons
         const buttons = [
           { id: 'r-roll-btn', action: 'roll', label: 'ROLL', class: 'r-btn-primary', icon: '🎲' },
@@ -159,43 +165,168 @@ export function build({ selector }) {
         
         // Store reference for later cleanup
         root._radialContainer = radialContainer;
+        
+        // Initialize carousel state
+        let currentActiveIndex = 0;
+        const totalButtons = buttons.length;
+        
+        // Function to update active button
+        const setActiveButton = (index) => {
+          const buttons = radialContainer.querySelectorAll('.radial-action-btn');
+          buttons.forEach((btn, i) => {
+            if (i === index) {
+              btn.classList.add('active');
+            } else {
+              btn.classList.remove('active');
+            }
+          });
+          currentActiveIndex = index;
+        };
+        
+        // Set initial active button (first one - ROLL)
+        setActiveButton(0);
+        
+        // Touch/scroll navigation
+        let touchStartY = 0;
+        let touchStartX = 0;
+        
+        radialContainer.addEventListener('touchstart', (e) => {
+          touchStartY = e.touches[0].clientY;
+          touchStartX = e.touches[0].clientX;
+        }, { passive: true });
+        
+        radialContainer.addEventListener('touchmove', (e) => {
+          if (!touchStartY || !touchStartX) return;
+          
+          const touchEndY = e.touches[0].clientY;
+          const touchEndX = e.touches[0].clientX;
+          const diffY = touchStartY - touchEndY;
+          const diffX = touchStartX - touchEndX;
+          
+          // Determine if swipe is more vertical or horizontal
+          if (Math.abs(diffY) > Math.abs(diffX)) {
+            // Vertical swipe
+            if (Math.abs(diffY) > 30) { // Threshold for swipe
+              if (diffY > 0) {
+                // Swipe up - go to next button
+                currentActiveIndex = (currentActiveIndex + 1) % totalButtons;
+              } else {
+                // Swipe down - go to previous button
+                currentActiveIndex = (currentActiveIndex - 1 + totalButtons) % totalButtons;
+              }
+              setActiveButton(currentActiveIndex);
+              touchStartY = touchEndY; // Reset for continuous swiping
+            }
+          }
+        }, { passive: true });
+        
+        radialContainer.addEventListener('touchend', () => {
+          touchStartY = 0;
+          touchStartX = 0;
+        }, { passive: true });
+        
+        // Mouse wheel navigation
+        radialContainer.addEventListener('wheel', (e) => {
+          e.preventDefault();
+          
+          if (e.deltaY > 0) {
+            // Scroll down - go to next button
+            currentActiveIndex = (currentActiveIndex + 1) % totalButtons;
+          } else {
+            // Scroll up - go to previous button
+            currentActiveIndex = (currentActiveIndex - 1 + totalButtons) % totalButtons;
+          }
+          setActiveButton(currentActiveIndex);
+        }, { passive: false });
+        
+        // Keyboard navigation on radial container
+        radialContainer.addEventListener('keydown', (e) => {
+          if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+            e.preventDefault();
+            
+            if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
+              // Up or Right - go to next button (moves up/right on the arc)
+              currentActiveIndex = (currentActiveIndex + 1) % totalButtons;
+            } else {
+              // Down or Left - go to previous button (moves down/left on the arc)
+              currentActiveIndex = (currentActiveIndex - 1 + totalButtons) % totalButtons;
+            }
+            setActiveButton(currentActiveIndex);
+          } else if (e.key === 'Enter' || e.key === ' ') {
+            // Enter or Space - click the active button
+            e.preventDefault();
+            const activeBtn = radialContainer.querySelector('.radial-action-btn.active');
+            if (activeBtn && !activeBtn.disabled) {
+              activeBtn.click();
+            }
+          }
+        });
+        
+        // Make radial container focusable
+        radialContainer.setAttribute('tabindex', '0');
+        radialContainer.style.outline = 'none'; // Hide focus outline since buttons show active state
+        
+        // Store carousel functions for external access
+        radialContainer._setActiveButton = setActiveButton;
+        radialContainer._getCurrentActiveIndex = () => currentActiveIndex;
       }
       
-      // Set initial collapsed state (buttons start at center, scale 0)
+      // Set initial collapsed state (all buttons hidden behind the toggle button)
       const buttons = radialContainer.querySelectorAll('.radial-action-btn');
-      buttons.forEach(btn => {
-        btn.style.transform = 'translate(0, 0) scale(0)';
+      buttons.forEach((btn, index) => {
+        btn.style.transform = 'translate(0, 0) scale(0)'; // Hidden - scale 0
+        btn.style.opacity = '0'; // Completely hidden
+        btn.style.zIndex = 6699; // All on same level
       });
       
-      // Function to calculate and apply radial positions
+      // Function to calculate and apply radial positions with "clock hand sweep" animation
       const applyRadialPositions = (expanded = false) => {
         const buttons = radialContainer.querySelectorAll('.radial-action-btn');
-        const radius = 28; // vh units - increased significantly for more spacing
-        const startAngle = 180; // Start at left (180 degrees)
-        const endAngle = 270; // End at top (270 degrees) - creates quarter circle arc
+        const radius = 16; // vh units - reduced for easier thumb access
+        
+        // Check which corner we're in
+        const corner = radialContainer.getAttribute('data-corner') || 'right';
+        
+        // Clock positions: Start at 9 o'clock (180°) and go clockwise
+        // For right corner: 180° (9 o'clock) → 270° (12 o'clock)
+        // For left corner: 90° (6 o'clock) → 180° (9 o'clock)
+        let startAngle, endAngle;
+        
+        if (corner === 'left') {
+          // Left corner: 6 o'clock to 9 o'clock (90° to 180°)
+          startAngle = 90;
+          endAngle = 180;
+        } else {
+          // Right corner: 9 o'clock to 12 o'clock (180° to 270°)
+          startAngle = 180;
+          endAngle = 270;
+        }
+        
         const angleStep = (endAngle - startAngle) / (buttons.length - 1);
         
         buttons.forEach((btn, index) => {
           if (expanded) {
-            // Calculate position on arc
+            // Calculate final position on arc (clock hand positions)
             const angle = (startAngle + (angleStep * index)) * (Math.PI / 180);
             const x = Math.cos(angle) * radius; // vh units
             const y = Math.sin(angle) * radius; // vh units
             
-            // Store position as CSS custom properties for hover effects
+            // Store position as CSS custom properties
             btn.style.setProperty('--tx', `${x}vh`);
             btn.style.setProperty('--ty', `${y}vh`);
             
-            // Apply staggered animation delay
-            const delay = index * 50; // ms
+            // Staggered "drop off" animation - each button appears and moves to its clock position
+            const delay = index * 50; // ms - 50ms between each button drop
             setTimeout(() => {
+              btn.style.opacity = '1'; // Fade in as it's "dropped off"
               btn.style.transform = `translate(${x}vh, ${y}vh) scale(1)`;
             }, delay);
           } else {
-            // Collapse back to center in reverse order
+            // Collapse: reverse order - last button picked up first
             const reverseDelay = (buttons.length - 1 - index) * 40; // ms
             setTimeout(() => {
-              btn.style.transform = 'translate(0, 0) scale(0)';
+              btn.style.opacity = '0'; // Fade out
+              btn.style.transform = 'translate(0, 0) scale(0)'; // Return to center and hide
             }, reverseDelay);
           }
         });
@@ -208,6 +339,13 @@ export function build({ selector }) {
       radialContainer.addEventListener('click', (e) => {
         const button = e.target.closest('[data-action]');
         if (!button) return;
+        
+        // Only allow clicks on the active button
+        if (!button.classList.contains('active')) {
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
         
         const action = button.getAttribute('data-action');
         const st = store.getState();
@@ -295,11 +433,19 @@ export function build({ selector }) {
             radialMenu._applyRadialPositions(false);
           }
           
-          // Update toggle button
+          // Update toggle button - animate pie slices to empty
           const toggleBtn = document.getElementById('action-menu-mobile-btn');
           if (toggleBtn) {
-            toggleBtn.innerHTML = '◀';
+            const slices = toggleBtn.querySelectorAll('.pie-slice');
+            const delayPerSlice = 50; // ms per slice
+            slices.forEach((slice, index) => {
+              setTimeout(() => {
+                slice.setAttribute('fill', 'none');
+              }, (slices.length - 1 - index) * delayPerSlice);
+            });
+            toggleBtn.style.transform = 'scale(1)';
             toggleBtn.setAttribute('aria-label', 'Expand Action Menu');
+            document.body.removeAttribute('data-action-menu-open');
           }
         }
       });
@@ -338,11 +484,88 @@ export function build({ selector }) {
       const btn = document.createElement('div');
       btn.id = 'action-menu-mobile-btn';
       btn.className = 'action-menu-mobile-btn';
-      btn.innerHTML = '◀'; // left arrow indicates menu will expand to left
+      
+      // Create SVG pie chart with 6 slices
+      btn.innerHTML = `
+        <svg viewBox="0 0 100 100" width="100%" height="100%" style="transform: rotate(-90deg);">
+          <!-- Background circle -->
+          <circle cx="50" cy="50" r="47" fill="#ffcf33" stroke="none"/>
+          <g class="pie-slices">
+            <!-- Slice 1: Bottom (starting at -90deg, which is bottom after rotation) -->
+            <path class="pie-slice" data-slice="1" d="M 50 50 L 50 0 A 50 50 0 0 1 93.3 25 Z" fill="none" stroke="#333" stroke-width="3"/>
+            <!-- Slice 2: Bottom-right -->
+            <path class="pie-slice" data-slice="2" d="M 50 50 L 93.3 25 A 50 50 0 0 1 93.3 75 Z" fill="none" stroke="#333" stroke-width="3"/>
+            <!-- Slice 3: Top-right -->
+            <path class="pie-slice" data-slice="3" d="M 50 50 L 93.3 75 A 50 50 0 0 1 50 100 Z" fill="none" stroke="#333" stroke-width="3"/>
+            <!-- Slice 4: Top -->
+            <path class="pie-slice" data-slice="4" d="M 50 50 L 50 100 A 50 50 0 0 1 6.7 75 Z" fill="none" stroke="#333" stroke-width="3"/>
+            <!-- Slice 5: Top-left -->
+            <path class="pie-slice" data-slice="5" d="M 50 50 L 6.7 75 A 50 50 0 0 1 6.7 25 Z" fill="none" stroke="#333" stroke-width="3"/>
+            <!-- Slice 6: Bottom-left -->
+            <path class="pie-slice" data-slice="6" d="M 50 50 L 6.7 25 A 50 50 0 0 1 50 0 Z" fill="none" stroke="#333" stroke-width="3"/>
+          </g>
+        </svg>
+      `;
       btn.setAttribute('aria-label','Expand Action Menu');
-      Object.assign(btn.style, {
-        position:'fixed', bottom:'2vh', right:'2vw', width:'12vh', height:'12vh', background:'linear-gradient(135deg,#ffcf33 0%, #ffb300 100%)', border:'3px solid #333', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'4.8vh', cursor:'pointer', boxShadow:'0 0.4vh 1.2vh rgba(0,0,0,0.3)', zIndex:'6700', transition:'transform 0.2s ease', color:'#000'
-      });
+      
+      // Get saved corner preference
+      const savedCorner = store.getState().settings?.mobileMenuCorner || 
+                         (typeof localStorage !== 'undefined' && localStorage.getItem('kot_mobile_corner')) || 
+                         'right';
+      
+      // Apply initial positioning based on preference
+      const initialStyles = {
+        position:'fixed', 
+        bottom:'2vh', 
+        width:'12vh', 
+        height:'12vh', 
+        background:'transparent', // Transparent so SVG pie slices are visible
+        border:'3px solid #333', 
+        borderRadius:'50%', 
+        display:'flex', 
+        alignItems:'center', 
+        justifyContent:'center', 
+        fontSize:'4.8vh', 
+        cursor:'pointer', 
+        boxShadow:'0 0.4vh 1.2vh rgba(0,0,0,0.3)', 
+        zIndex:'6700', 
+        transition:'transform 0.2s ease', 
+        color:'#000'
+      };
+      
+      if (savedCorner === 'left') {
+        initialStyles.left = '2vw';
+        initialStyles.right = 'auto';
+      } else {
+        initialStyles.right = '2vw';
+        initialStyles.left = 'auto';
+      }
+      
+      Object.assign(btn.style, initialStyles);
+      
+      // Helper function to animate pie slices
+      const animatePieSlices = (expand) => {
+        const slices = btn.querySelectorAll('.pie-slice');
+        const animationDuration = 300; // Total duration in ms (matches radial button animation)
+        const delayPerSlice = animationDuration / slices.length; // ~50ms per slice
+        
+        if (expand) {
+          // Fill slices clockwise one at a time starting from slice 1 (bottom)
+          slices.forEach((slice, index) => {
+            setTimeout(() => {
+              slice.setAttribute('fill', '#ffb300'); // Orange fill
+            }, index * delayPerSlice);
+          });
+        } else {
+          // Empty slices counter-clockwise (reverse order)
+          slices.forEach((slice, index) => {
+            setTimeout(() => {
+              slice.setAttribute('fill', 'none');
+            }, (slices.length - 1 - index) * delayPerSlice);
+          });
+        }
+      };
+      
       btn.addEventListener('click', () => {
         const radialMenu = document.getElementById('radial-action-menu');
         if (!radialMenu) return;
@@ -351,29 +574,72 @@ export function build({ selector }) {
         const isExpanded = radialMenu.getAttribute('data-expanded') === 'true';
         
         if (isExpanded) {
-          // Collapse - animate buttons back to center
+          // Collapse - animate buttons back to center and empty pie slices
           radialMenu.setAttribute('data-expanded', 'false');
           if (radialMenu._applyRadialPositions) {
             radialMenu._applyRadialPositions(false);
           }
-          btn.style.transform = 'scale(1) rotate(0deg)';
+          animatePieSlices(false); // Reverse animation
+          btn.style.transform = 'scale(1)';
           document.body.removeAttribute('data-action-menu-open');
-          btn.innerHTML = '◀';
           btn.setAttribute('aria-label', 'Expand Action Menu');
         } else {
-          // Expand - fan out buttons in arc
+          // Expand - fan out buttons in arc and fill pie slices
           radialMenu.setAttribute('data-expanded', 'true');
           if (radialMenu._applyRadialPositions) {
             radialMenu._applyRadialPositions(true);
           }
-          btn.style.transform = 'scale(0.9) rotate(180deg)';
-          btn.innerHTML = '▶';
+          animatePieSlices(true); // Forward animation
+          btn.style.transform = 'scale(0.9)';
           btn.setAttribute('aria-label', 'Collapse Action Menu');
           document.body.setAttribute('data-action-menu-open', 'true');
         }
       });
       document.body.appendChild(btn);
       root._mobileBtn = btn;
+      
+      // Keyboard navigation support (arrow keys when toggle button has focus)
+      btn.addEventListener('keydown', (e) => {
+        const radialMenu = document.getElementById('radial-action-menu');
+        if (!radialMenu) return;
+        
+        // Only handle arrow keys when menu is expanded
+        const isExpanded = radialMenu.getAttribute('data-expanded') === 'true';
+        if (!isExpanded) return;
+        
+        if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          
+          // Get the current active index from the radial container
+          const getCurrentIndex = radialMenu._getCurrentActiveIndex;
+          const setActiveBtn = radialMenu._setActiveButton;
+          
+          if (!getCurrentIndex || !setActiveBtn) return;
+          
+          const totalButtons = radialContainer.querySelectorAll('.radial-action-btn').length;
+          let currentIndex = getCurrentIndex();
+          
+          if (e.key === 'ArrowUp') {
+            // Arrow up - go to next button (moves up the arc)
+            currentIndex = (currentIndex + 1) % totalButtons;
+          } else {
+            // Arrow down - go to previous button (moves down the arc)
+            currentIndex = (currentIndex - 1 + totalButtons) % totalButtons;
+          }
+          
+          setActiveBtn(currentIndex);
+        } else if (e.key === 'Enter' || e.key === ' ') {
+          // Enter or Space - click the active button
+          e.preventDefault();
+          const activeBtn = radialContainer.querySelector('.radial-action-btn.active');
+          if (activeBtn && !activeBtn.disabled) {
+            activeBtn.click();
+          }
+        }
+      });
+      
+      // Make toggle button focusable for keyboard navigation
+      btn.setAttribute('tabindex', '0');
     } else {
       // Desktop: restore visibility & dragging
       // Hide horizontal menu if it exists
@@ -494,6 +760,28 @@ export function build({ selector }) {
   // Setup mobile immediately and on resize
   setupMobile();
   window.addEventListener('resize', setupMobile);
+  
+  // Listen for mobile corner preference changes
+  window.addEventListener('settings:mobileCornerChanged', (e) => {
+    if (!checkMobile()) return; // Only applies to mobile
+    const newCorner = e.detail?.corner || 'right';
+    const radialContainer = root.querySelector('.am-radial-container');
+    if (radialContainer) {
+      radialContainer.setAttribute('data-corner', newCorner);
+      
+      // Use the stored positioning function if available
+      if (radialContainer._applyRadialPositions) {
+        // Reapply radial positions with new corner
+        radialContainer._applyRadialPositions(true);
+      }
+      
+      // If carousel is active, reapply active button positioning
+      if (radialContainer._setActiveButton && radialContainer._getCurrentActiveIndex) {
+        const currentIndex = radialContainer._getCurrentActiveIndex();
+        radialContainer._setActiveButton(currentIndex);
+      }
+    }
+  });
   
   // Setup collapse/expand functionality
   const setupCollapseToggle = () => {

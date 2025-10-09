@@ -204,6 +204,29 @@ export function createSettingsModal() {
             </label>
             <div class="field-help">Save draggable panel positions and collapsed/expanded states between game sessions</div>
           </div>
+        </div>
+
+        <div class="section">
+          <h3 class="section-title">📱 Mobile</h3>
+          
+          <div class="field">
+            <label class="field-label">Action Menu Corner</label>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="mobileMenuCorner" value="right">
+                <span>Right Corner - Menu on right, dice tray on left</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="mobileMenuCorner" value="left">
+                <span>Left Corner - Menu on left, dice tray on right</span>
+              </label>
+            </div>
+            <div class="field-help">Choose which corner for the action menu. Perfect for left-handed or right-handed users.</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3 class="section-title">🔧 UI Actions</h3>
           <div class="field" style="margin-top:16px;">
             <label class="field-label">UI Actions</label>
             <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
@@ -1508,6 +1531,7 @@ export function createSettingsModal() {
       // Interface settings
       playerCardLayoutMode: formData.get('playerCardLayoutMode'),
       actionMenuMode: formData.get('actionMenuMode'),
+      mobileMenuCorner: formData.get('mobileMenuCorner'),
       persistPositions: form.querySelector('input[name="persistPositions"]')?.checked || false,
 
       // Theme settings
@@ -1707,6 +1731,14 @@ export function createSettingsModal() {
             const actions = await import('../core/actions.js');
             window.__KOT_NEW__.store.dispatch(actions.settingsUpdated(settingsToSave));
             console.log('[NEW-SETTINGS] Settings saved:', settingsToSave);
+            
+            // Dispatch custom event for mobile corner changes
+            if ('mobileMenuCorner' in settingsToSave && settingsToSave.mobileMenuCorner !== baselineSettings.mobileMenuCorner) {
+              window.dispatchEvent(new CustomEvent('settings:mobileCornerChanged', {
+                detail: { corner: settingsToSave.mobileMenuCorner }
+              }));
+            }
+            
             baselineSettings = settingsToSave; // reset baseline to what was saved
             
             // Update form to reflect baseline (uncheck changes revert to baseline)
@@ -1917,6 +1949,8 @@ export function createSettingsModal() {
     content.querySelectorAll('input[name="playerCardLayoutMode"]').forEach(r => r.checked = r.value === cardLayoutMode);
     const actionMode = settings.actionMenuMode || 'hybrid';
     content.querySelectorAll('input[name="actionMenuMode"]').forEach(r => r.checked = r.value === actionMode);
+    const mobileCorner = settings.mobileMenuCorner || 'right';
+    content.querySelectorAll('input[name="mobileMenuCorner"]').forEach(r => r.checked = r.value === mobileCorner);
     const powerCardTheme = settings.powerCardTheme || 'original';
     content.querySelectorAll('input[name="powerCardTheme"]').forEach(r => r.checked = r.value === powerCardTheme);
     const dialogSystem = settings.dialogSystem || 'legacy';

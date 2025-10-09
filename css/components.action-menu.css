@@ -481,6 +481,20 @@
     pointer-events: none; /* Container doesn't block clicks, only buttons do */
     z-index: 6698; /* Below the buttons */
     background: radial-gradient(circle at bottom right, rgba(0,0,0,0.85) 0%, transparent 70%);
+    transition: left 0.3s ease, right 0.3s ease;
+  }
+  
+  /* Left corner variant */
+  .radial-action-menu[data-corner="left"] {
+    left: 2vw;
+    right: auto;
+    background: radial-gradient(circle at bottom left, rgba(0,0,0,0.85) 0%, transparent 70%);
+  }
+  
+  /* Buttons in left corner anchor to bottom-left instead of bottom-right */
+  .radial-action-menu[data-corner="left"] .radial-action-btn {
+    left: 0;
+    right: auto;
   }
   
   /* Individual Radial Action Buttons */
@@ -503,17 +517,44 @@
     gap: 0.2vh; /* Reduced from 0.5vh */
     padding: 0.5vh; /* Reduced padding */
     cursor: pointer;
-    pointer-events: auto; /* Buttons capture clicks */
+    pointer-events: none; /* Only active button is clickable */
     box-shadow: 0 0.6vh 1.8vh rgba(0,0,0,0.8), 
                 0 0 0 2px rgba(255,255,255,0.3) inset !important;
     z-index: 6699; /* All buttons at same level */
     
     /* Animation properties */
     transform: translate(0, 0) scale(0);
-    opacity: 1 !important; /* Always fully opaque */
+    opacity: 0.5 !important; /* Inactive buttons are dimmed */
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), 
-                box-shadow 0.2s ease;
-    will-change: transform;
+                opacity 0.3s ease,
+                width 0.3s ease,
+                height 0.3s ease,
+                font-size 0.3s ease,
+                box-shadow 0.3s ease;
+    will-change: transform, opacity, width, height;
+  }
+  
+  /* Active button state - larger and fully opaque */
+  .radial-action-btn.active {
+    width: 14vh !important;
+    height: 14vh !important;
+    font-size: 2.8vh !important;
+    opacity: 1 !important;
+    pointer-events: auto !important; /* Only active button is clickable */
+    z-index: 6700 !important; /* Active button on top */
+    box-shadow: 0 1vh 3vh rgba(0,0,0,0.9), 
+                0 0 0 3px rgba(255,255,255,0.5) inset,
+                0 0 2vh rgba(255,255,255,0.3) !important;
+  }
+  
+  /* Active button icon */
+  .radial-action-btn.active .r-btn-icon {
+    font-size: 5.2vh !important;
+  }
+  
+  /* Active button label */
+  .radial-action-btn.active .r-btn-label {
+    font-size: 2.2vh !important;
   }
   
   /* Dark backdrop behind each button - REMOVED to show button colors clearly */
@@ -610,6 +651,11 @@
   /* Update toggle button to rotate when expanded */
   .action-menu-mobile-btn {
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  }
+  
+  /* Pie slice animation - each slice fills individually */
+  .action-menu-mobile-btn .pie-slice {
+    transition: fill 0.15s ease-in-out;
   }
   
   .horizontal-action-menu {

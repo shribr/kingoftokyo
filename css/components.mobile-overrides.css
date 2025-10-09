@@ -655,16 +655,15 @@ body.splash-visible .cmp-splash {
   .cmp-action-menu { display: none !important; }
 
   /* Mobile: Dice tray and action menu at same position, sliding from opposite sides */
-  /* Dice tray: slides from LEFT, positioned at bottom */
+  /* Dice tray: slides from LEFT or RIGHT based on user preference (controlled by JS) */
   .cmp-dice-tray { 
     position: fixed !important;
-    left: 0 !important; 
-    right: auto !important;
+    /* left and right are set by JavaScript based on corner preference */
     bottom: 10px !important; /* Lowered to align top edge with dice button (which is at bottom: 20px, height: 50px) */
     top: auto !important; 
-    width: calc(100vw - 20px) !important; /* Extend almost full width, just 20px gap on right */
+    /* width is calculated by JavaScript based on toggle button position */
     max-width: calc(100vw - 20px) !important;
-    transform: translateX(-100%) !important; /* Hidden to the left by default */
+    /* transform is controlled by JavaScript for collapse animations */
     transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
     z-index: 6600 !important;
   }
@@ -1194,10 +1193,8 @@ body.splash-visible .cmp-splash {
     opacity: 1 !important;
   }
   
-  /* Hide dice toggle button in mobile, but show action menu button */
-  #dice-toggle-btn {
-    display: none !important;
-  }
+  /* Dice toggle button is shown in mobile, positioned by JavaScript */
+  /* #dice-toggle-btn styles are controlled by JavaScript */
   
   /* Show action menu button in mobile (aligned with dice tray center) */
   #action-menu-mobile-btn {
@@ -1211,18 +1208,8 @@ body.splash-visible .cmp-splash {
     z-index: 6700 !important;
   }
   
-  /* Force dice tray to be always visible in mobile */
-  .cmp-dice-tray {
-    display: block !important;
-    visibility: visible !important;
-    transform: translateX(0) !important; /* Override any collapse transforms */
-    opacity: 1 !important;
-  }
-  
-  /* Override collapsed state in mobile */
-  .cmp-dice-tray[data-collapsed="left"] {
-    transform: translateX(0) !important; /* Force visible even when marked as collapsed */
-  }
+  /* Dice tray visibility and transforms are controlled by JavaScript */
+  /* No forced overrides - let JS handle collapse/expand states */
   
   /* Position dice tray in mobile - moved to far left with padding */
   .cmp-dice-tray#dice-tray {

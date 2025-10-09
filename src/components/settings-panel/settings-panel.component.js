@@ -37,6 +37,11 @@ export function build({ selector }) {
     } else if (e.target.matches('[name="actionMenuMode"]')) {
       const val = e.target.value;
       store.dispatch(settingsUpdated({ actionMenuMode: val }));
+    } else if (e.target.matches('[name="mobileMenuCorner"]')) {
+      const val = e.target.value;
+      store.dispatch(settingsUpdated({ mobileMenuCorner: val }));
+      // Apply the change immediately
+      applyMobileCornerPreference(val);
     }
   });
   sync(root);
@@ -117,6 +122,16 @@ function template() {
       </label>
       <p style="margin:6px 0 0;font-size:11px;opacity:.65;line-height:1.4;">Hybrid (default): auto-docks near the dice tray on resize until you drag it, then it stops moving.</p>
     </fieldset>
+    <fieldset style="border:1px solid #333;padding:0.8vh 1vw 1vh;margin:0 0 1.4vh;font-family:system-ui,sans-serif;">
+      <legend style="padding:0 0.6vw;font-size:13px;letter-spacing:.5px;">Mobile Interface</legend>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:4px;">
+        <input type="radio" name="mobileMenuCorner" value="right" /> Action Menu: Right Corner
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;">
+        <input type="radio" name="mobileMenuCorner" value="left" /> Action Menu: Left Corner
+      </label>
+      <p style="margin:6px 0 0;font-size:11px;opacity:.65;line-height:1.4;">Choose which corner for the action menu. The dice tray will appear on the opposite side. Perfect for left-handed or right-handed users.</p>
+    </fieldset>
   </div>`;
 }
 
@@ -165,4 +180,63 @@ function sync(root) {
   });
   const amMode = st.settings?.actionMenuMode || 'hybrid';
   root.querySelectorAll('[name="actionMenuMode"]').forEach(r => { r.checked = (r.value === amMode); });
+  
+  const mobileCorner = st.settings?.mobileMenuCorner || 'right';
+  root.querySelectorAll('[name="mobileMenuCorner"]').forEach(r => { r.checked = (r.value === mobileCorner); });
 }
+
+// Helper function to apply mobile corner preference
+function applyMobileCornerPreference(corner) {
+  const actionMenuBtn = document.getElementById('action-menu-mobile-btn');
+  const radialMenu = document.querySelector('.radial-action-menu');
+  const diceToggleBtn = document.getElementById('dice-toggle-btn');
+  
+  if (corner === 'left') {
+    // Action menu on left, dice tray on right
+    if (actionMenuBtn) {
+      actionMenuBtn.style.left = '2vw';
+      actionMenuBtn.style.right = 'auto';
+    }
+    if (radialMenu) {
+      radialMenu.style.left = '2vw';
+      radialMenu.style.right = 'auto';
+      radialMenu.setAttribute('data-corner', 'left');
+      
+      // Re-apply positions if menu is expanded
+      if (radialMenu.getAttribute('data-expanded') === 'true' && radialMenu._applyRadialPositions) {
+        radialMenu._applyRadialPositions(true);
+      }
+    }
+    if (diceToggleBtn) {
+      diceToggleBtn.style.right = '10vw';
+      diceToggleBtn.style.left = 'auto';
+    }
+  } else {
+    // Action menu on right (default), dice tray on left
+    if (actionMenuBtn) {
+      actionMenuBtn.style.right = '2vw';
+      actionMenuBtn.style.left = 'auto';
+    }
+    if (radialMenu) {
+      radialMenu.style.right = '2vw';
+      radialMenu.style.left = 'auto';
+      radialMenu.setAttribute('data-corner', 'right');
+      
+      // Re-apply positions if menu is expanded
+      if (radialMenu.getAttribute('data-expanded') === 'true' && radialMenu._applyRadialPositions) {
+        radialMenu._applyRadialPositions(true);
+      }
+    }
+    if (diceToggleBtn) {
+      diceToggleBtn.style.right = '10vw';
+      diceToggleBtn.style.left = 'auto';
+    }
+  }
+  
+  // Store preference
+  try {
+    localStorage.setItem('kot_mobile_corner', corner);
+  } catch(_) {}
+}
+
+export { applyMobileCornerPreference };

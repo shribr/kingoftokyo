@@ -96,12 +96,9 @@ body, .btn, .card-text { font-size:var(--body-size); }
 		min-width: 100%;
 	}
 	
-	/* Dice tray toggle button - positioned on right side */
+	/* Dice tray toggle button - positioned by JavaScript based on corner preference */
 	#dice-toggle-btn {
-		position: fixed;
-		bottom: 20px;
-		right: 100px; /* Moved 80px to the right (doubled from 40px) */
-		left: auto;
+		/* position, left, right, bottom set by JavaScript */
 		width: 50px;
 		height: 50px;
 		background: var(--dice-tray-label-bg, #ffcf33);
@@ -114,7 +111,7 @@ body, .btn, .card-text { font-size:var(--body-size); }
 		cursor: pointer;
 		box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 		z-index: 6700;
-		transition: transform 0.2s ease;
+		transition: transform 0.2s ease, left 0.3s ease, right 0.3s ease;
 	}
 	
 	#dice-toggle-btn:hover {

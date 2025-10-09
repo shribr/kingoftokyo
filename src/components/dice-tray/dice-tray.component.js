@@ -33,93 +33,33 @@ export function build({ selector, emit }) {
   const setupMobile = () => {
     const isMobile = checkMobile();
     if (isMobile) {
-      // Ensure tray-outer remains visible (undo previous hide logic)
+      // Ensure tray-outer remains visible
       try {
         const outer = root.querySelector('[data-tray-outer]');
         if (outer && outer.style.display === 'none') {
           outer.style.display = outer._origDisplay || '';
         }
       } catch(_) {}
-      // Use attribute-driven approach consistent with CSS (data-collapsed="left" hides off-screen)
-      const firstInit = !root.hasAttribute('data-mobile-init');
+      
       root.setAttribute('data-mobile-init','true');
+      
+      // Position dice tray at bottom of screen, always visible in mobile
       root.style.position = 'fixed';
-      root.style.bottom = '0'; // CSS media query may offset further if needed
-      // We'll set left/width after ensuring toggle button exists (dynamic offset so tray clears button)
-      root.style.right = 'auto';
+      root.style.bottom = '0';
+      root.style.left = '0';
+      root.style.right = '0';
       root.style.top = 'auto';
-      root.style.transform = 'translateX(0)';
-      root.style.transition = 'transform 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-      // On first mobile init force collapsed
-      if (firstInit) {
-        root.removeAttribute('data-collapsed');
-        root.setAttribute('data-collapsed','left');
-        root.classList.remove('expanded');
-        root.style.transform = 'translateX(-100%)';
-      } else {
-        // Preserve previous expanded/collapsed state via attribute
-        const collapsed = root.getAttribute('data-collapsed') === 'left';
-        root.style.transform = collapsed ? 'translateX(-100%)' : 'translateX(0)';
-      }
-      // Toggle button
-      const existingBtn = document.getElementById('dice-toggle-btn');
-      if (existingBtn) existingBtn.remove();
-  const toggleBtn = document.createElement('button');
-  toggleBtn.type = 'button';
-  toggleBtn.id = 'dice-toggle-btn';
-  toggleBtn.className = 'dice-toggle-btn';
-  toggleBtn.innerHTML = '<span class="vh">Toggle Dice Tray</span>\uD83C\uDFB2';
-  toggleBtn.setAttribute('aria-label','Toggle Dice Tray');
-  toggleBtn.setAttribute('aria-expanded','false');
-      Object.assign(toggleBtn.style, {
-        position:'fixed', bottom:'2vh', right:'10vw', width:'12vh', height:'12vh', background:'#ffcf33', border:'3px solid #333', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'5vh', cursor:'pointer', boxShadow:'0 0.4vh 1.2vh rgba(0,0,0,0.3)', zIndex:'6700', transition:'transform 0.2s ease'
-      });
-      // Helper to apply dynamic offset so tray's left edge sits just to the right of the toggle button
-      const applyMobileOffset = () => {
-        try {
-          const rect = toggleBtn.getBoundingClientRect();
-          const gap = window.innerWidth * 0.016; // 1.6vw - increased clearance so dice not blocked by button
-          const offsetPx = Math.round(rect.left + rect.width + gap);
-          const offsetVw = (offsetPx / window.innerWidth) * 100;
-          root.style.left = offsetVw + 'vw';
-          // Expand width a bit more now that gap increased; retain 0.5vw safety
-          root.style.width = `calc(100vw - ${offsetVw + 0.5}vw)`;
-          // Recompute current transform based on collapsed state
-          const collapsed = root.getAttribute('data-collapsed') === 'left';
-          root.style.transform = collapsed ? 'translateX(-100%)' : 'translateX(0)';
-        } catch(_) {
-          // Fallback: full width if measurement fails
-          root.style.left = '0';
-          root.style.width = 'calc(100vw - 1vw)';
-        }
-      };
-      toggleBtn.addEventListener('click', () => {
-        const collapsedNow = root.getAttribute('data-collapsed') === 'left';
-        if (collapsedNow) {
-          root.setAttribute('data-collapsed','none');
-          applyMobileOffset();
-          toggleBtn.style.transform = 'scale(0.9)';
-          toggleBtn.setAttribute('aria-expanded','true');
-        } else {
-          root.setAttribute('data-collapsed','left');
-          root.style.transform = 'translateX(-100%)';
-          toggleBtn.style.transform = 'scale(1)';
-          toggleBtn.setAttribute('aria-expanded','false');
-        }
-      });
-      document.body.appendChild(toggleBtn);
-      root._toggleBtn = toggleBtn;
-      // Apply offset once appended (layout now known)
-      requestAnimationFrame(applyMobileOffset);
-      // Also adjust on resize/orientation changes
-      window.addEventListener('resize', applyMobileOffset, { once:false });
-      root._applyMobileOffset = applyMobileOffset;
+      root.style.width = '100vw';
+      root.style.transform = 'translateX(0)'; // Always visible
+      
+      // Always expanded in mobile
+      root.removeAttribute('data-collapsed');
+      root.classList.add('expanded');
     } else {
-      // Clean up mobile state (tray-outer already visible)
-      const existingBtn = document.getElementById('dice-toggle-btn');
-      if (existingBtn) existingBtn.remove();
+      // Clean up mobile state
       root.removeAttribute('data-mobile-init');
       root.removeAttribute('data-collapsed');
+      root.classList.remove('expanded');
       root.style.position = '';
       root.style.bottom = '';
       root.style.left = '';
@@ -127,11 +67,6 @@ export function build({ selector, emit }) {
       root.style.top = '';
       root.style.width = '';
       root.style.transform = '';
-      root.style.transition = '';
-      if (root._applyMobileOffset) {
-        window.removeEventListener('resize', root._applyMobileOffset);
-        delete root._applyMobileOffset;
-      }
     }
   };
   

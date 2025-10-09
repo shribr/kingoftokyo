@@ -1,6 +1,60 @@
 import { uiSettingsClose, settingsUpdated } from '../../core/actions.js';
 import { store } from '../../bootstrap/index.js';
 
+// Helper function to apply mobile corner preference
+function applyMobileCornerPreference(corner) {
+  const actionMenuBtn = document.getElementById('action-menu-mobile-btn');
+  const radialMenu = document.querySelector('.radial-action-menu');
+  const diceToggleBtn = document.getElementById('dice-toggle-btn');
+  
+  if (corner === 'left') {
+    // Action menu on left, dice tray on right
+    if (actionMenuBtn) {
+      actionMenuBtn.style.left = '2vw';
+      actionMenuBtn.style.right = 'auto';
+    }
+    if (radialMenu) {
+      radialMenu.style.left = '2vw';
+      radialMenu.style.right = 'auto';
+      radialMenu.setAttribute('data-corner', 'left');
+      
+      // Re-apply positions if menu is expanded
+      if (radialMenu.getAttribute('data-expanded') === 'true' && radialMenu._applyRadialPositions) {
+        radialMenu._applyRadialPositions(true);
+      }
+    }
+    if (diceToggleBtn) {
+      diceToggleBtn.style.right = '10vw';
+      diceToggleBtn.style.left = 'auto';
+    }
+  } else {
+    // Action menu on right (default), dice tray on left
+    if (actionMenuBtn) {
+      actionMenuBtn.style.right = '2vw';
+      actionMenuBtn.style.left = 'auto';
+    }
+    if (radialMenu) {
+      radialMenu.style.right = '2vw';
+      radialMenu.style.left = 'auto';
+      radialMenu.setAttribute('data-corner', 'right');
+      
+      // Re-apply positions if menu is expanded
+      if (radialMenu.getAttribute('data-expanded') === 'true' && radialMenu._applyRadialPositions) {
+        radialMenu._applyRadialPositions(true);
+      }
+    }
+    if (diceToggleBtn) {
+      diceToggleBtn.style.right = '10vw';
+      diceToggleBtn.style.left = 'auto';
+    }
+  }
+  
+  // Store preference
+  try {
+    localStorage.setItem('kot_mobile_corner', corner);
+  } catch(_) {}
+}
+
 // In-memory change tracking
 const pendingChanges = {};
 let originalValues = {};
@@ -13,6 +67,7 @@ export function build(ctx) {
       <div class="modal-header"><h2>Game Settings</h2><button data-close>×</button></div>
       <div class="settings-tabs" style="display:flex;gap:6px;padding:10px 16px;background:#1c1c1c;border-bottom:2px solid #333;flex-shrink:0;">
         <button type="button" data-tab-btn="general" class="is-active" style="padding:6px 12px;font-size:13px;border:2px solid #333;background:#ffd400;cursor:pointer;">General</button>
+        <button type="button" data-tab-btn="interface" style="padding:6px 12px;font-size:13px;border:2px solid #333;background:#fff;color:#000;cursor:pointer;">Interface</button>
         <button type="button" data-tab-btn="scenarios" style="padding:6px 12px;font-size:13px;border:2px solid #333;background:#fff;color:#000;cursor:pointer;">Scenarios</button>
         <button type="button" data-tab-btn="advanced" style="padding:6px 12px;font-size:13px;border:2px solid #333;background:#fff;color:#000;cursor:pointer;">Advanced</button>
       </div>
@@ -45,6 +100,23 @@ export function build(ctx) {
              <label style="display:flex;align-items:center;gap:8px;"><input type="checkbox" name="disableAnimations"> Disable Non-Essential Animations</label>
            </div>
          </form>
+        </div>
+        <div data-tab-panel="interface" class="tab-panel" style="display:none;">
+          <form data-interface-form>
+            <h3 style="margin:0 0 12px 0;font-size:16px;border-bottom:2px solid #444;padding-bottom:6px;">Mobile</h3>
+            <div class="field" style="margin:10px 0;">
+              <label style="display:block;font-weight:bold;margin-bottom:8px;">Action Menu Corner</label>
+              <div style="display:flex;flex-direction:column;gap:6px;margin-left:12px;">
+                <label style="display:flex;align-items:center;gap:8px;">
+                  <input type="radio" name="mobileMenuCorner" value="right"> Right Corner (default)
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;">
+                  <input type="radio" name="mobileMenuCorner" value="left"> Left Corner
+                </label>
+              </div>
+              <p style="margin:8px 0 0 12px;font-size:12px;opacity:0.7;line-height:1.4;">Choose which corner for the action menu. The dice tray will appear on the opposite side. Perfect for left-handed or right-handed users.</p>
+            </div>
+          </form>
         </div>
         <div data-tab-panel="scenarios" class="tab-panel" style="display:none;">
           <div data-scenarios-config></div>
@@ -88,6 +160,17 @@ export function build(ctx) {
   const form = root.querySelector('[data-settings-form]');
   form.addEventListener('change', (e) => {
     trackChange(e.target, form, root);
+  });
+  
+  // Track changes in the interface form
+  const interfaceForm = root.querySelector('[data-interface-form]');
+  interfaceForm.addEventListener('change', (e) => {
+    if (e.target.matches('[name="mobileMenuCorner"]')) {
+      const val = e.target.value;
+      trackChange(e.target, interfaceForm, root);
+      // Apply the change immediately
+      applyMobileCornerPreference(val);
+    }
   });
   
   // Track scenario changes via custom event
@@ -165,6 +248,7 @@ export function update(ctx) {
       autoActivateMonsters: settings.autoActivateMonsters,
       autoStartInTest: settings.autoStartInTest,
       disableAnimations: settings.disableAnimations,
+      mobileMenuCorner: settings.mobileMenuCorner || (typeof localStorage !== 'undefined' && localStorage.getItem('kot_mobile_corner')) || 'right',
       _scenarios: settings.scenarioConfig?.assignments || []
     };
     // Clear pending changes from previous session
@@ -195,6 +279,15 @@ export function update(ctx) {
   if (auto) auto.checked = !!settings.autoActivateMonsters;
   const autoStart = root.querySelector('input[name="autoStartInTest"]');
   if (autoStart) autoStart.checked = !!settings.autoStartInTest;
+  
+  // Sync interface settings
+  const mobileCorner = settings.mobileMenuCorner || 
+                      (typeof localStorage !== 'undefined' && localStorage.getItem('kot_mobile_corner')) || 
+                      'right';
+  const cornerRadios = root.querySelectorAll('input[name="mobileMenuCorner"]');
+  cornerRadios.forEach(radio => {
+    radio.checked = radio.value === mobileCorner;
+  });
   const disAnim = root.querySelector('input[name="disableAnimations"]');
   if (disAnim) disAnim.checked = !!settings.disableAnimations;
   }
