@@ -27,6 +27,7 @@ import { metaReducer } from '../core/reducers/meta.reducer.js';
 import { createTurnService } from '../services/turnService.js';
 import { createPhaseEventsService } from '../services/phaseEventsService.js';
 import { createEffectEngine } from '../services/effectEngine.js';
+import { createPassiveEffectsProcessor } from '../services/passiveEffectsProcessor.js';
 import '../ui/devPanel.js';
 import { bindA11yOverlays } from '../ui/a11yOverlays.js';
 import { loadSettings, bindSettingsPersistence, loadLogCollapse } from '../services/settingsService.js';
@@ -100,7 +101,31 @@ if (typeof window !== 'undefined') {
   const turnService = createTurnService(store, logger);
   const effectEngine = createEffectEngine(store, logger);
   const phaseEventsService = createPhaseEventsService(store, logger);
-  window.__KOT_NEW__ = { store, eventBus, logger, turnService, effectEngine, phaseEventsService };
+  const passiveEffects = createPassiveEffectsProcessor(store, logger);
+  window.__KOT_NEW__ = { store, eventBus, logger, turnService, effectEngine, phaseEventsService, passiveEffects };
+  
+  // Subscribe to actions that trigger passive effects
+  store.subscribe((state, action) => {
+    try {
+      // VP gain effects (Dedicated News Team, Stretch Goals)
+      if (action.type === 'PLAYER_VP_GAINED' && action.payload) {
+        const { playerId, amount } = action.payload;
+        if (playerId && amount) {
+          passiveEffects.processVPGainEffects(playerId, amount);
+        }
+      }
+      // Damage effects (We're Only Making It Stronger)
+      if (action.type === 'APPLY_PLAYER_DAMAGE' && action.payload) {
+        const { playerId, amount } = action.payload;
+        if (playerId && amount) {
+          passiveEffects.processDamageTakenEffects(playerId, amount);
+        }
+      }
+    } catch(err) {
+      logger.warn && logger.warn('Passive effects subscription error', err);
+    }
+  });
+  
   // Provide logger reference for AI utilities lacking direct injection
   store._logger = logger;
   eventBus.emit('bootstrap/ready', {});

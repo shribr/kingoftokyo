@@ -72,6 +72,10 @@ export function createCpuTurnController(store, engine, logger = console, options
     while (!cancelled && rollNumber < settings.maxRolls) {
       rollNumber++;
       const initial = rollNumber === 1;
+      
+      // AGGRESSIVE DEBUG LOGGING
+      console.log(`🎲 [CPU ROLL ${rollNumber}/${settings.maxRolls}] initial=${initial}`);
+      
       if (window.__KOT_DEBUG__?.logCPUDecisions) {
         console.log(`[cpuController] Starting roll ${rollNumber}/${settings.maxRolls}, initial=${initial}`);
       }
@@ -254,6 +258,10 @@ export function createCpuTurnController(store, engine, logger = console, options
       // 4. Reached max rolls
       const noRerollsLeft = currentRerolls <= 0 && !initial;
       const stop = normalizedAction === 'endRoll' || noRerollsLeft || !hasUnkeptDice;
+      
+      // AGGRESSIVE DEBUG LOGGING
+      console.log(`🛑 [CPU STOP CHECK ${rollNumber}] stop=${stop}, noRerollsLeft=${noRerollsLeft}, currentRerolls=${currentRerolls}, initial=${initial}, normalizedAction=${normalizedAction}, hasUnkeptDice=${hasUnkeptDice}`);
+      
       if (stop || rollNumber >= settings.maxRolls) {
         if (window.__KOT_DEBUG__?.logCPUDecisions) {
           console.log(`[cpuController] Stopping after roll ${rollNumber}:`, { 
@@ -276,11 +284,17 @@ export function createCpuTurnController(store, engine, logger = console, options
       // CRITICAL FIX: Only decrement after rerolls, NOT after the initial roll
       // The initial roll is FREE - it doesn't consume one of the 2 rerolls
       if (!initial) {
+        console.log(`⬇️ [CPU DECREMENT ${rollNumber}] Decrementing rerollsRemaining (was a reroll)`);
         if (window.__KOT_DEBUG__?.logCPUDecisions) {
           console.log(`[cpuController] Decrementing reroll counter after roll ${rollNumber} (was a reroll)`);
         }
         store.dispatch(diceRollCompleted());
+        const afterDecrement = store.getState().dice.rerollsRemaining;
+        console.log(`✅ [CPU AFTER DECREMENT ${rollNumber}] rerollsRemaining is now: ${afterDecrement}`);
       } else {
+        console.log(`⏭️ [CPU SKIP DECREMENT ${rollNumber}] NOT decrementing (was initial roll)`);
+        const stillSame = store.getState().dice.rerollsRemaining;
+        console.log(`✅ [CPU KEPT SAME ${rollNumber}] rerollsRemaining still: ${stillSame}`);
         if (window.__KOT_DEBUG__?.logCPUDecisions) {
           console.log(`[cpuController] NOT decrementing - roll ${rollNumber} was the initial roll`);
         }

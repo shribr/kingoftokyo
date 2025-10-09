@@ -1,0 +1,230 @@
+/** domain/cards.js/** domain/cards.js
+
+ * Minimal card catalog & deck utilities (Phase 5 skeleton). * Minimal card catalog & deck utilities (Phase 5 skeleton).
+
+ */ */
+
+
+
+export function buildBaseCatalog() {export function buildBaseCatalog() {
+
+  // SVG icons for arrows and special effects  // SVG icons for arrows and special effects
+
+  const arrowUpSVG = `<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M5 1L9 7H1z"/></svg>`;  const arrowUpSVG = `<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M5 1L9 7H1z"/></svg>`;
+
+  const arrowDownSVG = `<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M5 9L1 3H9z"/></svg>`;  const arrowDownSVG = `<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M5 9L1 3H9z"/></svg>`;
+
+  const refreshSVG = `<svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor"><path d="M10 6a4 4 0 11-1.17-2.83L8 4h3V1l-1.17 1.17A5 5 0 1011 6h-1z"/></svg>`;  const refreshSVG = `<svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor"><path d="M10 6a4 4 0 11-1.17-2.83L8 4h3V1l-1.17 1.17A5 5 0 1011 6h-1z"/></svg>`;
+
+  const rocketSVG = `<svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l2 4 4 2-3 3-2-1-1-2-3 3 1 2-2 1L0 9l1-2 2 1 3-3-2-1-1-2z"/></svg>`;  const rocketSVG = `<svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l2 4 4 2-3 3-2-1-1-2-3 3 1 2-2 1L0 9l1-2 2 1 3-3-2-1-1-2z"/></svg>`;
+
+  const growthSVG = `<svg width="12" height="10" viewBox="0 0 14 10" fill="currentColor"><circle cx="2" cy="8" r="1.5"/><circle cx="7" cy="6" r="2"/><circle cx="12" cy="4" r="2.5"/></svg>`;  const growthSVG = `<svg width="12" height="10" viewBox="0 0 14 10" fill="currentColor"><circle cx="2" cy="8" r="1.5"/><circle cx="7" cy="6" r="2"/><circle cx="12" cy="4" r="2.5"/></svg>`;
+
+  const familySVG = `<svg width="14" height="10" viewBox="0 0 16 12" fill="currentColor"><circle cx="8" cy="1.5" r="1.3"/><path d="M8 3.2c-.6 0-1 .3-1.2.8L6 6.5v5h1V8h2v3.5h1V6.5L9.2 4c-.2-.5-.6-.8-1.2-.8z"/><circle cx="3" cy="2.5" r="1"/><path d="M3 3.8c-.4 0-.8.2-1 .6l-.5 1.8v3.3h.8V7.3h1.4v2.2h.8V6.2L3.9 4.4c-.1-.4-.5-.6-.9-.6z"/><circle cx="13" cy="2.5" r="1"/><path d="M13 3.8c-.4 0-.8.2-1 .6l-.6 1.8v3.3h.8V7.3h1.6v2.2h.8V6.2l-.6-1.8c-.2-.4-.6-.6-1-.6z"/></svg>`;  const familySVG = `<svg width="14" height="10" viewBox="0 0 16 12" fill="currentColor"><circle cx="8" cy="1.5" r="1.3"/><path d="M8 3.2c-.6 0-1 .3-1.2.8L6 6.5v5h1V8h2v3.5h1V6.5L9.2 4c-.2-.5-.6-.8-1.2-.8z"/><circle cx="3" cy="2.5" r="1"/><path d="M3 3.8c-.4 0-.8.2-1 .6l-.5 1.8v3.3h.8V7.3h1.4v2.2h.8V6.2L3.9 4.4c-.1-.4-.5-.6-.9-.6z"/><circle cx="13" cy="2.5" r="1"/><path d="M13 3.8c-.4 0-.8.2-1 .6l-.6 1.8v3.3h.8V7.3h1.6v2.2h.8V6.2l-.6-1.8c-.2-.4-.6-.6-1-.6z"/></svg>`;
+
+    
+
+  // Complete King of Tokyo power cards catalog with emoji icons  // Complete King of Tokyo power cards catalog with emoji icons
+
+  return [  return [
+
+    // Base Game Cards (42 unique cards)    // Base Game Cards
+
+    { id: 'acid-attack', name: 'Acid Attack', cost: 6, type: 'discard', effect: { kind: 'damage_all', value: 1 }, description: 'Deal 1 damage to all other monsters (even if you roll no Claws).', emoji: '💥' },    { id: 'acid-attack', name: 'Acid Attack', cost: 6, type: 'discard', effect: { kind: 'damage_all', value: 1 }, description: 'Deal 1 damage to all other monsters (even if you roll no Claws).', emoji: '💥' },
+
+    { id: 'alien-metabolism', name: 'Alien Metabolism', cost: 3, type: 'keep', effect: { kind: 'cheaper_cards', value: 1 }, description: 'Buying cards costs 1 less energy (minimum 0).', emoji: '🍊' },    { id: 'alien-metabolism', name: 'Alien Metabolism', cost: 3, type: 'keep', effect: { kind: 'cheaper_cards', value: 1 }, description: 'Buying cards costs 1 less energy (minimum 0).', emoji: '🍊' },
+
+    { id: 'apartment-building', name: 'Apartment Building', cost: 5, type: 'discard', effect: { kind: 'destroy_for_vp', value: 3 }, description: 'Destroy it immediately to gain 3 Victory Points.', emoji: '🏢' },    { id: 'armor-plating', name: 'Armor Plating', cost: 4, type: 'keep', effect: { kind: 'armor', value: 2 }, description: 'Ignore damage on a roll of 1-2.', emoji: '🛡️' },
+
+    { id: 'armor-plating', name: 'Armor Plating', cost: 4, type: 'keep', effect: { kind: 'armor', value: 2 }, description: 'Ignore damage on a roll of 1-2.', emoji: '🛡️' },    { id: 'background-dweller', name: 'Background Dweller', cost: 4, type: 'keep', effect: { kind: 'stay_tokyo', value: 1 }, description: 'You can always stay in Tokyo when taking damage.', emoji: '🏯' },
+
+    { id: 'background-dweller', name: 'Background Dweller', cost: 4, type: 'keep', effect: { kind: 'stay_tokyo', value: 1 }, description: 'You can always stay in Tokyo when taking damage.', emoji: '🏯' },    { id: 'camouflage', name: 'Camouflage', cost: 3, type: 'keep', effect: { kind: 'untargetable', value: 1 }, description: 'You cannot be targeted by other monsters.', emoji: '👻', lightEmoji: true },
+
+    { id: 'camouflage', name: 'Camouflage', cost: 3, type: 'keep', effect: { kind: 'untargetable', value: 1 }, description: 'You cannot be targeted by other monsters.', emoji: '👻', lightEmoji: true },    { id: 'complete-destruction', name: 'Complete Destruction', cost: 5, type: 'discard', effect: { kind: 'vp_gain', value: 3 }, description: 'Gain 3 Victory Points.', emoji: '💥' },
+
+    { id: 'complete-destruction', name: 'Complete Destruction', cost: 5, type: 'discard', effect: { kind: 'vp_gain', value: 3 }, description: 'Gain 3 Victory Points.', emoji: '💥' },    { id: 'corner-store', name: 'Corner Store', cost: 3, type: 'keep', effect: { kind: 'buy_phase_energy', value: 1 }, description: 'Gain 1 Energy at the start of your Buy phase.', emoji: '💰' },
+
+    { id: 'corner-store', name: 'Corner Store', cost: 3, type: 'keep', effect: { kind: 'buy_phase_energy', value: 1 }, description: 'Gain 1 Energy at the start of your Buy phase.', emoji: '💰' },    { id: 'dedicated-news-team', name: 'Dedicated News Team', cost: 3, type: 'keep', effect: { kind: 'tokyo_bonus_vp', value: 1 }, description: 'Gain 1 extra Victory Point each time you score points.', emoji: '🏆' },
+
+    { id: 'dedicated-news-team', name: 'Dedicated News Team', cost: 3, type: 'keep', effect: { kind: 'tokyo_bonus_vp', value: 1 }, description: 'Gain 1 extra Victory Point each time you score points.', emoji: '🏆' },    { id: 'energize', name: 'Energize', cost: 2, type: 'discard', effect: { kind: 'energy_gain', value: 9 }, description: 'Gain 9 Energy.', emoji: '⚡' },
+
+    { id: 'energize', name: 'Energize', cost: 2, type: 'discard', effect: { kind: 'energy_gain', value: 9 }, description: 'Gain 9 Energy.', emoji: '⚡' },    { id: 'energy-hoarder', name: 'Energy Hoarder', cost: 3, type: 'discard', effect: { kind: 'energy_gain', value: 3 }, description: 'Gain 3 Energy.', emoji: '⚡' },
+
+    { id: 'energy-hoarder', name: 'Energy Hoarder', cost: 3, type: 'discard', effect: { kind: 'energy_gain', value: 3 }, description: 'Gain 3 Energy.', emoji: '⚡' },    { id: 'even-bigger', name: 'Even Bigger', cost: 4, type: 'keep', effect: { kind: 'health_bonus', value: 2 }, description: 'Your maximum Health is increased by 2 (to 12).', emoji: growthSVG, lightEmoji: true },
+
+    { id: 'evacuation-orders', name: 'Evacuation Orders', cost: 7, type: 'discard', effect: { kind: 'vp_gain', value: 5 }, description: 'Gain 5 Victory Points.', emoji: '💥' },    { id: 'evacuation-orders', name: 'Evacuation Orders', cost: 7, type: 'discard', effect: { kind: 'vp_gain', value: 5 }, description: 'Gain 5 Victory Points.', emoji: '💥' },
+
+    { id: 'even-bigger', name: 'Even Bigger', cost: 4, type: 'keep', effect: { kind: 'health_bonus', value: 2 }, description: 'Your maximum Health is increased by 2 (to 12).', emoji: growthSVG, lightEmoji: true },    { id: 'extra-head', name: 'Extra Head', cost: 7, type: 'keep', effect: { kind: 'dice_slot', value: 1 }, description: 'Roll an extra die each turn.', emoji: '🎲' },
+
+    { id: 'extra-head', name: 'Extra Head', cost: 7, type: 'keep', effect: { kind: 'dice_slot', value: 1 }, description: 'Roll an extra die each turn.', emoji: '🎲' },    { id: 'fire-breathing', name: 'Fire Breathing', cost: 3, type: 'keep', effect: { kind: 'attack_bonus', value: 1 }, description: 'Deal 1 extra damage each turn you attack.', emoji: '🔥' },
+
+    { id: 'fire-breathing', name: 'Fire Breathing', cost: 3, type: 'keep', effect: { kind: 'attack_bonus', value: 1 }, description: 'Deal 1 extra damage each turn you attack.', emoji: '🔥' },    { id: 'friend-of-children', name: 'Friend of Children', cost: 4, type: 'keep', effect: { kind: 'heart_vp', value: 1 }, description: 'Gain 1★ at the start of your turn if you rolled at least 1 Heart.', emoji: familySVG, lightEmoji: true },
+
+    { id: 'friend-of-children', name: 'Friend of Children', cost: 4, type: 'keep', effect: { kind: 'heart_vp', value: 1 }, description: 'Gain 1★ at the start of your turn if you rolled at least 1 Heart.', emoji: familySVG, lightEmoji: true },    { id: 'gas-refinery', name: 'Gas Refinery', cost: 6, type: 'keep', effect: { kind: 'turn_start_energy', value: 2 }, description: 'Gain 2 Energy at the start of your turn.', emoji: '⚡' },
+
+    { id: 'gas-refinery', name: 'Gas Refinery', cost: 6, type: 'keep', effect: { kind: 'turn_start_energy', value: 2 }, description: 'Gain 2 Energy at the start of your turn.', emoji: '⚡' },    { id: 'giant-brain', name: 'Giant Brain', cost: 5, type: 'keep', effect: { kind: 'reroll_bonus', value: 1 }, description: 'You have 1 extra re-roll each turn.', emoji: '🧠' },
+
+    { id: 'giant-brain', name: 'Giant Brain', cost: 5, type: 'keep', effect: { kind: 'reroll_bonus', value: 1 }, description: 'You have 1 extra re-roll each turn.', emoji: '🧠' },    { id: 'healing-ray', name: 'Healing Ray', cost: 4, type: 'discard', effect: { kind: 'heal_all', value: 1 }, description: 'All monsters heal 1 Health.', emoji: '💚' },
+
+    { id: 'healing-ray', name: 'Healing Ray', cost: 4, type: 'discard', effect: { kind: 'heal_all', value: 1 }, description: 'All monsters heal 1 Health.', emoji: '💚' },    { id: 'herbivore', name: 'Herbivore', cost: 3, type: 'keep', effect: { kind: 'three_hearts_bonus', value: 2 }, description: 'Gain 2 extra Energy when you roll 3 or more Hearts.', emoji: '🥦' },
+
+    { id: 'herbivore', name: 'Herbivore', cost: 3, type: 'keep', effect: { kind: 'three_hearts_bonus', value: 2 }, description: 'Gain 2 extra Energy when you roll 3 or more Hearts.', emoji: '🥦' },    { id: 'it-has-a-child', name: 'It Has A Child', cost: 2, type: 'discard', effect: { kind: 'draw_cards', value: 1 }, description: 'Draw 3 extra Power cards (keep 2, discard 1).', emoji: '🍼', lightEmoji: true },
+
+    { id: 'high-altitude-bombing', name: 'High Altitude Bombing', cost: 4, type: 'discard', effect: { kind: 'damage_all_lose_vp', value: 3, cost: 2 }, description: 'Deal 3 damage to all other monsters. Lose 2 Victory Points.', emoji: '✈️' },    { id: 'jets', name: 'Jets', cost: 5, type: 'keep', effect: { kind: 'leave_tokyo_attack', value: 1 }, description: 'You may leave Tokyo after attacking (before counter-attack).', emoji: rocketSVG, lightEmoji: true },
+
+    { id: 'it-has-a-child', name: 'It Has A Child', cost: 2, type: 'discard', effect: { kind: 'draw_cards', value: 1 }, description: 'Draw 3 extra Power cards (keep 2, discard 1).', emoji: '🍼', lightEmoji: true },    { id: 'made-in-a-lab', name: 'Made in a Lab', cost: 2, type: 'keep', effect: { kind: 'science_bonus', value: 1 }, description: 'Gain 2★ for each set of 1-2-3 you roll.', emoji: '🔬' },
+
+    { id: 'jets', name: 'Jets', cost: 5, type: 'keep', effect: { kind: 'leave_tokyo_attack', value: 1 }, description: 'You may leave Tokyo after attacking (before counter-attack).', emoji: rocketSVG, lightEmoji: true },    { id: 'metamorphosis', name: 'Metamorphosis', cost: 6, type: 'discard', effect: { kind: 'full_heal', value: 1 }, description: 'Heal to your maximum Health.', emoji: '💖' },
+
+    { id: 'made-in-a-lab', name: 'Made in a Lab', cost: 2, type: 'keep', effect: { kind: 'science_bonus', value: 1 }, description: 'Gain 2★ for each set of 1-2-3 you roll.', emoji: '🔬' },    { id: 'national-guard', name: 'National Guard', cost: 2, type: 'discard', effect: { kind: 'damage_tokyo_only', value: 2 }, description: 'Deal 2 damage to monsters in Tokyo.', emoji: '🎯' },
+
+    { id: 'metamorphosis', name: 'Metamorphosis', cost: 6, type: 'discard', effect: { kind: 'full_heal', value: 1 }, description: 'Heal to your maximum Health.', emoji: '💖' },    { id: 'nuclear-power-plant', name: 'Nuclear Power Plant', cost: 6, type: 'keep', effect: { kind: 'skull_energy', value: 1 }, description: 'Gain 1 Energy for each Skull you roll.', emoji: '☠️', lightEmoji: true },
+
+    { id: 'mimic', name: 'Mimic', cost: 2, type: 'keep', effect: { kind: 'copy_card', value: 1 }, description: 'Choose 1 Keep card owned by another monster. Mimic has the same power.', emoji: '🎭' },    { id: 'parasitic-tentacles', name: 'Parasitic Tentacles', cost: 2, type: 'keep', effect: { kind: 'steal_energy_attack', value: 1 }, description: 'Steal 1 Energy from each monster you damage.', emoji: '🐙' },
+
+    { id: 'national-guard', name: 'National Guard', cost: 2, type: 'discard', effect: { kind: 'damage_tokyo_only', value: 2 }, description: 'Deal 2 damage to monsters in Tokyo.', emoji: '🎯' },    { id: 'plot-twist', name: 'Plot Twist', cost: 3, type: 'discard', effect: { kind: 'change_dice', value: 1 }, description: 'Change one die to any face you want.', emoji: refreshSVG, lightEmoji: true },
+
+    { id: 'nuclear-power-plant', name: 'Nuclear Power Plant', cost: 6, type: 'keep', effect: { kind: 'skull_energy', value: 1 }, description: 'Gain 1 Energy for each Skull you roll.', emoji: '☠️', lightEmoji: true },    { id: 'psychic-probe', name: 'Psychic Probe', cost: 2, type: 'keep', effect: { kind: 'force_reroll', value: 1 }, description: 'Force another monster to reroll 2 of their dice.', emoji: '🌀' },
+
+    { id: 'parasitic-tentacles', name: 'Parasitic Tentacles', cost: 2, type: 'keep', effect: { kind: 'steal_energy_attack', value: 1 }, description: 'Steal 1 Energy from each monster you damage.', emoji: '🐙' },    { id: 'rapid-healing', name: 'Rapid Healing', cost: 3, type: 'keep', effect: { kind: 'heal_energy', value: 1 }, description: 'Gain 1 Health when you buy a Power card.', emoji: '💚' },
+
+    { id: 'plot-twist', name: 'Plot Twist', cost: 3, type: 'discard', effect: { kind: 'change_dice', value: 1 }, description: 'Change one die to any face you want.', emoji: refreshSVG, lightEmoji: true },    { id: 'regeneration', name: 'Regeneration', cost: 4, type: 'keep', effect: { kind: 'heal_turn_start', value: 1 }, description: 'Heal 1 Health at the start of your turn if not at maximum.', emoji: '❤️' },
+
+    { id: 'poison-quills', name: 'Poison Quills', cost: 4, type: 'keep', effect: { kind: 'reflect_damage', value: 2 }, description: 'When you take damage, deal 2 damage back to the attacker.', emoji: '🦔' },    { id: 'rooting-for-the-underdog', name: 'Rooting for the Underdog', cost: 3, type: 'keep', effect: { kind: 'low_health_bonus', value: 1 }, description: 'Gain 1 Energy at the start of your turn if your Health is 5 or less.', emoji: '🎉' },
+
+    { id: 'poison-spit', name: 'Poison Spit', cost: 6, type: 'discard', effect: { kind: 'damage_select', value: 3, maxTargets: 1 }, description: 'Deal 3 damage to 1 monster of your choice.', emoji: '☠️', lightEmoji: true },    { id: 'shrink-ray', name: 'Shrink Ray', cost: 2, type: 'discard', effect: { kind: 'reduce_dice', value: 1 }, description: 'Target monster rolls 1 fewer die this turn.', emoji: '🔫' },
+
+    { id: 'psychic-probe', name: 'Psychic Probe', cost: 2, type: 'keep', effect: { kind: 'force_reroll', value: 1 }, description: 'Force another monster to reroll 2 of their dice.', emoji: '🌀' },    { id: 'skyscraper', name: 'Skyscraper', cost: 6, type: 'keep', effect: { kind: 'tokyo_immunity', value: 1 }, description: 'You cannot be forced to leave Tokyo.', emoji: '🗼' },
+
+    { id: 'rapid-healing', name: 'Rapid Healing', cost: 3, type: 'keep', effect: { kind: 'heal_energy', value: 1 }, description: 'Gain 1 Health when you buy a Power card.', emoji: '💚' },    { id: 'solar-powered', name: 'Solar Powered', cost: 4, type: 'keep', effect: { kind: 'outside_tokyo_energy', value: 1 }, description: 'Gain 1 Energy when not in Tokyo at turn start.', emoji: '🌙', lightEmoji: true },
+
+    { id: 'regeneration', name: 'Regeneration', cost: 4, type: 'keep', effect: { kind: 'heal_turn_start', value: 1 }, description: 'Heal 1 Health at the start of your turn if not at maximum.', emoji: '❤️' },    { id: 'urbavore', name: 'Urbavore', cost: 4, type: 'keep', effect: { kind: 'building_bonus', value: 1 }, description: 'Gain 1 Victory Point for each Building you destroy.', emoji: '🏢' },
+
+    { id: 'rooting-for-the-underdog', name: 'Rooting for the Underdog', cost: 3, type: 'keep', effect: { kind: 'low_health_bonus', value: 1 }, description: 'Gain 1 Energy at the start of your turn if your Health is 5 or less.', emoji: '🎉' },    { id: 'we-re-only-making-it-stronger', name: "We're Only Making It Stronger", cost: 5, type: 'keep', effect: { kind: 'damage_energy', value: 1 }, description: 'Gain 1 Energy each time you take damage.', emoji: '⚡' },
+
+    { id: 'shrink-ray', name: 'Shrink Ray', cost: 2, type: 'discard', effect: { kind: 'reduce_dice', value: 1 }, description: 'Target monster rolls 1 fewer die this turn.', emoji: '🔫' },    
+
+    { id: 'skyscraper', name: 'Skyscraper', cost: 6, type: 'keep', effect: { kind: 'tokyo_immunity', value: 1 }, description: 'You cannot be forced to leave Tokyo.', emoji: '🗼' },    // Missing official base game cards
+
+    { id: 'solar-powered', name: 'Solar Powered', cost: 4, type: 'keep', effect: { kind: 'outside_tokyo_energy', value: 1 }, description: 'Gain 1 Energy when not in Tokyo at turn start.', emoji: '🌙', lightEmoji: true },    { id: 'apartment-building', name: 'Apartment Building', cost: 5, type: 'discard', effect: { kind: 'destroy_for_vp', value: 3 }, description: 'Destroy it immediately to gain 3 Victory Points.', emoji: '🏢' },
+
+    { id: 'stretchy', name: 'Stretchy', cost: 3, type: 'keep', effect: { kind: 'reach_bay', value: 1 }, description: 'You can attack Tokyo Bay from outside Tokyo (when 5+ players).', emoji: '🦾' },    { id: 'high-altitude-bombing', name: 'High Altitude Bombing', cost: 4, type: 'discard', effect: { kind: 'damage_all_lose_vp', value: 3, cost: 2 }, description: 'Deal 3 damage to all other monsters. Lose 2 Victory Points.', emoji: '✈️' },
+
+    { id: 'urbavore', name: 'Urbavore', cost: 4, type: 'keep', effect: { kind: 'building_bonus', value: 1 }, description: 'Gain 1 Victory Point for each Building you destroy.', emoji: '🏢' },    { id: 'mimic', name: 'Mimic', cost: 2, type: 'keep', effect: { kind: 'copy_card', value: 1 }, description: 'Choose 1 Keep card owned by another monster. Mimic has the same power.', emoji: '🎭' },
+
+    { id: 'we-re-only-making-it-stronger', name: "We're Only Making It Stronger", cost: 5, type: 'keep', effect: { kind: 'damage_energy', value: 1 }, description: 'Gain 1 Energy each time you take damage.', emoji: '⚡' }        { id: 'poison-quills', name: 'Poison Quills', cost: 4, type: 'keep', effect: { kind: 'reflect_damage', value: 2 }, description: 'When you take damage, deal 2 damage back to the attacker.', emoji: '🦔' },
+
+        { id: 'poison-spit', name: 'Poison Spit', cost: 6, type: 'discard', effect: { kind: 'damage_select', value: 3, maxTargets: 1 }, description: 'Deal 3 damage to 1 monster of your choice.', emoji: '☠️', lightEmoji: true },
+
+    // NOTE: Dark Edition cards will be added after verifying official card list            { id: 'stretchy', name: 'Stretchy', cost: 3, type: 'keep', effect: { kind: 'reach_bay', value: 1 }, description: 'You can attack Tokyo Bay from outside Tokyo (when 5+ players).', emoji: '🦾' }
+
+    // Dark Edition is a standalone version with different monsters and some different power cards    
+
+    // DO NOT add made-up Dark Edition cards - they need to be verified against official rules  ];
+
+  ];}
+
+}
+
+// NOTE: Dark Edition cards will be added after verifying official card list
+
+export function shuffle(array, rng = Math.random) {// Dark Edition is a standalone version with different monsters and some different power cards
+
+  const a = array.slice();// DO NOT add made-up Dark Edition cards - they need to be verified against official rules
+
+  // Use Fisher-Yates shuffle with better randomization
+
+  for (let i = a.length - 1; i > 0; i--) {export function shuffle(array, rng = Math.random) {
+
+    const j = Math.floor(rng() * (i + 1));  const a = array.slice();    // Dark Edition Cards
+
+    [a[i], a[j]] = [a[j], a[i]];    { id: 'dark-ancient-curse', name: 'Ancient Curse', cost: 3, type: 'discard', darkEdition: true, effect: { kind: 'curse_all', value: 1 }, description: 'All other monsters gain 1 Curse.', emoji: '🌑' },
+
+  }    { id: 'dark-burrowing', name: 'Burrowing', cost: 5, type: 'discard', darkEdition: true, effect: { kind: 'leave_before_damage', value: 1 }, description: 'Leave Tokyo when attacked, before taking damage.', emoji: '🕳️' },
+
+  return a;    { id: 'dark-corruption', name: 'Corruption', cost: 5, type: 'discard', darkEdition: true, effect: { kind: 'spread_curse', value: 1 }, description: 'Give a Curse to each other monster.', emoji: '☠️', lightEmoji: true },
+
+}    { id: 'dark-devilish-body', name: 'Devilish Body', cost: 6, type: 'keep', darkEdition: true, effect: { kind: 'attacked_wickedness', value: 1 }, description: 'When attacked, gain 1 Wickedness.', emoji: '😈' },
+
+    { id: 'dark-devoted-following', name: 'Devoted Following', cost: 4, type: 'keep', darkEdition: true, effect: { kind: 'wickedness_vp', value: 1 }, description: 'Gain 1 Victory Point for each 3 Wickedness you have.', emoji: '�️', lightEmoji: true },
+
+export function buildDeck(catalog, rng = Math.random) {    { id: 'dark-eerie-music', name: 'Eerie Music', cost: 2, type: 'discard', darkEdition: true, effect: { kind: 'all_lose_energy', value: 1 }, description: 'All other monsters lose 1 Energy.', emoji: '🎵' },
+
+  // Create deck with proper duplicates based on official specification    { id: 'dark-feeding-frenzy', name: 'Feeding Frenzy', cost: 6, type: 'keep', darkEdition: true, effect: { kind: 'eliminate_heal', value: 3 }, description: 'Heal 3 Health when you eliminate another monster.', emoji: '🧛' },
+
+  const deck = [];    { id: 'dark-its-alive', name: "It's Alive!", cost: 4, type: 'keep', darkEdition: true, effect: { kind: 'resurrect', value: 6 }, description: 'When eliminated, return with 6 Health (then discard this card).', emoji: '⚡' },
+
+      { id: 'dark-lurker', name: 'Lurker', cost: 3, type: 'keep', darkEdition: true, effect: { kind: 'tokyo_entry_wickedness', value: 1 }, description: 'When entering Tokyo from outside, gain 1 Wickedness.', emoji: '👁️', lightEmoji: true },
+
+  catalog.forEach(card => {    { id: 'dark-regeneration', name: 'Regeneration', cost: 4, type: 'keep', darkEdition: true, effect: { kind: 'heal_turn_start', value: 1 }, description: 'Heal 1 Health at the start of your turn if not at maximum.', emoji: '❤️' },
+
+    // According to official FAQ: only 2 cards are in double (Extra Head and Evacuation Orders)    { id: 'dark-shadow-double', name: 'Shadow Double', cost: 7, type: 'keep', darkEdition: true, effect: { kind: 'dice_slot', value: 1 }, description: 'Roll an extra die each turn.', emoji: '👥' },
+
+    if (card.id === 'extra-head' || card.id === 'evacuation-orders') {    { id: 'dark-shadow-form', name: 'Shadow Form', cost: 5, type: 'discard', darkEdition: true, effect: { kind: 'immune_turn', value: 1 }, description: 'You are immune to damage for the rest of this turn.', emoji: '�', lightEmoji: true },
+
+      deck.push(card, { ...card }); // Add two copies    { id: 'dark-sinister-plot', name: 'Sinister Plot', cost: 4, type: 'keep', darkEdition: true, effect: { kind: 'wickedness_vp', value: 1 }, description: 'Gain 1 Victory Point for each 3 Wickedness you have.', emoji: '�' },
+
+    } else {    { id: 'dark-sleep-walker', name: 'Sleep Walker', cost: 2, type: 'discard', darkEdition: true, effect: { kind: 'wickedness_draw', value: 1 }, description: 'Gain 1 Wickedness and draw 1 Power card.', emoji: '😴' },
+
+      deck.push(card); // Single copy for all other cards    { id: 'dark-smoke-stack', name: 'Smoke Stack', cost: 4, type: 'keep', darkEdition: true, effect: { kind: 'wickedness_energy', value: 1 }, description: 'Gain 1 Energy for each Wickedness you have.', emoji: '�' },
+
+    }    { id: 'dark-terror-of-the-deep', name: 'Terror of the Deep', cost: 3, type: 'keep', darkEdition: true, effect: { kind: 'outside_tokyo_wickedness', value: 1 }, description: 'When outside Tokyo at turn start, gain 1 Wickedness.', emoji: '🐙' },
+
+  });    { id: 'dark-twisted-mind', name: 'Twisted Mind', cost: 3, type: 'keep', darkEdition: true, effect: { kind: 'curse_immunity', value: 1 }, description: 'You are immune to Curses.', emoji: '🧿' },
+
+      { id: 'dark-unholy-pact', name: 'Unholy Pact', cost: 3, type: 'keep', darkEdition: true, effect: { kind: 'spend_wickedness', value: 1 }, description: 'Discard Wickedness to gain Energy, Health, or Victory Points.', emoji: '🤝' }
+
+  // Use enhanced shuffling with multiple passes for better randomization  ];
+
+  let shuffled = shuffle(deck, rng);}
+
+  // Additional shuffle passes to ensure better distribution
+
+  for (let pass = 0; pass < 3; pass++) {export function shuffle(array, rng = Math.random) {
+
+    shuffled = shuffle(shuffled, rng);  const a = array.slice();
+
+  }  // Use Fisher-Yates shuffle with better randomization
+
+    for (let i = a.length - 1; i > 0; i--) {
+
+  return shuffled;    const j = Math.floor(rng() * (i + 1));
+
+}    [a[i], a[j]] = [a[j], a[i]];
+
+  }
+
+export function draw(deck, count = 1) {  return a;
+
+  const drawn = deck.slice(0, count);}
+
+  return { drawn, rest: deck.slice(count) };
+
+}export function buildDeck(catalog, rng = Math.random) {
+
+  // Create deck with proper duplicates based on official specification
+  const deck = [];
+  
+  catalog.forEach(card => {
+    // According to official FAQ: only 2 cards are in double (Extra Head and Evacuation Orders)
+    if (card.id === 'extra-head' || card.id === 'evacuation-orders') {
+      deck.push(card, { ...card }); // Add two copies
+    } else {
+      deck.push(card); // Single copy for all other cards
+    }
+  });
+  
+  // Use enhanced shuffling with multiple passes for better randomization
+  let shuffled = shuffle(deck, rng);
+  // Additional shuffle passes to ensure better distribution
+  for (let pass = 0; pass < 3; pass++) {
+    shuffled = shuffle(shuffled, rng);
+  }
+  
+  return shuffled;
+}
+
+export function draw(deck, count = 1) {
+  const drawn = deck.slice(0, count);
+  return { drawn, rest: deck.slice(count) };
+}

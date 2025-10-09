@@ -45,10 +45,29 @@ export function purchaseCard(store, logger, playerId, cardId) {
   const card = state.cards.shop.find(c => c.id === cardId);
   if (!card) return false;
   const player = state.players.byId[playerId];
-  if (!player || player.energy < card.cost) return false;
-  store.dispatch(playerSpendEnergy(playerId, card.cost));
-  store.dispatch(uiEnergyFlash(playerId, -card.cost)); // Negative to show energy spent
+  
+  // Apply cost reduction from passive effects (Alien Metabolism)
+  let costReduction = 0;
+  try {
+    const passiveEffects = typeof window !== 'undefined' ? window.__KOT_NEW__?.passiveEffects : null;
+    if (passiveEffects) {
+      costReduction = passiveEffects.getCardCostReduction(playerId);
+    }
+  } catch(err) {
+    // Silent fail - reduction just won't apply
+  }
+  
+  const actualCost = Math.max(0, card.cost - costReduction);
+  if (!player || player.energy < actualCost) return false;
+  
+  store.dispatch(playerSpendEnergy(playerId, actualCost));
+  store.dispatch(uiEnergyFlash(playerId, -actualCost)); // Negative to show energy spent
   store.dispatch(cardPurchased(playerId, card));
+  
+  if (costReduction > 0) {
+    logger.info(`${playerId} purchased ${card.name} for ${actualCost}⚡ (${card.cost}⚡ - ${costReduction}⚡ discount)`);
+  }
+  
   const effectEngine = typeof window !== 'undefined' ? window.__KOT_NEW__?.effectEngine : null;
   let followUp = false;
   if (card.type === 'discard') {
@@ -65,6 +84,17 @@ export function purchaseCard(store, logger, playerId, cardId) {
       followUp = true;
     }
   }
+  
+  // Trigger passive card effects on purchase (e.g., Rapid Healing)
+  try {
+    const passiveEffects = typeof window !== 'undefined' ? window.__KOT_NEW__?.passiveEffects : null;
+    if (passiveEffects) {
+      passiveEffects.processCardPurchaseEffects(playerId);
+    }
+  } catch(err) {
+    logger.warn && logger.warn('Card purchase passive effects error', err);
+  }
+  
   refillShop(store, logger);
 
   // If any effect was enqueued, move to BUY_WAIT (if currently in BUY) so processing can complete before CLEANUP

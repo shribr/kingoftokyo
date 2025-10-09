@@ -40,24 +40,41 @@ export function listScenarios() {
     {
       id: ScenarioIds.POWER_LOADED,
       label: 'Loaded With Power Cards',
-      description: 'Gives 4 random keep cards to the monster (no duplicates).',
+      description: 'Gives power cards to the monster. Choose specific cards or get random ones (no duplicates).',
       category: ['cards'], // Affects power cards
       bullets: ['Modifier stacking correctness','Card-based reroll/dice slot effects','Hand size UI rendering'],
       params: {
-        seed: { label: 'Seed (0=random)', type: 'number', min: 0, max: 999999, step: 1, default: 0 }
+        cardCount: { label: 'Number of Cards', type: 'number', min: 1, max: 20, step: 1, default: 4 },
+        seed: { label: 'Random Seed (0=random)', type: 'number', min: 0, max: 999999, step: 1, default: 0 },
+        selectedCards: { label: 'Selected Cards', type: 'cardlist', default: [] } // Array of card IDs
       },
       apply(player, ctx, params) {
         const keepCards = (ctx.catalog || []).filter(c => c.type === 'keep');
-        let pool = keepCards;
-        const seed = parseInt(params?.seed, 10) || 0;
-        if (seed > 0) {
-          pool = seededShuffle(keepCards, seed);
+        let cardsToGrant = [];
+        
+        // If specific cards were selected, use those
+        if (params.selectedCards && Array.isArray(params.selectedCards) && params.selectedCards.length > 0) {
+          console.log(`  🎯 Using ${params.selectedCards.length} selected cards`);
+          cardsToGrant = params.selectedCards
+            .map(cardId => keepCards.find(c => c.id === cardId))
+            .filter(Boolean) // Remove any cards not found
+            .map(c => ({ id: c.id, name: c.name, type: c.type, effect: c.effect, description: c.description, emoji: c.emoji }));
         } else {
-          pool = shuffle(keepCards);
+          // Otherwise use random cards
+          const cardCount = clampInt(params?.cardCount, 1, 20, 4);
+          let pool = keepCards;
+          const seed = parseInt(params?.seed, 10) || 0;
+          if (seed > 0) {
+            pool = seededShuffle(keepCards, seed);
+          } else {
+            pool = shuffle(keepCards);
+          }
+          console.log(`  🎲 Using ${cardCount} random cards (seed: ${seed || 'random'})`);
+          cardsToGrant = pool.slice(0, cardCount).map(c => ({ id: c.id, name: c.name, type: c.type, effect: c.effect, description: c.description, emoji: c.emoji }));
         }
-        const grant = pool.slice(0,4).map(c => ({ id: c.id, name: c.name, type: c.type, effect: c.effect }));
+        
         const existingIds = new Set((player.powerCards||[]).map(c=>c.id));
-        const merged = (player.powerCards||[]).concat(grant.filter(c=>!existingIds.has(c.id)));
+        const merged = (player.powerCards||[]).concat(cardsToGrant.filter(c=>!existingIds.has(c.id)));
         return { powerCards: merged };
       }
     },

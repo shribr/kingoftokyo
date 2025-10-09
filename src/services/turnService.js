@@ -19,6 +19,7 @@ import { selectTokyoCityOccupant, selectTokyoBayOccupant, selectActivePlayerId }
 import { DICE_ANIM_MS, AI_POST_ANIM_DELAY_MS, CPU_TURN_START_MS, CPU_DECISION_DELAY_MS } from '../constants/uiTimings.js';
 import { eventBus } from '../core/eventBus.js';
 import { recordOrCompareDeterminism } from '../core/determinism.js';
+import { createPassiveEffectsProcessor } from './passiveEffectsProcessor.js';
 
 function computeDelay(settings) {
   const speed = settings?.cpuSpeed || 'normal';
@@ -100,6 +101,10 @@ export function createTurnService(store, logger, rng = Math.random) {
     },
     turnAdvanceReady: () => true
   }) : null;
+  
+  // Create passive effects processor
+  const passiveEffects = createPassiveEffectsProcessor(store, logger);
+  
   // Phase timing instrumentation (scoped to service to allow store access)
   const __phaseTimings = { active: null, spans: [] };
   function markPhaseStart(phase) {
@@ -306,6 +311,15 @@ export function createTurnService(store, logger, rng = Math.random) {
     
     // Start-of-turn bonuses (Tokyo VP if occupying City at turn start)
     awardStartOfTurnTokyoVP(store, logger);
+    
+    // Process passive card effects that trigger at turn start
+    const st = store.getState();
+    const order = st.players.order;
+    if (order.length) {
+      const activeId = order[st.meta.activePlayerIndex % order.length];
+      passiveEffects.processTurnStartEffects(activeId);
+    }
+    
   logger.system('Phase: ROLL', { kind: 'phase' });
   if (usePhaseMachine && phaseMachine) phaseMachine.to(Phases.ROLL, { reason: 'turn_start' }); else phaseCtrl.to(Phases.ROLL, { reason: 'turn_start' });
     markPhaseStart('ROLL');
@@ -540,6 +554,14 @@ export function createTurnService(store, logger, rng = Math.random) {
   logger.system('Phase: BUY', { kind:'phase' });
   if (usePhaseMachine && phaseMachine) phaseMachine.event('RESOLUTION_COMPLETE'); else phaseCtrl.event('RESOLUTION_COMPLETE');
     markPhaseStart('BUY');
+    
+    // Process passive card effects that trigger at BUY phase start
+    try {
+      passiveEffects.processBuyPhaseEffects(activeId);
+    } catch(err) {
+      logger.warn && logger.warn('BUY phase passive effects error', err);
+    }
+    
     const buyDelay = Math.min(1500, Math.max(400, computeDelay(store.getState().settings) * 3));
     await waitUnlessPaused(store, buyDelay);
     markPhaseEnd('BUY');
@@ -562,6 +584,19 @@ export function createTurnService(store, logger, rng = Math.random) {
     } catch(err) {
       logger.warn && logger.warn('acceptDiceResults resolveDice error', err);
     }
+    
+    // Process passive card effects that trigger on dice results
+    try {
+      const order = st.players.order;
+      if (order.length) {
+        const activeId = order[st.meta.activePlayerIndex % order.length];
+        const diceResults = st.dice.faces || [];
+        passiveEffects.processDiceResultEffects(activeId, diceResults);
+      }
+    } catch(err) {
+      logger.warn && logger.warn('acceptDiceResults passive effects error', err);
+    }
+    
     try { eventBus.emit('ui/cards/refreshAffordability'); } catch(_) {}
   }
 

@@ -120,9 +120,15 @@ function bind(root){
             const input = root.querySelector(`[data-param-input="${id}:${pKey}"]`);
             if (input) {
               const schema = sc.params[pKey];
-              let val = input.value;
-              if (schema.type === 'number') val = parseInt(val,10);
-              paramsByScenario[id][pKey] = val;
+              if (schema.type === 'number') {
+                paramsByScenario[id][pKey] = parseInt(input.value, 10);
+              } else if (schema.type === 'cardlist') {
+                // Gather selected card IDs from checkboxes
+                const checkboxes = input.querySelectorAll('.card-checkbox:checked');
+                paramsByScenario[id][pKey] = Array.from(checkboxes).map(cb => cb.value);
+              } else {
+                paramsByScenario[id][pKey] = input.value;
+              }
             }
           });
         }
@@ -402,6 +408,56 @@ function describeAssignmentLabel(a){
   return '?';
 }
 
+function initializeCardSelectors(root, selectedScenarios) {
+  // Import card catalog
+  import('../../domain/cards.js').then(mod => {
+    const catalog = mod.buildBaseCatalog();
+    const keepCards = catalog.filter(c => c.type === 'keep');
+    
+    selectedScenarios.forEach(scId => {
+      const sc = getScenario(scId);
+      if (!sc || !sc.params) return;
+      
+      Object.entries(sc.params).forEach(([paramKey, schema]) => {
+        if (schema.type !== 'cardlist') return;
+        
+        const wrapper = root.querySelector(`[data-param-input="${scId}:${paramKey}"]`);
+        if (!wrapper) return;
+        
+        // Create card selection grid
+        const selectedCards = new Set();
+        
+        wrapper.innerHTML = keepCards.map(card => {
+          const emoji = typeof card.emoji === 'string' ? card.emoji : '🃏';
+          return `
+            <label class="card-select-item" style="display:inline-flex;align-items:center;gap:4px;padding:4px 6px;margin:2px;background:#252525;border-radius:4px;cursor:pointer;user-select:none;transition:background 0.2s;" data-card-id="${card.id}">
+              <input type="checkbox" class="card-checkbox" value="${card.id}" style="margin:0;">
+              <span style="font-size:14px;">${emoji}</span>
+              <span style="font-size:10px;">${card.name}</span>
+            </label>
+          `;
+        }).join('');
+        
+        // Add event listeners for highlighting
+        wrapper.querySelectorAll('.card-select-item').forEach(label => {
+          const checkbox = label.querySelector('input');
+          checkbox.addEventListener('change', (e) => {
+            if (e.target.checked) {
+              label.style.background = '#3a4a3a';
+              label.style.borderLeft = '3px solid #4caf50';
+            } else {
+              label.style.background = '#252525';
+              label.style.borderLeft = 'none';
+            }
+          });
+        });
+      });
+    });
+  }).catch(err => {
+    console.error('Failed to load card catalog:', err);
+  });
+}
+
 function updateParamEditor(root){
   const editor = root.querySelector('[data-param-editor]');
   const selected = [...root.querySelectorAll('[data-scenario-id]:checked')].map(cb=>cb.getAttribute('data-scenario-id'));
@@ -418,6 +474,8 @@ function updateParamEditor(root){
       const baseAttrs = `data-param-input="${id}:${key}" name="${id}:${key}"`; 
       if (schema.type === 'number') {
         return `<label style='display:flex;flex-direction:column;gap:2px;'>${schema.label}<input type='number' ${baseAttrs} value='${schema.default}' min='${schema.min}' max='${schema.max}' step='${schema.step||1}' style='background:#1a1a1a;color:#ddd;border:1px solid #333;padding:2px 4px;font-size:11px;border-radius:4px;'/></label>`;
+      } else if (schema.type === 'cardlist') {
+        return `<div style='display:flex;flex-direction:column;gap:4px;width:100%;'><label style='font-weight:600;font-size:11px;'>${schema.label}</label><div ${baseAttrs} class='card-selector-wrapper' style='background:#1a1a1a;border:1px solid #333;border-radius:4px;padding:8px;max-height:200px;overflow-y:auto;'></div><div style='font-size:10px;opacity:0.7;margin-top:2px;'>💡 Leave empty to get random cards, or select specific cards below</div></div>`;
       }
       return '';
     }).join('<div style="width:8px;"></div>');
@@ -430,6 +488,9 @@ function updateParamEditor(root){
   }
   editor.classList.add('is-visible');
   editor.innerHTML = `<div style='font-weight:600;margin-bottom:4px;'>Parameters</div>${blocks.join('')}`;
+  
+  // Initialize card selectors
+  initializeCardSelectors(root, selected);
 }
 
 // Uniqueness enforcement helpers

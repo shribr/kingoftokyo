@@ -64,6 +64,19 @@ export function resolveDice(store, logger) {
     const attacker = current.players.byId[activeId];
     const cityOcc = selectTokyoCityOccupant(current);
     const bayOcc = selectTokyoBayOccupant(current);
+    
+    // Calculate attack bonus from passive effects (Fire Breathing)
+    let attackBonus = 0;
+    try {
+      const passiveEffects = typeof window !== 'undefined' ? window.__KOT_NEW__?.passiveEffects : null;
+      if (passiveEffects) {
+        attackBonus = passiveEffects.getAttackBonus(activeId);
+      }
+    } catch(err) {
+      // Silent fail - bonus just won't apply
+    }
+    const totalDamage = tally.claw + attackBonus;
+    
     // Capture original health BEFORE applying claw damage so yield UI shows correct transition
     preDamageHP = {};
     if (attacker.inTokyo) {
@@ -85,21 +98,21 @@ export function resolveDice(store, logger) {
         if (pid !== activeId) {
           const target = current.players.byId[pid];
           if (!target.inTokyo && target.status.alive) {
-            store.dispatch(applyPlayerDamage(pid, tally.claw));
-            logger.info(`${activeId} claws ${pid} for ${tally.claw}`);
+            store.dispatch(applyPlayerDamage(pid, totalDamage));
+            logger.info(`${activeId} claws ${pid} for ${totalDamage}${attackBonus > 0 ? ` (${tally.claw}+${attackBonus} bonus)` : ''}`);
             damaged.push(pid);
           }
         }
       });
     } else {
       if (cityOcc) {
-        store.dispatch(applyPlayerDamage(cityOcc, tally.claw));
-        logger.info(`${activeId} claws ${cityOcc} in Tokyo City for ${tally.claw}`);
+        store.dispatch(applyPlayerDamage(cityOcc, totalDamage));
+        logger.info(`${activeId} claws ${cityOcc} in Tokyo City for ${totalDamage}${attackBonus > 0 ? ` (${tally.claw}+${attackBonus} bonus)` : ''}`);
         damaged.push(cityOcc);
       }
       if (bayOcc) {
-        store.dispatch(applyPlayerDamage(bayOcc, tally.claw));
-        logger.info(`${activeId} claws ${bayOcc} in Tokyo Bay for ${tally.claw}`);
+        store.dispatch(applyPlayerDamage(bayOcc, totalDamage));
+        logger.info(`${activeId} claws ${bayOcc} in Tokyo Bay for ${totalDamage}${attackBonus > 0 ? ` (${tally.claw}+${attackBonus} bonus)` : ''}`);
         damaged.push(bayOcc);
       }
     }
