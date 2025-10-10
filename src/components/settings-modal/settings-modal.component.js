@@ -36,32 +36,64 @@ if (!window.__KOT_WIN_ODDS__) {
         const energy = p.energy ?? 0;
         const inTokyo = !!p.inTokyo;
         const momentum = (p._recentVpGain || 0) + (p._recentEnergyGain || 0);
-        return { id, vp, health, energy, inTokyo, momentum };
+        
+        // Count power cards - check multiple possible locations
+        let powerCardCount = 0;
+        if (p.powerCards && Array.isArray(p.powerCards)) {
+          powerCardCount = p.powerCards.length;
+        } else if (p.cards && Array.isArray(p.cards)) {
+          powerCardCount = p.cards.length;
+        } else if (p.hand && Array.isArray(p.hand)) {
+          powerCardCount = p.hand.length;
+        }
+        
+        return { id, vp, health, energy, inTokyo, momentum, powerCardCount };
       });
+      
+      // Calculate averages and ranges for relative scoring
+      const avgHealth = features.reduce((sum, f) => sum + f.health, 0) / features.length;
+      const avgEnergy = features.reduce((sum, f) => sum + f.energy, 0) / features.length;
+      const avgCards = features.reduce((sum, f) => sum + f.powerCardCount, 0) / features.length;
       const maxVP = Math.max(...features.map(f=>f.vp), 0);
+      
+      // Adaptive weights based on game state
       const vpWeight = maxVP >= 15 ? 1.35 : (maxVP >= 10 ? 1.15 : 1.0);
       const healthWeight = 0.9;
       const energyWeight = 0.55;
       const tokyoWeight = 1.1;
       const momentumWeight = 0.4;
+      const powerCardWeight = 1.2; // Power cards are valuable
+      
       let total = 0;
       const rawScores = {};
       features.forEach(f => {
         const tokyoBonus = f.inTokyo ? (tokyoWeight * (f.vp >= 10 ? 1.15 : 1)) : 0;
+        
+        // Relative health scoring - advantage when above average
+        const healthScore = avgHealth > 0 ? (f.health / avgHealth) * healthWeight * 10 : f.health * healthWeight;
+        
+        // Relative energy scoring
+        const energyScore = avgEnergy > 0 ? (f.energy / avgEnergy) * energyWeight * 10 : f.energy * energyWeight;
+        
+        // Power card scoring - both absolute count and relative advantage
+        const cardScore = (f.powerCardCount * powerCardWeight * 2) + 
+                         (avgCards > 0 ? ((f.powerCardCount - avgCards) * powerCardWeight * 3) : 0);
+        
         const parts = {
           vp: f.vp * vpWeight,
-          health: f.health * healthWeight,
-          energy: f.energy * energyWeight,
+          health: Math.max(0, healthScore),
+          energy: Math.max(0, energyScore),
           tokyo: tokyoBonus,
-          momentum: f.momentum * momentumWeight
+          momentum: f.momentum * momentumWeight,
+          powerCards: Math.max(0, cardScore)
         };
-        const score = parts.vp + parts.health + parts.energy + parts.tokyo + parts.momentum;
+        const score = parts.vp + parts.health + parts.energy + parts.tokyo + parts.momentum + parts.powerCards;
         rawScores[f.id] = { score, parts };
         total += score;
       });
       if (total <= 0) {
         const pct = (100 / features.length);
-        const uniform = {}; features.forEach(f => uniform[f.id] = { percent: pct, parts: { vp:0,health:0,energy:0,tokyo:0,momentum:0 } });
+        const uniform = {}; features.forEach(f => uniform[f.id] = { percent: pct, parts: { vp:0,health:0,energy:0,tokyo:0,momentum:0,powerCards:0 } });
         return uniform;
       }
       const odds = {};
@@ -732,9 +764,10 @@ export function createSettingsModal() {
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path><path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path></svg>
                 </button>
               </div>
-              <div class="win-odds-body" id="dev-win-odds-chart" style="padding:16px;display:flex;flex-direction:column;gap:12px;min-height:180px;height:240px;overflow-y:auto;background:rgba(0,0,0,0.2);">
+              <div class="win-odds-body" id="dev-win-odds-chart" style="padding:16px;display:flex;flex-direction:column;gap:12px;min-height:180px;max-height:240px;overflow-y:auto;background:rgba(0,0,0,0.2);">
                 <div style="font-size:11px;opacity:.5;text-align:center;padding:20px;">Waiting for data...</div>
               </div>
+              <div id="dev-win-odds-insights" style="padding:0 16px 16px 16px;background:rgba(0,0,0,0.2);overflow-y:auto;max-height:200px;"></div>
               <div class="win-odds-footer" style="display:flex;align-items:center;gap:8px;padding:10px 16px;border-top:2px solid #2a3440;background:linear-gradient(90deg,rgba(19,24,31,0.95),rgba(15,20,25,0.95));">
                 <label style="font-size:11px;display:flex;align-items:center;gap:6px;margin:0;white-space:nowrap;font-weight:500;color:#94a3b8;">
                   <input type="checkbox" id="dev-win-odds-auto" checked style="width:14px;height:14px;cursor:pointer;" /> Auto
@@ -1331,7 +1364,12 @@ export function createSettingsModal() {
     // Backward compatibility if older numeric entries exist
     Object.keys(snapshotOdds).forEach(id => {
       const val = snapshotOdds[id];
-      if (typeof val === 'number') snapshotOdds[id] = { percent: val, parts: { vp:0,health:0,energy:0,tokyo:0,momentum:0 } };
+      if (typeof val === 'number') {
+        snapshotOdds[id] = { percent: val, parts: { vp:0,health:0,energy:0,tokyo:0,momentum:0,powerCards:0 } };
+      } else if (val && val.parts && !val.parts.powerCards) {
+        // Add powerCards to old snapshots that don't have it
+        val.parts.powerCards = 0;
+      }
     });
     return snapshotOdds;
   }
@@ -1482,6 +1520,113 @@ export function createSettingsModal() {
     }
     chart.innerHTML = bodyHtml;
   // mode label removed
+  
+    // Generate insights about odds leaders
+    const insightsDiv = content.querySelector('#dev-win-odds-insights');
+    if (insightsDiv) {
+      const sortedPlayers = [...players].sort((a, b) => {
+        const aOdds = odds[a.id]?.percent || 0;
+        const bOdds = odds[b.id]?.percent || 0;
+        return bOdds - aOdds;
+      });
+      
+      const leader = sortedPlayers[0];
+      const leaderOdds = odds[leader.id]?.percent || 0;
+      const leaderParts = odds[leader.id]?.parts || {};
+      
+      // Find dominant factors (normalize to percentages)
+      const partSum = Object.values(leaderParts).reduce((a, b) => a + b, 0) || 1;
+      const factors = Object.entries(leaderParts)
+        .map(([key, val]) => ({ key, val, pct: (val / partSum) * 100 }))
+        .filter(f => f.pct > 5) // Only show factors contributing >5%
+        .sort((a, b) => b.pct - a.pct);
+      
+      const factorLabels = {
+        vp: 'Victory Points',
+        health: 'Health',
+        energy: 'Energy',
+        tokyo: 'Tokyo Control',
+        momentum: 'Momentum',
+        powerCards: 'Power Cards'
+      };
+      
+      const factorIcons = {
+        vp: '🏆',
+        health: '❤️',
+        energy: '⚡',
+        tokyo: '🗼',
+        momentum: '📈',
+        powerCards: '🃏'
+      };
+      
+      let insightHTML = '';
+      if (leaderOdds > 0) {
+        const leaderName = leader.monster || leader.monsterName || leader.name || leader.id;
+        const leaderColor = monsterColor(leader, 0);
+        
+        insightHTML = `<div style='margin-top:16px;padding:16px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:8px;'>
+          <div style='display:flex;align-items:center;gap:8px;margin-bottom:12px;'>
+            <div style='font-size:16px;font-weight:700;color:${leaderColor};display:flex;align-items:center;gap:8px;'>
+              <i style='width:12px;height:12px;border-radius:50%;background:${leaderColor};box-shadow:0 0 8px ${leaderColor};'></i>
+              ${leaderName}
+            </div>
+            <div style='color:#818cf8;font-weight:600;font-size:18px;'>${leaderOdds.toFixed(1)}%</div>
+            <div style='opacity:0.6;font-size:13px;margin-left:auto;'>Leading</div>
+          </div>`;
+        
+        if (factors.length > 0) {
+          insightHTML += `<div style='font-size:12px;opacity:0.8;margin-bottom:8px;'>Key Advantages:</div>`;
+          insightHTML += `<div style='display:flex;flex-wrap:wrap;gap:8px;'>`;
+          
+          factors.slice(0, 4).forEach(f => {
+            const icon = factorIcons[f.key] || '●';
+            const label = factorLabels[f.key] || f.key;
+            const barWidth = Math.min(100, f.pct);
+            
+            insightHTML += `<div style='flex:1 1 200px;background:rgba(0,0,0,0.3);border:1px solid rgba(99,102,241,0.2);border-radius:6px;padding:8px;'>
+              <div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;'>
+                <span style='font-size:11px;opacity:0.9;'>${icon} ${label}</span>
+                <strong style='font-size:13px;color:#a5b4fc;'>${f.pct.toFixed(0)}%</strong>
+              </div>
+              <div style='background:rgba(0,0,0,0.4);height:6px;border-radius:3px;overflow:hidden;'>
+                <div style='height:100%;width:${barWidth}%;background:linear-gradient(90deg,#6366f1,#818cf8);box-shadow:0 0 8px rgba(99,102,241,0.5);transition:width 0.3s ease;'></div>
+              </div>
+            </div>`;
+          });
+          
+          insightHTML += `</div>`;
+        } else {
+          insightHTML += `<div style='opacity:0.5;font-style:italic;font-size:12px;'>Balanced across all factors</div>`;
+        }
+        
+        // Add comparison with second place if there is one
+        if (sortedPlayers.length > 1) {
+          const second = sortedPlayers[1];
+          const secondOdds = odds[second.id]?.percent || 0;
+          const gap = leaderOdds - secondOdds;
+          if (gap > 5) {
+            const secondName = second.monster || second.monsterName || second.name || second.id;
+            insightHTML += `<div style='margin-top:12px;padding-top:12px;border-top:1px solid rgba(99,102,241,0.15);font-size:11px;opacity:0.7;'>
+              📊 Leading ${secondName} by <strong style='color:#818cf8;'>${gap.toFixed(1)}</strong> percentage points
+            </div>`;
+          } else if (gap > 0 && gap <= 5) {
+            const secondName = second.monster || second.monsterName || second.name || second.id;
+            insightHTML += `<div style='margin-top:12px;padding-top:12px;border-top:1px solid rgba(99,102,241,0.15);font-size:11px;opacity:0.7;color:#fbbf24;'>
+              ⚠️ Close race with ${secondName} (${gap.toFixed(1)}% gap)
+            </div>`;
+          }
+        }
+        
+        insightHTML += `</div>`;
+      } else {
+        insightHTML = `<div style='margin-top:16px;padding:16px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:8px;opacity:0.5;font-style:italic;text-align:center;'>
+          No clear leader yet
+        </div>`;
+      }
+      
+      insightsDiv.innerHTML = insightHTML;
+    }
+  
     // Render compact trend summary
     if (trendDiv) {
       const summary = players.map(p => {
@@ -2644,6 +2789,7 @@ export function createSettingsModal() {
 
 // --- Quick Win Odds Mini Modal (independent of settings modal) ---
 export function openWinOddsQuickModal(){
+  console.log('[WIN ODDS] ===== openWinOddsQuickModal called - NEW VERSION WITH POWER CARD ANALYSIS =====');
   // If already open, bring to front
   const existing = document.getElementById('mini-win-odds-floating');
   if (existing) { existing.style.zIndex = '6905'; return; }
@@ -2674,6 +2820,7 @@ export function openWinOddsQuickModal(){
       </div>
       <div class="mini-wo-body">
         <div id="mini-win-odds-chart" class="mini-wo-chart"><div style="opacity:.55;font-size:11px;">Loading...</div></div>
+        <div id="mini-win-odds-insights" class="mini-wo-insights"></div>
       </div>
       <div class="mini-wo-footer">
         <label class="mini-wo-auto"><input type="checkbox" id="mini-win-odds-auto" checked /> Auto</label>
@@ -2771,7 +2918,9 @@ export function openWinOddsQuickModal(){
     closeBtn: wrapper.querySelector('#mini-win-odds-close'),
     autoCb: wrapper.querySelector('#mini-win-odds-auto'),
     chart: wrapper.querySelector('#mini-win-odds-chart'),
-    trend: wrapper.querySelector('#mini-win-odds-trend')
+    trend: wrapper.querySelector('#mini-win-odds-trend'),
+    insights: wrapper.querySelector('#mini-win-odds-insights'),
+    selectedPlayer: null  // Track selected player for power card analysis
   };
   
   // View mode icons (same as Analytics tab)
@@ -2803,6 +2952,218 @@ export function openWinOddsQuickModal(){
       wrapper._scaleContent();
     }
   });
+  
+  // Power card analysis renderer
+  function renderPowerCardAnalysis(player, odds, state, fontSize2, gap1, gap2, pad1, avgScale) {
+    console.log('[POWER CARD ANALYSIS] Starting analysis for player:', player);
+    const playerName = player.monster || player.monsterName || player.name || player.id;
+    const playerOdds = odds[player.id]?.percent || 0;
+    const playerCards = player.powerCards || player.cards || player.hand || [];
+    const shopCards = state.cards?.shop || [];
+    const playerEnergy = player.energy || 0;
+    
+    console.log('[POWER CARD ANALYSIS] Player cards:', playerCards);
+    console.log('[POWER CARD ANALYSIS] Shop cards:', shopCards);
+    console.log('[POWER CARD ANALYSIS] Player energy:', playerEnergy);
+    
+    // Analyze owned cards and their contributions
+    const ownedAnalysis = analyzeOwnedCards(player, playerCards, odds[player.id]?.parts || {});
+    
+    // Analyze available cards and their potential impact
+    const availableAnalysis = analyzeAvailableCards(player, shopCards, playerEnergy, odds, state);
+    
+    let html = `<div style='font-size:${fontSize2}px;padding:${pad1}px;background:rgba(0,0,0,0.3);border-top:1px solid #2c3440;max-height:${Math.round(300*avgScale)}px;overflow-y:auto;'>
+      <div style='margin-bottom:${gap2}px;padding-bottom:${gap1}px;border-bottom:1px solid #2c3440;'>
+        <div style='font-weight:600;color:#818cf8;margin-bottom:${gap1}px;'>🃏 ${playerName}'s Power Card Analysis</div>
+        <div style='opacity:0.7;font-size:0.95em;'>Win Odds: ${playerOdds.toFixed(1)}% • Energy: ⚡${playerEnergy}</div>
+      </div>`;
+    
+    // Two-column layout
+    html += `<div style='display:grid;grid-template-columns:1fr 1fr;gap:${gap2}px;'>`;
+    
+    // Left column: Owned Cards
+    html += `<div style='min-height:80px;'>
+      <div style='font-weight:600;margin-bottom:${gap1}px;opacity:0.8;'>✅ Your Cards (${playerCards.length})</div>`;
+    
+    if (ownedAnalysis.length > 0) {
+      ownedAnalysis.forEach(card => {
+        html += `<div style='background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:${gap1}px;padding:${gap1}px ${gap2}px;margin-bottom:${gap1}px;'>
+          <div style='display:flex;justify-content:space-between;align-items:center;'>
+            <strong style='font-size:0.95em;'>${card.name}</strong>
+            <span style='color:#22c55e;font-weight:600;font-size:0.9em;'>+${card.contribution}%</span>
+          </div>
+          <div style='opacity:0.7;font-size:0.85em;margin-top:${gap1}px;'>${card.reason}</div>
+        </div>`;
+      });
+    } else {
+      html += `<div style='opacity:0.5;font-style:italic;font-size:0.9em;'>No power cards owned</div>`;
+    }
+    
+    html += `</div>`;
+    
+    // Right column: Available Cards
+    html += `<div style='min-height:80px;'>
+      <div style='font-weight:600;margin-bottom:${gap1}px;opacity:0.8;'>💰 Available to Buy</div>`;
+    
+    if (availableAnalysis.length > 0) {
+      availableAnalysis.forEach(card => {
+        const canAfford = card.affordable;
+        const bgColor = canAfford ? 'rgba(99,102,241,0.15)' : 'rgba(100,100,100,0.1)';
+        const borderColor = canAfford ? 'rgba(99,102,241,0.4)' : 'rgba(100,100,100,0.3)';
+        const icon = canAfford ? '💎' : '🔒';
+        
+        html += `<div style='background:${bgColor};border:1px solid ${borderColor};border-radius:${gap1}px;padding:${gap1}px ${gap2}px;margin-bottom:${gap1}px;${!canAfford ? 'opacity:0.6;' : ''}'>
+          <div style='display:flex;justify-content:space-between;align-items:center;'>
+            <strong style='font-size:0.95em;'>${icon} ${card.name}</strong>
+            <span style='color:#818cf8;font-weight:600;font-size:0.9em;'>+${card.oddsIncrease.toFixed(1)}%</span>
+          </div>
+          <div style='display:flex;justify-content:space-between;align-items:center;margin-top:${gap1}px;'>
+            <span style='opacity:0.7;font-size:0.85em;'>${card.reason}</span>
+            <span style='font-size:0.85em;font-weight:600;'>⚡${card.cost}</span>
+          </div>
+        </div>`;
+      });
+    } else {
+      html += `<div style='opacity:0.5;font-style:italic;font-size:0.9em;'>No cards in shop</div>`;
+    }
+    
+    html += `</div></div>`;
+    
+    // Summary/tip
+    if (availableAnalysis.length > 0) {
+      const topCard = availableAnalysis[0];
+      if (topCard.affordable) {
+        html += `<div style='margin-top:${gap2}px;padding:${gap1}px ${gap2}px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);border-radius:${gap1}px;font-size:0.85em;'>
+          💡 <strong>Best Buy:</strong> ${topCard.name} (+${topCard.oddsIncrease.toFixed(1)}% odds)
+        </div>`;
+      } else if (playerEnergy < topCard.cost) {
+        const needed = topCard.cost - playerEnergy;
+        html += `<div style='margin-top:${gap2}px;padding:${gap1}px ${gap2}px;background:rgba(251,146,60,0.1);border:1px solid rgba(251,146,60,0.3);border-radius:${gap1}px;font-size:0.85em;'>
+          ⚠️ Need ${needed}⚡ more energy for best card (${topCard.name})
+        </div>`;
+      }
+    }
+    
+    html += `<div style='margin-top:${gap2}px;opacity:0.5;font-size:0.8em;text-align:center;'>
+      Click another player or click again to close
+    </div>`;
+    
+    html += `</div>`;
+    return html;
+  }
+  
+  // Analyze owned cards and their contributions
+  function analyzeOwnedCards(player, cards, parts) {
+    if (!cards || cards.length === 0) return [];
+    
+    const powerCardScore = parts.powerCards || 0;
+    const avgContribution = powerCardScore / cards.length;
+    
+    return cards.map(card => {
+      const cardName = card.name || card.id || 'Unknown Card';
+      let reason = '';
+      let contribution = avgContribution;
+      
+      // Determine card benefit based on effect type
+      if (card.effect) {
+        const effect = card.effect.toLowerCase();
+        if (effect.includes('victory') || effect.includes('vp') || effect.includes('point')) {
+          reason = 'Grants victory points';
+          contribution *= 1.3;
+        } else if (effect.includes('dice') || effect.includes('roll') || effect.includes('reroll')) {
+          reason = 'Dice manipulation advantage';
+          contribution *= 1.2;
+        } else if (effect.includes('energy')) {
+          reason = 'Energy generation';
+          contribution *= 1.1;
+        } else if (effect.includes('health') || effect.includes('heal')) {
+          reason = 'Health/survival boost';
+          contribution *= 1.15;
+        } else if (effect.includes('attack') || effect.includes('damage')) {
+          reason = 'Combat advantage';
+          contribution *= 1.2;
+        } else {
+          reason = 'Strategic advantage';
+        }
+      } else {
+        reason = 'Strategic advantage';
+      }
+      
+      return {
+        name: cardName,
+        contribution: Math.max(0.1, contribution).toFixed(1),
+        reason: reason
+      };
+    });
+  }
+  
+  // Analyze available cards and their potential impact
+  function analyzeAvailableCards(player, shopCards, playerEnergy, odds, state) {
+    if (!shopCards || shopCards.length === 0) return [];
+    
+    const currentOdds = odds[player.id]?.percent || 0;
+    const winOdds = window.__KOT_WIN_ODDS__?.obj;
+    
+    const analysis = shopCards.map(card => {
+      const affordable = playerEnergy >= card.cost;
+      
+      // Calculate hypothetical odds if this card was purchased
+      // Create hypothetical player state with the card added
+      const hypotheticalPlayer = {
+        ...player,
+        powerCards: [...(player.powerCards || player.cards || player.hand || []), card],
+        energy: playerEnergy - card.cost
+      };
+      
+      // Calculate hypothetical odds
+      let hypotheticalOdds = currentOdds;
+      if (winOdds) {
+        const hypotheticalState = {
+          ...state,
+          players: {
+            ...state.players,
+            byId: {
+              ...state.players.byId,
+              [player.id]: hypotheticalPlayer
+            }
+          }
+        };
+        const newOdds = winOdds.compute(hypotheticalState);
+        hypotheticalOdds = newOdds[player.id]?.percent || currentOdds;
+      }
+      
+      const oddsIncrease = Math.max(0, hypotheticalOdds - currentOdds);
+      
+      // Determine card benefit description
+      let reason = 'General advantage';
+      if (card.effect) {
+        const effect = card.effect.toLowerCase();
+        if (effect.includes('victory') || effect.includes('vp') || effect.includes('point')) {
+          reason = 'Victory points';
+        } else if (effect.includes('dice') || effect.includes('roll') || effect.includes('reroll')) {
+          reason = 'Dice control';
+        } else if (effect.includes('energy')) {
+          reason = 'Energy boost';
+        } else if (effect.includes('health') || effect.includes('heal')) {
+          reason = 'Survival';
+        } else if (effect.includes('attack') || effect.includes('damage')) {
+          reason = 'Combat';
+        }
+      }
+      
+      return {
+        name: card.name || card.id || 'Unknown Card',
+        cost: card.cost || 0,
+        affordable: affordable,
+        oddsIncrease: oddsIncrease,
+        reason: reason,
+        priority: affordable ? oddsIncrease * 2 : oddsIncrease
+      };
+    });
+    
+    // Sort by priority (affordable cards with high odds increase first)
+    return analysis.sort((a, b) => b.priority - a.priority);
+  }
   
   function renderMini(force){
     const winOdds = window.__KOT_WIN_ODDS__?.obj;
@@ -2843,7 +3204,12 @@ export function openWinOddsQuickModal(){
     function adaptSnapshotOdds(snapshotOdds){
       Object.keys(snapshotOdds).forEach(id => {
         const val = snapshotOdds[id];
-        if (typeof val === 'number') snapshotOdds[id] = { percent: val, parts: { vp:0,health:0,energy:0,tokyo:0,momentum:0 } };
+        if (typeof val === 'number') {
+          snapshotOdds[id] = { percent: val, parts: { vp:0,health:0,energy:0,tokyo:0,momentum:0,powerCards:0 } };
+        } else if (val && val.parts && !val.parts.powerCards) {
+          // Add powerCards to old snapshots that don't have it
+          val.parts.powerCards = 0;
+        }
       });
       return snapshotOdds;
     }
@@ -2932,7 +3298,11 @@ export function openWinOddsQuickModal(){
       players.forEach((p,idx) => {
         const { pct, arrow, deltaStr, tooltip, spark } = rowCommon(p);
         const c = monsterColor(p, idx);
-        html += `<tr>
+        const isSelected = mini.selectedPlayer === p.id;
+        const rowStyle = isSelected 
+          ? `background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.5);cursor:pointer;` 
+          : `cursor:pointer;transition:background 0.2s;`;
+        html += `<tr data-player-id="${p.id}" style='${rowStyle}' onmouseover="this.style.background='rgba(99,102,241,0.08)'" onmouseout="this.style.background='${isSelected ? 'rgba(99,102,241,0.15)' : ''}'">
           <td style='padding:${gap1}px ${gap2}px;' ${tooltip}><span style='display:inline-flex;align-items:center;gap:${gap2}px;'><i style="width:${iconSize1}px;height:${iconSize1}px;border-radius:50%;background:${c};box-shadow:0 0 ${gap1}px ${c}aa;display:inline-block;"></i>${p.name||p.id}</span></td>
           <td style='padding:${gap1}px ${gap2}px;font-variant-numeric:tabular-nums;' ${tooltip}>${pct.toFixed(1)}%</td>
           <td style='padding:${gap1}px ${gap2}px;'>${arrow} <span style='opacity:.65;'>${deltaStr}</span></td>
@@ -3000,6 +3370,97 @@ export function openWinOddsQuickModal(){
     
     mini.chart.innerHTML = html;
     
+    // Generate insights about why odds favor certain players
+    if (mini.insights) {
+      let insightHTML = '';
+      
+      console.log('[WIN ODDS] Rendering insights, selectedPlayer:', mini.selectedPlayer);
+      console.log('[WIN ODDS] Current mode:', winOdds.mode);
+      
+      // If player selected, show detailed power card analysis
+      if (mini.selectedPlayer) {
+        const selectedPlayer = players.find(p => p.id === mini.selectedPlayer);
+        console.log('[WIN ODDS] Selected player object:', selectedPlayer);
+        if (selectedPlayer) {
+          console.log('[WIN ODDS] Rendering power card analysis for:', selectedPlayer.name || selectedPlayer.id);
+          insightHTML = renderPowerCardAnalysis(selectedPlayer, odds, state, fontSize2, gap1, gap2, pad1, avgScale);
+        }
+      } else {
+        // Default leader insights
+        const sortedPlayers = [...players].sort((a, b) => {
+          const aOdds = odds[a.id]?.percent || 0;
+          const bOdds = odds[b.id]?.percent || 0;
+          return bOdds - aOdds;
+        });
+        
+        const leader = sortedPlayers[0];
+        const leaderOdds = odds[leader.id]?.percent || 0;
+        const leaderParts = odds[leader.id]?.parts || {};
+        
+        // Find dominant factors (normalize to percentages)
+        const partSum = Object.values(leaderParts).reduce((a, b) => a + b, 0) || 1;
+        const factors = Object.entries(leaderParts)
+          .map(([key, val]) => ({ key, val, pct: (val / partSum) * 100 }))
+          .filter(f => f.pct > 5) // Only show factors contributing >5%
+          .sort((a, b) => b.pct - a.pct);
+        
+        const factorLabels = {
+          vp: 'Victory Points',
+          health: 'Health',
+          energy: 'Energy',
+          tokyo: 'Tokyo Control',
+          momentum: 'Momentum',
+          powerCards: 'Power Cards'
+        };
+        
+        if (leaderOdds > 0) {
+          const leaderName = leader.monster || leader.monsterName || leader.name || leader.id;
+          insightHTML = `<div style='font-size:${fontSize2}px;padding:${pad1}px;background:rgba(0,0,0,0.3);border-top:1px solid #2c3440;'>
+            <div style='opacity:0.7;margin-bottom:${gap1}px;font-weight:600;'>📊 Why <strong style='color:#818cf8;'>${leaderName}</strong> leads (${leaderOdds.toFixed(1)}%):</div>`;
+          
+          if (factors.length > 0) {
+            const topFactors = factors.slice(0, 3).map(f => 
+              `<span style='display:inline-flex;align-items:center;gap:${gap1}px;padding:${gap1}px ${gap2}px;background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);border-radius:${gap1}px;margin-right:${gap1}px;margin-bottom:${gap1}px;'>
+                <strong>${factorLabels[f.key] || f.key}</strong> 
+                <span style='opacity:0.7;font-size:0.9em;'>${f.pct.toFixed(0)}%</span>
+              </span>`
+            ).join('');
+            insightHTML += `<div style='display:flex;flex-wrap:wrap;'>${topFactors}</div>`;
+          } else {
+            insightHTML += `<div style='opacity:0.5;font-style:italic;'>Balanced across all factors</div>`;
+          }
+          
+          // Add comparison with second place if there is one
+          if (sortedPlayers.length > 1) {
+            const second = sortedPlayers[1];
+            const secondOdds = odds[second.id]?.percent || 0;
+            const gap = leaderOdds - secondOdds;
+            if (gap > 5) {
+              const secondName = second.monster || second.monsterName || second.name || second.id;
+              insightHTML += `<div style='opacity:0.5;margin-top:${gap2}px;font-size:0.9em;'>
+                Leading ${secondName} by ${gap.toFixed(1)} percentage points
+              </div>`;
+            }
+          }
+          
+          insightHTML += `</div>`;
+        } else {
+          insightHTML = `<div style='font-size:${fontSize2}px;padding:${pad1}px;background:rgba(0,0,0,0.3);border-top:1px solid #2c3440;opacity:0.5;font-style:italic;'>
+            No clear leader yet
+          </div>`;
+        }
+        
+        // Add hint about table mode feature
+        if (winOdds.mode === 'table') {
+          insightHTML += `<div style='font-size:${Math.round(fontSize2 * 0.85)}px;padding:${gap1}px ${pad1}px;background:rgba(99,102,241,0.1);border-top:1px solid rgba(99,102,241,0.2);opacity:0.8;text-align:center;'>
+            💡 <strong>Tip:</strong> Click any player row for power card analysis
+          </div>`;
+        }
+      }
+      
+      mini.insights.innerHTML = insightHTML;
+    }
+    
     // Update trend
     if (mini.trend) {
       const summary = players.map(p => {
@@ -3029,6 +3490,20 @@ export function openWinOddsQuickModal(){
     setTimeout(()=>renderMini(true), 40); 
   });
   mini.closeBtn.addEventListener('click', ()=> wrapper.remove());
+  
+  // Player row selection for power card analysis
+  mini.chart.addEventListener('click', (e) => {
+    console.log('[WIN ODDS] Chart clicked', e.target);
+    const row = e.target.closest('[data-player-id]');
+    console.log('[WIN ODDS] Closest row with data-player-id:', row);
+    if (row) {
+      const playerId = row.dataset.playerId;
+      console.log('[WIN ODDS] Player selected:', playerId, 'Previous:', mini.selectedPlayer);
+      mini.selectedPlayer = mini.selectedPlayer === playerId ? null : playerId;
+      console.log('[WIN ODDS] New selected player:', mini.selectedPlayer);
+      renderMini(true);
+    }
+  });
   const storeRef = window.__KOT_NEW__?.store;
   if (storeRef) storeRef.subscribe(()=>{ if (mini.autoCb.checked) renderMini(); });
   setTimeout(()=>renderMini(true), 60);

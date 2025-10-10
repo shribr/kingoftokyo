@@ -9,8 +9,9 @@
 .mini-wo-btn { background:transparent; border:none; color:#cbd5e1; font-size:1.2em; padding:2px; width:auto; height:auto; border-radius:0; line-height:1; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:none; }
 .mini-wo-btn:hover { background:#25303b; }
 .mini-wo-header-tools { display:flex; gap:6px; }
-.mini-wo-body { flex:1; padding:6px 8px; display:flex; flex-direction:column; overflow:hidden; font-size:inherit; }
-.mini-wo-chart { flex:1; overflow:hidden; display:flex; flex-direction:column; gap:6px; }
+.mini-wo-body { flex:1; padding:6px 8px; display:flex; flex-direction:column; overflow:auto; font-size:inherit; }
+.mini-wo-chart { flex:0 1 auto; overflow:hidden; display:flex; flex-direction:column; gap:6px; }
+.mini-wo-insights { flex:0 0 auto; }
 
 /* Ensure SVG charts scale smoothly */
 .mini-wo-chart svg { 
