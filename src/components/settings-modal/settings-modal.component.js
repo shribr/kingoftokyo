@@ -769,14 +769,15 @@ export function createSettingsModal() {
 
           <div class="field">
             <label class="field-label">🎲 CPU Roll Testing</label>
-            <div style="display:flex;gap:24px;align-items:center;margin-top:8px;max-width:600px;">
+            <div style="display:flex;gap:24px;align-items:center;margin-top:8px;max-width:400px;">
               <div style="flex:1;">
                 <label style="font-size:12px;color:#999;display:block;margin-bottom:4px;">Delay Between CPU Rolls (ms)</label>
                 <input type="range" name="cpuRollDelay" min="0" max="5000" step="100" value="1200" 
+                  class="cpu-roll-slider"
                   style="width:100%;cursor:pointer;" />
                 <div style="display:flex;justify-content:space-between;font-size:11px;color:#666;margin-top:2px;">
                   <span>0ms (instant)</span>
-                  <span id="cpu-roll-delay-value" style="color:#f4d03f;font-weight:bold;">1200ms</span>
+                  <span id="cpu-roll-delay-value" style="color:#ffd54d;font-weight:bold;">1200ms</span>
                   <span>5000ms (slow)</span>
                 </div>
               </div>

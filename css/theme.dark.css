@@ -172,13 +172,14 @@ body.dark-mode .cmp-action-menu {
   border-color: #222;
 }
 
-body.dark-mode .cmp-action-menu button {
+/* Only apply dark theme to generic buttons, not those with specific action colors */
+body.dark-mode .cmp-action-menu button:not([data-action="roll"]):not([data-action="accept-dice"]):not([data-action="end"]):not([data-action="power-cards"]):not([data-action="show-my-cards"]):not([data-action="flush"]):not([data-action="keep"]) {
   background: linear-gradient(135deg, #3b4245, #23272a);
   border-color: #000;
   color: #e0e0e0;
 }
 
-body.dark-mode .cmp-action-menu button:hover {
+body.dark-mode .cmp-action-menu button:not([data-action="roll"]):not([data-action="accept-dice"]):not([data-action="end"]):not([data-action="power-cards"]):not([data-action="show-my-cards"]):not([data-action="flush"]):not([data-action="keep"]):hover {
   background: linear-gradient(135deg, #4a5255, #2d3739);
 }
 
@@ -209,7 +210,7 @@ body.dark-mode .player-card {
   border-color: #555;
 }
 
-body.dark-mode input,
+body.dark-mode input:not(.cpu-roll-slider),
 body.dark-mode button:not(.toolbar-btn):not(.mini-wo-btn):not(.cmp-action-menu button):not(.power-card button):not(.cd-close) {
   background: #555;
   color: #e0e0e0;

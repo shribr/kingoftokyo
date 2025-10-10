@@ -59,6 +59,62 @@
   .modal.settings .field select { width: 100%; }
   .modal.settings input[type="checkbox"] { transform: translateY(1px); }
 
+  /* CPU Roll Delay Slider - Yellow Theme (with high specificity to override dark mode) */
+  input.cpu-roll-slider,
+  body.dark-mode input.cpu-roll-slider,
+  .modal input.cpu-roll-slider {
+    appearance: none;
+    height: 8px;
+    background: linear-gradient(90deg, #ffd54d, #ffb84d) !important;
+    border: 2px solid #000 !important;
+    border-radius: 4px;
+    outline: none;
+    box-shadow: 2px 2px 0 #000, inset 0 1px 3px rgba(0,0,0,0.3);
+    color: transparent;
+  }
+  
+  input.cpu-roll-slider::-webkit-slider-thumb,
+  body.dark-mode input.cpu-roll-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #ffd54d;
+    border: 3px solid #000;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 0 2px #ffd54d, 2px 2px 0 #000;
+    transition: transform 0.1s ease;
+  }
+  
+  input.cpu-roll-slider::-webkit-slider-thumb:hover,
+  body.dark-mode input.cpu-roll-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+    background: #ffe066;
+  }
+  
+  input.cpu-roll-slider::-moz-range-thumb,
+  body.dark-mode input.cpu-roll-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #ffd54d;
+    border: 3px solid #000;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 0 2px #ffd54d, 2px 2px 0 #000;
+    transition: transform 0.1s ease;
+  }
+  
+  input.cpu-roll-slider::-moz-range-thumb:hover,
+  body.dark-mode input.cpu-roll-slider::-moz-range-thumb:hover {
+    transform: scale(1.1);
+    background: #ffe066;
+  }
+  
+  input.cpu-roll-slider:focus,
+  body.dark-mode input.cpu-roll-slider:focus {
+    outline: none;
+  }
+
   /* About Modal - Larger size for feature list */
   .modal.modal-about-large { width: clamp(320px, 80vw, 960px); max-height: 85vh; }
   .modal.modal-about-large .modal-body { max-height: calc(85vh - 60px); }
