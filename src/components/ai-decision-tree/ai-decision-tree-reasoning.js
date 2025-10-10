@@ -67,7 +67,7 @@ export function generateConversationalDiceAnalysis(diceArray, decision, gameConf
     '1': { type: 'number', symbol: '1', value: 1, description: 'Victory points' },
     '2': { type: 'number', symbol: '2', value: 2, description: 'Victory points' },
     '3': { type: 'number', symbol: '3', value: 3, description: 'Victory points' },
-    'attack': { type: 'special', symbol: '⚔️', description: 'Attack opponents' },
+    'attack': { type: 'special', symbol: '<img src="images/king_of_tokyo_claw.png" alt="claw" class="dice-claw-icon">', description: 'Attack opponents' },
     'energy': { type: 'special', symbol: '⚡', description: 'Buy power cards' },
     'heal': { type: 'special', symbol: '❤️', description: 'Restore health' }
   };

@@ -164,3 +164,17 @@ body:not(.splash-visible) .cmp-dice-tray { visibility:visible; opacity:1; }
   /* Slight visual compression when collapsed */
   .cmp-dice-tray[data-collapsed="left"] .tray-frame { opacity:.85; filter:brightness(.9) contrast(.95); }
 }
+
+/* Claw icon styling */
+.dice-claw-icon {
+  width: 1.2em;
+  height: 1.2em;
+  display: inline-block;
+  vertical-align: middle;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+.mini-die .dice-claw-icon {
+  width: 1em;
+  height: 1em;
+}

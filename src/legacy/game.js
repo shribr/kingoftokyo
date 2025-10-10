@@ -862,7 +862,7 @@ class KingOfTokyoGame {
                             return `<span class="dice-box dice-number">${face}</span>`;
                         }
                         if (face === 'energy') return '<span class="dice-box dice-energy">⚡</span>';
-                        if (face === 'attack') return '<span class="dice-box dice-attack">⚔️</span>';
+                        if (face === 'attack') return '<span class="dice-box dice-attack"><img src="images/king_of_tokyo_claw.png" alt="claw" class="dice-claw-icon-legacy"></span>';
                         if (face === 'heal') return '<span class="dice-box dice-heal">❤️</span>';
                         return `<span class="dice-box">${face}</span>`;
                     };
@@ -1065,7 +1065,7 @@ class KingOfTokyoGame {
             
             // For special symbols, use styled spans
             if (face === 'energy') return '<span class="dice-box dice-energy">⚡</span>';
-            if (face === 'attack') return '<span class="dice-box dice-attack">⚔️</span>';
+            if (face === 'attack') return '<span class="dice-box dice-attack"><img src="images/king_of_tokyo_claw.png" alt="claw" class="dice-claw-icon-legacy"></span>';
             if (face === 'heal') return '<span class="dice-box dice-heal">❤️</span>';
             
             // Fallback
@@ -2860,8 +2860,8 @@ class KingOfTokyoGame {
             'dice-result': '🎯',
             'dice-faces': '🎲',
             'dice-faces-detail': '📋',
-            'attack': '⚔️',
-            'attack-detail': '⚔️',
+            'attack': '<img src="images/king_of_tokyo_claw.png" alt="claw" class="dice-claw-icon-legacy">',
+            'attack-detail': '<img src="images/king_of_tokyo_claw.png" alt="claw" class="dice-claw-icon-legacy">',
             'damage': '💥',
             'damage-detail': '🩹',
             'energy-gain': '⚡',

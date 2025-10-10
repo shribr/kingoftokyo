@@ -3281,7 +3281,7 @@ class KingOfTokyoUI {
                     // Not rolling: show current face (or ? if never rolled)
                     displaySymbol = dieData.symbol || '?';
                 }
-                dieElement.textContent = displaySymbol;
+                dieElement.innerHTML = displaySymbol;
                 
                 // Update classes - build the class string exactly like the old createDiceHTML
                 dieElement.className = `die${dieData.isSelected ? ' selected' : ''}${dieData.isRolling ? ' rolling' : ''}${dieData.isDisabled ? ' disabled' : ''}`;
@@ -5429,8 +5429,8 @@ class KingOfTokyoUI {
             '1': '1',
             '2': '2',
             '3': '3',
-            '⚔️': '⚔️',
-            'attack': '⚔️',
+            '⚔️': '<img src="images/king_of_tokyo_claw.png" alt="claw" class="dice-claw-icon-legacy">',
+            'attack': '<img src="images/king_of_tokyo_claw.png" alt="claw" class="dice-claw-icon-legacy">',
             '⚡': '⚡',
             'energy': '⚡',
             '❤️': '❤️',
@@ -9563,7 +9563,7 @@ class KingOfTokyoUI {
                 cls += ' kept';
             }
             die.className = cls;
-            die.textContent = symbolic;
+            die.innerHTML = symbolic;
             diceContainer.appendChild(die);
         });
     }
@@ -9590,8 +9590,8 @@ class KingOfTokyoUI {
             3: '3',  // 3 points
             4: '❤️', // Heal
             5: '⚡', // Energy
-            6: '⚔️', // Attack
-            'attack': '⚔️',
+            6: '<img src="images/king_of_tokyo_claw.png" alt="claw" class="dice-claw-icon-legacy">', // Attack
+            'attack': '<img src="images/king_of_tokyo_claw.png" alt="claw" class="dice-claw-icon-legacy">',
             'smash': '💥', 
             'energy': '⚡',
             'heal': '❤️',

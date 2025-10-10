@@ -4,7 +4,7 @@ let DICE_FACES = {
     '2': { symbol: '2', value: 2, type: 'number' },
     '3': { symbol: '3', value: 3, type: 'number' },
     'energy': { symbol: '⚡', value: 1, type: 'energy' },
-    'attack': { symbol: '⚔️', value: 1, type: 'attack' }, // Sword/claw weapon
+    'attack': { symbol: '<img src="images/king_of_tokyo_claw.png" alt="claw" class="dice-claw-icon-legacy">', value: 1, type: 'attack' }, // Claw weapon
     'heal': { symbol: '❤️', value: 1, type: 'heal' }
 };
 

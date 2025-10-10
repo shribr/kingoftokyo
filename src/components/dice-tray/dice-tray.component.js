@@ -216,7 +216,7 @@ export function update(root, { state }) {
           setTimeout(() => {
             dieEl.classList.remove('rolling');
             dieEl.classList.remove('reveal-pending');
-            try { dieEl.textContent = symbolFor(face.value); } catch(_) {}
+            try { dieEl.innerHTML = symbolFor(face.value); } catch(_) {}
           }, DURATION);
         } else {
           dieEl.classList.remove('rolling');
@@ -230,7 +230,7 @@ export function update(root, { state }) {
     faces.forEach((face, i) => {
       const dieEl = diceContainer.querySelector(`[data-die-index="${i}"]`);
       if (dieEl && face && !face.kept) {
-        dieEl.textContent = symbolFor(face.value);
+        dieEl.innerHTML = symbolFor(face.value);
         dieEl.classList.remove('rolling','reveal-pending');
       }
     });
@@ -274,9 +274,9 @@ function symbolFor(v) {
     case 'heart': return '❤️';
     case 'heal': return '❤️'; // synonym used by legacy/config
     case 'energy': return '⚡';
-    case 'claw': return '⚔️';
-    case 'attack': return '⚔️'; // synonym used by legacy/config
-    case 'smash': return '⚔️'; // safety: map any smash nomenclature to attack icon
+    case 'claw': return '<img src="images/king_of_tokyo_claw.png" alt="claw" class="dice-claw-icon">';
+    case 'attack': return '<img src="images/king_of_tokyo_claw.png" alt="claw" class="dice-claw-icon">'; // synonym used by legacy/config
+    case 'smash': return '<img src="images/king_of_tokyo_claw.png" alt="claw" class="dice-claw-icon">'; // safety: map any smash nomenclature to attack icon
     case '1': return '1';
     case '2': return '2';
     case '3': return '3';

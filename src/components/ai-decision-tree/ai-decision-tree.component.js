@@ -439,7 +439,7 @@ function getLegacyDiceSymbol(face) {
 // Helper to render a dice icon in goal text
 function renderDiceInGoal(face) {
   const faceClass = ['1','2','3'].includes(face) ? `face-${face}` : `face-${face}`;
-  const display = ({'attack':'🗡️','claw':'🗡️','energy':'⚡','heart':'❤'}[face]) || face;
+  const display = ({'attack':'<img src="images/king_of_tokyo_claw.png" alt="claw" class="dice-claw-icon-inline">','claw':'<img src="images/king_of_tokyo_claw.png" alt="claw" class="dice-claw-icon-inline">','energy':'⚡','heart':'❤'}[face]) || face;
   return `<span class="adt-std-die ${faceClass}" data-face="${face}">${display}</span>`;
 }
 
