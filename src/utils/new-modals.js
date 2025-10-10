@@ -2197,6 +2197,11 @@ export function openWinOddsQuickModal(){
     
     const players = state.players.order.map(id => state.players.byId[id]).filter(p => !p.eliminated && !p.isEliminated);
     
+    // Apply scaling before rendering
+    if (wrapper._scaleContent) {
+      wrapper._scaleContent();
+    }
+    
     // Helper: adaptSnapshotOdds
     function adaptSnapshotOdds(snapshotOdds){
       Object.keys(snapshotOdds).forEach(id => {
@@ -2264,6 +2269,12 @@ export function openWinOddsQuickModal(){
     const sparkWidth = Math.round(3 * avgScale);
     const gapSize = Math.round(4 * avgScale);
     const paddingSize = Math.round(8 * avgScale);
+    
+    console.log('[Win Odds Render Scale]', { 
+      modalWidth, modalHeight, 
+      widthScale, heightScale, avgScale,
+      baseFontSize, iconSize, barHeight, sparkHeight 
+    });
     
     let html = '';
     if (winOdds.mode === 'bars') {
@@ -2449,7 +2460,8 @@ export function openWinOddsQuickModal(){
       baseFontSize = 16;
     }
     
-    wrapper.style.fontSize = baseFontSize + 'px';
+    console.log('[Win Odds Scale]', { width, height, avgDimension, baseFontSize });
+    wrapper.style.setProperty('font-size', baseFontSize + 'px', 'important');
   };
   
   wrapper._resizeHandler = () => {

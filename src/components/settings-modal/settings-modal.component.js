@@ -2755,11 +2755,13 @@ export function openWinOddsQuickModal(){
       wrapper.style.top = newTop + 'px';
       wrapper.style.right = newRight + 'px';
       wrapper._persist?.(); 
+      wrapper._scaleContent?.();
     }
     function onUp(){ 
       resizing=false; 
       document.removeEventListener('mousemove', onMove); 
-      document.removeEventListener('mouseup', onUp); 
+      document.removeEventListener('mouseup', onUp);
+      wrapper._scaleContent?.();
     }
     wrapper.addEventListener('mousedown', onDown);
   })();
@@ -2788,6 +2790,20 @@ export function openWinOddsQuickModal(){
     }
   }
   
+  // Scaling helper - called when modal is resized
+  wrapper._scaleContent = function() {
+    console.log('[WIN ODDS] _scaleContent called, triggering renderMini');
+    renderMini(true);
+  };
+  
+  // Window resize handler - also rescale on window resize
+  window.addEventListener('resize', () => {
+    if (document.body.contains(wrapper)) {
+      console.log('[WIN ODDS] Window resize detected, rescaling content');
+      wrapper._scaleContent();
+    }
+  });
+  
   function renderMini(force){
     const winOdds = window.__KOT_WIN_ODDS__?.obj;
     if (!winOdds || !mini.chart) return;
@@ -2797,6 +2813,21 @@ export function openWinOddsQuickModal(){
       mini.chart.innerHTML = '<div style="font-size:11px;opacity:.5;">No state</div>'; 
       return; 
     }
+
+    // Calculate scaling factor based on modal dimensions
+    const modalWidth = wrapper.offsetWidth || 420;
+    const modalHeight = wrapper.offsetHeight || 500;
+    const baseWidth = 420;
+    const baseHeight = 500;
+    const scaleX = modalWidth / baseWidth;
+    const scaleY = modalHeight / baseHeight;
+    const avgScale = (scaleX + scaleY) / 2;
+    
+    console.log('[WIN ODDS SCALING]', {
+      modalWidth, modalHeight, baseWidth, baseHeight,
+      scaleX: scaleX.toFixed(2), scaleY: scaleY.toFixed(2), 
+      avgScale: avgScale.toFixed(2)
+    });
     
     // Compute fresh odds
     let odds = winOdds.compute(state);
@@ -2856,71 +2887,87 @@ export function openWinOddsQuickModal(){
       return { pct, prevPct, delta, arrow, deltaStr, tooltip, spark };
     }
     
+    // Responsive sizing based on scale
+    const gap1 = Math.round(4 * avgScale);
+    const gap2 = Math.round(6 * avgScale);
+    const gap3 = Math.round(8 * avgScale);
+    const gap4 = Math.round(10 * avgScale);
+    const pad1 = Math.round(8 * avgScale);
+    const fontSize1 = Math.round(11 * avgScale);
+    const fontSize2 = Math.round(10 * avgScale);
+    const iconSize1 = Math.round(8 * avgScale);
+    const iconSize2 = Math.round(10 * avgScale);
+    const barHeight = Math.round(10 * avgScale);
+    const sparkHeight = Math.round(12 * avgScale);
+    const sparkWidth = Math.round(3 * avgScale);
+
     // Render based on mode
     let html = '';
     if (winOdds.mode === 'bars') {
-      html = '<div style="display:flex;flex-direction:column;gap:4px;padding:8px;">';
+      html = `<div style="display:flex;flex-direction:column;gap:${gap1}px;padding:${pad1}px;">`;
       players.forEach((p,idx) => {
         const { pct, arrow, deltaStr, tooltip, spark } = rowCommon(p);
         const barW = Math.max(2, Math.min(100, pct)).toFixed(1);
         const c = monsterColor(p, idx);
         const grad = `linear-gradient(90deg, ${c}, ${c}cc)`;
-        html += `<div style='display:flex;flex-direction:column;gap:4px;'>
-          <div style='display:flex;justify-content:space-between;align-items:center;font-size:11px;'>
-            <span style='display:flex;align-items:center;gap:6px;' ${tooltip}>${arrow}<i style='width:8px;height:8px;border-radius:50%;background:${c};box-shadow:0 0 4px ${c}aa;display:inline-block;'></i><strong style='letter-spacing:.5px;'>${p.name||p.id}</strong> ${spark}</span>
+        html += `<div style='display:flex;flex-direction:column;gap:${gap1}px;'>
+          <div style='display:flex;justify-content:space-between;align-items:center;font-size:${fontSize1}px;'>
+            <span style='display:flex;align-items:center;gap:${gap2}px;' ${tooltip}>${arrow}<i style='width:${iconSize1}px;height:${iconSize1}px;border-radius:50%;background:${c};box-shadow:0 0 ${gap1}px ${c}aa;display:inline-block;'></i><strong style='letter-spacing:.5px;'>${p.name||p.id}</strong> ${spark}</span>
             <span style='font-variant-numeric:tabular-nums;' ${tooltip}>${pct.toFixed(1)}% <span style='opacity:.55;'>${deltaStr}</span></span>
           </div>
-          <div style='background:#1d232c;border:1px solid #2c3440;border-radius:4px;height:10px;position:relative;overflow:hidden;'>
-            <div style='position:absolute;left:0;top:0;bottom:0;width:${barW}%;background:${grad};box-shadow:0 0 6px ${c}66;transition:width .4s ease;'></div>
+          <div style='background:#1d232c;border:1px solid #2c3440;border-radius:${gap1}px;height:${barHeight}px;position:relative;overflow:hidden;'>
+            <div style='position:absolute;left:0;top:0;bottom:0;width:${barW}%;background:${grad};box-shadow:0 0 ${gap2}px ${c}66;transition:width .4s ease;'></div>
           </div>
         </div>`;
       });
       html += '</div>';
     } else if (winOdds.mode === 'table') {
-      html = `<div style="padding:8px;font-size:11px;"><table style='width:100%;border-collapse:collapse;'>
+      html = `<div style="padding:${pad1}px;font-size:${fontSize1}px;"><table style='width:100%;border-collapse:collapse;'>
         <thead><tr style='text-align:left;'>
-          <th style='padding:4px 6px;border-bottom:1px solid #222;'>Player</th>
-          <th style='padding:4px 6px;border-bottom:1px solid #222;'>Odds %</th>
-          <th style='padding:4px 6px;border-bottom:1px solid #222;'>Δ</th>
-          <th style='padding:4px 6px;border-bottom:1px solid #222;'>Trend</th>
+          <th style='padding:${gap1}px ${gap2}px;border-bottom:1px solid #222;'>Player</th>
+          <th style='padding:${gap1}px ${gap2}px;border-bottom:1px solid #222;'>Odds %</th>
+          <th style='padding:${gap1}px ${gap2}px;border-bottom:1px solid #222;'>Δ</th>
+          <th style='padding:${gap1}px ${gap2}px;border-bottom:1px solid #222;'>Trend</th>
         </tr></thead><tbody>`;
       players.forEach((p,idx) => {
         const { pct, arrow, deltaStr, tooltip, spark } = rowCommon(p);
         const c = monsterColor(p, idx);
         html += `<tr>
-          <td style='padding:4px 6px;' ${tooltip}><span style='display:inline-flex;align-items:center;gap:6px;'><i style="width:8px;height:8px;border-radius:50%;background:${c};box-shadow:0 0 4px ${c}aa;display:inline-block;"></i>${p.name||p.id}</span></td>
-          <td style='padding:4px 6px;font-variant-numeric:tabular-nums;' ${tooltip}>${pct.toFixed(1)}%</td>
-          <td style='padding:4px 6px;'>${arrow} <span style='opacity:.65;'>${deltaStr}</span></td>
-          <td style='padding:4px 6px;'>${spark}</td>
+          <td style='padding:${gap1}px ${gap2}px;' ${tooltip}><span style='display:inline-flex;align-items:center;gap:${gap2}px;'><i style="width:${iconSize1}px;height:${iconSize1}px;border-radius:50%;background:${c};box-shadow:0 0 ${gap1}px ${c}aa;display:inline-block;"></i>${p.name||p.id}</span></td>
+          <td style='padding:${gap1}px ${gap2}px;font-variant-numeric:tabular-nums;' ${tooltip}>${pct.toFixed(1)}%</td>
+          <td style='padding:${gap1}px ${gap2}px;'>${arrow} <span style='opacity:.65;'>${deltaStr}</span></td>
+          <td style='padding:${gap1}px ${gap2}px;'>${spark}</td>
         </tr>`;
       });
       html += '</tbody></table></div>';
     } else if (winOdds.mode === 'compact') {
-      html = `<div style='display:flex;flex-wrap:wrap;gap:10px;font-size:11px;padding:8px;'>`;
+      html = `<div style='display:flex;flex-wrap:wrap;gap:${gap4}px;font-size:${fontSize1}px;padding:${pad1}px;'>`;
       players.forEach((p,idx) => {
         const { pct, arrow, tooltip } = rowCommon(p);
         const c = monsterColor(p, idx);
-        html += `<span style='display:inline-flex;align-items:center;gap:6px;padding:4px 6px;background:#1d232c;border:1px solid #2c3440;border-radius:4px;' ${tooltip}>${arrow}<i style='width:8px;height:8px;border-radius:50%;background:${c};box-shadow:0 0 4px ${c}aa;'></i><strong>${p.name||p.id}</strong> ${pct.toFixed(1)}%</span>`;
+        html += `<span style='display:inline-flex;align-items:center;gap:${gap2}px;padding:${gap1}px ${gap2}px;background:#1d232c;border:1px solid #2c3440;border-radius:${gap1}px;' ${tooltip}>${arrow}<i style='width:${iconSize1}px;height:${iconSize1}px;border-radius:50%;background:${c};box-shadow:0 0 ${gap1}px ${c}aa;'></i><strong>${p.name||p.id}</strong> ${pct.toFixed(1)}%</span>`;
       });
       html += '</div>';
     } else if (winOdds.mode === 'stacked') {
+      const stackedHeight = Math.round(42 * avgScale);
       const segs = players.map((p,idx) => {
         const { pct, tooltip } = rowCommon(p);
         const w = pct.toFixed(2);
         const c = monsterColor(p, idx);
-        return `<div ${tooltip} style='flex:0 0 ${w}%;background:linear-gradient(135deg,${c},${c}cc 60%);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;position:relative;'>
+        return `<div ${tooltip} style='flex:0 0 ${w}%;background:linear-gradient(135deg,${c},${c}cc 60%);display:flex;align-items:center;justify-content:center;font-size:${fontSize2}px;color:#fff;position:relative;'>
           <span style='pointer-events:none;text-shadow:0 1px 2px #000;font-weight:600;'>${p.name||p.id} ${pct.toFixed(1)}%</span>
         </div>`;
       }).join('');
-      html = `<div style='padding:8px;'><div style='display:flex;width:100%;height:42px;border:1px solid #2c3440;border-radius:6px;overflow:hidden;'>${segs}</div></div>`;
+      html = `<div style='padding:${pad1}px;'><div style='display:flex;width:100%;height:${stackedHeight}px;border:1px solid #2c3440;border-radius:${gap2}px;overflow:hidden;'>${segs}</div></div>`;
     } else if (winOdds.mode === 'monitor') {
-      // Line graph
-      const CELL = 30;
+      // Line graph with responsive sizing
+      const CELL = Math.round(30 * avgScale);
       const COLS = 10;
       const ROWS = 4;
       const W = CELL * COLS;
       const H = CELL * ROWS;
       const MAX_POINTS = 40;
+      const strokeWidth = Math.max(1, Math.round(2 * avgScale));
       const hist = winOdds.history.slice(-MAX_POINTS);
       const gridLines = [];
       for (let y=0;y<=ROWS;y++){ const gy = (H - (y/ROWS)*H).toFixed(2); gridLines.push(`<line x1='0' y1='${gy}' x2='${W}' y2='${gy}' stroke='rgba(255,255,255,.07)' stroke-width='1' />`); }
@@ -2935,19 +2982,19 @@ export function openWinOddsQuickModal(){
           const y = H - (v/100)*H;
           d += (i===0?`M ${x.toFixed(2)} ${y.toFixed(2)}`:` L ${x.toFixed(2)} ${y.toFixed(2)}`);
         });
-        return `<path d='${d}' fill='none' stroke='${c}' stroke-width='2' vector-effect='non-scaling-stroke' stroke-linejoin='round' stroke-linecap='round' />`;
+        return `<path d='${d}' fill='none' stroke='${c}' stroke-width='${strokeWidth}' vector-effect='non-scaling-stroke' stroke-linejoin='round' stroke-linecap='round' />`;
       }).join('');
-      const legend = players.map((p,idx)=>{ const c = monsterColor(p, idx); const cur = odds[p.id]?.percent||0; return `<span style='display:inline-flex;align-items:center;gap:4px;font-size:10px;'>
-        <i style='width:10px;height:10px;border-radius:2px;background:${c};box-shadow:0 0 6px ${c}aa;'></i>${p.name||p.id} ${cur.toFixed(1)}%
+      const legend = players.map((p,idx)=>{ const c = monsterColor(p, idx); const cur = odds[p.id]?.percent||0; return `<span style='display:inline-flex;align-items:center;gap:${gap1}px;font-size:${fontSize2}px;'>
+        <i style='width:${iconSize2}px;height:${iconSize2}px;border-radius:2px;background:${c};box-shadow:0 0 ${gap2}px ${c}aa;'></i>${p.name||p.id} ${cur.toFixed(1)}%
       </span>`; }).join('<span style="opacity:.3;">|</span>');
-      html = `<div style='display:flex;flex-direction:column;gap:6px;padding:8px;'>
-        <div style='background:#000;border:1px solid #222;border-radius:6px;padding:6px;position:relative;'>
+      html = `<div style='display:flex;flex-direction:column;gap:${gap2}px;padding:${pad1}px;'>
+        <div style='background:#000;border:1px solid #222;border-radius:${gap2}px;padding:${gap2}px;position:relative;'>
           <svg viewBox='0 0 ${W} ${H}' preserveAspectRatio='xMidYMid meet' style='width:100%;aspect-ratio:${W}/${H};display:block;background:#000;'>
             <g>${gridLines.join('')}</g>
             <g>${paths}</g>
           </svg>
         </div>
-        <div style='display:flex;flex-wrap:wrap;gap:8px;justify-content:center;'>${legend}</div>
+        <div style='display:flex;flex-wrap:wrap;gap:${gap3}px;justify-content:center;'>${legend}</div>
       </div>`;
     }
     
