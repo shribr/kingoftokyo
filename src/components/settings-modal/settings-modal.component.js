@@ -1991,16 +1991,37 @@ export function createSettingsModal() {
               </tr>
             </thead>
             <tbody>
-              ${changes.map((change, index) => `
+              ${changes.map((change, index) => {
+                const isDebugConfig = change.setting === 'debug';
+                const expanderId = `expander-${index}`;
+                const detailsId = `details-${index}`;
+                
+                let mainRow = `
                 <tr class="change-row" data-setting="${change.setting}" style="border-bottom: 1px solid #222; transition: opacity 0.2s ease;">
-                  <td class="setting-name" style="padding: 8px; font-size: 13px;">${formatSettingName(change.setting)}</td>
-                  <td class="old-value" style="padding: 8px; font-size: 13px; color: #f88;">${formatValue(change.oldValue)}</td>
-                  <td class="new-value" style="padding: 8px; font-size: 13px; color: #8f8;">${formatValue(change.newValue)}</td>
+                  <td class="setting-name" style="padding: 8px; font-size: 13px;">
+                    ${isDebugConfig ? `<span class="expand-btn" data-expander-id="${expanderId}" data-details-id="${detailsId}" style="cursor:pointer;user-select:none;margin-right:6px;display:inline-block;width:14px;text-align:center;font-size:12px;">▶</span>` : ''}
+                    ${formatSettingName(change.setting)}
+                  </td>
+                  <td class="old-value" style="padding: 8px; font-size: 13px; color: #f88;">${formatValue(change.oldValue, change.setting)}</td>
+                  <td class="new-value" style="padding: 8px; font-size: 13px; color: #8f8;">${formatValue(change.newValue, change.setting)}</td>
                   <td style="padding: 8px; text-align: center;">
                     <input type="checkbox" class="change-checkbox" data-setting="${change.setting}" checked style="width: 18px; height: 18px; cursor: pointer;">
                   </td>
-                </tr>
-              `).join('')}
+                </tr>`;
+                
+                // Add expandable details row for debug config
+                if (isDebugConfig) {
+                  const detailsHtml = formatDebugConfigDetails(change.oldValue?.componentLogging || {}, change.newValue?.componentLogging || {});
+                  mainRow += `
+                <tr class="details-row" id="${detailsId}" style="display:none;border-bottom:1px solid #222;background:#0a0a0a;">
+                  <td colspan="4" style="padding:0;">
+                    ${detailsHtml}
+                  </td>
+                </tr>`;
+                }
+                
+                return mainRow;
+              }).join('')}
             </tbody>
           </table>
           <div style="display: flex; gap: 12px; justify-content: space-between; align-items: center;">
@@ -2015,25 +2036,213 @@ export function createSettingsModal() {
       
       // Helper functions for formatting
       function formatSettingName(key) {
+        // Special case for debug setting
+        if (key === 'debug') return '🔍 Debug Configuration';
+        
         return key
           .replace(/([A-Z])/g, ' $1')
           .replace(/^./, str => str.toUpperCase())
           .trim();
       }
       
-      function formatValue(val) {
+      function formatDebugConfigDetails(oldConfig, newConfig) {
+        const categories = ['services', 'gameScreen', 'panels', 'modals', 'ai', 'widgets'];
+        
+        let html = '<div style="padding:12px 24px;">';
+        html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">';
+        
+        // Old config column
+        html += '<div><div style="font-family:\'Bangers\',cursive;font-size:13px;color:#f88;margin-bottom:8px;border-bottom:1px solid #333;padding-bottom:4px;">Previous Configuration</div>';
+        html += buildConfigTree(oldConfig, '#f88');
+        html += '</div>';
+        
+        // New config column
+        html += '<div><div style="font-family:\'Bangers\',cursive;font-size:13px;color:#8f8;margin-bottom:8px;border-bottom:1px solid #333;padding-bottom:4px;">New Configuration</div>';
+        html += buildConfigTree(newConfig, '#8f8');
+        html += '</div>';
+        
+        html += '</div></div>';
+        return html;
+      }
+      
+      function buildConfigTree(config, color) {
+        if (!config || typeof config !== 'object') {
+          return `<div style="font-size:11px;color:#666;padding:8px 0;">All Disabled</div>`;
+        }
+        
+        const categories = ['services', 'gameScreen', 'panels', 'modals', 'ai', 'widgets'];
+        let html = '<div style="font-size:11px;line-height:1.6;">';
+        
+        categories.forEach(categoryKey => {
+          const category = config[categoryKey];
+          if (!category) return;
+          
+          const label = getDebugCategoryLabel(categoryKey);
+          const isEnabled = category.enabled;
+          const opacity = isEnabled ? '1' : '0.4';
+          const decoration = isEnabled ? 'none' : 'line-through';
+          
+          html += `<div style="margin-bottom:6px;opacity:${opacity};text-decoration:${decoration};">`;
+          html += `<div style="color:${isEnabled ? color : '#666'};font-weight:bold;">${label}</div>`;
+          
+          // Show children if category is enabled
+          if (isEnabled && category.children) {
+            Object.keys(category.children).forEach(childKey => {
+              const child = category.children[childKey];
+              if (!child) return;
+              
+              const childEnabled = child.enabled;
+              const childOpacity = childEnabled ? '1' : '0.4';
+              const childDecoration = childEnabled ? 'none' : 'line-through';
+              
+              html += `<div style="margin-left:16px;opacity:${childOpacity};text-decoration:${childDecoration};color:${childEnabled ? '#aaa' : '#555'};">`;
+              html += `├─ ${childKey}`;
+              
+              // Show grandchildren if child is enabled
+              if (childEnabled && child.children) {
+                Object.keys(child.children).forEach((grandchildKey, idx, arr) => {
+                  const grandchild = child.children[grandchildKey];
+                  if (!grandchild) return;
+                  
+                  const gcEnabled = grandchild.enabled;
+                  const gcOpacity = gcEnabled ? '1' : '0.4';
+                  const gcDecoration = gcEnabled ? 'none' : 'line-through';
+                  const isLast = idx === arr.length - 1;
+                  
+                  html += `<div style="margin-left:16px;opacity:${gcOpacity};text-decoration:${gcDecoration};color:${gcEnabled ? '#888' : '#444'};">`;
+                  html += `${isLast ? '└' : '├'}─ ${grandchildKey}`;
+                  html += '</div>';
+                });
+              }
+              
+              html += '</div>';
+            });
+          }
+          
+          html += '</div>';
+        });
+        
+        html += '</div>';
+        return html;
+      }
+      
+      function formatValue(val, settingKey) {
         if (typeof val === 'boolean') return val ? 'Enabled' : 'Disabled';
         if (val === null || val === undefined) return 'None';
+        
+        // Special handling for debug configuration object
+        if (settingKey === 'debug' && typeof val === 'object' && val !== null) {
+          return formatDebugConfig(val.componentLogging || val);
+        }
+        
+        // General object handling
+        if (typeof val === 'object' && val !== null) {
+          try {
+            const json = JSON.stringify(val, null, 2);
+            if (json.length > 100) {
+              return `<details style="cursor:pointer;"><summary style="color:#8cf;">View Configuration</summary><pre style="font-size:11px;margin-top:8px;padding:8px;background:#0a0a0a;border-radius:4px;overflow-x:auto;">${json}</pre></details>`;
+            }
+            return `<code style="font-size:11px;color:#8cf;">${json}</code>`;
+          } catch (e) {
+            return '[Complex Object]';
+          }
+        }
+        
         return String(val);
       }
       
+      function formatDebugConfig(config) {
+        if (!config || typeof config !== 'object') return '<span style="color:#888;">All Disabled</span>';
+        
+        // Count enabled categories and their components
+        const enabledCategories = [];
+        let totalEnabled = 0;
+        
+        Object.keys(config).forEach(categoryKey => {
+          const category = config[categoryKey];
+          if (category?.enabled) {
+            // Get the label with emoji
+            const fullLabel = getDebugCategoryLabel(categoryKey);
+            const emoji = fullLabel.match(/^(🔧|🎮|📊|🪟|🤖|🎨)/)?.[0] || '';
+            const name = fullLabel.replace(/^(🔧|🎮|📊|🪟|🤖|🎨)\s*/, '').trim();
+            
+            // Count enabled children
+            let childrenCount = 0;
+            if (category.children) {
+              Object.keys(category.children).forEach(childKey => {
+                const child = category.children[childKey];
+                if (child?.enabled) {
+                  childrenCount++;
+                  // Count grandchildren
+                  if (child.children) {
+                    Object.keys(child.children).forEach(grandchildKey => {
+                      if (child.children[grandchildKey]?.enabled) {
+                        childrenCount++;
+                      }
+                    });
+                  }
+                }
+              });
+            }
+            
+            totalEnabled++;
+            if (childrenCount > 0) {
+              enabledCategories.push(`${emoji} ${name} (${childrenCount})`);
+              totalEnabled += childrenCount;
+            } else {
+              enabledCategories.push(`${emoji} ${name}`);
+            }
+          }
+        });
+        
+        if (enabledCategories.length === 0) {
+          return '<span style="color:#888;">All Disabled</span>';
+        }
+        
+        if (enabledCategories.length <= 2) {
+          return `<span style="color:#8cf;">${enabledCategories.join(', ')}</span>`;
+        } else {
+          const first = enabledCategories.slice(0, 2).join(', ');
+          const remaining = enabledCategories.length - 2;
+          return `<span style="color:#8cf;">${first}, +${remaining} more (${totalEnabled} total)</span>`;
+        }
+      }
+      
+      function getDebugCategoryLabel(key) {
+        const labels = {
+          services: '🔧 Core Services',
+          gameScreen: '🎮 Main Game Screen',
+          panels: '📊 Side Panels',
+          modals: '🪟 Modals & Overlays',
+          ai: '🤖 AI & Analysis',
+          widgets: '🎨 UI Widgets'
+        };
+        return labels[key] || key;
+      }
+      
       // Create and show confirmation modal
-      const confirmModal = newModalSystem.createModal('settings-confirm', '⚠️ Confirm Settings Changes', confirmContent, { width: '700px' });
+      const confirmModal = newModalSystem.createModal('settings-confirm', '⚠️ Confirm Settings Changes', confirmContent, { width: '800px' });
       
       const cancelBtn = confirmContent.querySelector('.confirm-cancel-btn');
       const confirmBtn = confirmContent.querySelector('.confirm-save-btn');
       const selectAllBtn = confirmContent.querySelector('.select-all-btn');
       const checkboxes = confirmContent.querySelectorAll('.change-checkbox');
+      const expandBtns = confirmContent.querySelectorAll('.expand-btn');
+      
+      // Add expand/collapse listeners for debug config details
+      expandBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const detailsId = btn.getAttribute('data-details-id');
+          const detailsRow = document.getElementById(detailsId);
+          
+          if (detailsRow) {
+            const isVisible = detailsRow.style.display !== 'none';
+            detailsRow.style.display = isVisible ? 'none' : 'table-row';
+            btn.textContent = isVisible ? '▶' : '▼';
+          }
+        });
+      });
       
       // Add checkbox change listeners for visual feedback
       checkboxes.forEach(cb => {
