@@ -18,10 +18,6 @@ export function build({ selector }) {
   // Always use mobile class since it works for both desktop and mobile
   root.className = 'cmp-player-power-cards-modal-mobile hidden';
   
-  console.log('[PlayerPowerCardsModal] BUILD - Creating modal element');
-  console.log('[PlayerPowerCardsModal] BUILD - Initial className:', root.className);
-  console.log('[PlayerPowerCardsModal] BUILD - isMobileDevice:', isMobileDevice());
-  
   // Note: mountPoint is set to "body" in components.config.json, so mountRoot will append this to body
   // We don't need to manually append here
   
@@ -94,18 +90,10 @@ export function build({ selector }) {
   // Initial update
   update(root);
 
-  console.log('[PlayerPowerCardsModal] BUILD - Component built, returning instance');
-  console.log('[PlayerPowerCardsModal] BUILD - Root element parent:', root.parentElement?.tagName || 'NONE');
-  console.log('[PlayerPowerCardsModal] BUILD - Root element classes:', root.className);
-
   return { 
     root, 
     update: (props) => {
-      console.log('[PlayerPowerCardsModal] UPDATE WRAPPER - Called with props:', props);
-      console.log('[PlayerPowerCardsModal] UPDATE WRAPPER - Root parent:', root.parentElement?.tagName || 'NONE');
-      console.log('[PlayerPowerCardsModal] UPDATE WRAPPER - Root classes before:', root.className);
       update(root);
-      console.log('[PlayerPowerCardsModal] UPDATE WRAPPER - Root classes after:', root.className);
     }, 
     destroy: () => {
       // Cleanup carousel event listeners
@@ -121,32 +109,17 @@ export function update(root) {
   const state = store.getState();
   const ui = selectUIPlayerPowerCards(state);
   
-  console.log('[PlayerPowerCardsModal] UPDATE - Called');
-  console.log('[PlayerPowerCardsModal] UPDATE - Root element:', root);
-  console.log('[PlayerPowerCardsModal] UPDATE - Root parent:', root.parentElement?.tagName || 'NONE');
-  console.log('[PlayerPowerCardsModal] UPDATE - Root classes:', root.className);
-  console.log('[PlayerPowerCardsModal] UPDATE - UI state:', ui);
-  console.log('[PlayerPowerCardsModal] UPDATE - Computed style display:', window.getComputedStyle(root).display);
-  console.log('[PlayerPowerCardsModal] UPDATE - Computed style visibility:', window.getComputedStyle(root).visibility);
-  console.log('[PlayerPowerCardsModal] UPDATE - Computed style position:', window.getComputedStyle(root).position);
-  
   if (!ui || !ui.playerId) {
-    console.log('[PlayerPowerCardsModal] UPDATE - No UI state or playerId, hiding modal');
     root.classList.add('hidden');
     return;
   }
   const player = selectPlayerById(state, ui.playerId);
-  console.log('[PlayerPowerCardsModal] UPDATE - Player found:', player);
   
   if (!player) {
-    console.log('[PlayerPowerCardsModal] UPDATE - Player not found, hiding modal');
     root.classList.add('hidden');
     return;
   }
   root.classList.remove('hidden');
-  console.log('[PlayerPowerCardsModal] UPDATE - Modal shown for player:', player.name);
-  console.log('[PlayerPowerCardsModal] UPDATE - After removing hidden - classes:', root.className);
-  console.log('[PlayerPowerCardsModal] UPDATE - After removing hidden - display:', window.getComputedStyle(root).display);
   root.querySelector('[data-player-name]').textContent = `${player.name}'s Power Cards`.toUpperCase();
   
   // Reset frame position to ensure proper centering
@@ -158,12 +131,6 @@ export function update(root) {
   }
   
   const body = root.querySelector('[data-body]');
-  
-  // Debug: Log player's power cards
-  console.log('[PlayerPowerCardsModal] Player:', player.name);
-  console.log('[PlayerPowerCardsModal] PowerCards:', player.powerCards);
-  console.log('[PlayerPowerCardsModal] PowerCards type:', typeof player.powerCards);
-  console.log('[PlayerPowerCardsModal] PowerCards length:', player.powerCards?.length);
   
   if (!player.powerCards || !player.powerCards.length) {
     // Show empty state with structure
@@ -194,8 +161,6 @@ export function update(root) {
       return CARD_CATALOG.find(c => c.id === cardId);
     }).filter(Boolean);
     
-    console.log('[PlayerPowerCardsModal] Full cards found:', fullCards.length, fullCards.map(c => c.name));
-    
     // NOTE: Using the sophisticated generateStrategyText and generateComboTips functions
     // defined at the bottom of this file instead of simple inline helpers
     
@@ -225,8 +190,6 @@ export function update(root) {
       
       return cardWithSections;
     }).join('');
-    
-    console.log('[PlayerPowerCardsModal] Total cards HTML length:', cardsHtml.length);
     
     // Create both grid and carousel views
     body.innerHTML = `

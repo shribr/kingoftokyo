@@ -57,7 +57,7 @@ export function build({ selector }) {
         <button id="flush-btn" data-action="flush" class="k-btn k-btn--xs" disabled>FLUSH CARDS (2⚡)</button>
       </div>
     </div>
-  <button id="end-turn-btn" data-action="end" class="k-btn k-btn--secondary" style="border:none;box-shadow:none;" disabled>END TURN</button>
+  <button id="end-turn-btn" data-action="end" class="k-btn k-btn--secondary" disabled>END TURN</button>
     </div>`;
   // Cache frequently accessed elements to reduce querySelector churn
   const __refs = new Map();
@@ -395,16 +395,17 @@ export function build({ selector }) {
           }
           case 'end': {
             const phase = st.phase;
+            
+            // Immediately disable both end turn buttons to prevent double-clicks (before any other logic)
+            const endBtn = document.getElementById('end-turn-btn');
+            const hEndBtn = document.getElementById('h-end-turn-btn');
+            if (endBtn) endBtn.disabled = true;
+            if (hEndBtn) hEndBtn.disabled = true;
+            
             if (typeof window !== 'undefined' && window.__KOT_NEW__?.turnService) {
               const ts = window.__KOT_NEW__.turnService;
               if (!root._endTurnInFlight) {
                 root._endTurnInFlight = true;
-                
-                // Immediately disable both end turn buttons to prevent double-clicks
-                const endBtn = document.getElementById('end-turn-btn');
-                const hEndBtn = document.getElementById('h-end-turn-btn');
-                if (endBtn) endBtn.disabled = true;
-                if (hEndBtn) hEndBtn.disabled = true;
                 
                 let p;
                 if (phase === 'ROLL') p = ts.resolve();
@@ -1138,15 +1139,8 @@ export function build({ selector }) {
         const st = store.getState();
         const activePlayerIndex = st.meta?.activePlayerIndex ?? 0;
         const activePlayerId = st.players?.order?.[activePlayerIndex];
-        console.log('[ActionMenu] Show My Cards clicked');
-        console.log('[ActionMenu] Active player index:', activePlayerIndex);
-        console.log('[ActionMenu] Active player ID:', activePlayerId);
-        console.log('[ActionMenu] Players order:', st.players?.order);
         if (activePlayerId) {
-          console.log('[ActionMenu] Dispatching uiPlayerPowerCardsOpen for:', activePlayerId);
           store.dispatch(uiPlayerPowerCardsOpen(activePlayerId));
-        } else {
-          console.warn('[ActionMenu] No active player ID found!');
         }
         // Hide submenu after action
         const submenu = root.querySelector('.power-cards-submenu');

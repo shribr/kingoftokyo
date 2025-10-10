@@ -30,7 +30,7 @@ export function build({ selector, emit }) {
         <div class="decision-damage-info" data-damage-info>
           <!-- Damage and health info will be populated here -->
         </div>
-        <div class="decision-advisory" data-advisory style="display:none;margin-top:8px;font-size:0.85rem;color:#ddd"></div>
+        <div class="decision-advisory" data-advisory style="display:none;margin-top:8px;font-size:0.85rem;color:#000"></div>
       </div>
       <div class="decision-actions">
         <button class="decision-btn btn primary" data-stay>

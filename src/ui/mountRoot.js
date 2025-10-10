@@ -57,15 +57,6 @@ export async function mountRoot(configEntries, store) {
   const instance = inst?.root ? inst : { root: rootEl };
   registry.set(entry.name, { entry, inst: instance, modFns });
     
-    // Debug logging for radial/mini components
-    if (entry.name && (entry.name.toLowerCase().includes('radial') || entry.name.toLowerCase().includes('mini'))) {
-      console.log('[mountRoot] 📍 Mounting component:', entry.name, {
-        mountPoint: mountPoint?.tagName || mountPoint?.className || 'unknown',
-        rootElement: rootEl?.tagName,
-        rootClass: rootEl?.className
-      });
-    }
-    
     mountPoint.appendChild(rootEl);
     
     // Initial update with slice state (guard if no stateKeys provided)
@@ -115,16 +106,7 @@ export async function mountRoot(configEntries, store) {
         
         if (!hasRelevantChange) {
           // No relevant state changed, skip this component
-          if (window.__KOT_DEBUG__?.logComponentUpdates) {
-            console.log(`[mountRoot] Skipping update for ${entry.name} - no relevant state change`);
-          }
           continue;
-        }
-        
-        if (window.__KOT_DEBUG__?.logComponentUpdates) {
-          console.log(`[mountRoot] Updating ${entry.name} - state changed:`, 
-            entry.stateKeys.filter(key => previousState[key] !== state[key])
-          );
         }
       }
       

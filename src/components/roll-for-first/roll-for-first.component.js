@@ -385,7 +385,7 @@ function applyFaceToDie(dieEl, face) {
   if (['1','2','3'].includes(face)) { dieEl.textContent = face; dieEl.classList.add('f-num'); }
   else if (face==='heart') { dieEl.innerHTML = '<span class="rff-face-heart">❤</span>'; dieEl.classList.add('f-heart'); }
   else if (face==='energy') { dieEl.innerHTML = '<span class="rff-face-energy">⚡</span>'; dieEl.classList.add('f-energy'); }
-  else if (face==='claw') { dieEl.innerHTML = '<span class="rff-face-claw">⚔</span>'; dieEl.classList.add('f-claw','attack'); }
+  else if (face==='claw') { dieEl.innerHTML = '<span class="rff-face-claw"><img src="images/king_of_tokyo_claw.png" alt="claw" class="dice-claw-icon"></span>'; dieEl.classList.add('f-claw','attack'); }
 }
 
 // During the rolling animation we avoid literal words by mapping symbolic faces to interim glyphs
