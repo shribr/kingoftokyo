@@ -548,7 +548,7 @@ export function build({ selector }) {
         fontSize:'4.8vh', 
         cursor:'pointer', 
         boxShadow:'0 0 20px rgba(255, 213, 77, 0.6), 0 0.4vh 1.2vh rgba(0,0,0,0.3)', 
-        zIndex:'999999', 
+        zIndex:'8900', // Above mini player overlay (9450) and mini player card (9500), below game start toast (9000)
         transition:'transform 0.2s ease, box-shadow 0.2s ease', 
         color:'#000'
       };
