@@ -2,6 +2,7 @@
 import { eventBus } from '../core/eventBus.js';
 import { store } from '../bootstrap/index.js';
 import { selectActivePlayer, selectEffectQueueState } from '../core/selectors.js';
+import { debugLog } from '../utils/debugConfig.js';
 
 // Registry for built components
 const registry = new Map();
@@ -58,6 +59,12 @@ export async function mountRoot(configEntries, store) {
   registry.set(entry.name, { entry, inst: instance, modFns });
     
     mountPoint.appendChild(rootEl);
+    
+    // Log high-level component initialization using debug config
+    const debugKey = getDebugKey(entry.name);
+    if (debugKey) {
+      debugLog(debugKey, `✓ ${entry.name} initialized`);
+    }
     
     // Initial update with slice state (guard if no stateKeys provided)
     const needsState = Array.isArray(entry.stateKeys) && entry.stateKeys.length > 0;
@@ -353,8 +360,52 @@ async function resolveComponent(buildRef, updateRef) {
 }
 
 function sliceState(keys, fullState) {
-  const result = {};
-  if (!Array.isArray(keys)) return result;
-  for (const key of keys) result[key] = fullState[key];
-  return result;
+  if (!Array.isArray(keys) || keys.length === 0) return {};
+  const out = {};
+  for (const k of keys) out[k] = fullState[k];
+  return out;
+}
+
+/**
+ * Map component name to debug configuration key
+ */
+/**
+ * Map component name to debug config path
+ * Returns an array path for the new hierarchical debug structure
+ */
+function getDebugKey(name) {
+  const n = name.toLowerCase();
+  
+  // Core Services - these should use ['services', 'serviceName'] paths
+  // (bootstrap logs are handled separately in bootstrap/index.js)
+  
+  // Main Game Screen
+  if (/^arena/.test(n)) return ['gameScreen', 'arena'];
+  if (/dice.*tray/.test(n)) return ['gameScreen', 'diceTray'];
+  if (/action.*menu/.test(n)) return ['gameScreen', 'actionMenu'];
+  if (/toolbar/.test(n)) return ['gameScreen', 'toolbar'];
+  
+  // Panels
+  if (/power.*card.*panel/.test(n)) return ['panels', 'powerCardsPanel'];
+  if (/monster.*panel/.test(n)) return ['panels', 'monstersPanel'];
+  
+  // Modals
+  if (/monster.*selection/.test(n)) return ['modals', 'monsterSelection'];
+  if (/roll.*first/.test(n)) return ['modals', 'rollForFirst'];
+  if (/settings.*modal/.test(n)) return ['modals', 'settingsModal'];
+  if (/pause.*overlay/.test(n)) return ['modals', 'pauseOverlay'];
+  if (/player.*power.*card.*modal/.test(n)) return ['modals', 'playerPowerCardsModal'];
+  if (/card.*detail/.test(n)) return ['modals', 'cardDetailModal'];
+  if (/tokyo.*yield/.test(n)) return ['modals', 'tokyoYieldModal'];
+  
+  // UI Widgets
+  if (/deck/.test(n)) return ['widgets', 'deck'];
+  if (/round/.test(n)) return ['widgets', 'roundCounter'];
+  if (/active.*player/.test(n) || /player.*bubble/.test(n)) return ['widgets', 'activePlayerTile'];
+  if (/save.*indicator/.test(n)) return ['widgets', 'saveIndicator'];
+  
+  // Effect Queue - service level
+  if (/effect.*queue/.test(n)) return ['services', 'effectQueue'];
+  
+  return null;
 }

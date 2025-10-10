@@ -15,6 +15,7 @@ import {
   toggleUnloadConfirmation,
   isUnloadConfirmationEnabled
 } from '../../services/gameStatePersistence.js';
+import { getDebugConfig, updateDebugConfig, getDebugTree } from '../../utils/debugConfig.js';
 
 // Initialize global winOdds object early so it's available even if settings modal never opens
 if (!window.__KOT_WIN_ODDS__) {
@@ -92,6 +93,127 @@ export const build = () => {
   return el;
 };
 export const update = () => {};
+
+/**
+ * Build the debug configuration tree UI
+ * Creates nested checkboxes for component debug logging with proper 3-level hierarchy
+ */
+function buildDebugConfigTree(content) {
+  const treeContainer = content.querySelector('#debug-config-tree');
+  if (!treeContainer) return;
+  
+  const debugTree = getDebugTree();
+  
+  // Build HTML recursively
+  function buildNode(node, level = 0, parentPath = []) {
+    const indent = level * 20;
+    const hasChildren = node.children && node.children.length > 0;
+    const pathStr = node.path.join('.');
+    
+    let html = `
+      <div class="debug-config-node" data-level="${level}" data-path="${pathStr}" 
+           style="margin-left:${indent}px;border:1px solid ${level === 0 ? '#2a2a2a' : '#1a1a1a'};
+                  border-radius:4px;padding:8px;background:${level === 0 ? '#0d1117' : '#0a0a0a'};
+                  margin-bottom:${level === 0 ? '8px' : '4px'};">
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${hasChildren ? `
+            <button type="button" class="debug-expand-btn" data-path="${pathStr}" 
+                    style="background:none;border:none;color:#666;cursor:pointer;padding:2px 4px;
+                           font-size:14px;width:20px;height:20px;display:flex;align-items:center;
+                           justify-content:center;flex-shrink:0;">
+              ▶
+            </button>
+          ` : '<span style="width:20px;flex-shrink:0;"></span>'}
+          <label class="field-checkbox" style="margin:0;flex:1;cursor:pointer;">
+            <input type="checkbox" class="debug-check" data-path="${pathStr}" 
+                   ${node.enabled ? 'checked' : ''} 
+                   style="cursor:pointer;" />
+            <span class="checkbox-label" style="font-size:${13 - level}px;color:${level === 0 ? '#e4e4e4' : (level === 1 ? '#ccc' : '#aaa')};font-weight:${level === 0 ? 'bold' : 'normal'};">
+              ${node.label}
+            </span>
+          </label>
+        </div>
+        ${hasChildren ? `
+          <div class="debug-children" data-path="${pathStr}" style="display:none;margin-top:8px;
+                                                                     padding-left:0px;">
+            ${node.children.map(child => buildNode(child, level + 1, node.path)).join('')}
+          </div>
+        ` : ''}
+      </div>
+    `;
+    
+    return html;
+  }
+  
+  const html = `
+    <div style="display:flex;flex-direction:column;gap:0px;">
+      ${debugTree.map(node => buildNode(node, 0)).join('')}
+    </div>
+  `;
+  
+  treeContainer.innerHTML = html;
+  
+  // Add expand/collapse handlers
+  treeContainer.querySelectorAll('.debug-expand-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const path = btn.dataset.path;
+      const childrenDiv = treeContainer.querySelector(`.debug-children[data-path="${path}"]`);
+      if (childrenDiv) {
+        const isExpanded = childrenDiv.style.display !== 'none';
+        childrenDiv.style.display = isExpanded ? 'none' : 'block';
+        btn.textContent = isExpanded ? '▶' : '▼';
+      }
+    });
+  });
+  
+  // Add checkbox change handlers
+  treeContainer.querySelectorAll('.debug-check').forEach(checkbox => {
+    checkbox.addEventListener('change', () => {
+      const pathStr = checkbox.dataset.path;
+      const path = pathStr.split('.');
+      const enabled = checkbox.checked;
+      
+      // Update config
+      updateDebugConfig(path, enabled);
+      
+      // If disabling, uncheck all children
+      if (!enabled) {
+        const childrenDiv = treeContainer.querySelector(`.debug-children[data-path="${pathStr}"]`);
+        if (childrenDiv) {
+          childrenDiv.querySelectorAll('.debug-check').forEach(childCheck => {
+            childCheck.checked = false;
+          });
+        }
+      }
+      
+      // If enabling, enable all parents
+      if (enabled && path.length > 1) {
+        for (let i = path.length - 1; i > 0; i--) {
+          const parentPath = path.slice(0, i).join('.');
+          const parentCheck = treeContainer.querySelector(`.debug-check[data-path="${parentPath}"]`);
+          if (parentCheck && !parentCheck.checked) {
+            parentCheck.checked = true;
+            updateDebugConfig(path.slice(0, i), true);
+          }
+        }
+      }
+      
+      console.log(`[Settings] Debug logging ${enabled ? 'enabled' : 'disabled'} for ${pathStr}`);
+    });
+  });
+}
+
+/**
+ * Format debug key for display (kept for backwards compatibility)
+ */
+function formatDebugKey(key) {
+  return key
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/_/g, ' ')
+    .replace(/^./, str => str.toUpperCase())
+    .trim();
+}
 
 export function createSettingsModal() {
   const content = document.createElement('div');
@@ -687,6 +809,17 @@ export function createSettingsModal() {
               </label>
             </div>
             <div class="field-help">Enable verbose console logging for debugging. Changes apply immediately via Save Settings button.</div>
+          </div>
+
+          <div class="field" style="margin-top:24px;">
+            <label class="field-label">🔍 Component Debug Configuration</label>
+            <div style="margin-top:8px;background:#0d1117;border:1px solid #222;border-radius:8px;padding:12px;max-height:400px;overflow-y:auto;">
+              <div id="debug-config-tree"></div>
+            </div>
+            <div class="field-help">
+              Control console logging for specific components and sub-systems. 
+              Check parent items to see high-level events, expand to enable detailed sub-component logging.
+            </div>
           </div>
 
           <div class="field">
@@ -1772,6 +1905,11 @@ export function createSettingsModal() {
       logSubscriptions: form.querySelector('input[name="logSubscriptions"]')?.checked || false,
       logModals: form.querySelector('input[name="logModals"]')?.checked || false,
       
+      // Debug Component Configuration
+      debug: {
+        componentLogging: getDebugConfig()
+      },
+      
       // Archive settings
       autoArchiveGameLogs: form.querySelector('input[name="autoArchiveGameLogs"]')?.checked || false,
       autoArchiveAIDTLogs: form.querySelector('input[name="autoArchiveAIDTLogs"]')?.checked || false,
@@ -2225,6 +2363,9 @@ export function createSettingsModal() {
     if (autoSaveCheck) autoSaveCheck.checked = settings.autoSaveGame !== undefined ? !!settings.autoSaveGame : isAutoSaveActive();
     const confirmCheck = content.querySelector('[data-persistence-check="confirm-unload"]');
     if (confirmCheck) confirmCheck.checked = settings.confirmBeforeUnload !== undefined ? !!settings.confirmBeforeUnload : isUnloadConfirmationEnabled();
+    
+    // Rebuild debug configuration tree with loaded settings
+    buildDebugConfigTree(content);
   }
 
   // Load current settings initially
@@ -2232,6 +2373,9 @@ export function createSettingsModal() {
     const state = window.__KOT_NEW__.store.getState();
     applySettingsToForm(state.settings || {});
   }
+  
+  // Build debug configuration tree
+  buildDebugConfigTree(content);
 
   const __settingsModal = newModalSystem.createModal('settings', '⚙️ Game Settings', content, { width: '1400px', height: '700px' });
   try { __settingsModal.setAttribute('data-modal-id','settings'); } catch(_) {}

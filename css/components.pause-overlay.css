@@ -9,7 +9,7 @@
 .cmp-pause-overlay {
   position: fixed;
   inset: 0;
-  z-index: 99999;
+  z-index: 1000001; /* Highest z-index - must be above all modals, action menu, and other UI elements */
   display: flex;
   align-items: center;
   justify-content: center;

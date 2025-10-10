@@ -46,6 +46,7 @@ import { AIThoughtBubbleComponent } from '../components/ai-thought-bubble/ai-tho
 import '../ui/mobileToolbarToggle.js';
 import { hasSavedGame, loadGameState, restoreGameState, initializeAutoSave, getSaveInfo, clearSavedGame } from '../services/gameStatePersistence.js';
 import { initializeSaveStatusIndicator } from '../components/save-indicator/save-indicator.component.js';
+import { initDebugConfig, debugLog } from '../utils/debugConfig.js';
 
 // Placeholder reducers until implemented
 function placeholderReducer(state = {}, _action) { return state; }
@@ -94,15 +95,18 @@ export const logger = createLogger(store);
 
 // Example diagnostic wiring
 if (typeof window !== 'undefined') {
-  try { console.log('[bootstrap] initialization begin'); } catch(_) {}
+  debugLog(['services', 'bootstrap'], '🚀 Initialization begin');
   // Global diagnostics for silent errors halting execution before gating dispatches
   window.addEventListener('error', (e)=>{ try { console.error('[global-error]', e.message, e.filename, e.lineno+':'+e.colno); } catch(_) {} });
   window.addEventListener('unhandledrejection', (e)=>{ try { console.error('[global-unhandled-rejection]', e.reason); } catch(_) {} });
+  
+  debugLog(['services', 'bootstrap'], '📦 Creating core services...');
   const turnService = createTurnService(store, logger);
   const effectEngine = createEffectEngine(store, logger);
   const phaseEventsService = createPhaseEventsService(store, logger);
   const passiveEffects = createPassiveEffectsProcessor(store, logger);
   window.__KOT_NEW__ = { store, eventBus, logger, turnService, effectEngine, phaseEventsService, passiveEffects };
+  debugLog(['services', 'bootstrap'], '✓ Core services created');
   
   // Subscribe to actions that trigger passive effects
   store.subscribe((state, action) => {
@@ -157,7 +161,13 @@ if (typeof window !== 'undefined') {
     }, 6000);
   } catch(_) {}
   // Load persisted settings before UI mounts
+  debugLog(['services', 'bootstrap', 'persistence'], '⚙️ Loading persisted settings...');
   loadSettings(store);
+  // Initialize debug config from loaded settings
+  const currentSettings = store.getState().settings;
+  initDebugConfig(currentSettings);
+  debugLog(['services', 'bootstrap', 'persistence'], '✓ Settings loaded and debug config initialized');
+  
   loadLogCollapse(store);
   bindSettingsPersistence(store);
   bindAIDecisionCapture(store);
@@ -185,7 +195,7 @@ if (typeof window !== 'undefined') {
   try {
     const thoughtBubble = new AIThoughtBubbleComponent();
     window.__KOT_NEW__.thoughtBubble = thoughtBubble;
-    console.log('[bootstrap] AI thought bubble initialized');
+    debugLog(['widgets', 'thoughtBubble'], '✓ AI thought bubble initialized');
   } catch(e) {
     console.warn('[bootstrap] AI thought bubble initialization failed', e);
   }
@@ -199,7 +209,7 @@ if (typeof window !== 'undefined') {
   // Initialize save status indicator
   try {
     initializeSaveStatusIndicator();
-    console.log('[bootstrap] Save status indicator initialized');
+    debugLog(['widgets', 'saveIndicator'], '✓ Save status indicator initialized');
   } catch(e) {
     console.warn('[bootstrap] Save status indicator initialization failed', e);
   }

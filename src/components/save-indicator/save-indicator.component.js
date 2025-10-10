@@ -122,7 +122,6 @@ export function initializeSaveStatusIndicator() {
   const init = () => {
     const toast = createSaveStatusIndicator();
     document.body.appendChild(toast);
-    console.log('[save-indicator] Initialized as bottom-left toast');
   };
 
   if (document.body) {

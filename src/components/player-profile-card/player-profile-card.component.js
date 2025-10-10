@@ -388,11 +388,6 @@ export function update(root, { playerId }) {
       if (!tokyoLabel) tokyoLabel = 'in tokyo city';
       if (tokyoEl.textContent !== tokyoLabel) tokyoEl.textContent = tokyoLabel;
       root.setAttribute('data-in-tokyo','true');
-      // Debug: log bounding box to investigate stretching
-      try {
-        const rect = tokyoEl.getBoundingClientRect();
-        console.log('[TokyoBadgeDebug] size', { h: rect.height, w: rect.width, text: tokyoEl.textContent, player: playerId });
-      } catch(_) {}
       tokyoEl.classList.add('is-in');
     } else if (tokyoEl) {
       tokyoEl.remove();

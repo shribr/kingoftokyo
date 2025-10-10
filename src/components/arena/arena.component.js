@@ -89,42 +89,28 @@ export function update(root) {
     // Clear any stuck animating or portal state FIRST
     document.querySelectorAll(`.cmp-player-profile-card[data-player-id="${playerId}"]`).forEach(card => {
       if (card.hasAttribute('data-animating-portal')) {
-        console.log('[ensureCardInSlot] Clearing stuck animating state for player', playerId);
         card.removeAttribute('data-animating-portal');
       }
     });
     
     // Also clear global animation lock
     if (root._tokyoPortalAnimating === playerId) {
-      console.log('[ensureCardInSlot] Clearing stuck animation lock for player', playerId);
       delete root._tokyoPortalAnimating;
     }
     
     const alreadyHere = slotEl.querySelector(`.cmp-player-profile-card[data-player-id="${playerId}"]`);
     if (alreadyHere) {
-      console.log('[ensureCardInSlot] Card already in slot', { playerId, slotName });
       return;
     }
     
     const liveCard = document.querySelector(`.cmp-player-profile-card[data-player-id="${playerId}"]:not([data-in-tokyo-slot])`);
-    console.log('[ensureCardInSlot] Querying for card:', { 
-      playerId, 
-      slotName,
-      foundCard: !!liveCard,
-      cardDataPlayerId: liveCard?.getAttribute('data-player-id'),
-      cardHasTokyoSlot: liveCard?.hasAttribute('data-in-tokyo-slot'),
-      cardHasAnimating: liveCard?.hasAttribute('data-animating-portal')
-    });
     if (!liveCard) {
-      console.log('[ensureCardInSlot] No card found for player', { playerId, slotName });
       return;
     }
     // If a portal animation is already running for this player, bail
     if (root._tokyoPortalAnimating === playerId) {
-      console.log('[ensureCardInSlot] Portal already animating', { playerId });
       return;
     }
-    console.log('[ensureCardInSlot] Starting portal', { playerId, slotName, cardFound: !!liveCard });
     // Start portal (two-phase: animate clone, then relocate real card)
     startTokyoPortal({ root, playerId, slotEl, slotName, liveCard, originMap });
   };
@@ -211,14 +197,6 @@ export function update(root) {
  * Animates the live card from its current position to the slot, then appends it.
  */
 function startTokyoPortal({ root, playerId, slotEl, slotName, liveCard, originMap }) {
-  console.log('[startTokyoPortal] BEGIN', { playerId, slotName });
-  console.log('[startTokyoPortal] Card element:', {
-    tagName: liveCard.tagName,
-    className: liveCard.className,
-    id: liveCard.id,
-    hasBackground: window.getComputedStyle(liveCard).background,
-    children: liveCard.children.length
-  });
   try {
     // Record original placement for restoration later
     if (!originMap.has(liveCard)) {
@@ -251,7 +229,6 @@ function startTokyoPortal({ root, playerId, slotEl, slotName, liveCard, originMa
     }
     
     // Move card to body with fixed positioning at current screen coords
-    console.log('[startTokyoPortal] Before appendChild - parent:', liveCard.parentElement?.className);
     
     // FIRST: Move to body (DOM operation)
     document.body.appendChild(liveCard);
@@ -269,8 +246,6 @@ function startTokyoPortal({ root, playerId, slotEl, slotName, liveCard, originMa
     liveCard.style.transition = 'none';
     liveCard.style.boxSizing = 'border-box';
     
-    console.log('[startTokyoPortal] After appendChild - parent:', liveCard.parentElement?.tagName);
-    console.log('[startTokyoPortal] Card still has background?', window.getComputedStyle(liveCard).background);
     liveCard.setAttribute('data-animating-portal', 'true');
     
     // Disable transitions on children to prevent them from animating separately
@@ -289,14 +264,6 @@ function startTokyoPortal({ root, playerId, slotEl, slotName, liveCard, originMa
     let dx = targetCenterX - startCenterX;
     let dy = targetCenterY - startCenterY;
     
-    console.log('[startTokyoPortal] Animation calculation:', {
-      startRect: { left: startRect.left, top: startRect.top, width: startRect.width, height: startRect.height },
-      slotRect: { left: slotRect.left, top: slotRect.top, width: slotRect.width, height: slotRect.height },
-      startCenter: { x: startCenterX, y: startCenterY },
-      targetCenter: { x: targetCenterX, y: targetCenterY },
-      delta: { dx, dy }
-    });
-    
     // Adjust for scale shrinking around transform origin
     const scaleCorrection = (startRect.width * (1 - targetScale)) / 2;
     dx += scaleCorrection;
@@ -307,17 +274,6 @@ function startTokyoPortal({ root, playerId, slotEl, slotName, liveCard, originMa
     // Apply initial identity transform (no movement) BEFORE enabling transitions
     // This ensures the card stays in place visually
     liveCard.style.transform = 'translate(0, 0) scale(1)';
-    
-    // Log the card's actual position and children
-    console.log('[startTokyoPortal] Card positioned at body, checking children:', {
-      cardRect: liveCard.getBoundingClientRect(),
-      children: Array.from(liveCard.children).map(child => ({
-        className: child.className,
-        position: window.getComputedStyle(child).position,
-        transform: window.getComputedStyle(child).transform,
-        transition: window.getComputedStyle(child).transition
-      }))
-    });
     
     // Force another reflow
     void liveCard.offsetWidth;
@@ -385,7 +341,6 @@ function startTokyoPortal({ root, playerId, slotEl, slotName, liveCard, originMa
     // Safety timeout in case transitionend never fires
     setTimeout(() => {
       if (liveCard.parentElement === document.body) {
-        console.warn('[startTokyoPortal] Transition timeout - forcing completion');
         onTransitionEnd({ target: liveCard, propertyName: 'transform' });
       }
     }, 1000);
