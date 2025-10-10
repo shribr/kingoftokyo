@@ -1,0 +1,44 @@
+/**
+ * New Modal System Styles
+ * Styles for the enhanced modal system with draggable and resizable modals
+ */
+
+/* Resize handle hover effect */
+.new-modal-resize-handle:hover {
+  background: linear-gradient(135deg, transparent 0%, transparent 50%, #777 50%, #777 100%);
+}
+
+.new-modal-resize-handle:active {
+  background: linear-gradient(135deg, transparent 0%, transparent 50%, #999 50%, #999 100%);
+}
+
+/* Ensure modal header has proper cursor when draggable */
+.new-modal-header[style*="cursor: move"] {
+  cursor: move !important;
+}
+
+.new-modal-header[style*="cursor: move"]:active {
+  cursor: grabbing !important;
+}
+
+/* When modal is being dragged, add visual feedback */
+.new-modal.dragging {
+  opacity: 0.95;
+  cursor: grabbing !important;
+}
+
+/* Smooth transitions for modal movement */
+.new-modal {
+  transition: opacity 0.15s ease;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .new-modal-header[style*="cursor: move"] {
+    cursor: default !important;
+  }
+  
+  .new-modal-resize-handle {
+    display: none !important;
+  }
+}

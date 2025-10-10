@@ -4,16 +4,38 @@
 .win-odds-mini-floating .mini-wo-chrome { position:relative; display:flex; flex-direction:column; width:100%; height:100%; }
 .mini-wo-header { display:flex; align-items:center; justify-content:space-between; padding:6px 8px; background:#13181f; border-bottom:1px solid #1e242b; cursor:move; }
 .mini-wo-header-left { display:flex; align-items:center; min-width:40px; }
-.mini-wo-title { flex:1; text-align:center; font-size:15px; font-weight:700; letter-spacing:1px; font-family:'Bangers',cursive; color:#e2e8f0; }
+.mini-wo-title { flex:1; text-align:center; font-size:1.1em; font-weight:700; letter-spacing:1px; font-family:'Bangers',cursive; color:#e2e8f0; }
 .mini-wo-header-right { display:flex; align-items:center; justify-content:flex-end; min-width:40px; }
-.mini-wo-btn { background:transparent; border:none; color:#cbd5e1; font-size:18px; padding:2px; width:auto; height:auto; border-radius:0; line-height:1; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:none; }
+.mini-wo-btn { background:transparent; border:none; color:#cbd5e1; font-size:1.2em; padding:2px; width:auto; height:auto; border-radius:0; line-height:1; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:none; }
 .mini-wo-btn:hover { background:#25303b; }
 .mini-wo-header-tools { display:flex; gap:6px; }
-.mini-wo-body { flex:1; padding:6px 8px; display:flex; flex-direction:column; overflow:hidden; font-size:11px; }
+.mini-wo-body { flex:1; padding:6px 8px; display:flex; flex-direction:column; overflow:hidden; font-size:inherit; }
 .mini-wo-chart { flex:1; overflow:hidden; display:flex; flex-direction:column; gap:6px; }
-.mini-wo-footer { display:flex; align-items:center; gap:6px; padding:6px 8px; border-top:1px solid #1e242b; background:#13181f; font-size:10px; }
-.mini-wo-auto { display:flex; align-items:center; gap:4px; margin:0; padding-left:4px; }
-.mini-wo-trend { flex:1; text-align:center; font-size:9px; opacity:.65; }
+
+/* Ensure SVG charts scale smoothly */
+.mini-wo-chart svg { 
+  max-width: 100%; 
+  height: auto; 
+  display: block;
+}
+
+/* Base font size - will be overridden by JS based on modal size */
+.win-odds-mini-floating {
+  font-size: 13px;
+}
+
+/* Scale text content for smaller modal sizes */
+@media (max-width: 320px), (max-height: 250px) {
+  .win-odds-mini-floating {
+    font-size: 9px;
+  }
+  .mini-wo-title {
+    font-size: 1em;
+  }
+}
+.mini-wo-footer { display:flex; align-items:center; gap:6px; padding:6px 8px; border-top:1px solid #1e242b; background:#13181f; font-size:0.85em; }
+.mini-wo-auto { display:flex; align-items:center; gap:4px; margin:0; padding-left:4px; font-size:0.9em; }
+.mini-wo-trend { flex:1; text-align:center; font-size:0.75em; opacity:.65; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* Resize handles - invisible but functional with cursor indicators */
 .mini-wo-resize { position:absolute; background:transparent; border:none; z-index:10; }

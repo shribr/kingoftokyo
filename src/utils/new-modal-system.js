@@ -44,6 +44,7 @@ class NewModalSystem {
     const modal = document.createElement('div');
     modal.className = 'new-modal';
     modal.style.cssText = `
+      position: relative;
       background: #1c1c1c;
       border: 2px solid #111;
       border-radius: 0.8vh;
@@ -68,6 +69,7 @@ class NewModalSystem {
       justify-content: space-between;
       gap: 1.2vw;
       box-shadow: inset 0 -2px 0 rgba(255,255,255,0.05);
+      ${options.draggable ? 'cursor: move; user-select: none;' : ''}
     `;
 
     const titleElement = document.createElement('h2');
@@ -129,8 +131,125 @@ class NewModalSystem {
     modal.appendChild(header);
     modal.appendChild(body);
 
+    // Add draggable functionality
+    if (options.draggable) {
+      this.makeDraggable(modal, header);
+    }
+
+    // Add resizable functionality
+    if (options.resizable) {
+      this.makeResizable(modal);
+    }
+
     this.modals.set(id, modal);
     return modal;
+  }
+
+  makeDraggable(modal, handle) {
+    let isDragging = false;
+    let startX, startY, startLeft, startTop;
+
+    // Check if mobile
+    const isMobile = window.innerWidth <= 768 || 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (isMobile) return; // Skip dragging on mobile
+
+    handle.addEventListener('mousedown', (e) => {
+      // Only drag if clicking directly on the header, not on buttons
+      if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+      
+      isDragging = true;
+      const rect = modal.getBoundingClientRect();
+      startX = e.clientX;
+      startY = e.clientY;
+      startLeft = rect.left;
+      startTop = rect.top;
+      
+      // Change modal positioning to absolute for dragging
+      modal.style.position = 'absolute';
+      modal.style.left = startLeft + 'px';
+      modal.style.top = startTop + 'px';
+      
+      e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      
+      const newLeft = startLeft + dx;
+      const newTop = startTop + dy;
+      
+      // Keep modal within viewport bounds
+      const rect = modal.getBoundingClientRect();
+      const maxLeft = window.innerWidth - rect.width;
+      const maxTop = window.innerHeight - rect.height;
+      
+      modal.style.left = Math.max(0, Math.min(maxLeft, newLeft)) + 'px';
+      modal.style.top = Math.max(0, Math.min(maxTop, newTop)) + 'px';
+    });
+
+    document.addEventListener('mouseup', () => {
+      isDragging = false;
+    });
+  }
+
+  makeResizable(modal) {
+    const isMobile = window.innerWidth <= 768 || 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (isMobile) return; // Skip resizing on mobile
+
+    const resizeHandle = document.createElement('div');
+    resizeHandle.className = 'new-modal-resize-handle';
+    resizeHandle.style.cssText = `
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 20px;
+      height: 20px;
+      cursor: nwse-resize;
+      background: linear-gradient(135deg, transparent 0%, transparent 50%, #555 50%, #555 100%);
+      border-bottom-right-radius: 0.8vh;
+      z-index: 10;
+    `;
+
+    let isResizing = false;
+    let startX, startY, startWidth, startHeight;
+
+    resizeHandle.addEventListener('mousedown', (e) => {
+      isResizing = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      
+      const computedStyle = getComputedStyle(modal);
+      startWidth = parseInt(computedStyle.width, 10);
+      startHeight = parseInt(computedStyle.height, 10);
+      
+      e.preventDefault();
+      e.stopPropagation();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isResizing) return;
+      
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      
+      const newWidth = startWidth + dx;
+      const newHeight = startHeight + dy;
+      
+      // Set minimum sizes
+      modal.style.width = Math.max(400, newWidth) + 'px';
+      modal.style.height = Math.max(300, newHeight) + 'px';
+      modal.style.maxWidth = 'none';
+      modal.style.maxHeight = 'none';
+    });
+
+    document.addEventListener('mouseup', () => {
+      isResizing = false;
+    });
+
+    modal.appendChild(resizeHandle);
   }
 
   showModal(id) {

@@ -34,6 +34,12 @@
 .cmp-ai-decision-tree * { box-sizing:border-box; }
 .cmp-ai-decision-tree button { font-family:inherit; }
 
+/* When in a modal, allow component to fill available space */
+.ai-decision-tree-wrapper .cmp-ai-decision-tree {
+  height: 100%;
+  max-height: none;
+}
+
 /* Toolbar */
 .cmp-ai-decision-tree .adt-toolbar { display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; background:var(--adt-panel); padding:6px 8px; border:1px solid var(--adt-border); border-radius:var(--adt-radius); }
 .cmp-ai-decision-tree .adt-left-tools, .cmp-ai-decision-tree .adt-right-tools { display:flex; gap:8px; align-items:center; }

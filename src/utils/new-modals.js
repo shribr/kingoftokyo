@@ -2136,11 +2136,19 @@ export function openWinOddsQuickModal(){
       wrapper.style.top = newTop + 'px';
       wrapper.style.right = newRight + 'px';
       wrapper._persist?.(); 
+      
+      // Trigger content scaling when manually resizing
+      if (wrapper._scaleContent) {
+        wrapper._scaleContent();
+      }
     }
     function onUp(){ 
       resizing=false; 
       document.removeEventListener('mousemove', onMove); 
-      document.removeEventListener('mouseup', onUp); 
+      document.removeEventListener('mouseup', onUp);
+      
+      // Re-render after resize completes
+      setTimeout(() => renderMini(true), 50);
     }
     wrapper.addEventListener('mousedown', onDown);
   })();
@@ -2238,71 +2246,106 @@ export function openWinOddsQuickModal(){
     }
     
     // Render based on mode
+    // Calculate responsive sizing based on modal dimensions
+    const modalRect = wrapper.getBoundingClientRect();
+    const modalWidth = modalRect.width;
+    const modalHeight = modalRect.height;
+    
+    // Scale factors based on modal size (base: 340x340)
+    const widthScale = Math.max(0.7, Math.min(1.5, modalWidth / 340));
+    const heightScale = Math.max(0.7, Math.min(1.5, modalHeight / 340));
+    const avgScale = (widthScale + heightScale) / 2;
+    
+    // Responsive sizing
+    const baseFontSize = Math.round(11 * avgScale);
+    const iconSize = Math.round(8 * avgScale);
+    const barHeight = Math.round(10 * avgScale);
+    const sparkHeight = Math.round(12 * avgScale);
+    const sparkWidth = Math.round(3 * avgScale);
+    const gapSize = Math.round(4 * avgScale);
+    const paddingSize = Math.round(8 * avgScale);
+    
     let html = '';
     if (winOdds.mode === 'bars') {
-      html = '<div style="display:flex;flex-direction:column;gap:4px;padding:8px;">';
+      html = `<div style="display:flex;flex-direction:column;gap:${gapSize}px;padding:${paddingSize}px;">`;
       players.forEach((p,idx) => {
         const { pct, arrow, deltaStr, tooltip, spark } = rowCommon(p);
         const barW = Math.max(2, Math.min(100, pct)).toFixed(1);
         const c = monsterColor(p, idx);
         const grad = `linear-gradient(90deg, ${c}, ${c}cc)`;
-        html += `<div style='display:flex;flex-direction:column;gap:4px;'>
-          <div style='display:flex;justify-content:space-between;align-items:center;font-size:11px;'>
-            <span style='display:flex;align-items:center;gap:6px;' ${tooltip}>${arrow}<i style='width:8px;height:8px;border-radius:50%;background:${c};box-shadow:0 0 4px ${c}aa;display:inline-block;'></i><strong style='letter-spacing:.5px;'>${p.name||p.id}</strong> ${spark}</span>
+        // Scale sparkline
+        const sVals = sparkData[p.id];
+        const maxS = Math.max(1, ...sVals);
+        const scaledSpark = `<span style='display:inline-flex;align-items:flex-end;gap:1px;height:${sparkHeight}px;'>${sVals.map(v=>`<i style='display:block;width:${sparkWidth}px;height:${Math.max(2,Math.round(v/maxS*sparkHeight))}px;background:${v===sVals[sVals.length-1]?'#818cf8':'#4f46e5'};opacity:${0.35+(v/maxS*0.65)}'></i>`).join('')}</span>`;
+        
+        html += `<div style='display:flex;flex-direction:column;gap:${gapSize}px;'>
+          <div style='display:flex;justify-content:space-between;align-items:center;font-size:${baseFontSize}px;'>
+            <span style='display:flex;align-items:center;gap:6px;' ${tooltip}>${arrow}<i style='width:${iconSize}px;height:${iconSize}px;border-radius:50%;background:${c};box-shadow:0 0 4px ${c}aa;display:inline-block;'></i><strong style='letter-spacing:.5px;'>${p.name||p.id}</strong> ${scaledSpark}</span>
             <span style='font-variant-numeric:tabular-nums;' ${tooltip}>${pct.toFixed(1)}% <span style='opacity:.55;'>${deltaStr}</span></span>
           </div>
-          <div style='background:#1d232c;border:1px solid #2c3440;border-radius:4px;height:10px;position:relative;overflow:hidden;'>
+          <div style='background:#1d232c;border:1px solid #2c3440;border-radius:4px;height:${barHeight}px;position:relative;overflow:hidden;'>
             <div style='position:absolute;left:0;top:0;bottom:0;width:${barW}%;background:${grad};box-shadow:0 0 6px ${c}66;transition:width .4s ease;'></div>
           </div>
         </div>`;
       });
       html += '</div>';
     } else if (winOdds.mode === 'table') {
-      html = `<div style="padding:8px;font-size:11px;"><table style='width:100%;border-collapse:collapse;'>
+      const cellPadding = Math.round(4 * avgScale);
+      html = `<div style="padding:${paddingSize}px;font-size:${baseFontSize}px;"><table style='width:100%;border-collapse:collapse;'>
         <thead><tr style='text-align:left;'>
-          <th style='padding:4px 6px;border-bottom:1px solid #222;'>Player</th>
-          <th style='padding:4px 6px;border-bottom:1px solid #222;'>Odds %</th>
-          <th style='padding:4px 6px;border-bottom:1px solid #222;'>Δ</th>
-          <th style='padding:4px 6px;border-bottom:1px solid #222;'>Trend</th>
+          <th style='padding:${cellPadding}px 6px;border-bottom:1px solid #222;'>Player</th>
+          <th style='padding:${cellPadding}px 6px;border-bottom:1px solid #222;'>Odds %</th>
+          <th style='padding:${cellPadding}px 6px;border-bottom:1px solid #222;'>Δ</th>
+          <th style='padding:${cellPadding}px 6px;border-bottom:1px solid #222;'>Trend</th>
         </tr></thead><tbody>`;
       players.forEach((p,idx) => {
-        const { pct, arrow, deltaStr, tooltip, spark } = rowCommon(p);
+        const { pct, arrow, deltaStr, tooltip } = rowCommon(p);
         const c = monsterColor(p, idx);
+        // Scale sparkline for table
+        const sVals = sparkData[p.id];
+        const maxS = Math.max(1, ...sVals);
+        const scaledSpark = `<span style='display:inline-flex;align-items:flex-end;gap:1px;height:${sparkHeight}px;'>${sVals.map(v=>`<i style='display:block;width:${sparkWidth}px;height:${Math.max(2,Math.round(v/maxS*sparkHeight))}px;background:${v===sVals[sVals.length-1]?'#818cf8':'#4f46e5'};opacity:${0.35+(v/maxS*0.65)}'></i>`).join('')}</span>`;
+        
         html += `<tr>
-          <td style='padding:4px 6px;' ${tooltip}><span style='display:inline-flex;align-items:center;gap:6px;'><i style="width:8px;height:8px;border-radius:50%;background:${c};box-shadow:0 0 4px ${c}aa;display:inline-block;"></i>${p.name||p.id}</span></td>
-          <td style='padding:4px 6px;font-variant-numeric:tabular-nums;' ${tooltip}>${pct.toFixed(1)}%</td>
-          <td style='padding:4px 6px;'>${arrow} <span style='opacity:.65;'>${deltaStr}</span></td>
-          <td style='padding:4px 6px;'>${spark}</td>
+          <td style='padding:${cellPadding}px 6px;' ${tooltip}><span style='display:inline-flex;align-items:center;gap:6px;'><i style="width:${iconSize}px;height:${iconSize}px;border-radius:50%;background:${c};box-shadow:0 0 4px ${c}aa;display:inline-block;"></i>${p.name||p.id}</span></td>
+          <td style='padding:${cellPadding}px 6px;font-variant-numeric:tabular-nums;' ${tooltip}>${pct.toFixed(1)}%</td>
+          <td style='padding:${cellPadding}px 6px;'>${arrow} <span style='opacity:.65;'>${deltaStr}</span></td>
+          <td style='padding:${cellPadding}px 6px;'>${scaledSpark}</td>
         </tr>`;
       });
       html += '</tbody></table></div>';
     } else if (winOdds.mode === 'compact') {
-      html = `<div style='display:flex;flex-wrap:wrap;gap:10px;font-size:11px;padding:8px;'>`;
+      const compactGap = Math.round(10 * avgScale);
+      const compactPadding = Math.round(4 * avgScale);
+      html = `<div style='display:flex;flex-wrap:wrap;gap:${compactGap}px;font-size:${baseFontSize}px;padding:${paddingSize}px;'>`;
       players.forEach((p,idx) => {
         const { pct, arrow, tooltip } = rowCommon(p);
         const c = monsterColor(p, idx);
-        html += `<span style='display:inline-flex;align-items:center;gap:6px;padding:4px 6px;background:#1d232c;border:1px solid #2c3440;border-radius:4px;' ${tooltip}>${arrow}<i style='width:8px;height:8px;border-radius:50%;background:${c};box-shadow:0 0 4px ${c}aa;'></i><strong>${p.name||p.id}</strong> ${pct.toFixed(1)}%</span>`;
+        html += `<span style='display:inline-flex;align-items:center;gap:6px;padding:${compactPadding}px 6px;background:#1d232c;border:1px solid #2c3440;border-radius:4px;' ${tooltip}>${arrow}<i style='width:${iconSize}px;height:${iconSize}px;border-radius:50%;background:${c};box-shadow:0 0 4px ${c}aa;'></i><strong>${p.name||p.id}</strong> ${pct.toFixed(1)}%</span>`;
       });
       html += '</div>';
     } else if (winOdds.mode === 'stacked') {
+      const stackedHeight = Math.round(42 * avgScale);
+      const stackedFontSize = Math.round(10 * avgScale);
       const segs = players.map((p,idx) => {
         const { pct, tooltip } = rowCommon(p);
         const w = pct.toFixed(2);
         const c = monsterColor(p, idx);
-        return `<div ${tooltip} style='flex:0 0 ${w}%;background:linear-gradient(135deg,${c},${c}cc 60%);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;position:relative;'>
+        return `<div ${tooltip} style='flex:0 0 ${w}%;background:linear-gradient(135deg,${c},${c}cc 60%);display:flex;align-items:center;justify-content:center;font-size:${stackedFontSize}px;color:#fff;position:relative;'>
           <span style='pointer-events:none;text-shadow:0 1px 2px #000;font-weight:600;'>${p.name||p.id} ${pct.toFixed(1)}%</span>
         </div>`;
       }).join('');
-      html = `<div style='padding:8px;'><div style='display:flex;width:100%;height:42px;border:1px solid #2c3440;border-radius:6px;overflow:hidden;'>${segs}</div></div>`;
+      html = `<div style='padding:${paddingSize}px;'><div style='display:flex;width:100%;height:${stackedHeight}px;border:1px solid #2c3440;border-radius:6px;overflow:hidden;'>${segs}</div></div>`;
     } else if (winOdds.mode === 'monitor') {
-      // Line graph
-      const CELL = 30;
+      // Line graph - scale based on modal size
+      const CELL = Math.round(30 * avgScale);
       const COLS = 10;
       const ROWS = 4;
       const W = CELL * COLS;
       const H = CELL * ROWS;
       const MAX_POINTS = 40;
       const hist = winOdds.history.slice(-MAX_POINTS);
+      const strokeWidth = Math.max(1, Math.round(2 * avgScale));
       const gridLines = [];
       for (let y=0;y<=ROWS;y++){ const gy = (H - (y/ROWS)*H).toFixed(2); gridLines.push(`<line x1='0' y1='${gy}' x2='${W}' y2='${gy}' stroke='rgba(255,255,255,.07)' stroke-width='1' />`); }
       for (let x=0;x<=COLS;x++){ const gx = (x/COLS)*W; gridLines.push(`<line x1='${gx}' y1='0' x2='${gx}' y2='${H}' stroke='rgba(255,255,255,.05)' stroke-width='1' />`); }
@@ -2316,19 +2359,23 @@ export function openWinOddsQuickModal(){
           const y = H - (v/100)*H;
           d += (i===0?`M ${x.toFixed(2)} ${y.toFixed(2)}`:` L ${x.toFixed(2)} ${y.toFixed(2)}`);
         });
-        return `<path d='${d}' fill='none' stroke='${c}' stroke-width='2' vector-effect='non-scaling-stroke' stroke-linejoin='round' stroke-linecap='round' />`;
+        return `<path d='${d}' fill='none' stroke='${c}' stroke-width='${strokeWidth}' vector-effect='non-scaling-stroke' stroke-linejoin='round' stroke-linecap='round' />`;
       }).join('');
-      const legend = players.map((p,idx)=>{ const c = monsterColor(p, idx); const cur = odds[p.id]?.percent||0; return `<span style='display:inline-flex;align-items:center;gap:4px;font-size:10px;'>
-        <i style='width:10px;height:10px;border-radius:2px;background:${c};box-shadow:0 0 6px ${c}aa;'></i>${p.name||p.id} ${cur.toFixed(1)}%
+      const legendFontSize = Math.round(10 * avgScale);
+      const legendIconSize = Math.round(10 * avgScale);
+      const legendGap = Math.round(8 * avgScale);
+      const legend = players.map((p,idx)=>{ const c = monsterColor(p, idx); const cur = odds[p.id]?.percent||0; return `<span style='display:inline-flex;align-items:center;gap:${Math.round(4 * avgScale)}px;font-size:${legendFontSize}px;'>
+        <i style='width:${legendIconSize}px;height:${legendIconSize}px;border-radius:2px;background:${c};box-shadow:0 0 6px ${c}aa;'></i>${p.name||p.id} ${cur.toFixed(1)}%
       </span>`; }).join('<span style="opacity:.3;">|</span>');
-      html = `<div style='display:flex;flex-direction:column;gap:6px;padding:8px;'>
-        <div style='background:#000;border:1px solid #222;border-radius:6px;padding:6px;position:relative;'>
+      const graphPadding = Math.round(6 * avgScale);
+      html = `<div style='display:flex;flex-direction:column;gap:${graphPadding}px;padding:${paddingSize}px;'>
+        <div style='background:#000;border:1px solid #222;border-radius:6px;padding:${graphPadding}px;position:relative;'>
           <svg viewBox='0 0 ${W} ${H}' preserveAspectRatio='xMidYMid meet' style='width:100%;aspect-ratio:${W}/${H};display:block;background:#000;'>
             <g>${gridLines.join('')}</g>
             <g>${paths}</g>
           </svg>
         </div>
-        <div style='display:flex;flex-wrap:wrap;gap:8px;justify-content:center;'>${legend}</div>
+        <div style='display:flex;flex-wrap:wrap;gap:${legendGap}px;justify-content:center;'>${legend}</div>
       </div>`;
     }
     
@@ -2362,10 +2409,96 @@ export function openWinOddsQuickModal(){
     } 
     setTimeout(()=>renderMini(true), 40); 
   });
-  mini.closeBtn.addEventListener('click', ()=> wrapper.remove());
+  mini.closeBtn.addEventListener('click', ()=> {
+    wrapper.remove();
+    // Clean up resize listener when modal is closed
+    if (wrapper._resizeHandler) {
+      window.removeEventListener('resize', wrapper._resizeHandler);
+    }
+  });
   const storeRef = window.__KOT_NEW__?.store;
   if (storeRef) storeRef.subscribe(()=>{ if (mini.autoCb.checked) renderMini(); });
-  setTimeout(()=>renderMini(true), 60);
+  
+  // Add window resize handler to scale content
+  let resizeTimeout;
+  wrapper._scaleContent = function scaleContent() {
+    const rect = wrapper.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    
+    // Calculate scale factor based on size (base size: 340x340)
+    const baseSize = 340;
+    const avgDimension = (width + height) / 2;
+    
+    // Dynamic font scaling based on average dimension
+    // Scales from 9px (tiny) to 16px (large)
+    let baseFontSize;
+    if (avgDimension < 200) {
+      baseFontSize = 9;
+    } else if (avgDimension < 250) {
+      baseFontSize = 10;
+    } else if (avgDimension < 300) {
+      baseFontSize = 11;
+    } else if (avgDimension < 350) {
+      baseFontSize = 13;
+    } else if (avgDimension < 450) {
+      baseFontSize = 14;
+    } else if (avgDimension < 550) {
+      baseFontSize = 15;
+    } else {
+      baseFontSize = 16;
+    }
+    
+    wrapper.style.fontSize = baseFontSize + 'px';
+  };
+  
+  wrapper._resizeHandler = () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      // Get current wrapper dimensions
+      const rect = wrapper.getBoundingClientRect();
+      
+      // Constrain position if modal is now off-screen after resize
+      let newTop = rect.top;
+      let newRight = window.innerWidth - rect.right;
+      
+      // Ensure modal stays within viewport
+      if (newTop + rect.height > window.innerHeight) {
+        newTop = Math.max(40, window.innerHeight - rect.height - 40);
+      }
+      if (newTop < 40) {
+        newTop = 40;
+      }
+      
+      if (newRight < 40) {
+        newRight = 40;
+      }
+      if (window.innerWidth - newRight - rect.width < 40) {
+        newRight = window.innerWidth - rect.width - 40;
+      }
+      
+      // Update position if needed
+      if (newTop !== rect.top || newRight !== (window.innerWidth - rect.right)) {
+        wrapper.style.top = newTop + 'px';
+        wrapper.style.right = newRight + 'px';
+        wrapper._persist?.();
+      }
+      
+      // Apply content scaling
+      wrapper._scaleContent();
+      
+      // Re-render content to adapt to new size
+      renderMini(true);
+    }, 100);
+  };
+  
+  window.addEventListener('resize', wrapper._resizeHandler);
+  
+  // Initial scale on open
+  setTimeout(() => {
+    wrapper._scaleContent();
+    renderMini(true);
+  }, 60);
 }
 
 if (!window.__KOT_WIN_ODDS_QUICK_BOUND__) {
@@ -2671,7 +2804,12 @@ export function createAIDecisionModal() {
     content.innerHTML = `<div style="padding: 20px; color: #ff6b6b;">Failed to load AI Decision Tree module: ${err.message}</div>`;
   });
   
-  return newModalSystem.createModal('aiDecision', '✨ AI Decision Tree', content, { width: '820px' });
+  return newModalSystem.createModal('aiDecision', '✨ AI Decision Tree', content, { 
+    width: '900px',
+    height: '700px',
+    draggable: true,
+    resizable: true
+  });
 }
 
 // Legacy simple render helpers removed: replaced by dedicated component.
