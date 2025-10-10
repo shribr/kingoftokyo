@@ -2,16 +2,48 @@
 #mini-win-odds-floating.win-odds-mini-floating { box-sizing:border-box; z-index:6905; }
 .win-odds-mini-floating { background:#101317; border:2px solid #000; box-shadow:6px 6px 0 #000,0 0 0 2px #1e242b inset, 0 10px 24px -10px rgba(0,0,0,.7); border-radius:12px; font-family:'Nunito',system-ui,sans-serif; }
 .win-odds-mini-floating .mini-wo-chrome { position:relative; display:flex; flex-direction:column; width:100%; height:100%; }
-.mini-wo-header { display:flex; align-items:center; justify-content:space-between; padding:6px 8px; background:#13181f; border-bottom:1px solid #1e242b; cursor:move; }
-.mini-wo-header-left { display:flex; align-items:center; min-width:40px; }
-.mini-wo-title { flex:1; text-align:center; font-size:1.1em; font-weight:700; letter-spacing:1px; font-family:'Bangers',cursive; color:#e2e8f0; }
-.mini-wo-header-right { display:flex; align-items:center; justify-content:flex-end; min-width:40px; }
-.mini-wo-btn { background:transparent; border:none; color:#cbd5e1; font-size:1.2em; padding:2px; width:auto; height:auto; border-radius:0; line-height:1; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:none; }
+.mini-wo-header { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; background:#13181f; border-bottom:1px solid #1e242b; cursor:move; }
+.mini-wo-header-left { display:flex; align-items:center; min-width:50px; }
+.mini-wo-title { flex:1; text-align:center; font-size:1.8em; font-weight:700; letter-spacing:2px; font-family:'Bangers',cursive; color:#e2e8f0; }
+.mini-wo-header-right { display:flex; align-items:center; justify-content:flex-end; min-width:50px; }
+.mini-wo-btn { background:transparent; border:none; color:#cbd5e1; font-size:2em; padding:6px 10px; width:auto; height:auto; border-radius:4px; line-height:1; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:none; transition:background 0.2s; }
 .mini-wo-btn:hover { background:#25303b; }
 .mini-wo-header-tools { display:flex; gap:6px; }
-.mini-wo-body { flex:1; padding:6px 8px; display:flex; flex-direction:column; overflow:auto; font-size:inherit; }
-.mini-wo-chart { flex:0 1 auto; overflow:hidden; display:flex; flex-direction:column; gap:6px; }
-.mini-wo-insights { flex:0 0 auto; }
+.mini-wo-body { flex:1; padding:0; display:flex; flex-direction:column; overflow:hidden; font-size:inherit; }
+.mini-wo-chart { flex:0 0 50%; overflow:auto; display:flex; flex-direction:column; gap:6px; padding:6px 8px; }
+.mini-wo-insights { flex:1 1 auto; overflow:auto; padding:0; }
+.mini-wo-splitter { flex:0 0 4px; background:#1e242b; cursor:ns-resize; position:relative; z-index:10; transition:background 0.2s; }
+.mini-wo-splitter:hover { background:#2c3440; }
+
+/* Hide scrollbars but keep scrolling */
+.mini-wo-chart::-webkit-scrollbar,
+.mini-wo-insights::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+.mini-wo-chart,
+.mini-wo-insights {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+/* Player row hover effects */
+.wo-player-row {
+  cursor: pointer;
+  transition: background 0.2s ease;
+  border: 2px solid transparent;
+}
+.wo-player-row:hover {
+  background: rgba(99, 102, 241, 0.12) !important;
+}
+.wo-player-row.selected {
+  background: rgba(99, 102, 241, 0.25);
+  border: 2px solid rgba(99, 102, 241, 0.8);
+}
+.wo-player-row.selected:hover {
+  background: rgba(99, 102, 241, 0.3) !important;
+}
 
 /* Ensure SVG charts scale smoothly */
 .mini-wo-chart svg { 

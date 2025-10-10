@@ -16,6 +16,7 @@ import {
   isUnloadConfirmationEnabled
 } from '../../services/gameStatePersistence.js';
 import { getDebugConfig, updateDebugConfig, getDebugTree } from '../../utils/debugConfig.js';
+import { uiCardDetailOpen } from '../../core/actions.js';
 
 // Initialize global winOdds object early so it's available even if settings modal never opens
 if (!window.__KOT_WIN_ODDS__) {
@@ -2797,8 +2798,9 @@ export function openWinOddsQuickModal(){
   wrapper.id = 'mini-win-odds-floating';
   wrapper.className = 'win-odds-mini-floating';
   const stored = (()=>{ try { return JSON.parse(localStorage.getItem('KOT_WIN_ODDS_MINI_SIZE')||'null'); } catch(_) { return null; } })();
-  const width = Math.min(600, Math.max(240, stored?.width || stored?.size || 340));
-  const height = Math.min(600, Math.max(200, stored?.height || stored?.size || 340));
+  // Larger default size to show all players (650x550 instead of 340x340)
+  const width = Math.min(900, Math.max(240, stored?.width || stored?.size || 650));
+  const height = Math.min(800, Math.max(200, stored?.height || stored?.size || 550));
   // Center on screen by default if no stored position
   const defaultTop = (window.innerHeight - height) / 2;
   const defaultRight = (window.innerWidth - width) / 2;
@@ -2819,8 +2821,11 @@ export function openWinOddsQuickModal(){
         </div>
       </div>
       <div class="mini-wo-body">
-        <div id="mini-win-odds-chart" class="mini-wo-chart"><div style="opacity:.55;font-size:11px;">Loading...</div></div>
-        <div id="mini-win-odds-insights" class="mini-wo-insights"></div>
+        <div id="mini-win-odds-chart" class="mini-wo-chart" style="flex: 0 0 50%; min-height: 100px; overflow: auto;"><div style="opacity:.55;font-size:11px;">Loading...</div></div>
+        <div class="mini-wo-splitter" data-splitter style="flex: 0 0 4px; background: #1e242b; cursor: ns-resize; position: relative; z-index: 10;">
+          <div style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 30px; height: 3px; background: #4a5568; border-radius: 2px;"></div>
+        </div>
+        <div id="mini-win-odds-insights" class="mini-wo-insights" style="flex: 1 1 auto; min-height: 100px; overflow: auto;"></div>
       </div>
       <div class="mini-wo-footer">
         <label class="mini-wo-auto"><input type="checkbox" id="mini-win-odds-auto" checked /> Auto</label>
@@ -2912,6 +2917,110 @@ export function openWinOddsQuickModal(){
     }
     wrapper.addEventListener('mousedown', onDown);
   })();
+  
+  // Splitter for resizing chart/insights sections
+  (function enableSplitter(){
+    const splitter = wrapper.querySelector('[data-splitter]');
+    const chartSection = wrapper.querySelector('#mini-win-odds-chart');
+    const insightsSection = wrapper.querySelector('#mini-win-odds-insights');
+    if (!splitter || !chartSection || !insightsSection) return;
+    
+    let isDragging = false;
+    let hasMoved = false;
+    let startY = 0;
+    let startChartFlex = 0;
+    
+    // Double-click to auto-fit
+    splitter.addEventListener('dblclick', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Auto-fit: measure content heights and adjust accordingly
+      const body = wrapper.querySelector('.mini-wo-body');
+      const bodyHeight = body.offsetHeight;
+      const chartContent = chartSection.scrollHeight;
+      const insightsContent = insightsSection.scrollHeight;
+      const totalContent = chartContent + insightsContent;
+      
+      if (totalContent > bodyHeight) {
+        // If content overflows, split proportionally
+        const chartPercent = Math.max(20, Math.min(80, (chartContent / totalContent) * 100));
+        chartSection.style.flex = `0 0 ${chartPercent}%`;
+        insightsSection.style.flex = '1 1 auto';
+        try {
+          localStorage.setItem('KOT_WIN_ODDS_SPLIT', chartPercent.toString());
+        } catch(_) {}
+      } else {
+        // Content fits, go back to 50/50
+        chartSection.style.flex = '0 0 50%';
+        insightsSection.style.flex = '1 1 auto';
+        try {
+          localStorage.setItem('KOT_WIN_ODDS_SPLIT', '50');
+        } catch(_) {}
+      }
+    });
+    
+    splitter.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      hasMoved = false;
+      startY = e.clientY;
+      // Get current flex-basis percentage from computed style
+      const chartStyle = window.getComputedStyle(chartSection);
+      const chartHeight = parseFloat(chartStyle.flexBasis);
+      const totalHeight = wrapper.querySelector('.mini-wo-body').offsetHeight;
+      startChartFlex = (chartHeight / totalHeight) * 100;
+      
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+      e.preventDefault();
+      e.stopPropagation();
+    });
+    
+    function onMove(e) {
+      if (!isDragging) return;
+      
+      const deltaY = Math.abs(e.clientY - startY);
+      // Only start resizing if mouse moved more than 3 pixels (prevents accidental clicks)
+      if (deltaY < 3 && !hasMoved) return;
+      
+      hasMoved = true;
+      const body = wrapper.querySelector('.mini-wo-body');
+      const bodyHeight = body.offsetHeight;
+      const actualDeltaY = e.clientY - startY;
+      const deltaPercent = (actualDeltaY / bodyHeight) * 100;
+      
+      let newChartPercent = startChartFlex + deltaPercent;
+      // Constrain between 20% and 80%
+      newChartPercent = Math.max(20, Math.min(80, newChartPercent));
+      
+      chartSection.style.flex = `0 0 ${newChartPercent}%`;
+      insightsSection.style.flex = '1 1 auto';
+      
+      // Persist the split ratio
+      try {
+        localStorage.setItem('KOT_WIN_ODDS_SPLIT', newChartPercent.toString());
+      } catch(_) {}
+    }
+    
+    function onUp() {
+      isDragging = false;
+      hasMoved = false;
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    }
+    
+    // Restore saved split ratio
+    try {
+      const saved = localStorage.getItem('KOT_WIN_ODDS_SPLIT');
+      if (saved) {
+        const percent = parseFloat(saved);
+        if (percent >= 20 && percent <= 80) {
+          chartSection.style.flex = `0 0 ${percent}%`;
+        }
+      }
+    } catch(_) {}
+  })();
+  
   const mini = {
     modeBtn: wrapper.querySelector('#mini-win-odds-mode'),
     refreshBtn: wrapper.querySelector('#mini-win-odds-refresh'),
@@ -2922,6 +3031,13 @@ export function openWinOddsQuickModal(){
     insights: wrapper.querySelector('#mini-win-odds-insights'),
     selectedPlayer: null  // Track selected player for power card analysis
   };
+  
+  console.log('[WIN ODDS] Mini object created:', {
+    hasChart: !!mini.chart,
+    hasModeBtn: !!mini.modeBtn,
+    hasInsights: !!mini.insights,
+    chartElement: mini.chart
+  });
   
   // View mode icons (same as Analytics tab)
   const modeIcons = {
@@ -2987,7 +3103,7 @@ export function openWinOddsQuickModal(){
     
     if (ownedAnalysis.length > 0) {
       ownedAnalysis.forEach(card => {
-        html += `<div style='background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:${gap1}px;padding:${gap1}px ${gap2}px;margin-bottom:${gap1}px;'>
+        html += `<div class='wo-card-item' data-card-id='${card.id}' style='background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:${gap1}px;padding:${gap1}px ${gap2}px;margin-bottom:${gap1}px;cursor:pointer;transition:all 0.2s;' onmouseover="this.style.background='rgba(34,197,94,0.2)'" onmouseout="this.style.background='rgba(34,197,94,0.1)'">
           <div style='display:flex;justify-content:space-between;align-items:center;'>
             <strong style='font-size:0.95em;'>${card.name}</strong>
             <span style='color:#22c55e;font-weight:600;font-size:0.9em;'>+${card.contribution}%</span>
@@ -3010,9 +3126,10 @@ export function openWinOddsQuickModal(){
         const canAfford = card.affordable;
         const bgColor = canAfford ? 'rgba(99,102,241,0.15)' : 'rgba(100,100,100,0.1)';
         const borderColor = canAfford ? 'rgba(99,102,241,0.4)' : 'rgba(100,100,100,0.3)';
+        const hoverBg = canAfford ? 'rgba(99,102,241,0.25)' : 'rgba(100,100,100,0.15)';
         const icon = canAfford ? '💎' : '🔒';
         
-        html += `<div style='background:${bgColor};border:1px solid ${borderColor};border-radius:${gap1}px;padding:${gap1}px ${gap2}px;margin-bottom:${gap1}px;${!canAfford ? 'opacity:0.6;' : ''}'>
+        html += `<div class='wo-card-item' data-card-id='${card.id}' style='background:${bgColor};border:1px solid ${borderColor};border-radius:${gap1}px;padding:${gap1}px ${gap2}px;margin-bottom:${gap1}px;${!canAfford ? 'opacity:0.6;' : ''}cursor:pointer;transition:all 0.2s;' onmouseover="this.style.background='${hoverBg}'" onmouseout="this.style.background='${bgColor}'">
           <div style='display:flex;justify-content:space-between;align-items:center;'>
             <strong style='font-size:0.95em;'>${icon} ${card.name}</strong>
             <span style='color:#818cf8;font-weight:600;font-size:0.9em;'>+${card.oddsIncrease.toFixed(1)}%</span>
@@ -3065,8 +3182,12 @@ export function openWinOddsQuickModal(){
       let contribution = avgContribution;
       
       // Determine card benefit based on effect type
-      if (card.effect) {
-        const effect = card.effect.toLowerCase();
+      // card.effect might be a string, object, or undefined
+      const effectStr = typeof card.effect === 'string' ? card.effect : 
+                        typeof card.effect === 'object' ? JSON.stringify(card.effect) : '';
+      
+      if (effectStr) {
+        const effect = effectStr.toLowerCase();
         if (effect.includes('victory') || effect.includes('vp') || effect.includes('point')) {
           reason = 'Grants victory points';
           contribution *= 1.3;
@@ -3090,6 +3211,7 @@ export function openWinOddsQuickModal(){
       }
       
       return {
+        id: card.id || card.name || cardName, // Include card ID for click handling
         name: cardName,
         contribution: Math.max(0.1, contribution).toFixed(1),
         reason: reason
@@ -3136,8 +3258,11 @@ export function openWinOddsQuickModal(){
       
       // Determine card benefit description
       let reason = 'General advantage';
-      if (card.effect) {
-        const effect = card.effect.toLowerCase();
+      const effectStr = typeof card.effect === 'string' ? card.effect : 
+                        typeof card.effect === 'object' ? JSON.stringify(card.effect) : '';
+      
+      if (effectStr) {
+        const effect = effectStr.toLowerCase();
         if (effect.includes('victory') || effect.includes('vp') || effect.includes('point')) {
           reason = 'Victory points';
         } else if (effect.includes('dice') || effect.includes('roll') || effect.includes('reroll')) {
@@ -3152,6 +3277,7 @@ export function openWinOddsQuickModal(){
       }
       
       return {
+        id: card.id || card.name || 'Unknown Card', // Include card ID for click handling
         name: card.name || card.id || 'Unknown Card',
         cost: card.cost || 0,
         affordable: affordable,
@@ -3299,11 +3425,10 @@ export function openWinOddsQuickModal(){
         const { pct, arrow, deltaStr, tooltip, spark } = rowCommon(p);
         const c = monsterColor(p, idx);
         const isSelected = mini.selectedPlayer === p.id;
-        const rowStyle = isSelected 
-          ? `background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.5);cursor:pointer;` 
-          : `cursor:pointer;transition:background 0.2s;`;
-        html += `<tr data-player-id="${p.id}" style='${rowStyle}' onmouseover="this.style.background='rgba(99,102,241,0.08)'" onmouseout="this.style.background='${isSelected ? 'rgba(99,102,241,0.15)' : ''}'">
-          <td style='padding:${gap1}px ${gap2}px;' ${tooltip}><span style='display:inline-flex;align-items:center;gap:${gap2}px;'><i style="width:${iconSize1}px;height:${iconSize1}px;border-radius:50%;background:${c};box-shadow:0 0 ${gap1}px ${c}aa;display:inline-block;"></i>${p.name||p.id}</span></td>
+        const rowClass = isSelected ? 'wo-player-row selected' : 'wo-player-row';
+        const selectIndicator = isSelected ? '👉 ' : '';
+        html += `<tr data-player-id="${p.id}" class="${rowClass}">
+          <td style='padding:${gap1}px ${gap2}px;' ${tooltip}><span style='display:inline-flex;align-items:center;gap:${gap2}px;'>${selectIndicator}<i style="width:${iconSize1}px;height:${iconSize1}px;border-radius:50%;background:${c};box-shadow:0 0 ${gap1}px ${c}aa;display:inline-block;"></i>${p.name||p.id}</span></td>
           <td style='padding:${gap1}px ${gap2}px;font-variant-numeric:tabular-nums;' ${tooltip}>${pct.toFixed(1)}%</td>
           <td style='padding:${gap1}px ${gap2}px;'>${arrow} <span style='opacity:.65;'>${deltaStr}</span></td>
           <td style='padding:${gap1}px ${gap2}px;'>${spark}</td>
@@ -3377,7 +3502,18 @@ export function openWinOddsQuickModal(){
       console.log('[WIN ODDS] Rendering insights, selectedPlayer:', mini.selectedPlayer);
       console.log('[WIN ODDS] Current mode:', winOdds.mode);
       
-      // If player selected, show detailed power card analysis
+      // Auto-select leader if no player selected
+      if (!mini.selectedPlayer && players.length > 0) {
+        const sortedByOdds = [...players].sort((a, b) => {
+          const aOdds = odds[a.id]?.percent || 0;
+          const bOdds = odds[b.id]?.percent || 0;
+          return bOdds - aOdds;
+        });
+        mini.selectedPlayer = sortedByOdds[0]?.id;
+        console.log('[WIN ODDS] Auto-selected leader:', mini.selectedPlayer);
+      }
+      
+      // Show detailed power card analysis for selected player
       if (mini.selectedPlayer) {
         const selectedPlayer = players.find(p => p.id === mini.selectedPlayer);
         console.log('[WIN ODDS] Selected player object:', selectedPlayer);
@@ -3386,7 +3522,7 @@ export function openWinOddsQuickModal(){
           insightHTML = renderPowerCardAnalysis(selectedPlayer, odds, state, fontSize2, gap1, gap2, pad1, avgScale);
         }
       } else {
-        // Default leader insights
+        // Fallback: Default leader insights (should rarely happen now)
         const sortedPlayers = [...players].sort((a, b) => {
           const aOdds = odds[a.id]?.percent || 0;
           const bOdds = odds[b.id]?.percent || 0;
@@ -3492,18 +3628,79 @@ export function openWinOddsQuickModal(){
   mini.closeBtn.addEventListener('click', ()=> wrapper.remove());
   
   // Player row selection for power card analysis
-  mini.chart.addEventListener('click', (e) => {
-    console.log('[WIN ODDS] Chart clicked', e.target);
-    const row = e.target.closest('[data-player-id]');
-    console.log('[WIN ODDS] Closest row with data-player-id:', row);
-    if (row) {
-      const playerId = row.dataset.playerId;
-      console.log('[WIN ODDS] Player selected:', playerId, 'Previous:', mini.selectedPlayer);
-      mini.selectedPlayer = mini.selectedPlayer === playerId ? null : playerId;
-      console.log('[WIN ODDS] New selected player:', mini.selectedPlayer);
-      renderMini(true);
-    }
-  });
+  if (mini.chart) {
+    console.log('[WIN ODDS] Setting up click handler on chart element:', mini.chart);
+    mini.chart.addEventListener('click', (e) => {
+      console.log('[WIN ODDS] Chart clicked!', {
+        target: e.target,
+        tagName: e.target.tagName,
+        className: e.target.className,
+        dataset: e.target.dataset
+      });
+      
+      // Check if clicking on a card item (prevent row selection when clicking cards)
+      if (e.target.closest('.wo-card-item')) {
+        console.log('[WIN ODDS] Click was on a card, ignoring for row selection');
+        return;
+      }
+      
+      const row = e.target.closest('[data-player-id]');
+      console.log('[WIN ODDS] Closest row with data-player-id:', row);
+      if (row) {
+        const playerId = row.dataset.playerId;
+        console.log('[WIN ODDS] Player row clicked! PlayerId:', playerId, 'Previous:', mini.selectedPlayer);
+        mini.selectedPlayer = mini.selectedPlayer === playerId ? null : playerId;
+        console.log('[WIN ODDS] New selected player:', mini.selectedPlayer);
+        renderMini(true);
+      } else {
+        console.log('[WIN ODDS] No player row found in click path');
+      }
+    });
+  } else {
+    console.error('[WIN ODDS] Chart element not found! Cannot add click handler.');
+  }
+  
+  // Power card click to show details
+  if (mini.insights) {
+    console.log('[WIN ODDS] Setting up card click handler on insights element:', mini.insights);
+    mini.insights.addEventListener('click', (e) => {
+      console.log('[WIN ODDS] Insights clicked!', {
+        target: e.target,
+        tagName: e.target.tagName,
+        className: e.target.className
+      });
+      
+      const cardItem = e.target.closest('.wo-card-item');
+      console.log('[WIN ODDS] Closest card item:', cardItem);
+      
+      if (cardItem) {
+        const cardId = cardItem.dataset.cardId;
+        console.log('[WIN ODDS] Card clicked! CardId:', cardId);
+        
+        if (!cardId) {
+          console.error('[WIN ODDS] Card item missing data-card-id attribute');
+          return;
+        }
+        
+        if (!window.__KOT_NEW__?.store) {
+          console.error('[WIN ODDS] Store not available');
+          return;
+        }
+        
+        console.log('[WIN ODDS] Dispatching uiCardDetailOpen for card:', cardId);
+        try {
+          window.__KOT_NEW__.store.dispatch(uiCardDetailOpen(cardId, 'player'));
+          console.log('[WIN ODDS] Card detail modal opened successfully');
+        } catch (err) {
+          console.error('[WIN ODDS] Error opening card detail:', err);
+        }
+      } else {
+        console.log('[WIN ODDS] No card item found in click path');
+      }
+    });
+  } else {
+    console.error('[WIN ODDS] Insights element not found! Cannot add card click handler.');
+  }
   const storeRef = window.__KOT_NEW__?.store;
   if (storeRef) storeRef.subscribe(()=>{ if (mini.autoCb.checked) renderMini(); });
   setTimeout(()=>renderMini(true), 60);

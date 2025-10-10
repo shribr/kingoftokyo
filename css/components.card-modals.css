@@ -1,5 +1,5 @@
 /* Minimal styling scaffolding for card detail & player cards modals */
-.card-detail-modal, .player-cards-modal { position: fixed; inset: 0; z-index: 10500; font-family: var(--font-display, sans-serif); display: flex; align-items: center; justify-content: center; }
+.card-detail-modal, .player-cards-modal { position: fixed; inset: 0; z-index: 15000 !important; font-family: var(--font-display, sans-serif); display: flex; align-items: center; justify-content: center; }
 .card-detail-modal.hidden, .player-cards-modal.hidden { display: none; }
 /* Backdrop */
 .card-detail-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.55); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
