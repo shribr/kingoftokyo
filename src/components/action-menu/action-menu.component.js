@@ -163,6 +163,9 @@ export function build({ selector }) {
         
         document.body.appendChild(radialContainer);
         
+        // Start with menu hidden
+        radialContainer.style.display = 'none';
+        
         // Store reference for later cleanup
         root._radialContainer = radialContainer;
         
@@ -269,6 +272,12 @@ export function build({ selector }) {
         // Store carousel functions for external access
         radialContainer._setActiveButton = setActiveButton;
         radialContainer._getCurrentActiveIndex = () => currentActiveIndex;
+      }
+      
+      // Ensure radial menu is hidden if not expanded (handles both new and existing containers)
+      const isExpanded = radialContainer.getAttribute('data-expanded') === 'true';
+      if (!isExpanded) {
+        radialContainer.style.display = 'none';
       }
       
       // Set initial collapsed state (all buttons hidden behind the toggle button)
@@ -490,21 +499,30 @@ export function build({ selector }) {
       // Create SVG pie chart with 6 slices
       btn.innerHTML = `
         <svg viewBox="0 0 100 100" width="100%" height="100%" style="transform: rotate(-90deg);">
-          <!-- Background circle -->
-          <circle cx="50" cy="50" r="47" fill="#ffcf33" stroke="none"/>
+          <!-- Bright background circle -->
+          <circle cx="50" cy="50" r="47" fill="#ffd54d" stroke="none"/>
+          <!-- Inner glow circle for depth -->
+          <circle cx="50" cy="50" r="45" fill="url(#radialGlow)" stroke="none" opacity="0.6"/>
+          <defs>
+            <radialGradient id="radialGlow">
+              <stop offset="0%" stop-color="#fff" stop-opacity="0.8"/>
+              <stop offset="70%" stop-color="#ffd54d" stop-opacity="0.3"/>
+              <stop offset="100%" stop-color="#ffd54d" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
           <g class="pie-slices">
             <!-- Slice 1: Bottom (starting at -90deg, which is bottom after rotation) -->
-            <path class="pie-slice" data-slice="1" d="M 50 50 L 50 0 A 50 50 0 0 1 93.3 25 Z" fill="none" stroke="#333" stroke-width="3"/>
+            <path class="pie-slice" data-slice="1" d="M 50 50 L 50 0 A 50 50 0 0 1 93.3 25 Z" fill="none" stroke="#222" stroke-width="3"/>
             <!-- Slice 2: Bottom-right -->
-            <path class="pie-slice" data-slice="2" d="M 50 50 L 93.3 25 A 50 50 0 0 1 93.3 75 Z" fill="none" stroke="#333" stroke-width="3"/>
+            <path class="pie-slice" data-slice="2" d="M 50 50 L 93.3 25 A 50 50 0 0 1 93.3 75 Z" fill="none" stroke="#222" stroke-width="3"/>
             <!-- Slice 3: Top-right -->
-            <path class="pie-slice" data-slice="3" d="M 50 50 L 93.3 75 A 50 50 0 0 1 50 100 Z" fill="none" stroke="#333" stroke-width="3"/>
+            <path class="pie-slice" data-slice="3" d="M 50 50 L 93.3 75 A 50 50 0 0 1 50 100 Z" fill="none" stroke="#222" stroke-width="3"/>
             <!-- Slice 4: Top -->
-            <path class="pie-slice" data-slice="4" d="M 50 50 L 50 100 A 50 50 0 0 1 6.7 75 Z" fill="none" stroke="#333" stroke-width="3"/>
+            <path class="pie-slice" data-slice="4" d="M 50 50 L 50 100 A 50 50 0 0 1 6.7 75 Z" fill="none" stroke="#222" stroke-width="3"/>
             <!-- Slice 5: Top-left -->
-            <path class="pie-slice" data-slice="5" d="M 50 50 L 6.7 75 A 50 50 0 0 1 6.7 25 Z" fill="none" stroke="#333" stroke-width="3"/>
+            <path class="pie-slice" data-slice="5" d="M 50 50 L 6.7 75 A 50 50 0 0 1 6.7 25 Z" fill="none" stroke="#222" stroke-width="3"/>
             <!-- Slice 6: Bottom-left -->
-            <path class="pie-slice" data-slice="6" d="M 50 50 L 6.7 25 A 50 50 0 0 1 50 0 Z" fill="none" stroke="#333" stroke-width="3"/>
+            <path class="pie-slice" data-slice="6" d="M 50 50 L 6.7 25 A 50 50 0 0 1 50 0 Z" fill="none" stroke="#222" stroke-width="3"/>
           </g>
         </svg>
       `;
@@ -529,9 +547,9 @@ export function build({ selector }) {
         justifyContent:'center', 
         fontSize:'4.8vh', 
         cursor:'pointer', 
-        boxShadow:'0 0.4vh 1.2vh rgba(0,0,0,0.3)', 
-        zIndex:'6700', 
-        transition:'transform 0.2s ease', 
+        boxShadow:'0 0 20px rgba(255, 213, 77, 0.6), 0 0.4vh 1.2vh rgba(0,0,0,0.3)', 
+        zIndex:'999999', 
+        transition:'transform 0.2s ease, box-shadow 0.2s ease', 
         color:'#000'
       };
       
@@ -575,6 +593,18 @@ export function build({ selector }) {
         // Check if menu is currently expanded
         const isExpanded = radialMenu.getAttribute('data-expanded') === 'true';
         
+        // Get or create mini player card overlay
+        let miniPlayerOverlay = document.querySelector('.mini-player-card-darken-overlay');
+        if (!miniPlayerOverlay) {
+          miniPlayerOverlay = document.createElement('div');
+          miniPlayerOverlay.className = 'mini-player-card-darken-overlay';
+          document.body.appendChild(miniPlayerOverlay);
+        }
+        
+        // Get current corner setting
+        const corner = radialMenu.getAttribute('data-corner') || 'right';
+        miniPlayerOverlay.setAttribute('data-corner', corner);
+        
         if (isExpanded) {
           // Collapse - animate buttons back to center and empty pie slices
           radialMenu.setAttribute('data-expanded', 'false');
@@ -585,9 +615,17 @@ export function build({ selector }) {
           btn.style.transform = 'scale(1)';
           document.body.removeAttribute('data-action-menu-open');
           btn.setAttribute('aria-label', 'Expand Action Menu');
+          // Hide mini player card overlay
+          miniPlayerOverlay.classList.remove('visible');
+          // Hide radial menu completely
+          setTimeout(() => {
+            radialMenu.style.display = 'none';
+          }, 300); // Wait for animation to complete
         } else {
           // Expand - fan out buttons in arc and fill pie slices
           radialMenu.setAttribute('data-expanded', 'true');
+          // Show radial menu
+          radialMenu.style.display = 'flex';
           if (radialMenu._applyRadialPositions) {
             radialMenu._applyRadialPositions(true);
           }
@@ -595,10 +633,18 @@ export function build({ selector }) {
           btn.style.transform = 'scale(0.9)';
           btn.setAttribute('aria-label', 'Collapse Action Menu');
           document.body.setAttribute('data-action-menu-open', 'true');
+          // Show mini player card overlay
+          miniPlayerOverlay.classList.add('visible');
         }
       });
       document.body.appendChild(btn);
       root._mobileBtn = btn;
+      
+      // Ensure overlay is properly initialized and hidden on page load
+      let initialOverlay = document.querySelector('.mini-player-card-darken-overlay');
+      if (initialOverlay) {
+        initialOverlay.classList.remove('visible');
+      }
       
       // Keyboard navigation support (arrow keys when toggle button has focus)
       btn.addEventListener('keydown', (e) => {
@@ -767,9 +813,15 @@ export function build({ selector }) {
   window.addEventListener('settings:mobileCornerChanged', (e) => {
     if (!checkMobile()) return; // Only applies to mobile
     const newCorner = e.detail?.corner || 'right';
-    const radialContainer = root.querySelector('.am-radial-container');
+    const radialContainer = document.getElementById('radial-action-menu');
     if (radialContainer) {
       radialContainer.setAttribute('data-corner', newCorner);
+      
+      // Update overlay corner position
+      const overlay = document.querySelector('.mini-player-card-darken-overlay');
+      if (overlay) {
+        overlay.setAttribute('data-corner', newCorner);
+      }
       
       // Use the stored positioning function if available
       if (radialContainer._applyRadialPositions) {

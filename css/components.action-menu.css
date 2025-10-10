@@ -38,6 +38,14 @@
   backdrop-filter:none;
 }
 
+/* Hide action menu when pause overlay is visible */
+.cmp-pause-overlay:not(.hidden) ~ * .cmp-action-menu,
+body:has(.cmp-pause-overlay:not(.hidden)) .cmp-action-menu {
+  pointer-events: none;
+  opacity: 0.3;
+  z-index: 100;
+}
+
 /* Mobile / touch adjustments */
 @media (max-width: 760px), (pointer: coarse) {
   /* Hide the desktop vertical action menu completely in mobile view */

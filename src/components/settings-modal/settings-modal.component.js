@@ -723,24 +723,24 @@ export function createSettingsModal() {
         <div class="section" style="margin-top:20px;">
           <h3 class="section-title">🎲 Player Win Odds</h3>
           <div class="field" style="margin-top:6px;">
-            <div style="font-size:11px;opacity:.65;margin-bottom:6px;line-height:1.4;">Heuristic distribution (VP, health, energy, Tokyo control, momentum).</div>
-            <div id="dev-win-odds-panel" style="background:#101317;border:1px solid #222;border-radius:8px;overflow:hidden;display:flex;flex-direction:column;position:relative;z-index:6905;">
-              <div class="win-odds-header" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid #1e242b;background:linear-gradient(90deg,#13181f,#181f27);">
-                  <button type="button" id="dev-win-odds-mode" title="Cycle view (V)" style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;background:none;border:none;color:#cbd5e1;font-size:14px;border-radius:0;line-height:1;cursor:pointer;box-shadow:none;"></button>
-                  <div style="flex:1;text-align:center;font-size:26px;font-weight:800;letter-spacing:2px;color:#e2e8f0;font-family:'Bangers',cursive;text-shadow:0 3px 6px #000,2px 2px 0 #000;">PLAYER WIN ODDS</div>
-                  <button type="button" id="dev-win-odds-refresh" title="Refresh now (R)" style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;background:none;border:none;color:#cbd5e1;font-size:12px;border-radius:0;line-height:1;cursor:pointer;box-shadow:none;">
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path><path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path></svg>
+            <div style="font-size:11px;opacity:.65;margin-bottom:8px;line-height:1.4;">Heuristic distribution (VP, health, energy, Tokyo control, momentum).</div>
+            <div id="dev-win-odds-panel" style="background:linear-gradient(135deg,#0f1419,#1a1f26);border:2px solid #2a3440;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;position:relative;box-shadow:0 4px 12px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05);">
+              <div class="win-odds-header" style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:2px solid #2a3440;background:linear-gradient(90deg,rgba(26,31,38,0.9),rgba(19,24,31,0.9));backdrop-filter:blur(4px);">
+                  <button type="button" id="dev-win-odds-mode" title="Cycle view (V)" style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#cbd5e1;font-size:14px;border-radius:6px;line-height:1;cursor:pointer;transition:all 0.2s ease;"></button>
+                  <div style="flex:1;text-align:center;font-size:20px;font-weight:800;letter-spacing:2px;color:#e2e8f0;font-family:'Bangers',cursive;text-shadow:0 2px 8px rgba(0,0,0,0.6),0 0 20px rgba(79,70,229,0.3);background:linear-gradient(135deg,#e2e8f0,#a5b4fc);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.8));">WIN ODDS</div>
+                  <button type="button" id="dev-win-odds-refresh" title="Refresh now (R)" style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#cbd5e1;font-size:12px;border-radius:6px;line-height:1;cursor:pointer;transition:all 0.2s ease;">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path><path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path></svg>
                 </button>
               </div>
-              <div class="win-odds-body" id="dev-win-odds-chart" style="padding:8px 10px;display:flex;flex-direction:column;gap:8px;min-height:150px;height:200px;overflow:hidden;">
-                <div style="font-size:11px;opacity:.5;">Waiting for data...</div>
+              <div class="win-odds-body" id="dev-win-odds-chart" style="padding:16px;display:flex;flex-direction:column;gap:12px;min-height:180px;height:240px;overflow-y:auto;background:rgba(0,0,0,0.2);">
+                <div style="font-size:11px;opacity:.5;text-align:center;padding:20px;">Waiting for data...</div>
               </div>
-              <div class="win-odds-footer" style="display:flex;align-items:center;gap:6px;padding:6px 8px;border-top:1px solid #1e242b;background:#13181f;">
-                <label style="font-size:10px;display:flex;align-items:center;gap:4px;margin:0;white-space:nowrap;">
-                  <input type="checkbox" id="dev-win-odds-auto" checked /> Auto
+              <div class="win-odds-footer" style="display:flex;align-items:center;gap:8px;padding:10px 16px;border-top:2px solid #2a3440;background:linear-gradient(90deg,rgba(19,24,31,0.95),rgba(15,20,25,0.95));">
+                <label style="font-size:11px;display:flex;align-items:center;gap:6px;margin:0;white-space:nowrap;font-weight:500;color:#94a3b8;">
+                  <input type="checkbox" id="dev-win-odds-auto" checked style="width:14px;height:14px;cursor:pointer;" /> Auto
                 </label>
-                <div id="dev-win-odds-trend" style="flex:1;font-size:9px;opacity:.6;line-height:1.3;text-align:center;">–</div>
-                <button type="button" id="dev-win-odds-clear" title="Clear history" style="background:none;border:none;color:#cbd5e1;padding:3px 6px;font-size:10px;border-radius:4px;line-height:1;cursor:pointer;">🗑</button>
+                <div id="dev-win-odds-trend" style="flex:1;font-size:10px;opacity:.6;line-height:1.3;text-align:center;color:#94a3b8;">–</div>
+                <button type="button" id="dev-win-odds-clear" title="Clear history" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;padding:4px 10px;font-size:11px;border-radius:6px;line-height:1;cursor:pointer;transition:all 0.2s ease;font-weight:500;">🗑 Clear</button>
               </div>
             </div>
           </div>
@@ -1400,14 +1400,23 @@ export function createSettingsModal() {
         const { pct, arrow, deltaStr, tooltip, spark } = rowCommon(p);
         const barW = Math.max(2, Math.min(100, pct)).toFixed(1);
         const c = monsterColor(p, idx);
-        const grad = `linear-gradient(90deg, ${c}, ${c}cc)`;
-        return `<div style='display:flex;flex-direction:column;gap:4px;'>
-          <div style='display:flex;justify-content:space-between;align-items:center;font-size:11px;'>
-            <span style='display:flex;align-items:center;gap:6px;' ${tooltip}>${arrow}<i style='width:8px;height:8px;border-radius:50%;background:${c};box-shadow:0 0 4px ${c}aa;display:inline-block;'></i><strong style='letter-spacing:.5px;'>${p.name||p.id}</strong> ${spark}</span>
-            <span style='font-variant-numeric:tabular-nums;' ${tooltip}>${pct.toFixed(1)}% <span style='opacity:.55;'>${deltaStr}</span></span>
+        const grad = `linear-gradient(90deg, ${c}dd, ${c})`;
+        const glowColor = c + '44';
+        return `<div style='display:flex;flex-direction:column;gap:6px;padding:6px;background:rgba(255,255,255,0.02);border-radius:8px;transition:all 0.2s ease;' onmouseover='this.style.background="rgba(255,255,255,0.04)"' onmouseout='this.style.background="rgba(255,255,255,0.02)"'>
+          <div style='display:flex;justify-content:space-between;align-items:center;font-size:12px;'>
+            <span style='display:flex;align-items:center;gap:8px;font-weight:500;' ${tooltip}>
+              ${arrow}
+              <i style='width:10px;height:10px;border-radius:50%;background:${c};box-shadow:0 0 8px ${c}cc,0 0 4px ${c};display:inline-block;'></i>
+              <strong style='letter-spacing:.5px;color:#e2e8f0;'>${p.name||p.id}</strong>
+              ${spark}
+            </span>
+            <span style='font-variant-numeric:tabular-nums;font-weight:600;color:#e2e8f0;' ${tooltip}>
+              ${pct.toFixed(1)}% 
+              <span style='opacity:.5;font-size:10px;font-weight:400;'>${deltaStr}</span>
+            </span>
           </div>
-          <div style='background:#1d232c;border:1px solid #2c3440;border-radius:4px;height:10px;position:relative;overflow:hidden;'>
-            <div style='position:absolute;left:0;top:0;bottom:0;width:${barW}%;background:${grad};box-shadow:0 0 6px ${c}66;transition:width .4s ease;'></div>
+          <div style='background:#0a0e14;border:1px solid #1e2630;border-radius:6px;height:14px;position:relative;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,0.3);'>
+            <div style='position:absolute;left:0;top:0;bottom:0;width:${barW}%;background:${grad};box-shadow:0 0 12px ${glowColor},inset 0 1px 0 rgba(255,255,255,0.2);transition:width .5s cubic-bezier(0.4, 0.0, 0.2, 1);border-radius:4px;'></div>
           </div>
         </div>`;
       }).join('');
@@ -2587,7 +2596,7 @@ export function createSettingsModal() {
   // Build debug configuration tree
   buildDebugConfigTree(content);
 
-  const __settingsModal = newModalSystem.createModal('settings', '⚙️ Game Settings', content, { width: '1400px', height: '700px' });
+  const __settingsModal = newModalSystem.createModal('settings', '⚙️ Game Settings', content, { width: '1600px', height: '850px' });
   try { __settingsModal.setAttribute('data-modal-id','settings'); } catch(_) {}
 
   // Remove max-height to prevent gap below sticky footer

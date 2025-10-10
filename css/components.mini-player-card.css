@@ -21,6 +21,47 @@
   pointer-events: auto;
 }
 
+/* Overlay that darkens only the mini player card area when radial menu is open (mobile only) */
+.mini-player-card-darken-overlay {
+  position: fixed;
+  bottom: 0;
+  width: 50vw; /* Cover half the screen width */
+  height: 30vh; /* Cover area around mini player card and radial menu */
+  background: radial-gradient(circle at center bottom, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.4) 50%, transparent 100%);
+  z-index: 9450; /* Just below mini-player-card-container (9500) but above other elements */
+  opacity: 0 !important; /* Force hidden by default */
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  visibility: hidden !important; /* Force completely hidden when not visible */
+  display: none; /* Extra safety - don't display at all by default */
+}
+
+/* Position overlay on right side by default */
+.mini-player-card-darken-overlay {
+  right: 0;
+}
+
+/* Position overlay on left side when menu is in left corner */
+.mini-player-card-darken-overlay[data-corner="left"] {
+  right: auto;
+  left: 0;
+  background: radial-gradient(circle at center bottom, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.4) 50%, transparent 100%);
+}
+
+/* Show overlay when radial menu is expanded - only then override the defaults */
+.mini-player-card-darken-overlay.visible {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
+}
+
+/* Only show overlay on mobile screens */
+@media (min-width: 761px) and (pointer: fine) {
+  .mini-player-card-darken-overlay {
+    display: none !important;
+  }
+}
+
 /* Player name label under card */
 .mini-player-card-name {
   font-family: 'Bangers', cursive;

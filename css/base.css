@@ -75,7 +75,18 @@ body.dark-mode .ai-decision-tree-panel .node:hover { background:#24333a; }
 .settings-light .replay-controls-overlay .replay-btn { color:#1e293b; }
 
 /* Win Odds panel button hover states */
-#dev-win-odds-mode:hover, #dev-win-odds-refresh:hover { filter:brightness(1.2); }
+#dev-win-odds-mode:hover, #dev-win-odds-refresh:hover { 
+  background: rgba(255,255,255,0.1) !important;
+  border-color: rgba(255,255,255,0.2) !important;
+  transform: translateY(-1px);
+}
+#dev-win-odds-mode:active, #dev-win-odds-refresh:active {
+  transform: translateY(0);
+}
+#dev-win-odds-clear:hover {
+  background: rgba(239,68,68,0.2) !important;
+  border-color: rgba(239,68,68,0.5) !important;
+}
 #dev-win-odds-mode:active, #dev-win-odds-refresh:active { filter:brightness(.9); }
 
 /* Keyboard shortcut hint tooltip style (uses title attr automatically) */
