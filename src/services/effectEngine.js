@@ -30,12 +30,29 @@ export function createEffectEngine(store, logger) {
       return true;
     },
     dice_slot: ({ playerId, card }) => {
-      // For now just attach card (already added on purchase). Future: modify dice capacity.
-      logger.info(`[effectEngine] dice_slot effect acknowledged for ${playerId} via ${card.id}`);
+      // Extra Head: +1 die
+      // Dice capacity is tracked by counting dice_slot cards in player's powerCards
+      logger.info(`[effectEngine] ${playerId} now has an extra die slot from ${card.id}`);
       return true;
     },
     reroll_bonus: ({ playerId, card }) => {
-      logger.info(`[effectEngine] reroll_bonus effect acknowledged for ${playerId} via ${card.id}`);
+      // Giant Brain: +1 reroll per turn
+      // Reroll capacity is tracked by counting reroll_bonus cards in player's powerCards
+      logger.info(`[effectEngine] ${playerId} now has an extra reroll from ${card.id}`);
+      return true;
+    },
+    health_bonus: ({ playerId, effect }) => {
+      // Even Bigger: +2 max health and gain 2 health immediately
+      const state = store.getState();
+      const player = state.players.byId[playerId];
+      
+      // Update max health (this needs to be stored in player state)
+      store.dispatch({ type: 'PLAYER_MAX_HEALTH_INCREASED', payload: { playerId, amount: effect.value } });
+      
+      // Heal the player for the same amount
+      store.dispatch(healPlayerAction(playerId, effect.value));
+      
+      logger.info(`[effectEngine] ${playerId} max health increased by ${effect.value} and healed ${effect.value}`);
       return true;
     },
     damage_all: ({ playerId, effect }) => {
@@ -123,6 +140,135 @@ export function createEffectEngine(store, logger) {
       poll();
       // Return false to keep processing paused until selection; we won't resolve yet.
       return false;
+    },
+    
+    // ===== PHASE 1: INSTANT DISCARD EFFECTS =====
+    
+    heal: ({ playerId, effect }) => {
+      // Heal card: heal X damage
+      store.dispatch(healPlayerAction(playerId, effect.value));
+      logger.info(`[effectEngine] ${playerId} healed ${effect.value} damage`);
+      return true;
+    },
+    
+    damage_all_including_self: ({ playerId, effect }) => {
+      // High Altitude Bombing: damage ALL including self
+      const state = store.getState();
+      for (const pid of state.players.order) {
+        store.dispatch(applyPlayerDamage(pid, effect.value));
+      }
+      logger.info(`[effectEngine] ALL monsters take ${effect.value} damage (including ${playerId})`);
+      return true;
+    },
+    
+    vp_and_damage: ({ playerId, effect }) => {
+      // Gas Refinery: +X★ and deal Y damage to all others
+      store.dispatch(playerVPGained(playerId, effect.value, 'card'));
+      const state = store.getState();
+      for (const pid of state.players.order) {
+        if (pid === playerId) continue;
+        store.dispatch(applyPlayerDamage(pid, effect.damage));
+      }
+      logger.info(`[effectEngine] ${playerId} gains ${effect.value}★ and deals ${effect.damage} to all others`);
+      return true;
+    },
+    
+    vp_and_take_damage: ({ playerId, effect }) => {
+      // Jet Fighters, National Guard: +X★ and take Y damage
+      store.dispatch(playerVPGained(playerId, effect.value, 'card'));
+      store.dispatch(applyPlayerDamage(playerId, effect.damage));
+      logger.info(`[effectEngine] ${playerId} gains ${effect.value}★ and takes ${effect.damage} damage`);
+      return true;
+    },
+    
+    vp_and_take_tokyo: ({ playerId, effect }) => {
+      // Drop from High Altitude: +X★ and take control of Tokyo if not already
+      store.dispatch(playerVPGained(playerId, effect.value, 'card'));
+      const state = store.getState();
+      const inTokyoCity = state.tokyo.city === playerId;
+      const inTokyoBay = state.tokyo.bay === playerId;
+      
+      if (!inTokyoCity && !inTokyoBay) {
+        // Not in Tokyo - take Tokyo City
+        const currentCity = state.tokyo.city;
+        if (currentCity) {
+          // Someone else in Tokyo City - they leave
+          store.dispatch({ type: 'TOKYO_CITY_LEFT', payload: { playerId: currentCity } });
+        }
+        store.dispatch({ type: 'TOKYO_CITY_ENTERED', payload: { playerId } });
+        logger.info(`[effectEngine] ${playerId} gains ${effect.value}★ and takes control of Tokyo City`);
+      } else {
+        logger.info(`[effectEngine] ${playerId} gains ${effect.value}★ (already in Tokyo)`);
+      }
+      return true;
+    },
+    
+    vp_steal_all: ({ playerId, effect }) => {
+      // Evacuation Orders: all other monsters lose X★
+      const state = store.getState();
+      for (const pid of state.players.order) {
+        if (pid === playerId) continue;
+        const opp = state.players.byId[pid];
+        const actualSteal = Math.min(effect.value, opp.victoryPoints);
+        if (actualSteal > 0) {
+          store.dispatch(playerVPGained(pid, -actualSteal, 'evacuation_orders'));
+        }
+      }
+      logger.info(`[effectEngine] All other monsters lose ${effect.value}★ due to Evacuation Orders`);
+      return true;
+    },
+    
+    // ===== PHASE 5: DICE MANIPULATION EFFECTS =====
+    
+    spend_energy_change_die: ({ playerId, effect }) => {
+      // Stretchy: You can spend 2 Energy to change one of your dice to any result
+      // This is a passive ability that needs UI support during dice rolling
+      // Flag it as available for the dice UI to enable the option
+      logger.info(`[effectEngine] ${playerId} has Stretchy ability (spend ${effect.value} energy to change die)`);
+      store.dispatch({ type: 'DICE_MANIPULATION_AVAILABLE', payload: { 
+        playerId, 
+        type: 'spend_energy_change_die', 
+        cost: effect.value 
+      }});
+      return true;
+    },
+    
+    spend_energy_heal: ({ playerId, effect }) => {
+      // Rapid Healing: Spend 2 Energy at any time to heal 1 damage
+      // This is a passive ability that needs UI support
+      // Flag it as available for the UI to show the option
+      logger.info(`[effectEngine] ${playerId} has Rapid Healing ability (spend ${effect.value} energy to heal 1)`);
+      store.dispatch({ type: 'HEAL_ABILITY_AVAILABLE', payload: { 
+        playerId, 
+        cost: effect.value,
+        healAmount: 1
+      }});
+      return true;
+    },
+    
+    change_to_1: ({ playerId, effect }) => {
+      // Herd Culler: You can change one of your dice to a ① each turn
+      // This is a passive ability that needs UI support during dice rolling
+      logger.info(`[effectEngine] ${playerId} has Herd Culler ability (change one die to 1)`);
+      store.dispatch({ type: 'DICE_MANIPULATION_AVAILABLE', payload: { 
+        playerId, 
+        type: 'change_to_1',
+        freeUse: true // Once per turn, no cost
+      }});
+      return true;
+    },
+    
+    change_die_discard: ({ playerId, card, effect }) => {
+      // Plot Twist: Change one die to any result. Discard when used.
+      // This is a one-time use ability that needs UI support
+      logger.info(`[effectEngine] ${playerId} has Plot Twist ability (change one die, then discard)`);
+      store.dispatch({ type: 'DICE_MANIPULATION_AVAILABLE', payload: { 
+        playerId, 
+        type: 'change_die_discard',
+        cardId: card.id,
+        discardAfterUse: true
+      }});
+      return true;
     }
   };
 

@@ -78,8 +78,9 @@ export function purchaseCard(store, logger, playerId, cardId) {
   } else {
     store.dispatch(playerCardGained(playerId, card));
     logger.system(`${playerId} purchased ${card.name} (keep)`);
-    // Optionally enqueue immediate keep effects that are instantaneous
-    if (effectEngine && ['vp_gain','energy_gain','heal_self','damage_all','vp_steal','energy_steal'].includes(card.effect?.kind)) {
+    // Optionally enqueue immediate keep effects that are instantaneous or stat bonuses
+    // Also enqueue passive abilities that need UI flags set
+    if (effectEngine && ['vp_gain','energy_gain','heal','heal_self','damage_all','damage_all_including_self','vp_and_damage','vp_and_take_damage','vp_and_take_tokyo','vp_steal','vp_steal_all','energy_steal','health_bonus','dice_slot','reroll_bonus','spend_energy_change_die','spend_energy_heal','change_to_1','change_die_discard'].includes(card.effect?.kind)) {
       effectEngine.enqueueImmediate(card, playerId);
       followUp = true;
     }
