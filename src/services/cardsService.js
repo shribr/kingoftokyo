@@ -78,9 +78,17 @@ export function purchaseCard(store, logger, playerId, cardId) {
   } else {
     store.dispatch(playerCardGained(playerId, card));
     logger.system(`${playerId} purchased ${card.name} (keep)`);
-    // Optionally enqueue immediate keep effects that are instantaneous or stat bonuses
-    // Also enqueue passive abilities that need UI flags set
-    if (effectEngine && ['vp_gain','energy_gain','heal','heal_self','damage_all','damage_all_including_self','vp_and_damage','vp_and_take_damage','vp_and_take_tokyo','vp_steal','vp_steal_all','energy_steal','health_bonus','dice_slot','reroll_bonus','spend_energy_change_die','spend_energy_heal','change_to_1','change_die_discard'].includes(card.effect?.kind)) {
+    // Enqueue effects that need immediate processing or UI flag setup
+    const immediateEffects = [
+      'vp_gain','energy_gain','heal','heal_self','damage_all','damage_all_including_self',
+      'vp_and_damage','vp_and_take_damage','vp_and_take_tokyo','vp_steal','vp_steal_all','energy_steal',
+      'health_bonus','dice_slot','reroll_bonus',
+      'spend_energy_change_die','spend_energy_heal','change_to_1','change_die_discard',
+      'heart_armor','heal_others','poison_counters','shrink_counters','force_reroll_discard',
+      'peek_and_buy_top','discard_for_energy','resurrect','copy_card',
+      'no_yield_damage','armor','neighbor_damage','tokyo_attack_bonus','tokyo_bonuses','reroll_3s'
+    ];
+    if (effectEngine && immediateEffects.includes(card.effect?.kind)) {
       effectEngine.enqueueImmediate(card, playerId);
       followUp = true;
     }

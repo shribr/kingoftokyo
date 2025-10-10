@@ -31,6 +31,18 @@ export function resolveDice(store, logger) {
   const tally = tallyFaces(faces);
   // Pre-damage health snapshot map (populated only if claws present)
   let preDamageHP = null;
+  
+  // Process dice result effects (Complete Destruction, Gourmet, Poison Quills, Freeze Time)
+  try {
+    const passiveEffects = typeof window !== 'undefined' ? window.__KOT_NEW__?.passiveEffects : null;
+    if (passiveEffects) {
+      const diceResults = faces.map(face => ({ face }));
+      passiveEffects.processDiceResultEffects(activeId, diceResults);
+    }
+  } catch(err) {
+    logger.warn && logger.warn('[resolveDice] Error in processDiceResultEffects', err);
+  }
+  
   // 1. Numeric triples scoring
   const triples = extractTriples(tally);
   for (const t of triples) {
@@ -48,14 +60,35 @@ export function resolveDice(store, logger) {
     store.dispatch(playerGainEnergy(activeId, tally.energy));
     store.dispatch(uiEnergyFlash(activeId, tally.energy));
     logger.info(`${activeId} gains ${tally.energy} energy`);
+    
+    // Trigger energy gain passive effects (Friend of Children)
+    try {
+      const passiveEffects = typeof window !== 'undefined' ? window.__KOT_NEW__?.passiveEffects : null;
+      if (passiveEffects) {
+        passiveEffects.processEnergyGainEffects(activeId, tally.energy);
+      }
+    } catch(err) {
+      logger.warn && logger.warn('[resolveDice] Error in processEnergyGainEffects', err);
+    }
   }
   // 3. Healing (only if not in Tokyo)
   if (tally.heart > 0) {
     const player = store.getState().players.byId[activeId];
     if (!player.inTokyo) {
-      store.dispatch(healPlayerAction(activeId, tally.heart));
-      store.dispatch(uiHealthFlash(activeId, tally.heart));
-      logger.info(`${activeId} heals ${tally.heart}`);
+      // Apply heal bonus from passive effects (Regeneration)
+      let healBonus = 0;
+      try {
+        const passiveEffects = typeof window !== 'undefined' ? window.__KOT_NEW__?.passiveEffects : null;
+        if (passiveEffects) {
+          healBonus = passiveEffects.getHealBonus(activeId);
+        }
+      } catch(err) {
+        // Silent fail
+      }
+      const totalHeal = tally.heart + healBonus;
+      store.dispatch(healPlayerAction(activeId, totalHeal));
+      store.dispatch(uiHealthFlash(activeId, totalHeal));
+      logger.info(`${activeId} heals ${totalHeal}${healBonus > 0 ? ` (${tally.heart}+${healBonus} bonus)` : ''}`);
     }
   }
   // 4. Attacks (claws)
@@ -65,17 +98,19 @@ export function resolveDice(store, logger) {
     const cityOcc = selectTokyoCityOccupant(current);
     const bayOcc = selectTokyoBayOccupant(current);
     
-    // Calculate attack bonus from passive effects (Fire Breathing)
+    // Calculate attack bonus from passive effects (Acid Attack)
     let attackBonus = 0;
+    let tokyoBonus = 0;
     try {
       const passiveEffects = typeof window !== 'undefined' ? window.__KOT_NEW__?.passiveEffects : null;
       if (passiveEffects) {
         attackBonus = passiveEffects.getAttackBonus(activeId);
+        tokyoBonus = passiveEffects.getTokyoAttackBonus(activeId);
       }
     } catch(err) {
       // Silent fail - bonus just won't apply
     }
-    const totalDamage = tally.claw + attackBonus;
+    const totalDamage = tally.claw + attackBonus + tokyoBonus;
     
     // Capture original health BEFORE applying claw damage so yield UI shows correct transition
     preDamageHP = {};
@@ -118,6 +153,26 @@ export function resolveDice(store, logger) {
     }
     if (damaged.length) {
       store.dispatch(uiAttackPulse(damaged));
+    }
+    
+    // Trigger attack effects (Alpha Monster, Herbivore)
+    try {
+      const passiveEffects = typeof window !== 'undefined' ? window.__KOT_NEW__?.passiveEffects : null;
+      if (passiveEffects) {
+        passiveEffects.processAttackEffects(activeId, damaged.length > 0);
+      }
+    } catch(err) {
+      logger.warn && logger.warn('[resolveDice] Error in processAttackEffects', err);
+    }
+  } else {
+    // No claws rolled - trigger attack effects with didDamage = false (Herbivore)
+    try {
+      const passiveEffects = typeof window !== 'undefined' ? window.__KOT_NEW__?.passiveEffects : null;
+      if (passiveEffects) {
+        passiveEffects.processAttackEffects(activeId, false);
+      }
+    } catch(err) {
+      logger.warn && logger.warn('[resolveDice] Error in processAttackEffects', err);
     }
   }
   // 5. Yield / takeover flow (extracted)

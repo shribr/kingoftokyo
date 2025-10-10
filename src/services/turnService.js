@@ -318,6 +318,7 @@ export function createTurnService(store, logger, rng = Math.random) {
     if (order.length) {
       const activeId = order[st.meta.activePlayerIndex % order.length];
       passiveEffects.processTurnStartEffects(activeId);
+      passiveEffects.processTokyoStartBonuses(activeId); // Urbavore
     }
     
   logger.system('Phase: ROLL', { kind: 'phase' });
@@ -674,9 +675,19 @@ export function createTurnService(store, logger, rng = Math.random) {
         }
       }
       
-      // Advance active player index
+      // Process turn end passive effects (Solar Powered, Energy Hoarder)
       const st = store.getState();
       const order = st.players.order;
+      if (order.length) {
+        const activeId = order[st.meta.activePlayerIndex % order.length];
+        try {
+          passiveEffects.processTurnEndEffects(activeId);
+        } catch(err) {
+          logger.warn && logger.warn('[cleanup] Error in processTurnEndEffects', err);
+        }
+      }
+      
+      // Advance active player index
       if (order.length) {
         const nextIndex = (st.meta.activePlayerIndex + 1) % order.length;
         store.dispatch({ type:'NEXT_TURN', payload:{ prev: st.meta.activePlayerIndex, next: nextIndex }});

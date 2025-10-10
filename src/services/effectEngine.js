@@ -269,6 +269,162 @@ export function createEffectEngine(store, logger) {
         discardAfterUse: true
       }});
       return true;
+    },
+    
+    // ===== PHASE 6-8: COMPLEX MECHANICS =====
+    
+    heart_armor: ({ playerId, effect, card }) => {
+      // Camouflage: If you take damage roll a die for each damage point. On a ❤ you do not take that damage point.
+      // This is a passive ability that triggers during damage resolution
+      logger.info(`[effectEngine] ${playerId} has Camouflage (heart armor)`);
+      store.dispatch({ type: 'DAMAGE_MITIGATION_AVAILABLE', payload: { 
+        playerId,
+        type: 'heart_armor',
+        cardId: card.id
+      }});
+      return true;
+    },
+    
+    heal_others: ({ playerId, effect, card }) => {
+      // Healing Ray: You can heal other monsters with your ❤ results. They must pay you 2 Energy for each damage you heal.
+      // This is a passive ability that modifies heart resolution
+      logger.info(`[effectEngine] ${playerId} has Healing Ray (can heal others for energy)`);
+      store.dispatch({ type: 'HEALING_OTHERS_AVAILABLE', payload: { 
+        playerId,
+        energyCost: 2,
+        cardId: card.id
+      }});
+      return true;
+    },
+    
+    poison_counters: ({ playerId, effect, card }) => {
+      // Poison Spit: When you deal damage give poison counters. Monsters take 1 damage per counter at end of turn.
+      // This is a passive ability that modifies damage dealing
+      logger.info(`[effectEngine] ${playerId} has Poison Spit (applies poison counters)`);
+      store.dispatch({ type: 'STATUS_EFFECT_APPLICATOR_AVAILABLE', payload: { 
+        playerId,
+        type: 'poison',
+        cardId: card.id
+      }});
+      return true;
+    },
+    
+    shrink_counters: ({ playerId, effect, card }) => {
+      // Shrink Ray: When you deal damage give shrink counters. Monsters roll one less die per counter.
+      // This is a passive ability that modifies damage dealing
+      logger.info(`[effectEngine] ${playerId} has Shrink Ray (applies shrink counters)`);
+      store.dispatch({ type: 'STATUS_EFFECT_APPLICATOR_AVAILABLE', payload: { 
+        playerId,
+        type: 'shrink',
+        cardId: card.id
+      }});
+      return true;
+    },
+    
+    force_reroll_discard: ({ playerId, effect, card }) => {
+      // Psychic Probe: Reroll opponent's die once per turn. If result is ❤ discard this card.
+      logger.info(`[effectEngine] ${playerId} has Psychic Probe (force opponent reroll)`);
+      store.dispatch({ type: 'OPPONENT_MANIPULATION_AVAILABLE', payload: { 
+        playerId,
+        type: 'force_reroll',
+        cardId: card.id,
+        discardOnHeart: true
+      }});
+      return true;
+    },
+    
+    extra_turn: ({ playerId, effect }) => {
+      // Frenzy: When you purchase this card take another turn immediately after this one
+      logger.info(`[effectEngine] ${playerId} purchased Frenzy - extra turn granted!`);
+      store.dispatch({ type: 'EXTRA_TURN_GRANTED', payload: { 
+        playerId,
+        immediate: true
+      }});
+      return true;
+    },
+    
+    peek_and_buy_top: ({ playerId, effect, card }) => {
+      // Made in a Lab: When purchasing cards you can peek at and purchase the top card of the deck
+      logger.info(`[effectEngine] ${playerId} has Made in a Lab (can peek and buy from deck)`);
+      store.dispatch({ type: 'DECK_PEEK_AVAILABLE', payload: { 
+        playerId,
+        cardId: card.id
+      }});
+      return true;
+    },
+    
+    discard_for_energy: ({ playerId, effect, card }) => {
+      // Metamorph: At end of turn you can discard any keep cards to receive the Energy they were purchased for
+      logger.info(`[effectEngine] ${playerId} has Metamorph (can discard cards for energy refund)`);
+      store.dispatch({ type: 'CARD_RECYCLE_AVAILABLE', payload: { 
+        playerId,
+        cardId: card.id
+      }});
+      return true;
+    },
+    
+    resurrect: ({ playerId, effect, card }) => {
+      // It Has a Child: If eliminated, discard all cards, lose all ★, heal to 10❤ and continue
+      logger.info(`[effectEngine] ${playerId} has It Has a Child (resurrection available)`);
+      store.dispatch({ type: 'RESURRECTION_AVAILABLE', payload: { 
+        playerId,
+        cardId: card.id,
+        reviveHealth: effect.value
+      }});
+      return true;
+    },
+    
+    copy_card: ({ playerId, effect, card }) => {
+      // Mimic: Choose a card any monster has in play and duplicate it. Spend 1 Energy to change target.
+      logger.info(`[effectEngine] ${playerId} has Mimic (can copy other cards)`);
+      store.dispatch({ type: 'CARD_COPY_AVAILABLE', payload: { 
+        playerId,
+        cardId: card.id,
+        changeCost: 1
+      }});
+      return true;
+    },
+    
+    no_yield_damage: ({ playerId, effect, card }) => {
+      // Jets: You suffer no damage when yielding Tokyo
+      // This is handled by passiveEffectsProcessor.hasNoYieldDamage()
+      logger.info(`[effectEngine] ${playerId} has Jets (no yield damage)`);
+      return true;
+    },
+    
+    armor: ({ playerId, effect, card }) => {
+      // Armor Plating: Ignore damage of 1
+      // This is handled by passiveEffectsProcessor.getArmorReduction()
+      logger.info(`[effectEngine] ${playerId} has Armor Plating (ignore 1 damage)`);
+      return true;
+    },
+    
+    neighbor_damage: ({ playerId, effect, card }) => {
+      // Fire Breathing: Neighbors take 1 extra damage when you deal damage
+      // This is handled by passiveEffectsProcessor.getNeighborDamageBonus()
+      logger.info(`[effectEngine] ${playerId} has Fire Breathing (neighbor damage)`);
+      return true;
+    },
+    
+    tokyo_attack_bonus: ({ playerId, effect, card }) => {
+      // Burrowing: Deal 1 extra damage on Tokyo
+      // This is handled by passiveEffectsProcessor.getTokyoAttackBonus()
+      logger.info(`[effectEngine] ${playerId} has Burrowing (Tokyo attack bonus)`);
+      return true;
+    },
+    
+    tokyo_bonuses: ({ playerId, effect, card }) => {
+      // Urbavore: +1★ at turn start in Tokyo, +1 damage from Tokyo
+      // Handled by passiveEffectsProcessor
+      logger.info(`[effectEngine] ${playerId} has Urbavore (Tokyo bonuses)`);
+      return true;
+    },
+    
+    reroll_3s: ({ playerId, effect, card }) => {
+      // Background Dweller: Can always reroll 3s
+      // Handled by passiveEffectsProcessor.canRerollDice()
+      logger.info(`[effectEngine] ${playerId} has Background Dweller (can reroll 3s)`);
+      return true;
     }
   };
 

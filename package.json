@@ -2,12 +2,18 @@
   "name": "kingoftokyo",
   "private": true,
   "version": "0.0.0",
+  "type": "module",
   "description": "King of Tokyo browser implementation",
   "scripts": {
-    "lint:css": "stylelint \"css/**/*.css\""
+    "lint:css": "stylelint \"css/**/*.css\"",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch"
   },
   "devDependencies": {
     "stylelint": "^16.8.0",
-    "stylelint-config-standard": "^36.0.0"
+    "stylelint-config-standard": "^36.0.0",
+    "@types/jest": "^29.5.12",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
   }
 }

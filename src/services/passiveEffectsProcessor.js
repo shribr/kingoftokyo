@@ -506,7 +506,8 @@ export function createPassiveEffectsProcessor(store, logger) {
     if (!player || !player.powerCards) return false;
     
     for (const card of player.powerCards) {
-      if (!card.effect && card.effect.kind === 'no_yield_damage') {
+      if (!card.effect) continue;
+      if (card.effect.kind === 'no_yield_damage') {
         // Jets: No damage when yielding Tokyo
         logger?.info(`[PassiveEffects] ${card.name}: no damage when yielding Tokyo`);
         return true;
