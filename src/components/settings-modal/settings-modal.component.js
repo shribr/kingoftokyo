@@ -3402,9 +3402,14 @@ export function openWinOddsQuickModal(){
         const barW = Math.max(2, Math.min(100, pct)).toFixed(1);
         const c = monsterColor(p, idx);
         const grad = `linear-gradient(90deg, ${c}, ${c}cc)`;
-        html += `<div style='display:flex;flex-direction:column;gap:${gap1}px;'>
+        const isSelected = mini.selectedPlayer === p.id;
+        const selectIndicator = isSelected ? '👉 ' : '';
+        const barStyle = isSelected 
+          ? 'background:rgba(99,102,241,0.15);border:2px solid rgba(99,102,241,0.6);' 
+          : 'border:2px solid transparent;';
+        html += `<div class='wo-player-row ${isSelected ? 'selected' : ''}' data-player-id='${p.id}' style='display:flex;flex-direction:column;gap:${gap1}px;cursor:pointer;padding:${gap1}px;border-radius:${gap1}px;${barStyle}transition:all 0.2s;'>
           <div style='display:flex;justify-content:space-between;align-items:center;font-size:${fontSize1}px;'>
-            <span style='display:flex;align-items:center;gap:${gap2}px;' ${tooltip}>${arrow}<i style='width:${iconSize1}px;height:${iconSize1}px;border-radius:50%;background:${c};box-shadow:0 0 ${gap1}px ${c}aa;display:inline-block;'></i><strong style='letter-spacing:.5px;'>${p.name||p.id}</strong> ${spark}</span>
+            <span style='display:flex;align-items:center;gap:${gap2}px;' ${tooltip}>${selectIndicator}${arrow}<i style='width:${iconSize1}px;height:${iconSize1}px;border-radius:50%;background:${c};box-shadow:0 0 ${gap1}px ${c}aa;display:inline-block;'></i><strong style='letter-spacing:.5px;'>${p.name||p.id}</strong> ${spark}</span>
             <span style='font-variant-numeric:tabular-nums;' ${tooltip}>${pct.toFixed(1)}% <span style='opacity:.55;'>${deltaStr}</span></span>
           </div>
           <div style='background:#1d232c;border:1px solid #2c3440;border-radius:${gap1}px;height:${barHeight}px;position:relative;overflow:hidden;'>
@@ -3440,7 +3445,12 @@ export function openWinOddsQuickModal(){
       players.forEach((p,idx) => {
         const { pct, arrow, tooltip } = rowCommon(p);
         const c = monsterColor(p, idx);
-        html += `<span style='display:inline-flex;align-items:center;gap:${gap2}px;padding:${gap1}px ${gap2}px;background:#1d232c;border:1px solid #2c3440;border-radius:${gap1}px;' ${tooltip}>${arrow}<i style='width:${iconSize1}px;height:${iconSize1}px;border-radius:50%;background:${c};box-shadow:0 0 ${gap1}px ${c}aa;'></i><strong>${p.name||p.id}</strong> ${pct.toFixed(1)}%</span>`;
+        const isSelected = mini.selectedPlayer === p.id;
+        const selectIndicator = isSelected ? '👉 ' : '';
+        const compactStyle = isSelected 
+          ? 'background:rgba(99,102,241,0.25);border:2px solid rgba(99,102,241,0.8);' 
+          : 'background:#1d232c;border:1px solid #2c3440;';
+        html += `<span class='wo-player-row ${isSelected ? 'selected' : ''}' data-player-id='${p.id}' style='display:inline-flex;align-items:center;gap:${gap2}px;padding:${gap1}px ${gap2}px;${compactStyle}border-radius:${gap1}px;cursor:pointer;transition:all 0.2s;' ${tooltip}>${selectIndicator}${arrow}<i style='width:${iconSize1}px;height:${iconSize1}px;border-radius:50%;background:${c};box-shadow:0 0 ${gap1}px ${c}aa;'></i><strong>${p.name||p.id}</strong> ${pct.toFixed(1)}%</span>`;
       });
       html += '</div>';
     } else if (winOdds.mode === 'stacked') {
@@ -3449,8 +3459,11 @@ export function openWinOddsQuickModal(){
         const { pct, tooltip } = rowCommon(p);
         const w = pct.toFixed(2);
         const c = monsterColor(p, idx);
-        return `<div ${tooltip} style='flex:0 0 ${w}%;background:linear-gradient(135deg,${c},${c}cc 60%);display:flex;align-items:center;justify-content:center;font-size:${fontSize2}px;color:#fff;position:relative;'>
-          <span style='pointer-events:none;text-shadow:0 1px 2px #000;font-weight:600;'>${p.name||p.id} ${pct.toFixed(1)}%</span>
+        const isSelected = mini.selectedPlayer === p.id;
+        const selectIndicator = isSelected ? '👉 ' : '';
+        const selectedStyle = isSelected ? 'border:3px solid rgba(255,255,255,0.9);box-shadow:0 0 12px rgba(99,102,241,0.8) inset;' : '';
+        return `<div class='wo-player-row ${isSelected ? 'selected' : ''}' data-player-id='${p.id}' ${tooltip} style='flex:0 0 ${w}%;background:linear-gradient(135deg,${c},${c}cc 60%);display:flex;align-items:center;justify-content:center;font-size:${fontSize2}px;color:#fff;position:relative;cursor:pointer;${selectedStyle}transition:all 0.2s;'>
+          <span style='pointer-events:none;text-shadow:0 1px 2px #000;font-weight:600;'>${selectIndicator}${p.name||p.id} ${pct.toFixed(1)}%</span>
         </div>`;
       }).join('');
       html = `<div style='padding:${pad1}px;'><div style='display:flex;width:100%;height:${stackedHeight}px;border:1px solid #2c3440;border-radius:${gap2}px;overflow:hidden;'>${segs}</div></div>`;
@@ -3479,8 +3492,16 @@ export function openWinOddsQuickModal(){
         });
         return `<path d='${d}' fill='none' stroke='${c}' stroke-width='${strokeWidth}' vector-effect='non-scaling-stroke' stroke-linejoin='round' stroke-linecap='round' />`;
       }).join('');
-      const legend = players.map((p,idx)=>{ const c = monsterColor(p, idx); const cur = odds[p.id]?.percent||0; return `<span style='display:inline-flex;align-items:center;gap:${gap1}px;font-size:${fontSize2}px;'>
-        <i style='width:${iconSize2}px;height:${iconSize2}px;border-radius:2px;background:${c};box-shadow:0 0 ${gap2}px ${c}aa;'></i>${p.name||p.id} ${cur.toFixed(1)}%
+      const legend = players.map((p,idx)=>{ 
+        const c = monsterColor(p, idx); 
+        const cur = odds[p.id]?.percent||0; 
+        const isSelected = mini.selectedPlayer === p.id;
+        const selectIndicator = isSelected ? '👉 ' : '';
+        const legendStyle = isSelected 
+          ? 'background:rgba(99,102,241,0.25);border:2px solid rgba(99,102,241,0.8);padding:3px 6px;border-radius:4px;' 
+          : 'padding:3px 6px;border:2px solid transparent;';
+        return `<span class='wo-player-row ${isSelected ? 'selected' : ''}' data-player-id='${p.id}' style='display:inline-flex;align-items:center;gap:${gap1}px;font-size:${fontSize2}px;cursor:pointer;${legendStyle}transition:all 0.2s;'>
+        ${selectIndicator}<i style='width:${iconSize2}px;height:${iconSize2}px;border-radius:2px;background:${c};box-shadow:0 0 ${gap2}px ${c}aa;'></i>${p.name||p.id} ${cur.toFixed(1)}%
       </span>`; }).join('<span style="opacity:.3;">|</span>');
       html = `<div style='display:flex;flex-direction:column;gap:${gap2}px;padding:${pad1}px;'>
         <div style='background:#000;border:1px solid #222;border-radius:${gap2}px;padding:${gap2}px;position:relative;'>
@@ -3635,8 +3656,19 @@ export function openWinOddsQuickModal(){
         target: e.target,
         tagName: e.target.tagName,
         className: e.target.className,
-        dataset: e.target.dataset
+        dataset: e.target.dataset,
+        innerHTML: e.target.innerHTML?.substring(0, 100) // First 100 chars
       });
+      
+      // Debug: Check what elements are in the path
+      let element = e.target;
+      let depth = 0;
+      console.log('[WIN ODDS] DOM path:');
+      while (element && depth < 10) {
+        console.log(`  ${depth}: ${element.tagName} class="${element.className}" id="${element.id}" data-player-id="${element.dataset?.playerId || 'none'}"`);
+        element = element.parentElement;
+        depth++;
+      }
       
       // Check if clicking on a card item (prevent row selection when clicking cards)
       if (e.target.closest('.wo-card-item')) {
@@ -3644,16 +3676,64 @@ export function openWinOddsQuickModal(){
         return;
       }
       
-      const row = e.target.closest('[data-player-id]');
+      // Try multiple approaches to find the row
+      let row = e.target.closest('[data-player-id]');
       console.log('[WIN ODDS] Closest row with data-player-id:', row);
+      
+      // Alternative: look for TR with the class
+      if (!row) {
+        row = e.target.closest('tr.wo-player-row');
+        console.log('[WIN ODDS] Closest tr.wo-player-row:', row);
+      }
+      
+      // Alternative: look for any TR in a table
+      if (!row) {
+        row = e.target.closest('tr');
+        console.log('[WIN ODDS] Closest tr:', row);
+        if (row && row.parentElement?.tagName === 'THEAD') {
+          console.log('[WIN ODDS] Clicked on header row, ignoring');
+          row = null;
+        }
+      }
+      
       if (row) {
-        const playerId = row.dataset.playerId;
+        const playerId = row.dataset?.playerId || row.getAttribute('data-player-id');
         console.log('[WIN ODDS] Player row clicked! PlayerId:', playerId, 'Previous:', mini.selectedPlayer);
+        
+        if (!playerId) {
+          console.error('[WIN ODDS] Row found but no playerId!', {
+            dataset: row.dataset,
+            getAttribute: row.getAttribute('data-player-id'),
+            innerHTML: row.innerHTML.substring(0, 100)
+          });
+          return;
+        }
+        
         mini.selectedPlayer = mini.selectedPlayer === playerId ? null : playerId;
         console.log('[WIN ODDS] New selected player:', mini.selectedPlayer);
         renderMini(true);
       } else {
         console.log('[WIN ODDS] No player row found in click path');
+        const winOdds = window.__KOT_WIN_ODDS__?.obj;
+        console.log('[WIN ODDS] Current mode:', winOdds?.mode);
+        console.log('[WIN ODDS] Chart innerHTML (first 500 chars):', mini.chart.innerHTML.substring(0, 500));
+        console.log('[WIN ODDS] All elements with data-player-id in chart:', 
+          Array.from(mini.chart.querySelectorAll('[data-player-id]')).map(el => ({
+            tag: el.tagName,
+            id: el.dataset.playerId,
+            getAttribute: el.getAttribute('data-player-id'),
+            text: el.textContent?.substring(0, 30)
+          }))
+        );
+        console.log('[WIN ODDS] All TR elements in chart:', 
+          Array.from(mini.chart.querySelectorAll('tr')).map(el => ({
+            tag: el.tagName,
+            className: el.className,
+            dataPlayerIdAttr: el.getAttribute('data-player-id'),
+            datasetPlayerId: el.dataset?.playerId,
+            text: el.textContent?.substring(0, 30)
+          }))
+        );
       }
     });
   } else {
