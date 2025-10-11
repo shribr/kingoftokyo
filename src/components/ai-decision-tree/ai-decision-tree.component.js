@@ -339,7 +339,11 @@ function bindStandardHandlers(container, root) {
   container.querySelectorAll('.adt-std-round-header').forEach(header => {
     header.addEventListener('click', () => {
       const round = header.closest('.adt-std-round');
-      if (round) round.classList.toggle('collapsed');
+      if (round) {
+        const roundKey = round.getAttribute('data-round');
+        toggleRound(roundKey);
+        render(root);
+      }
     });
   });
   
@@ -347,7 +351,19 @@ function bindStandardHandlers(container, root) {
   container.querySelectorAll('.adt-std-turn-header').forEach(header => {
     header.addEventListener('click', () => {
       const turn = header.closest('.adt-std-turn');
-      if (turn) turn.classList.toggle('collapsed');
+      if (turn) {
+        const turnHeader = turn.querySelector('.adt-std-turn-header');
+        // Extract round and turn from the structure
+        const roundElem = turn.closest('.adt-std-round');
+        const roundNum = roundElem ? roundElem.getAttribute('data-round') : null;
+        const allTurns = roundElem.querySelectorAll('.adt-std-turn');
+        const turnIndex = Array.from(allTurns).indexOf(turn);
+        if (roundNum !== null && turnIndex >= 0) {
+          const turnKey = `${roundNum}:${turnIndex + 1}`;
+          toggleTurn(turnKey);
+          render(root);
+        }
+      }
     });
   });
   
