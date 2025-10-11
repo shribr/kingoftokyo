@@ -16,7 +16,7 @@ export function createPassiveEffectsProcessor(store, logger) {
     const player = state.players.byId[playerId];
     if (!player || !player.powerCards) return;
     
-    logger?.info(`[PassiveEffects] Processing turn start for ${player.name}`);
+    logger?.info(`${player.name} Starts Turn`);
     
     for (const card of player.powerCards) {
       if (!card.effect) continue;
@@ -50,7 +50,7 @@ export function createPassiveEffectsProcessor(store, logger) {
     const player = state.players.byId[playerId];
     if (!player || !player.powerCards) return;
     
-    logger?.info(`[PassiveEffects] Processing buy phase start for ${player.name}`);
+    logger?.info(`Processing buy phase start for ${player.name}`);
     
     for (const card of player.powerCards) {
       if (!card.effect) continue;
@@ -73,7 +73,7 @@ export function createPassiveEffectsProcessor(store, logger) {
     const player = state.players.byId[playerId];
     if (!player || !player.powerCards) return;
     
-    logger?.info(`[PassiveEffects] Processing dice results for ${player.name}`);
+    logger?.info(`Processing dice results for ${player.name}`);
     
     // Count symbols from dice results
     const faces = diceResults.map(d => d.face);

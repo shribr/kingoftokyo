@@ -1063,10 +1063,10 @@ export function createSettingsModal() {
     } else if (winOdds.mode === 'table') {
       bodyHtml = `<table style='width:100%;border-collapse:collapse;font-size:11px;'>
         <thead><tr style='text-align:left;'>
-          <th style='padding:4px 6px;border-bottom:1px solid #222;'>Player</th>
-          <th style='padding:4px 6px;border-bottom:1px solid #222;'>Odds %</th>
-          <th style='padding:4px 6px;border-bottom:1px solid #222;'>Δ</th>
-          <th style='padding:4px 6px;border-bottom:1px solid #222;'>Trend</th>
+          <th style='padding:4px 6px;border-bottom:1px solid #222;background:linear-gradient(90deg,#6c5ce7,#5f3dc4);color:#fff;'>Player</th>
+          <th style='padding:4px 6px;border-bottom:1px solid #222;background:linear-gradient(90deg,#6c5ce7,#5f3dc4);color:#fff;'>Odds %</th>
+          <th style='padding:4px 6px;border-bottom:1px solid #222;background:linear-gradient(90deg,#6c5ce7,#5f3dc4);color:#fff;'>Δ</th>
+          <th style='padding:4px 6px;border-bottom:1px solid #222;background:linear-gradient(90deg,#6c5ce7,#5f3dc4);color:#fff;'>Trend</th>
         </tr></thead>
         <tbody>
         ${players.map((p,idx) => { const { pct, arrow, deltaStr, tooltip, spark } = rowCommon(p); const c = monsterColor(p, idx); return `<tr>
@@ -1205,9 +1205,18 @@ export function createSettingsModal() {
           filteredEntries = logEntries.filter(entry => {
             const msg = (entry.message || entry.text || '').toLowerCase();
             switch (logFilter) {
-              case 'dice': return msg.includes('roll') || msg.includes('dice') || msg.includes('keep');
-              case 'combat': return msg.includes('attack') || msg.includes('damage') || msg.includes('heal');
-              case 'cards': return msg.includes('card') || msg.includes('buy') || msg.includes('energy');
+              case 'dice': 
+                // Show dice rolls (but not "Phase: ROLL" messages, not power card related)
+                return (msg.includes('rolled') || msg.includes('keep')) && 
+                       !msg.includes('phase') && !msg.includes('card');
+              case 'combat': 
+                // Attack and damage only, not healing
+                return (msg.includes('attack') || msg.includes('damage')) && !msg.includes('heal');
+              case 'cards': 
+                // Show power cards: purchases, activations, and passive effects (not dice/energy gains)
+                return (msg.includes('card') || msg.includes('buy') || msg.includes('purchased') || 
+                       msg.includes('activated') || msg.includes('passive')) && 
+                       !msg.includes('rolled') && !msg.includes('gains') && !msg.includes('gain energy');
               case 'phase': return msg.includes('phase') || msg.includes('turn') || msg.includes('round');
               default: return true;
             }
@@ -2304,10 +2313,10 @@ export function openWinOddsQuickModal(){
       const cellPadding = Math.round(4 * avgScale);
       html = `<div style="padding:${paddingSize}px;font-size:${baseFontSize}px;"><table style='width:100%;border-collapse:collapse;'>
         <thead><tr style='text-align:left;'>
-          <th style='padding:${cellPadding}px 6px;border-bottom:1px solid #222;'>Player</th>
-          <th style='padding:${cellPadding}px 6px;border-bottom:1px solid #222;'>Odds %</th>
-          <th style='padding:${cellPadding}px 6px;border-bottom:1px solid #222;'>Δ</th>
-          <th style='padding:${cellPadding}px 6px;border-bottom:1px solid #222;'>Trend</th>
+          <th style='padding:${cellPadding}px 6px;border-bottom:1px solid #222;background:linear-gradient(90deg,#6c5ce7,#5f3dc4);color:#fff;'>Player</th>
+          <th style='padding:${cellPadding}px 6px;border-bottom:1px solid #222;background:linear-gradient(90deg,#6c5ce7,#5f3dc4);color:#fff;'>Odds %</th>
+          <th style='padding:${cellPadding}px 6px;border-bottom:1px solid #222;background:linear-gradient(90deg,#6c5ce7,#5f3dc4);color:#fff;'>Δ</th>
+          <th style='padding:${cellPadding}px 6px;border-bottom:1px solid #222;background:linear-gradient(90deg,#6c5ce7,#5f3dc4);color:#fff;'>Trend</th>
         </tr></thead><tbody>`;
       players.forEach((p,idx) => {
         const { pct, arrow, deltaStr, tooltip } = rowCommon(p);
@@ -2583,9 +2592,18 @@ export function createGameLogModal() {
         filteredEntries = logEntries.filter(entry => {
           const msg = (entry.message || entry.text || '').toLowerCase();
           switch (logFilter) {
-            case 'dice': return msg.includes('roll') || msg.includes('dice') || msg.includes('keep');
-            case 'combat': return msg.includes('attack') || msg.includes('damage') || msg.includes('heal');
-            case 'cards': return msg.includes('card') || msg.includes('buy') || msg.includes('energy');
+            case 'dice': 
+              // Show dice rolls (but not "Phase: ROLL" messages, not power card related)
+              return (msg.includes('rolled') || msg.includes('keep')) && 
+                     !msg.includes('phase') && !msg.includes('card');
+            case 'combat': 
+              // Attack and damage only, not healing
+              return (msg.includes('attack') || msg.includes('damage')) && !msg.includes('heal');
+            case 'cards': 
+              // Show power cards: purchases, activations, and passive effects (not dice/energy gains)
+              return (msg.includes('card') || msg.includes('buy') || msg.includes('purchased') || 
+                     msg.includes('activated') || msg.includes('passive')) && 
+                     !msg.includes('rolled') && !msg.includes('gains') && !msg.includes('gain energy');
             case 'phase': return msg.includes('phase') || msg.includes('turn') || msg.includes('round');
             default: return true;
           }

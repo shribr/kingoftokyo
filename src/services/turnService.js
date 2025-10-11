@@ -680,6 +680,10 @@ export function createTurnService(store, logger, rng = Math.random) {
       const order = st.players.order;
       if (order.length) {
         const activeId = order[st.meta.activePlayerIndex % order.length];
+        const activePlayer = st.players.byId[activeId];
+        if (activePlayer) {
+          logger.info && logger.info(`${activePlayer.name} ends turn`);
+        }
         try {
           passiveEffects.processTurnEndEffects(activeId);
         } catch(err) {

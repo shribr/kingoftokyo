@@ -1462,10 +1462,10 @@ export function createSettingsModal() {
     } else if (winOdds.mode === 'table') {
       bodyHtml = `<table style='width:100%;border-collapse:collapse;font-size:11px;'>
         <thead><tr style='text-align:left;'>
-          <th style='padding:4px 6px;border-bottom:1px solid #222;'>Player</th>
-          <th style='padding:4px 6px;border-bottom:1px solid #222;'>Odds %</th>
-          <th style='padding:4px 6px;border-bottom:1px solid #222;'>Δ</th>
-          <th style='padding:4px 6px;border-bottom:1px solid #222;'>Trend</th>
+          <th style='padding:4px 6px;border-bottom:1px solid #222;background:linear-gradient(90deg,#6c5ce7,#5f3dc4);color:#fff;'>Player</th>
+          <th style='padding:4px 6px;border-bottom:1px solid #222;background:linear-gradient(90deg,#6c5ce7,#5f3dc4);color:#fff;'>Odds %</th>
+          <th style='padding:4px 6px;border-bottom:1px solid #222;background:linear-gradient(90deg,#6c5ce7,#5f3dc4);color:#fff;'>Δ</th>
+          <th style='padding:4px 6px;border-bottom:1px solid #222;background:linear-gradient(90deg,#6c5ce7,#5f3dc4);color:#fff;'>Trend</th>
         </tr></thead>
         <tbody>
         ${players.map((p,idx) => { const { pct, arrow, deltaStr, tooltip, spark } = rowCommon(p); const c = monsterColor(p, idx); return `<tr>
@@ -3421,10 +3421,10 @@ export function openWinOddsQuickModal(){
     } else if (winOdds.mode === 'table') {
       html = `<div style="padding:${pad1}px;font-size:${fontSize1}px;"><table style='width:100%;border-collapse:collapse;'>
         <thead><tr style='text-align:left;'>
-          <th style='padding:${gap1}px ${gap2}px;border-bottom:1px solid #222;'>Player</th>
-          <th style='padding:${gap1}px ${gap2}px;border-bottom:1px solid #222;'>Odds %</th>
-          <th style='padding:${gap1}px ${gap2}px;border-bottom:1px solid #222;'>Δ</th>
-          <th style='padding:${gap1}px ${gap2}px;border-bottom:1px solid #222;'>Trend</th>
+          <th style='padding:${gap1}px ${gap2}px;border-bottom:1px solid #222;background:linear-gradient(90deg,#6c5ce7,#5f3dc4);color:#fff;'>Player</th>
+          <th style='padding:${gap1}px ${gap2}px;border-bottom:1px solid #222;background:linear-gradient(90deg,#6c5ce7,#5f3dc4);color:#fff;'>Odds %</th>
+          <th style='padding:${gap1}px ${gap2}px;border-bottom:1px solid #222;background:linear-gradient(90deg,#6c5ce7,#5f3dc4);color:#fff;'>Δ</th>
+          <th style='padding:${gap1}px ${gap2}px;border-bottom:1px solid #222;background:linear-gradient(90deg,#6c5ce7,#5f3dc4);color:#fff;'>Trend</th>
         </tr></thead><tbody>`;
       players.forEach((p,idx) => {
         const { pct, arrow, deltaStr, tooltip, spark } = rowCommon(p);
@@ -3952,18 +3952,35 @@ export function createGameLogModal() {
 
 function renderLogEntries(entries) {
   return entries.map(entry => {
-    const timestamp = entry.timestamp ? new Date(entry.timestamp).toLocaleTimeString() : '';
-    const message = entry.message || entry.text || JSON.stringify(entry);
+    const timestamp = entry.timestamp ? new Date(entry.timestamp).toLocaleTimeString('en-US', {hour12: false}) : '';
+    let message = entry.message || entry.text || JSON.stringify(entry);
+    
+    // Replace monster IDs with display names
+    message = replaceMonsterIdsWithNames(message);
+    
+    // Replace dice arrays with visual icons
+    message = replaceDiceArraysWithIcons(message);
+    
     const type = getLogEntryType(message);
+    const icon = getLogIcon(type);
+    
+    // Get monster color for turn start messages
+    let backgroundColor = 'transparent';
+    if (type === 'turn') {
+      const monsterColor = getMonsterColorFromMessage(message);
+      if (monsterColor) {
+        backgroundColor = monsterColor;
+      }
+    }
     
     return `
-      <div class="log-entry" style="padding: 8px 0; border-bottom: 1px solid #333; font-family: monospace; font-size: 0.875rem;">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
-          <div style="flex: 1; color: #e4e4e4; line-height: 1.4;">
-            <span class="status-indicator ${type}" style="margin-right: 8px; font-size: 0.65rem;">${getLogIcon(type)}</span>
-            ${message}
+      <div class="log-entry" style="padding: 2px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 0.8125rem; background: ${backgroundColor};">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+          <div style="flex: 1; color: #d4d4d4; line-height: 1.6; display: flex; align-items: center; gap: 6px;">
+            <span style="flex-shrink: 0;">${icon}</span>
+            <span style="flex: 1;">${message}</span>
           </div>
-          ${timestamp ? `<div style="color: #666; font-size: 0.75rem; white-space: nowrap;">${timestamp}</div>` : ''}
+          ${timestamp ? `<div style="color: #888; font-size: 0.75rem; white-space: nowrap; font-style: italic;">${timestamp}</div>` : ''}
         </div>
       </div>
     `;
@@ -3974,7 +3991,23 @@ function getLogEntryType(message) {
   const msg = message.toLowerCase();
   if (msg.includes('error') || msg.includes('failed')) return 'error';
   if (msg.includes('attack') || msg.includes('damage')) return 'warning';
-  if (msg.includes('heal') || msg.includes('win')) return 'success';
+  if (msg.includes('heal')) return 'heal';
+  // Specific system messages
+  if (msg.includes('cleanup')) return 'cleanup';
+  if (msg.includes('buy phase') || (msg.includes('buy') && msg.includes('phase'))) return 'buy';
+  if (msg.includes('shop refill') || msg.includes('refilled')) return 'shopRefill';
+  if (msg.includes('processing dice results')) return 'processing';
+  if (msg.includes('deck')) return 'deckBuilt';
+  if (msg.includes('buy') || msg.includes('purchased')) return 'buy';
+  // Check for Tokyo Bay/City entry BEFORE checking for VP (since entering Tokyo gives VP)
+  if (msg.includes('enters tokyo bay') || msg.includes('entered tokyo bay')) return 'tokyoBay';
+  if (msg.includes('enters tokyo city') || msg.includes('entered tokyo city') || msg.includes('enters tokyo') || msg.includes('entered tokyo')) return 'tokyoCity';
+  // Check for VP before energy (VP messages often include "gains")
+  if (msg.includes(' vp') || msg.includes('victory') || msg.includes('points') || msg.includes('scores') || msg.includes('win')) return 'victory';
+  // Only match energy if it's specifically about energy (not VP)
+  if (msg.includes('energy') || (msg.includes('gain') && !msg.includes('vp'))) return 'energy';
+  if (msg.includes('turn begins') || msg.includes('turn starts') || msg.includes('starts turn')) return 'turn';
+  if (msg.includes('turn end') || msg.includes('ends turn') || msg.includes('end turn')) return 'endTurn';
   if (msg.includes('roll') || msg.includes('dice')) return 'info';
   return 'info';
 }
@@ -3985,8 +4018,113 @@ function getLogIcon(type) {
     case 'warning': return '⚔️';
     case 'success': return '✅';
     case 'info': return '🎲';
-    default: return '📝';
+    case 'energy': return '⚡';
+    case 'victory': return '⭐';
+    case 'heal': return '💚';
+    case 'turn': return '🟢';
+    case 'endTurn': return '🛑';
+    case 'tokyoCity': return '🏙️';
+    case 'tokyoBay': return '🛳️';
+    case 'cleanup': return '🧹';
+    case 'buy': return '💰';
+    case 'shopRefill': return '🏪';
+    case 'processing': return '⚙️';
+    case 'deckBuilt': return '🃏';
+    default: return '📋';
   }
+}
+
+function replaceMonsterIdsWithNames(message) {
+  // Access MONSTERS global object
+  if (typeof MONSTERS === 'undefined') return message;
+  
+  // Replace monster IDs with their display names
+  Object.keys(MONSTERS).forEach(id => {
+    const monster = MONSTERS[id];
+    if (monster && monster.name) {
+      // Replace various formats: just the ID, or ID in context
+      const idPattern = new RegExp(`\\b${id}\\b`, 'gi');
+      message = message.replace(idPattern, monster.name);
+    }
+  });
+  
+  return message;
+}
+
+function getMonsterColorFromMessage(message) {
+  // Access MONSTERS global object
+  if (typeof MONSTERS === 'undefined') return null;
+  
+  // Check if message contains a monster name
+  for (const id in MONSTERS) {
+    const monster = MONSTERS[id];
+    if (monster && monster.name && message.includes(monster.name)) {
+      // Return color with 50% opacity
+      if (monster.color) {
+        // Convert hex to rgba with 50% opacity
+        const hex = monster.color.replace('#', '');
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+        return `rgba(${r}, ${g}, ${b}, 0.5)`;
+      }
+    }
+  }
+  
+  return null;
+}
+
+function replaceDiceArraysWithIcons(message) {
+  // Replace dice arrays like [claw,3,1,1,2,1] or [claw,energy,heart] with visual dice icons
+  const diceArrayPattern = /\[([^\]]+)\]/g;
+  
+  return message.replace(diceArrayPattern, (match, diceList) => {
+    // Split the dice list and create visual icons
+    const dice = diceList.split(',').map(d => d.trim());
+    
+    // Filter out numbers that look like roll counts (e.g., "roll 1/3")
+    const isDiceRollCount = message.match(/roll\s+\d+\/\d+/i);
+    if (isDiceRollCount && dice.length === 1) {
+      return match; // Don't replace roll count numbers
+    }
+    
+    const diceIcons = dice.map(face => {
+      // Remove kept indicator (*)
+      const cleanFace = face.replace('*', '').toLowerCase();
+      const isKept = face.includes('*');
+      
+      let icon;
+      switch (cleanFace) {
+        case 'claw':
+        case 'attack':
+          icon = '<span class="dice-log-number" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:#fff;border-radius:3px;vertical-align:middle;"><img src="images/king_of_tokyo_claw.png" alt="claw" class="dice-log-icon" style="width:12px;height:12px;display:block;"></span>';
+          break;
+        case 'energy':
+          icon = '<span class="dice-log-number" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:#fff;border-radius:3px;font-size:13px;vertical-align:middle;">⚡</span>';
+          break;
+        case 'heart':
+        case 'heal':
+          icon = '<span class="dice-log-number" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:#fff;border-radius:3px;font-size:13px;vertical-align:middle;">❤️</span>';
+          break;
+        case '1':
+        case '2':
+        case '3':
+          icon = `<span class="dice-log-number" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:#fff;color:#000;border-radius:3px;font-size:11px;font-weight:bold;vertical-align:middle;">${cleanFace}</span>`;
+          break;
+        default:
+          return cleanFace;
+      }
+      
+      // Add visual indicator for kept dice
+      if (isKept) {
+        return `<span style="position:relative;">${icon}<span style="position:absolute;top:-2px;right:-2px;color:#4ade80;font-size:10px;">✓</span></span>`;
+      }
+      
+      return icon;
+    }).join(' ');
+    
+    return diceIcons;
+  });
 }
 
 export function createHelpModal() {

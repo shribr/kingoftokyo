@@ -1,0 +1,85 @@
+/* Game Log Entries - Cleaner, more condensed style */
+.log-entry {
+  padding: 2px 8px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  font-size: 0.8125rem !important;
+  transition: background 0.15s ease;
+}
+
+.log-entry:hover {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.log-entry > div {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+.log-entry .log-message {
+  flex: 1 !important;
+  color: #d4d4d4 !important;
+  line-height: 1.6 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+.log-entry .log-timestamp {
+  color: #888 !important;
+  font-size: 0.75rem !important;
+  white-space: nowrap !important;
+  font-style: italic !important;
+  letter-spacing: 0.3px;
+}
+
+/* Game Log Content Container */
+#game-log-content {
+  background: #0a0a0a !important;
+  border-radius: 4px;
+  padding: 4px 0 !important;
+}
+
+/* Modal content scrollable area */
+.modal-content-scrollable {
+  background: #0a0a0a;
+}
+
+/* Specific log entry type colors */
+.log-entry.turn-start .log-message {
+  color: #88c0d0 !important;
+  font-weight: 500;
+}
+
+.log-entry.dice-roll .log-message {
+  color: #d4d4d4 !important;
+}
+
+.log-entry.attack .log-message {
+  color: #bf616a !important;
+}
+
+.log-entry.victory-points .log-message {
+  color: #ebcb8b !important;
+}
+
+.log-entry.energy-gain .log-message {
+  color: #a3be8c !important;
+}
+
+.log-entry.health-change .log-message {
+  color: #8fbcbb !important;
+}
+
+/* Player icon/avatar styling */
+.log-entry .player-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}

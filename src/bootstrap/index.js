@@ -886,7 +886,7 @@ function seedRandomPlayers(store, monsters, logger) {
       if (i > 1) p.isCPU = true;
       store.dispatch(playerJoined(p));
     }
-    logger.system(`Players seeded (skipIntro) with monsters: ${picked.map(p=>p.id).join(', ')}`);
+    logger.system(`Players seeded with monsters: ${picked.map(p=>p.name).join(', ')}`);
   } catch(e) {
     logger.warn('Random player seeding failed, falling back to static set', e);
     const fallback = ['king','alien','kraken','meka'];
