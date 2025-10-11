@@ -153,6 +153,11 @@ body.dark-mode .ai-decision-tree-embedded .cmp-ai-decision-tree input[type=text]
 
 /* Tree Scroll */
 .cmp-ai-decision-tree .adt-tree-scroll { flex:1; overflow:auto; border:1px solid var(--adt-border); background:#0e1012; padding:6px 8px; border-radius:var(--adt-radius); scrollbar-width:thin; }
+
+body.dark-mode .cmp-ai-decision-tree .adt-tree-scroll {
+  background: #0e1012 !important;
+  border-color: #2d343d !important;
+}
 .cmp-ai-decision-tree .adt-tree-scroll::-webkit-scrollbar { width:10px; }
 .cmp-ai-decision-tree .adt-tree-scroll::-webkit-scrollbar-track { background:#0b0d10; }
 .cmp-ai-decision-tree .adt-tree-scroll::-webkit-scrollbar-thumb { background:#2c333b; border:2px solid #0b0d10; border-radius:10px; }
