@@ -37,6 +37,9 @@ export function buildAIDecisionTree() {
   const container = root.querySelector('[data-tree]');
   if (container) container.setAttribute('data-view', localState.view);
   
+  // Expand all by default on initial load
+  expandAll();
+  
   bindUI(root);
   render(root);
   
@@ -161,7 +164,9 @@ async function renderStandardLayout(rounds) {
   
   for (const round of rounds) {
     // Round wrapper (legacy structure with collapse)
-    content.push(`<div class="adt-std-round collapsed" data-round="${round.round}">`);
+    const roundKey = String(round.round);
+    const isRoundOpen = localState.openRounds.has(roundKey);
+    content.push(`<div class="adt-std-round ${isRoundOpen ? '' : 'collapsed'}" data-round="${round.round}">`);
     content.push(`<div class="adt-std-round-header">Round ${round.round} <span class="adt-std-round-meta">${round.turns.length} turn(s)</span></div>`);
     content.push(`<div class="adt-std-round-body">`);
     
@@ -176,7 +181,9 @@ async function renderStandardLayout(rounds) {
       const turnChain = buildTurnChainNarrative(turn);
       
       // Turn wrapper (legacy structure)
-      content.push(`<div class="adt-std-turn collapsed" data-player-id="${player}">`);
+      const turnKey = `${round.round}:${turn.turn}`;
+      const isTurnOpen = localState.openTurns.has(turnKey);
+      content.push(`<div class="adt-std-turn ${isTurnOpen ? '' : 'collapsed'}" data-player-id="${player}">`);
       content.push(`<div class="adt-std-turn-header">🐲 ${player} <span class="adt-std-turn-meta">${rollsCount} roll(s)</span></div>`);
       
       // Opening intent section (personality-based introduction)

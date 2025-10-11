@@ -42,8 +42,8 @@
   .modal.game-log .collapsed > .round-body, .modal.game-log .collapsed > .turn-body { display:none; }
 
   /* AI Decision Tree - Larger modal for better readability */
-  .modal.ai-decision { width: clamp(320px, 85vw, 1200px); max-height: 85vh; }
-  .modal.ai-decision .modal-body { max-height: calc(85vh - 60px); }
+  .modal.ai-decision { width: clamp(320px, 95vw, 1600px); max-height: 92vh; }
+  .modal.ai-decision .modal-body { max-height: calc(92vh - 60px); }
   .modal.ai-decision .ai-tree { display:flex; flex-direction:column; gap:10px; font-size: var(--text-sm,0.75rem); }
   .modal.ai-decision .ai-round { border:1px solid #000; background:#202020; padding:6px 8px; border-radius:4px; box-shadow:2px 2px 0 #000; }
   .modal.ai-decision .ai-round-header { font-weight:600; color: var(--color-brand-gold,#ffd700); margin-bottom:4px; text-shadow:1px 1px 0 #000; }
