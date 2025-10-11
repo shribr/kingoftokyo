@@ -98,7 +98,7 @@
 .cmp-roll-for-first .rff-table tr.rolling-row td { background:#1d1d1d; }
 .cmp-roll-for-first .rff-table tr.rolling-row .rff-name { color:#fff; }
 .cmp-roll-for-first .rff-table tr.rolling-row .mini-die { filter:brightness(1.05); }
-.cmp-roll-for-first .rff-cpu-tag { position:relative; font-size:0.9vh; padding:0.2vh 0.26vw 0.28vh; margin-left:0.31vw; font-family:Arial,sans-serif; letter-spacing:0.03vmin; font-weight:600; line-height:1; display:inline-block; background:linear-gradient(135deg,#303030,#181818); color:#ffdf3d; border:0.1vh solid #000; box-shadow:0 0 0 0.1vh #444 inset,0.2vh 0.2vh 0 #000; border-radius:0.37vh; }
+.cmp-roll-for-first .rff-cpu-tag { position:relative; font-size:0.9vh; padding:0.2vh 0.26vw 0.28vh; margin-left:0.31vw; font-family:Arial,sans-serif; letter-spacing:0.03vmin; font-weight:600; line-height:1; display:inline-block; color:#888; border:none; box-shadow:none; border-radius:0; background:none; }
 .cmp-roll-for-first .rff-table tr:not(.winner) .mini-die[data-finalized='1'] { opacity:.9; }
 .cmp-roll-for-first .rff-table .rff-result { font-weight:600; }
 /* Hide dice placeholder until row rolls (dice not inserted until roll) */

@@ -1819,6 +1819,75 @@ body:not(.dark-mode) .wo-analysis-header {
   border-bottom-color: #d4c89a !important;
 }
 
+/* Win Odds Panel in Analytics Tab - Light Mode */
+body:not(.dark-mode) .win-odds-panel {
+  background: #fffcf0 !important;
+  border-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .win-odds-header {
+  background: linear-gradient(135deg, #b8860b, #8b6914) !important;
+  border-bottom-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .win-odds-title {
+  color: #fff !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+body:not(.dark-mode) .win-odds-btn {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: #fff !important;
+}
+
+body:not(.dark-mode) .win-odds-btn:hover {
+  background: rgba(255, 255, 255, 0.25) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+body:not(.dark-mode) .win-odds-body {
+  background: #fff9e6 !important;
+}
+
+body:not(.dark-mode) .win-odds-insights {
+  background: #fff9e6 !important;
+}
+
+body:not(.dark-mode) .win-odds-footer {
+  background: linear-gradient(135deg, #8b6914, #b8860b) !important;
+  border-top-color: #d4c89a !important;
+  color: #fff !important;
+}
+
+body:not(.dark-mode) .win-odds-footer label {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+body:not(.dark-mode) #dev-win-odds-trend {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+body:not(.dark-mode) .win-odds-clear-btn {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  color: #c0392b !important;
+}
+
+body:not(.dark-mode) #win-odds-mode-label {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+body:not(.dark-mode) .wo-table-header {
+  background: linear-gradient(135deg, #b8860b, #8b6914) !important;
+  color: #fff !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8) !important;
+}
+
+body:not(.dark-mode) .win-odds-clear-btn:hover {
+  background: rgba(239, 68, 68, 0.3) !important;
+}
+
 body:not(.dark-mode) .wo-analysis-title {
   color: #8b6914 !important;
 }

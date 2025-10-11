@@ -828,7 +828,7 @@ export function createSettingsModal() {
           <div class="field">
             <label class="field-label">Decision Tree Viewer</label>
             <div id="settings-ai-tree-embedded" class="ai-decision-tree-embedded">
-              <div style="padding:20px;text-align:center;opacity:0.6;font-size:12px;">
+              <div style="padding:20px;text-align:center;opacity:0.6;font-size:12px;color:#a8b2bd;">
                 Loading AI Decision Tree...
               </div>
             </div>
@@ -870,7 +870,10 @@ export function createSettingsModal() {
             <div id="dev-win-odds-panel" class="win-odds-panel" style="background:#1a1a1a;border:2px solid #333;overflow:hidden;display:flex;flex-direction:column;position:relative;">
               <div class="win-odds-header" style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:2px solid #333;background:#111;">
                   <button type="button" id="dev-win-odds-mode" class="win-odds-btn" title="Cycle view (V)" style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;background:#282828;border:1px solid #444;color:#ddd;font-size:14px;line-height:1;cursor:pointer;transition:all 0.2s ease;"></button>
-                  <div class="win-odds-title" style="flex:1;text-align:center;font-size:20px;font-weight:800;letter-spacing:2px;color:#ffd700;font-family:'Bangers',cursive;">WIN ODDS</div>
+                  <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;">
+                    <div class="win-odds-title" style="text-align:center;font-size:20px;font-weight:800;letter-spacing:2px;color:#ffd700;font-family:'Bangers',cursive;line-height:1;">WIN ODDS</div>
+                    <div id="win-odds-mode-label" style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#999;font-weight:700;opacity:0.85;">Bars View</div>
+                  </div>
                   <button type="button" id="dev-win-odds-refresh" class="win-odds-btn" title="Refresh now (R)" style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;background:#282828;border:1px solid #444;color:#ddd;font-size:12px;line-height:1;cursor:pointer;transition:all 0.2s ease;">
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 9 0 0 1 14.85-3.36L23 10"></path><path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path></svg>
                 </button>
@@ -1380,7 +1383,7 @@ export function createSettingsModal() {
         aiTreeEmbedded.appendChild(root);
         aiTreeEmbedded._treeDispose = dispose;
       } catch (error) {
-        aiTreeEmbedded.innerHTML = `<div style="padding:20px;text-align:center;color:#c55;font-size:12px;">Error loading AI Decision Tree: ${error.message}</div>`;
+        aiTreeEmbedded.innerHTML = `<div style="padding:20px;text-align:center;color:#ff6b6b;font-size:12px;">Error loading AI Decision Tree: ${error.message}</div>`;
       }
     }
     
@@ -1694,7 +1697,7 @@ export function createSettingsModal() {
       const tooltip = `title="${breakdown}"`;
       const sVals = sparkData[p.id];
       const maxS = Math.max(1, ...sVals);
-      const spark = `<span style='display:inline-flex;align-items:flex-end;gap:1px;height:12px;'>${sVals.map(v=>`<i style='display:block;width:3px;height:${Math.max(2,Math.round(v/maxS*12))}px;background:${v===sVals[sVals.length-1]?'#818cf8':'#4f46e5'};opacity:${0.35+(v/maxS*0.65)}'></i>`).join('')}</span>`;
+      const spark = `<span style='display:inline-flex;align-items:flex-end;gap:1px;height:12px;'>${sVals.map(v=>`<i style='display:block;width:3px;height:${Math.max(2,Math.round(v/maxS*12))}px;background:${v===sVals[sVals.length-1]?'#4a9eff':'#2a7acc'};opacity:${0.35+(v/maxS*0.65)}'></i>`).join('')}</span>`;
       return { pct, prevPct, delta, arrow, deltaStr, tooltip, spark };
     }
   if (winOdds.mode === 'bars') {
@@ -1723,19 +1726,19 @@ export function createSettingsModal() {
         </div>`;
       }).join('');
     } else if (winOdds.mode === 'table') {
-      bodyHtml = `<table style='width:100%;border-collapse:collapse;font-size:1.6vh;'>
+      bodyHtml = `<table style='width:100%;border-collapse:collapse;font-size:12px;'>
         <thead><tr style='text-align:center;'>
-          <th class='wo-table-header' style='padding:0.93vh 0.63vw;border-bottom:1px solid #222;background:linear-gradient(135deg,#b8860b,#8b6914);color:#fff;text-transform:uppercase;letter-spacing:0.05vmin;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,0.3);'>Player</th>
-          <th class='wo-table-header' style='padding:0.93vh 0.63vw;border-bottom:1px solid #222;background:linear-gradient(135deg,#b8860b,#8b6914);color:#fff;text-transform:uppercase;letter-spacing:0.05vmin;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,0.3);'>Odds %</th>
-          <th class='wo-table-header' style='padding:0.93vh 0.63vw;border-bottom:1px solid #222;background:linear-gradient(135deg,#b8860b,#8b6914);color:#fff;text-transform:uppercase;letter-spacing:0.05vmin;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,0.3);'>Δ</th>
-          <th class='wo-table-header' style='padding:0.93vh 0.63vw;border-bottom:1px solid #222;background:linear-gradient(135deg,#b8860b,#8b6914);color:#fff;text-transform:uppercase;letter-spacing:0.05vmin;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,0.3);'>Trend</th>
+          <th class='wo-table-header' style='padding:10px 8px;border-bottom:1px solid #333;background:#282828;color:#ddd;text-transform:uppercase;letter-spacing:0.5px;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,0.3);'>Player</th>
+          <th class='wo-table-header' style='padding:10px 8px;border-bottom:1px solid #333;background:#282828;color:#ddd;text-transform:uppercase;letter-spacing:0.5px;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,0.3);'>Odds %</th>
+          <th class='wo-table-header' style='padding:10px 8px;border-bottom:1px solid #333;background:#282828;color:#ddd;text-transform:uppercase;letter-spacing:0.5px;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,0.3);'>Δ</th>
+          <th class='wo-table-header' style='padding:10px 8px;border-bottom:1px solid #333;background:#282828;color:#ddd;text-transform:uppercase;letter-spacing:0.5px;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,0.3);'>Trend</th>
         </tr></thead>
         <tbody>
         ${players.map((p,idx) => { const { pct, arrow, deltaStr, tooltip, spark } = rowCommon(p); const c = monsterColor(p, idx); return `<tr>
-          <td style='padding:4px 6px;' ${tooltip}><span style='display:inline-flex;align-items:center;gap:6px;'><i style="width:8px;height:8px;border-radius:50%;background:${c};box-shadow:0 0 4px ${c}aa;display:inline-block;"></i>${p.name||p.id}</span></td>
-          <td style='padding:4px 6px;font-variant-numeric:tabular-nums;' ${tooltip}>${pct.toFixed(1)}%</td>
-          <td style='padding:4px 6px;'>${arrow} <span style='opacity:.65;'>${deltaStr}</span></td>
-          <td style='padding:4px 6px;'>${spark}</td>
+          <td style='padding:6px 8px;border-bottom:1px solid #1a1a1a;' ${tooltip}><span style='display:inline-flex;align-items:center;gap:6px;'><i style="width:8px;height:8px;border-radius:50%;background:${c};box-shadow:0 0 4px ${c}aa;display:inline-block;"></i>${p.name||p.id}</span></td>
+          <td style='padding:6px 8px;border-bottom:1px solid #1a1a1a;font-variant-numeric:tabular-nums;' ${tooltip}>${pct.toFixed(1)}%</td>
+          <td style='padding:6px 8px;border-bottom:1px solid #1a1a1a;' ${tooltip}>${arrow} <span style='opacity:.65;'>${deltaStr}</span></td>
+          <td style='padding:6px 8px;border-bottom:1px solid #1a1a1a;' ${tooltip}>${spark}</td>
         </tr>`; }).join('')}
         </tbody></table>`;
     } else if (winOdds.mode === 'compact') {
@@ -1834,7 +1837,7 @@ export function createSettingsModal() {
               <i style='width:12px;height:12px;border-radius:50%;background:${leaderColor};box-shadow:0 0 8px ${leaderColor};'></i>
               ${leaderName}
             </div>
-            <div style='color:#818cf8;font-weight:600;font-size:18px;'>${leaderOdds.toFixed(1)}%</div>
+            <div style='color:#4a9eff;font-weight:600;font-size:18px;'>${leaderOdds.toFixed(1)}%</div>
             <div style='opacity:0.6;font-size:13px;margin-left:auto;'>Leading</div>
           </div>`;
         
@@ -1847,13 +1850,13 @@ export function createSettingsModal() {
             const label = factorLabels[f.key] || f.key;
             const barWidth = Math.min(100, f.pct);
             
-            insightHTML += `<div style='flex:1 1 200px;background:rgba(0,0,0,0.3);border:1px solid rgba(99,102,241,0.2);border-radius:6px;padding:8px;'>
+            insightHTML += `<div style='flex:1 1 200px;background:rgba(0,0,0,0.3);border:1px solid rgba(74,158,255,0.2);border-radius:6px;padding:8px;'>
               <div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;'>
                 <span style='font-size:11px;opacity:0.9;'>${icon} ${label}</span>
-                <strong style='font-size:13px;color:#a5b4fc;'>${f.pct.toFixed(0)}%</strong>
+                <strong style='font-size:13px;color:#7bb8ff;'>${f.pct.toFixed(0)}%</strong>
               </div>
               <div style='background:rgba(0,0,0,0.4);height:6px;border-radius:3px;overflow:hidden;'>
-                <div style='height:100%;width:${barWidth}%;background:linear-gradient(90deg,#6366f1,#818cf8);box-shadow:0 0 8px rgba(99,102,241,0.5);transition:width 0.3s ease;'></div>
+                <div style='height:100%;width:${barWidth}%;background:linear-gradient(90deg,#2a7acc,#4a9eff);box-shadow:0 0 8px rgba(74,158,255,0.5);transition:width 0.3s ease;'></div>
               </div>
             </div>`;
           });
@@ -1870,12 +1873,12 @@ export function createSettingsModal() {
           const gap = leaderOdds - secondOdds;
           if (gap > 5) {
             const secondName = second.monster || second.monsterName || second.name || second.id;
-            insightHTML += `<div style='margin-top:12px;padding-top:12px;border-top:1px solid rgba(99,102,241,0.15);font-size:11px;opacity:0.7;'>
-              📊 Leading ${secondName} by <strong style='color:#818cf8;'>${gap.toFixed(1)}</strong> percentage points
+            insightHTML += `<div style='margin-top:12px;padding-top:12px;border-top:1px solid rgba(74,158,255,0.15);font-size:11px;opacity:0.7;'>
+              📊 Leading ${secondName} by <strong style='color:#4a9eff;'>${gap.toFixed(1)}</strong> percentage points
             </div>`;
           } else if (gap > 0 && gap <= 5) {
             const secondName = second.monster || second.monsterName || second.name || second.id;
-            insightHTML += `<div style='margin-top:12px;padding-top:12px;border-top:1px solid rgba(99,102,241,0.15);font-size:11px;opacity:0.7;color:#fbbf24;'>
+            insightHTML += `<div style='margin-top:12px;padding-top:12px;border-top:1px solid rgba(74,158,255,0.15);font-size:11px;opacity:0.7;color:#fbbf24;'>
               ⚠️ Close race with ${secondName} (${gap.toFixed(1)}% gap)
             </div>`;
           }
@@ -1921,8 +1924,19 @@ export function createSettingsModal() {
         stacked: `<svg viewBox='0 0 24 24' width='22' height='22' aria-hidden='true'><rect x='3' y='5' width='18' height='2.5' fill='currentColor'/><rect x='3' y='10.5' width='15' height='2.5' fill='currentColor'/><rect x='3' y='16' width='12' height='2.5' fill='currentColor'/></svg>`,
         monitor: `<svg viewBox='0 0 24 24' width='22' height='22' aria-hidden='true'><path d='M4 5h16v10H4z' stroke='currentColor' stroke-width='2' fill='none'/><path d='M6 13l3-4 3 2 2-3 4 5' fill='none' stroke='currentColor' stroke-width='2' stroke-linejoin='round' stroke-linecap='round'/><rect x='9' y='17' width='6' height='2' fill='currentColor'/></svg>`
       };
+      const modeLabels = {
+        bars: 'Bars View',
+        table: 'Table View',
+        compact: 'Compact View',
+        stacked: 'Stacked View',
+        monitor: 'Monitor View'
+      };
+      const modeLabel = content.querySelector('#win-odds-mode-label');
       function updateModeIcon(){
         modeBtn.innerHTML = icons[winOdds.mode] || icons.bars;
+        if (modeLabel) {
+          modeLabel.textContent = modeLabels[winOdds.mode] || 'Bars View';
+        }
       }
       updateModeIcon();
       modeBtn.addEventListener('click', () => {
@@ -2375,6 +2389,49 @@ export function createSettingsModal() {
 
   form.addEventListener('change', handlePotentialDirty);
   form.addEventListener('input', handlePotentialDirty);
+
+  // Theme preview click handlers
+  const themePreviewCards = content.querySelectorAll('.theme-preview-card');
+  themePreviewCards.forEach(card => {
+    card.addEventListener('click', () => {
+      const themeName = card.dataset.theme;
+      
+      // Update active state
+      themePreviewCards.forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+      
+      // Apply theme in real-time
+      const body = document.body;
+      const powerCardsPanel = document.querySelector('.all-power-cards-panel');
+      
+      // Remove all theme classes
+      body.classList.remove('dark-mode', 'neon-mode', 'classic-mode');
+      if (powerCardsPanel) {
+        powerCardsPanel.removeAttribute('data-theme');
+      }
+      
+      // Apply selected theme
+      if (themeName === 'light') {
+        body.classList.add('dark-mode'); // Toggle off dark mode for light theme
+        body.classList.remove('dark-mode');
+      } else if (themeName === 'dark') {
+        body.classList.add('dark-mode');
+      } else if (themeName === 'neon') {
+        body.classList.add('dark-mode', 'neon-mode');
+        if (powerCardsPanel) powerCardsPanel.setAttribute('data-theme', 'neon');
+      } else if (themeName === 'classic') {
+        body.classList.add('dark-mode', 'classic-mode');
+        if (powerCardsPanel) powerCardsPanel.setAttribute('data-theme', 'classic');
+      }
+      
+      // Update the form select to match
+      const themeSelect = form.querySelector('select[name="theme"]');
+      if (themeSelect) {
+        themeSelect.value = themeName;
+        handlePotentialDirty();
+      }
+    });
+  });
 
   if (saveBtn) {
     saveBtn.addEventListener('click', async () => {
@@ -4505,7 +4562,7 @@ export function createAIDecisionModal() {
   
   const content = document.createElement('div');
   content.className = 'ai-decision-tree-wrapper';
-  content.innerHTML = '<div style="padding: 20px; text-align: center;">Loading AI Decision Tree...</div>';
+  content.innerHTML = '<div style="padding: 20px; text-align: center; color: #a8b2bd;">Loading AI Decision Tree...</div>';
   
   // Lazy import new component to avoid upfront cost
   import('../ai-decision-tree/ai-decision-tree.component.js').then(mod => {
@@ -4518,7 +4575,7 @@ export function createAIDecisionModal() {
       content._treeDispose = dispose;
     } catch(e){ 
       console.error('[aiDecisionModal] failed to init tree', e); 
-      content.innerHTML = `<div style="padding: 20px; color: #ff6b6b;">Error loading AI Decision Tree: ${e.message}</div>`;
+      content.innerHTML = `<div style="padding: 20px; color: #ff6b6b; text-align: center;">Error loading AI Decision Tree: ${e.message}</div>`;
     }
   }).catch(err=> {
     console.error('[aiDecisionModal] load error', err);

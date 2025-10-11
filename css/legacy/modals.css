@@ -5319,7 +5319,7 @@ body.dark-mode .quick-ref-item {
     box-shadow: 2px 2px 0 #000;
 }
 .close-ai-tree:hover { transform: scale(1.05); }
-.ai-tree-body { padding: 14px 18px 24px; overflow-y: auto; }
+.ai-tree-body { padding: 14px 18px 24px; overflow-y: auto; background: #111; }
 .ai-tree-help { margin-top: 12px; font-size: .9rem; opacity:.75; line-height:1.2; }
 .ai-tree-body .ai-logic-flow-container { background:#1c1c1c; border:2px solid #333; border-radius:8px; padding:10px; }
 
