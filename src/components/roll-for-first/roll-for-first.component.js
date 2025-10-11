@@ -94,7 +94,7 @@ function buildInitialTable(root, getState) {
       <td class="rff-result" data-result-for="${pid}">—</td>
     </tr>`;
   }).join('');
-  resultsEl.innerHTML = `<table class="rff-table"><thead><tr><th>Player</th><th>Dice</th><th>Result</th></tr></thead><tbody>${rows}</tbody></table>`;
+  resultsEl.innerHTML = `<table class="rff-table"><thead><tr><th>Player</th><th>Dice</th><th>Result</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><td colspan="3">Highest roll goes first</td></tr></tfoot></table>`;
   const stObj = ensureStateObject(root, getState);
   stObj.tableBuilt = true;
 }

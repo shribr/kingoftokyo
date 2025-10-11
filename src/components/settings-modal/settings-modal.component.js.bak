@@ -418,96 +418,17 @@ export function createSettingsModal() {
       <!-- Themes Tab -->
       <div class="tab-content" data-tab-content="themes" style="display: none;">
         <div class="section">
-          <h3 class="section-title">🌈 Color Themes</h3>
+          <h3 class="section-title">� Theme Selection</h3>
           <p style="font-size:13px;opacity:.85;line-height:1.5;margin-bottom:16px;">
-            Choose a color theme and see a live preview of how game elements will look.
+            Choose from different visual themes and preview how they'll look in the game.
           </p>
           
           <div class="field">
-            <label class="field-label">Select Theme</label>
-            <div class="theme-selector-grid">
-              <!-- Dark Theme (Default) -->
-              <div class="theme-preview-card active" data-theme="dark">
-                <div class="theme-preview-header">
-                  <div class="theme-preview-check">✓</div>
-                  <h4>Dark Theme</h4>
-                  <span class="theme-badge">Default</span>
-                </div>
-                <div class="theme-preview-sample">
-                  <div class="sample-modal">
-                    <div class="sample-modal-header">Game Modal</div>
-                    <div class="sample-modal-body">
-                      <div class="sample-stat-card dark">
-                        <span class="sample-icon">❤️</span>
-                        <span class="sample-value">10</span>
-                      </div>
-                      <div class="sample-button dark">Roll Dice</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Light Theme -->
-              <div class="theme-preview-card" data-theme="light">
-                <div class="theme-preview-header">
-                  <div class="theme-preview-check">✓</div>
-                  <h4>Light Theme</h4>
-                  <span class="theme-badge">Cream & Gold</span>
-                </div>
-                <div class="theme-preview-sample">
-                  <div class="sample-modal">
-                    <div class="sample-modal-header light">Game Modal</div>
-                    <div class="sample-modal-body light">
-                      <div class="sample-stat-card light">
-                        <span class="sample-icon">❤️</span>
-                        <span class="sample-value">10</span>
-                      </div>
-                      <div class="sample-button light">Roll Dice</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Tokyo Neon Theme -->
-              <div class="theme-preview-card" data-theme="neon">
-                <div class="theme-preview-header">
-                  <div class="theme-preview-check">✓</div>
-                  <h4>Tokyo Neon</h4>
-                  <span class="theme-badge">Coming Soon</span>
-                </div>
-                <div class="theme-preview-sample">
-                  <div class="sample-modal">
-                    <div class="sample-modal-header neon">Game Modal</div>
-                    <div class="sample-modal-body neon">
-                      <div class="sample-stat-card neon">
-                        <span class="sample-icon">❤️</span>
-                        <span class="sample-value">10</span>
-                      </div>
-                      <div class="sample-button neon">Roll Dice</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Kaiju Classic Theme -->
-              <div class="theme-preview-card" data-theme="classic">
-                <div class="theme-preview-header">
-                  <div class="theme-preview-check">✓</div>
-                  <h4>Kaiju Classic</h4>
-                  <span class="theme-badge">Coming Soon</span>
-                </div>
-                <div class="theme-preview-sample">
-                  <div class="sample-modal">
-                    <div class="sample-modal-header classic">Game Modal</div>
-                    <div class="sample-modal-body classic">
-                      <div class="sample-stat-card classic">
-                        <span class="sample-icon">❤️</span>
-                        <span class="sample-value">10</span>
-                      </div>
-                      <div class="sample-button classic">Roll Dice</div>
-                    </div>
-                  </div>
-                </div>
+            <label class="field-label">UI Theme</label>
+            <div class="theme-selector" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:12px;">
+              <!-- Theme previews will be added here -->
+              <div style="padding:20px;text-align:center;color:#666;font-size:12px;border:1px solid #d4c89a;border-radius:8px;">
+                Theme selector coming soon...
               </div>
             </div>
           </div>
@@ -525,28 +446,6 @@ export function createSettingsModal() {
               </label>
             </div>
             <div class="field-help">Choose between original dialogs or the new unified theme system</div>
-          </div>
-
-          <div class="field">
-            <label class="field-label">🃏 Power Card Theme</label>
-            <div class="radio-group">
-              <label class="radio-option">
-                <input type="radio" name="powerCardTheme" value="standard" checked>
-                <span>Standard - Classic card styling with gradient backgrounds</span>
-              </label>
-              <label class="radio-option">
-                <input type="radio" name="powerCardTheme" value="minimal">
-                <span>Minimal - Clean, flat design with subtle colors</span>
-              </label>
-              <label class="radio-option">
-                <input type="radio" name="powerCardTheme" value="vibrant">
-                <span>Vibrant - Bold colors with enhanced visual effects</span>
-              </label>
-            </div>
-            <div class="field-help">Choose the visual style for power cards</div>
-          </div>
-        </div>
-      </div>
           </div>
         </div>
       </div>

@@ -74,8 +74,9 @@
 
 /* Scoreboard Table (Mini Dice Rows) */
 .cmp-roll-for-first .rff-table { width:100%; border-collapse:collapse; margin:0.74vh 0 1.67vh; table-layout:fixed; font-family:Arial,sans-serif; }
-.cmp-roll-for-first .rff-table thead th { background:linear-gradient(135deg,#272727,#1c1c1c); color:#f2f2f2; padding:0.93vh 0.63vw; border:0.1vh solid #383838; font-size:1.3vh; letter-spacing:0.03vmin; text-align:center; text-transform:uppercase; }
+.cmp-roll-for-first .rff-table thead th { background:linear-gradient(135deg,#272727,#1c1c1c); color:#f2f2f2; padding:0.93vh 0.63vw; border:0.1vh solid #383838; font-size:1.6vh; letter-spacing:0.05vmin; text-align:center; text-transform:uppercase; font-weight:700; }
 .cmp-roll-for-first .rff-table tbody td { padding:1.3vh 0.52vw; border:0.1vh solid #2a2a2a; font-size:1.5vh; text-align:center; background:#121212; color:#ddd; }
+.cmp-roll-for-first .rff-table tfoot td { background:linear-gradient(135deg,#1c1c1c,#272727); color:#999; padding:0.74vh 0.63vw; border:0.1vh solid #383838; font-size:1.1vh; text-align:center; font-style:italic; }
 .cmp-roll-for-first .rff-table td.rff-player { text-align:left; font-weight:700; background:#141414; display:flex; align-items:center; gap:0.63vw; }
 .cmp-roll-for-first .rff-table .rff-avatar { width:4.3vh; height:4.3vh; border:0.2vh solid #000; border-radius:50%; overflow:hidden; background:#222; flex-shrink:0; box-shadow:0 0 0 0.2vh #333 inset, 0.2vh 0.2vh 0 #000; display:flex; align-items:center; justify-content:center; }
 .cmp-roll-for-first .rff-table .rff-avatar { background:#fff; }

@@ -262,19 +262,59 @@ body:not(.dark-mode) .cmp-roll-for-first.rff-modal .rff-frame:after {
 
 /* Roll for First - Dice Table Light Theme */
 body:not(.dark-mode) .cmp-roll-for-first .rff-table thead th {
-  background: linear-gradient(135deg, #fff, #f5f5f5);
-  color: #2d2416;
-  border-color: #d4c89a;
+  background: linear-gradient(135deg, #b8860b, #8b6914) !important;
+  color: #fff !important;
+  border-color: #d4c89a !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+  font-size: 1.6vh !important;
+  letter-spacing: 0.05vmin !important;
 }
 
 body:not(.dark-mode) .cmp-roll-for-first .rff-table tbody td {
-  background: #fffcf0;
-  color: #2d2416;
-  border-color: #d4c89a;
+  background: #fffcf0 !important;
+  color: #2d2416 !important;
+  border-color: #d4c89a !important;
 }
 
+body:not(.dark-mode) .cmp-roll-for-first .rff-table tfoot td {
+  background: linear-gradient(135deg, #8b6914, #b8860b) !important;
+  color: #2d2416 !important;
+  border-color: #d4c89a !important;
+}
+
+/* Alternating row colors (banded rows) */
+body:not(.dark-mode) .cmp-roll-for-first .rff-table tbody tr:nth-child(even) td {
+  background: #fff9e6 !important;
+}
+
+/* First column with player names - same background as other cells */
 body:not(.dark-mode) .cmp-roll-for-first .rff-table td.rff-player {
-  background: #fff;
+  background: #fffcf0 !important;
+}
+
+body:not(.dark-mode) .cmp-roll-for-first .rff-table tbody tr:nth-child(even) td.rff-player {
+  background: #fff9e6 !important;
+}
+
+/* Hover state - darker background for better contrast with dark text */
+body:not(.dark-mode) .cmp-roll-for-first .rff-table tbody tr:hover td {
+  background: #f5efd0 !important;
+  color: #2d2416 !important;
+}
+
+/* Player name text styling */
+body:not(.dark-mode) .cmp-roll-for-first .rff-table .rff-name {
+  color: #2d2416 !important;
+  text-shadow: none !important;
+}
+
+/* CPU tag styling - fix black on black issue */
+body:not(.dark-mode) .cmp-roll-for-first .rff-cpu-tag {
+  background: linear-gradient(135deg, #b8860b, #8b6914) !important;
+  color: #2d2416 !important;
+  border-color: #d4c89a !important;
+  box-shadow: 0 0 0 0.1vh rgba(0, 0, 0, 0.1) inset, 0.2vh 0.2vh 0 rgba(0, 0, 0, 0.2) !important;
+  text-shadow: none !important;
 }
 
 body:not(.dark-mode) .cmp-roll-for-first .rff-table .rff-avatar {
@@ -465,17 +505,32 @@ body:not(.dark-mode) .log-entry:hover {
 
 /* Archive table */
 body:not(.dark-mode) .archive-table {
-  color: #2d2416;
+  background: #fff !important;
+  color: #2d2416 !important;
 }
 
 body:not(.dark-mode) .archive-table thead {
-  background: #2d2416;
-  color: #ffd700;
+  background: #fff9e6 !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .archive-table thead th {
+  color: #2d2416 !important;
+  border-bottom-color: #d4c89a !important;
 }
 
 body:not(.dark-mode) .archive-table tbody tr {
-  background: #fff;
-  border-bottom-color: #f0f0f0;
+  background: #fff !important;
+  border-bottom-color: #f0f0f0 !important;
+}
+
+body:not(.dark-mode) .archive-table tbody td {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .archive-actions {
+  background: #fff9e6 !important;
+  border-top-color: #d4c89a !important;
 }
 
 body:not(.dark-mode) .archive-table tbody tr:hover {
@@ -622,6 +677,42 @@ body:not(.dark-mode) .modal button.btn:hover {
   background: linear-gradient(135deg, #d4a017, #a67c00) !important;
 }
 
+/* New Modal System - Override inline styles */
+body:not(.dark-mode) .new-modal {
+  background: #fffcf0 !important;
+  border-color: #d4c89a !important;
+  color: #2d2416 !important;
+  box-shadow: 6px 6px 0 rgba(45, 36, 22, 0.3), 0 0 0 2px #d4c89a inset, 0 10px 26px -8px rgba(45, 36, 22, 0.2) !important;
+}
+
+body:not(.dark-mode) .new-modal-header {
+  background: #fff9e6 !important;
+  border-bottom: 2px solid #d4c89a !important;
+  box-shadow: inset 0 -2px 0 rgba(184, 134, 11, 0.1) !important;
+}
+
+body:not(.dark-mode) .new-modal-header h2 {
+  color: #2d2416 !important;
+  text-shadow: none !important;
+}
+
+body:not(.dark-mode) .new-modal-header button {
+  background: #fff !important;
+  color: #2d2416 !important;
+  border-color: #b8a977 !important;
+  box-shadow: 2px 2px 0 rgba(45, 36, 22, 0.2) !important;
+}
+
+body:not(.dark-mode) .new-modal-header button:hover {
+  background: #ffefa5 !important;
+  border-color: #8b6914 !important;
+}
+
+body:not(.dark-mode) .new-modal-body {
+  background: #fffcf0 !important;
+  color: #2d2416 !important;
+}
+
 /* Game Log Modal Specific */
 body:not(.dark-mode) .modal.game-log .log-scroll {
   background: #fff !important;
@@ -653,6 +744,54 @@ body:not(.dark-mode) .modal.game-log .turn-header {
 body:not(.dark-mode) .modal.game-log .log-line {
   border-bottom-color: rgba(45, 36, 22, 0.1) !important;
   color: #2d2416 !important;
+}
+
+/* Game Log Modal - Additional elements */
+body:not(.dark-mode) #game-log-content {
+  background: #fff !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .modal-content-scrollable {
+  background: #fffcf0 !important;
+  border-color: #d4c89a !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .log-loading {
+  color: #6b5d42 !important;
+}
+
+body:not(.dark-mode) .log-entry {
+  background: transparent !important;
+  color: #2d2416 !important;
+  border-bottom-color: rgba(45, 36, 22, 0.1) !important;
+}
+
+body:not(.dark-mode) .log-entry:hover {
+  background: rgba(184, 134, 11, 0.05) !important;
+}
+
+body:not(.dark-mode) .filter-controls {
+  background: #fff9e6 !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .filter-controls label {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .filter-group label {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .checkbox-label {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .dice-log-number {
+  background: #fff !important;
+  color: #000 !important;
 }
 
 /* AI Decision Tree Modal */
@@ -842,6 +981,18 @@ body:not(.dark-mode) .content-section li {
 }
 
 body:not(.dark-mode) .content-section ul {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .content-section {
+  background: transparent !important;
+}
+
+body:not(.dark-mode) .content-section strong {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .content-section h3 {
   color: #2d2416 !important;
 }
 
@@ -1335,6 +1486,13 @@ body:not(.dark-mode) .cmp-ai-decision-tree .adt-btn {
   background: linear-gradient(135deg, #b8860b, #8b6914) !important;
   color: #fff !important;
   border-color: #6b5d42 !important;
+  text-shadow: none !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-btn span {
+  color: #fff !important;
+  text-shadow: none !important;
+  filter: none !important;
 }
 
 body:not(.dark-mode) .cmp-ai-decision-tree input[type=text] {
@@ -1392,17 +1550,173 @@ body:not(.dark-mode) .cmp-ai-decision-tree .hypo-item code {
   background: #fff9e6 !important;
 }
 
-/* WIN ODDS MODAL - Full light theme */
-body:not(.dark-mode) .mini-wo-title {
-  color: #2d2416 !important;
+/* Additional AI Decision Tree elements */
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-toolbar {
+  background: #fff9e6 !important;
+  border-color: #d4c89a !important;
+  flex-wrap: nowrap !important; /* Prevent control wrapping */
 }
 
-body:not(.dark-mode) .mini-wo-btn {
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-tree-scroll {
+  background: #fff !important;
+  border-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-empty {
   color: #6b5d42 !important;
 }
 
-body:not(.dark-mode) .mini-wo-btn:hover {
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-turn {
   color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-turn-header {
+  color: #4a90e2 !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-roll-body {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .caret {
+  border-left-color: #6b5d42 !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .caret.open {
+  border-left-color: #b8860b !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .hypo-item {
+  background: #fff !important;
+  border-color: #d4c89a !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-legend {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree label {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree input[type="checkbox"] {
+  accent-color: #b8860b !important;
+}
+
+/* Ensure wrapper also has light background */
+body:not(.dark-mode) .ai-decision-tree-wrapper {
+  background: #fffcf0 !important;
+  color: #2d2416 !important;
+}
+
+/* WIN ODDS COMPONENT - Full light theme (Settings & Modal) */
+
+/* Win Odds Panel in Settings */
+body:not(.dark-mode) .win-odds-panel {
+  background: #fff !important;
+  border-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .win-odds-header {
+  background: #fff9e6 !important;
+  border-bottom-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .win-odds-title {
+  color: #2d2416 !important;
+  text-shadow: none !important;
+}
+
+body:not(.dark-mode) .win-odds-btn {
+  background: linear-gradient(135deg, #b8860b, #8b6914) !important;
+  border-color: #6b5d42 !important;
+  color: #fff !important;
+}
+
+body:not(.dark-mode) .win-odds-btn:hover {
+  background: linear-gradient(135deg, #d4a017, #a67c00) !important;
+}
+
+body:not(.dark-mode) .win-odds-body {
+  background: #fffcf0 !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .win-odds-insights {
+  background: #fffcf0 !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .win-odds-footer {
+  background: #fff9e6 !important;
+  border-top-color: #d4c89a !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .win-odds-footer label {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .win-odds-clear-btn {
+  background: rgba(230, 126, 34, 0.1) !important;
+  border-color: rgba(230, 126, 34, 0.3) !important;
+  color: #c0392b !important;
+}
+
+body:not(.dark-mode) .win-odds-clear-btn:hover {
+  background: rgba(230, 126, 34, 0.2) !important;
+}
+
+/* Win Odds Buttons */
+body:not(.dark-mode) #dev-win-odds-mode,
+body:not(.dark-mode) #dev-win-odds-refresh {
+  background: linear-gradient(135deg, #b8860b, #8b6914) !important;
+  border-color: #6b5d42 !important;
+  color: #fff !important;
+}
+
+body:not(.dark-mode) #dev-win-odds-mode:hover,
+body:not(.dark-mode) #dev-win-odds-refresh:hover {
+  background: linear-gradient(135deg, #d4a017, #a67c00) !important;
+}
+
+body:not(.dark-mode) #dev-win-odds-clear {
+  background: rgba(230, 126, 34, 0.1) !important;
+  border-color: rgba(230, 126, 34, 0.3) !important;
+  color: #c0392b !important;
+}
+
+body:not(.dark-mode) #dev-win-odds-trend {
+  color: #6b5d42 !important;
+}
+
+/* Win Odds Chart & Content */
+body:not(.dark-mode) #dev-win-odds-chart,
+body:not(.dark-mode) #dev-win-odds-insights {
+  background: #fffcf0 !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) #dev-win-odds-panel {
+  background: #fff !important;
+  border-color: #d4c89a !important;
+}
+
+/* Mini Win Odds Floating Modal */
+body:not(.dark-mode) .mini-wo-title {
+  color: #2d2416 !important;
+  text-shadow: none !important;
+}
+
+body:not(.dark-mode) .mini-wo-btn {
+  background: linear-gradient(135deg, #b8860b, #8b6914) !important;
+  color: #fff !important;
+  border-color: #6b5d42 !important;
+}
+
+body:not(.dark-mode) .mini-wo-btn:hover {
+  background: linear-gradient(135deg, #d4a017, #a67c00) !important;
 }
 
 body:not(.dark-mode) .wo-display-mode-selector button {
@@ -1426,6 +1740,102 @@ body:not(.dark-mode) .wo-player-name {
 
 body:not(.dark-mode) .wo-win-odds {
   color: #2d2416 !important;
+}
+
+/* Win Odds Table Headers - Override purple gradient */
+body:not(.dark-mode) .wo-table-header {
+  background: linear-gradient(135deg, #b8860b, #8b6914) !important;
+  color: #fff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+  font-size: 1.6vh !important;
+  letter-spacing: 0.05vmin !important;
+  text-transform: uppercase !important;
+  font-weight: 700 !important;
+}
+
+/* Win Odds Power Card Analysis - Light Theme */
+body:not(.dark-mode) .wo-owned-title,
+body:not(.dark-mode) .wo-available-title {
+  color: #2d2416 !important;
+}
+
+/* Owned Cards - Warm golden brown theme */
+body:not(.dark-mode) .wo-card-owned {
+  background: rgba(212, 200, 154, 0.15) !important;
+  border-color: rgba(184, 134, 11, 0.4) !important;
+}
+
+body:not(.dark-mode) .wo-card-owned:hover {
+  background: rgba(212, 200, 154, 0.25) !important;
+  border-color: rgba(184, 134, 11, 0.55) !important;
+}
+
+body:not(.dark-mode) .wo-card-owned .wo-card-name {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .wo-card-owned .wo-card-contribution {
+  color: #8b6914 !important;
+}
+
+body:not(.dark-mode) .wo-card-owned .wo-card-reason {
+  color: #6b5d42 !important;
+}
+
+/* Available Cards - Lighter golden theme */
+body:not(.dark-mode) .wo-card-available {
+  background: rgba(255, 252, 240, 0.6) !important;
+  border-color: rgba(212, 200, 154, 0.5) !important;
+}
+
+body:not(.dark-mode) .wo-card-available:hover {
+  background: rgba(255, 249, 230, 0.8) !important;
+  border-color: rgba(184, 134, 11, 0.6) !important;
+}
+
+body:not(.dark-mode) .wo-card-available .wo-card-name {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .wo-card-available .wo-card-odds {
+  color: #8b6914 !important;
+}
+
+body:not(.dark-mode) .wo-card-available .wo-card-reason {
+  color: #6b5d42 !important;
+}
+
+body:not(.dark-mode) .wo-card-available .wo-card-cost {
+  color: #b8860b !important;
+}
+
+/* Win Odds Power Card Analysis Container */
+body:not(.dark-mode) .wo-power-card-analysis {
+  background: rgba(255, 249, 230, 0.5) !important;
+  border-top-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .wo-analysis-header {
+  border-bottom-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .wo-analysis-title {
+  color: #8b6914 !important;
+}
+
+body:not(.dark-mode) .wo-analysis-subtitle {
+  color: #6b5d42 !important;
+}
+
+/* Best Buy Tip Box */
+body:not(.dark-mode) .wo-best-buy-tip {
+  background: rgba(212, 200, 154, 0.2) !important;
+  border-color: rgba(184, 134, 11, 0.5) !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .wo-best-buy-tip strong {
+  color: #8b6914 !important;
 }
 
 /* GAME LOG MODAL - Override inline styles */
@@ -1749,27 +2159,28 @@ body:not(.dark-mode) .win-odds-mini-floating .mini-wo-header {
 
 body:not(.dark-mode) #mini-win-odds-floating .mini-wo-title,
 body:not(.dark-mode) .win-odds-mini-floating .mini-wo-title {
-  color: #000 !important;
+  color: #2d2416 !important;
+  text-shadow: none !important;
 }
 
 body:not(.dark-mode) #mini-win-odds-floating .mini-wo-body,
 body:not(.dark-mode) .win-odds-mini-floating .mini-wo-body {
   background: #fffcf0 !important;
-  color: #000 !important;
+  color: #2d2416 !important;
 }
 
 body:not(.dark-mode) #mini-win-odds-floating .mini-wo-chart,
 body:not(.dark-mode) .win-odds-mini-floating .mini-wo-chart,
 body:not(.dark-mode) #mini-win-odds-chart {
-  background: #fffcf0 !important;
-  color: #000 !important;
+  background: #fff !important;
+  color: #2d2416 !important;
 }
 
 body:not(.dark-mode) #mini-win-odds-floating .mini-wo-insights,
 body:not(.dark-mode) .win-odds-mini-floating .mini-wo-insights,
 body:not(.dark-mode) #mini-win-odds-insights {
-  background: #fffcf0 !important;
-  color: #000 !important;
+  background: #fff !important;
+  color: #2d2416 !important;
 }
 
 body:not(.dark-mode) #mini-win-odds-floating .mini-wo-splitter,
@@ -1780,16 +2191,61 @@ body:not(.dark-mode) .win-odds-mini-floating .mini-wo-splitter {
 body:not(.dark-mode) #mini-win-odds-floating .mini-wo-footer,
 body:not(.dark-mode) .win-odds-mini-floating .mini-wo-footer {
   background: #fff9e6 !important;
-  color: #000 !important;
+  color: #2d2416 !important;
   border-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) #mini-win-odds-floating .mini-wo-footer label {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) #mini-win-odds-floating .mini-wo-trend,
+body:not(.dark-mode) .win-odds-mini-floating .mini-wo-trend {
+  color: #6b5d42 !important;
 }
 
 body:not(.dark-mode) #mini-win-odds-floating button,
 body:not(.dark-mode) .win-odds-mini-floating button,
-body:not(.dark-mode) .mini-wo-btn {
+body:not(.dark-mode) #mini-win-odds-floating .mini-wo-btn,
+body:not(.dark-mode) .win-odds-mini-floating .mini-wo-btn {
+  background: linear-gradient(135deg, #b8860b, #8b6914) !important;
+  color: #fff !important;
+  border-color: #6b5d42 !important;
+}
+
+body:not(.dark-mode) #mini-win-odds-floating button:hover,
+body:not(.dark-mode) .win-odds-mini-floating button:hover,
+body:not(.dark-mode) #mini-win-odds-floating .mini-wo-btn:hover,
+body:not(.dark-mode) .win-odds-mini-floating .mini-wo-btn:hover {
+  background: linear-gradient(135deg, #d4a017, #a67c00) !important;
+}
+
+/* Win Odds content elements */
+body:not(.dark-mode) .wo-bar-container {
   background: #fff9e6 !important;
-  color: #000 !important;
   border-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .wo-bar-fill {
+  background: linear-gradient(90deg, #b8860b, #d4a017) !important;
+}
+
+body:not(.dark-mode) .wo-percentage {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .wo-insight-item {
+  background: #fff9e6 !important;
+  border-color: #d4c89a !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .wo-insight-title {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .wo-insight-text {
+  color: #6b5d42 !important;
 }
 
 /* New Modal System - Override inline styles from new-modal-system.js */
