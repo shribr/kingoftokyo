@@ -259,11 +259,22 @@ body.dark-mode .ai-decision-tree-embedded .cmp-ai-decision-tree input[type=text]
   font-family: 'Bangers', cursive;
 }
 
+body.dark-mode .cmp-ai-decision-tree .standard-player-action-header {
+  background: #2a3137;
+  border-color: #8b7a3d;
+  color: #ffd54f;
+}
+
 .cmp-ai-decision-tree .standard-roll-container {
   background: #fff;
   border: 2px solid #d4af37;
   border-top: none;
   margin-bottom: 16px;
+}
+
+body.dark-mode .cmp-ai-decision-tree .standard-roll-container {
+  background: #1a1f24;
+  border-color: #8b7a3d;
 }
 
 .cmp-ai-decision-tree .standard-roll-header-with-dice {
@@ -276,6 +287,11 @@ body.dark-mode .ai-decision-tree-embedded .cmp-ai-decision-tree input[type=text]
   flex-wrap: wrap;
 }
 
+body.dark-mode .cmp-ai-decision-tree .standard-roll-header-with-dice {
+  background: #2a3137;
+  border-bottom-color: #3d4651;
+}
+
 .cmp-ai-decision-tree .standard-player-label {
   font-weight: 700;
   font-size: 13px;
@@ -283,6 +299,10 @@ body.dark-mode .ai-decision-tree-embedded .cmp-ai-decision-tree input[type=text]
   margin-right: 8px;
   font-family: 'Bangers', cursive;
   letter-spacing: 0.5px;
+}
+
+body.dark-mode .cmp-ai-decision-tree .standard-player-label {
+  color: #c5cdd6;
 }
 
 .cmp-ai-decision-tree .standard-inline-die { 
@@ -396,6 +416,12 @@ body.dark-mode .ai-decision-tree-embedded .cmp-ai-decision-tree input[type=text]
   box-shadow: 2px 2px 4px rgba(0,0,0,.3);
 }
 
+body.dark-mode .cmp-ai-decision-tree .standard-kept-die {
+  background: linear-gradient(145deg, #3a4249, #2a3137);
+  color: #e5e9ef;
+  border-color: #5a6672;
+}
+
 .cmp-ai-decision-tree .standard-justification { 
   background: #f8f9fa;
   border: 1px solid #dee2e6;
@@ -408,11 +434,22 @@ body.dark-mode .ai-decision-tree-embedded .cmp-ai-decision-tree input[type=text]
   font-family: 'Nunito', sans-serif;
 }
 
+body.dark-mode .cmp-ai-decision-tree .standard-justification {
+  background: #2a3137;
+  border-color: #3d4651;
+  color: #c5cdd6;
+}
+
 /* Roll odds section */
 .cmp-ai-decision-tree .standard-roll-odds { 
   background: #e9ecef;
   padding: 14px 16px;
   border-top: 1px solid #dee2e6;
+}
+
+body.dark-mode .cmp-ai-decision-tree .standard-roll-odds {
+  background: #1e2429;
+  border-top-color: #3d4651;
 }
 
 .cmp-ai-decision-tree .standard-odds-header { 
@@ -422,6 +459,10 @@ body.dark-mode .ai-decision-tree-embedded .cmp-ai-decision-tree input[type=text]
   font-size: 13px;
   font-family: 'Bangers', cursive;
   letter-spacing: 0.5px;
+}
+
+body.dark-mode .cmp-ai-decision-tree .standard-odds-header {
+  color: #c5cdd6;
 }
 
 .cmp-ai-decision-tree .standard-odds-subtitle { 
@@ -732,6 +773,12 @@ body.dark-mode .ai-decision-tree-embedded .cmp-ai-decision-tree input[type=text]
     font-style: italic;
 }
 
+body.dark-mode .cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-turn-body {
+    background: #1a1f24;
+    color: #c5cdd6;
+    border-left-color: #3d4651;
+}
+
 /* Disclosure triangles for turns */
 .cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-turn-header::before {
     content: '\25B6';
@@ -827,6 +874,13 @@ body.dark-mode .ai-decision-tree-embedded .cmp-ai-decision-tree input[type=text]
     padding: 8px 10px;
     border-radius: 6px;
     line-height: 1.4;
+    color: #000;
+}
+
+body.dark-mode .cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-section {
+    border-color: #2f3740;
+    background: #23282f;
+    color: #e5e9ef;
 }
 
 .cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-sec-h {
@@ -885,6 +939,10 @@ body.dark-mode .ai-decision-tree-embedded .cmp-ai-decision-tree input[type=text]
     max-width: 360px;
 }
 
+body.dark-mode .cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-prob-bar-wrap {
+    background: #2a3137;
+}
+
 .cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-prob-bar {
     position: absolute;
     top: 0;
@@ -939,6 +997,11 @@ body.dark-mode .ai-decision-tree-embedded .cmp-ai-decision-tree input[type=text]
     font-size: 12px;
     line-height: 1.4;
     font-weight: 400;
+}
+
+body.dark-mode .cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-turn-chain {
+    background: #242a30;
+    border-color: #3d4651;
 }
 
 .cmp-ai-decision-tree .adt-tree-scroll[data-view="standard"] .adt-std-turn-chain .adt-std-die {
