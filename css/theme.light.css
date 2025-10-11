@@ -13,6 +13,28 @@ body:not(.dark-mode) {
   --theme-shadow: rgba(45, 36, 22, 0.15);
   --theme-shadow-strong: rgba(45, 36, 22, 0.3);
   
+  /* AI Decision Tree CSS custom properties override */
+  --adt-bg: #fffcf0;
+  --adt-panel: #fff9e6;
+  --adt-panel-alt: #fff;
+  --adt-border: #d4c89a;
+  --adt-border-strong: #b8a977;
+  --adt-text: #2d2416;
+  --adt-text-dim: #6b5d42;
+  --adt-accent: #b8860b;
+  --adt-accent-alt: #d4a017;
+  --adt-focus: #b8860b;
+  --adt-danger: #c0392b;
+  --adt-ai-bg: #fff9e6;
+  --adt-human-bg: #fff9e6;
+  --adt-ai-glow: rgba(184, 134, 11, 0.15);
+  --adt-human-glow: rgba(212, 160, 23, 0.15);
+  --adt-tag-claw: #ff6b57;
+  --adt-tag-energy: #48d187;
+  --adt-tag-heal: #ff9ad6;
+  --adt-tag-triple: #ffd166;
+  --adt-tag-potential: #8aa4ff;
+  
   background: var(--theme-bg);
   color: var(--theme-text);
 }
@@ -2561,4 +2583,271 @@ body:not(.dark-mode) .analytics-performance-panel {
   background: #fff9e6 !important;
   border-color: #d4c89a !important;
   color: #2d2416 !important;
+}
+
+/* ============================================================================
+   COMPREHENSIVE ANALYTICS PANELS LIGHT MODE FIX
+   Additional overrides to ensure all analytics elements are properly themed
+   ============================================================================ */
+
+/* AI Decision Tree - Additional elements that might be missed */
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-summary span {
+  background: #fff9e6 !important;
+  border-color: #d4c89a !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-round {
+  background: #fff9e6 !important;
+  border-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-roll-header {
+  background: transparent !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-roll-header:hover {
+  background: rgba(255, 239, 165, 0.2) !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-roll-header .mini-dice-seq .mini-die {
+  background: #fff !important;
+  border-color: #2d2416 !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-roll-header .mini-die.is-num {
+  background: #fff !important;
+  color: #000 !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-roll-header .origin-badge {
+  background: linear-gradient(135deg, #b8860b, #8b6914) !important;
+  color: #fff !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-roll-header .why-badge {
+  background: #fff9e6 !important;
+  border-color: #d4c89a !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-roll-header .why-badge:hover {
+  background: rgba(255, 239, 165, 0.5) !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-roll-body .keep-die {
+  background: #fff !important;
+  border-color: #2d2416 !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-roll-body .keep-die.is-num {
+  background: #fff !important;
+  color: #000 !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-roll-body .keep-die.is-kept {
+  outline-color: #b8860b !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-roll-body .rationale {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-roll-body .english-expl {
+  color: #6b5d42 !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-legend .legend-item {
+  background: #fff9e6 !important;
+  border-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-tag-filters .adt-tag {
+  background: #fff9e6 !important;
+  color: #6b5d42 !important;
+  border-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-tag-filters .adt-tag:hover {
+  background: linear-gradient(135deg, #b8860b, #8b6914) !important;
+  color: #fff !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree details.hypo {
+  background: #fff9e6 !important;
+  border-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree details.hypo[open] {
+  background: #fff !important;
+}
+
+/* Win Odds - Additional floating modal elements */
+body:not(.dark-mode) .win-odds-mini-floating .mini-wo-header .mini-wo-btn {
+  background: transparent !important;
+  color: #2d2416 !important;
+  border-color: transparent !important;
+}
+
+body:not(.dark-mode) .win-odds-mini-floating .mini-wo-header .mini-wo-btn:hover {
+  background: rgba(184, 134, 11, 0.15) !important;
+}
+
+body:not(.dark-mode) #mini-win-odds-chart *,
+body:not(.dark-mode) #mini-win-odds-insights * {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) #mini-win-odds-chart text,
+body:not(.dark-mode) #mini-win-odds-insights text {
+  fill: #2d2416 !important;
+}
+
+/* Win Odds - Player row elements */
+body:not(.dark-mode) .wo-player-row {
+  background: #fff !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .wo-player-row:hover {
+  background: rgba(184, 134, 11, 0.1) !important;
+}
+
+body:not(.dark-mode) .wo-player-row.selected {
+  background: rgba(184, 134, 11, 0.2) !important;
+  border-color: #b8860b !important;
+}
+
+body:not(.dark-mode) .wo-player-avatar {
+  border-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .wo-player-stats {
+  color: #6b5d42 !important;
+}
+
+body:not(.dark-mode) .wo-bar {
+  background: #f5f5f5 !important;
+}
+
+body:not(.dark-mode) .wo-bar-inner {
+  background: linear-gradient(90deg, #b8860b, #d4a017) !important;
+}
+
+/* Win Odds - Chart and insights text */
+body:not(.dark-mode) .wo-chart-label,
+body:not(.dark-mode) .wo-chart-value,
+body:not(.dark-mode) .wo-insight-label {
+  color: #2d2416 !important;
+}
+
+/* Win Odds - Power Card Analysis elements */
+body:not(.dark-mode) .wo-card-list {
+  background: transparent !important;
+}
+
+body:not(.dark-mode) .wo-card-item {
+  background: #fff !important;
+  border-color: #d4c89a !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .wo-card-item:hover {
+  background: rgba(255, 239, 165, 0.3) !important;
+  border-color: #b8860b !important;
+}
+
+body:not(.dark-mode) .wo-card-title {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .wo-card-desc {
+  color: #6b5d42 !important;
+}
+
+body:not(.dark-mode) .wo-card-stat {
+  color: #b8860b !important;
+}
+
+/* Analytics tabs in settings modal */
+body:not(.dark-mode) .analytics-tab-content {
+  background: #fffcf0 !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .analytics-section {
+  background: #fff !important;
+  border-color: #d4c89a !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .analytics-section-header {
+  background: #fff9e6 !important;
+  border-bottom-color: #d4c89a !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .analytics-section-title {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .analytics-section-body {
+  background: #fff !important;
+  color: #2d2416 !important;
+}
+
+/* Ensure all SVG elements in analytics use dark colors for text in light mode */
+body:not(.dark-mode) .win-odds-panel svg text,
+body:not(.dark-mode) .win-odds-mini-floating svg text,
+body:not(.dark-mode) .analytics-panel svg text {
+  fill: #2d2416 !important;
+}
+
+body:not(.dark-mode) .win-odds-panel svg .axis,
+body:not(.dark-mode) .win-odds-mini-floating svg .axis,
+body:not(.dark-mode) .analytics-panel svg .axis {
+  stroke: #d4c89a !important;
+}
+
+body:not(.dark-mode) .win-odds-panel svg .grid,
+body:not(.dark-mode) .win-odds-mini-floating svg .grid,
+body:not(.dark-mode) .analytics-panel svg .grid {
+  stroke: #f0f0f0 !important;
+}
+
+/* Force light backgrounds on any dynamically created analytics elements */
+body:not(.dark-mode) [class*="analytics-"],
+body:not(.dark-mode) [class*="win-odds-"],
+body:not(.dark-mode) [class*="wo-"],
+body:not(.dark-mode) [id*="win-odds-"],
+body:not(.dark-mode) [id*="analytics-"] {
+  color: #2d2416;
+}
+
+body:not(.dark-mode) [class*="analytics-"][class*="panel"],
+body:not(.dark-mode) [class*="win-odds-"][class*="panel"],
+body:not(.dark-mode) [id*="win-odds-"][id*="panel"],
+body:not(.dark-mode) [id*="analytics-"][id*="panel"] {
+  background: #fffcf0 !important;
+  border-color: #d4c89a !important;
+}
+
+/* Final catch-all for any missed analytics panel elements */
+body:not(.dark-mode) .cmp-ai-decision-tree *:not(button):not(.adt-btn):not(.btn),
+body:not(.dark-mode) .win-odds-panel *:not(button):not(.btn):not(.mini-wo-btn),
+body:not(.dark-mode) .win-odds-mini-floating *:not(button):not(.btn):not(.mini-wo-btn) {
+  color: #2d2416;
+}
+
+/* Ensure buttons keep white text on colored backgrounds */
+body:not(.dark-mode) .cmp-ai-decision-tree button,
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-btn,
+body:not(.dark-mode) .win-odds-panel button:not(.mini-wo-btn),
+body:not(.dark-mode) .win-odds-panel .btn,
+body:not(.dark-mode) .win-odds-mini-floating button:not(.mini-wo-btn),
+body:not(.dark-mode) .win-odds-mini-floating .btn {
+  color: #fff !important;
 }
