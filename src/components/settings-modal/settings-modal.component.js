@@ -4294,7 +4294,7 @@ function replaceDiceArraysWithIcons(message) {
           break;
         case 'heart':
         case 'heal':
-          icon = '<span class="dice-log-number" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:#fff;border-radius:3px;font-size:13px;vertical-align:middle;">❤️</span>';
+          icon = '<span class="dice-log-number" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:#fff;border-radius:3px;font-size:13px;vertical-align:middle;color:red;">❤</span>';
           break;
         case '1':
         case '2':

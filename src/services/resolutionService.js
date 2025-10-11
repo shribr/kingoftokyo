@@ -86,9 +86,18 @@ export function resolveDice(store, logger) {
         // Silent fail
       }
       const totalHeal = tally.heart + healBonus;
-      store.dispatch(healPlayerAction(activeId, totalHeal));
-      store.dispatch(uiHealthFlash(activeId, totalHeal));
-      logger.info(`${activeId} heals ${totalHeal}${healBonus > 0 ? ` (${tally.heart}+${healBonus} bonus)` : ''}`);
+      
+      // Only log and dispatch if player can actually heal (not at max health)
+      const currentState = store.getState();
+      const player = currentState.players.byId[activeId];
+      const maxHealth = player.maxHealth || 10;
+      
+      if (player.health < maxHealth) {
+        store.dispatch(healPlayerAction(activeId, totalHeal));
+        store.dispatch(uiHealthFlash(activeId, totalHeal));
+        logger.info(`${activeId} heals ${totalHeal}${healBonus > 0 ? ` (${tally.heart}+${healBonus} bonus)` : ''}`);
+      }
+      // If already at max health, don't log or show healing
     }
   }
   // 4. Attacks (claws)

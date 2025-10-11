@@ -309,17 +309,20 @@ body:not(.dark-mode) .settings-tabs {
 body:not(.dark-mode) .settings-modal-root .settings-tabs .tab-button {
   color: #000 !important;
   background: transparent !important;
+  text-shadow: none !important;
 }
 
 body:not(.dark-mode) .settings-modal-root .settings-tabs .tab-button:hover {
   color: #000 !important;
   background: rgba(255, 239, 165, 0.3) !important;
+  text-shadow: none !important;
 }
 
 body:not(.dark-mode) .settings-modal-root .settings-tabs .tab-button.active {
   color: #000 !important;
   border-bottom-color: #b8860b !important;
   background: rgba(184, 134, 11, 0.15) !important;
+  text-shadow: none !important;
 }
 
 body:not(.dark-mode) .settings-modal-root .settings-tabs .tab-button.active:after {
