@@ -253,6 +253,12 @@ body.dark-mode #settings-analytics-performance .metric {
   color: #e0e6eb;
 }
 
+/* AI Decision Tree Dark Theme */
+body.dark-mode .cmp-ai-decision-tree .adt-tree-scroll {
+  background: #0e1012 !important;
+  border-color: #2d343d !important;
+}
+
 /* Backdrop */
 body.dark-mode .card-detail-backdrop {
   background: rgba(0,0,0,0.55);

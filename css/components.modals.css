@@ -48,6 +48,12 @@
   .modal.ai-decision .ai-round { border:1px solid #000; background:#202020; padding:6px 8px; border-radius:4px; box-shadow:2px 2px 0 #000; }
   .modal.ai-decision .ai-round-header { font-weight:600; color: var(--color-brand-gold,#ffd700); margin-bottom:4px; text-shadow:1px 1px 0 #000; }
   .modal.ai-decision .ai-turn { border:1px solid #000; background:#2a2a2a; padding:4px 6px; border-radius:4px; box-shadow:1px 1px 0 #000; }
+
+  /* Dark mode for AI Decision Tree component inside modals */
+  body.dark-mode .cmp-ai-decision-tree .adt-tree-scroll {
+    background: #0e1012 !important;
+    border-color: #2d343d !important;
+  }
   .modal.ai-decision .ai-turn + .ai-turn { margin-top:6px; }
   .modal.ai-decision .ai-turn-header { font-weight:500; color: var(--color-brand-orange,#ff6b00); margin-bottom:4px; }
   .modal.ai-decision .ai-turn-rolls { display:flex; flex-direction:column; gap:4px; }

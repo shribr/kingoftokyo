@@ -2537,3 +2537,28 @@ body:not(.dark-mode) [style*="background: #000"] {
   background: #fff !important;
   color: #000 !important;
 }
+
+/* Analytics panels light mode */
+body:not(.dark-mode) .analytics-overview-panel {
+  background: #fff9e6 !important;
+  border-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .analytics-stat-card {
+  background: #ffffff !important;
+  border-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .analytics-stat-value {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .analytics-stat-label {
+  color: #6b5d42 !important;
+}
+
+body:not(.dark-mode) .analytics-performance-panel {
+  background: #fff9e6 !important;
+  border-color: #d4c89a !important;
+  color: #2d2416 !important;
+}
