@@ -291,3 +291,1721 @@ body:not(.dark-mode) .cmp-roll-for-first .rff-table tr.winner .rff-name {
   color: #b8860b;
   text-shadow: none;
 }
+
+/* Settings Modal Light Theme - Complete overhaul */
+
+/* Settings modal root background */
+body:not(.dark-mode) .settings-modal-root {
+  background: #fffcf0 !important;
+}
+
+/* Settings tabs - same cream background */
+body:not(.dark-mode) .settings-tabs {
+  background: #fffcf0 !important;
+  border-bottom: 2px solid #d4c89a !important;
+}
+
+/* More specific selectors to override base CSS */
+body:not(.dark-mode) .settings-modal-root .settings-tabs .tab-button {
+  color: #000 !important;
+  background: transparent !important;
+}
+
+body:not(.dark-mode) .settings-modal-root .settings-tabs .tab-button:hover {
+  color: #000 !important;
+  background: rgba(255, 239, 165, 0.3) !important;
+}
+
+body:not(.dark-mode) .settings-modal-root .settings-tabs .tab-button.active {
+  color: #000 !important;
+  border-bottom-color: #b8860b !important;
+  background: rgba(184, 134, 11, 0.15) !important;
+}
+
+body:not(.dark-mode) .settings-modal-root .settings-tabs .tab-button.active:after {
+  border-bottom-color: #b8860b !important;
+}
+
+/* Modal form - cream background */
+body:not(.dark-mode) .unified-modal-form {
+  background: #fffcf0 !important;
+  color: #000 !important;
+}
+
+/* Section titles - darker text */
+body:not(.dark-mode) .section-title {
+  color: #b8860b;
+  border-bottom-color: #d4c89a;
+}
+
+/* Field labels - darker text */
+body:not(.dark-mode) .field-label {
+  color: #2d2416;
+}
+
+/* Field inputs - light background with dark text */
+body:not(.dark-mode) .field-input {
+  background: #fff;
+  border-color: #b8a977;
+  color: #2d2416;
+  box-shadow: 2px 2px 0 rgba(184, 134, 11, 0.2);
+}
+
+body:not(.dark-mode) select.field-input {
+  background: #fff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23b8860b' d='M0 0l6 8 6-8z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px 8px;
+}
+
+body:not(.dark-mode) .field-input:hover,
+body:not(.dark-mode) select.field-input:hover {
+  border-color: #8b6914;
+  box-shadow: 2px 2px 0 rgba(139, 105, 20, 0.3), 0 0 8px rgba(184, 134, 11, 0.2);
+}
+
+body:not(.dark-mode) .field-input:focus {
+  border-color: #8b6914;
+  box-shadow: 2px 2px 0 rgba(139, 105, 20, 0.3), 0 0 12px rgba(184, 134, 11, 0.3);
+}
+
+/* Field help text - muted but readable */
+body:not(.dark-mode) .field-help {
+  color: #6b5d42;
+}
+
+/* Checkbox labels - dark text */
+body:not(.dark-mode) .checkbox-label {
+  color: #2d2416;
+}
+
+body:not(.dark-mode) .field-checkbox input[type="checkbox"] {
+  accent-color: #b8860b;
+}
+
+/* Buttons - golden gradient for light theme */
+body:not(.dark-mode) .btn {
+  background: linear-gradient(135deg, #b8860b, #8b6914);
+  border-color: #6b5d42;
+  color: #fff;
+  box-shadow: 2px 2px 0 rgba(45, 36, 22, 0.3);
+  text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.5);
+}
+
+body:not(.dark-mode) .btn:hover {
+  background: linear-gradient(135deg, #d4a017, #a67c00);
+  box-shadow: 2px 2px 0 rgba(45, 36, 22, 0.4), 0 0 10px rgba(184, 134, 11, 0.3);
+}
+
+body:not(.dark-mode) .btn-secondary {
+  background: linear-gradient(135deg, #d4c89a, #b8a977);
+  color: #2d2416;
+  border-color: #6b5d42;
+}
+
+body:not(.dark-mode) .btn-secondary:hover {
+  background: linear-gradient(135deg, #e6d68a, #d4c89a);
+}
+
+body:not(.dark-mode) .btn-danger {
+  background: linear-gradient(135deg, #d32f2f, #b71c1c);
+  color: #fff;
+}
+
+body:not(.dark-mode) .btn-danger:hover {
+  background: linear-gradient(135deg, #e53935, #c62828);
+}
+
+body:not(.dark-mode) .btn-warning {
+  background: linear-gradient(135deg, #f57c00, #ef6c00);
+  color: #fff;
+}
+
+body:not(.dark-mode) .btn-warning:hover {
+  background: linear-gradient(135deg, #fb8c00, #f57c00);
+}
+
+/* Filter controls for game log */
+body:not(.dark-mode) .filter-controls {
+  background: rgba(255, 239, 165, 0.3);
+  border-radius: 6px;
+  padding: 10px;
+}
+
+body:not(.dark-mode) .filter-group label {
+  color: #6b5d42;
+}
+
+body:not(.dark-mode) .filter-group select,
+body:not(.dark-mode) .filter-group input {
+  background: #fff;
+  border-color: #b8a977;
+  color: #2d2416;
+}
+
+/* Game log content */
+body:not(.dark-mode) .log-content {
+  background: #fff;
+  border-color: #d4c89a;
+  color: #2d2416;
+}
+
+body:not(.dark-mode) .log-entry {
+  border-bottom-color: #f0f0f0;
+  color: #2d2416;
+}
+
+body:not(.dark-mode) .log-entry:hover {
+  background: rgba(255, 239, 165, 0.2);
+}
+
+/* Archive table */
+body:not(.dark-mode) .archive-table {
+  color: #2d2416;
+}
+
+body:not(.dark-mode) .archive-table thead {
+  background: #2d2416;
+  color: #ffd700;
+}
+
+body:not(.dark-mode) .archive-table tbody tr {
+  background: #fff;
+  border-bottom-color: #f0f0f0;
+}
+
+body:not(.dark-mode) .archive-table tbody tr:hover {
+  background: rgba(255, 239, 165, 0.3);
+}
+
+body:not(.dark-mode) .archive-table td {
+  color: #2d2416;
+}
+
+/* Scenario panel */
+body:not(.dark-mode) .scenario-item {
+  background: #fff;
+  border-color: #d4c89a;
+  color: #2d2416;
+}
+
+body:not(.dark-mode) .scenario-item:hover {
+  background: rgba(255, 239, 165, 0.2);
+  border-color: #b8860b;
+}
+
+body:not(.dark-mode) .scenario-description {
+  color: #6b5d42;
+}
+
+/* Info messages */
+body:not(.dark-mode) .info-message {
+  background: rgba(184, 134, 11, 0.1);
+  border-color: #b8860b;
+  color: #2d2416;
+}
+
+/* Empty state messages */
+body:not(.dark-mode) .empty-state {
+  color: #6b5d42;
+}
+
+/* ============================================
+   ALL MODALS LIGHT THEME - Universal Styling
+   ============================================ */
+
+/* Modal Shell & Backdrop */
+body:not(.dark-mode) .modal-shell {
+  background: rgba(255, 239, 165, 0.5);
+}
+
+/* Base Modal Container */
+body:not(.dark-mode) .modal-shell .modal,
+body:not(.dark-mode) .modal {
+  background: #fffcf0 !important;
+  border-color: #b8a977 !important;
+  box-shadow: 6px 6px 0 rgba(45, 36, 22, 0.3), 0 0 0 2px #d4c89a inset, 0 10px 26px -8px rgba(45, 36, 22, 0.2) !important;
+  color: #2d2416 !important;
+}
+
+/* Modal Header */
+body:not(.dark-mode) .modal-header {
+  background: #fff9e6 !important;
+  border-bottom: 2px solid #d4c89a !important;
+  box-shadow: inset 0 -2px 0 rgba(184, 134, 11, 0.1) !important;
+}
+
+body:not(.dark-mode) .modal-header h2,
+body:not(.dark-mode) .modal-header .modal-title {
+  color: #2d2416 !important;
+  text-shadow: none !important;
+}
+
+body:not(.dark-mode) .modal-header button {
+  background: #fff !important;
+  color: #2d2416 !important;
+  border-color: #b8a977 !important;
+  box-shadow: 2px 2px 0 rgba(45, 36, 22, 0.2) !important;
+}
+
+body:not(.dark-mode) .modal-header button:hover {
+  background: #ffefa5 !important;
+  border-color: #8b6914 !important;
+}
+
+/* Modal Body */
+body:not(.dark-mode) .modal-body {
+  background: #fffcf0 !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .modal-body::-webkit-scrollbar-track {
+  background: rgba(212, 200, 154, 0.3) !important;
+}
+
+body:not(.dark-mode) .modal-body::-webkit-scrollbar-thumb {
+  background: #b8860b !important;
+  border-color: #6b5d42 !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Modal Forms */
+body:not(.dark-mode) .modal form {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .modal label {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .modal select {
+  background: #fff !important;
+  border-color: #b8a977 !important;
+  color: #2d2416 !important;
+  box-shadow: 2px 2px 0 rgba(45, 36, 22, 0.2) !important;
+}
+
+body:not(.dark-mode) .modal select:focus {
+  outline-color: #b8860b !important;
+  border-color: #8b6914 !important;
+}
+
+body:not(.dark-mode) .modal input[type="text"],
+body:not(.dark-mode) .modal input[type="number"],
+body:not(.dark-mode) .modal textarea {
+  background: #fff !important;
+  border-color: #b8a977 !important;
+  color: #2d2416 !important;
+  box-shadow: 2px 2px 0 rgba(45, 36, 22, 0.2) !important;
+}
+
+body:not(.dark-mode) .modal input[type="checkbox"] {
+  accent-color: #b8860b !important;
+}
+
+/* Modal Actions/Buttons */
+body:not(.dark-mode) .modal .actions button,
+body:not(.dark-mode) .modal button.btn {
+  background: linear-gradient(135deg, #b8860b, #8b6914) !important;
+  color: #fff !important;
+  border-color: #6b5d42 !important;
+  box-shadow: 2px 2px 0 rgba(45, 36, 22, 0.3) !important;
+  text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.5) !important;
+}
+
+body:not(.dark-mode) .modal .actions button:hover,
+body:not(.dark-mode) .modal button.btn:hover {
+  background: linear-gradient(135deg, #d4a017, #a67c00) !important;
+}
+
+/* Game Log Modal Specific */
+body:not(.dark-mode) .modal.game-log .log-scroll {
+  background: #fff !important;
+  border-color: #d4c89a !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .modal.game-log .round {
+  background: #fff9e6 !important;
+  border-color: #d4c89a !important;
+  box-shadow: 2px 2px 0 rgba(45, 36, 22, 0.15) !important;
+}
+
+body:not(.dark-mode) .modal.game-log .round-header {
+  color: #b8860b !important;
+  text-shadow: none !important;
+}
+
+body:not(.dark-mode) .modal.game-log .turn {
+  background: #fffcf0 !important;
+  border-color: #d4c89a !important;
+  box-shadow: 1px 1px 0 rgba(45, 36, 22, 0.15) !important;
+}
+
+body:not(.dark-mode) .modal.game-log .turn-header {
+  color: #d4a017 !important;
+}
+
+body:not(.dark-mode) .modal.game-log .log-line {
+  border-bottom-color: rgba(45, 36, 22, 0.1) !important;
+  color: #2d2416 !important;
+}
+
+/* AI Decision Tree Modal */
+body:not(.dark-mode) .modal.ai-decision .ai-tree {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .modal.ai-decision .ai-round {
+  background: #fff9e6 !important;
+  border-color: #d4c89a !important;
+  box-shadow: 2px 2px 0 rgba(45, 36, 22, 0.15) !important;
+}
+
+body:not(.dark-mode) .modal.ai-decision .ai-round-header {
+  color: #b8860b !important;
+  text-shadow: none !important;
+}
+
+body:not(.dark-mode) .modal.ai-decision .ai-turn {
+  background: #fffcf0 !important;
+  border-color: #d4c89a !important;
+  box-shadow: 1px 1px 0 rgba(45, 36, 22, 0.15) !important;
+}
+
+body:not(.dark-mode) .modal.ai-decision .ai-turn-header {
+  color: #d4a017 !important;
+}
+
+body:not(.dark-mode) .modal.ai-decision .ai-roll {
+  background: #fff !important;
+  border-color: #d4c89a !important;
+  box-shadow: 1px 1px 0 rgba(45, 36, 22, 0.1) !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .modal.ai-decision .ai-roll .faces {
+  color: #b8860b !important;
+}
+
+body:not(.dark-mode) .modal.ai-decision .ai-roll .score {
+  color: #d4a017 !important;
+}
+
+body:not(.dark-mode) .modal.ai-decision .ai-roll .rationale {
+  color: #6b5d42 !important;
+}
+
+/* New Modal System (Draggable/Resizable) */
+body:not(.dark-mode) .new-modal {
+  background: #fffcf0 !important;
+  border-color: #b8a977 !important;
+  box-shadow: 6px 6px 0 rgba(45, 36, 22, 0.3), 0 0 0 2px #d4c89a inset !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .new-modal-header {
+  background: #fff9e6 !important;
+  border-bottom-color: #d4c89a !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .new-modal-body {
+  background: #fffcf0 !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .new-modal-resize-handle:hover {
+  background: linear-gradient(135deg, transparent 0%, transparent 50%, #b8860b 50%, #b8860b 100%) !important;
+}
+
+body:not(.dark-mode) .new-modal-resize-handle:active {
+  background: linear-gradient(135deg, transparent 0%, transparent 50%, #d4a017 50%, #d4a017 100%) !important;
+}
+
+/* Yield Modal */
+body:not(.dark-mode) #kot-yield-modal .modal-content {
+  background: linear-gradient(145deg, #fffcf0, #fff9e6) !important;
+  color: #2d2416 !important;
+  border-color: #b8a977 !important;
+  box-shadow: 0 10px 32px -4px rgba(45, 36, 22, 0.3) !important;
+}
+
+body:not(.dark-mode) #kot-yield-modal h3 {
+  color: #2d2416 !important;
+  text-shadow: none !important;
+}
+
+body:not(.dark-mode) #kot-yield-modal .modal-buttons button {
+  background: linear-gradient(135deg, #b8860b, #8b6914) !important;
+  color: #fff !important;
+  border-color: #6b5d42 !important;
+  text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.5) !important;
+}
+
+body:not(.dark-mode) #kot-yield-modal .modal-buttons button:hover {
+  background: linear-gradient(135deg, #d4a017, #a67c00) !important;
+}
+
+/* All Power Cards Catalog Modal */
+body:not(.dark-mode) .all-cards-modal .modal-content {
+  background: #fffcf0 !important;
+  border-color: #b8a977 !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .all-cards-modal .modal-header {
+  background: #fff9e6 !important;
+  color: #2d2416 !important;
+}
+
+/* Monster Profiles Modal */
+body:not(.dark-mode) #monster-profiles-modal .modal-content {
+  background: #fffcf0 !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .monster-profiles-content h3,
+body:not(.dark-mode) .monster-profiles-content h4 {
+  color: #2d2416 !important;
+}
+
+/* Instructions Modal */
+body:not(.dark-mode) #instructions-modal .modal-content,
+body:not(.dark-mode) .instructions-modal .modal-content {
+  background: #fffcf0 !important;
+  color: #2d2416 !important;
+  border-color: #b8a977 !important;
+}
+
+/* CPU Roll Delay Slider - Light Theme Override */
+body:not(.dark-mode) input.cpu-roll-slider {
+  background: linear-gradient(90deg, #ffd54d, #ffb84d) !important;
+  border-color: #6b5d42 !important;
+  box-shadow: 2px 2px 0 rgba(45, 36, 22, 0.2), inset 0 1px 3px rgba(45, 36, 22, 0.2) !important;
+}
+
+body:not(.dark-mode) input.cpu-roll-slider::-webkit-slider-thumb {
+  background: #ffd54d !important;
+  border-color: #6b5d42 !important;
+  box-shadow: 0 0 0 2px #ffd54d, 2px 2px 0 rgba(45, 36, 22, 0.3) !important;
+}
+
+body:not(.dark-mode) input.cpu-roll-slider::-moz-range-thumb {
+  background: #ffd54d !important;
+  border-color: #6b5d42 !important;
+  box-shadow: 0 0 0 2px #ffd54d, 2px 2px 0 rgba(45, 36, 22, 0.3) !important;
+}
+
+/* Ensure proper text contrast in all modal text elements */
+body:not(.dark-mode) .modal p,
+body:not(.dark-mode) .modal li,
+body:not(.dark-mode) .modal span,
+body:not(.dark-mode) .modal div {
+  color: #2d2416;
+}
+
+/* Ensure links in modals are visible */
+body:not(.dark-mode) .modal a {
+  color: #b8860b !important;
+  text-decoration: underline;
+}
+
+body:not(.dark-mode) .modal a:hover {
+  color: #d4a017 !important;
+}
+
+/* Mobile modal adjustments */
+@media (max-width: 720px) {
+  body:not(.dark-mode) .modal .actions {
+    background: linear-gradient(0deg, rgba(255, 252, 240, 0.95), rgba(255, 252, 240, 0.6) 60%, rgba(255, 252, 240, 0)) !important;
+  }
+}
+
+/* ============================================
+   FIX SPECIFIC LIGHT THEME ISSUES
+   ============================================ */
+
+/* Content Section Text - Interface & Themes tabs */
+body:not(.dark-mode) .content-section h4,
+body:not(.dark-mode) .content-section h5 {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .content-section p,
+body:not(.dark-mode) .content-section li {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .content-section ul {
+  color: #2d2416 !important;
+}
+
+/* Radio options text */
+body:not(.dark-mode) .radio-option span {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .radio-option:hover {
+  background-color: rgba(184, 134, 11, 0.1) !important;
+}
+
+body:not(.dark-mode) .radio-option input[type="radio"] {
+  accent-color: #b8860b !important;
+}
+
+/* Settings Modal Headers and Tabs - Override dark theme */
+body:not(.dark-mode) .settings-modal-root {
+  background: #fffcf0 !important;
+}
+
+/* Scenarios Tab Content */
+body:not(.dark-mode) .cmp-scenarios-tab {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .cmp-scenarios-tab h3,
+body:not(.dark-mode) .cmp-scenarios-tab .scenario-heading {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .cmp-scenarios-tab .scenario-description {
+  color: #6b5d42 !important;
+}
+
+body:not(.dark-mode) .cmp-scenarios-tab .scenario-list label {
+  background: #fff !important;
+  border-color: #d4c89a !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .cmp-scenarios-tab .scenario-list label:hover {
+  border-color: #b8860b !important;
+  background: rgba(255, 239, 165, 0.3) !important;
+}
+
+body:not(.dark-mode) .cmp-scenarios-tab .param-editor {
+  background: #fff9e6 !important;
+  border-color: #d4c89a !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .cmp-scenarios-tab .target-mode-wrapper {
+  background: #fff9e6 !important;
+  border-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .cmp-scenarios-tab .target-mode-label,
+body:not(.dark-mode) .cmp-scenarios-tab .cpu-count-label {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .cmp-scenarios-tab .applied-list {
+  background: #fff !important;
+  border-color: #d4c89a !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .cmp-scenarios-tab select,
+body:not(.dark-mode) .cmp-scenarios-tab input {
+  background: #fff !important;
+  border-color: #b8a977 !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .cmp-scenarios-tab .assignment-table {
+  background: #fff !important;
+  border-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .cmp-scenarios-tab .assignment-table th {
+  background: #fff9e6 !important;
+  color: #2d2416 !important;
+  border-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .cmp-scenarios-tab .assignment-table td {
+  background: #fff !important;
+  color: #2d2416 !important;
+  border-color: #f0f0f0 !important;
+}
+
+body:not(.dark-mode) .cmp-scenarios-tab .scenario-cell select {
+  background: #fff !important;
+  border-color: #b8a977 !important;
+  color: #2d2416 !important;
+}
+
+/* Archives Table - Full Light Theme */
+body:not(.dark-mode) .archive-table {
+  background: #fff !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .archive-table thead {
+  background: #2d2416 !important;
+  color: #ffd700 !important;
+}
+
+body:not(.dark-mode) .archive-table thead th {
+  background: #2d2416 !important;
+  color: #ffd700 !important;
+  border-color: #000 !important;
+}
+
+body:not(.dark-mode) .archive-table tbody tr {
+  background: #fff !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .archive-table tbody tr:hover {
+  background: rgba(255, 239, 165, 0.3) !important;
+}
+
+body:not(.dark-mode) .archive-table tbody td {
+  color: #2d2416 !important;
+  border-bottom-color: #f0f0f0 !important;
+}
+
+body:not(.dark-mode) .archive-table input[type="checkbox"] {
+  accent-color: #b8860b !important;
+}
+
+body:not(.dark-mode) .archive-table .btn {
+  background: linear-gradient(135deg, #b8860b, #8b6914) !important;
+  color: #fff !important;
+  border-color: #6b5d42 !important;
+  text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.5) !important;
+}
+
+body:not(.dark-mode) .archive-table .btn-danger {
+  background: linear-gradient(135deg, #d32f2f, #b71c1c) !important;
+  color: #fff !important;
+  border-color: #8b0000 !important;
+}
+
+/* Developer Panel - Dev Tools Tab */
+body:not(.dark-mode) .developer-panel-container {
+  background: #fffcf0 !important;
+}
+
+body:not(.dark-mode) .dev-panel-header {
+  background: rgba(255, 239, 165, 0.3) !important;
+  border-bottom-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .dev-panel-header h3 {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .dev-panel-header p {
+  color: #6b5d42 !important;
+}
+
+body:not(.dark-mode) .dev-tab-buttons {
+  background: #fff9e6 !important;
+  border-right-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .dev-tab-btn {
+  color: #6b5d42 !important;
+  border-color: transparent !important;
+}
+
+body:not(.dark-mode) .dev-tab-btn:hover {
+  background: rgba(255, 239, 165, 0.5) !important;
+  color: #2d2416 !important;
+  border-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .dev-tab-btn.active {
+  background: linear-gradient(135deg, #b8860b, #8b6914) !important;
+  color: #fff !important;
+  border-color: #6b5d42 !important;
+  box-shadow: 0 2px 8px rgba(184, 134, 11, 0.3) !important;
+}
+
+body:not(.dark-mode) .dev-tab-content {
+  background: #fffcf0 !important;
+}
+
+body:not(.dark-mode) .dev-content-panel {
+  background: #fffcf0 !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .dev-content-panel h4,
+body:not(.dark-mode) .dev-content-panel h5 {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .dev-content-panel p,
+body:not(.dark-mode) .dev-content-panel li,
+body:not(.dark-mode) .dev-content-panel label {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .dev-content-panel input,
+body:not(.dark-mode) .dev-content-panel select,
+body:not(.dark-mode) .dev-content-panel textarea {
+  background: #fff !important;
+  border-color: #b8a977 !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .dev-content-panel .btn {
+  background: linear-gradient(135deg, #b8860b, #8b6914) !important;
+  color: #fff !important;
+  border-color: #6b5d42 !important;
+}
+
+body:not(.dark-mode) .dev-content-panel code,
+body:not(.dark-mode) .dev-content-panel pre {
+  background: #fff9e6 !important;
+  border-color: #d4c89a !important;
+  color: #2d2416 !important;
+}
+
+/* Debug Config Section */
+body:not(.dark-mode) .debug-config,
+body:not(.dark-mode) .config-section {
+  background: #fff !important;
+  border-color: #d4c89a !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .debug-config h4,
+body:not(.dark-mode) .config-section h4 {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .debug-config label,
+body:not(.dark-mode) .config-section label {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .debug-config input,
+body:not(.dark-mode) .debug-config select,
+body:not(.dark-mode) .config-section input,
+body:not(.dark-mode) .config-section select {
+  background: #fff !important;
+  border-color: #b8a977 !important;
+  color: #2d2416 !important;
+}
+
+/* Ensure all nested elements have proper contrast */
+body:not(.dark-mode) .unified-modal-form span,
+body:not(.dark-mode) .unified-modal-form div,
+body:not(.dark-mode) .unified-modal-form p {
+  color: inherit;
+}
+
+/* Force dark text on specific elements that might inherit light colors */
+body:not(.dark-mode) .field-label,
+body:not(.dark-mode) .section-title,
+body:not(.dark-mode) .checkbox-label {
+  color: #2d2416 !important;
+}
+
+/* ============================================
+   COMPREHENSIVE UNIFIED MODALS LIGHT THEME FIX
+   Override ALL light text colors from components.unified-modals.css
+   ============================================ */
+
+/* Section title (was #ffd700) */
+body:not(.dark-mode) .section-title {
+  color: #b8860b !important;
+}
+
+/* Field labels (was #e4e4e4) */
+body:not(.dark-mode) .field-label {
+  color: #2d2416 !important;
+}
+
+/* Field inputs text (was #e4e4e4) */
+body:not(.dark-mode) .field-input {
+  color: #2d2416 !important;
+}
+
+/* Checkbox labels (was #e4e4e4) */
+body:not(.dark-mode) .checkbox-label {
+  color: #2d2416 !important;
+}
+
+/* Radio option text (was #e4e4e4) */
+body:not(.dark-mode) .radio-option span {
+  color: #2d2416 !important;
+}
+
+/* Save button text (was #eaeaea) */
+body:not(.dark-mode) .modal-actions .btn.save-btn {
+  background: linear-gradient(135deg, #b8860b, #8b6914) !important;
+  color: #fff !important;
+  border-color: #6b5d42 !important;
+}
+
+/* Button primary (was white) */
+body:not(.dark-mode) .btn-primary {
+  background: linear-gradient(135deg, #b8860b, #8b6914) !important;
+  color: #fff !important;
+  border-color: #6b5d42 !important;
+}
+
+/* Button secondary (was #e4e4e4) */
+body:not(.dark-mode) .btn-secondary {
+  background: linear-gradient(135deg, #d4c89a, #b8a977) !important;
+  color: #2d2416 !important;
+  border-color: #6b5d42 !important;
+}
+
+/* Button danger (was white) */
+body:not(.dark-mode) .btn-danger {
+  background: linear-gradient(135deg, #d32f2f, #b71c1c) !important;
+  color: #fff !important;
+  border-color: #8b0000 !important;
+}
+
+/* Button warning (was white) */
+body:not(.dark-mode) .btn-warning {
+  background: linear-gradient(135deg, #f57c00, #ef6c00) !important;
+  color: #fff !important;
+  border-color: #d84315 !important;
+}
+
+/* Button success (was white) */
+body:not(.dark-mode) .btn-success {
+  background: linear-gradient(135deg, #27ae60, #229954) !important;
+  color: #fff !important;
+  border-color: #1e8449 !important;
+}
+
+/* Status indicators (was white) */
+body:not(.dark-mode) .status-indicator.success,
+body:not(.dark-mode) .status-indicator.warning,
+body:not(.dark-mode) .status-indicator.error,
+body:not(.dark-mode) .status-indicator.info {
+  color: #fff !important;
+}
+
+/* Content section headings (was #ffd700) */
+body:not(.dark-mode) .content-section h4 {
+  color: #b8860b !important;
+}
+
+/* Content section text (was #ccc) */
+body:not(.dark-mode) .content-section p,
+body:not(.dark-mode) .content-section li {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .content-section ul {
+  color: #2d2416 !important;
+}
+
+/* Filter group labels (was #999) */
+body:not(.dark-mode) .filter-group label {
+  color: #6b5d42 !important;
+}
+
+/* Filter group inputs (was #e4e4e4) */
+body:not(.dark-mode) .filter-group select,
+body:not(.dark-mode) .filter-group input {
+  background: #fff !important;
+  color: #2d2416 !important;
+  border-color: #b8a977 !important;
+}
+
+/* Filter controls background (was #2a2a2a) */
+body:not(.dark-mode) .filter-controls {
+  background: rgba(255, 239, 165, 0.3) !important;
+}
+
+/* Game log entries (was #d4d4d4) */
+body:not(.dark-mode) .log-entry {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .log-entry-text {
+  color: #2d2416 !important;
+}
+
+/* Ensure all text in modal forms is dark */
+body:not(.dark-mode) .unified-modal-form,
+body:not(.dark-mode) .unified-modal-form *:not(button):not(.btn) {
+  color: #2d2416;
+}
+
+/* Exception for buttons which need white text */
+body:not(.dark-mode) .unified-modal-form button,
+body:not(.dark-mode) .unified-modal-form .btn {
+  color: #fff !important;
+}
+
+/* Tab content text */
+body:not(.dark-mode) .tab-content {
+  color: #2d2416 !important;
+}
+
+/* Modal actions border (was #444) */
+body:not(.dark-mode) .modal-actions {
+  border-top-color: #d4c89a !important;
+  background: rgba(255, 239, 165, 0.15) !important;
+}
+
+/* Ensure dropdowns and selects in modals have dark text */
+body:not(.dark-mode) .unified-modal-form select,
+body:not(.dark-mode) .unified-modal-form input[type="text"],
+body:not(.dark-mode) .unified-modal-form input[type="number"],
+body:not(.dark-mode) .unified-modal-form textarea {
+  color: #2d2416 !important;
+  background: #fff !important;
+}
+
+/* Info/help text */
+body:not(.dark-mode) .field-help {
+  color: #6b5d42 !important;
+}
+
+/* Placeholder text for inputs */
+body:not(.dark-mode) .field-input::placeholder,
+body:not(.dark-mode) input::placeholder,
+body:not(.dark-mode) textarea::placeholder {
+  color: #b8a977 !important;
+  opacity: 0.7;
+}
+
+/* Ensure table text in modals is dark */
+body:not(.dark-mode) table,
+body:not(.dark-mode) table td,
+body:not(.dark-mode) table th {
+  color: #2d2416 !important;
+}
+
+/* Exception for table headers with dark backgrounds */
+body:not(.dark-mode) table thead th {
+  color: #ffd700 !important;
+}
+
+/* ============================================
+   CRITICAL FIXES - Override Inline Styles
+   Must use !important to override JS inline styles
+   ============================================ */
+
+/* NEW MODAL SYSTEM - Modal title in header (has inline color:#e4e4e4) */
+body:not(.dark-mode) .new-modal-header h2,
+body:not(.dark-mode) .new-modal-header .modal-title {
+  color: #2d2416 !important;
+}
+
+/* NEW MODAL SYSTEM - Modal background (has inline background:#1c1c1c) */
+body:not(.dark-mode) .new-modal[style*="background"] {
+  background: #fffcf0 !important;
+  color: #2d2416 !important;
+}
+
+/* NEW MODAL SYSTEM - Modal header (has inline background:#111) */
+body:not(.dark-mode) .new-modal-header[style] {
+  background: #fff9e6 !important;
+}
+
+/* NEW MODAL SYSTEM - Modal body text */
+body:not(.dark-mode) .new-modal-body {
+  background: #fffcf0 !important;
+  color: #2d2416 !important;
+}
+
+/* NEW MODAL SYSTEM - Close button */
+body:not(.dark-mode) .new-modal-header button {
+  background: #fff !important;
+  color: #2d2416 !important;
+  border-color: #b8a977 !important;
+}
+
+/* AI DECISION TREE MODAL - Full light theme */
+body:not(.dark-mode) .cmp-ai-decision-tree {
+  background: #fffcf0 !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-btn {
+  background: linear-gradient(135deg, #b8860b, #8b6914) !important;
+  color: #fff !important;
+  border-color: #6b5d42 !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree input[type=text] {
+  background: #fff !important;
+  color: #2d2416 !important;
+  border-color: #b8a977 !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-summary {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-tag {
+  background: #fff9e6 !important;
+  color: #2d2416 !important;
+  border-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-tag.is-active {
+  background: linear-gradient(135deg, #b8860b, #8b6914) !important;
+  color: #fff !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-round-header {
+  background: #fff9e6 !important;
+  color: #2d2416 !important;
+  border-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-roll {
+  background: #fff !important;
+  border-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-roll-header .faces {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .adt-roll-header .score-badge {
+  background: linear-gradient(135deg, #b8860b, #8b6914) !important;
+  color: #fff !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .tag {
+  background: #fff9e6 !important;
+  color: #6b5d42 !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree details.hypo summary {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .cmp-ai-decision-tree .hypo-item code {
+  color: #b8860b !important;
+  background: #fff9e6 !important;
+}
+
+/* WIN ODDS MODAL - Full light theme */
+body:not(.dark-mode) .mini-wo-title {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .mini-wo-btn {
+  color: #6b5d42 !important;
+}
+
+body:not(.dark-mode) .mini-wo-btn:hover {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .wo-display-mode-selector button {
+  background: #fff !important;
+  color: #2d2416 !important;
+  border-color: #b8a977 !important;
+}
+
+body:not(.dark-mode) .wo-display-mode-selector button.active {
+  background: linear-gradient(135deg, #b8860b, #8b6914) !important;
+  color: #fff !important;
+}
+
+body:not(.dark-mode) .wo-player-row {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .wo-player-name {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .wo-win-odds {
+  color: #2d2416 !important;
+}
+
+/* GAME LOG MODAL - Override inline styles */
+body:not(.dark-mode) .log-content {
+  background: #fff !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .log-entry {
+  color: #2d2416 !important;
+  background: transparent !important;
+}
+
+body:not(.dark-mode) .log-entry:hover {
+  background: rgba(255, 239, 165, 0.2) !important;
+}
+
+body:not(.dark-mode) .log-entry-text {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .log-entry-timestamp {
+  color: #6b5d42 !important;
+}
+
+body:not(.dark-mode) .log-round-header {
+  color: #b8860b !important;
+}
+
+body:not(.dark-mode) .log-turn-header {
+  color: #d4a017 !important;
+}
+
+/* SCENARIOS - Black box with light gray text needs full override */
+body:not(.dark-mode) .cmp-scenarios-tab * {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .cmp-scenarios-tab .scenario-description {
+  color: #6b5d42 !important;
+}
+
+/* Override any remaining light text in settings */
+body:not(.dark-mode) .settings-modal-root * {
+  color: #2d2416;
+}
+
+body:not(.dark-mode) .settings-modal-root button {
+  color: #fff !important;
+}
+
+body:not(.dark-mode) .settings-modal-root .btn {
+  color: #fff !important;
+}
+
+/* Make sure section titles stand out */
+body:not(.dark-mode) .settings-modal-root .section-title,
+body:not(.dark-mode) .settings-modal-root h3,
+body:not(.dark-mode) .settings-modal-root h4 {
+  color: #b8860b !important;
+}
+
+/* Ensure archive table headers stay golden on dark */
+body:not(.dark-mode) .archive-table thead {
+  background: #2d2416 !important;
+}
+
+body:not(.dark-mode) .archive-table thead * {
+  color: #ffd700 !important;
+}
+
+/* Dev panel overrides */
+body:not(.dark-mode) .developer-panel-container * {
+  color: #2d2416;
+}
+
+body:not(.dark-mode) .developer-panel-container button,
+body:not(.dark-mode) .developer-panel-container .btn {
+  color: #fff !important;
+}
+
+body:not(.dark-mode) .developer-panel-container .dev-tab-btn.active {
+  color: #fff !important;
+}
+
+/* ============================================
+   FIX DARK BACKGROUNDS IN LIGHT THEME
+   All black/dark boxes need light backgrounds
+   ============================================ */
+
+/* SCENARIOS TAB - All dark backgrounds must be light */
+body:not(.dark-mode) .cmp-scenarios-tab .param-editor {
+  background: #fff !important;
+  border-color: #d4c89a !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .cmp-scenarios-tab .target-mode-wrapper {
+  background: #fff !important;
+  border-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .cmp-scenarios-tab .applied-list {
+  background: #fff !important;
+  border-color: #d4c89a !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .cmp-scenarios-tab .summary-panel {
+  background: #fff !important;
+  border-color: #d4c89a !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .cmp-scenarios-tab .scenario-select,
+body:not(.dark-mode) select.scenario-select {
+  background: #fff !important;
+  color: #2d2416 !important;
+  border-color: #b8a977 !important;
+}
+
+body:not(.dark-mode) .cmp-scenarios-tab .assignment-table {
+  background: #fff !important;
+}
+
+body:not(.dark-mode) .cmp-scenarios-tab .assignment-table th {
+  background: #fff9e6 !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .cmp-scenarios-tab .assignment-table td {
+  background: #fff !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .cmp-scenarios-tab input[type="text"],
+body:not(.dark-mode) .cmp-scenarios-tab input[type="number"] {
+  background: #fff !important;
+  color: #2d2416 !important;
+  border-color: #b8a977 !important;
+}
+
+/* DEVELOPER PANEL - All dark backgrounds must be light */
+body:not(.dark-mode) .dev-tab-panel {
+  background: #fffcf0 !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .dev-content-panel {
+  background: #fffcf0 !important;
+}
+
+body:not(.dark-mode) .tab-archive-toolbar {
+  background: #fff9e6 !important;
+  border-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .search-input {
+  background: #fff !important;
+  color: #2d2416 !important;
+  border-color: #b8a977 !important;
+}
+
+body:not(.dark-mode) .search-input::placeholder {
+  color: #b8a977 !important;
+  opacity: 0.7;
+}
+
+body:not(.dark-mode) .filter-select {
+  background: #fff !important;
+  color: #2d2416 !important;
+  border-color: #b8a977 !important;
+}
+
+body:not(.dark-mode) .refresh-btn {
+  background: #fff !important;
+  color: #2d2416 !important;
+  border-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .refresh-btn:hover {
+  background: rgba(255, 239, 165, 0.5) !important;
+}
+
+/* Component debug panels */
+body:not(.dark-mode) .debug-panel,
+body:not(.dark-mode) .config-panel {
+  background: #fff !important;
+  border-color: #d4c89a !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .debug-section,
+body:not(.dark-mode) .config-section {
+  background: #fff9e6 !important;
+  border-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .debug-section h4,
+body:not(.dark-mode) .config-section h4 {
+  color: #2d2416 !important;
+}
+
+/* Archive manager tab */
+body:not(.dark-mode) .tab-archive-header {
+  border-bottom-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .tab-header-left h4 {
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .archive-summary {
+  color: #6b5d42 !important;
+}
+
+/* All form inputs in developer panel */
+body:not(.dark-mode) .developer-panel-container input[type="text"],
+body:not(.dark-mode) .developer-panel-container input[type="number"],
+body:not(.dark-mode) .developer-panel-container input[type="email"],
+body:not(.dark-mode) .developer-panel-container textarea,
+body:not(.dark-mode) .developer-panel-container select {
+  background: #fff !important;
+  color: #2d2416 !important;
+  border-color: #b8a977 !important;
+}
+
+/* Code blocks and pre elements */
+body:not(.dark-mode) .developer-panel-container code,
+body:not(.dark-mode) .developer-panel-container pre {
+  background: #fff9e6 !important;
+  color: #2d2416 !important;
+  border-color: #d4c89a !important;
+}
+
+/* Collapsible sections in dev panel */
+body:not(.dark-mode) .dev-collapsible {
+  background: #fff !important;
+  border-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .dev-collapsible-header {
+  background: #fff9e6 !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .dev-collapsible-content {
+  background: #fff !important;
+  color: #2d2416 !important;
+}
+
+/* Ensure all panel backgrounds are light */
+body:not(.dark-mode) .panel,
+body:not(.dark-mode) .panel-section,
+body:not(.dark-mode) .card {
+  background: #fff !important;
+  border-color: #d4c89a !important;
+  color: #2d2416 !important;
+}
+
+/* Override CSS variables for light theme */
+body:not(.dark-mode) {
+  --color-panel-bg: #fffcf0;
+  --color-card-bg: #fff;
+  --color-border: #d4c89a;
+  --color-text-primary: #2d2416;
+  --color-text-secondary: #6b5d42;
+  --color-text-tertiary: #b8a977;
+  --color-highlight-bg: rgba(255, 239, 165, 0.3);
+}
+
+/* SCENARIO CONFIGURATION BOX - The big black box at top */
+body:not(.dark-mode) .cmp-scenarios-tab > div:first-child {
+  background: #fff9e6 !important;
+  border-color: #d4c89a !important;
+  color: #2d2416 !important;
+}
+
+/* All text in scenario configuration header */
+body:not(.dark-mode) .cmp-scenarios-tab > div:first-child * {
+  color: #2d2416 !important;
+}
+
+/* Scenario labels/checkboxes background */
+body:not(.dark-mode) .cmp-scenarios-tab .scenario-list label {
+  background: #fff !important;
+  border-color: #d4c89a !important;
+  color: #2d2416 !important;
+}
+
+body:not(.dark-mode) .cmp-scenarios-tab .scenario-list label:hover {
+  background: rgba(255, 239, 165, 0.3) !important;
+  border-color: #b8860b !important;
+}
+
+/* ============================================================================
+   CRITICAL: Override ALL inline styles from JavaScript
+   These rules use !important to override inline style attributes
+   ============================================================================ */
+
+/* Win Odds Floating Modal - Override inline styles */
+body:not(.dark-mode) #mini-win-odds-floating,
+body:not(.dark-mode) .win-odds-mini-floating {
+  background: #fffcf0 !important;
+  border-color: #d4c89a !important;
+  color: #000 !important;
+}
+
+body:not(.dark-mode) #mini-win-odds-floating .mini-wo-chrome,
+body:not(.dark-mode) .win-odds-mini-floating .mini-wo-chrome {
+  background: #fffcf0 !important;
+  border-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) #mini-win-odds-floating .mini-wo-header,
+body:not(.dark-mode) .win-odds-mini-floating .mini-wo-header {
+  background: #fff9e6 !important;
+  color: #000 !important;
+  border-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) #mini-win-odds-floating .mini-wo-title,
+body:not(.dark-mode) .win-odds-mini-floating .mini-wo-title {
+  color: #000 !important;
+}
+
+body:not(.dark-mode) #mini-win-odds-floating .mini-wo-body,
+body:not(.dark-mode) .win-odds-mini-floating .mini-wo-body {
+  background: #fffcf0 !important;
+  color: #000 !important;
+}
+
+body:not(.dark-mode) #mini-win-odds-floating .mini-wo-chart,
+body:not(.dark-mode) .win-odds-mini-floating .mini-wo-chart,
+body:not(.dark-mode) #mini-win-odds-chart {
+  background: #fffcf0 !important;
+  color: #000 !important;
+}
+
+body:not(.dark-mode) #mini-win-odds-floating .mini-wo-insights,
+body:not(.dark-mode) .win-odds-mini-floating .mini-wo-insights,
+body:not(.dark-mode) #mini-win-odds-insights {
+  background: #fffcf0 !important;
+  color: #000 !important;
+}
+
+body:not(.dark-mode) #mini-win-odds-floating .mini-wo-splitter,
+body:not(.dark-mode) .win-odds-mini-floating .mini-wo-splitter {
+  background: #d4c89a !important;
+}
+
+body:not(.dark-mode) #mini-win-odds-floating .mini-wo-footer,
+body:not(.dark-mode) .win-odds-mini-floating .mini-wo-footer {
+  background: #fff9e6 !important;
+  color: #000 !important;
+  border-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) #mini-win-odds-floating button,
+body:not(.dark-mode) .win-odds-mini-floating button,
+body:not(.dark-mode) .mini-wo-btn {
+  background: #fff9e6 !important;
+  color: #000 !important;
+  border-color: #d4c89a !important;
+}
+
+/* New Modal System - Override inline styles from new-modal-system.js */
+body:not(.dark-mode) .new-modal {
+  background: #fffcf0 !important;
+  border-color: #d4c89a !important;
+  color: #000 !important;
+}
+
+body:not(.dark-mode) .new-modal-header {
+  background: #fff9e6 !important;
+  color: #000 !important;
+  border-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .new-modal-header h2,
+body:not(.dark-mode) .new-modal-header * {
+  color: #000 !important;
+}
+
+body:not(.dark-mode) .new-modal-body {
+  background: #fffcf0 !important;
+  color: #000 !important;
+}
+
+body:not(.dark-mode) .new-modal button {
+  background: linear-gradient(135deg, #b8860b, #8b6914) !important;
+  color: #fff !important;
+  border-color: #6b5d42 !important;
+}
+
+/* Settings Modal - All inputs and textareas */
+body:not(.dark-mode) .settings-modal-root input[type="text"],
+body:not(.dark-mode) .settings-modal-root input[type="number"],
+body:not(.dark-mode) .settings-modal-root input[type="range"],
+body:not(.dark-mode) .settings-modal-root textarea,
+body:not(.dark-mode) .settings-modal-root select,
+body:not(.dark-mode) .unified-modal-form input[type="text"],
+body:not(.dark-mode) .unified-modal-form input[type="number"],
+body:not(.dark-mode) .unified-modal-form input[type="range"],
+body:not(.dark-mode) .unified-modal-form textarea,
+body:not(.dark-mode) .unified-modal-form select {
+  background: #fff !important;
+  color: #000 !important;
+  border-color: #d4c89a !important;
+}
+
+/* Dev Tools Tab - All elements */
+body:not(.dark-mode) .dev-tab-panel,
+body:not(.dark-mode) .dev-tab-panel * {
+  background-color: transparent !important;
+}
+
+body:not(.dark-mode) .dev-tab-panel {
+  background: #fffcf0 !important;
+  color: #000 !important;
+}
+
+body:not(.dark-mode) .dev-tab-panel input,
+body:not(.dark-mode) .dev-tab-panel textarea,
+body:not(.dark-mode) .dev-tab-panel select {
+  background: #fff !important;
+  color: #000 !important;
+  border-color: #d4c89a !important;
+}
+
+/* Scenarios Tab - All elements */
+body:not(.dark-mode) .cmp-scenarios-tab input,
+body:not(.dark-mode) .cmp-scenarios-tab textarea,
+body:not(.dark-mode) .cmp-scenarios-tab select,
+body:not(.dark-mode) .param-editor input,
+body:not(.dark-mode) .param-editor textarea {
+  background: #fff !important;
+  color: #000 !important;
+  border-color: #d4c89a !important;
+}
+
+/* Archive Manager - Override any dark backgrounds */
+body:not(.dark-mode) .archive-content,
+body:not(.dark-mode) .archive-content * {
+  background-color: transparent !important;
+}
+
+body:not(.dark-mode) .archive-content {
+  background: #fffcf0 !important;
+  color: #000 !important;
+}
+
+body:not(.dark-mode) .archive-content table {
+  background: #fff !important;
+  color: #000 !important;
+  border-color: #d4c89a !important;
+}
+
+body:not(.dark-mode) .archive-content th,
+body:not(.dark-mode) .archive-content td {
+  background: #fff !important;
+  color: #000 !important;
+  border-color: #d4c89a !important;
+}
+
+/* All modal overlays */
+body:not(.dark-mode) .new-modal-overlay {
+  background: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Game Log Modal - Override inline styles */
+body:not(.dark-mode) [data-modal-id="game-log"],
+body:not(.dark-mode) #game-log-modal {
+  background: #fffcf0 !important;
+  color: #000 !important;
+}
+
+body:not(.dark-mode) [data-modal-id="game-log"] .new-modal-header,
+body:not(.dark-mode) #game-log-modal .new-modal-header {
+  background: #fff9e6 !important;
+  color: #000 !important;
+}
+
+body:not(.dark-mode) [data-modal-id="game-log"] .new-modal-body,
+body:not(.dark-mode) #game-log-modal .new-modal-body {
+  background: #fffcf0 !important;
+  color: #000 !important;
+}
+
+body:not(.dark-mode) [data-modal-id="game-log"] table,
+body:not(.dark-mode) #game-log-modal table {
+  background: #fff !important;
+  color: #000 !important;
+}
+
+body:not(.dark-mode) [data-modal-id="game-log"] th,
+body:not(.dark-mode) [data-modal-id="game-log"] td,
+body:not(.dark-mode) #game-log-modal th,
+body:not(.dark-mode) #game-log-modal td {
+  background: #fff !important;
+  color: #000 !important;
+  border-color: #d4c89a !important;
+}
+
+/* ============================================================================
+   UNIVERSAL TEXT COLOR RULES FOR LIGHT MODE
+   Ensure all text on light backgrounds is black
+   ============================================================================ */
+
+/* All settings modal text should be black */
+body:not(.dark-mode) .settings-modal-root,
+body:not(.dark-mode) .settings-modal-root *,
+body:not(.dark-mode) .unified-modal-form,
+body:not(.dark-mode) .unified-modal-form * {
+  color: #000 !important;
+}
+
+/* Exception: Keep button text white on dark buttons */
+body:not(.dark-mode) .settings-modal-root button,
+body:not(.dark-mode) .unified-modal-form button,
+body:not(.dark-mode) .btn {
+  color: #fff !important;
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000 !important;
+}
+
+/* All text in new modal system should be black */
+body:not(.dark-mode) .new-modal,
+body:not(.dark-mode) .new-modal * {
+  color: #000 !important;
+}
+
+/* Exception: Button text */
+body:not(.dark-mode) .new-modal button {
+  color: #fff !important;
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000 !important;
+}
+
+/* All text in win odds modal should be black */
+body:not(.dark-mode) #mini-win-odds-floating,
+body:not(.dark-mode) #mini-win-odds-floating *,
+body:not(.dark-mode) .win-odds-mini-floating,
+body:not(.dark-mode) .win-odds-mini-floating * {
+  color: #000 !important;
+}
+
+/* Labels, spans, divs - all black text */
+body:not(.dark-mode) .settings-modal-root label,
+body:not(.dark-mode) .settings-modal-root span,
+body:not(.dark-mode) .settings-modal-root div,
+body:not(.dark-mode) .settings-modal-root p,
+body:not(.dark-mode) .settings-modal-root h1,
+body:not(.dark-mode) .settings-modal-root h2,
+body:not(.dark-mode) .settings-modal-root h3,
+body:not(.dark-mode) .settings-modal-root h4 {
+  color: #000 !important;
+  text-shadow: none !important;
+}
+
+/* Field labels should be black */
+body:not(.dark-mode) .field-label,
+body:not(.dark-mode) .section-title,
+body:not(.dark-mode) .checkbox-label {
+  color: #000 !important;
+}
+
+/* Override ALL inline dark backgrounds in settings tabs */
+body:not(.dark-mode) [data-scenarios-host],
+body:not(.dark-mode) #settings-archive-list,
+body:not(.dark-mode) #dev-debug-console,
+body:not(.dark-mode) [data-replay-status-text],
+body:not(.dark-mode) .tab-content [style*="background:#0"],
+body:not(.dark-mode) .tab-content [style*="background:#1"],
+body:not(.dark-mode) .tab-content [style*="background: #0"],
+body:not(.dark-mode) .tab-content [style*="background: #1"] {
+  background: #fffcf0 !important;
+  color: #000 !important;
+}
+
+/* Override archive table dark backgrounds */
+body:not(.dark-mode) [style*="background:#1a1a1a"],
+body:not(.dark-mode) [style*="background: #1a1a1a"],
+body:not(.dark-mode) [style*="background:#000"],
+body:not(.dark-mode) [style*="background: #000"] {
+  background: #fff !important;
+  color: #000 !important;
+}

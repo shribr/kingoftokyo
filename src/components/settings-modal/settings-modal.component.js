@@ -422,7 +422,7 @@ export function createSettingsModal() {
           
           <div class="field" style="margin-top:18px;">
             <label class="field-label">Debug Console</label>
-            <div id="dev-debug-console" style="margin-top:0.8vh;max-height:22vh;overflow:auto;font-family:monospace;font-size:11px;line-height:1.4;background:#0d1417;border:1px solid #222;border-radius:0.6vh;padding:0.8vh;">
+            <div id="dev-debug-console" style="margin-top:0.8vh;max-height:22vh;overflow:auto;font-family:monospace;font-size:11px;line-height:1.4;border:1px solid #d4c89a;border-radius:0.6vh;padding:0.8vh;">
               <div style="opacity:.5;">Debug output will appear here...</div>
             </div>
             <div style="margin-top:0.6vh;display:flex;gap:0.8vw;">
@@ -561,7 +561,7 @@ export function createSettingsModal() {
         <div class="section" style="max-height:60vh;overflow:auto;">
           <h3 class="section-title">🧪 Scenario Configuration</h3>
           <p style="font-size:13px;opacity:.85;line-height:1.5;margin-bottom:16px;">Configure scenario assignments and either apply them to the live game or generate a fresh auto-seeded run.</p>
-          <div data-scenarios-host style="border:1px solid #222;background:#141414;padding:1vh 1.2vw;border-radius:0.6vh;min-height:14vh;position:relative;">
+          <div data-scenarios-host style="border:1px solid #d4c89a;padding:1vh 1.2vw;border-radius:0.6vh;min-height:14vh;position:relative;">
             <div class="loading" style="font-size:11px;opacity:.6;">Loading scenario tools…</div>
           </div>
         </div>
@@ -599,7 +599,7 @@ export function createSettingsModal() {
 
           <div class="field">
             <label class="field-label">Archives</label>
-            <div id="settings-archive-list" style="margin-top:0.8vh;max-height:30vh;overflow-y:auto;overflow-x:auto;border:1px solid #2a2a2a;border-radius:0.4vh;background:#0f1419;width:100%;">
+            <div id="settings-archive-list" style="margin-top:0.8vh;max-height:30vh;overflow-y:auto;overflow-x:auto;border:1px solid #d4c89a;border-radius:0.4vh;width:100%;">
               <div style="padding:2vh;text-align:center;color:#666;font-size:1.2vh;">
                 Loading archives...
               </div>
@@ -656,7 +656,7 @@ export function createSettingsModal() {
 
           <div class="field">
             <label class="field-label">Current Replay Status</label>
-            <div style="padding:1.2vh;background:#1a1a1a;border:1px solid #333;border-radius:0.6vh;margin-top:0.8vh;">
+            <div style="padding:1.2vh;border:1px solid #d4c89a;border-radius:0.6vh;margin-top:0.8vh;">
               <div style="font-size:1.2vh;" data-replay-status-text>No active replay</div>
             </div>
           </div>
