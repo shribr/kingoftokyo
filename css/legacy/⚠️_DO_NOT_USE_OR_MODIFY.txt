@@ -1,0 +1,25 @@
+⚠️  WARNING: LEGACY STYLES - DO NOT USE OR MODIFY  ⚠️
+================================================================
+
+These CSS files are kept for REFERENCE and HISTORICAL PURPOSES ONLY.
+
+❌ DO NOT link to these stylesheets in index.html
+❌ DO NOT modify these files
+❌ DO NOT copy styles from here when making CSS changes
+
+✅ These files exist solely for:
+   - Historical comparison
+   - Understanding previous styling approaches
+   - Migration reference
+
+📍 CURRENT CANONICAL STYLESHEETS:
+   - Component Styles: css/components.*.css
+   - Layout: css/layout*.css
+   - Themes: css/theme.*.css
+   - Tokens: css/tokens*.css
+   - Utilities: css/util.*.css
+
+All legacy styles have been migrated to the component-scoped CSS
+files listed above. Work with those files, NOT these legacy files.
+
+Last Updated: 2025-10-11

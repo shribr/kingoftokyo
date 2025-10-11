@@ -1,0 +1,24 @@
+⚠️  WARNING: LEGACY FILES - DO NOT USE OR MODIFY  ⚠️
+================================================================
+
+These files are kept for REFERENCE and HISTORICAL PURPOSES ONLY.
+
+❌ DO NOT import or use these files in the current codebase
+❌ DO NOT modify these files
+❌ DO NOT reference these files when making code changes
+
+✅ These files exist solely for:
+   - Historical comparison
+   - Regression testing reference
+   - Understanding previous implementation approaches
+
+📍 CURRENT CANONICAL IMPLEMENTATIONS:
+   - AI Engine: src/ai/engine/AIDecisionEngine.js
+   - Game Logic: src/core/ and src/services/
+   - UI Components: src/components/
+   - Domain Models: src/domain/
+
+If you need to make changes to game functionality, work with the 
+files in the active src/ directories above, NOT these legacy files.
+
+Last Updated: 2025-10-11
