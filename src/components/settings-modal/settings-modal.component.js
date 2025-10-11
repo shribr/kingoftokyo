@@ -599,7 +599,7 @@ export function createSettingsModal() {
 
           <div class="field">
             <label class="field-label">Archives</label>
-            <div id="settings-archive-list" style="margin-top:0.8vh;max-height:30vh;overflow-y:auto;border:1px solid #2a2a2a;border-radius:0.4vh;background:#0f1419;">
+            <div id="settings-archive-list" style="margin-top:0.8vh;max-height:30vh;overflow-y:auto;overflow-x:auto;border:1px solid #2a2a2a;border-radius:0.4vh;background:#0f1419;width:100%;">
               <div style="padding:2vh;text-align:center;color:#666;font-size:1.2vh;">
                 Loading archives...
               </div>
@@ -972,9 +972,19 @@ export function createSettingsModal() {
 
   // Archive / Replay data loaders (lightweight stubs using archiveManagementService & replayService)
   let archivesLoaded = false;
-  async function loadArchives(){
+  let archivesLoadTimestamp = 0;
+  
+  async function loadArchives(forceReload = false){
     const host = content.querySelector('#settings-archive-list');
     if (!host) return;
+    
+    // Force reload to avoid stale cached layout
+    if (forceReload || Date.now() - archivesLoadTimestamp > 5000) {
+      archivesLoadTimestamp = Date.now();
+    } else {
+      return; // Skip if recently loaded
+    }
+    
     host.innerHTML = '<div style="font-size:11px;opacity:.6;padding:20px;text-align:center;">Loading archives…</div>';
     try {
       const { archiveManager } = await import('../../services/archiveManagementService.js');
@@ -1002,7 +1012,7 @@ export function createSettingsModal() {
                 View
               </button>
             </td>
-            <td style='padding:1vh 1vw;text-align:center;'>
+            <td style='padding:1vh 1vw 1vh 2vw;text-align:center;'>
               <button type='button' class='btn btn-danger' data-archive-delete='${a.id}' style='padding:0.5vh 1vw;font-size:1.1vh;'>
                 Delete
               </button>
@@ -1012,8 +1022,8 @@ export function createSettingsModal() {
       }).join('');
       
       host.innerHTML = `
-        <div style='display:flex;flex-direction:column;'>
-          <table style='width:100%;border-collapse:collapse;background:#1a1a1a;font-family:inherit;'>
+        <div style='display:flex;flex-direction:column;width:90%;margin:0 auto;'>
+          <table style='width:100%;border-collapse:collapse;background:#1a1a1a;font-family:inherit;table-layout:fixed;'>
             <thead>
               <tr style='background:#000;color:#f4d03f;'>
                 <th style='padding:1.2vh 1vw;text-align:center;font-weight:600;font-size:1.2vh;border-bottom:1px solid #333;width:40px;'>
@@ -1075,10 +1085,53 @@ export function createSettingsModal() {
         try {
           const { archiveManager } = await import('../../services/archiveManagementService.js');
           selectedIds.forEach(id => archiveManager.deleteArchive(id));
-          loadArchives(); // Reload the list
+          loadArchives(true); // Reload the list
         } catch (err) {
           console.error('Bulk delete failed:', err);
           alert('Failed to delete archives: ' + err.message);
+        }
+      });
+      
+      // Add event handlers for View buttons
+      host.addEventListener('click', async (e) => {
+        const viewBtn = e.target.closest('[data-archive-replay]');
+        const deleteBtn = e.target.closest('[data-archive-delete]');
+        
+        if (viewBtn) {
+          const archiveId = viewBtn.dataset.archiveReplay;
+          const { newModalSystem } = await import('../../utils/new-modal-system.js');
+          
+          // Create the game log modal content with archive ID
+          const modalContent = createGameLogModal(archiveId);
+          
+          // Remove existing gameLog modal if it exists
+          if (newModalSystem.modals.has('gameLog')) {
+            newModalSystem.closeModal('gameLog');
+            newModalSystem.modals.delete('gameLog');
+          }
+          
+          // Create and show the modal
+          const modalElement = newModalSystem.createModal('gameLog', '📜 Game Log - Archive', modalContent, { width: '900px' });
+          
+          // Set high z-index on the overlay
+          const overlay = document.querySelector('.new-modal-overlay');
+          if (overlay) {
+            overlay.style.zIndex = '10000';
+          }
+          
+          newModalSystem.showModal('gameLog');
+        } else if (deleteBtn) {
+          const archiveId = deleteBtn.dataset.archiveDelete;
+          if (!confirm('Delete this archive?')) return;
+          
+          try {
+            const { archiveManager } = await import('../../services/archiveManagementService.js');
+            archiveManager.deleteArchive(archiveId);
+            loadArchives(true); // Reload the list
+          } catch (err) {
+            console.error('Delete failed:', err);
+            alert('Failed to delete archive: ' + err.message);
+          }
         }
       });
       
@@ -1990,7 +2043,7 @@ export function createSettingsModal() {
     if (targetContent){ targetContent.style.display = 'block'; targetContent.classList.add('active'); }
     if (targetTab === 'scenarios') ensureScenariosMounted();
     if (targetTab === 'ai') ensureAIMounted();
-    if (targetTab === 'archives' && !archivesLoaded){ loadArchives(); archivesLoaded=true; }
+    if (targetTab === 'archives'){ loadArchives(true); archivesLoaded=true; }
   }
 
   tabButtons.forEach(button => {
@@ -3528,10 +3581,11 @@ export function openWinOddsQuickModal(){
         const isSelected = mini.selectedPlayer === p.id;
         const rowClass = isSelected ? 'wo-player-row selected' : 'wo-player-row';
         const selectIndicator = isSelected ? '👉 ' : '';
-        html += `<tr data-player-id="${p.id}" class="${rowClass}">
-          <td style='padding:${gap1}px ${gap2}px;' ${tooltip}><span style='display:inline-flex;align-items:center;gap:${gap2}px;'>${selectIndicator}<i style="width:${iconSize1}px;height:${iconSize1}px;border-radius:50%;background:${c};box-shadow:0 0 ${gap1}px ${c}aa;display:inline-block;"></i>${p.name||p.id}</span></td>
-          <td style='padding:${gap1}px ${gap2}px;font-variant-numeric:tabular-nums;' ${tooltip}>${pct.toFixed(1)}%</td>
-          <td style='padding:${gap1}px ${gap2}px;'>${arrow} <span style='opacity:.65;'>${deltaStr}</span></td>
+        const rowBg = isSelected ? 'background:rgba(99,102,241,0.15);' : '';
+        html += `<tr data-player-id="${p.id}" class="${rowClass}" style='${rowBg}'>
+          <td style='padding:${gap1}px ${gap2}px;color:#e4e4e4;' ${tooltip}><span style='display:inline-flex;align-items:center;gap:${gap2}px;'>${selectIndicator}<i style="width:${iconSize1}px;height:${iconSize1}px;border-radius:50%;background:${c};box-shadow:0 0 ${gap1}px ${c}aa;display:inline-block;"></i>${p.name||p.id}</span></td>
+          <td style='padding:${gap1}px ${gap2}px;font-variant-numeric:tabular-nums;color:#e4e4e4;' ${tooltip}>${pct.toFixed(1)}%</td>
+          <td style='padding:${gap1}px ${gap2}px;color:#e4e4e4;'>${arrow} <span style='opacity:.65;'>${deltaStr}</span></td>
           <td style='padding:${gap1}px ${gap2}px;'>${spark}</td>
         </tr>`;
       });
@@ -3887,12 +3941,12 @@ if (!window.__KOT_WIN_ODDS_QUICK_BOUND__) {
   window.addEventListener('open-win-odds-modal', openWinOddsQuickModal);
 }
 
-export function createGameLogModal() {
+export function createGameLogModal(archiveId = null) {
   const content = document.createElement('div');
   content.innerHTML = `
     <div class="unified-modal-form">
       <!-- Filter Controls -->
-      <div class="filter-controls">
+      <div class="filter-controls" style="flex-wrap: nowrap; gap: 12px; align-items: center;">
         <div class="filter-group">
           <label>Show:</label>
           <select name="logFilter" class="field-input" style="min-width: 120px;">
@@ -3909,12 +3963,14 @@ export function createGameLogModal() {
             <option value="all">All Players</option>
           </select>
         </div>
-        <div class="filter-group">
-          <label class="field-checkbox" style="margin: 0;">
-            <input type="checkbox" name="autoScroll" checked>
-            <span class="checkbox-label">Auto-scroll</span>
-          </label>
-        </div>
+        <label class="field-checkbox" style="margin: 0; display: flex; align-items: center; gap: 4px; white-space: nowrap;">
+          <input type="checkbox" name="autoScroll" checked>
+          <span class="checkbox-label">Auto-scroll</span>
+        </label>
+        <label class="field-checkbox" style="margin: 0; display: flex; align-items: center; gap: 4px; white-space: nowrap;">
+          <input type="checkbox" name="verboseMode">
+          <span class="checkbox-label">Verbose</span>
+        </label>
       </div>
 
       <!-- Game Log Content -->
@@ -3931,57 +3987,95 @@ export function createGameLogModal() {
     </div>
   `;
 
+  // Store archiveId for loading
+  let loadedArchiveId = archiveId;
+  let archiveLogEntries = null;
+
   // Load and display log entries
-  const updateLogContent = () => {
+  const updateLogContent = async () => {
     const logContainer = content.querySelector('#game-log-content');
     const logFilter = content.querySelector('select[name="logFilter"]').value;
     const playerFilter = content.querySelector('select[name="playerFilter"]').value;
     
-    if (window.__KOT_NEW__?.store) {
+    let logEntries = [];
+    
+    // Load from archive if archiveId provided
+    if (loadedArchiveId && !archiveLogEntries) {
+      try {
+        const { archiveManager } = await import('../../services/archiveManagementService.js');
+        const allArchives = archiveManager.getAllArchives();
+        const archive = allArchives.find(a => a.id === loadedArchiveId);
+        
+        if (archive) {
+          const archiveData = await archiveManager.loadArchive(archive);
+          archiveLogEntries = archiveData?.log?.entries || archiveData?.entries || [];
+          logEntries = archiveLogEntries;
+        }
+      } catch (err) {
+        console.error('Failed to load archive logs:', err);
+        logContainer.innerHTML = '<div style="text-align: center; color: #c55; padding: 40px;">❌ Failed to load archive logs<br>' + err.message + '</div>';
+        return;
+      }
+    } else if (archiveLogEntries) {
+      logEntries = archiveLogEntries;
+    } else if (window.__KOT_NEW__?.store) {
       const state = window.__KOT_NEW__.store.getState();
-      const logEntries = state.log?.entries || [];
+      logEntries = state.log?.entries || [];
+    }
       
       if (logEntries.length === 0) {
         logContainer.innerHTML = '<div style="text-align: center; color: #999; font-style: italic; padding: 40px;">📋 No game events recorded yet.<br>Start playing to see the action log!</div>';
         return;
       }
 
-      // Filter entries
-      let filteredEntries = logEntries;
-      if (logFilter !== 'all') {
-        filteredEntries = logEntries.filter(entry => {
-          const msg = (entry.message || entry.text || '').toLowerCase();
-          switch (logFilter) {
-            case 'dice': return msg.includes('roll') || msg.includes('dice') || msg.includes('keep');
-            case 'combat': return msg.includes('attack') || msg.includes('damage') || msg.includes('heal');
-            case 'cards': return msg.includes('card') || msg.includes('buy') || msg.includes('energy');
-            case 'phase': return msg.includes('phase') || msg.includes('turn') || msg.includes('round');
-            default: return true;
-          }
-        });
-      }
+    // Filter entries
+    let filteredEntries = logEntries;
+    
+    // Filter by verbose mode (hide phase entries when verbose is off)
+    const verboseMode = content.querySelector('input[name="verboseMode"]')?.checked || false;
+    if (!verboseMode) {
+      filteredEntries = filteredEntries.filter(entry => {
+        const msg = (entry.message || entry.text || '').toLowerCase();
+        // Hide phase change entries when not in verbose mode
+        const isPhase = msg.includes('phase') || msg.includes('processing') || msg.includes('cleanup');
+        return !isPhase;
+      });
+    }
+    
+    if (logFilter !== 'all') {
+      filteredEntries = filteredEntries.filter(entry => {
+        const msg = (entry.message || entry.text || '').toLowerCase();
+        switch (logFilter) {
+          case 'dice': return msg.includes('roll') || msg.includes('dice') || msg.includes('keep');
+          case 'combat': return msg.includes('attack') || msg.includes('damage') || msg.includes('heal');
+          case 'cards': return msg.includes('card') || msg.includes('buy') || msg.includes('energy');
+          case 'phase': return msg.includes('phase') || msg.includes('turn') || msg.includes('round');
+          default: return true;
+        }
+      });
+    }
 
-      if (playerFilter !== 'all') {
-        filteredEntries = filteredEntries.filter(entry => 
-          (entry.playerId === playerFilter) || (entry.message || '').includes(playerFilter)
-        );
-      }
+    if (playerFilter !== 'all') {
+      filteredEntries = filteredEntries.filter(entry => 
+        (entry.playerId === playerFilter) || (entry.message || '').includes(playerFilter)
+      );
+    }
 
       // Render filtered entries
       logContainer.innerHTML = filteredEntries.length === 0 
         ? '<div style="text-align: center; color: #999; font-style: italic; padding: 20px;">No entries match current filters</div>'
         : renderLogEntries(filteredEntries);
 
-      // Auto-scroll to bottom if enabled
-      if (content.querySelector('input[name="autoScroll"]').checked) {
-        logContainer.scrollTop = logContainer.scrollHeight;
-      }
+    // Auto-scroll to bottom if enabled
+    if (content.querySelector('input[name="autoScroll"]').checked) {
+      logContainer.scrollTop = logContainer.scrollHeight;
     }
   };
 
   // Filter change handlers
   content.querySelector('select[name="logFilter"]').addEventListener('change', updateLogContent);
   content.querySelector('select[name="playerFilter"]').addEventListener('change', updateLogContent);
+  content.querySelector('input[name="verboseMode"]').addEventListener('change', updateLogContent);
 
   // Populate player filter options
   if (window.__KOT_NEW__?.store) {

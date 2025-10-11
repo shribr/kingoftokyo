@@ -42,7 +42,7 @@ function getSettings() {
   }
   return {
     autoSaveEnabled: true,
-    confirmBeforeUnload: true
+    confirmBeforeUnload: false
   };
 }
 
@@ -557,7 +557,8 @@ export function initializeAutoSave(store) {
     }
   };
 
-  window.addEventListener('beforeunload', handleBeforeUnload);
+  // DISABLED: beforeunload confirmation
+  // window.addEventListener('beforeunload', handleBeforeUnload);
 
   // Handle internal navigation (for SPA-like behavior)
   const handleNavigation = async (e) => {

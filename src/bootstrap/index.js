@@ -1076,13 +1076,13 @@ function showScenarioErrorNotification() {
 }
 
 
-// Persist last scenario snapshot for deeper test loops (optional)
-window.addEventListener('beforeunload', () => {
-  try {
-    const snap = captureScenarioState(store);
-    localStorage.setItem('KOT_LAST_SCENARIO_SNAPSHOT', JSON.stringify(snap));
-  } catch(_) {}
-});
+// DISABLED: Persist last scenario snapshot for deeper test loops (optional)
+// window.addEventListener('beforeunload', () => {
+//   try {
+//     const snap = captureScenarioState(store);
+//     localStorage.setItem('KOT_LAST_SCENARIO_SNAPSHOT', JSON.stringify(snap));
+//   } catch(_) {}
+// });
 
 // Orchestrates progressive shake phases and explosion for the game start toast.
 // CSS timings: energy fill animation: 2s duration + .25s delay (total 2250ms till 100%).

@@ -2690,7 +2690,7 @@ export function createGameLogModal() {
   // Initial load
   updateLogContent();
 
-  const __gameLogModal = newModalSystem.createModal('gameLog', '📜 Game Log', content, { width: '700px' });
+  const __gameLogModal = newModalSystem.createModal('gameLog', '📜 Game Log', content, { width: '1100px' });
   try { __gameLogModal.setAttribute('data-modal-id','gameLog'); } catch(_) {}
   return __gameLogModal;
 }
