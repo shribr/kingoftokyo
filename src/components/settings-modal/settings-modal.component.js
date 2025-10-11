@@ -586,13 +586,20 @@ export function createSettingsModal() {
                 <option value="aidt">AI Decisions</option>
                 <option value="auto">Auto Archives</option>
               </select>
-              <button type="button" id="settings-archive-refresh" class="btn btn-secondary" style="padding:0.8vh 1.2vw;">🔄</button>
+              <button type="button" id="settings-archive-refresh" class="btn btn-secondary" style="padding:0.8vh 1.2vw;display:inline-flex;align-items:center;justify-content:center;gap:0.4vw;">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="23 4 23 10 17 10"></polyline>
+                  <polyline points="1 20 1 14 7 14"></polyline>
+                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
+                  <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path>
+                </svg>
+              </button>
             </div>
           </div>
 
           <div class="field">
             <label class="field-label">Archives</label>
-            <div id="settings-archive-list" style="margin-top:0.8vh;max-height:30vh;overflow-y:auto;border:1px solid #ddd;border-radius:0.4vh;background:#f9f9f9;">
+            <div id="settings-archive-list" style="margin-top:0.8vh;max-height:30vh;overflow-y:auto;border:1px solid #2a2a2a;border-radius:0.4vh;background:#0f1419;">
               <div style="padding:2vh;text-align:center;color:#666;font-size:1.2vh;">
                 Loading archives...
               </div>
@@ -966,26 +973,115 @@ export function createSettingsModal() {
   // Archive / Replay data loaders (lightweight stubs using archiveManagementService & replayService)
   let archivesLoaded = false;
   async function loadArchives(){
-    const host = content.querySelector('[data-archives-host]');
+    const host = content.querySelector('#settings-archive-list');
     if (!host) return;
-    host.innerHTML = '<div style="font-size:11px;opacity:.6;">Loading archives…</div>';
+    host.innerHTML = '<div style="font-size:11px;opacity:.6;padding:20px;text-align:center;">Loading archives…</div>';
     try {
       const { archiveManager } = await import('../../services/archiveManagementService.js');
       const list = archiveManager.getAllArchives();
-      if (!list.length){ host.innerHTML = '<div style="font-size:11px;opacity:.5;">No archives found.</div>'; return; }
-      host.innerHTML = `<ul style='list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;'>${list.slice(0,100).map(a=>{
-        const ts = a.ts||a.timestamp; const d = ts? new Date(ts).toLocaleString():'';
-        return `<li style='background:#1c1c1c;padding:6px 8px;border:1px solid #2a2a2a;border-radius:4px;display:flex;flex-direction:column;gap:4px;'>
-          <div style='display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;'>
-            <span style='font-size:11px;opacity:.85;'>${a.name||a.id||'Archive'} <span style='opacity:.5;'>${a.category||a.type||''}</span></span>
-            <span style='font-size:10px;opacity:.5;'>${d}</span>
+      if (!list.length){ host.innerHTML = '<div style="font-size:11px;opacity:.5;padding:20px;text-align:center;">No archives found.</div>'; return; }
+      
+      const tableRows = list.slice(0,100).map((a, idx) => {
+        const ts = a.ts || a.timestamp;
+        const date = ts ? new Date(ts) : null;
+        const formattedDate = date && !isNaN(date.getTime()) ? date.toLocaleDateString() : 'Invalid Date';
+        const fileName = a.name || 'Untitled';
+        const archiveType = (a.category === 'auto' || a.type === 'auto') ? 'Auto' : 'Manual';
+        
+        return `
+          <tr style='border-bottom:1px solid #333;'>
+            <td style='padding:1vh 1vw;text-align:center;'>
+              <input type='checkbox' class='archive-checkbox' data-archive-id='${a.id}' style='cursor:pointer;'>
+            </td>
+            <td style='padding:1vh 1vw;text-align:center;font-weight:600;color:#888;font-size:1.1vh;'>${idx + 1}</td>
+            <td style='padding:1vh 1vw;color:#ddd;font-size:1.2vh;'>${fileName}</td>
+            <td style='padding:1vh 1vw;text-align:center;color:#f4d03f;font-size:1.1vh;font-weight:600;'>${archiveType}</td>
+            <td style='padding:1vh 1vw;color:#999;font-size:1.1vh;'>${formattedDate}</td>
+            <td style='padding:1vh 1vw;text-align:center;'>
+              <button type='button' class='btn' data-archive-replay='${a.id}' style='padding:0.5vh 1vw;font-size:1.1vh;background:#555;border:1px solid #666;color:#ddd;'>
+                View
+              </button>
+            </td>
+            <td style='padding:1vh 1vw;text-align:center;'>
+              <button type='button' class='btn btn-danger' data-archive-delete='${a.id}' style='padding:0.5vh 1vw;font-size:1.1vh;'>
+                Delete
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      
+      host.innerHTML = `
+        <div style='display:flex;flex-direction:column;'>
+          <table style='width:100%;border-collapse:collapse;background:#1a1a1a;font-family:inherit;'>
+            <thead>
+              <tr style='background:#000;color:#f4d03f;'>
+                <th style='padding:1.2vh 1vw;text-align:center;font-weight:600;font-size:1.2vh;border-bottom:1px solid #333;width:40px;'>
+                  <input type='checkbox' id='archive-select-all' style='cursor:pointer;'>
+                </th>
+                <th style='padding:1.2vh 1vw;text-align:center;font-weight:600;font-size:1.2vh;border-bottom:1px solid #333;width:50px;'>#</th>
+                <th style='padding:1.2vh 1vw;text-align:left;font-weight:600;font-size:1.2vh;border-bottom:1px solid #333;'>File Name</th>
+                <th style='padding:1.2vh 1vw;text-align:center;font-weight:600;font-size:1.2vh;border-bottom:1px solid #333;width:80px;'>Type</th>
+                <th style='padding:1.2vh 1vw;text-align:left;font-weight:600;font-size:1.2vh;border-bottom:1px solid #333;width:120px;'>Date</th>
+                <th style='padding:1.2vh 1vw;text-align:center;font-weight:600;font-size:1.2vh;border-bottom:1px solid #333;width:80px;'>View</th>
+                <th style='padding:1.2vh 1vw;text-align:center;font-weight:600;font-size:1.2vh;border-bottom:1px solid #333;width:80px;'>Delete</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+          </table>
+          <div style='display:flex;justify-content:flex-end;padding:1.5vh 1vw;background:#0a0a0a;border-top:1px solid #333;'>
+            <button type='button' id='bulk-delete-archives' class='btn btn-danger' disabled style='padding:0.8vh 1.5vw;font-size:1.2vh;'>
+              🗑️ Delete Selected (<span id='selected-count'>0</span>)
+            </button>
           </div>
-          <div style='display:flex;gap:6px;flex-wrap:wrap;'>
-            <button type='button' class='btn btn-secondary' data-archive-replay='${a.id}'>Load & Replay</button>
-            <button type='button' class='btn btn-secondary' data-archive-export='${a.id}'>Export</button>
-            <button type='button' class='btn btn-secondary' data-archive-delete='${a.id}'>Delete</button>
-          </div>
-        </li>`;}).join('')}</ul>`;
+        </div>
+      `;
+      
+      // Add event handlers for checkboxes and bulk delete
+      const selectAllCheckbox = host.querySelector('#archive-select-all');
+      const checkboxes = host.querySelectorAll('.archive-checkbox');
+      const bulkDeleteBtn = host.querySelector('#bulk-delete-archives');
+      const selectedCountSpan = host.querySelector('#selected-count');
+      
+      const updateBulkDeleteButton = () => {
+        const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+        selectedCountSpan.textContent = checkedCount;
+        bulkDeleteBtn.disabled = checkedCount === 0;
+      };
+      
+      selectAllCheckbox.addEventListener('change', () => {
+        checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+        updateBulkDeleteButton();
+      });
+      
+      checkboxes.forEach(cb => {
+        cb.addEventListener('change', () => {
+          selectAllCheckbox.checked = Array.from(checkboxes).every(cb => cb.checked);
+          updateBulkDeleteButton();
+        });
+      });
+      
+      bulkDeleteBtn.addEventListener('click', async () => {
+        const selectedIds = Array.from(checkboxes)
+          .filter(cb => cb.checked)
+          .map(cb => cb.dataset.archiveId);
+        
+        if (selectedIds.length === 0) return;
+        
+        if (!confirm(`Delete ${selectedIds.length} archive(s)?`)) return;
+        
+        try {
+          const { archiveManager } = await import('../../services/archiveManagementService.js');
+          selectedIds.forEach(id => archiveManager.deleteArchive(id));
+          loadArchives(); // Reload the list
+        } catch (err) {
+          console.error('Bulk delete failed:', err);
+          alert('Failed to delete archives: ' + err.message);
+        }
+      });
+      
     } catch(e){
       host.innerHTML = `<div style='color:#c55;font-size:11px;'>Failed to load archives: ${e.message}</div>`;
     }

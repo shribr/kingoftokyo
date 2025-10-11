@@ -112,12 +112,26 @@ export class ArchiveManagerComponent {
                 <option value="size-asc">Smallest First</option>
               </select>
 
-              <button class="filter-reset-btn" data-filter-reset title="Reset Filters">🔄</button>
+              <button class="filter-reset-btn" data-filter-reset title="Reset Filters">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="23 4 23 10 17 10"></polyline>
+                  <polyline points="1 20 1 14 7 14"></polyline>
+                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
+                  <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path>
+                </svg>
+              </button>
             </div>
 
             <div class="toolbar-section actions-section">
               <button class="action-btn refresh-btn" data-action="refresh" title="Refresh">
-                <span class="btn-icon">🔄</span>
+                <span class="btn-icon">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <polyline points="1 20 1 14 7 14"></polyline>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
+                    <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path>
+                  </svg>
+                </span>
                 <span class="btn-text">Refresh</span>
               </button>
               <button class="action-btn bulk-btn" data-action="bulk-export" title="Export Selected" disabled>
@@ -146,11 +160,12 @@ export class ArchiveManagerComponent {
                       <th class="select-column">
                         <input type="checkbox" data-select-all>
                       </th>
-                      <th class="name-column">Name</th>
+                      <th class="number-column">#</th>
+                      <th class="name-column">File Name</th>
                       <th class="type-column">Type</th>
                       <th class="date-column">Date</th>
-                      <th class="size-column">Size</th>
-                      <th class="actions-column">Actions</th>
+                      <th class="view-column">View</th>
+                      <th class="delete-column">Delete</th>
                     </tr>
                   </thead>
                   <tbody data-archive-tbody>
@@ -169,6 +184,13 @@ export class ArchiveManagerComponent {
               </div>
             </div>
             <div class="footer-right">
+              <button class="btn-danger" data-action="bulk-delete-footer" disabled style="margin-right:8px;">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                Delete Selected
+              </button>
               <button class="btn-secondary" data-action="settings">Settings</button>
               <button class="btn-primary" data-action="close">Close</button>
             </div>
@@ -262,6 +284,7 @@ export class ArchiveManagerComponent {
         await this.exportSelected();
         break;
       case 'bulk-delete':
+      case 'bulk-delete-footer':
         await this.deleteSelected();
         break;
       case 'filter-reset':
@@ -522,7 +545,7 @@ export class ArchiveManagerComponent {
     if (this.archives.length === 0) {
       tbody.innerHTML = `
         <tr class="empty-row">
-          <td colspan="6" class="empty-cell">
+          <td colspan="7" class="empty-cell">
             <div class="empty-state-small">
               📁 No archives found
             </div>
@@ -532,21 +555,23 @@ export class ArchiveManagerComponent {
       return;
     }
 
-    const rowsHtml = this.archives.map(archive => this.renderArchiveRow(archive)).join('');
+    const rowsHtml = this.archives.map((archive, index) => this.renderArchiveRow(archive, index + 1)).join('');
     tbody.innerHTML = rowsHtml;
   }
 
   /**
    * Render archive row for list view
    * @param {Object} archive - Archive data
+   * @param {number} archiveNumber - Sequential archive number
    * @returns {string} Row HTML
    */
-  renderArchiveRow(archive) {
+  renderArchiveRow(archive, archiveNumber) {
     const isSelected = archiveManager.selection.has(archive.id);
     const date = new Date(archive.ts || archive.timestamp);
-    const formattedDate = date.toLocaleDateString();
-    const formattedSize = this.formatFileSize(archive.size || 0);
-    const typeIcon = this.getTypeIcon(archive.type);
+    const formattedDate = date && !isNaN(date.getTime()) ? date.toLocaleDateString() : 'N/A';
+    const fileName = archive.name || 'Untitled';
+    const fileExtension = fileName.includes('.') ? fileName.split('.').pop() : 'json';
+    const archiveType = archive.category === 'auto' ? 'Auto' : 'Manual';
     
     return `
       <tr class="archive-row ${isSelected ? 'selected' : ''}" data-archive-id="${archive.id}">
@@ -556,36 +581,33 @@ export class ArchiveManagerComponent {
                  data-archive-id="${archive.id}"
                  ${isSelected ? 'checked' : ''}>
         </td>
+        <td class="number-cell">${archiveNumber}</td>
         <td class="name-cell">
-          <div class="archive-name" title="${archive.name}">${archive.name}</div>
+          <div class="archive-name" title="${fileName}">${fileName}</div>
         </td>
-        <td class="type-cell">
-          <span class="type-badge">
-            <span class="type-icon">${typeIcon}</span>
-            ${archive.category}
-          </span>
-        </td>
+        <td class="type-cell">${archiveType}</td>
         <td class="date-cell">${formattedDate}</td>
-        <td class="size-cell">${formattedSize}</td>
-        <td class="actions-cell">
-          <div class="row-actions">
-            <button class="row-action-btn" 
-                    data-action="archive-open"
-                    data-archive-id="${archive.id}"
-                    title="Open">👁️</button>
-            <button class="row-action-btn" 
-                    data-action="archive-replay"
-                    data-archive-id="${archive.id}"
-                    title="Replay">▶️</button>
-            <button class="row-action-btn" 
-                    data-action="archive-export"
-                    data-archive-id="${archive.id}"
-                    title="Export">📤</button>
-            <button class="row-action-btn danger" 
-                    data-action="archive-delete"
-                    data-archive-id="${archive.id}"
-                    title="Delete">🗑️</button>
-          </div>
+        <td class="view-cell">
+          <button class="row-action-btn" 
+                  data-action="archive-open"
+                  data-archive-id="${archive.id}"
+                  title="View Game Log">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+        </td>
+        <td class="delete-cell">
+          <button class="row-action-btn danger" 
+                  data-action="archive-delete"
+                  data-archive-id="${archive.id}"
+                  title="Delete">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+          </button>
         </td>
       </tr>
     `;
@@ -1223,6 +1245,12 @@ export class ArchiveManagerComponent {
     bulkButtons.forEach(btn => {
       btn.disabled = summary.selected === 0;
     });
+    
+    // Update footer bulk delete button
+    const footerDeleteBtn = this.container.querySelector('[data-action="bulk-delete-footer"]');
+    if (footerDeleteBtn) {
+      footerDeleteBtn.disabled = summary.selected === 0;
+    }
   }
 
   /**
